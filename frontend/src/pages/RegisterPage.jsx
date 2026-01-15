@@ -83,6 +83,11 @@ export default function RegisterPage() {
             Zaten hesabınız var mı?{" "}
             <Link to="/login" className="text-primary font-semibold hover:underline" data-testid="login-link">Giriş Yap</Link>
           </p>
+
+          {/* Footer */}
+          <p className="mt-8 text-center text-xs text-muted-foreground">
+            © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+          </p>
         </div>
       </div>
       <div className="hidden lg:block lg:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1586626277605-7720525d251a?crop=entropy&cs=srgb&fm=jpg&q=85')` }}>
@@ -92,11 +97,6 @@ export default function RegisterPage() {
             <p className="text-white/80">Kurye Yönetim Sistemi</p>
           </div>
         </div>
-      </div>
-
-      {/* Footer - Mobile */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t py-3 text-center text-xs text-muted-foreground">
-        © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
       </div>
     </div>
   );

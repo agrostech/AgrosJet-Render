@@ -174,6 +174,11 @@ export default function LoginPage() {
               </form>
             </TabsContent>
           </Tabs>
+
+          {/* Footer */}
+          <p className="mt-8 text-center text-xs text-muted-foreground">
+            © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+          </p>
         </div>
       </div>
 
@@ -194,11 +199,6 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Footer - Mobile */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t py-3 text-center text-xs text-muted-foreground">
-        © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
       </div>
     </div>
   );
