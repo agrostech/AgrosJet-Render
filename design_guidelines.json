@@ -1,0 +1,139 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "KuryeFlow Swiss",
+      "archetype": "Swiss & High-Contrast",
+      "tone": "Industrial, Precise, Authoritative, Text-First",
+      "principles": [
+        "Content is King: Data over decoration.",
+        "Grid is God: Strict alignment, no floating elements.",
+        "Type is Voice: Bold headings, monospace data.",
+        "No Noise: No gradients, no shadows, no emojis."
+      ]
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Oswald, sans-serif",
+        "body": "Inter, sans-serif",
+        "data": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-4xl md:text-5xl font-bold tracking-tight uppercase",
+        "h2": "text-2xl md:text-3xl font-semibold tracking-tight uppercase",
+        "h3": "text-xl font-medium uppercase tracking-wide",
+        "body": "text-sm md:text-base leading-relaxed",
+        "caption": "text-xs font-mono text-muted-foreground uppercase tracking-widest"
+      },
+      "imports": [
+        "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;700&display=swap"
+      ]
+    },
+    "colors": {
+      "palette": {
+        "primary": "#0F172A",
+        "secondary": "#F1F5F9",
+        "accent": "#F97316",
+        "background": "#FFFFFF",
+        "surface": "#F8FAFC",
+        "border": "#E2E8F0",
+        "text_primary": "#020617",
+        "text_secondary": "#64748B",
+        "success": "#16A34A",
+        "error": "#DC2626",
+        "warning": "#D97706"
+      },
+      "usage": {
+        "primary_action": "bg-primary text-white hover:bg-primary/90 rounded-none",
+        "secondary_action": "bg-white border border-input hover:bg-accent hover:text-white rounded-none transition-colors",
+        "destructive": "bg-error text-white hover:bg-error/90 rounded-none",
+        "dashboard_bg": "bg-surface"
+      }
+    },
+    "layout": {
+      "spacing": {
+        "container_padding": "p-4 md:p-8 lg:p-12",
+        "section_gap": "gap-8",
+        "item_gap": "gap-4"
+      },
+      "grid_system": {
+        "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6",
+        "card_metric": "col-span-1 md:col-span-4 lg:col-span-3",
+        "card_main": "col-span-1 md:col-span-8 lg:col-span-9",
+        "card_full": "col-span-full"
+      },
+      "radius": {
+        "default": "rounded-none",
+        "input": "rounded-none",
+        "button": "rounded-none",
+        "card": "rounded-none"
+      }
+    },
+    "components": {
+      "buttons": {
+        "style": "uppercase font-bold tracking-wider text-xs h-10 px-6 rounded-none",
+        "variants": {
+          "default": "bg-primary text-white hover:bg-slate-800",
+          "outline": "border-2 border-primary text-primary hover:bg-primary hover:text-white"
+        }
+      },
+      "cards": {
+        "style": "bg-white border border-border shadow-none rounded-none p-6"
+      },
+      "inputs": {
+        "style": "rounded-none border-2 border-input focus:border-primary focus:ring-0 bg-transparent h-12"
+      },
+      "tables": {
+        "style": "w-full text-sm text-left",
+        "header": "uppercase tracking-wider font-bold text-xs text-muted-foreground border-b-2 border-primary",
+        "row": "border-b border-border hover:bg-slate-50"
+      }
+    },
+    "assets": {
+      "images": {
+        "login_bg": "https://images.unsplash.com/photo-1586626277605-7720525d251a?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "logo_placeholder": "https://via.placeholder.com/150x50?text=KURYE+FLOW"
+      },
+      "icons": {
+        "library": "lucide-react",
+        "style": "stroke-[1.5px] w-5 h-5"
+      }
+    },
+    "accessibility": {
+      "contrast": "WCAG AA Compliant",
+      "focus_states": "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
+      "aria": "All interactive elements must have aria-labels if text is not descriptive."
+    },
+    "motion": {
+      "reduced_motion": "respect-media-query",
+      "hover": "transition-all duration-200 ease-out",
+      "page_transition": "animate-in fade-in slide-in-from-bottom-4 duration-500"
+    }
+  },
+  "instructions_to_main_agent": {
+    "general": [
+      "STRICTLY NO EMOJIS. Use text labels or Lucide icons.",
+      "Use 'Oswald' for all headings (h1-h3). Use 'Inter' for body text.",
+      "Use 'JetBrains Mono' for any ID, Phone Number, or Currency data.",
+      "All borders and corners must be SHARP (rounded-none). This is an industrial design.",
+      "Mobile First: Ensure all grids collapse to 1 column on mobile.",
+      "Language: Turkish (TR) only.",
+      "Login Page: Split screen. Left 50% form, Right 50% image (hidden on mobile)."
+    ],
+    "pages": {
+      "login": {
+        "layout": "Split Screen",
+        "elements": ["Phone Input (Courier)", "Username/Pass (Admin)", "Toggle Tabs"]
+      },
+      "dashboard": {
+        "layout": "Sidebar Layout (Desktop) / Bottom Nav or Hamburger (Mobile)",
+        "content": "Bento Grid of Metrics + Data Tables"
+      }
+    },
+    "universal_guidelines": [
+      "Do not use gradients.",
+      "Do not use shadows (use borders instead).",
+      "Always add data-testid to interactive elements.",
+      "Use 'sonner' for notifications."
+    ]
+  }
+}
