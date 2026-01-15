@@ -222,25 +222,30 @@ export default function IsletmelerTab({ companyId }) {
                 <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
-            <div className="max-h-[320px] overflow-y-auto">
+            <div ref={listRef} onScroll={handleScroll} className="max-h-[320px] overflow-y-auto">
               {transactions.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-4 text-center">Henüz işlem yok</p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 sticky top-0">
-                    <tr><th className="text-left p-2 font-semibold">Tarih</th><th className="text-left p-2 font-semibold">Açıklama</th><th className="text-right p-2 font-semibold">Tutar</th><th className="w-10"></th></tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((tx) => (
-                      <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50 group">
-                        <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
-                        <td className="p-2">{tx.description}</td>
-                        <td className={`p-2 text-right font-medium ${tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'}`}>{tx.type === 'payment_out' && '-'}{formatCurrency(tx.amount)}</td>
-                        <td className="p-1"><button onClick={() => handleDeleteTransaction(tx.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1 transition-opacity"><Trash2 className="w-4 h-4" /></button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <>
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 sticky top-0">
+                      <tr><th className="text-left p-2 font-semibold">Tarih</th><th className="text-left p-2 font-semibold">Açıklama</th><th className="text-right p-2 font-semibold">Tutar</th><th className="w-10"></th></tr>
+                    </thead>
+                    <tbody>
+                      {transactions.slice(0, displayCount).map((tx) => (
+                        <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50 group">
+                          <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
+                          <td className="p-2">{tx.description}</td>
+                          <td className={`p-2 text-right font-medium ${tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'}`}>{tx.type === 'payment_out' && '-'}{formatCurrency(tx.amount)}</td>
+                          <td className="p-1"><button onClick={() => handleDeleteTransaction(tx.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1 transition-opacity"><Trash2 className="w-4 h-4" /></button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {displayCount < transactions.length && (
+                    <p className="text-xs text-muted-foreground text-center py-2">Daha fazla görmek için kaydırın...</p>
+                  )}
+                </>
               )}
             </div>
           </>
