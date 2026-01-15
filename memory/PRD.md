@@ -1,36 +1,31 @@
 # Kurye Yönetim Sistemi PRD
 
 ## Problem Statement
-Multi-tenant kurye yönetim sistemi. Birden fazla şirket tek platformda yönetilebilir. Her şirketin kendi süper admini, adminleri ve kuryeleri vardır.
+Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz), şirketler kuryeleri telefon ile kendi sistemlerine ekler.
 
-## User Personas
-1. **Sistem Yöneticisi**: Tüm şirketleri yönetir, süper admin atar (systemadmin / System123!)
-2. **Süper Admin**: Bir şirkete ait, adminleri ve kuryeleri yönetir
+## User Personas & Hiyerarşi
+1. **Sistem Yöneticisi** (`systemadmin` / `System123!`): Şirketleri yönetir, süper admin atar
+2. **Süper Admin**: Şirkete bağlı, otomatik login, adminleri/kuryeleri yönetir
 3. **Admin**: Yetkilere göre çalışır
-4. **Kurye**: Kendi paneli (vardiya, muhasebe, zimmet)
+4. **Kurye**: Global kayıt, şirketlere bağlanabilir
 
 ## Core Requirements
-- Multi-tenant yapı (birden fazla şirket)
-- Şirket bazlı logo ve isim
+- Kuryeler şirket bağımsız kayıt olur (telefon unique)
+- Şirketler kuryeleri telefon ile ekler
+- Admin/Süper Admin girişte otomatik şirketine bağlanır
+- Login'de şirket seçimi YOK
 - Türkçe karakter desteği (İ, Ş, Ğ, Ü, Ö, Ç)
-- Hiyerarşik yetki sistemi
 - Mobile-first responsive tasarım
 
 ## What's Been Implemented (Dec 2025)
-### Phase 1 - MVP
-- [x] Kurye kayıt ve giriş sistemi
-- [x] Admin/Süper Admin giriş sistemi
-- [x] Kurye Dashboard (Vardiya, Muhasebe, Zimmet placeholder)
-- [x] Admin Dashboard (+ Kuryeler, Yöneticiler)
-- [x] Mobile responsive tasarım
-
-### Phase 2 - Multi-Tenant
-- [x] Sistem Yöneticisi Dashboard
-- [x] Şirket oluşturma/düzenleme/silme
-- [x] Şirket bazlı süper admin atama
-- [x] Şirket seçimli login
-- [x] Şirket logosu ve ismi tüm dashboardlarda
+- [x] Global kurye kayıt sistemi
+- [x] Telefon ile kurye arama ve şirkete ekleme
+- [x] Otomatik şirket bağlantılı admin girişi
+- [x] Sistem Yöneticisi Dashboard (şirket yönetimi)
+- [x] Admin/Süper Admin Dashboard
+- [x] Kurye Dashboard (şirket bekleme durumu, çoklu şirket desteği)
 - [x] Türkçe karakter desteği
+- [x] Vardiya, Muhasebe, Zimmet sekmeleri (placeholder)
 
 ## Prioritized Backlog
 ### P0 - Next Phase (Kullanıcı detay bekliyor)
@@ -41,10 +36,6 @@ Multi-tenant kurye yönetim sistemi. Birden fazla şirket tek platformda yöneti
 ### P1 - Future
 - [ ] Kurye profil düzenleme
 - [ ] Şifre sıfırlama
-- [ ] Dashboard istatistikleri
-
-## System Credentials
-- Sistem Yöneticisi: `systemadmin` / `System123!`
 
 ## Tech Stack
 - Backend: FastAPI + MongoDB
