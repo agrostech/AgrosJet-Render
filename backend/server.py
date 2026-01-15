@@ -96,7 +96,7 @@ class AdminResponse(BaseModel):
     username: str
     role: str
     permissions: dict
-    company_id: Optional[str]
+    company_id: Optional[str] = None
     created_at: str
 
 # Initialize system admin on startup
