@@ -734,9 +734,12 @@ async def delete_business(business_id: str):
 
 # --- Cariler (Vendors) ---
 @api_router.get("/companies/{company_id}/vendors")
-async def get_vendors(company_id: str):
+async def get_vendors(company_id: str, include_archived: bool = False):
     """Get all vendors for a company"""
-    vendors = await db.vendors.find({"company_id": company_id}, {"_id": 0}).to_list(500)
+    query = {"company_id": company_id}
+    if not include_archived:
+        query["is_archived"] = {"$ne": True}
+    vendors = await db.vendors.find(query, {"_id": 0}).to_list(500)
     return vendors
 
 @api_router.post("/companies/{company_id}/vendors")
@@ -748,10 +751,33 @@ async def create_vendor(company_id: str, data: VendorCreate):
         "phone": data.phone,
         "address": data.address,
         "company_id": company_id,
+        "is_archived": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.vendors.insert_one(vendor)
     return {"message": "Cari oluşturuldu", "id": vendor["id"]}
+
+@api_router.put("/vendors/{vendor_id}/archive")
+async def archive_vendor(vendor_id: str):
+    """Archive a vendor"""
+    result = await db.vendors.update_one(
+        {"id": vendor_id},
+        {"$set": {"is_archived": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cari bulunamadı")
+    return {"message": "Cari arşivlendi"}
+
+@api_router.put("/vendors/{vendor_id}/unarchive")
+async def unarchive_vendor(vendor_id: str):
+    """Unarchive a vendor"""
+    result = await db.vendors.update_one(
+        {"id": vendor_id},
+        {"$set": {"is_archived": False}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cari bulunamadı")
+    return {"message": "Cari arşivden çıkarıldı"}
 
 @api_router.delete("/vendors/{vendor_id}")
 async def delete_vendor(vendor_id: str):
