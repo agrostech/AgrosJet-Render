@@ -76,6 +76,7 @@ export default function IsletmelerTab({ companyId }) {
       fetchTransactions(selectedBusiness.id);
       setAmount("");
       setDescription("");
+      setDisplayCount(10);
     }
   }, [selectedBusiness]);
 
