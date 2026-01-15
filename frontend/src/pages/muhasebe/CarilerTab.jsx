@@ -76,6 +76,7 @@ export default function CarilerTab({ companyId }) {
       fetchTransactions(selectedVendor.id);
       setAmount("");
       setDescription("");
+      setDisplayCount(10);
     }
   }, [selectedVendor]);
 
