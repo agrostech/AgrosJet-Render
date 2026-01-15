@@ -91,6 +91,8 @@ export default function KuryelerTab({ companyId }) {
       setDescription("");
       setIsHakedis(false);
       fetchTransactions(selectedCourier.id);
+      // Update courier balance in list
+      fetchCourierBalance(selectedCourier.id);
     } catch (err) {
       toast.error("İşlem başarısız");
     } finally {
