@@ -3,14 +3,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Plus, Minus, User } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -21,11 +15,11 @@ export default function KuryelerTab({ companyId }) {
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentType, setPaymentType] = useState("in"); // "in" = ödeme al, "out" = ödeme yap
-  const [paymentForm, setPaymentForm] = useState({ amount: "", description: "", is_hakedis: false });
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [isHakedis, setIsHakedis] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Kuryeleri getir
   const fetchCouriers = async () => {
     try {
       const res = await axios.get(`${API}/companies/${companyId}/couriers`);
@@ -40,7 +34,6 @@ export default function KuryelerTab({ companyId }) {
     }
   };
 
-  // Seçili kurye için işlemleri getir
   const fetchTransactions = async (courierId) => {
     try {
       const res = await axios.get(`${API}/transactions/courier/${courierId}`);
@@ -59,53 +52,42 @@ export default function KuryelerTab({ companyId }) {
   useEffect(() => {
     if (selectedCourier) {
       fetchTransactions(selectedCourier.id);
+      setAmount("");
+      setDescription("");
+      setIsHakedis(false);
     }
   }, [selectedCourier]);
 
-  const openPaymentModal = (type) => {
-    setPaymentType(type);
-    setPaymentForm({ amount: "", description: "", is_hakedis: false });
-    setShowPaymentModal(true);
-  };
-
-  const handlePayment = async (e) => {
-    e.preventDefault();
-    if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
+  const handlePayment = async (type) => {
+    if (!amount || parseFloat(amount) <= 0) {
       toast.error("Geçerli bir tutar girin");
       return;
     }
-
+    setSubmitting(true);
     try {
       await axios.post(`${API}/transactions`, {
         entity_type: "courier",
         entity_id: selectedCourier.id,
         company_id: companyId,
-        type: paymentType === "in" ? "payment_in" : "payment_out",
-        amount: parseFloat(paymentForm.amount),
-        description: paymentForm.description || (paymentType === "in" ? "Ödeme alındı" : "Ödeme yapıldı"),
-        is_hakedis: paymentType === "in" ? paymentForm.is_hakedis : false
+        type: type === "in" ? "payment_in" : "payment_out",
+        amount: parseFloat(amount),
+        description: description || (type === "in" ? "Ödeme alındı" : "Ödeme yapıldı"),
+        is_hakedis: type === "in" ? isHakedis : false
       });
-      toast.success(paymentType === "in" ? "Ödeme alındı" : "Ödeme yapıldı");
-      setShowPaymentModal(false);
+      toast.success(type === "in" ? "Ödeme alındı" : "Ödeme yapıldı");
+      setAmount("");
+      setDescription("");
+      setIsHakedis(false);
       fetchTransactions(selectedCourier.id);
     } catch (err) {
       toast.error("İşlem başarısız");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amount);
-  };
-
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('tr-TR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amt);
+  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -120,22 +102,18 @@ export default function KuryelerTab({ companyId }) {
           {couriers.length === 0 ? (
             <p className="text-sm text-muted-foreground p-4 text-center">Kurye bulunamadı</p>
           ) : (
-            couriers.map((courier) => (
+            couriers.map((c) => (
               <button
-                key={courier.id}
-                onClick={() => setSelectedCourier(courier)}
-                className={`w-full flex items-center gap-3 p-3 text-left border-b border-slate-100 transition-colors ${
-                  selectedCourier?.id === courier.id
-                    ? "bg-primary/10 border-l-4 border-l-primary"
-                    : "hover:bg-slate-50"
-                }`}
+                key={c.id}
+                onClick={() => setSelectedCourier(c)}
+                className={`w-full flex items-center gap-3 p-3 text-left border-b border-slate-100 transition-colors ${selectedCourier?.id === c.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}
               >
                 <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
                   <User className="w-4 h-4 text-slate-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{courier.name}</p>
-                  <p className="text-xs text-muted-foreground font-mono">{courier.phone}</p>
+                  <p className="font-medium text-sm truncate">{c.name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{c.phone}</p>
                 </div>
               </button>
             ))
@@ -143,50 +121,61 @@ export default function KuryelerTab({ companyId }) {
         </div>
       </div>
 
-      {/* Sağ: Bakiye ve İşlemler */}
+      {/* Sağ: Detay */}
       <div className="lg:col-span-2 border-2 border-border bg-white">
         {selectedCourier ? (
           <>
             {/* Başlık ve Bakiye */}
-            <div className="p-4 border-b border-slate-200 bg-slate-50">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div>
-                  <h3 className="font-semibold">{selectedCourier.name}</h3>
-                  <p className="text-xs text-muted-foreground">{selectedCourier.phone}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Bakiye</p>
-                  <p className={`text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(balance)}
-                  </p>
-                </div>
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div>
+                <h3 className="font-semibold">{selectedCourier.name}</h3>
+                <p className="text-xs text-muted-foreground">{selectedCourier.phone}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Bakiye</p>
+                <p className={`text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(balance)}</p>
               </div>
             </div>
 
-            {/* Butonlar */}
-            <div className="p-3 border-b border-slate-200 flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => openPaymentModal("in")}
-                className="border-green-300 text-green-700 hover:bg-green-50"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Ödeme Al
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => openPaymentModal("out")}
-                className="border-red-300 text-red-700 hover:bg-red-50"
-              >
-                <Minus className="w-4 h-4 mr-1" />
-                Ödeme Yap
-              </Button>
+            {/* Ödeme Formu */}
+            <div className="p-3 border-b border-slate-200 bg-slate-50/50">
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="w-28">
+                  <Label className="text-xs text-muted-foreground">Tutar</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="h-9 border-2 text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="flex-1 min-w-[120px]">
+                  <Label className="text-xs text-muted-foreground">Açıklama</Label>
+                  <Input
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="h-9 border-2 text-sm"
+                    placeholder="İsteğe bağlı"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 pb-1">
+                  <Checkbox id="hakedis" checked={isHakedis} onCheckedChange={setIsHakedis} />
+                  <Label htmlFor="hakedis" className="text-xs cursor-pointer">Hakediş</Label>
+                </div>
+                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9">
+                  <Plus className="w-4 h-4 mr-1" />Ödeme Al
+                </Button>
+                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9">
+                  <Minus className="w-4 h-4 mr-1" />Ödeme Yap
+                </Button>
+              </div>
             </div>
 
             {/* İşlem Geçmişi */}
-            <div className="max-h-[350px] overflow-y-auto">
+            <div className="max-h-[320px] overflow-y-auto">
               {transactions.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-4 text-center">Henüz işlem yok</p>
               ) : (
@@ -201,20 +190,12 @@ export default function KuryelerTab({ companyId }) {
                   <tbody>
                     {transactions.map((tx) => (
                       <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDate(tx.created_at)}
-                        </td>
+                        <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
                         <td className="p-2">
-                          <span>{tx.description}</span>
-                          {tx.is_hakedis && (
-                            <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">
-                              Hakediş
-                            </span>
-                          )}
+                          {tx.description}
+                          {tx.is_hakedis && <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">Hakediş</span>}
                         </td>
-                        <td className={`p-2 text-right font-medium ${
-                          tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <td className={`p-2 text-right font-medium ${tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'}`}>
                           {tx.type === 'payment_in' ? '-' : '+'}{formatCurrency(tx.amount)}
                         </td>
                       </tr>
@@ -225,66 +206,9 @@ export default function KuryelerTab({ companyId }) {
             </div>
           </>
         ) : (
-          <div className="p-8 text-center text-muted-foreground">
-            Kurye seçin
-          </div>
+          <div className="p-8 text-center text-muted-foreground">Kurye seçin</div>
         )}
       </div>
-
-      {/* Ödeme Modal */}
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-heading">
-              {paymentType === "in" ? "Ödeme Al" : "Ödeme Yap"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handlePayment} className="space-y-4">
-            <div>
-              <Label className="text-sm font-semibold">Tutar (₺)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={paymentForm.amount}
-                onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                className="mt-1 h-12 border-2 text-lg"
-                placeholder="0.00"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold">Açıklama</Label>
-              <Input
-                value={paymentForm.description}
-                onChange={(e) => setPaymentForm({ ...paymentForm, description: e.target.value })}
-                className="mt-1 h-10 border-2"
-                placeholder="İsteğe bağlı"
-              />
-            </div>
-            {paymentType === "in" && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="hakedis"
-                  checked={paymentForm.is_hakedis}
-                  onCheckedChange={(checked) => setPaymentForm({ ...paymentForm, is_hakedis: checked })}
-                />
-                <Label htmlFor="hakedis" className="text-sm cursor-pointer">Hakediş</Label>
-              </div>
-            )}
-            <Button 
-              type="submit" 
-              className={`w-full h-12 font-semibold ${
-                paymentType === "in" 
-                  ? "bg-green-600 hover:bg-green-700" 
-                  : "bg-red-600 hover:bg-red-700"
-              }`}
-            >
-              {paymentType === "in" ? "Ödeme Al" : "Ödeme Yap"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
