@@ -644,6 +644,38 @@ class TransactionCreate(BaseModel):
     amount: float
     description: Optional[str] = None
     is_hakedis: Optional[bool] = False
+    admin_id: Optional[str] = None
+    admin_name: Optional[str] = None
+
+class ActivityLogCreate(BaseModel):
+    company_id: str
+    admin_id: str
+    admin_name: str
+    action: str  # "transaction_created", "transaction_deleted"
+    entity_type: str  # "courier", "business", "vendor"
+    entity_id: str
+    entity_name: str
+    details: Optional[dict] = None
+
+# --- Activity Logs ---
+async def create_activity_log(log_data: dict):
+    """Helper to create activity log"""
+    log = {
+        "id": str(uuid.uuid4()),
+        **log_data,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.activity_logs.insert_one(log)
+    return log
+
+@api_router.get("/activity-logs/{company_id}")
+async def get_activity_logs(company_id: str, limit: int = 100):
+    """Get activity logs for a company"""
+    logs = await db.activity_logs.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    return logs
 
 # --- İşletmeler (Businesses) ---
 @api_router.get("/companies/{company_id}/businesses")
