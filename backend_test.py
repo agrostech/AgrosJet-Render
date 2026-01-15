@@ -28,9 +28,14 @@ class KuryeAPITester:
             "password": "testpass123"
         }
         
-        self.super_admin_creds = {
-            "username": "onurertas",
-            "password": "Delivery32.."
+        self.system_admin_creds = {
+            "username": "systemadmin",
+            "password": "System123!"
+        }
+        
+        self.test_company = {
+            "name": "Test Şirketi İçin Türkçe Karakter Testi ÇĞİÖŞÜ",
+            "logo_url": "https://via.placeholder.com/200x100/0066cc/ffffff?text=TEST+LOGO"
         }
 
     def log_test(self, name, success, details=""):
