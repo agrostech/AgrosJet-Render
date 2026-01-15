@@ -115,7 +115,9 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
   const handleDeleteTransaction = async (txId) => {
     if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
     try {
-      await axios.delete(`${API}/transactions/${txId}`);
+      await axios.delete(`${API}/transactions/${txId}`, {
+        data: { admin_id: adminId, admin_name: adminName }
+      });
       toast.success("İşlem silindi");
       fetchTransactions(selectedCourier.id);
       fetchCourierBalance(selectedCourier.id);
