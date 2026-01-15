@@ -459,8 +459,19 @@ class LeaveAssignment(BaseModel):
 async def get_company_shifts(company_id: str):
     """Get all shifts for a company"""
     shifts = await db.shifts.find({"company_id": company_id}, {"_id": 0}).to_list(100)
-    # Sort by start_time
-    shifts.sort(key=lambda x: x.get("start_time", "00:00"))
+    
+    # Sort by start_time with day starting at 06:00
+    # Times before 06:00 are considered "end of day" and sorted last
+    def shift_sort_key(shift):
+        start_time = shift.get("start_time", "00:00")
+        hour = int(start_time.split(":")[0])
+        minute = int(start_time.split(":")[1]) if len(start_time.split(":")) > 1 else 0
+        # If hour is before 06:00, add 24 to sort at the end
+        if hour < 6:
+            hour += 24
+        return hour * 60 + minute
+    
+    shifts.sort(key=shift_sort_key)
     return shifts
 
 @api_router.post("/companies/{company_id}/shifts")
