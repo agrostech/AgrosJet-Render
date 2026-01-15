@@ -117,7 +117,9 @@ export default function IsletmelerTab({ companyId, adminId, adminName }) {
         type: type === "in" ? "payment_in" : "payment_out",
         amount: parseFloat(amount),
         description: description || (type === "in" ? "Verilen" : "Alınan"),
-        is_hakedis: false
+        is_hakedis: false,
+        admin_id: adminId,
+        admin_name: adminName
       });
       toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
       setAmount("");
