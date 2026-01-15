@@ -124,18 +124,187 @@ class KuryeAPITester:
             data={"phone": self.test_courier["phone"], "password": self.test_courier["password"]}
         )
 
-    def test_super_admin_login(self):
-        """Test super admin login"""
+    def test_system_admin_login(self):
+        """Test system admin login (no company required)"""
         success, response = self.run_test(
-            "Super Admin Login",
+            "System Admin Login (systemadmin/System123!)",
             "POST",
             "auth/admin/login",
             200,
-            data=self.super_admin_creds
+            data=self.system_admin_creds
         )
         if success:
-            self.super_admin_data = response
+            self.system_admin_data = response
+            # Verify it's system admin role
+            if response.get('role') == 'systemadmin' and response.get('company_id') is None:
+                self.log_test("System Admin Role Verification", True, "Role: systemadmin, No company required")
+            else:
+                self.log_test("System Admin Role Verification", False, f"Role: {response.get('role')}, Company: {response.get('company_id')}")
         return success
+
+    def test_create_company(self):
+        """Test creating a company with Turkish characters"""
+        success, response = self.run_test(
+            "Create Company with Turkish Characters",
+            "POST",
+            "companies",
+            200,
+            data=self.test_company
+        )
+        if success:
+            self.company_id = response.get('id')
+            # Verify Turkish characters are preserved
+            if response.get('name') == self.test_company['name']:
+                self.log_test("Turkish Character Preservation", True, f"Name preserved: {response.get('name')}")
+            else:
+                self.log_test("Turkish Character Preservation", False, f"Expected: {self.test_company['name']}, Got: {response.get('name')}")
+        return success
+
+    def test_get_companies(self):
+        """Test getting companies list"""
+        return self.run_test("Get Companies List", "GET", "companies", 200)
+
+    def test_update_company(self):
+        """Test updating company info"""
+        if not hasattr(self, 'company_id'):
+            self.log_test("Update Company", False, "No company ID available")
+            return False
+        
+        updated_data = {
+            "name": "Güncellenmiş Şirket Adı ÇĞİÖŞÜ",
+            "logo_url": "https://via.placeholder.com/300x150/ff6600/ffffff?text=UPDATED+LOGO"
+        }
+        
+        return self.run_test(
+            "Update Company",
+            "PUT",
+            f"companies/{self.company_id}",
+            200,
+            data=updated_data
+        )
+
+    def test_create_superadmin_for_company(self):
+        """Test creating super admin for a company"""
+        if not hasattr(self, 'company_id'):
+            self.log_test("Create Super Admin for Company", False, "No company ID available")
+            return False
+        
+        superadmin_data = {
+            "name": "Süper Admin Türkçe İsim ÇĞİÖŞÜ",
+            "username": "superadmin1",
+            "password": "SuperPass123!",
+            "company_id": self.company_id
+        }
+        
+        success, response = self.run_test(
+            "Create Super Admin for Company",
+            "POST",
+            "admins/superadmin",
+            200,
+            data=superadmin_data
+        )
+        if success:
+            self.superadmin_id = response.get('id')
+            self.superadmin_creds = {
+                "username": superadmin_data["username"],
+                "password": superadmin_data["password"],
+                "company_id": self.company_id
+            }
+        return success
+
+    def test_superadmin_login_with_company(self):
+        """Test super admin login with company selection"""
+        if not hasattr(self, 'superadmin_creds'):
+            self.log_test("Super Admin Login with Company", False, "No super admin credentials available")
+            return False
+        
+        success, response = self.run_test(
+            "Super Admin Login with Company Selection",
+            "POST",
+            "auth/admin/login",
+            200,
+            data=self.superadmin_creds
+        )
+        if success:
+            # Verify role and company
+            if response.get('role') == 'superadmin' and response.get('company_id') == self.company_id:
+                self.log_test("Super Admin Company Verification", True, f"Role: superadmin, Company: {response.get('company_id')}")
+            else:
+                self.log_test("Super Admin Company Verification", False, f"Role: {response.get('role')}, Company: {response.get('company_id')}")
+        return success
+
+    def test_courier_registration_with_company(self):
+        """Test courier registration with company"""
+        if not hasattr(self, 'company_id'):
+            self.log_test("Courier Registration with Company", False, "No company ID available")
+            return False
+        
+        courier_data = {
+            **self.test_courier,
+            "company_id": self.company_id,
+            "name": "Kurye İsmi Türkçe ÇĞİÖŞÜ"
+        }
+        
+        success, response = self.run_test(
+            "Courier Registration with Company",
+            "POST",
+            "auth/courier/register",
+            200,
+            data=courier_data
+        )
+        if success:
+            self.courier_id = response.get('id')
+        return success
+
+    def test_courier_login_with_company(self):
+        """Test courier login with company selection"""
+        if not hasattr(self, 'company_id'):
+            self.log_test("Courier Login with Company", False, "No company ID available")
+            return False
+        
+        # First approve the courier
+        if hasattr(self, 'courier_id'):
+            self.run_test(
+                "Approve Courier for Login Test",
+                "PUT",
+                f"couriers/{self.courier_id}/approve",
+                200
+            )
+        
+        courier_login_data = {
+            "phone": self.test_courier["phone"],
+            "password": self.test_courier["password"],
+            "company_id": self.company_id
+        }
+        
+        return self.run_test(
+            "Courier Login with Company Selection",
+            "POST",
+            "auth/courier/login",
+            200,
+            data=courier_login_data
+        )
+
+    def test_admin_login_without_company_should_fail(self):
+        """Test that non-system admin login fails without company"""
+        if not hasattr(self, 'superadmin_creds'):
+            self.log_test("Admin Login Without Company (should fail)", False, "No super admin credentials available")
+            return False
+        
+        # Try to login without company_id
+        login_data = {
+            "username": self.superadmin_creds["username"],
+            "password": self.superadmin_creds["password"]
+            # No company_id
+        }
+        
+        return self.run_test(
+            "Admin Login Without Company (should fail)",
+            "POST",
+            "auth/admin/login",
+            400,
+            data=login_data
+        )
 
     def test_get_couriers(self):
         """Test getting couriers list"""
