@@ -1,48 +1,51 @@
 # Kurye Yönetim Sistemi PRD
 
 ## Problem Statement
-Kurye Dashboard, Admin Dashboard ve Süper Admin Dashboard'dan oluşan bir kurye yönetim sistemi. Kuryeler telefon numarası ile üye olur, üyelikleri süper admin tarafından onaylanır.
+Multi-tenant kurye yönetim sistemi. Birden fazla şirket tek platformda yönetilebilir. Her şirketin kendi süper admini, adminleri ve kuryeleri vardır.
 
 ## User Personas
-1. **Kurye**: Telefon ile kayıt olur, onay bekler, kendi dashboard'unda vardiya/muhasebe/zimmet görür
-2. **Admin**: Yönetici panelinde kuryeleri yönetir, yetkilere göre sekmelere erişir
-3. **Süper Admin**: Tüm yetkilere sahip, adminleri ve yetkilerini yönetir (onurertas / Delivery32..)
+1. **Sistem Yöneticisi**: Tüm şirketleri yönetir, süper admin atar (systemadmin / System123!)
+2. **Süper Admin**: Bir şirkete ait, adminleri ve kuryeleri yönetir
+3. **Admin**: Yetkilere göre çalışır
+4. **Kurye**: Kendi paneli (vardiya, muhasebe, zimmet)
 
 ## Core Requirements
-- Kurye kayıt: İsim, Telefon, Adres, IBAN, Plaka, Şifre
-- İsim/Soyisim baş harfleri büyük formatlanır
-- Süper admin onay sistemi
-- Yetki bazlı sekme görünürlüğü
+- Multi-tenant yapı (birden fazla şirket)
+- Şirket bazlı logo ve isim
+- Türkçe karakter desteği (İ, Ş, Ğ, Ü, Ö, Ç)
+- Hiyerarşik yetki sistemi
 - Mobile-first responsive tasarım
-- Business dil, emoji yok, text-based UI
 
 ## What's Been Implemented (Dec 2025)
+### Phase 1 - MVP
 - [x] Kurye kayıt ve giriş sistemi
 - [x] Admin/Süper Admin giriş sistemi
 - [x] Kurye Dashboard (Vardiya, Muhasebe, Zimmet placeholder)
-- [x] Admin Dashboard (Vardiya, Muhasebe, Zimmet, Kuryeler)
-- [x] Süper Admin Dashboard (+ Yöneticiler sekmesi)
-- [x] Kurye onaylama/reddetme
-- [x] Yönetici ekleme ve yetki yönetimi
+- [x] Admin Dashboard (+ Kuryeler, Yöneticiler)
 - [x] Mobile responsive tasarım
-- [x] Swiss & High-Contrast tasarım (Oswald/Inter/JetBrains Mono)
+
+### Phase 2 - Multi-Tenant
+- [x] Sistem Yöneticisi Dashboard
+- [x] Şirket oluşturma/düzenleme/silme
+- [x] Şirket bazlı süper admin atama
+- [x] Şirket seçimli login
+- [x] Şirket logosu ve ismi tüm dashboardlarda
+- [x] Türkçe karakter desteği
 
 ## Prioritized Backlog
-### P0 - Next Phase
-- [ ] Vardiya içeriği (kullanıcıdan detay bekleniyor)
-- [ ] Muhasebe içeriği (kullanıcıdan detay bekleniyor)
-- [ ] Zimmet içeriği (kullanıcıdan detay bekleniyor)
+### P0 - Next Phase (Kullanıcı detay bekliyor)
+- [ ] Vardiya içeriği
+- [ ] Muhasebe içeriği
+- [ ] Zimmet içeriği
 
 ### P1 - Future
 - [ ] Kurye profil düzenleme
 - [ ] Şifre sıfırlama
 - [ ] Dashboard istatistikleri
 
-### P2 - Nice to Have
-- [ ] Excel/PDF export
-- [ ] Bildirim sistemi
+## System Credentials
+- Sistem Yöneticisi: `systemadmin` / `System123!`
 
 ## Tech Stack
 - Backend: FastAPI + MongoDB
 - Frontend: React + Tailwind CSS + Shadcn UI
-- Auth: Simple hash-based (no JWT)
