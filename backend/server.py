@@ -679,9 +679,12 @@ async def get_activity_logs(company_id: str, limit: int = 100):
 
 # --- İşletmeler (Businesses) ---
 @api_router.get("/companies/{company_id}/businesses")
-async def get_businesses(company_id: str):
+async def get_businesses(company_id: str, include_archived: bool = False):
     """Get all businesses for a company"""
-    businesses = await db.businesses.find({"company_id": company_id}, {"_id": 0}).to_list(500)
+    query = {"company_id": company_id}
+    if not include_archived:
+        query["is_archived"] = {"$ne": True}
+    businesses = await db.businesses.find(query, {"_id": 0}).to_list(500)
     return businesses
 
 @api_router.post("/companies/{company_id}/businesses")
@@ -693,10 +696,33 @@ async def create_business(company_id: str, data: BusinessCreate):
         "phone": data.phone,
         "address": data.address,
         "company_id": company_id,
+        "is_archived": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.businesses.insert_one(business)
     return {"message": "İşletme oluşturuldu", "id": business["id"]}
+
+@api_router.put("/businesses/{business_id}/archive")
+async def archive_business(business_id: str):
+    """Archive a business"""
+    result = await db.businesses.update_one(
+        {"id": business_id},
+        {"$set": {"is_archived": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="İşletme bulunamadı")
+    return {"message": "İşletme arşivlendi"}
+
+@api_router.put("/businesses/{business_id}/unarchive")
+async def unarchive_business(business_id: str):
+    """Unarchive a business"""
+    result = await db.businesses.update_one(
+        {"id": business_id},
+        {"$set": {"is_archived": False}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="İşletme bulunamadı")
+    return {"message": "İşletme arşivden çıkarıldı"}
 
 @api_router.delete("/businesses/{business_id}")
 async def delete_business(business_id: str):
