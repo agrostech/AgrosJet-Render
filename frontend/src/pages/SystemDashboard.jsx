@@ -541,12 +541,17 @@ export default function SystemDashboard() {
           </div>
         </aside>
 
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 md:p-8 pb-16">
           <Routes>
             <Route index element={<SirketlerPage />} />
           </Routes>
         </main>
       </div>
+
+      {/* Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 lg:left-64 bg-white border-t py-3 text-center text-xs text-muted-foreground">
+        © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+      </footer>
     </div>
   );
 }

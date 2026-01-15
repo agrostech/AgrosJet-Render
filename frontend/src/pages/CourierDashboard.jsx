@@ -205,7 +205,7 @@ export default function CourierDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 md:p-8 pb-16">
           {!hasCompanies ? (
             <div className="border-2 border-border p-8 bg-white text-center">
               <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -223,6 +223,11 @@ export default function CourierDashboard() {
           )}
         </main>
       </div>
+
+      {/* Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 lg:left-64 bg-white border-t py-3 text-center text-xs text-muted-foreground">
+        © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+      </footer>
     </div>
   );
 }

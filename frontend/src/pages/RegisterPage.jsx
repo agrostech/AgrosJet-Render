@@ -93,6 +93,11 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
+
+      {/* Footer - Mobile */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t py-3 text-center text-xs text-muted-foreground">
+        © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+      </div>
     </div>
   );
 }
