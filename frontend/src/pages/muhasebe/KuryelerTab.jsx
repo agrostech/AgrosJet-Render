@@ -94,7 +94,9 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
         type: type === "in" ? "payment_in" : "payment_out",
         amount: parseFloat(amount),
         description: description || (type === "in" ? "Verilen" : "Alınan"),
-        is_hakedis: type === "in" ? isHakedis : false
+        is_hakedis: type === "in" ? isHakedis : false,
+        admin_id: adminId,
+        admin_name: adminName
       });
       toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
       setAmount("");
