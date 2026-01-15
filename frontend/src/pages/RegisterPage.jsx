@@ -51,27 +51,27 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name" className="uppercase text-xs font-bold tracking-wider">İsim Soyisim</Label>
+              <Label htmlFor="name" className="uppercase text-xs font-bold tracking-wider">İsim Soyisim *</Label>
               <Input id="name" name="name" data-testid="register-name-input" type="text" placeholder="Adı Soyadı" value={formData.name} onChange={handleChange} className="mt-1 h-12 border-2" required />
             </div>
             <div>
-              <Label htmlFor="phone" className="uppercase text-xs font-bold tracking-wider">Telefon No</Label>
-              <Input id="phone" name="phone" data-testid="register-phone-input" type="tel" placeholder="05XX XXX XX XX" value={formData.phone} onChange={handleChange} className="mt-1 h-12 border-2" required />
+              <Label htmlFor="phone" className="uppercase text-xs font-bold tracking-wider">Telefon No *</Label>
+              <Input id="phone" name="phone" data-testid="register-phone-input" type="tel" placeholder="05XXXXXXXXX" value={formData.phone} onChange={handleChange} className="mt-1 h-12 border-2" maxLength={11} required />
             </div>
             <div>
-              <Label htmlFor="address" className="uppercase text-xs font-bold tracking-wider">Adres</Label>
+              <Label htmlFor="address" className="uppercase text-xs font-bold tracking-wider">Adres *</Label>
               <Input id="address" name="address" data-testid="register-address-input" type="text" placeholder="Adresiniz" value={formData.address} onChange={handleChange} className="mt-1 h-12 border-2" required />
             </div>
             <div>
-              <Label htmlFor="iban" className="uppercase text-xs font-bold tracking-wider">IBAN</Label>
+              <Label htmlFor="iban" className="uppercase text-xs font-bold tracking-wider">IBAN *</Label>
               <Input id="iban" name="iban" data-testid="register-iban-input" type="text" placeholder="TR..." value={formData.iban} onChange={handleChange} className="mt-1 h-12 border-2 font-mono" required />
             </div>
             <div>
-              <Label htmlFor="plate" className="uppercase text-xs font-bold tracking-wider">Plaka</Label>
-              <Input id="plate" name="plate" data-testid="register-plate-input" type="text" placeholder="34 ABC 123" value={formData.plate} onChange={handleChange} className="mt-1 h-12 border-2 font-mono uppercase" required />
+              <Label htmlFor="plate" className="uppercase text-xs font-bold tracking-wider">Plaka *</Label>
+              <Input id="plate" name="plate" data-testid="register-plate-input" type="text" placeholder="34ABC123" value={formData.plate} onChange={handleChange} className="mt-1 h-12 border-2 font-mono uppercase" required />
             </div>
             <div>
-              <Label htmlFor="password" className="uppercase text-xs font-bold tracking-wider">Şifre</Label>
+              <Label htmlFor="password" className="uppercase text-xs font-bold tracking-wider">Şifre *</Label>
               <Input id="password" name="password" data-testid="register-password-input" type="password" value={formData.password} onChange={handleChange} className="mt-1 h-12 border-2" required />
             </div>
             <Button type="submit" data-testid="register-submit-btn" className="w-full h-12 uppercase font-bold tracking-wider" disabled={loading}>
