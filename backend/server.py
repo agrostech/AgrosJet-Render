@@ -817,12 +817,52 @@ async def get_vendor_transactions(vendor_id: str):
     """Get all transactions for a vendor"""
     return await get_entity_transactions("vendor", vendor_id)
 
+class TransactionDeleteRequest(BaseModel):
+    admin_id: str
+    admin_name: str
+
 @api_router.delete("/transactions/{transaction_id}")
-async def delete_transaction(transaction_id: str):
+async def delete_transaction(transaction_id: str, data: TransactionDeleteRequest = None):
     """Delete a transaction"""
-    result = await db.transactions.delete_one({"id": transaction_id})
-    if result.deleted_count == 0:
+    # Get transaction before deleting for log
+    transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
+    if not transaction:
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    
+    # Get entity name for log
+    entity_name = ""
+    if transaction["entity_type"] == "courier":
+        courier = await db.couriers.find_one({"id": transaction["entity_id"]})
+        entity_name = courier["name"] if courier else "Bilinmeyen Kurye"
+    elif transaction["entity_type"] == "business":
+        business = await db.businesses.find_one({"id": transaction["entity_id"]})
+        entity_name = business["name"] if business else "Bilinmeyen İşletme"
+    elif transaction["entity_type"] == "vendor":
+        vendor = await db.vendors.find_one({"id": transaction["entity_id"]})
+        entity_name = vendor["name"] if vendor else "Bilinmeyen Cari"
+    
+    # Delete transaction
+    await db.transactions.delete_one({"id": transaction_id})
+    
+    # Create activity log
+    if data and data.admin_id and data.admin_name:
+        await create_activity_log({
+            "company_id": transaction["company_id"],
+            "admin_id": data.admin_id,
+            "admin_name": data.admin_name,
+            "action": "transaction_deleted",
+            "entity_type": transaction["entity_type"],
+            "entity_id": transaction["entity_id"],
+            "entity_name": entity_name,
+            "details": {
+                "transaction_id": transaction_id,
+                "type": transaction["type"],
+                "amount": transaction["amount"],
+                "description": transaction["description"],
+                "is_hakedis": transaction.get("is_hakedis", False)
+            }
+        })
+    
     return {"message": "İşlem silindi"}
 
 # Health check
