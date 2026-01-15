@@ -76,6 +76,7 @@ export default function KuryelerTab({ companyId }) {
       setAmount("");
       setDescription("");
       setIsHakedis(false);
+      setDisplayCount(10);
     }
   }, [selectedCourier]);
 
