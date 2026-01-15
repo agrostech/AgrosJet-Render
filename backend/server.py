@@ -532,6 +532,13 @@ async def assign_courier_to_shift(shift_id: str, data: ShiftAssignment):
     if existing:
         raise HTTPException(status_code=400, detail="Bu kurye zaten bu vardiyaya atanmış")
     
+    # Remove courier from leave if on leave for this day
+    await db.leaves.delete_one({
+        "company_id": shift["company_id"],
+        "courier_id": data.courier_id,
+        "day": data.day
+    })
+    
     assignment = {
         "id": str(uuid.uuid4()),
         "shift_id": shift_id,
