@@ -247,15 +247,19 @@ async def search_courier(phone: str):
     return courier
 
 @api_router.get("/companies/{company_id}/couriers")
-async def get_company_couriers(company_id: str):
+async def get_company_couriers(company_id: str, include_archived: bool = False):
     """Get couriers assigned to a specific company"""
-    relations = await db.company_couriers.find({"company_id": company_id}, {"_id": 0}).to_list(1000)
+    query = {"company_id": company_id}
+    if not include_archived:
+        query["is_archived"] = {"$ne": True}
+    relations = await db.company_couriers.find(query, {"_id": 0}).to_list(1000)
     
     couriers = []
     for rel in relations:
         courier = await db.couriers.find_one({"id": rel["courier_id"]}, {"_id": 0, "password": 0})
         if courier:
             courier["company_status"] = rel["status"]
+            courier["is_archived"] = rel.get("is_archived", False)
             couriers.append(courier)
     
     return couriers
@@ -276,6 +280,13 @@ async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
         "courier_id": courier["id"]
     })
     if existing:
+        # Eğer arşivlenmişse, arşivden çıkar
+        if existing.get("is_archived"):
+            await db.company_couriers.update_one(
+                {"id": existing["id"]},
+                {"$set": {"is_archived": False}}
+            )
+            return {"message": "Kurye arşivden çıkarıldı ve tekrar eklendi", "courier_name": courier["name"]}
         raise HTTPException(status_code=400, detail="Bu kurye zaten şirketinize ekli")
     
     relation = {
@@ -283,10 +294,33 @@ async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
         "company_id": company_id,
         "courier_id": courier["id"],
         "status": "approved",
+        "is_archived": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.company_couriers.insert_one(relation)
     return {"message": "Kurye şirkete eklendi", "courier_name": courier["name"]}
+
+@api_router.put("/companies/{company_id}/couriers/{courier_id}/archive")
+async def archive_company_courier(company_id: str, courier_id: str):
+    """Archive a courier from company"""
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {"is_archived": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    return {"message": "Kurye arşivlendi"}
+
+@api_router.put("/companies/{company_id}/couriers/{courier_id}/unarchive")
+async def unarchive_company_courier(company_id: str, courier_id: str):
+    """Unarchive a courier from company"""
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {"is_archived": False}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    return {"message": "Kurye arşivden çıkarıldı"}
 
 @api_router.put("/companies/{company_id}/couriers/{courier_id}/approve")
 async def approve_company_courier(company_id: str, courier_id: str):
