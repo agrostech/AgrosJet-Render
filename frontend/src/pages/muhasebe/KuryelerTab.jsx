@@ -14,11 +14,21 @@ export default function KuryelerTab({ companyId }) {
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(0);
+  const [courierBalances, setCourierBalances] = useState({});
   const [loading, setLoading] = useState(true);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [isHakedis, setIsHakedis] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const fetchCourierBalance = async (courierId) => {
+    try {
+      const res = await axios.get(`${API}/transactions/courier/${courierId}`);
+      setCourierBalances(prev => ({ ...prev, [courierId]: res.data.balance }));
+    } catch (err) {
+      // Silently fail for individual balance fetch
+    }
+  };
 
   const fetchCouriers = async () => {
     try {
@@ -27,6 +37,8 @@ export default function KuryelerTab({ companyId }) {
       if (res.data.length > 0 && !selectedCourier) {
         setSelectedCourier(res.data[0]);
       }
+      // Fetch balances for all couriers
+      res.data.forEach(c => fetchCourierBalance(c.id));
     } catch (err) {
       toast.error("Kuryeler yüklenemedi");
     } finally {
