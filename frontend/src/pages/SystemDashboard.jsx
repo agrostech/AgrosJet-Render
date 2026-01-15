@@ -31,12 +31,15 @@ function SirketlerPage() {
   const [showSuperAdminModal, setShowSuperAdminModal] = useState(false);
   const [showAdminsModal, setShowAdminsModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+  const [showEditAdminModal, setShowEditAdminModal] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [companyAdmins, setCompanyAdmins] = useState([]);
   const [adminsLoading, setAdminsLoading] = useState(false);
   const [newCompany, setNewCompany] = useState({ name: "", logo_url: "" });
   const [newSuperAdmin, setNewSuperAdmin] = useState({ name: "", username: "", password: "" });
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
+  const [editAdminData, setEditAdminData] = useState({ name: "", password: "" });
 
   const fetchCompanies = async () => {
     try {
