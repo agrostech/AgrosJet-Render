@@ -4,19 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Clock, FileText, Package } from "lucide-react";
 
 const NAV_ITEMS = [
-  { path: "/courier", label: "VARDIYA", icon: Clock },
+  { path: "/courier", label: "VARDİYA", icon: Clock },
   { path: "/courier/muhasebe", label: "MUHASEBE", icon: FileText },
-  { path: "/courier/zimmet", label: "ZIMMET", icon: Package },
+  { path: "/courier/zimmet", label: "ZİMMET", icon: Package },
 ];
 
 function VardiyaPage() {
   return (
     <div data-testid="courier-vardiya-page">
       <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        VARDIYA
+        VARDİYA
       </h2>
       <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Vardiya yonetimi icerigi burada gorunecek.</p>
+        <p className="text-muted-foreground">Vardiya yönetimi içeriği burada görünecek.</p>
       </div>
     </div>
   );
@@ -29,7 +29,7 @@ function MuhasebePage() {
         MUHASEBE
       </h2>
       <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Muhasebe icerigi burada gorunecek.</p>
+        <p className="text-muted-foreground">Muhasebe içeriği burada görünecek.</p>
       </div>
     </div>
   );
@@ -39,10 +39,10 @@ function ZimmetPage() {
   return (
     <div data-testid="courier-zimmet-page">
       <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        ZIMMET
+        ZİMMET
       </h2>
       <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Zimmet takibi icerigi burada gorunecek.</p>
+        <p className="text-muted-foreground">Zimmet takibi içeriği burada görünecek.</p>
       </div>
     </div>
   );
@@ -75,11 +75,19 @@ export default function CourierDashboard() {
 
   if (!user) return null;
 
+  const company = user.company;
+
   return (
     <div className="min-h-screen bg-slate-50" data-testid="courier-dashboard">
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
-        <h1 className="font-heading text-xl font-bold uppercase">KURYE PANEL</h1>
+        <div className="flex items-center gap-3">
+          {company?.logo_url ? (
+            <img src={company.logo_url} alt={company.name} className="h-8 object-contain" />
+          ) : (
+            <span className="font-heading text-lg font-bold uppercase">{company?.name || "KURYE"}</span>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -102,7 +110,7 @@ export default function CourierDashboard() {
               className={`flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-wider ${
                 location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
               }`}
-              data-testid={`mobile-nav-${item.label.toLowerCase()}`}
+              data-testid={`mobile-nav-${item.label.toLowerCase().replace('İ', 'i')}`}
             >
               <item.icon className="w-5 h-5" />
               {item.label}
@@ -114,7 +122,7 @@ export default function CourierDashboard() {
             data-testid="mobile-logout-btn"
           >
             <LogOut className="w-5 h-5" />
-            CIKIS
+            ÇIKIŞ
           </button>
         </nav>
       )}
@@ -123,8 +131,13 @@ export default function CourierDashboard() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-primary text-white">
           <div className="p-6 border-b border-white/20">
-            <h1 className="font-heading text-2xl font-bold uppercase">KURYE PANEL</h1>
-            <p className="text-white/60 text-sm mt-1 font-mono">{user.name}</p>
+            {company?.logo_url ? (
+              <img src={company.logo_url} alt={company.name} className="h-10 mb-2 object-contain" />
+            ) : (
+              <h1 className="font-heading text-xl font-bold uppercase">{company?.name}</h1>
+            )}
+            <p className="text-white/60 text-sm mt-1">Kurye Paneli</p>
+            <p className="text-white/80 text-sm font-mono mt-2">{user.name}</p>
           </div>
           <nav className="flex-1 py-4">
             {NAV_ITEMS.map((item) => (
@@ -136,7 +149,7 @@ export default function CourierDashboard() {
                     ? "bg-white/20 border-l-4 border-orange-500"
                     : "hover:bg-white/10"
                 }`}
-                data-testid={`nav-${item.label.toLowerCase()}`}
+                data-testid={`nav-${item.label.toLowerCase().replace('İ', 'i')}`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -151,7 +164,7 @@ export default function CourierDashboard() {
               data-testid="logout-btn"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              CIKIS YAP
+              ÇIKIŞ YAP
             </Button>
           </div>
         </aside>

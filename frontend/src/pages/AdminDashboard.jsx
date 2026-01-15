@@ -29,10 +29,10 @@ function VardiyaPage() {
   return (
     <div data-testid="admin-vardiya-page">
       <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        VARDIYA YONETIMI
+        VARDİYA YÖNETİMİ
       </h2>
       <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Vardiya yonetimi icerigi burada gorunecek.</p>
+        <p className="text-muted-foreground">Vardiya yönetimi içeriği burada görünecek.</p>
       </div>
     </div>
   );
@@ -46,7 +46,7 @@ function MuhasebePage() {
         MUHASEBE
       </h2>
       <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Muhasebe icerigi burada gorunecek.</p>
+        <p className="text-muted-foreground">Muhasebe içeriği burada görünecek.</p>
       </div>
     </div>
   );
@@ -57,42 +57,42 @@ function ZimmetPage() {
   return (
     <div data-testid="admin-zimmet-page">
       <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        ZIMMET
+        ZİMMET
       </h2>
       <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Zimmet takibi icerigi burada gorunecek.</p>
+        <p className="text-muted-foreground">Zimmet takibi içeriği burada görünecek.</p>
       </div>
     </div>
   );
 }
 
 // Kuryeler Page
-function KuryelerPage() {
+function KuryelerPage({ companyId }) {
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchCouriers = async () => {
     try {
-      const res = await axios.get(`${API}/couriers`);
+      const res = await axios.get(`${API}/couriers?company_id=${companyId}`);
       setCouriers(res.data);
     } catch (err) {
-      toast.error("Kuryeler yuklenemedi");
+      toast.error("Kuryeler yüklenemedi");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCouriers();
-  }, []);
+    if (companyId) fetchCouriers();
+  }, [companyId]);
 
   const handleApprove = async (id) => {
     try {
       await axios.put(`${API}/couriers/${id}/approve`);
-      toast.success("Kurye onaylandi");
+      toast.success("Kurye onaylandı");
       fetchCouriers();
     } catch (err) {
-      toast.error("Onaylama basarisiz");
+      toast.error("Onaylama başarısız");
     }
   };
 
@@ -102,18 +102,18 @@ function KuryelerPage() {
       toast.success("Kurye reddedildi");
       fetchCouriers();
     } catch (err) {
-      toast.error("Reddetme basarisiz");
+      toast.error("Reddetme başarısız");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Bu kuryeyi silmek istediginize emin misiniz?")) return;
+    if (!window.confirm("Bu kuryeyi silmek istediğinize emin misiniz?")) return;
     try {
       await axios.delete(`${API}/couriers/${id}`);
       toast.success("Kurye silindi");
       fetchCouriers();
     } catch (err) {
-      toast.error("Silme basarisiz");
+      toast.error("Silme başarısız");
     }
   };
 
@@ -124,9 +124,9 @@ function KuryelerPage() {
       rejected: "bg-red-100 text-red-800",
     };
     const labels = {
-      pending: "BEKLIYOR",
+      pending: "BEKLİYOR",
       approved: "ONAYLANDI",
-      rejected: "REDDEDILDI",
+      rejected: "REDDEDİLDİ",
     };
     return (
       <span className={`px-2 py-1 text-xs font-bold uppercase ${styles[status]}`}>
@@ -135,7 +135,7 @@ function KuryelerPage() {
     );
   };
 
-  if (loading) return <p>Yukleniyor...</p>;
+  if (loading) return <p>Yükleniyor...</p>;
 
   return (
     <div data-testid="admin-kuryeler-page">
@@ -148,18 +148,18 @@ function KuryelerPage() {
         <Table className="data-table">
           <TableHeader>
             <TableRow className="border-b-2 border-primary">
-              <TableHead className="uppercase tracking-wider font-bold text-xs">Isim</TableHead>
+              <TableHead className="uppercase tracking-wider font-bold text-xs">İsim</TableHead>
               <TableHead className="uppercase tracking-wider font-bold text-xs">Telefon</TableHead>
               <TableHead className="uppercase tracking-wider font-bold text-xs">Plaka</TableHead>
               <TableHead className="uppercase tracking-wider font-bold text-xs">Durum</TableHead>
-              <TableHead className="uppercase tracking-wider font-bold text-xs">Islemler</TableHead>
+              <TableHead className="uppercase tracking-wider font-bold text-xs">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {couriers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  Kayitli kurye bulunmuyor
+                  Kayıtlı kurye bulunmuyor
                 </TableCell>
               </TableRow>
             ) : (
@@ -214,7 +214,7 @@ function KuryelerPage() {
       <div className="md:hidden space-y-4">
         {couriers.length === 0 ? (
           <div className="border-2 border-border p-6 bg-white text-center text-muted-foreground">
-            Kayitli kurye bulunmuyor
+            Kayıtlı kurye bulunmuyor
           </div>
         ) : (
           couriers.map((c) => (
@@ -256,7 +256,7 @@ function KuryelerPage() {
                   onClick={() => handleDelete(c.id)}
                   className="border-2"
                 >
-                  SIL
+                  SİL
                 </Button>
               </div>
             </div>
@@ -268,7 +268,7 @@ function KuryelerPage() {
 }
 
 // Yoneticiler Page (Super Admin Only)
-function YoneticilerPage() {
+function YoneticilerPage({ companyId }) {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -278,29 +278,29 @@ function YoneticilerPage() {
 
   const fetchAdmins = async () => {
     try {
-      const res = await axios.get(`${API}/admins`);
+      const res = await axios.get(`${API}/admins?company_id=${companyId}`);
       setAdmins(res.data);
     } catch (err) {
-      toast.error("Yoneticiler yuklenemedi");
+      toast.error("Yöneticiler yüklenemedi");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAdmins();
-  }, []);
+    if (companyId) fetchAdmins();
+  }, [companyId]);
 
   const handleAddAdmin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/admins`, newAdmin);
-      toast.success("Yonetici eklendi");
+      await axios.post(`${API}/admins`, { ...newAdmin, company_id: companyId });
+      toast.success("Yönetici eklendi");
       setShowAddModal(false);
       setNewAdmin({ name: "", username: "", password: "" });
       fetchAdmins();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Ekleme basarisiz");
+      toast.error(err.response?.data?.detail || "Ekleme başarısız");
     }
   };
 
@@ -309,22 +309,22 @@ function YoneticilerPage() {
       await axios.put(`${API}/admins/${selectedAdmin.id}/permissions`, {
         permissions: selectedAdmin.permissions,
       });
-      toast.success("Yetkiler guncellendi");
+      toast.success("Yetkiler güncellendi");
       setShowPermModal(false);
       fetchAdmins();
     } catch (err) {
-      toast.error("Guncelleme basarisiz");
+      toast.error("Güncelleme başarısız");
     }
   };
 
   const handleDeleteAdmin = async (id) => {
-    if (!window.confirm("Bu yoneticiyi silmek istediginize emin misiniz?")) return;
+    if (!window.confirm("Bu yöneticiyi silmek istediğinize emin misiniz?")) return;
     try {
       await axios.delete(`${API}/admins/${id}`);
-      toast.success("Yonetici silindi");
+      toast.success("Yönetici silindi");
       fetchAdmins();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Silme basarisiz");
+      toast.error(err.response?.data?.detail || "Silme başarısız");
     }
   };
 
@@ -343,20 +343,20 @@ function YoneticilerPage() {
     });
   };
 
-  if (loading) return <p>Yukleniyor...</p>;
+  if (loading) return <p>Yükleniyor...</p>;
 
   return (
     <div data-testid="admin-yoneticiler-page">
       <div className="flex justify-between items-center mb-6">
         <h2 className="font-heading text-2xl font-bold uppercase tracking-tight">
-          YONETICILER
+          YÖNETİCİLER
         </h2>
         <Button
           onClick={() => setShowAddModal(true)}
           className="uppercase font-bold text-xs tracking-wider"
           data-testid="add-admin-btn"
         >
-          YONETICI EKLE
+          YÖNETİCİ EKLE
         </Button>
       </div>
 
@@ -365,10 +365,10 @@ function YoneticilerPage() {
         <Table className="data-table">
           <TableHeader>
             <TableRow className="border-b-2 border-primary">
-              <TableHead className="uppercase tracking-wider font-bold text-xs">Isim</TableHead>
-              <TableHead className="uppercase tracking-wider font-bold text-xs">Kullanici Adi</TableHead>
+              <TableHead className="uppercase tracking-wider font-bold text-xs">İsim</TableHead>
+              <TableHead className="uppercase tracking-wider font-bold text-xs">Kullanıcı Adı</TableHead>
               <TableHead className="uppercase tracking-wider font-bold text-xs">Rol</TableHead>
-              <TableHead className="uppercase tracking-wider font-bold text-xs">Islemler</TableHead>
+              <TableHead className="uppercase tracking-wider font-bold text-xs">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -380,7 +380,7 @@ function YoneticilerPage() {
                   <span className={`px-2 py-1 text-xs font-bold uppercase ${
                     a.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"
                   }`}>
-                    {a.role === "superadmin" ? "SUPER ADMIN" : "ADMIN"}
+                    {a.role === "superadmin" ? "SÜPER ADMİN" : "ADMİN"}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -425,7 +425,7 @@ function YoneticilerPage() {
               <span className={`px-2 py-1 text-xs font-bold uppercase ${
                 a.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"
               }`}>
-                {a.role === "superadmin" ? "SUPER ADMIN" : "ADMIN"}
+                {a.role === "superadmin" ? "SÜPER ADMİN" : "ADMİN"}
               </span>
             </div>
             {a.role !== "superadmin" && (
@@ -436,7 +436,7 @@ function YoneticilerPage() {
                   onClick={() => openPermModal(a)}
                   className="flex-1 border-2"
                 >
-                  YETKILER
+                  YETKİLER
                 </Button>
                 <Button
                   size="sm"
@@ -444,7 +444,7 @@ function YoneticilerPage() {
                   onClick={() => handleDeleteAdmin(a.id)}
                   className="border-2"
                 >
-                  SIL
+                  SİL
                 </Button>
               </div>
             )}
@@ -456,11 +456,11 @@ function YoneticilerPage() {
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading uppercase">YONETICI EKLE</DialogTitle>
+            <DialogTitle className="font-heading uppercase">YÖNETİCİ EKLE</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddAdmin} className="space-y-4">
             <div>
-              <Label className="uppercase text-xs font-bold tracking-wider">Isim Soyisim</Label>
+              <Label className="uppercase text-xs font-bold tracking-wider">İsim Soyisim</Label>
               <Input
                 data-testid="new-admin-name"
                 value={newAdmin.name}
@@ -470,7 +470,7 @@ function YoneticilerPage() {
               />
             </div>
             <div>
-              <Label className="uppercase text-xs font-bold tracking-wider">Kullanici Adi</Label>
+              <Label className="uppercase text-xs font-bold tracking-wider">Kullanıcı Adı</Label>
               <Input
                 data-testid="new-admin-username"
                 value={newAdmin.username}
@@ -480,7 +480,7 @@ function YoneticilerPage() {
               />
             </div>
             <div>
-              <Label className="uppercase text-xs font-bold tracking-wider">Sifre</Label>
+              <Label className="uppercase text-xs font-bold tracking-wider">Şifre</Label>
               <Input
                 data-testid="new-admin-password"
                 type="password"
@@ -501,12 +501,12 @@ function YoneticilerPage() {
       <Dialog open={showPermModal} onOpenChange={setShowPermModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading uppercase">YETKI AYARLARI</DialogTitle>
+            <DialogTitle className="font-heading uppercase">YETKİ AYARLARI</DialogTitle>
           </DialogHeader>
           {selectedAdmin && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                {selectedAdmin.name} icin yetkileri ayarlayin
+                {selectedAdmin.name} için yetkileri ayarlayın
               </p>
               <div className="space-y-3">
                 {Object.entries(selectedAdmin.permissions).map(([key, value]) => (
@@ -568,22 +568,27 @@ export default function AdminDashboard() {
 
   const isSuperAdmin = user.role === "superadmin";
   const permissions = user.permissions || {};
+  const company = user.company;
 
   const NAV_ITEMS = [
-    { path: "/admin", label: "VARDIYA", icon: Clock, key: "vardiya" },
+    { path: "/admin", label: "VARDİYA", icon: Clock, key: "vardiya" },
     { path: "/admin/muhasebe", label: "MUHASEBE", icon: FileText, key: "muhasebe" },
-    { path: "/admin/zimmet", label: "ZIMMET", icon: Package, key: "zimmet" },
+    { path: "/admin/zimmet", label: "ZİMMET", icon: Package, key: "zimmet" },
     { path: "/admin/kuryeler", label: "KURYELER", icon: Users, key: "kuryeler" },
-    { path: "/admin/yoneticiler", label: "YONETICILER", icon: UserCog, key: "yoneticiler" },
+    { path: "/admin/yoneticiler", label: "YÖNETİCİLER", icon: UserCog, key: "yoneticiler" },
   ].filter((item) => isSuperAdmin || permissions[item.key]);
 
   return (
     <div className="min-h-screen bg-slate-50" data-testid="admin-dashboard">
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
-        <h1 className="font-heading text-xl font-bold uppercase">
-          {isSuperAdmin ? "SUPER ADMIN" : "ADMIN"} PANEL
-        </h1>
+        <div className="flex items-center gap-3">
+          {company?.logo_url ? (
+            <img src={company.logo_url} alt={company.name} className="h-8 object-contain" />
+          ) : (
+            <span className="font-heading text-lg font-bold uppercase">{company?.name}</span>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -606,7 +611,6 @@ export default function AdminDashboard() {
               className={`flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-wider ${
                 location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
               }`}
-              data-testid={`admin-mobile-nav-${item.label.toLowerCase()}`}
             >
               <item.icon className="w-5 h-5" />
               {item.label}
@@ -618,7 +622,7 @@ export default function AdminDashboard() {
             data-testid="admin-mobile-logout-btn"
           >
             <LogOut className="w-5 h-5" />
-            CIKIS
+            ÇIKIŞ
           </button>
         </nav>
       )}
@@ -627,10 +631,15 @@ export default function AdminDashboard() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-primary text-white">
           <div className="p-6 border-b border-white/20">
-            <h1 className="font-heading text-2xl font-bold uppercase">
-              {isSuperAdmin ? "SUPER ADMIN" : "ADMIN"}
-            </h1>
-            <p className="text-white/60 text-sm mt-1 font-mono">{user.name}</p>
+            {company?.logo_url ? (
+              <img src={company.logo_url} alt={company.name} className="h-10 mb-2 object-contain" />
+            ) : (
+              <h1 className="font-heading text-xl font-bold uppercase">{company?.name}</h1>
+            )}
+            <p className="text-white/60 text-sm mt-1">
+              {isSuperAdmin ? "Süper Admin Paneli" : "Admin Paneli"}
+            </p>
+            <p className="text-white/80 text-sm font-mono mt-2">{user.name}</p>
           </div>
           <nav className="flex-1 py-4">
             {NAV_ITEMS.map((item) => (
@@ -642,7 +651,7 @@ export default function AdminDashboard() {
                     ? "bg-white/20 border-l-4 border-orange-500"
                     : "hover:bg-white/10"
                 }`}
-                data-testid={`admin-nav-${item.label.toLowerCase()}`}
+                data-testid={`admin-nav-${item.key}`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -657,7 +666,7 @@ export default function AdminDashboard() {
               data-testid="admin-logout-btn"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              CIKIS YAP
+              ÇIKIŞ YAP
             </Button>
           </div>
         </aside>
@@ -668,9 +677,9 @@ export default function AdminDashboard() {
             <Route index element={<VardiyaPage />} />
             <Route path="muhasebe" element={<MuhasebePage />} />
             <Route path="zimmet" element={<ZimmetPage />} />
-            <Route path="kuryeler" element={<KuryelerPage />} />
+            <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
             {(isSuperAdmin || permissions.yoneticiler) && (
-              <Route path="yoneticiler" element={<YoneticilerPage />} />
+              <Route path="yoneticiler" element={<YoneticilerPage companyId={user.company_id} />} />
             )}
           </Routes>
         </main>

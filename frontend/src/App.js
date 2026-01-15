@@ -5,6 +5,7 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import CourierDashboard from "@/pages/CourierDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import SystemDashboard from "@/pages/SystemDashboard";
 
 function App() {
   return (
@@ -13,9 +14,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register/:companyId" element={<RegisterPage />} />
           <Route path="/courier/*" element={<CourierDashboard />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
+          <Route path="/system/*" element={<SystemDashboard />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
