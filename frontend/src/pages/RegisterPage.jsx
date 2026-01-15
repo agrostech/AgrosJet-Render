@@ -43,10 +43,10 @@ export default function RegisterPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
         <div className="w-full max-w-md">
           <h1 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">
-            KURYE KAYIT
+            SHIFTJET KAYIT
           </h1>
           <p className="text-muted-foreground text-sm mb-8">
-            Kurye olarak sisteme kayıt olun
+            ShiftJet sistemine kurye olarak kayıt olun
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,8 +88,8 @@ export default function RegisterPage() {
       <div className="hidden lg:block lg:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1586626277605-7720525d251a?crop=entropy&cs=srgb&fm=jpg&q=85')` }}>
         <div className="w-full h-full bg-primary/60 flex items-end p-12">
           <div className="text-white">
-            <h2 className="font-heading text-4xl font-bold uppercase mb-2">EKİBİMİZE KATILIN</h2>
-            <p className="text-white/80">Kurye olarak çalışmaya başlayın</p>
+            <h2 className="font-heading text-4xl font-bold uppercase mb-2">SHIFTJET</h2>
+            <p className="text-white/80">Kurye Yönetim Sistemi</p>
           </div>
         </div>
       </div>

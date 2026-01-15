@@ -57,10 +57,10 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
         <div className="w-full max-w-md">
           <h1 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">
-            YÖNETİM SİSTEMİ
+            SHIFTJET
           </h1>
           <p className="text-muted-foreground text-sm mb-8">
-            Sisteme giriş yapın
+            ShiftJet yönetim sistemine hoş geldiniz. Lütfen giriş yapınız.
           </p>
 
           <Tabs defaultValue="courier" className="w-full">
@@ -187,10 +187,10 @@ export default function LoginPage() {
         <div className="w-full h-full bg-primary/60 flex items-end p-12">
           <div className="text-white">
             <h2 className="font-heading text-4xl font-bold uppercase mb-2">
-              HIZLI TESLİMAT
+              SHIFTJET
             </h2>
             <p className="text-white/80">
-              Kurye yönetim sistemine hoş geldiniz
+              Kurye Yönetim Sistemi
             </p>
           </div>
         </div>
