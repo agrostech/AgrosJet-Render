@@ -10,12 +10,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Minus, Wallet, Trash2 } from "lucide-react";
+import { Plus, Minus, Wallet, Trash2, Archive, ArchiveRestore } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function CarilerTab({ companyId, adminId, adminName }) {
   const [vendors, setVendors] = useState([]);
+  const [archivedVendors, setArchivedVendors] = useState([]);
+  const [showArchived, setShowArchived] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [displayCount, setDisplayCount] = useState(10);
@@ -56,20 +58,32 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
     }
   };
 
-  const fetchTransactions = async (id) => {
+  const fetchArchivedVendors = async () => {
     try {
-      const res = await axios.get(`${API}/transactions/vendor/${id}`);
+      const res = await axios.get(`${API}/companies/${companyId}/vendors?include_archived=true`);
+      const archived = res.data.filter(v => v.is_archived);
+      setArchivedVendors(archived);
+      archived.forEach(v => fetchVendorBalance(v.id));
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    if (companyId) {
+      fetchVendors();
+      fetchArchivedVendors();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId]);
+
+  const fetchTransactions = async (vendorId) => {
+    try {
+      const res = await axios.get(`${API}/transactions/vendor/${vendorId}`);
       setTransactions(res.data.transactions);
       setBalance(res.data.balance);
     } catch (err) {
       toast.error("İşlemler yüklenemedi");
     }
   };
-
-  useEffect(() => {
-    if (companyId) fetchVendors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId]);
 
   useEffect(() => {
     if (selectedVendor) {
@@ -90,7 +104,7 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
       setNewVendor({ name: "", phone: "", address: "" });
       fetchVendors();
     } catch (err) {
-      toast.error("Cari eklenemedi");
+      toast.error("Ekleme başarısız");
     }
   };
 
@@ -101,8 +115,33 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
       toast.success("Cari silindi");
       if (selectedVendor?.id === id) setSelectedVendor(null);
       fetchVendors();
+      fetchArchivedVendors();
     } catch (err) {
       toast.error("Cari silinemedi");
+    }
+  };
+
+  const handleArchive = async (id) => {
+    if (!window.confirm("Bu cariyi arşivlemek istediğinize emin misiniz?")) return;
+    try {
+      await axios.put(`${API}/vendors/${id}/archive`);
+      toast.success("Cari arşivlendi");
+      if (selectedVendor?.id === id) setSelectedVendor(null);
+      fetchVendors();
+      fetchArchivedVendors();
+    } catch (err) {
+      toast.error("Arşivleme başarısız");
+    }
+  };
+
+  const handleUnarchive = async (id) => {
+    try {
+      await axios.put(`${API}/vendors/${id}/unarchive`);
+      toast.success("Cari arşivden çıkarıldı");
+      fetchVendors();
+      fetchArchivedVendors();
+    } catch (err) {
+      toast.error("İşlem başarısız");
     }
   };
 
@@ -152,6 +191,7 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
 
   // Toplam bakiye
   const totalBalance = Object.values(vendorBalances).reduce((sum, bal) => sum + (bal || 0), 0);
+  const displayList = showArchived ? archivedVendors : vendors;
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -159,23 +199,39 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Sol: Liste */}
       <div className="lg:col-span-1 border-2 border-border bg-white">
-        <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-          <h3 className="font-semibold text-sm">Cariler</h3>
-          {totalBalance !== 0 && (
+        <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center gap-2">
+          <h3 className="font-semibold text-sm">{showArchived ? 'Arşiv' : 'Cariler'}</h3>
+          {!showArchived && totalBalance !== 0 && (
             <span className={`text-xs font-bold ${totalBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
               {totalBalance > 0 && '-'}{formatCurrency(totalBalance)}
             </span>
           )}
-          <Button size="sm" variant="ghost" onClick={() => setShowAddModal(true)} className="h-7 px-2"><Plus className="w-4 h-4" /></Button>
+          <div className="flex gap-1 ml-auto">
+            <Button 
+              size="sm" 
+              variant={showArchived ? "default" : "ghost"} 
+              onClick={() => setShowArchived(!showArchived)} 
+              className="h-7 px-2"
+            >
+              {showArchived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+            </Button>
+            {!showArchived && (
+              <Button size="sm" variant="ghost" onClick={() => setShowAddModal(true)} className="h-7 px-2">
+                <Plus className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </div>
         <div className="max-h-[500px] overflow-y-auto">
-          {vendors.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-4 text-center">Cari bulunamadı</p>
+          {displayList.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4 text-center">
+              {showArchived ? 'Arşivde cari yok' : 'Cari bulunamadı'}
+            </p>
           ) : (
-            vendors.map((v) => {
+            displayList.map((v) => {
               const bal = vendorBalances[v.id];
               return (
-                <div key={v.id} className={`flex items-center gap-3 p-3 border-b border-slate-100 transition-colors ${selectedVendor?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
+                <div key={v.id} className={`flex items-center gap-2 p-3 border-b border-slate-100 transition-colors ${selectedVendor?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
                   <button onClick={() => setSelectedVendor(v)} className="flex-1 flex items-center gap-3 text-left">
                     <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Wallet className="w-4 h-4 text-purple-600" /></div>
                     <div className="flex-1 min-w-0">
@@ -188,7 +244,15 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
                       </span>
                     )}
                   </button>
-                  <button onClick={() => handleDeleteVendor(v.id)} className="text-red-400 hover:text-red-600 p-1 shrink-0"><Trash2 className="w-4 h-4" /></button>
+                  {showArchived ? (
+                    <button onClick={() => handleUnarchive(v.id)} className="text-green-500 hover:text-green-700 p-1 shrink-0" title="Arşivden Çıkar">
+                      <ArchiveRestore className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button onClick={() => handleArchive(v.id)} className="text-slate-400 hover:text-slate-600 p-1 shrink-0" title="Arşivle">
+                      <Archive className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               );
             })
@@ -211,21 +275,24 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
                 </p>
               </div>
             </div>
+
             {/* Ödeme Formu */}
-            <div className="p-3 border-b border-slate-200 bg-slate-50/50">
-              <div className="flex flex-wrap items-end gap-2">
-                <div className="w-28">
-                  <Label className="text-xs text-muted-foreground">Tutar</Label>
-                  <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-9 border-2 text-sm" placeholder="0.00" />
+            <div className="p-4 border-b border-slate-200">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="w-32">
+                  <Label className="text-xs">Tutar</Label>
+                  <Input type="number" placeholder="Tutar" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-9" />
                 </div>
-                <div className="flex-1 min-w-[120px]">
-                  <Label className="text-xs text-muted-foreground">Açıklama</Label>
-                  <Input value={description} onChange={(e) => setDescription(e.target.value)} className="h-9 border-2 text-sm" placeholder="İsteğe bağlı" />
+                <div className="flex-1 min-w-[150px]">
+                  <Label className="text-xs">Açıklama</Label>
+                  <Input placeholder="Açıklama" value={description} onChange={(e) => setDescription(e.target.value)} className="h-9" />
                 </div>
                 <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
                 <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
+
+            {/* İşlem Geçmişi */}
             <div ref={listRef} onScroll={handleScroll} className="max-h-[320px] overflow-y-auto">
               {transactions.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-4 text-center">Henüz işlem yok</p>
@@ -254,18 +321,20 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
             </div>
           </>
         ) : (
-          <div className="p-8 text-center text-muted-foreground">Cari seçin</div>
+          <div className="flex items-center justify-center h-64 text-muted-foreground">Cari seçin</div>
         )}
       </div>
 
-      {/* Cari Ekle Modal */}
+      {/* Ekleme Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle className="font-heading">Cari Ekle</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Yeni Cari Ekle</DialogTitle>
+          </DialogHeader>
           <form onSubmit={handleAddVendor} className="space-y-4">
-            <div><Label className="text-sm font-semibold">Cari Adı *</Label><Input value={newVendor.name} onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })} className="mt-1 h-10 border-2" required /></div>
-            <div><Label className="text-sm font-semibold">Telefon</Label><Input value={newVendor.phone} onChange={(e) => setNewVendor({ ...newVendor, phone: e.target.value })} className="mt-1 h-10 border-2" /></div>
-            <div><Label className="text-sm font-semibold">Adres</Label><Input value={newVendor.address} onChange={(e) => setNewVendor({ ...newVendor, address: e.target.value })} className="mt-1 h-10 border-2" /></div>
+            <div><Label>Cari Adı *</Label><Input value={newVendor.name} onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })} className="mt-1 h-10 border-2" /></div>
+            <div><Label>Telefon</Label><Input value={newVendor.phone} onChange={(e) => setNewVendor({ ...newVendor, phone: e.target.value })} className="mt-1 h-10 border-2" /></div>
+            <div><Label>Adres</Label><Input value={newVendor.address} onChange={(e) => setNewVendor({ ...newVendor, address: e.target.value })} className="mt-1 h-10 border-2" /></div>
             <Button type="submit" className="w-full h-10 font-semibold">Ekle</Button>
           </form>
         </DialogContent>
