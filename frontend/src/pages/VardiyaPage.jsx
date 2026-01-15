@@ -272,14 +272,21 @@ export default function VardiyaPage({ companyId }) {
                             )
                           ) : (
                             <div className="space-y-0.5">
-                              <div className="max-h-[80px] overflow-y-auto space-y-0.5 pr-0.5">
+                              {/* Kurye sayısı badge */}
+                              <div className="flex items-center gap-1 mb-1">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${courierCount > 0 ? 'bg-blue-200 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
+                                  {courierCount} kişi
+                                </span>
+                              </div>
+                              {/* Scrollable kurye listesi */}
+                              <div className="max-h-[60px] overflow-y-auto space-y-0.5 scrollbar-thin">
                                 {cellAssignments.map(a => (
-                                  <div key={a.id} className="flex items-center justify-between bg-blue-100 px-1.5 py-0.5 rounded text-[10px] group">
+                                  <div key={a.id} className="flex items-center justify-between bg-blue-50 px-1 py-0.5 rounded text-[9px] group">
                                     <span className="font-medium truncate" title={a.courier_name}>{a.courier_name}</span>
                                     {editMode && (
                                       <button
                                         onClick={() => handleRemoveAssignment(a.id)}
-                                        className="text-red-500 hover:text-red-700 ml-1 flex-shrink-0"
+                                        className="text-red-500 hover:text-red-700 ml-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100"
                                       >
                                         <X className="w-2.5 h-2.5" />
                                       </button>
@@ -290,7 +297,7 @@ export default function VardiyaPage({ companyId }) {
                               {editMode && (
                                 <button
                                   onClick={() => openAssignModal(shift, day.key)}
-                                  className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
+                                  className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300 mt-0.5"
                                   data-testid={`assign-${shift.id}-${day.key}`}
                                 >
                                   +
