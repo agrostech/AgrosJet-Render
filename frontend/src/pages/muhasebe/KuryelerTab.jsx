@@ -183,7 +183,7 @@ export default function KuryelerTab({ companyId }) {
               </div>
               <div className="text-right">
                 <p className={`text-xl font-bold ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : 'text-slate-600'}`}>
-                  {balance === 0 ? '₺0,00' : balance > 0 ? `${formatCurrency(balance)} Borç` : `${formatCurrency(balance)} Alacak`}
+                  {balance === 0 ? '₺0,00' : balance > 0 ? `-${formatCurrency(balance)}` : formatCurrency(balance)}
                 </p>
               </div>
             </div>
