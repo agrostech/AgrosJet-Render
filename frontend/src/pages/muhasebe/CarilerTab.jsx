@@ -169,8 +169,8 @@ export default function CarilerTab({ companyId }) {
                   <Label className="text-xs text-muted-foreground">Açıklama</Label>
                   <Input value={description} onChange={(e) => setDescription(e.target.value)} className="h-9 border-2 text-sm" placeholder="İsteğe bağlı" />
                 </div>
-                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9"><Plus className="w-4 h-4 mr-1" />Ödeme Al</Button>
-                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9"><Minus className="w-4 h-4 mr-1" />Ödeme Yap</Button>
+                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
+                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
             <div className="max-h-[320px] overflow-y-auto">

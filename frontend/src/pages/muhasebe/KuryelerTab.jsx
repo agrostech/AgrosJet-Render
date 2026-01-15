@@ -166,10 +166,10 @@ export default function KuryelerTab({ companyId }) {
                   <Label htmlFor="hakedis" className="text-xs cursor-pointer">Hakediş</Label>
                 </div>
                 <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9">
-                  <Plus className="w-4 h-4 mr-1" />Ödeme Al
+                  <Plus className="w-4 h-4 mr-1" />Verilen
                 </Button>
                 <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9">
-                  <Minus className="w-4 h-4 mr-1" />Ödeme Yap
+                  <Minus className="w-4 h-4 mr-1" />Alınan
                 </Button>
               </div>
             </div>
