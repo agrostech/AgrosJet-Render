@@ -12,7 +12,7 @@ const TABS = [
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
-export default function MuhasebePage({ companyId }) {
+export default function MuhasebePage({ companyId, adminId, adminName }) {
   const [activeTab, setActiveTab] = useState("kuryeler");
 
   return (
@@ -40,9 +40,9 @@ export default function MuhasebePage({ companyId }) {
 
       {/* Tab İçeriği */}
       <div>
-        {activeTab === "kuryeler" && <KuryelerTab companyId={companyId} />}
-        {activeTab === "isletmeler" && <IsletmelerTab companyId={companyId} />}
-        {activeTab === "cariler" && <CarilerTab companyId={companyId} />}
+        {activeTab === "kuryeler" && <KuryelerTab companyId={companyId} adminId={adminId} adminName={adminName} />}
+        {activeTab === "isletmeler" && <IsletmelerTab companyId={companyId} adminId={adminId} adminName={adminName} />}
+        {activeTab === "cariler" && <CarilerTab companyId={companyId} adminId={adminId} adminName={adminName} />}
         {activeTab === "hareketler" && <HareketlerTab companyId={companyId} />}
       </div>
     </div>
