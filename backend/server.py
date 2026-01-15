@@ -753,6 +753,14 @@ async def get_vendor_transactions(vendor_id: str):
     """Get all transactions for a vendor"""
     return await get_entity_transactions("vendor", vendor_id)
 
+@api_router.delete("/transactions/{transaction_id}")
+async def delete_transaction(transaction_id: str):
+    """Delete a transaction"""
+    result = await db.transactions.delete_one({"id": transaction_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    return {"message": "İşlem silindi"}
+
 # Health check
 @api_router.get("/")
 async def root():
