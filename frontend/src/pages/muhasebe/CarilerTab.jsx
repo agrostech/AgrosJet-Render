@@ -18,6 +18,7 @@ export default function CarilerTab({ companyId }) {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [displayCount, setDisplayCount] = useState(10);
   const [balance, setBalance] = useState(0);
   const [vendorBalances, setVendorBalances] = useState({});
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,14 @@ export default function CarilerTab({ companyId }) {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const listRef = useRef(null);
+
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      setDisplayCount(prev => Math.min(prev + 10, transactions.length));
+    }
+  }, [transactions.length]);
 
   const fetchVendorBalance = async (id) => {
     try {
