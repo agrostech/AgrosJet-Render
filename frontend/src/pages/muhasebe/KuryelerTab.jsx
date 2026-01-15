@@ -13,6 +13,7 @@ export default function KuryelerTab({ companyId }) {
   const [couriers, setCouriers] = useState([]);
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [displayCount, setDisplayCount] = useState(10);
   const [balance, setBalance] = useState(0);
   const [courierBalances, setCourierBalances] = useState({});
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,14 @@ export default function KuryelerTab({ companyId }) {
   const [description, setDescription] = useState("");
   const [isHakedis, setIsHakedis] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const listRef = useRef(null);
+
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      setDisplayCount(prev => Math.min(prev + 10, transactions.length));
+    }
+  }, [transactions.length]);
 
   const fetchCourierBalance = async (courierId) => {
     try {
