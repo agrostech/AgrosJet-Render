@@ -182,16 +182,9 @@ export default function GuncelDurumPage({ companyId }) {
               <p className="text-sm text-muted-foreground">{formatDate(workDay.date)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="font-mono font-semibold">{formatTime(currentTime)}</span>
-            </div>
-            {workDay.isNextDay && (
-              <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                Gece vardiyası
-              </span>
-            )}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="font-mono font-semibold">{formatTime(currentTime)}</span>
           </div>
         </div>
 
