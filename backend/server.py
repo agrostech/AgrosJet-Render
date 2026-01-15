@@ -575,6 +575,13 @@ async def add_leave(company_id: str, data: LeaveAssignment):
     if existing:
         raise HTTPException(status_code=400, detail="Bu kurye zaten bu gün izinli")
     
+    # Remove courier from all shifts for this day when adding to leave
+    deleted_result = await db.shift_assignments.delete_many({
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "day": data.day
+    })
+    
     leave = {
         "id": str(uuid.uuid4()),
         "courier_id": data.courier_id,
@@ -584,6 +591,10 @@ async def add_leave(company_id: str, data: LeaveAssignment):
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.leaves.insert_one(leave)
+    
+    removed_count = deleted_result.deleted_count
+    if removed_count > 0:
+        return {"message": f"İzin eklendi. {removed_count} vardiya ataması kaldırıldı.", "id": leave["id"]}
     return {"message": "İzin eklendi", "id": leave["id"]}
 
 @api_router.delete("/leaves/{leave_id}")
