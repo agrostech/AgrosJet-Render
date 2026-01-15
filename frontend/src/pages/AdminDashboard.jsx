@@ -596,7 +596,7 @@ export default function AdminDashboard() {
           <Routes>
             <Route index element={<GuncelDurumPage companyId={user.company_id} />} />
             <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
-            <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} />} />
+            <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} />} />
             <Route path="zimmet" element={<ZimmetPage />} />
             <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
             {(isSuperAdmin || permissions.yoneticiler) && (
