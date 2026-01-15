@@ -100,8 +100,16 @@ export default function KuryelerTab({ companyId }) {
     }
   };
 
-  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amt);
+  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
   const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  
+  const getBalanceLabel = (bal) => {
+    if (bal === 0 || bal === undefined) return null;
+    // balance > 0 = Borçluyuz (payment_out fazla)
+    // balance < 0 = Alacaklıyız (payment_in fazla)
+    if (bal > 0) return { text: `${formatCurrency(bal)} Borç`, color: 'text-red-600 bg-red-50' };
+    return { text: `${formatCurrency(bal)} Alacak`, color: 'text-green-600 bg-green-50' };
+  };
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -116,21 +124,29 @@ export default function KuryelerTab({ companyId }) {
           {couriers.length === 0 ? (
             <p className="text-sm text-muted-foreground p-4 text-center">Kurye bulunamadı</p>
           ) : (
-            couriers.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCourier(c)}
-                className={`w-full flex items-center gap-3 p-3 text-left border-b border-slate-100 transition-colors ${selectedCourier?.id === c.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}
-              >
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                  <User className="w-4 h-4 text-slate-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{c.name}</p>
-                  <p className="text-xs text-muted-foreground font-mono">{c.phone}</p>
-                </div>
-              </button>
-            ))
+            couriers.map((c) => {
+              const balanceInfo = getBalanceLabel(courierBalances[c.id]);
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCourier(c)}
+                  className={`w-full flex items-center gap-3 p-3 text-left border-b border-slate-100 transition-colors ${selectedCourier?.id === c.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-slate-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{c.name}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{c.phone}</p>
+                  </div>
+                  {balanceInfo && (
+                    <span className={`text-xs font-semibold px-2 py-1 rounded shrink-0 ${balanceInfo.color}`}>
+                      {balanceInfo.text}
+                    </span>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
       </div>
