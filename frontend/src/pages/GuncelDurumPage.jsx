@@ -232,21 +232,21 @@ export default function GuncelDurumPage({ companyId }) {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex-1 ml-4">
                       {shiftAssignments.length === 0 ? (
-                        <span className="text-xs text-muted-foreground px-2 py-1 bg-white rounded">
-                          Kurye yok
-                        </span>
+                        <span className="text-xs text-muted-foreground">-</span>
                       ) : (
-                        <div className="flex flex-wrap gap-1 justify-end max-w-[300px]">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-1 max-h-[52px] overflow-hidden" style={{ direction: 'rtl' }}>
                           {shiftAssignments.map(a => (
                             <span 
                               key={a.id} 
-                              className={`text-xs px-2 py-1 rounded font-medium ${
+                              className={`text-[11px] px-2 py-1 rounded font-medium text-center truncate ${
                                 isActive 
                                   ? 'bg-green-200 text-green-800' 
                                   : 'bg-blue-100 text-blue-800'
                               }`}
+                              style={{ direction: 'ltr' }}
+                              title={a.courier_name}
                             >
                               {a.courier_name}
                             </span>
