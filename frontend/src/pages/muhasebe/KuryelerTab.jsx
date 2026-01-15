@@ -117,10 +117,10 @@ export default function KuryelerTab({ companyId }) {
   
   const getBalanceLabel = (bal) => {
     if (bal === 0 || bal === undefined) return null;
-    // balance > 0 = Borçluyuz (payment_out fazla)
-    // balance < 0 = Alacaklıyız (payment_in fazla)
-    if (bal > 0) return { text: `${formatCurrency(bal)} Borç`, color: 'text-red-600 bg-red-50' };
-    return { text: `${formatCurrency(bal)} Alacak`, color: 'text-green-600 bg-green-50' };
+    // balance > 0 = Borçluyuz (kırmızı, - ile)
+    // balance < 0 = Alacaklıyız (yeşil)
+    if (bal > 0) return { text: `-${formatCurrency(bal)}`, color: 'text-red-600 bg-red-50' };
+    return { text: formatCurrency(bal), color: 'text-green-600 bg-green-50' };
   };
 
   // Toplam bakiye hesaplama
