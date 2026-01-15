@@ -150,6 +150,29 @@ function SirketlerPage() {
     }
   };
 
+  const handleEditAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      const updateData = {};
+      if (editAdminData.name) updateData.name = editAdminData.name;
+      if (editAdminData.password) updateData.password = editAdminData.password;
+      
+      await axios.put(`${API}/admins/${selectedAdmin.id}`, updateData);
+      toast.success("Yönetici güncellendi");
+      setShowEditAdminModal(false);
+      setEditAdminData({ name: "", password: "" });
+      fetchCompanyAdmins(selectedCompany.id);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    }
+  };
+
+  const openEditAdminModal = (admin) => {
+    setSelectedAdmin(admin);
+    setEditAdminData({ name: admin.name, password: "" });
+    setShowEditAdminModal(true);
+  };
+
   const openEditModal = (company) => {
     setSelectedCompany({ ...company });
     setShowEditModal(true);
