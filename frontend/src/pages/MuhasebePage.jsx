@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Users, Building2, Wallet } from "lucide-react";
+import { Users, Building2, Wallet, History } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
+import HareketlerTab from "./muhasebe/HareketlerTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
   { key: "isletmeler", label: "İşletmeler", icon: Building2 },
   { key: "cariler", label: "Cariler", icon: Wallet },
+  { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
 export default function MuhasebePage({ companyId }) {
@@ -41,6 +43,7 @@ export default function MuhasebePage({ companyId }) {
         {activeTab === "kuryeler" && <KuryelerTab companyId={companyId} />}
         {activeTab === "isletmeler" && <IsletmelerTab companyId={companyId} />}
         {activeTab === "cariler" && <CarilerTab companyId={companyId} />}
+        {activeTab === "hareketler" && <HareketlerTab companyId={companyId} />}
       </div>
     </div>
   );
