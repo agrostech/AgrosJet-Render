@@ -218,30 +218,30 @@ export default function VardiyaPage({ companyId }) {
         </div>
       ) : (
         <div className="border-2 border-border bg-white overflow-x-auto">
-          <Table>
+          <Table className="text-sm">
             <TableHeader>
               <TableRow className="border-b-2 border-primary">
-                <TableHead className="font-bold text-xs min-w-[100px] bg-slate-50">Gün</TableHead>
+                <TableHead className="font-bold text-xs min-w-[80px] bg-slate-50 p-2">Gün</TableHead>
                 {shifts.map(shift => (
-                  <TableHead key={shift.id} className="font-bold text-xs min-w-[150px] text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span>{shift.start_time} - {shift.end_time}</span>
+                  <TableHead key={shift.id} className="font-bold text-xs min-w-[120px] text-center p-2">
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-xs">{shift.start_time} - {shift.end_time}</span>
                       {editMode && (
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteShift(shift.id)}
-                          className="h-6 px-2 hover:bg-red-50 hover:text-red-600 text-xs"
+                          className="h-5 px-1.5 hover:bg-red-50 hover:text-red-600 text-[10px]"
                           data-testid={`delete-shift-${shift.id}`}
                         >
-                          <Trash2 className="w-3 h-3 mr-1" />
+                          <Trash2 className="w-3 h-3 mr-0.5" />
                           Sil
                         </Button>
                       )}
                     </div>
                   </TableHead>
                 ))}
-                <TableHead className="font-bold text-xs min-w-[150px] text-center bg-orange-50 text-orange-700">
+                <TableHead className="font-bold text-xs min-w-[100px] text-center bg-orange-50 text-orange-700 p-2">
                   İzinliler
                 </TableHead>
               </TableRow>
@@ -249,14 +249,14 @@ export default function VardiyaPage({ companyId }) {
             <TableBody>
               {DAYS.map(day => (
                 <TableRow key={day.key} className="border-b border-border hover:bg-slate-50">
-                  <TableCell className="font-semibold bg-slate-50">{day.label}</TableCell>
+                  <TableCell className="font-semibold bg-slate-50 p-2 text-xs">{day.label}</TableCell>
                   {shifts.map(shift => {
                     const cellAssignments = getAssignmentsForCell(shift.id, day.key);
                     return (
-                      <TableCell key={shift.id} className="p-2 align-top">
-                        <div className="min-h-[50px] space-y-1">
+                      <TableCell key={shift.id} className="p-1.5 align-top">
+                        <div className="min-h-[40px] space-y-0.5">
                           {cellAssignments.map(a => (
-                            <div key={a.id} className="flex items-center justify-between bg-blue-50 px-2 py-1 rounded text-xs group">
+                            <div key={a.id} className="flex items-center justify-between bg-blue-50 px-1.5 py-0.5 rounded text-[11px] group">
                               <span className="font-medium truncate">{a.courier_name}</span>
                               {editMode && (
                                 <button
@@ -271,20 +271,20 @@ export default function VardiyaPage({ companyId }) {
                           {editMode && (
                             <button
                               onClick={() => openAssignModal(shift, day.key)}
-                              className="w-full text-xs text-muted-foreground hover:text-primary hover:bg-slate-100 py-1 rounded border border-dashed border-slate-300"
+                              className="w-full text-[10px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
                               data-testid={`assign-${shift.id}-${day.key}`}
                             >
-                              + Kurye Ekle
+                              + Ekle
                             </button>
                           )}
                         </div>
                       </TableCell>
                     );
                   })}
-                  <TableCell className="p-2 align-top bg-orange-50/50">
-                    <div className="min-h-[50px] space-y-1">
+                  <TableCell className="p-1.5 align-top bg-orange-50/50">
+                    <div className="min-h-[40px] space-y-0.5">
                       {getLeavesForDay(day.key).map(l => (
-                        <div key={l.id} className="flex items-center justify-between bg-orange-100 px-2 py-1 rounded text-xs group">
+                        <div key={l.id} className="flex items-center justify-between bg-orange-100 px-1.5 py-0.5 rounded text-[11px] group">
                           <span className="font-medium truncate">{l.courier_name}</span>
                           {editMode && (
                             <button
@@ -299,10 +299,10 @@ export default function VardiyaPage({ companyId }) {
                       {editMode && (
                         <button
                           onClick={() => openLeaveModal(day.key)}
-                          className="w-full text-xs text-muted-foreground hover:text-orange-600 hover:bg-orange-100 py-1 rounded border border-dashed border-orange-300"
+                          className="w-full text-[10px] text-muted-foreground hover:text-orange-600 hover:bg-orange-100 py-0.5 rounded border border-dashed border-orange-300"
                           data-testid={`add-leave-${day.key}`}
                         >
-                          + İzin Ekle
+                          + İzin
                         </button>
                       )}
                     </div>
