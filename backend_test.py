@@ -433,33 +433,40 @@ class KuryeAPITester:
 
     def test_invalid_login_attempts(self):
         """Test invalid login attempts"""
-        # Invalid courier login
-        self.run_test(
-            "Invalid Courier Login",
-            "POST",
-            "auth/courier/login",
-            401,
-            data={"phone": "05551111111", "password": "wrongpass"}
-        )
+        # Invalid courier login (with company_id)
+        if hasattr(self, 'company_id'):
+            self.run_test(
+                "Invalid Courier Login",
+                "POST",
+                "auth/courier/login",
+                401,
+                data={"phone": "05551111111", "password": "wrongpass", "company_id": self.company_id}
+            )
         
-        # Invalid admin login
-        self.run_test(
-            "Invalid Admin Login",
-            "POST",
-            "auth/admin/login",
-            401,
-            data={"username": "wronguser", "password": "wrongpass"}
-        )
+        # Invalid admin login (with company_id)
+        if hasattr(self, 'company_id'):
+            self.run_test(
+                "Invalid Admin Login",
+                "POST",
+                "auth/admin/login",
+                401,
+                data={"username": "wronguser", "password": "wrongpass", "company_id": self.company_id}
+            )
 
     def test_name_formatting(self):
         """Test name formatting (should capitalize first letters)"""
+        if not hasattr(self, 'company_id'):
+            self.log_test("Name Formatting Test", False, "No company ID available")
+            return False
+            
         format_test_courier = {
             "name": "lowercase name test",
             "phone": "05551111222",
             "address": "Format Test Address",
             "iban": "TR111222333444555666777888",
             "plate": "36 fmt 999",
-            "password": "formattest"
+            "password": "formattest",
+            "company_id": self.company_id
         }
         
         success, response = self.run_test(
@@ -472,7 +479,7 @@ class KuryeAPITester:
         
         if success:
             # Check if name was formatted correctly by getting couriers list
-            success2, couriers = self.run_test("Get Couriers for Format Check", "GET", "couriers", 200)
+            success2, couriers = self.run_test("Get Couriers for Format Check", "GET", f"couriers?company_id={self.company_id}", 200)
             if success2:
                 # Find our test courier
                 for courier in couriers:
