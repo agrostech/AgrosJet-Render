@@ -97,7 +97,7 @@ export default function CarilerTab({ companyId }) {
         company_id: companyId,
         type: type === "in" ? "payment_in" : "payment_out",
         amount: parseFloat(amount),
-        description: description || (type === "in" ? "Ödeme alındı" : "Ödeme yapıldı"),
+        description: description || (type === "in" ? "Verilen" : "Alınan"),
         is_hakedis: false
       });
       toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
