@@ -956,7 +956,7 @@ export default function AdminDashboard() {
 
         <main className="flex-1 p-4 md:p-8 pb-16">
           <Routes>
-            <Route index element={<VardiyaPage />} />
+            <Route index element={<VardiyaPage companyId={user.company_id} />} />
             <Route path="muhasebe" element={<MuhasebePage />} />
             <Route path="zimmet" element={<ZimmetPage />} />
             <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
