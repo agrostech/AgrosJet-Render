@@ -253,31 +253,55 @@ export default function VardiyaPage({ companyId }) {
                   {DAYS.map((day, dayIndex) => {
                     const cellAssignments = getAssignmentsForCell(shift.id, day.key);
                     const isEvenColumn = dayIndex % 2 === 0;
+                    const courierCount = cellAssignments.length;
                     return (
                       <TableCell 
                         key={day.key} 
                         className={`p-1 align-top border-r border-slate-200 ${isEvenColumn ? 'bg-slate-50/50' : 'bg-white'}`}
                       >
-                        <div className="min-h-[32px] space-y-0.5">
-                          {cellAssignments.map(a => (
-                            <div key={a.id} className="flex items-center justify-between bg-blue-100 px-1.5 py-0.5 rounded text-[10px] group">
-                              <span className="font-medium truncate">{a.courier_name}</span>
+                        <div className="min-h-[32px]">
+                          {courierCount === 0 ? (
+                            editMode && (
+                              <button
+                                onClick={() => openAssignModal(shift, day.key)}
+                                className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
+                                data-testid={`assign-${shift.id}-${day.key}`}
+                              >
+                                +
+                              </button>
+                            )
+                          ) : (
+                            <div className="space-y-0.5">
+                              <div className="max-h-[80px] overflow-y-auto space-y-0.5 pr-0.5">
+                                {cellAssignments.map(a => (
+                                  <div key={a.id} className="flex items-center justify-between bg-blue-100 px-1.5 py-0.5 rounded text-[10px] group">
+                                    <span className="font-medium truncate" title={a.courier_name}>{a.courier_name}</span>
+                                    {editMode && (
+                                      <button
+                                        onClick={() => handleRemoveAssignment(a.id)}
+                                        className="text-red-500 hover:text-red-700 ml-1 flex-shrink-0"
+                                      >
+                                        <X className="w-2.5 h-2.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                               {editMode && (
                                 <button
-                                  onClick={() => handleRemoveAssignment(a.id)}
-                                  className="text-red-500 hover:text-red-700 ml-1"
+                                  onClick={() => openAssignModal(shift, day.key)}
+                                  className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
+                                  data-testid={`assign-${shift.id}-${day.key}`}
                                 >
-                                  <X className="w-2.5 h-2.5" />
+                                  +
                                 </button>
                               )}
                             </div>
-                          ))}
-                          {editMode && (
-                            <button
-                              onClick={() => openAssignModal(shift, day.key)}
-                              className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
-                              data-testid={`assign-${shift.id}-${day.key}`}
-                            >
+                          )}
+                        </div>
+                      </TableCell>
+                    );
+                  })}
                               +
                             </button>
                           )}
