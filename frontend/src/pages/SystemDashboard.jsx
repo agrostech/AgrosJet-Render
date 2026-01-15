@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Menu, X, LogOut, Building2, Users, Trash2, Plus, Edit, UserPlus } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, UserPlus, Users } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -29,9 +29,14 @@ function SirketlerPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSuperAdminModal, setShowSuperAdminModal] = useState(false);
+  const [showAdminsModal, setShowAdminsModal] = useState(false);
+  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [companyAdmins, setCompanyAdmins] = useState([]);
+  const [adminsLoading, setAdminsLoading] = useState(false);
   const [newCompany, setNewCompany] = useState({ name: "", logo_url: "" });
   const [newSuperAdmin, setNewSuperAdmin] = useState({ name: "", username: "", password: "" });
+  const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
 
   const fetchCompanies = async () => {
     try {
@@ -47,6 +52,18 @@ function SirketlerPage() {
   useEffect(() => {
     fetchCompanies();
   }, []);
+
+  const fetchCompanyAdmins = async (companyId) => {
+    setAdminsLoading(true);
+    try {
+      const res = await axios.get(`${API}/admins?company_id=${companyId}`);
+      setCompanyAdmins(res.data);
+    } catch (err) {
+      toast.error("Yöneticiler yüklenemedi");
+    } finally {
+      setAdminsLoading(false);
+    }
+  };
 
   const handleAddCompany = async (e) => {
     e.preventDefault();
@@ -97,8 +114,36 @@ function SirketlerPage() {
       toast.success("Süper admin oluşturuldu");
       setShowSuperAdminModal(false);
       setNewSuperAdmin({ name: "", username: "", password: "" });
+      fetchCompanyAdmins(selectedCompany.id);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Oluşturma başarısız");
+    }
+  };
+
+  const handleAddAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/admins`, {
+        ...newAdmin,
+        company_id: selectedCompany.id
+      });
+      toast.success("Yönetici eklendi");
+      setShowAddAdminModal(false);
+      setNewAdmin({ name: "", username: "", password: "" });
+      fetchCompanyAdmins(selectedCompany.id);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Ekleme başarısız");
+    }
+  };
+
+  const handleDeleteAdmin = async (adminId) => {
+    if (!window.confirm("Bu yöneticiyi silmek istediğinize emin misiniz?")) return;
+    try {
+      await axios.delete(`${API}/admins/${adminId}`);
+      toast.success("Yönetici silindi");
+      fetchCompanyAdmins(selectedCompany.id);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Silme başarısız");
     }
   };
 
@@ -107,10 +152,21 @@ function SirketlerPage() {
     setShowEditModal(true);
   };
 
-  const openSuperAdminModal = (company) => {
+  const openAdminsModal = (company) => {
     setSelectedCompany(company);
+    setShowAdminsModal(true);
+    fetchCompanyAdmins(company.id);
+  };
+
+  const openSuperAdminModal = () => {
     setShowSuperAdminModal(true);
   };
+
+  const openAddAdminModal = () => {
+    setShowAddAdminModal(true);
+  };
+
+  const hasSuperAdmin = companyAdmins.some(a => a.role === "superadmin");
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -156,8 +212,8 @@ function SirketlerPage() {
                       <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="h-8 px-3 border-2" data-testid={`edit-${c.id}`}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => openSuperAdminModal(c)} className="h-8 px-3 border-2" data-testid={`superadmin-${c.id}`}>
-                        <UserPlus className="w-4 h-4" />
+                      <Button size="sm" variant="outline" onClick={() => openAdminsModal(c)} className="h-8 px-3 border-2" data-testid={`admins-${c.id}`}>
+                        <Users className="w-4 h-4" />
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => handleDeleteCompany(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-${c.id}`}>
                         <Trash2 className="w-4 h-4" />
@@ -190,7 +246,7 @@ function SirketlerPage() {
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="flex-1 border-2">Düzenle</Button>
-                <Button size="sm" variant="outline" onClick={() => openSuperAdminModal(c)} className="flex-1 border-2">Süper Admin</Button>
+                <Button size="sm" variant="outline" onClick={() => openAdminsModal(c)} className="flex-1 border-2">Yöneticiler</Button>
                 <Button size="sm" variant="outline" onClick={() => handleDeleteCompany(c.id)} className="border-2">Sil</Button>
               </div>
             </div>
@@ -198,6 +254,7 @@ function SirketlerPage() {
         )}
       </div>
 
+      {/* Add Company Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -217,6 +274,7 @@ function SirketlerPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Company Modal */}
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -244,6 +302,61 @@ function SirketlerPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Company Admins Modal */}
+      <Dialog open={showAdminsModal} onOpenChange={setShowAdminsModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading">{selectedCompany?.name} - Yöneticiler</DialogTitle>
+          </DialogHeader>
+          {adminsLoading ? (
+            <p>Yükleniyor...</p>
+          ) : (
+            <div className="space-y-4">
+              {companyAdmins.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground border-2 border-dashed">
+                  Bu şirkete henüz yönetici atanmamış
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {companyAdmins.map((admin) => (
+                    <div key={admin.id} className="flex items-center justify-between p-3 border-2 border-border">
+                      <div>
+                        <p className="font-semibold">{admin.name}</p>
+                        <p className="text-sm text-muted-foreground font-mono">{admin.username}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 text-xs font-semibold ${admin.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
+                          {admin.role === "superadmin" ? "Süper Admin" : "Admin"}
+                        </span>
+                        {admin.role !== "superadmin" && (
+                          <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(admin.id)} className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex gap-2 pt-2 border-t">
+                {!hasSuperAdmin && (
+                  <Button onClick={openSuperAdminModal} className="flex-1 font-semibold" data-testid="add-superadmin-btn">
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Süper Admin Ekle
+                  </Button>
+                )}
+                <Button onClick={openAddAdminModal} variant={hasSuperAdmin ? "default" : "outline"} className="flex-1 font-semibold" data-testid="add-admin-btn">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Admin Ekle
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Super Admin Modal */}
       <Dialog open={showSuperAdminModal} onOpenChange={setShowSuperAdminModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -251,7 +364,7 @@ function SirketlerPage() {
           </DialogHeader>
           {selectedCompany && (
             <form onSubmit={handleAddSuperAdmin} className="space-y-4">
-              <p className="text-sm text-muted-foreground mb-4"><strong>{selectedCompany.name}</strong> için süper admin oluşturun</p>
+              <p className="text-sm text-muted-foreground"><strong>{selectedCompany.name}</strong> için süper admin oluşturun</p>
               <div>
                 <Label className="text-sm font-semibold">İsim Soyisim</Label>
                 <Input data-testid="superadmin-name" value={newSuperAdmin.name} onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, name: e.target.value })} className="mt-1 h-12 border-2" required />
@@ -269,82 +382,33 @@ function SirketlerPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
 
-function TumYoneticilerPage() {
-  const [admins, setAdmins] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchAdmins();
-  }, []);
-
-  const fetchAdmins = async () => {
-    try {
-      const res = await axios.get(`${API}/admins`);
-      setAdmins(res.data);
-    } catch (err) {
-      toast.error("Yöneticiler yüklenemedi");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteAdmin = async (id) => {
-    if (!window.confirm("Bu yöneticiyi silmek istediğinize emin misiniz?")) return;
-    try {
-      await axios.delete(`${API}/admins/${id}`);
-      toast.success("Yönetici silindi");
-      fetchAdmins();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Silme başarısız");
-    }
-  };
-
-  if (loading) return <p>Yükleniyor...</p>;
-
-  return (
-    <div data-testid="system-yoneticiler-page">
-      <h2 className="font-heading text-2xl font-bold tracking-tight mb-6">Tüm Yöneticiler</h2>
-
-      <div className="border-2 border-border bg-white overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b-2 border-primary">
-              <TableHead className="font-bold text-xs">İsim</TableHead>
-              <TableHead className="font-bold text-xs">Kullanıcı Adı</TableHead>
-              <TableHead className="font-bold text-xs">Rol</TableHead>
-              <TableHead className="font-bold text-xs">İşlemler</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {admins.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">Kayıtlı yönetici bulunmuyor</TableCell>
-              </TableRow>
-            ) : (
-              admins.map((a) => (
-                <TableRow key={a.id} className="border-b border-border hover:bg-slate-50">
-                  <TableCell className="font-medium">{a.name}</TableCell>
-                  <TableCell className="font-mono text-sm">{a.username}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 text-xs font-semibold ${a.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
-                      {a.role === "superadmin" ? "Süper Admin" : "Admin"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Add Admin Modal */}
+      <Dialog open={showAddAdminModal} onOpenChange={setShowAddAdminModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Admin Ekle</DialogTitle>
+          </DialogHeader>
+          {selectedCompany && (
+            <form onSubmit={handleAddAdmin} className="space-y-4">
+              <p className="text-sm text-muted-foreground"><strong>{selectedCompany.name}</strong> için admin oluşturun</p>
+              <div>
+                <Label className="text-sm font-semibold">İsim Soyisim</Label>
+                <Input data-testid="admin-name" value={newAdmin.name} onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} className="mt-1 h-12 border-2" required />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Kullanıcı Adı</Label>
+                <Input data-testid="admin-username" value={newAdmin.username} onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} className="mt-1 h-12 border-2" required />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Şifre</Label>
+                <Input data-testid="admin-password" type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="mt-1 h-12 border-2" required />
+              </div>
+              <Button type="submit" className="w-full h-12 font-semibold" data-testid="submit-admin">Ekle</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -378,7 +442,6 @@ export default function SystemDashboard() {
 
   const NAV_ITEMS = [
     { path: "/system", label: "Şirketler", icon: Building2 },
-    { path: "/system/yoneticiler", label: "Yöneticiler", icon: Users },
   ];
 
   return (
@@ -431,7 +494,6 @@ export default function SystemDashboard() {
         <main className="flex-1 p-4 md:p-8">
           <Routes>
             <Route index element={<SirketlerPage />} />
-            <Route path="yoneticiler" element={<TumYoneticilerPage />} />
           </Routes>
         </main>
       </div>
