@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { X, Clock, Trash2, UserPlus } from "lucide-react";
+import { X, Clock, Trash2, UserPlus, Pencil, Check } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -38,12 +38,13 @@ export default function VardiyaPage({ companyId }) {
   const [leaves, setLeaves] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
   const [showAddShiftModal, setShowAddShiftModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
-  const [newShift, setNewShift] = useState({ name: "", start_time: "", end_time: "" });
+  const [newShift, setNewShift] = useState({ start_time: "", end_time: "" });
 
   const fetchData = async () => {
     try {
@@ -76,7 +77,7 @@ export default function VardiyaPage({ companyId }) {
       return;
     }
     try {
-      const shiftName = newShift.name || `${newShift.start_time} - ${newShift.end_time}`;
+      const shiftName = `${newShift.start_time} - ${newShift.end_time}`;
       await axios.post(`${API}/companies/${companyId}/shifts`, {
         name: shiftName,
         start_time: newShift.start_time,
@@ -85,7 +86,7 @@ export default function VardiyaPage({ companyId }) {
       });
       toast.success("Vardiya eklendi");
       setShowAddShiftModal(false);
-      setNewShift({ name: "", start_time: "", end_time: "" });
+      setNewShift({ start_time: "", end_time: "" });
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Vardiya eklenemedi");
@@ -188,17 +189,30 @@ export default function VardiyaPage({ companyId }) {
     <div data-testid="admin-vardiya-page">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <h2 className="font-heading text-2xl font-bold tracking-tight">Vardiya Yönetimi</h2>
-        <Button onClick={() => setShowAddShiftModal(true)} className="font-semibold" data-testid="add-shift-btn">
-          <Clock className="w-4 h-4 mr-2" />
-          Vardiya Ekle
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setEditMode(!editMode)} 
+            variant={editMode ? "default" : "outline"}
+            className={`font-semibold ${editMode ? "" : "border-2"}`}
+            data-testid="edit-mode-btn"
+          >
+            {editMode ? <Check className="w-4 h-4 mr-2" /> : <Pencil className="w-4 h-4 mr-2" />}
+            {editMode ? "Tamam" : "Düzenle"}
+          </Button>
+          {editMode && (
+            <Button onClick={() => setShowAddShiftModal(true)} className="font-semibold" data-testid="add-shift-btn">
+              <Clock className="w-4 h-4 mr-2" />
+              Vardiya Ekle
+            </Button>
+          )}
+        </div>
       </div>
 
       {shifts.length === 0 ? (
         <div className="border-2 border-border p-8 bg-white text-center">
           <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-4">Henüz vardiya eklenmemiş</p>
-          <Button onClick={() => setShowAddShiftModal(true)} variant="outline" className="border-2">
+          <Button onClick={() => { setEditMode(true); setShowAddShiftModal(true); }} variant="outline" className="border-2">
             İlk Vardiyayı Ekle
           </Button>
         </div>
@@ -211,17 +225,19 @@ export default function VardiyaPage({ companyId }) {
                 {shifts.map(shift => (
                   <TableHead key={shift.id} className="font-bold text-xs min-w-[150px] text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span>{shift.start_time}</span>
-                      <span className="text-[10px] text-muted-foreground">{shift.end_time}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDeleteShift(shift.id)}
-                        className="h-5 w-5 p-0 hover:bg-red-50 hover:text-red-600"
-                        data-testid={`delete-shift-${shift.id}`}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                      <span>{shift.start_time} - {shift.end_time}</span>
+                      {editMode && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteShift(shift.id)}
+                          className="h-6 px-2 hover:bg-red-50 hover:text-red-600 text-xs"
+                          data-testid={`delete-shift-${shift.id}`}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Sil
+                        </Button>
+                      )}
                     </div>
                   </TableHead>
                 ))}
@@ -238,49 +254,57 @@ export default function VardiyaPage({ companyId }) {
                     const cellAssignments = getAssignmentsForCell(shift.id, day.key);
                     return (
                       <TableCell key={shift.id} className="p-2 align-top">
-                        <div className="min-h-[60px] space-y-1">
+                        <div className="min-h-[50px] space-y-1">
                           {cellAssignments.map(a => (
                             <div key={a.id} className="flex items-center justify-between bg-blue-50 px-2 py-1 rounded text-xs group">
                               <span className="font-medium truncate">{a.courier_name}</span>
-                              <button
-                                onClick={() => handleRemoveAssignment(a.id)}
-                                className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 ml-1"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
+                              {editMode && (
+                                <button
+                                  onClick={() => handleRemoveAssignment(a.id)}
+                                  className="text-red-500 hover:text-red-700 ml-1"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
                           ))}
-                          <button
-                            onClick={() => openAssignModal(shift, day.key)}
-                            className="w-full text-xs text-muted-foreground hover:text-primary hover:bg-slate-100 py-1 rounded border border-dashed border-slate-300"
-                            data-testid={`assign-${shift.id}-${day.key}`}
-                          >
-                            + Kurye Ekle
-                          </button>
+                          {editMode && (
+                            <button
+                              onClick={() => openAssignModal(shift, day.key)}
+                              className="w-full text-xs text-muted-foreground hover:text-primary hover:bg-slate-100 py-1 rounded border border-dashed border-slate-300"
+                              data-testid={`assign-${shift.id}-${day.key}`}
+                            >
+                              + Kurye Ekle
+                            </button>
+                          )}
                         </div>
                       </TableCell>
                     );
                   })}
                   <TableCell className="p-2 align-top bg-orange-50/50">
-                    <div className="min-h-[60px] space-y-1">
+                    <div className="min-h-[50px] space-y-1">
                       {getLeavesForDay(day.key).map(l => (
                         <div key={l.id} className="flex items-center justify-between bg-orange-100 px-2 py-1 rounded text-xs group">
                           <span className="font-medium truncate">{l.courier_name}</span>
-                          <button
-                            onClick={() => handleRemoveLeave(l.id)}
-                            className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 ml-1"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
+                          {editMode && (
+                            <button
+                              onClick={() => handleRemoveLeave(l.id)}
+                              className="text-red-500 hover:text-red-700 ml-1"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
                         </div>
                       ))}
-                      <button
-                        onClick={() => openLeaveModal(day.key)}
-                        className="w-full text-xs text-muted-foreground hover:text-orange-600 hover:bg-orange-100 py-1 rounded border border-dashed border-orange-300"
-                        data-testid={`add-leave-${day.key}`}
-                      >
-                        + İzin Ekle
-                      </button>
+                      {editMode && (
+                        <button
+                          onClick={() => openLeaveModal(day.key)}
+                          className="w-full text-xs text-muted-foreground hover:text-orange-600 hover:bg-orange-100 py-1 rounded border border-dashed border-orange-300"
+                          data-testid={`add-leave-${day.key}`}
+                        >
+                          + İzin Ekle
+                        </button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -297,18 +321,9 @@ export default function VardiyaPage({ companyId }) {
             <DialogTitle className="font-heading">Yeni Vardiya Ekle</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddShift} className="space-y-4">
-            <div>
-              <Label className="text-sm font-semibold">Vardiya Adı (Opsiyonel)</Label>
-              <Input
-                placeholder="Örn: Sabah Vardiyası"
-                value={newShift.name}
-                onChange={(e) => setNewShift({ ...newShift, name: e.target.value })}
-                className="mt-1 h-12 border-2"
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-semibold">Başlangıç Saati</Label>
+                <Label className="text-sm font-semibold">Giriş Saati</Label>
                 <Input
                   type="time"
                   value={newShift.start_time}
@@ -318,7 +333,7 @@ export default function VardiyaPage({ companyId }) {
                 />
               </div>
               <div>
-                <Label className="text-sm font-semibold">Bitiş Saati</Label>
+                <Label className="text-sm font-semibold">Çıkış Saati</Label>
                 <Input
                   type="time"
                   value={newShift.end_time}
