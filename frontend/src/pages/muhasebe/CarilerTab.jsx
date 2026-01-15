@@ -19,6 +19,7 @@ export default function CarilerTab({ companyId }) {
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(0);
+  const [vendorBalances, setVendorBalances] = useState({});
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newVendor, setNewVendor] = useState({ name: "", phone: "", address: "" });
@@ -26,11 +27,19 @@ export default function CarilerTab({ companyId }) {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const fetchVendorBalance = async (id) => {
+    try {
+      const res = await axios.get(`${API}/transactions/vendor/${id}`);
+      setVendorBalances(prev => ({ ...prev, [id]: res.data.balance }));
+    } catch (err) {}
+  };
+
   const fetchVendors = async () => {
     try {
       const res = await axios.get(`${API}/companies/${companyId}/vendors`);
       setVendors(res.data);
       if (res.data.length > 0 && !selectedVendor) setSelectedVendor(res.data[0]);
+      res.data.forEach(v => fetchVendorBalance(v.id));
     } catch (err) {
       toast.error("Cariler yüklenemedi");
     } finally {

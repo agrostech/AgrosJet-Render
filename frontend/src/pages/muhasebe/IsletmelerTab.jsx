@@ -19,6 +19,7 @@ export default function IsletmelerTab({ companyId }) {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(0);
+  const [businessBalances, setBusinessBalances] = useState({});
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newBusiness, setNewBusiness] = useState({ name: "", phone: "", address: "" });
@@ -26,11 +27,19 @@ export default function IsletmelerTab({ companyId }) {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const fetchBusinessBalance = async (id) => {
+    try {
+      const res = await axios.get(`${API}/transactions/business/${id}`);
+      setBusinessBalances(prev => ({ ...prev, [id]: res.data.balance }));
+    } catch (err) {}
+  };
+
   const fetchBusinesses = async () => {
     try {
       const res = await axios.get(`${API}/companies/${companyId}/businesses`);
       setBusinesses(res.data);
       if (res.data.length > 0 && !selectedBusiness) setSelectedBusiness(res.data[0]);
+      res.data.forEach(b => fetchBusinessBalance(b.id));
     } catch (err) {
       toast.error("İşletmeler yüklenemedi");
     } finally {
