@@ -282,11 +282,11 @@ async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
         "id": str(uuid.uuid4()),
         "company_id": company_id,
         "courier_id": courier["id"],
-        "status": "pending",
+        "status": "approved",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.company_couriers.insert_one(relation)
-    return {"message": "Kurye eklendi, onay bekleniyor", "courier_name": courier["name"]}
+    return {"message": "Kurye şirkete eklendi", "courier_name": courier["name"]}
 
 @api_router.put("/companies/{company_id}/couriers/{courier_id}/approve")
 async def approve_company_courier(company_id: str, courier_id: str):
