@@ -550,33 +550,57 @@ export default function AdminDashboard() {
       )}
 
       <div className="flex">
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-primary text-white">
-          <div className="p-6 border-b border-white/20">
-            {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name} className="h-10 mb-2 object-contain" />
-            ) : (
-              <h1 className="font-heading text-xl font-bold">{company?.name}</h1>
+        <aside className={`hidden lg:flex flex-col min-h-screen bg-primary text-white transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
+          <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2' : ''}`}>
+            {!sidebarCollapsed && (
+              <>
+                {company?.logo_url ? (
+                  <img src={company.logo_url} alt={company.name} className="h-8 mb-2 object-contain" />
+                ) : (
+                  <h1 className="font-heading text-lg font-bold truncate">{company?.name}</h1>
+                )}
+                <p className="text-white/60 text-xs mt-1">{isSuperAdmin ? "Süper Admin" : "Admin"}</p>
+                <p className="text-white/80 text-xs font-mono mt-1 truncate">{user.name}</p>
+              </>
             )}
-            <p className="text-white/60 text-sm mt-1">{isSuperAdmin ? "Süper Admin Paneli" : "Admin Paneli"}</p>
-            <p className="text-white/80 text-sm font-mono mt-2">{user.name}</p>
           </div>
-          <nav className="flex-1 py-4">
+          <nav className="flex-1 py-2">
             {NAV_ITEMS.map((item) => (
-              <Link key={item.path} to={item.path} className={`flex items-center gap-3 px-6 py-3 text-sm font-semibold transition-colors ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`} data-testid={`admin-nav-${item.key}`}>
-                <item.icon className="w-5 h-5" />
-                {item.label}
+              <Link 
+                key={item.path} 
+                to={item.path} 
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"} ${sidebarCollapsed ? 'justify-center px-2' : ''}`} 
+                data-testid={`admin-nav-${item.key}`}
+                title={sidebarCollapsed ? item.label : ''}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             ))}
           </nav>
-          <div className="p-4 border-t border-white/20">
-            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-white hover:bg-white/10 font-semibold text-sm" data-testid="admin-logout-btn">
-              <LogOut className="w-4 h-4 mr-2" />
-              Çıkış Yap
+          <div className="border-t border-white/20">
+            <Button 
+              variant="ghost" 
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)} 
+              className={`w-full justify-center text-white hover:bg-white/10 py-2 ${sidebarCollapsed ? '' : 'justify-end pr-4'}`}
+              data-testid="sidebar-toggle-btn"
+            >
+              {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={handleLogout} 
+              className={`w-full text-white hover:bg-white/10 font-semibold text-sm py-2.5 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-4'}`} 
+              data-testid="admin-logout-btn"
+              title={sidebarCollapsed ? 'Çıkış Yap' : ''}
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="ml-2">Çıkış Yap</span>}
             </Button>
           </div>
         </aside>
 
-        <main className="flex-1 p-4 md:p-8 pb-16">
+        <main className="flex-1 p-4 md:p-6 pb-16 overflow-x-auto">
           <Routes>
             <Route index element={<VardiyaPage companyId={user.company_id} />} />
             <Route path="muhasebe" element={<MuhasebePage />} />
@@ -590,7 +614,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 lg:left-64 bg-white border-t py-3 text-center text-xs text-muted-foreground">
+      <footer className={`fixed bottom-0 right-0 bg-white border-t py-2 text-center text-xs text-muted-foreground transition-all duration-300 ${sidebarCollapsed ? 'left-16' : 'left-56'} lg:left-auto lg:right-0 lg:w-[calc(100%-${sidebarCollapsed ? '4rem' : '14rem'})]`} style={{ left: 0 }}>
         © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
       </footer>
     </div>
