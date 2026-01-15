@@ -746,11 +746,43 @@ async def create_transaction(data: TransactionCreate):
         "company_id": data.company_id,
         "type": data.type,
         "amount": data.amount,
-        "description": data.description or ("Ödeme alındı" if data.type == "payment_in" else "Ödeme yapıldı"),
+        "description": data.description or ("Verilen" if data.type == "payment_in" else "Alınan"),
         "is_hakedis": data.is_hakedis if data.entity_type == "courier" else False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.transactions.insert_one(transaction)
+    
+    # Get entity name for log
+    entity_name = ""
+    if data.entity_type == "courier":
+        courier = await db.couriers.find_one({"id": data.entity_id})
+        entity_name = courier["name"] if courier else "Bilinmeyen Kurye"
+    elif data.entity_type == "business":
+        business = await db.businesses.find_one({"id": data.entity_id})
+        entity_name = business["name"] if business else "Bilinmeyen İşletme"
+    elif data.entity_type == "vendor":
+        vendor = await db.vendors.find_one({"id": data.entity_id})
+        entity_name = vendor["name"] if vendor else "Bilinmeyen Cari"
+    
+    # Create activity log
+    if data.admin_id and data.admin_name:
+        await create_activity_log({
+            "company_id": data.company_id,
+            "admin_id": data.admin_id,
+            "admin_name": data.admin_name,
+            "action": "transaction_created",
+            "entity_type": data.entity_type,
+            "entity_id": data.entity_id,
+            "entity_name": entity_name,
+            "details": {
+                "transaction_id": transaction["id"],
+                "type": data.type,
+                "amount": data.amount,
+                "description": transaction["description"],
+                "is_hakedis": transaction["is_hakedis"]
+            }
+        })
+    
     return {"message": "İşlem kaydedildi", "id": transaction["id"]}
 
 async def get_entity_transactions(entity_type: str, entity_id: str):
