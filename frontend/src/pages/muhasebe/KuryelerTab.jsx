@@ -228,11 +228,12 @@ export default function KuryelerTab({ companyId }) {
                       <th className="text-left p-2 font-semibold">Tarih</th>
                       <th className="text-left p-2 font-semibold">Açıklama</th>
                       <th className="text-right p-2 font-semibold">Tutar</th>
+                      <th className="w-10"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {transactions.map((tx) => (
-                      <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50 group">
                         <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
                         <td className="p-2">
                           {tx.description}
@@ -240,6 +241,14 @@ export default function KuryelerTab({ companyId }) {
                         </td>
                         <td className={`p-2 text-right font-medium ${tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'}`}>
                           {tx.type === 'payment_out' && '-'}{formatCurrency(tx.amount)}
+                        </td>
+                        <td className="p-1">
+                          <button 
+                            onClick={() => handleDeleteTransaction(tx.id)} 
+                            className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1 transition-opacity"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     ))}
