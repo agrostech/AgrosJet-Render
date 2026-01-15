@@ -158,18 +158,26 @@ export default function IsletmelerTab({ companyId }) {
           {businesses.length === 0 ? (
             <p className="text-sm text-muted-foreground p-4 text-center">İşletme bulunamadı</p>
           ) : (
-            businesses.map((b) => (
-              <div key={b.id} className={`flex items-center gap-3 p-3 border-b border-slate-100 transition-colors ${selectedBusiness?.id === b.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
-                <button onClick={() => setSelectedBusiness(b)} className="flex-1 flex items-center gap-3 text-left">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><Building2 className="w-4 h-4 text-blue-600" /></div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{b.name}</p>
-                    {b.phone && <p className="text-xs text-muted-foreground">{b.phone}</p>}
-                  </div>
-                </button>
-                <button onClick={() => handleDeleteBusiness(b.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))
+            businesses.map((b) => {
+              const bal = businessBalances[b.id];
+              return (
+                <div key={b.id} className={`flex items-center gap-3 p-3 border-b border-slate-100 transition-colors ${selectedBusiness?.id === b.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
+                  <button onClick={() => setSelectedBusiness(b)} className="flex-1 flex items-center gap-3 text-left">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><Building2 className="w-4 h-4 text-blue-600" /></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{b.name}</p>
+                      {b.phone && <p className="text-xs text-muted-foreground">{b.phone}</p>}
+                    </div>
+                    {bal !== 0 && bal !== undefined && (
+                      <span className={`text-xs font-semibold px-2 py-1 rounded shrink-0 ${bal > 0 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>
+                        {bal > 0 && '-'}{formatCurrency(bal)}
+                      </span>
+                    )}
+                  </button>
+                  <button onClick={() => handleDeleteBusiness(b.id)} className="text-red-400 hover:text-red-600 p-1 shrink-0"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
@@ -184,8 +192,9 @@ export default function IsletmelerTab({ companyId }) {
                 {selectedBusiness.phone && <p className="text-xs text-muted-foreground">{selectedBusiness.phone}</p>}
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Bakiye</p>
-                <p className={`text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(balance)}</p>
+                <p className={`text-xl font-bold ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                  {balance === 0 ? '₺0,00' : balance > 0 ? `-${formatCurrency(balance)}` : formatCurrency(balance)}
+                </p>
               </div>
             </div>
             {/* Ödeme Formu */}
