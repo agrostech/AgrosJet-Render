@@ -617,7 +617,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Footer */}
-      <footer className={`fixed bottom-0 right-0 bg-white border-t py-2 text-center text-xs text-muted-foreground transition-all duration-300 ${sidebarCollapsed ? 'left-16' : 'left-56'} lg:left-auto lg:right-0 lg:w-[calc(100%-${sidebarCollapsed ? '4rem' : '14rem'})]`} style={{ left: 0 }}>
+      <footer className={`fixed bottom-0 right-0 bg-white border-t py-2 text-center text-xs text-muted-foreground transition-all duration-300 z-30 ${sidebarCollapsed ? 'lg:left-16' : 'lg:left-56'} left-0`}>
         © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
       </footer>
     </div>
