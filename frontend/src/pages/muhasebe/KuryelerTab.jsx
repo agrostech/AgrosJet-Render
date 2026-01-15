@@ -100,6 +100,18 @@ export default function KuryelerTab({ companyId }) {
     }
   };
 
+  const handleDeleteTransaction = async (txId) => {
+    if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
+    try {
+      await axios.delete(`${API}/transactions/${txId}`);
+      toast.success("İşlem silindi");
+      fetchTransactions(selectedCourier.id);
+      fetchCourierBalance(selectedCourier.id);
+    } catch (err) {
+      toast.error("İşlem silinemedi");
+    }
+  };
+
   const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
   const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   
