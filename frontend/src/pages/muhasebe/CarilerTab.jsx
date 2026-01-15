@@ -117,7 +117,9 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
         type: type === "in" ? "payment_in" : "payment_out",
         amount: parseFloat(amount),
         description: description || (type === "in" ? "Verilen" : "Alınan"),
-        is_hakedis: false
+        is_hakedis: false,
+        admin_id: adminId,
+        admin_name: adminName
       });
       toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
       setAmount("");
@@ -134,7 +136,9 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
   const handleDeleteTransaction = async (txId) => {
     if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
     try {
-      await axios.delete(`${API}/transactions/${txId}`);
+      await axios.delete(`${API}/transactions/${txId}`, {
+        data: { admin_id: adminId, admin_name: adminName }
+      });
       toast.success("İşlem silindi");
       fetchTransactions(selectedVendor.id);
       fetchVendorBalance(selectedVendor.id);
