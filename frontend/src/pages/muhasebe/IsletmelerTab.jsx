@@ -18,6 +18,7 @@ export default function IsletmelerTab({ companyId }) {
   const [businesses, setBusinesses] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [displayCount, setDisplayCount] = useState(10);
   const [balance, setBalance] = useState(0);
   const [businessBalances, setBusinessBalances] = useState({});
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,14 @@ export default function IsletmelerTab({ companyId }) {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const listRef = useRef(null);
+
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      setDisplayCount(prev => Math.min(prev + 10, transactions.length));
+    }
+  }, [transactions.length]);
 
   const fetchBusinessBalance = async (id) => {
     try {
