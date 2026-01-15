@@ -302,13 +302,6 @@ export default function VardiyaPage({ companyId }) {
                       </TableCell>
                     );
                   })}
-                              +
-                            </button>
-                          )}
-                        </div>
-                      </TableCell>
-                    );
-                  })}
                 </TableRow>
               ))}
               {/* İzinliler Satırı */}
