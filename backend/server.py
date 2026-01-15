@@ -51,17 +51,14 @@ class CourierRegister(BaseModel):
     iban: str
     plate: str
     password: str
-    company_id: str
 
 class CourierLogin(BaseModel):
     phone: str
     password: str
-    company_id: str
 
 class AdminLogin(BaseModel):
     username: str
     password: str
-    company_id: Optional[str] = None
 
 class AdminCreate(BaseModel):
     name: str
@@ -78,6 +75,9 @@ class SuperAdminCreate(BaseModel):
 class PermissionUpdate(BaseModel):
     permissions: dict
 
+class AddCourierToCompany(BaseModel):
+    phone: str
+
 class CourierResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
@@ -87,7 +87,6 @@ class CourierResponse(BaseModel):
     iban: str
     plate: str
     status: str
-    company_id: str
     created_at: str
 
 class AdminResponse(BaseModel):
@@ -160,21 +159,15 @@ async def update_company(company_id: str, data: CompanyUpdate):
 
 @api_router.delete("/companies/{company_id}")
 async def delete_company(company_id: str):
-    # Delete company and all related data
     await db.companies.delete_one({"id": company_id})
-    await db.couriers.delete_many({"company_id": company_id})
+    await db.company_couriers.delete_many({"company_id": company_id})
     await db.admins.delete_many({"company_id": company_id})
     return {"message": "Şirket ve tüm verileri silindi"}
 
 # ==================== AUTH ROUTES ====================
 @api_router.post("/auth/courier/register")
 async def register_courier(data: CourierRegister):
-    # Verify company exists
-    company = await db.companies.find_one({"id": data.company_id})
-    if not company:
-        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
-    
-    existing = await db.couriers.find_one({"phone": data.phone, "company_id": data.company_id})
+    existing = await db.couriers.find_one({"phone": data.phone})
     if existing:
         raise HTTPException(status_code=400, detail="Bu telefon numarası zaten kayıtlı")
     
@@ -186,57 +179,48 @@ async def register_courier(data: CourierRegister):
         "iban": data.iban,
         "plate": data.plate.upper(),
         "password": hash_password(data.password),
-        "status": "pending",
-        "company_id": data.company_id,
+        "status": "active",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.couriers.insert_one(courier)
-    return {"message": "Kayıt başarılı. Onay bekleniyor.", "id": courier["id"]}
+    return {"message": "Kayıt başarılı.", "id": courier["id"]}
 
 @api_router.post("/auth/courier/login")
 async def login_courier(data: CourierLogin):
-    courier = await db.couriers.find_one({"phone": data.phone, "company_id": data.company_id}, {"_id": 0})
+    courier = await db.couriers.find_one({"phone": data.phone}, {"_id": 0})
     if not courier or courier["password"] != hash_password(data.password):
         raise HTTPException(status_code=401, detail="Geçersiz telefon veya şifre")
-    if courier["status"] != "approved":
-        raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmadı")
     
-    company = await db.companies.find_one({"id": data.company_id}, {"_id": 0})
+    # Get companies this courier belongs to
+    company_relations = await db.company_couriers.find(
+        {"courier_id": courier["id"], "status": "approved"}, 
+        {"_id": 0}
+    ).to_list(100)
+    
+    companies = []
+    for rel in company_relations:
+        company = await db.companies.find_one({"id": rel["company_id"]}, {"_id": 0})
+        if company:
+            companies.append(company)
+    
     return {
         "id": courier["id"],
         "name": courier["name"],
         "phone": courier["phone"],
         "role": "courier",
-        "company_id": courier["company_id"],
-        "company": company
+        "companies": companies
     }
 
 @api_router.post("/auth/admin/login")
 async def login_admin(data: AdminLogin):
-    # System admin login (no company required)
-    if data.username == "systemadmin":
-        admin = await db.admins.find_one({"username": "systemadmin", "role": "systemadmin"}, {"_id": 0})
-        if not admin or admin["password"] != hash_password(data.password):
-            raise HTTPException(status_code=401, detail="Geçersiz kullanıcı adı veya şifre")
-        return {
-            "id": admin["id"],
-            "name": admin["name"],
-            "username": admin["username"],
-            "role": admin["role"],
-            "permissions": admin["permissions"],
-            "company_id": None,
-            "company": None
-        }
-    
-    # Company admin/superadmin login
-    if not data.company_id:
-        raise HTTPException(status_code=400, detail="Şirket seçimi gerekli")
-    
-    admin = await db.admins.find_one({"username": data.username, "company_id": data.company_id}, {"_id": 0})
+    admin = await db.admins.find_one({"username": data.username}, {"_id": 0})
     if not admin or admin["password"] != hash_password(data.password):
         raise HTTPException(status_code=401, detail="Geçersiz kullanıcı adı veya şifre")
     
-    company = await db.companies.find_one({"id": data.company_id}, {"_id": 0})
+    company = None
+    if admin["company_id"]:
+        company = await db.companies.find_one({"id": admin["company_id"]}, {"_id": 0})
+    
     return {
         "id": admin["id"],
         "name": admin["name"],
@@ -248,31 +232,99 @@ async def login_admin(data: AdminLogin):
     }
 
 # ==================== COURIER MANAGEMENT ====================
-@api_router.get("/couriers", response_model=List[CourierResponse])
-async def get_couriers(company_id: Optional[str] = None):
-    query = {"company_id": company_id} if company_id else {}
-    couriers = await db.couriers.find(query, {"_id": 0, "password": 0}).to_list(1000)
+@api_router.get("/couriers")
+async def get_all_couriers():
+    """Get all couriers in the system (for system admin)"""
+    couriers = await db.couriers.find({}, {"_id": 0, "password": 0}).to_list(1000)
     return couriers
 
-@api_router.put("/couriers/{courier_id}/approve")
-async def approve_courier(courier_id: str):
-    result = await db.couriers.update_one({"id": courier_id}, {"$set": {"status": "approved"}})
-    if result.modified_count == 0:
+@api_router.get("/couriers/search")
+async def search_courier(phone: str):
+    """Search courier by phone number"""
+    courier = await db.couriers.find_one({"phone": phone}, {"_id": 0, "password": 0})
+    if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    return courier
+
+@api_router.get("/companies/{company_id}/couriers")
+async def get_company_couriers(company_id: str):
+    """Get couriers assigned to a specific company"""
+    relations = await db.company_couriers.find({"company_id": company_id}, {"_id": 0}).to_list(1000)
+    
+    couriers = []
+    for rel in relations:
+        courier = await db.couriers.find_one({"id": rel["courier_id"]}, {"_id": 0, "password": 0})
+        if courier:
+            courier["company_status"] = rel["status"]
+            couriers.append(courier)
+    
+    return couriers
+
+@api_router.post("/companies/{company_id}/couriers")
+async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
+    """Add a courier to company by phone number"""
+    company = await db.companies.find_one({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    
+    courier = await db.couriers.find_one({"phone": data.phone})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Bu telefon numarasına ait kurye bulunamadı")
+    
+    existing = await db.company_couriers.find_one({
+        "company_id": company_id,
+        "courier_id": courier["id"]
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu kurye zaten şirketinize ekli")
+    
+    relation = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "courier_id": courier["id"],
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.company_couriers.insert_one(relation)
+    return {"message": "Kurye eklendi, onay bekleniyor", "courier_name": courier["name"]}
+
+@api_router.put("/companies/{company_id}/couriers/{courier_id}/approve")
+async def approve_company_courier(company_id: str, courier_id: str):
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {"status": "approved"}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
     return {"message": "Kurye onaylandı"}
 
-@api_router.put("/couriers/{courier_id}/reject")
-async def reject_courier(courier_id: str):
-    result = await db.couriers.update_one({"id": courier_id}, {"$set": {"status": "rejected"}})
+@api_router.put("/companies/{company_id}/couriers/{courier_id}/reject")
+async def reject_company_courier(company_id: str, courier_id: str):
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {"status": "rejected"}}
+    )
     if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
     return {"message": "Kurye reddedildi"}
+
+@api_router.delete("/companies/{company_id}/couriers/{courier_id}")
+async def remove_courier_from_company(company_id: str, courier_id: str):
+    result = await db.company_couriers.delete_one({
+        "company_id": company_id,
+        "courier_id": courier_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    return {"message": "Kurye şirketten çıkarıldı"}
 
 @api_router.delete("/couriers/{courier_id}")
 async def delete_courier(courier_id: str):
+    """Delete courier completely (system admin only)"""
     result = await db.couriers.delete_one({"id": courier_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    await db.company_couriers.delete_many({"courier_id": courier_id})
     return {"message": "Kurye silindi"}
 
 # ==================== ADMIN MANAGEMENT ====================
@@ -287,7 +339,7 @@ async def get_admins(company_id: Optional[str] = None):
 
 @api_router.post("/admins")
 async def create_admin(data: AdminCreate):
-    existing = await db.admins.find_one({"username": data.username, "company_id": data.company_id})
+    existing = await db.admins.find_one({"username": data.username})
     if existing:
         raise HTTPException(status_code=400, detail="Bu kullanıcı adı zaten kullanılıyor")
     
@@ -312,12 +364,11 @@ async def create_admin(data: AdminCreate):
 
 @api_router.post("/admins/superadmin")
 async def create_superadmin(data: SuperAdminCreate):
-    # Check if company already has a superadmin
     existing_super = await db.admins.find_one({"company_id": data.company_id, "role": "superadmin"})
     if existing_super:
         raise HTTPException(status_code=400, detail="Bu şirketin zaten bir süper admini var")
     
-    existing = await db.admins.find_one({"username": data.username, "company_id": data.company_id})
+    existing = await db.admins.find_one({"username": data.username})
     if existing:
         raise HTTPException(status_code=400, detail="Bu kullanıcı adı zaten kullanılıyor")
     

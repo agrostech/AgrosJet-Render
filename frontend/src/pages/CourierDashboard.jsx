@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, FileText, Package } from "lucide-react";
+import { Menu, X, LogOut, Clock, FileText, Package, Building2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const NAV_ITEMS = [
   { path: "/courier", label: "VARDİYA", icon: Clock },
@@ -53,6 +60,7 @@ export default function CourierDashboard() {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -66,6 +74,10 @@ export default function CourierDashboard() {
       return;
     }
     setUser(parsed);
+    // Auto-select first company if available
+    if (parsed.companies && parsed.companies.length > 0) {
+      setSelectedCompany(parsed.companies[0]);
+    }
   }, [navigate]);
 
   const handleLogout = () => {
@@ -75,17 +87,20 @@ export default function CourierDashboard() {
 
   if (!user) return null;
 
-  const company = user.company;
+  const companies = user.companies || [];
+  const hasCompanies = companies.length > 0;
 
   return (
     <div className="min-h-screen bg-slate-50" data-testid="courier-dashboard">
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {company?.logo_url ? (
-            <img src={company.logo_url} alt={company.name} className="h-8 object-contain" />
+          {selectedCompany?.logo_url ? (
+            <img src={selectedCompany.logo_url} alt={selectedCompany.name} className="h-8 object-contain" />
           ) : (
-            <span className="font-heading text-lg font-bold uppercase">{company?.name || "KURYE"}</span>
+            <span className="font-heading text-lg font-bold uppercase">
+              {selectedCompany?.name || "KURYE PANELİ"}
+            </span>
           )}
         </div>
         <Button
@@ -110,7 +125,6 @@ export default function CourierDashboard() {
               className={`flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-wider ${
                 location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
               }`}
-              data-testid={`mobile-nav-${item.label.toLowerCase().replace('İ', 'i')}`}
             >
               <item.icon className="w-5 h-5" />
               {item.label}
@@ -131,14 +145,37 @@ export default function CourierDashboard() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-primary text-white">
           <div className="p-6 border-b border-white/20">
-            {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name} className="h-10 mb-2 object-contain" />
+            {selectedCompany?.logo_url ? (
+              <img src={selectedCompany.logo_url} alt={selectedCompany.name} className="h-10 mb-2 object-contain" />
             ) : (
-              <h1 className="font-heading text-xl font-bold uppercase">{company?.name}</h1>
+              <h1 className="font-heading text-xl font-bold uppercase">
+                {selectedCompany?.name || "KURYE PANELİ"}
+              </h1>
             )}
             <p className="text-white/60 text-sm mt-1">Kurye Paneli</p>
             <p className="text-white/80 text-sm font-mono mt-2">{user.name}</p>
           </div>
+          
+          {/* Company Selector */}
+          {hasCompanies && companies.length > 1 && (
+            <div className="px-4 py-3 border-b border-white/20">
+              <p className="text-white/60 text-xs uppercase tracking-wider mb-2">Şirket Seç</p>
+              <Select 
+                value={selectedCompany?.id || ""} 
+                onValueChange={(val) => setSelectedCompany(companies.find(c => c.id === val))}
+              >
+                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <nav className="flex-1 py-4">
             {NAV_ITEMS.map((item) => (
               <Link
@@ -149,7 +186,6 @@ export default function CourierDashboard() {
                     ? "bg-white/20 border-l-4 border-orange-500"
                     : "hover:bg-white/10"
                 }`}
-                data-testid={`nav-${item.label.toLowerCase().replace('İ', 'i')}`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -171,11 +207,21 @@ export default function CourierDashboard() {
 
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-8">
-          <Routes>
-            <Route index element={<VardiyaPage />} />
-            <Route path="muhasebe" element={<MuhasebePage />} />
-            <Route path="zimmet" element={<ZimmetPage />} />
-          </Routes>
+          {!hasCompanies ? (
+            <div className="border-2 border-border p-8 bg-white text-center">
+              <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <h2 className="font-heading text-xl font-bold uppercase mb-2">Şirket Bekleniyor</h2>
+              <p className="text-muted-foreground">
+                Henüz bir şirkete bağlı değilsiniz. Bir şirket sizi ekledikten sonra paneli kullanabilirsiniz.
+              </p>
+            </div>
+          ) : (
+            <Routes>
+              <Route index element={<VardiyaPage />} />
+              <Route path="muhasebe" element={<MuhasebePage />} />
+              <Route path="zimmet" element={<ZimmetPage />} />
+            </Routes>
+          )}
         </main>
       </div>
     </div>

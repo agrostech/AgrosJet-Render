@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { companyId } = useParams();
   const [loading, setLoading] = useState(false);
-  const [company, setCompany] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -22,22 +20,6 @@ export default function RegisterPage() {
     password: "",
   });
 
-  useEffect(() => {
-    if (companyId) {
-      fetchCompany();
-    }
-  }, [companyId]);
-
-  const fetchCompany = async () => {
-    try {
-      const res = await axios.get(`${API}/companies/${companyId}`);
-      setCompany(res.data);
-    } catch (err) {
-      toast.error("Şirket bulunamadı");
-      navigate("/login");
-    }
-  };
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -46,11 +28,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${API}/auth/courier/register`, {
-        ...formData,
-        company_id: companyId
-      });
-      toast.success("Kayıt başarılı! Onay bekleniyor.");
+      await axios.post(`${API}/auth/courier/register`, formData);
+      toast.success("Kayıt başarılı! Giriş yapabilirsiniz.");
       navigate("/login");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Kayıt başarısız");
@@ -59,40 +38,16 @@ export default function RegisterPage() {
     }
   };
 
-  if (!company) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Yükleniyor...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex">
       {/* Left - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
         <div className="w-full max-w-md">
-          {/* Logo */}
-          {company.logo_url ? (
-            <img 
-              src={company.logo_url} 
-              alt={company.name} 
-              className="h-16 mb-6 object-contain"
-              data-testid="company-logo"
-            />
-          ) : (
-            <div className="h-16 mb-6 flex items-center">
-              <span className="font-heading text-2xl font-bold uppercase tracking-tight text-primary">
-                {company.name}
-              </span>
-            </div>
-          )}
-
           <h1 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">
             KURYE KAYIT
           </h1>
           <p className="text-muted-foreground text-sm mb-8">
-            {company.name} için kurye olarak kayıt olun
+            Kurye olarak sisteme kayıt olun
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

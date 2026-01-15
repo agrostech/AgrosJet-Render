@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Menu, X, LogOut, Clock, FileText, Package, Users, UserCog, Check, XIcon, Trash2, Settings } from "lucide-react";
+import { Menu, X, LogOut, Clock, FileText, Package, Users, UserCog, Check, XIcon, Trash2, Settings, Search, UserPlus } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -70,10 +70,14 @@ function ZimmetPage() {
 function KuryelerPage({ companyId }) {
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [searchPhone, setSearchPhone] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
+  const [searching, setSearching] = useState(false);
 
   const fetchCouriers = async () => {
     try {
-      const res = await axios.get(`${API}/couriers?company_id=${companyId}`);
+      const res = await axios.get(`${API}/companies/${companyId}/couriers`);
       setCouriers(res.data);
     } catch (err) {
       toast.error("Kuryeler yüklenemedi");
@@ -86,9 +90,36 @@ function KuryelerPage({ companyId }) {
     if (companyId) fetchCouriers();
   }, [companyId]);
 
-  const handleApprove = async (id) => {
+  const handleSearch = async () => {
+    if (!searchPhone.trim()) return;
+    setSearching(true);
+    setSearchResult(null);
     try {
-      await axios.put(`${API}/couriers/${id}/approve`);
+      const res = await axios.get(`${API}/couriers/search?phone=${searchPhone}`);
+      setSearchResult(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kurye bulunamadı");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleAddCourier = async () => {
+    try {
+      await axios.post(`${API}/companies/${companyId}/couriers`, { phone: searchPhone });
+      toast.success("Kurye eklendi");
+      setShowAddModal(false);
+      setSearchPhone("");
+      setSearchResult(null);
+      fetchCouriers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Ekleme başarısız");
+    }
+  };
+
+  const handleApprove = async (courierId) => {
+    try {
+      await axios.put(`${API}/companies/${companyId}/couriers/${courierId}/approve`);
       toast.success("Kurye onaylandı");
       fetchCouriers();
     } catch (err) {
@@ -96,9 +127,9 @@ function KuryelerPage({ companyId }) {
     }
   };
 
-  const handleReject = async (id) => {
+  const handleReject = async (courierId) => {
     try {
-      await axios.put(`${API}/couriers/${id}/reject`);
+      await axios.put(`${API}/companies/${companyId}/couriers/${courierId}/reject`);
       toast.success("Kurye reddedildi");
       fetchCouriers();
     } catch (err) {
@@ -106,14 +137,14 @@ function KuryelerPage({ companyId }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bu kuryeyi silmek istediğinize emin misiniz?")) return;
+  const handleRemove = async (courierId) => {
+    if (!window.confirm("Bu kuryeyi şirketten çıkarmak istediğinize emin misiniz?")) return;
     try {
-      await axios.delete(`${API}/couriers/${id}`);
-      toast.success("Kurye silindi");
+      await axios.delete(`${API}/companies/${companyId}/couriers/${courierId}`);
+      toast.success("Kurye şirketten çıkarıldı");
       fetchCouriers();
     } catch (err) {
-      toast.error("Silme başarısız");
+      toast.error("İşlem başarısız");
     }
   };
 
@@ -139,9 +170,19 @@ function KuryelerPage({ companyId }) {
 
   return (
     <div data-testid="admin-kuryeler-page">
-      <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        KURYELER
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="font-heading text-2xl font-bold uppercase tracking-tight">
+          KURYELER
+        </h2>
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className="uppercase font-bold text-xs tracking-wider"
+          data-testid="add-courier-btn"
+        >
+          <UserPlus className="w-4 h-4 mr-2" />
+          KURYE EKLE
+        </Button>
+      </div>
 
       {/* Desktop Table */}
       <div className="hidden md:block border-2 border-border bg-white overflow-x-auto">
@@ -168,10 +209,10 @@ function KuryelerPage({ companyId }) {
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="font-mono text-sm">{c.phone}</TableCell>
                   <TableCell className="font-mono text-sm">{c.plate}</TableCell>
-                  <TableCell>{getStatusBadge(c.status)}</TableCell>
+                  <TableCell>{getStatusBadge(c.company_status)}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      {c.status === "pending" && (
+                      {c.company_status === "pending" && (
                         <>
                           <Button
                             size="sm"
@@ -195,9 +236,9 @@ function KuryelerPage({ companyId }) {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDelete(c.id)}
+                        onClick={() => handleRemove(c.id)}
                         className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                        data-testid={`delete-${c.id}`}
+                        data-testid={`remove-${c.id}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -224,14 +265,14 @@ function KuryelerPage({ companyId }) {
                   <p className="font-bold">{c.name}</p>
                   <p className="font-mono text-sm text-muted-foreground">{c.phone}</p>
                 </div>
-                {getStatusBadge(c.status)}
+                {getStatusBadge(c.company_status)}
               </div>
               <p className="text-sm mb-3">
                 <span className="text-muted-foreground">Plaka:</span>{" "}
                 <span className="font-mono">{c.plate}</span>
               </p>
               <div className="flex gap-2">
-                {c.status === "pending" && (
+                {c.company_status === "pending" && (
                   <>
                     <Button
                       size="sm"
@@ -253,16 +294,62 @@ function KuryelerPage({ companyId }) {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleDelete(c.id)}
+                  onClick={() => handleRemove(c.id)}
                   className="border-2"
                 >
-                  SİL
+                  ÇIKAR
                 </Button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Add Courier Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading uppercase">KURYE EKLE</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Telefon numarası ile kurye arayın ve şirketinize ekleyin
+            </p>
+            <div className="flex gap-2">
+              <Input
+                data-testid="search-phone-input"
+                placeholder="05XX XXX XX XX"
+                value={searchPhone}
+                onChange={(e) => setSearchPhone(e.target.value)}
+                className="h-12 border-2 font-mono"
+              />
+              <Button 
+                onClick={handleSearch} 
+                disabled={searching}
+                className="h-12 px-6"
+                data-testid="search-courier-btn"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {searchResult && (
+              <div className="border-2 border-border p-4 bg-slate-50">
+                <p className="font-bold">{searchResult.name}</p>
+                <p className="font-mono text-sm text-muted-foreground">{searchResult.phone}</p>
+                <p className="text-sm mt-1">Plaka: <span className="font-mono">{searchResult.plate}</span></p>
+                <Button 
+                  onClick={handleAddCourier}
+                  className="w-full mt-4 uppercase font-bold text-xs tracking-wider"
+                  data-testid="confirm-add-courier-btn"
+                >
+                  ŞİRKETE EKLE
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

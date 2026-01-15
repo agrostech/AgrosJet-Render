@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
@@ -6,50 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [companies, setCompanies] = useState([]);
-  const [selectedCompany, setSelectedCompany] = useState(null);
   
   const [courierData, setCourierData] = useState({ phone: "", password: "" });
   const [adminData, setAdminData] = useState({ username: "", password: "" });
 
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const fetchCompanies = async () => {
-    try {
-      const res = await axios.get(`${API}/companies`);
-      setCompanies(res.data);
-    } catch (err) {
-      console.error("Şirketler yüklenemedi");
-    }
-  };
-
   const handleCourierLogin = async (e) => {
     e.preventDefault();
-    if (!selectedCompany) {
-      toast.error("Lütfen şirket seçin");
-      return;
-    }
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/auth/courier/login`, {
-        ...courierData,
-        company_id: selectedCompany
-      });
+      const res = await axios.post(`${API}/auth/courier/login`, courierData);
       localStorage.setItem("user", JSON.stringify(res.data));
       toast.success("Giriş başarılı");
       navigate("/courier");
@@ -64,12 +35,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // System admin doesn't need company
-      const isSystemAdmin = adminData.username === "systemadmin";
-      const res = await axios.post(`${API}/auth/admin/login`, {
-        ...adminData,
-        company_id: isSystemAdmin ? null : selectedCompany
-      });
+      const res = await axios.post(`${API}/auth/admin/login`, adminData);
       localStorage.setItem("user", JSON.stringify(res.data));
       toast.success("Giriş başarılı");
       
@@ -85,52 +51,17 @@ export default function LoginPage() {
     }
   };
 
-  const currentCompany = companies.find(c => c.id === selectedCompany);
-
   return (
     <div className="min-h-screen flex">
       {/* Left - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
         <div className="w-full max-w-md">
-          {/* Logo */}
-          {currentCompany?.logo_url ? (
-            <img 
-              src={currentCompany.logo_url} 
-              alt={currentCompany.name} 
-              className="h-16 mb-6 object-contain"
-              data-testid="company-logo"
-            />
-          ) : (
-            <div className="h-16 mb-6 flex items-center">
-              <span className="font-heading text-2xl font-bold uppercase tracking-tight text-primary">
-                {currentCompany?.name || "KURYE YÖNETİM"}
-              </span>
-            </div>
-          )}
-
           <h1 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">
-            {currentCompany ? `${currentCompany.name}` : "YÖNETİM SİSTEMİ"}
+            YÖNETİM SİSTEMİ
           </h1>
-          <p className="text-muted-foreground text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-8">
             Sisteme giriş yapın
           </p>
-
-          {/* Company Select */}
-          <div className="mb-6">
-            <Label className="uppercase text-xs font-bold tracking-wider">Şirket Seçin</Label>
-            <Select value={selectedCompany || ""} onValueChange={setSelectedCompany}>
-              <SelectTrigger className="mt-1 h-12 border-2" data-testid="company-select">
-                <SelectValue placeholder="Şirket seçin..." />
-              </SelectTrigger>
-              <SelectContent>
-                {companies.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
 
           <Tabs defaultValue="courier" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-secondary">
@@ -190,18 +121,16 @@ export default function LoginPage() {
                   {loading ? "YÜKLENİYOR..." : "GİRİŞ YAP"}
                 </Button>
               </form>
-              {selectedCompany && (
-                <p className="mt-4 text-sm text-center text-muted-foreground">
-                  Hesabınız yok mu?{" "}
-                  <Link 
-                    to={`/register/${selectedCompany}`} 
-                    className="text-primary font-semibold hover:underline" 
-                    data-testid="register-link"
-                  >
-                    Kayıt Ol
-                  </Link>
-                </p>
-              )}
+              <p className="mt-4 text-sm text-center text-muted-foreground">
+                Hesabınız yok mu?{" "}
+                <Link 
+                  to="/register" 
+                  className="text-primary font-semibold hover:underline" 
+                  data-testid="register-link"
+                >
+                  Kayıt Ol
+                </Link>
+              </p>
             </TabsContent>
 
             <TabsContent value="admin">
@@ -243,9 +172,6 @@ export default function LoginPage() {
                   {loading ? "YÜKLENİYOR..." : "GİRİŞ YAP"}
                 </Button>
               </form>
-              <p className="mt-4 text-xs text-center text-muted-foreground">
-                Sistem yöneticisi için şirket seçimi gerekmez
-              </p>
             </TabsContent>
           </Tabs>
         </div>
