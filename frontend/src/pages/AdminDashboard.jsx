@@ -166,7 +166,7 @@ function KuryelerPage({ companyId }) {
               <TableHead className="font-bold text-xs">İsim</TableHead>
               <TableHead className="font-bold text-xs">Telefon</TableHead>
               <TableHead className="font-bold text-xs">Plaka</TableHead>
-              <TableHead className="font-bold text-xs">İşlemler</TableHead>
+              <TableHead className="font-bold text-xs text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -182,8 +182,8 @@ function KuryelerPage({ companyId }) {
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="font-mono text-sm">{c.phone}</TableCell>
                   <TableCell className="font-mono text-sm">{c.plate}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
                       <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="h-8 px-3 border-2" data-testid={`detail-${c.id}`}>
                         Detaylar
                       </Button>
