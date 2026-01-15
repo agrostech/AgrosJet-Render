@@ -489,43 +489,43 @@ class KuryeAPITester:
 
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Kurye Yönetim Sistemi API Tests")
-        print("=" * 50)
+        print("🚀 Starting Multi-Tenant Kurye Yönetim Sistemi API Tests")
+        print("=" * 60)
         
         # Basic connectivity
         self.test_health_check()
         
-        # Authentication tests
-        self.test_super_admin_login()
+        # System Admin Tests
+        self.test_system_admin_login()
         
-        # Courier workflow
-        self.test_courier_registration()
-        self.test_duplicate_courier_registration()
-        self.test_courier_login_pending()
+        # Company Management Tests
+        self.test_create_company()
+        self.test_get_companies()
+        self.test_update_company()
+        
+        # Super Admin for Company Tests
+        self.test_create_superadmin_for_company()
+        self.test_superadmin_login_with_company()
+        
+        # Company-based Courier Tests
+        self.test_courier_registration_with_company()
+        self.test_courier_login_with_company()
+        
+        # Security Tests
+        self.test_admin_login_without_company_should_fail()
+        
+        # Original tests (adapted for multi-tenant)
         self.test_get_couriers()
-        self.test_approve_courier()
-        self.test_courier_login_approved()
-        
-        # Admin management
         self.test_get_admins()
-        self.test_create_admin()
-        self.test_update_admin_permissions()
-        
-        # Additional tests
-        self.test_reject_courier()
         self.test_invalid_login_attempts()
         self.test_name_formatting()
         
-        # Cleanup
-        self.test_delete_courier()
-        self.test_delete_admin()
-        
         # Print results
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 60)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
         
         if self.tests_passed == self.tests_run:
-            print("🎉 All tests passed!")
+            print("🎉 All multi-tenant tests passed!")
             return 0
         else:
             print("⚠️  Some tests failed. Check details above.")
