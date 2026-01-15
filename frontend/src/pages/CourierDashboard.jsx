@@ -11,16 +11,16 @@ import {
 } from "@/components/ui/select";
 
 const NAV_ITEMS = [
-  { path: "/courier", label: "VARDİYA", icon: Clock },
-  { path: "/courier/muhasebe", label: "MUHASEBE", icon: FileText },
-  { path: "/courier/zimmet", label: "ZİMMET", icon: Package },
+  { path: "/courier", label: "Vardiya", icon: Clock },
+  { path: "/courier/muhasebe", label: "Muhasebe", icon: FileText },
+  { path: "/courier/zimmet", label: "Zimmet", icon: Package },
 ];
 
 function VardiyaPage() {
   return (
     <div data-testid="courier-vardiya-page">
-      <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        VARDİYA
+      <h2 className="font-heading text-2xl font-bold tracking-tight mb-6">
+        Vardiya
       </h2>
       <div className="border-2 border-border p-6 bg-white">
         <p className="text-muted-foreground">Vardiya yönetimi içeriği burada görünecek.</p>
@@ -32,8 +32,8 @@ function VardiyaPage() {
 function MuhasebePage() {
   return (
     <div data-testid="courier-muhasebe-page">
-      <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        MUHASEBE
+      <h2 className="font-heading text-2xl font-bold tracking-tight mb-6">
+        Muhasebe
       </h2>
       <div className="border-2 border-border p-6 bg-white">
         <p className="text-muted-foreground">Muhasebe içeriği burada görünecek.</p>
@@ -45,8 +45,8 @@ function MuhasebePage() {
 function ZimmetPage() {
   return (
     <div data-testid="courier-zimmet-page">
-      <h2 className="font-heading text-2xl font-bold uppercase tracking-tight mb-6">
-        ZİMMET
+      <h2 className="font-heading text-2xl font-bold tracking-tight mb-6">
+        Zimmet
       </h2>
       <div className="border-2 border-border p-6 bg-white">
         <p className="text-muted-foreground">Zimmet takibi içeriği burada görünecek.</p>
@@ -74,7 +74,6 @@ export default function CourierDashboard() {
       return;
     }
     setUser(parsed);
-    // Auto-select first company if available
     if (parsed.companies && parsed.companies.length > 0) {
       setSelectedCompany(parsed.companies[0]);
     }
@@ -98,8 +97,8 @@ export default function CourierDashboard() {
           {selectedCompany?.logo_url ? (
             <img src={selectedCompany.logo_url} alt={selectedCompany.name} className="h-8 object-contain" />
           ) : (
-            <span className="font-heading text-lg font-bold uppercase">
-              {selectedCompany?.name || "KURYE PANELİ"}
+            <span className="font-heading text-lg font-bold">
+              {selectedCompany?.name || "ShiftJet"}
             </span>
           )}
         </div>
@@ -122,7 +121,7 @@ export default function CourierDashboard() {
               key={item.path}
               to={item.path}
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-wider ${
+              className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold ${
                 location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
               }`}
             >
@@ -132,11 +131,11 @@ export default function CourierDashboard() {
           ))}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:bg-white/10 text-left"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left"
             data-testid="mobile-logout-btn"
           >
             <LogOut className="w-5 h-5" />
-            ÇIKIŞ
+            Çıkış
           </button>
         </nav>
       )}
@@ -148,8 +147,8 @@ export default function CourierDashboard() {
             {selectedCompany?.logo_url ? (
               <img src={selectedCompany.logo_url} alt={selectedCompany.name} className="h-10 mb-2 object-contain" />
             ) : (
-              <h1 className="font-heading text-xl font-bold uppercase">
-                {selectedCompany?.name || "KURYE PANELİ"}
+              <h1 className="font-heading text-xl font-bold">
+                {selectedCompany?.name || "ShiftJet"}
               </h1>
             )}
             <p className="text-white/60 text-sm mt-1">Kurye Paneli</p>
@@ -159,7 +158,7 @@ export default function CourierDashboard() {
           {/* Company Selector */}
           {hasCompanies && companies.length > 1 && (
             <div className="px-4 py-3 border-b border-white/20">
-              <p className="text-white/60 text-xs uppercase tracking-wider mb-2">Şirket Seç</p>
+              <p className="text-white/60 text-xs mb-2">Şirket Seç</p>
               <Select 
                 value={selectedCompany?.id || ""} 
                 onValueChange={(val) => setSelectedCompany(companies.find(c => c.id === val))}
@@ -181,7 +180,7 @@ export default function CourierDashboard() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-6 py-3 text-sm font-bold uppercase tracking-wider transition-colors ${
+                className={`flex items-center gap-3 px-6 py-3 text-sm font-semibold transition-colors ${
                   location.pathname === item.path
                     ? "bg-white/20 border-l-4 border-orange-500"
                     : "hover:bg-white/10"
@@ -196,11 +195,11 @@ export default function CourierDashboard() {
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full justify-start text-white hover:bg-white/10 uppercase font-bold text-xs tracking-wider"
+              className="w-full justify-start text-white hover:bg-white/10 font-semibold text-sm"
               data-testid="logout-btn"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              ÇIKIŞ YAP
+              Çıkış Yap
             </Button>
           </div>
         </aside>
@@ -210,7 +209,7 @@ export default function CourierDashboard() {
           {!hasCompanies ? (
             <div className="border-2 border-border p-8 bg-white text-center">
               <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h2 className="font-heading text-xl font-bold uppercase mb-2">Şirket Bekleniyor</h2>
+              <h2 className="font-heading text-xl font-bold mb-2">Şirket Bekleniyor</h2>
               <p className="text-muted-foreground">
                 Henüz bir şirkete bağlı değilsiniz. Bir şirket sizi ekledikten sonra paneli kullanabilirsiniz.
               </p>

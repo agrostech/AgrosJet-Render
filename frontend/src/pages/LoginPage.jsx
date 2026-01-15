@@ -56,8 +56,8 @@ export default function LoginPage() {
       {/* Left - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
         <div className="w-full max-w-md">
-          <h1 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">
-            SHIFTJET
+          <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-2">
+            ShiftJet
           </h1>
           <p className="text-muted-foreground text-sm mb-8">
             ShiftJet yönetim sistemine hoş geldiniz. Lütfen giriş yapınız.
@@ -68,14 +68,14 @@ export default function LoginPage() {
               <TabsTrigger 
                 value="courier" 
                 data-testid="courier-tab"
-                className="uppercase font-bold text-xs tracking-wider"
+                className="font-semibold text-sm"
               >
                 Kurye
               </TabsTrigger>
               <TabsTrigger 
                 value="admin" 
                 data-testid="admin-tab"
-                className="uppercase font-bold text-xs tracking-wider"
+                className="font-semibold text-sm"
               >
                 Yönetici
               </TabsTrigger>
@@ -84,7 +84,7 @@ export default function LoginPage() {
             <TabsContent value="courier">
               <form onSubmit={handleCourierLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="phone" className="uppercase text-xs font-bold tracking-wider">
+                  <Label htmlFor="phone" className="text-sm font-semibold">
                     Telefon No
                   </Label>
                   <Input
@@ -99,7 +99,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="courier-password" className="uppercase text-xs font-bold tracking-wider">
+                  <Label htmlFor="courier-password" className="text-sm font-semibold">
                     Şifre
                   </Label>
                   <Input
@@ -115,10 +115,10 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   data-testid="courier-login-btn"
-                  className="w-full h-12 uppercase font-bold tracking-wider"
+                  className="w-full h-12 font-semibold"
                   disabled={loading}
                 >
-                  {loading ? "YÜKLENİYOR..." : "GİRİŞ YAP"}
+                  {loading ? "Yükleniyor..." : "Giriş Yap"}
                 </Button>
               </form>
               <p className="mt-4 text-sm text-center text-muted-foreground">
@@ -136,7 +136,7 @@ export default function LoginPage() {
             <TabsContent value="admin">
               <form onSubmit={handleAdminLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="username" className="uppercase text-xs font-bold tracking-wider">
+                  <Label htmlFor="username" className="text-sm font-semibold">
                     Kullanıcı Adı
                   </Label>
                   <Input
@@ -150,7 +150,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="admin-password" className="uppercase text-xs font-bold tracking-wider">
+                  <Label htmlFor="admin-password" className="text-sm font-semibold">
                     Şifre
                   </Label>
                   <Input
@@ -166,10 +166,10 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   data-testid="admin-login-btn"
-                  className="w-full h-12 uppercase font-bold tracking-wider"
+                  className="w-full h-12 font-semibold"
                   disabled={loading}
                 >
-                  {loading ? "YÜKLENİYOR..." : "GİRİŞ YAP"}
+                  {loading ? "Yükleniyor..." : "Giriş Yap"}
                 </Button>
               </form>
             </TabsContent>
@@ -186,8 +186,8 @@ export default function LoginPage() {
       >
         <div className="w-full h-full bg-primary/60 flex items-end p-12">
           <div className="text-white">
-            <h2 className="font-heading text-4xl font-bold uppercase mb-2">
-              SHIFTJET
+            <h2 className="font-heading text-4xl font-bold mb-2">
+              ShiftJet
             </h2>
             <p className="text-white/80">
               Kurye Yönetim Sistemi

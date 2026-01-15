@@ -42,8 +42,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex">
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
         <div className="w-full max-w-md">
-          <h1 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-tight mb-2">
-            SHIFTJET KAYIT
+          <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-2">
+            ShiftJet Kayıt
           </h1>
           <p className="text-muted-foreground text-sm mb-8">
             ShiftJet sistemine kurye olarak kayıt olun
@@ -51,31 +51,31 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name" className="uppercase text-xs font-bold tracking-wider">İsim Soyisim *</Label>
+              <Label htmlFor="name" className="text-sm font-semibold">İsim Soyisim *</Label>
               <Input id="name" name="name" data-testid="register-name-input" type="text" placeholder="Adı Soyadı" value={formData.name} onChange={handleChange} className="mt-1 h-12 border-2" required />
             </div>
             <div>
-              <Label htmlFor="phone" className="uppercase text-xs font-bold tracking-wider">Telefon No *</Label>
+              <Label htmlFor="phone" className="text-sm font-semibold">Telefon No *</Label>
               <Input id="phone" name="phone" data-testid="register-phone-input" type="tel" placeholder="05XXXXXXXXX" value={formData.phone} onChange={handleChange} className="mt-1 h-12 border-2" maxLength={11} required />
             </div>
             <div>
-              <Label htmlFor="address" className="uppercase text-xs font-bold tracking-wider">Adres *</Label>
+              <Label htmlFor="address" className="text-sm font-semibold">Adres *</Label>
               <Input id="address" name="address" data-testid="register-address-input" type="text" placeholder="Adresiniz" value={formData.address} onChange={handleChange} className="mt-1 h-12 border-2" required />
             </div>
             <div>
-              <Label htmlFor="iban" className="uppercase text-xs font-bold tracking-wider">IBAN *</Label>
+              <Label htmlFor="iban" className="text-sm font-semibold">İban *</Label>
               <Input id="iban" name="iban" data-testid="register-iban-input" type="text" placeholder="TR..." value={formData.iban} onChange={handleChange} className="mt-1 h-12 border-2 font-mono" required />
             </div>
             <div>
-              <Label htmlFor="plate" className="uppercase text-xs font-bold tracking-wider">Plaka *</Label>
-              <Input id="plate" name="plate" data-testid="register-plate-input" type="text" placeholder="34ABC123" value={formData.plate} onChange={handleChange} className="mt-1 h-12 border-2 font-mono uppercase" required />
+              <Label htmlFor="plate" className="text-sm font-semibold">Plaka *</Label>
+              <Input id="plate" name="plate" data-testid="register-plate-input" type="text" placeholder="34ABC123" value={formData.plate} onChange={handleChange} className="mt-1 h-12 border-2 font-mono" required />
             </div>
             <div>
-              <Label htmlFor="password" className="uppercase text-xs font-bold tracking-wider">Şifre *</Label>
+              <Label htmlFor="password" className="text-sm font-semibold">Şifre *</Label>
               <Input id="password" name="password" data-testid="register-password-input" type="password" value={formData.password} onChange={handleChange} className="mt-1 h-12 border-2" required />
             </div>
-            <Button type="submit" data-testid="register-submit-btn" className="w-full h-12 uppercase font-bold tracking-wider" disabled={loading}>
-              {loading ? "YÜKLENİYOR..." : "KAYIT OL"}
+            <Button type="submit" data-testid="register-submit-btn" className="w-full h-12 font-semibold" disabled={loading}>
+              {loading ? "Yükleniyor..." : "Kayıt Ol"}
             </Button>
           </form>
 
@@ -88,7 +88,7 @@ export default function RegisterPage() {
       <div className="hidden lg:block lg:w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1586626277605-7720525d251a?crop=entropy&cs=srgb&fm=jpg&q=85')` }}>
         <div className="w-full h-full bg-primary/60 flex items-end p-12">
           <div className="text-white">
-            <h2 className="font-heading text-4xl font-bold uppercase mb-2">SHIFTJET</h2>
+            <h2 className="font-heading text-4xl font-bold mb-2">ShiftJet</h2>
             <p className="text-white/80">Kurye Yönetim Sistemi</p>
           </div>
         </div>
