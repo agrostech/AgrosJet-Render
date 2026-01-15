@@ -411,6 +411,30 @@ async def delete_admin(admin_id: str):
     await db.admins.delete_one({"id": admin_id})
     return {"message": "Yönetici silindi"}
 
+class AdminUpdate(BaseModel):
+    name: Optional[str] = None
+    password: Optional[str] = None
+
+@api_router.put("/admins/{admin_id}")
+async def update_admin(admin_id: str, data: AdminUpdate):
+    admin = await db.admins.find_one({"id": admin_id})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
+    if admin["role"] == "systemadmin":
+        raise HTTPException(status_code=403, detail="Sistem yöneticisi düzenlenemez")
+    
+    update_data = {}
+    if data.name:
+        update_data["name"] = format_name(data.name)
+    if data.password:
+        update_data["password"] = hash_password(data.password)
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
+    
+    await db.admins.update_one({"id": admin_id}, {"$set": update_data})
+    return {"message": "Yönetici güncellendi"}
+
 # Health check
 @api_router.get("/")
 async def root():
