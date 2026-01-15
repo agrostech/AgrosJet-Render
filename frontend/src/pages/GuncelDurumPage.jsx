@@ -202,6 +202,7 @@ export default function GuncelDurumPage({ companyId }) {
               {sortedShifts.map(shift => {
                 const shiftAssignments = getShiftAssignments(shift.id);
                 const isActive = isShiftActive(shift);
+                const courierCount = shiftAssignments.length;
                 
                 return (
                   <div 
@@ -213,7 +214,15 @@ export default function GuncelDurumPage({ companyId }) {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-2 h-8 rounded-full ${isActive ? 'bg-green-500' : 'bg-slate-300'}`} />
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${
+                        isActive 
+                          ? 'bg-green-200 text-green-800' 
+                          : courierCount > 0 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        {courierCount}
+                      </div>
                       <div>
                         <p className="font-semibold text-sm">
                           {shift.start_time} - {shift.end_time}
