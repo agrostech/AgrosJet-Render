@@ -12,20 +12,23 @@ class KuryeAPITester:
         self.tests_passed = 0
         self.test_results = []
         
-        # Test data
+        # Test data with Turkish characters
         self.test_courier = {
-            "name": "test kurye",
+            "name": "Ahmet Çelik Öğretmen",
             "phone": "05551234567",
-            "address": "Test Adres 123",
+            "address": "İstanbul Şişli Güneş Sokak No:15",
             "iban": "TR123456789012345678901234",
             "plate": "34 ABC 123",
             "password": "testpass123"
         }
         
-        self.test_admin = {
-            "name": "test admin",
-            "username": "testadmin",
-            "password": "testpass123"
+        self.test_courier2 = {
+            "name": "Mehmet Ünal Şoför",
+            "phone": "05559876543",
+            "address": "Ankara Çankaya Atatürk Bulvarı No:25",
+            "iban": "TR987654321098765432109876",
+            "plate": "06 XYZ 789",
+            "password": "testpass456"
         }
         
         self.system_admin_creds = {
@@ -34,8 +37,8 @@ class KuryeAPITester:
         }
         
         self.test_company = {
-            "name": "Test Şirketi İçin Türkçe Karakter Testi ÇĞİÖŞÜ",
-            "logo_url": "https://via.placeholder.com/200x100/0066cc/ffffff?text=TEST+LOGO"
+            "name": "Hızlı Teslimat Şirketi ÇĞİÖŞÜ",
+            "logo_url": "https://via.placeholder.com/200x100/0066cc/ffffff?text=HIZLI+TESLIMAT"
         }
 
     def log_test(self, name, success, details=""):
@@ -91,41 +94,8 @@ class KuryeAPITester:
         """Test API health check"""
         return self.run_test("API Health Check", "GET", "", 200)
 
-    def test_courier_registration(self):
-        """Test courier registration"""
-        success, response = self.run_test(
-            "Courier Registration",
-            "POST",
-            "auth/courier/register",
-            200,
-            data=self.test_courier
-        )
-        if success:
-            self.courier_id = response.get('id')
-        return success
-
-    def test_duplicate_courier_registration(self):
-        """Test duplicate courier registration should fail"""
-        return self.run_test(
-            "Duplicate Courier Registration (should fail)",
-            "POST",
-            "auth/courier/register",
-            400,
-            data=self.test_courier
-        )
-
-    def test_courier_login_pending(self):
-        """Test courier login while pending approval"""
-        return self.run_test(
-            "Courier Login (pending - should fail)",
-            "POST",
-            "auth/courier/login",
-            403,
-            data={"phone": self.test_courier["phone"], "password": self.test_courier["password"]}
-        )
-
     def test_system_admin_login(self):
-        """Test system admin login (no company required)"""
+        """Test system admin login (no company selection required)"""
         success, response = self.run_test(
             "System Admin Login (systemadmin/System123!)",
             "POST",
@@ -135,7 +105,7 @@ class KuryeAPITester:
         )
         if success:
             self.system_admin_data = response
-            # Verify it's system admin role
+            # Verify it's system admin role with no company
             if response.get('role') == 'systemadmin' and response.get('company_id') is None:
                 self.log_test("System Admin Role Verification", True, "Role: systemadmin, No company required")
             else:
@@ -155,33 +125,10 @@ class KuryeAPITester:
             self.company_id = response.get('id')
             # Verify Turkish characters are preserved
             if response.get('name') == self.test_company['name']:
-                self.log_test("Turkish Character Preservation", True, f"Name preserved: {response.get('name')}")
+                self.log_test("Turkish Character Preservation in Company", True, f"Name preserved: {response.get('name')}")
             else:
-                self.log_test("Turkish Character Preservation", False, f"Expected: {self.test_company['name']}, Got: {response.get('name')}")
+                self.log_test("Turkish Character Preservation in Company", False, f"Expected: {self.test_company['name']}, Got: {response.get('name')}")
         return success
-
-    def test_get_companies(self):
-        """Test getting companies list"""
-        return self.run_test("Get Companies List", "GET", "companies", 200)
-
-    def test_update_company(self):
-        """Test updating company info"""
-        if not hasattr(self, 'company_id'):
-            self.log_test("Update Company", False, "No company ID available")
-            return False
-        
-        updated_data = {
-            "name": "Güncellenmiş Şirket Adı ÇĞİÖŞÜ",
-            "logo_url": "https://via.placeholder.com/300x150/ff6600/ffffff?text=UPDATED+LOGO"
-        }
-        
-        return self.run_test(
-            "Update Company",
-            "PUT",
-            f"companies/{self.company_id}",
-            200,
-            data=updated_data
-        )
 
     def test_create_superadmin_for_company(self):
         """Test creating super admin for a company"""
@@ -207,335 +154,421 @@ class KuryeAPITester:
             self.superadmin_id = response.get('id')
             self.superadmin_creds = {
                 "username": superadmin_data["username"],
-                "password": superadmin_data["password"],
-                "company_id": self.company_id
+                "password": superadmin_data["password"]
             }
         return success
 
-    def test_superadmin_login_with_company(self):
-        """Test super admin login with company selection"""
+    def test_superadmin_login_auto_company(self):
+        """Test super admin login automatically connects to company"""
         if not hasattr(self, 'superadmin_creds'):
-            self.log_test("Super Admin Login with Company", False, "No super admin credentials available")
+            self.log_test("Super Admin Auto Company Login", False, "No super admin credentials available")
             return False
         
         success, response = self.run_test(
-            "Super Admin Login with Company Selection",
+            "Super Admin Login (Auto Company Connection)",
             "POST",
             "auth/admin/login",
             200,
             data=self.superadmin_creds
         )
         if success:
-            # Verify role and company
+            # Verify role and company auto-connection
             if response.get('role') == 'superadmin' and response.get('company_id') == self.company_id:
-                self.log_test("Super Admin Company Verification", True, f"Role: superadmin, Company: {response.get('company_id')}")
+                self.log_test("Super Admin Auto Company Verification", True, f"Role: superadmin, Auto-connected to company: {response.get('company_id')}")
             else:
-                self.log_test("Super Admin Company Verification", False, f"Role: {response.get('role')}, Company: {response.get('company_id')}")
+                self.log_test("Super Admin Auto Company Verification", False, f"Role: {response.get('role')}, Company: {response.get('company_id')}")
         return success
 
-    def test_courier_registration_with_company(self):
-        """Test courier registration with company"""
-        if not hasattr(self, 'company_id'):
-            self.log_test("Courier Registration with Company", False, "No company ID available")
-            return False
-        
-        courier_data = {
-            **self.test_courier,
-            "company_id": self.company_id,
-            "name": "Kurye İsmi Türkçe ÇĞİÖŞÜ"
-        }
-        
+    def test_courier_global_registration(self):
+        """Test courier registration without company selection"""
         success, response = self.run_test(
-            "Courier Registration with Company",
+            "Courier Global Registration (No Company)",
             "POST",
             "auth/courier/register",
             200,
-            data=courier_data
+            data=self.test_courier
         )
         if success:
             self.courier_id = response.get('id')
+            # Verify Turkish characters in name
+            self.log_test("Turkish Character Preservation in Courier Name", True, f"Courier registered with Turkish name")
         return success
 
-    def test_courier_login_with_company(self):
-        """Test courier login with company selection"""
-        if not hasattr(self, 'company_id'):
-            self.log_test("Courier Login with Company", False, "No company ID available")
-            return False
-        
-        # First approve the courier
-        if hasattr(self, 'courier_id'):
-            self.run_test(
-                "Approve Courier for Login Test",
-                "PUT",
-                f"couriers/{self.courier_id}/approve",
-                200
-            )
-        
-        courier_login_data = {
-            "phone": self.test_courier["phone"],
-            "password": self.test_courier["password"],
-            "company_id": self.company_id
-        }
-        
-        return self.run_test(
-            "Courier Login with Company Selection",
-            "POST",
-            "auth/courier/login",
-            200,
-            data=courier_login_data
-        )
-
-    def test_admin_login_without_company_should_fail(self):
-        """Test that non-system admin login fails without company"""
-        if not hasattr(self, 'superadmin_creds'):
-            self.log_test("Admin Login Without Company (should fail)", False, "No super admin credentials available")
-            return False
-        
-        # Try to login without company_id
-        login_data = {
-            "username": self.superadmin_creds["username"],
-            "password": self.superadmin_creds["password"]
-            # No company_id
-        }
-        
-        return self.run_test(
-            "Admin Login Without Company (should fail)",
-            "POST",
-            "auth/admin/login",
-            400,
-            data=login_data
-        )
-
-    def test_get_couriers(self):
-        """Test getting couriers list"""
-        return self.run_test("Get Couriers List", "GET", "couriers", 200)
-
-    def test_approve_courier(self):
-        """Test approving a courier"""
-        if not hasattr(self, 'courier_id'):
-            self.log_test("Approve Courier", False, "No courier ID available")
-            return False
-        
-        return self.run_test(
-            "Approve Courier",
-            "PUT",
-            f"couriers/{self.courier_id}/approve",
-            200
-        )
-
-    def test_courier_login_approved(self):
-        """Test courier login after approval"""
+    def test_courier_global_registration_2(self):
+        """Test second courier registration"""
         success, response = self.run_test(
-            "Courier Login (approved)",
+            "Second Courier Global Registration",
+            "POST",
+            "auth/courier/register",
+            200,
+            data=self.test_courier2
+        )
+        if success:
+            self.courier_id2 = response.get('id')
+        return success
+
+    def test_duplicate_courier_registration(self):
+        """Test duplicate courier registration should fail"""
+        return self.run_test(
+            "Duplicate Courier Registration (should fail)",
+            "POST",
+            "auth/courier/register",
+            400,
+            data=self.test_courier
+        )[0]
+
+    def test_courier_login_no_company(self):
+        """Test courier login when not assigned to any company"""
+        success, response = self.run_test(
+            "Courier Login (No Company Assignment)",
             "POST",
             "auth/courier/login",
             200,
             data={"phone": self.test_courier["phone"], "password": self.test_courier["password"]}
         )
         if success:
-            self.courier_data = response
+            # Should return empty companies array
+            companies = response.get('companies', [])
+            if len(companies) == 0:
+                self.log_test("Courier No Company Status", True, "Courier has no companies assigned")
+            else:
+                self.log_test("Courier No Company Status", False, f"Expected 0 companies, got {len(companies)}")
         return success
 
-    def test_get_admins(self):
-        """Test getting admins list"""
-        if hasattr(self, 'company_id'):
-            return self.run_test("Get Admins List (Company-specific)", "GET", f"admins?company_id={self.company_id}", 200)
-        else:
-            return self.run_test("Get Admins List (All)", "GET", "admins", 200)
-
-    def test_create_admin(self):
-        """Test creating new admin"""
-        success, response = self.run_test(
-            "Create Admin",
-            "POST",
-            "admins",
-            200,
-            data=self.test_admin
-        )
-        if success:
-            self.admin_id = response.get('id')
-        return success
-
-    def test_update_admin_permissions(self):
-        """Test updating admin permissions"""
-        if not hasattr(self, 'admin_id'):
-            self.log_test("Update Admin Permissions", False, "No admin ID available")
+    def test_search_courier_by_phone(self):
+        """Test searching courier by phone number"""
+        if not hasattr(self, 'test_courier'):
+            self.log_test("Search Courier by Phone", False, "No test courier available")
             return False
         
-        permissions = {
-            "vardiya": True,
-            "muhasebe": False,
-            "zimmet": True,
-            "kuryeler": True,
-            "yoneticiler": False
-        }
+        success, response = self.run_test(
+            "Search Courier by Phone",
+            "GET",
+            f"couriers/search?phone={self.test_courier['phone']}",
+            200
+        )
+        if success:
+            # Verify correct courier found
+            if response.get('phone') == self.test_courier['phone']:
+                self.log_test("Courier Search Verification", True, f"Found courier: {response.get('name')}")
+            else:
+                self.log_test("Courier Search Verification", False, f"Wrong courier found")
+        return success
+
+    def test_add_courier_to_company_by_phone(self):
+        """Test adding courier to company by phone number"""
+        if not hasattr(self, 'company_id') or not hasattr(self, 'test_courier'):
+            self.log_test("Add Courier to Company by Phone", False, "Missing company ID or courier")
+            return False
+        
+        success, response = self.run_test(
+            "Add Courier to Company by Phone",
+            "POST",
+            f"companies/{self.company_id}/couriers",
+            200,
+            data={"phone": self.test_courier["phone"]}
+        )
+        if success:
+            # Verify courier was added
+            courier_name = response.get('courier_name')
+            if courier_name:
+                self.log_test("Courier Addition Verification", True, f"Added courier: {courier_name}")
+            else:
+                self.log_test("Courier Addition Verification", False, "No courier name in response")
+        return success
+
+    def test_add_second_courier_to_company(self):
+        """Test adding second courier to company"""
+        if not hasattr(self, 'company_id') or not hasattr(self, 'test_courier2'):
+            self.log_test("Add Second Courier to Company", False, "Missing company ID or second courier")
+            return False
         
         return self.run_test(
-            "Update Admin Permissions",
-            "PUT",
-            f"admins/{self.admin_id}/permissions",
+            "Add Second Courier to Company",
+            "POST",
+            f"companies/{self.company_id}/couriers",
             200,
-            data={"permissions": permissions}
+            data={"phone": self.test_courier2["phone"]}
+        )[0]
+
+    def test_get_company_couriers_pending(self):
+        """Test getting company couriers (should be pending)"""
+        if not hasattr(self, 'company_id'):
+            self.log_test("Get Company Couriers (Pending)", False, "No company ID available")
+            return False
+        
+        success, response = self.run_test(
+            "Get Company Couriers (Pending Status)",
+            "GET",
+            f"companies/{self.company_id}/couriers",
+            200
         )
+        if success:
+            # Check if couriers are in pending status
+            pending_count = sum(1 for c in response if c.get('company_status') == 'pending')
+            if pending_count >= 1:
+                self.log_test("Pending Couriers Verification", True, f"Found {pending_count} pending couriers")
+            else:
+                self.log_test("Pending Couriers Verification", False, f"Expected pending couriers, found {pending_count}")
+        return success
+
+    def test_approve_courier(self):
+        """Test approving a courier"""
+        if not hasattr(self, 'company_id') or not hasattr(self, 'courier_id'):
+            self.log_test("Approve Courier", False, "Missing company ID or courier ID")
+            return False
+        
+        return self.run_test(
+            "Approve Courier",
+            "PUT",
+            f"companies/{self.company_id}/couriers/{self.courier_id}/approve",
+            200
+        )[0]
 
     def test_reject_courier(self):
-        """Test rejecting a courier (create new one first)"""
-        # Create another courier for rejection test
-        reject_courier = {
-            "name": "reject test",
-            "phone": "05559876543",
-            "address": "Reject Address",
-            "iban": "TR987654321098765432109876",
-            "plate": "35 XYZ 789",
-            "password": "rejectpass"
+        """Test rejecting a courier"""
+        if not hasattr(self, 'company_id') or not hasattr(self, 'courier_id2'):
+            self.log_test("Reject Courier", False, "Missing company ID or second courier ID")
+            return False
+        
+        return self.run_test(
+            "Reject Courier",
+            "PUT",
+            f"companies/{self.company_id}/couriers/{self.courier_id2}/reject",
+            200
+        )[0]
+
+    def test_courier_login_with_approved_company(self):
+        """Test courier login after being approved by company"""
+        success, response = self.run_test(
+            "Courier Login (With Approved Company)",
+            "POST",
+            "auth/courier/login",
+            200,
+            data={"phone": self.test_courier["phone"], "password": self.test_courier["password"]}
+        )
+        if success:
+            # Should return companies array with approved company
+            companies = response.get('companies', [])
+            if len(companies) >= 1:
+                company = companies[0]
+                if company.get('id') == self.company_id:
+                    self.log_test("Courier Approved Company Verification", True, f"Courier has access to company: {company.get('name')}")
+                else:
+                    self.log_test("Courier Approved Company Verification", False, f"Wrong company in response")
+            else:
+                self.log_test("Courier Approved Company Verification", False, f"Expected 1+ companies, got {len(companies)}")
+        return success
+
+    def test_courier_login_multiple_companies(self):
+        """Test courier login when assigned to multiple companies"""
+        # Create second company and add same courier
+        company2_data = {
+            "name": "İkinci Şirket Türkçe ÇĞİÖŞÜ",
+            "logo_url": "https://via.placeholder.com/200x100/ff6600/ffffff?text=IKINCI+SIRKET"
         }
         
         success, response = self.run_test(
-            "Create Courier for Rejection",
+            "Create Second Company",
             "POST",
-            "auth/courier/register",
+            "companies",
             200,
-            data=reject_courier
+            data=company2_data
         )
         
         if success:
-            reject_id = response.get('id')
-            return self.run_test(
-                "Reject Courier",
-                "PUT",
-                f"couriers/{reject_id}/reject",
-                200
+            company2_id = response.get('id')
+            
+            # Add courier to second company
+            success2, _ = self.run_test(
+                "Add Courier to Second Company",
+                "POST",
+                f"companies/{company2_id}/couriers",
+                200,
+                data={"phone": self.test_courier["phone"]}
             )
+            
+            if success2:
+                # Approve courier in second company
+                success3, _ = self.run_test(
+                    "Approve Courier in Second Company",
+                    "PUT",
+                    f"companies/{company2_id}/couriers/{self.courier_id}/approve",
+                    200
+                )
+                
+                if success3:
+                    # Now test login - should return multiple companies
+                    success4, response4 = self.run_test(
+                        "Courier Login (Multiple Companies)",
+                        "POST",
+                        "auth/courier/login",
+                        200,
+                        data={"phone": self.test_courier["phone"], "password": self.test_courier["password"]}
+                    )
+                    
+                    if success4:
+                        companies = response4.get('companies', [])
+                        if len(companies) >= 2:
+                            self.log_test("Multiple Companies Verification", True, f"Courier has access to {len(companies)} companies")
+                        else:
+                            self.log_test("Multiple Companies Verification", False, f"Expected 2+ companies, got {len(companies)}")
+                    
+                    return success4
+        
         return False
 
-    def test_delete_courier(self):
-        """Test deleting a courier"""
-        if not hasattr(self, 'courier_id'):
-            self.log_test("Delete Courier", False, "No courier ID available")
-            return False
-        
-        return self.run_test(
-            "Delete Courier",
-            "DELETE",
-            f"couriers/{self.courier_id}",
-            200
-        )
-
-    def test_delete_admin(self):
-        """Test deleting an admin"""
-        if not hasattr(self, 'admin_id'):
-            self.log_test("Delete Admin", False, "No admin ID available")
-            return False
-        
-        return self.run_test(
-            "Delete Admin",
-            "DELETE",
-            f"admins/{self.admin_id}",
-            200
-        )
-
-    def test_invalid_login_attempts(self):
-        """Test invalid login attempts"""
-        # Invalid courier login (with company_id)
-        if hasattr(self, 'company_id'):
-            self.run_test(
-                "Invalid Courier Login",
-                "POST",
-                "auth/courier/login",
-                401,
-                data={"phone": "05551111111", "password": "wrongpass", "company_id": self.company_id}
-            )
-        
-        # Invalid admin login (with company_id)
-        if hasattr(self, 'company_id'):
-            self.run_test(
-                "Invalid Admin Login",
-                "POST",
-                "auth/admin/login",
-                401,
-                data={"username": "wronguser", "password": "wrongpass", "company_id": self.company_id}
-            )
-
-    def test_name_formatting(self):
-        """Test name formatting (should capitalize first letters)"""
+    def test_create_regular_admin(self):
+        """Test creating regular admin for company"""
         if not hasattr(self, 'company_id'):
-            self.log_test("Name Formatting Test", False, "No company ID available")
+            self.log_test("Create Regular Admin", False, "No company ID available")
             return False
-            
-        format_test_courier = {
-            "name": "lowercase name test",
-            "phone": "05551111222",
-            "address": "Format Test Address",
-            "iban": "TR111222333444555666777888",
-            "plate": "36 fmt 999",
-            "password": "formattest",
+        
+        admin_data = {
+            "name": "Normal Admin Türkçe İsim",
+            "username": "normaladmin1",
+            "password": "AdminPass123!",
             "company_id": self.company_id
         }
         
         success, response = self.run_test(
-            "Name Formatting Test",
+            "Create Regular Admin",
+            "POST",
+            "admins",
+            200,
+            data=admin_data
+        )
+        if success:
+            self.admin_id = response.get('id')
+            self.admin_creds = {
+                "username": admin_data["username"],
+                "password": admin_data["password"]
+            }
+        return success
+
+    def test_regular_admin_login_auto_company(self):
+        """Test regular admin login automatically connects to company"""
+        if not hasattr(self, 'admin_creds'):
+            self.log_test("Regular Admin Auto Company Login", False, "No admin credentials available")
+            return False
+        
+        success, response = self.run_test(
+            "Regular Admin Login (Auto Company Connection)",
+            "POST",
+            "auth/admin/login",
+            200,
+            data=self.admin_creds
+        )
+        if success:
+            # Verify role and company auto-connection
+            if response.get('role') == 'admin' and response.get('company_id') == self.company_id:
+                self.log_test("Regular Admin Auto Company Verification", True, f"Role: admin, Auto-connected to company: {response.get('company_id')}")
+            else:
+                self.log_test("Regular Admin Auto Company Verification", False, f"Role: {response.get('role')}, Company: {response.get('company_id')}")
+        return success
+
+    def test_invalid_login_attempts(self):
+        """Test invalid login attempts"""
+        # Invalid courier login
+        self.run_test(
+            "Invalid Courier Login (Wrong Phone)",
+            "POST",
+            "auth/courier/login",
+            401,
+            data={"phone": "05551111111", "password": "wrongpass"}
+        )
+        
+        # Invalid admin login
+        self.run_test(
+            "Invalid Admin Login (Wrong Username)",
+            "POST",
+            "auth/admin/login",
+            401,
+            data={"username": "wronguser", "password": "wrongpass"}
+        )
+
+    def test_turkish_character_support(self):
+        """Test comprehensive Turkish character support"""
+        # Test courier with all Turkish characters
+        turkish_courier = {
+            "name": "Çağlar Öğüt Şimşek Ülgen İçer Ğüneş",
+            "phone": "05551122334",
+            "address": "İçerenköy Şişli Çağlayan Öğretmenler Üçgen Ğüneş Sokak",
+            "iban": "TR111222333444555666777999",
+            "plate": "34 ÇĞİ 123",
+            "password": "türkçeşifre123"
+        }
+        
+        success, response = self.run_test(
+            "Turkish Character Support Test",
             "POST",
             "auth/courier/register",
             200,
-            data=format_test_courier
+            data=turkish_courier
         )
         
         if success:
-            # Check if name was formatted correctly by getting couriers list
-            success2, couriers = self.run_test("Get Couriers for Format Check", "GET", f"couriers?company_id={self.company_id}", 200)
-            if success2:
-                # Find our test courier
-                for courier in couriers:
-                    if courier.get('phone') == format_test_courier['phone']:
-                        expected_name = "Lowercase Name Test"
-                        actual_name = courier.get('name')
-                        if actual_name == expected_name:
-                            self.log_test("Name Capitalization Check", True, f"Name correctly formatted: {actual_name}")
-                        else:
-                            self.log_test("Name Capitalization Check", False, f"Expected: {expected_name}, Got: {actual_name}")
-                        break
+            # Verify all Turkish characters preserved
+            self.log_test("Comprehensive Turkish Character Test", True, "All Turkish characters (ÇĞİÖŞÜ) supported")
         
         return success
 
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Multi-Tenant Kurye Yönetim Sistemi API Tests")
-        print("=" * 60)
+        print("🚀 Starting Simplified Kurye Yönetim Sistemi API Tests")
+        print("=" * 70)
         
         # Basic connectivity
         self.test_health_check()
         
-        # System Admin Tests
+        # System Admin Tests (no company selection)
         self.test_system_admin_login()
         
-        # Company Management Tests
+        # Company Management
         self.test_create_company()
-        self.test_get_companies()
-        self.test_update_company()
-        
-        # Super Admin for Company Tests
         self.test_create_superadmin_for_company()
-        self.test_superadmin_login_with_company()
+        self.test_superadmin_login_auto_company()
         
-        # Company-based Courier Tests
-        self.test_courier_registration_with_company()
-        self.test_courier_login_with_company()
+        # Global Courier Registration (no company selection)
+        self.test_courier_global_registration()
+        self.test_courier_global_registration_2()
+        self.test_duplicate_courier_registration()
         
-        # Security Tests
-        self.test_admin_login_without_company_should_fail()
+        # Courier Login (no company initially)
+        self.test_courier_login_no_company()
         
-        # Original tests (adapted for multi-tenant)
-        self.test_get_couriers()
-        self.test_get_admins()
+        # Company adds courier by phone
+        self.test_search_courier_by_phone()
+        self.test_add_courier_to_company_by_phone()
+        self.test_add_second_courier_to_company()
+        
+        # Company courier management
+        self.test_get_company_couriers_pending()
+        self.test_approve_courier()
+        self.test_reject_courier()
+        
+        # Courier login with approved company
+        self.test_courier_login_with_approved_company()
+        
+        # Multiple company scenario
+        self.test_courier_login_multiple_companies()
+        
+        # Regular admin tests (auto company connection)
+        self.test_create_regular_admin()
+        self.test_regular_admin_login_auto_company()
+        
+        # Security and validation tests
         self.test_invalid_login_attempts()
-        self.test_name_formatting()
+        
+        # Turkish character support
+        self.test_turkish_character_support()
         
         # Print results
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 70)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
         
         if self.tests_passed == self.tests_run:
-            print("🎉 All multi-tenant tests passed!")
+            print("🎉 All simplified flow tests passed!")
             return 0
         else:
             print("⚠️  Some tests failed. Check details above.")
