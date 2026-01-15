@@ -74,7 +74,7 @@ export default function KuryelerTab({ companyId }) {
         description: description || (type === "in" ? "Ödeme alındı" : "Ödeme yapıldı"),
         is_hakedis: type === "in" ? isHakedis : false
       });
-      toast.success(type === "in" ? "Ödeme alındı" : "Ödeme yapıldı");
+      toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
       setAmount("");
       setDescription("");
       setIsHakedis(false);

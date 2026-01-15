@@ -100,7 +100,7 @@ export default function IsletmelerTab({ companyId }) {
         description: description || (type === "in" ? "Ödeme alındı" : "Ödeme yapıldı"),
         is_hakedis: false
       });
-      toast.success(type === "in" ? "Ödeme alındı" : "Ödeme yapıldı");
+      toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
       setAmount("");
       setDescription("");
       fetchTransactions(selectedBusiness.id);
