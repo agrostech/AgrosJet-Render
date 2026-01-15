@@ -82,6 +82,7 @@ function KuryelerPage({ companyId }) {
 
   useEffect(() => {
     if (companyId) fetchCouriers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
   const handleSearch = async () => {
