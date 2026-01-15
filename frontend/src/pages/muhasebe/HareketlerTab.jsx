@@ -1,22 +1,39 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { History, User, Building2, Wallet, Plus, Minus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { History, User, Building2, Wallet, Plus, Minus, Search } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function HareketlerTab({ companyId }) {
   const [logs, setLogs] = useState([]);
-  const [displayCount, setDisplayCount] = useState(20);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [displayCount, setDisplayCount] = useState(10);
   const [loading, setLoading] = useState(true);
   const listRef = useRef(null);
+
+  // Filtrelenmiş loglar
+  const filteredLogs = useMemo(() => {
+    if (!searchQuery.trim()) return logs;
+    const query = searchQuery.toLowerCase().trim();
+    return logs.filter(log => 
+      log.admin_name?.toLowerCase().includes(query) ||
+      log.entity_name?.toLowerCase().includes(query)
+    );
+  }, [logs, searchQuery]);
 
   const handleScroll = useCallback((e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     if (scrollHeight - scrollTop <= clientHeight + 50) {
-      setDisplayCount(prev => Math.min(prev + 20, logs.length));
+      setDisplayCount(prev => Math.min(prev + 10, filteredLogs.length));
     }
-  }, [logs.length]);
+  }, [filteredLogs.length]);
+
+  // Arama değiştiğinde displayCount sıfırla
+  useEffect(() => {
+    setDisplayCount(10);
+  }, [searchQuery]);
 
   const fetchLogs = async () => {
     try {
@@ -90,15 +107,30 @@ export default function HareketlerTab({ companyId }) {
 
   return (
     <div className="border-2 border-border bg-white">
-      <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
+      <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
         <History className="w-4 h-4 text-slate-600" />
         <h3 className="font-semibold text-sm">İşlem Hareketleri</h3>
-        <span className="text-xs text-muted-foreground ml-auto">{logs.length} kayıt</span>
+        <div className="flex-1 max-w-xs ml-auto">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Admin veya isim ara..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-8 text-sm"
+            />
+          </div>
+        </div>
+        <span className="text-xs text-muted-foreground shrink-0">
+          {filteredLogs.length} / {logs.length} kayıt
+        </span>
       </div>
 
       <div ref={listRef} onScroll={handleScroll} className="max-h-[500px] overflow-y-auto">
-        {logs.length === 0 ? (
-          <p className="text-sm text-muted-foreground p-8 text-center">Henüz hareket kaydı yok</p>
+        {filteredLogs.length === 0 ? (
+          <p className="text-sm text-muted-foreground p-8 text-center">
+            {searchQuery ? "Arama sonucu bulunamadı" : "Henüz hareket kaydı yok"}
+          </p>
         ) : (
           <>
             <table className="w-full text-sm">
@@ -113,7 +145,7 @@ export default function HareketlerTab({ companyId }) {
                 </tr>
               </thead>
               <tbody>
-                {logs.slice(0, displayCount).map((log) => (
+                {filteredLogs.slice(0, displayCount).map((log) => (
                   <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(log.created_at)}
@@ -154,7 +186,7 @@ export default function HareketlerTab({ companyId }) {
                 ))}
               </tbody>
             </table>
-            {displayCount < logs.length && (
+            {displayCount < filteredLogs.length && (
               <p className="text-xs text-muted-foreground text-center py-2">Daha fazla görmek için kaydırın...</p>
             )}
           </>
