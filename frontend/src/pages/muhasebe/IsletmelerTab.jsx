@@ -113,6 +113,7 @@ export default function IsletmelerTab({ companyId }) {
       setAmount("");
       setDescription("");
       fetchTransactions(selectedBusiness.id);
+      fetchBusinessBalance(selectedBusiness.id);
     } catch (err) {
       toast.error("İşlem başarısız");
     } finally {
@@ -132,8 +133,11 @@ export default function IsletmelerTab({ companyId }) {
     }
   };
 
-  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amt);
+  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
   const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  // Toplam bakiye
+  const totalBalance = Object.values(businessBalances).reduce((sum, bal) => sum + (bal || 0), 0);
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -143,6 +147,11 @@ export default function IsletmelerTab({ companyId }) {
       <div className="lg:col-span-1 border-2 border-border bg-white">
         <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
           <h3 className="font-semibold text-sm">İşletmeler</h3>
+          {totalBalance !== 0 && (
+            <span className={`text-xs font-bold ${totalBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              {totalBalance > 0 && '-'}{formatCurrency(totalBalance)}
+            </span>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setShowAddModal(true)} className="h-7 px-2"><Plus className="w-4 h-4" /></Button>
         </div>
         <div className="max-h-[500px] overflow-y-auto">
