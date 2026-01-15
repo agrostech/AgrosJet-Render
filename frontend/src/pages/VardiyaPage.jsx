@@ -231,9 +231,9 @@ export default function VardiyaPage({ companyId }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shifts.map(shift => (
+              {shifts.map((shift, shiftIndex) => (
                 <TableRow key={shift.id} className="border-b border-border hover:bg-slate-50">
-                  <TableCell className="font-semibold bg-slate-50 p-2 text-xs">
+                  <TableCell className="font-semibold bg-slate-100 p-2 text-xs border-r border-slate-200">
                     <div className="flex items-center gap-1">
                       <span className="whitespace-nowrap">{shift.start_time}-{shift.end_time}</span>
                       {editMode && (
@@ -247,18 +247,22 @@ export default function VardiyaPage({ companyId }) {
                       )}
                     </div>
                   </TableCell>
-                  {DAYS.map(day => {
+                  {DAYS.map((day, dayIndex) => {
                     const cellAssignments = getAssignmentsForCell(shift.id, day.key);
+                    const isEvenColumn = dayIndex % 2 === 0;
                     return (
-                      <TableCell key={day.key} className="p-1 align-top">
+                      <TableCell 
+                        key={day.key} 
+                        className={`p-1 align-top border-r border-slate-200 ${isEvenColumn ? 'bg-slate-50/50' : 'bg-white'}`}
+                      >
                         <div className="min-h-[32px] space-y-0.5">
                           {cellAssignments.map(a => (
-                            <div key={a.id} className="flex items-center justify-between bg-blue-50 px-1 py-0.5 rounded text-[10px] group">
-                              <span className="font-medium truncate max-w-[60px]">{a.courier_name.split(' ')[0]}</span>
+                            <div key={a.id} className="flex items-center justify-between bg-blue-100 px-1.5 py-0.5 rounded text-[10px] group">
+                              <span className="font-medium truncate">{a.courier_name}</span>
                               {editMode && (
                                 <button
                                   onClick={() => handleRemoveAssignment(a.id)}
-                                  className="text-red-500 hover:text-red-700"
+                                  className="text-red-500 hover:text-red-700 ml-1"
                                 >
                                   <X className="w-2.5 h-2.5" />
                                 </button>
@@ -282,21 +286,25 @@ export default function VardiyaPage({ companyId }) {
               ))}
               {/* İzinliler Satırı */}
               <TableRow className="border-t-2 border-orange-300 bg-orange-50/50">
-                <TableCell className="font-semibold p-2 text-xs text-orange-700 bg-orange-50">
+                <TableCell className="font-semibold p-2 text-xs text-orange-700 bg-orange-100 border-r border-orange-200">
                   İzinliler
                 </TableCell>
-                {DAYS.map(day => {
+                {DAYS.map((day, dayIndex) => {
                   const dayLeaves = getLeavesForDay(day.key);
+                  const isEvenColumn = dayIndex % 2 === 0;
                   return (
-                    <TableCell key={day.key} className="p-1 align-top">
+                    <TableCell 
+                      key={day.key} 
+                      className={`p-1 align-top border-r border-orange-200 ${isEvenColumn ? 'bg-orange-50' : 'bg-orange-50/30'}`}
+                    >
                       <div className="min-h-[32px] space-y-0.5">
                         {dayLeaves.map(l => (
-                          <div key={l.id} className="flex items-center justify-between bg-orange-100 px-1 py-0.5 rounded text-[10px] group">
-                            <span className="font-medium truncate max-w-[60px]">{l.courier_name.split(' ')[0]}</span>
+                          <div key={l.id} className="flex items-center justify-between bg-orange-200 px-1.5 py-0.5 rounded text-[10px] group">
+                            <span className="font-medium truncate">{l.courier_name}</span>
                             {editMode && (
                               <button
                                 onClick={() => handleRemoveLeave(l.id)}
-                                className="text-red-500 hover:text-red-700"
+                                className="text-red-500 hover:text-red-700 ml-1"
                               >
                                 <X className="w-2.5 h-2.5" />
                               </button>
