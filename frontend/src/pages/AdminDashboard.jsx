@@ -94,6 +94,23 @@ function KuryelerPage({ companyId }) {
   };
 
   const handleRemove = async (courierId) => {
+    // Önce bakiye kontrolü yap
+    try {
+      const balanceRes = await axios.get(`${API}/transactions/courier/${courierId}`);
+      const balance = balanceRes.data.balance;
+      
+      if (balance !== 0) {
+        const balanceText = balance > 0 
+          ? `Bu kuryeye ${new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(balance))} borcunuz var.`
+          : `Bu kuryeden ${new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(balance))} alacağınız var.`;
+        
+        toast.error(`Kurye silinemez! ${balanceText} Önce bakiyeyi sıfırlayın.`);
+        return;
+      }
+    } catch (err) {
+      // Bakiye alınamazsa devam et
+    }
+    
     if (!window.confirm("Bu kuryeyi şirketten çıkarmak istediğinize emin misiniz?")) return;
     try {
       await axios.delete(`${API}/companies/${companyId}/couriers/${courierId}`);
