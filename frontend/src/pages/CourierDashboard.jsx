@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSessionCheck } from "@/hooks/useSessionCheck";
 
 const NAV_ITEMS = [
   { path: "/courier", label: "Vardiya", icon: Clock },
@@ -61,6 +62,8 @@ export default function CourierDashboard() {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+
+  useSessionCheck();
 
   useEffect(() => {
     const stored = localStorage.getItem("user");

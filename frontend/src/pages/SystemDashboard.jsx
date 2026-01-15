@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, UserPlus, Users } from "lucide-react";
+import { useSessionCheck } from "@/hooks/useSessionCheck";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -468,6 +469,8 @@ export default function SystemDashboard() {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useSessionCheck();
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
