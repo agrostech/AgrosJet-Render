@@ -126,6 +126,7 @@ export default function CarilerTab({ companyId }) {
       await axios.delete(`${API}/transactions/${txId}`);
       toast.success("İşlem silindi");
       fetchTransactions(selectedVendor.id);
+      fetchVendorBalance(selectedVendor.id);
     } catch (err) {
       toast.error("İşlem silinemedi");
     }

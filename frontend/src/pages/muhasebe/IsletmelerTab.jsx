@@ -126,6 +126,7 @@ export default function IsletmelerTab({ companyId }) {
       await axios.delete(`${API}/transactions/${txId}`);
       toast.success("İşlem silindi");
       fetchTransactions(selectedBusiness.id);
+      fetchBusinessBalance(selectedBusiness.id);
     } catch (err) {
       toast.error("İşlem silinemedi");
     }
