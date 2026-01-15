@@ -354,11 +354,12 @@ function SirketlerPage() {
                         <span className={`px-2 py-1 text-xs font-semibold ${admin.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
                           {admin.role === "superadmin" ? "Süper Admin" : "Admin"}
                         </span>
-                        {admin.role !== "superadmin" && (
-                          <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(admin.id)} className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <Button size="sm" variant="outline" onClick={() => openEditAdminModal(admin)} className="h-8 px-2 border-2">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(admin.id)} className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
