@@ -338,7 +338,10 @@ class KuryeAPITester:
 
     def test_get_admins(self):
         """Test getting admins list"""
-        return self.run_test("Get Admins List", "GET", "admins", 200)
+        if hasattr(self, 'company_id'):
+            return self.run_test("Get Admins List (Company-specific)", "GET", f"admins?company_id={self.company_id}", 200)
+        else:
+            return self.run_test("Get Admins List (All)", "GET", "admins", 200)
 
     def test_create_admin(self):
         """Test creating new admin"""
