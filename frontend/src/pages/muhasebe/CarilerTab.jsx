@@ -113,6 +113,7 @@ export default function CarilerTab({ companyId }) {
       setAmount("");
       setDescription("");
       fetchTransactions(selectedVendor.id);
+      fetchVendorBalance(selectedVendor.id);
     } catch (err) {
       toast.error("İşlem başarısız");
     } finally {
@@ -132,8 +133,11 @@ export default function CarilerTab({ companyId }) {
     }
   };
 
-  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amt);
+  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
   const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  // Toplam bakiye
+  const totalBalance = Object.values(vendorBalances).reduce((sum, bal) => sum + (bal || 0), 0);
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -143,24 +147,37 @@ export default function CarilerTab({ companyId }) {
       <div className="lg:col-span-1 border-2 border-border bg-white">
         <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
           <h3 className="font-semibold text-sm">Cariler</h3>
+          {totalBalance !== 0 && (
+            <span className={`text-xs font-bold ${totalBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              {totalBalance > 0 && '-'}{formatCurrency(totalBalance)}
+            </span>
+          )}
           <Button size="sm" variant="ghost" onClick={() => setShowAddModal(true)} className="h-7 px-2"><Plus className="w-4 h-4" /></Button>
         </div>
         <div className="max-h-[500px] overflow-y-auto">
           {vendors.length === 0 ? (
             <p className="text-sm text-muted-foreground p-4 text-center">Cari bulunamadı</p>
           ) : (
-            vendors.map((v) => (
-              <div key={v.id} className={`flex items-center gap-3 p-3 border-b border-slate-100 transition-colors ${selectedVendor?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
-                <button onClick={() => setSelectedVendor(v)} className="flex-1 flex items-center gap-3 text-left">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><Wallet className="w-4 h-4 text-purple-600" /></div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{v.name}</p>
-                    {v.phone && <p className="text-xs text-muted-foreground">{v.phone}</p>}
-                  </div>
-                </button>
-                <button onClick={() => handleDeleteVendor(v.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))
+            vendors.map((v) => {
+              const bal = vendorBalances[v.id];
+              return (
+                <div key={v.id} className={`flex items-center gap-3 p-3 border-b border-slate-100 transition-colors ${selectedVendor?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
+                  <button onClick={() => setSelectedVendor(v)} className="flex-1 flex items-center gap-3 text-left">
+                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Wallet className="w-4 h-4 text-purple-600" /></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{v.name}</p>
+                      {v.phone && <p className="text-xs text-muted-foreground">{v.phone}</p>}
+                    </div>
+                    {bal !== 0 && bal !== undefined && (
+                      <span className={`text-xs font-semibold px-2 py-1 rounded shrink-0 ${bal > 0 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>
+                        {bal > 0 && '-'}{formatCurrency(bal)}
+                      </span>
+                    )}
+                  </button>
+                  <button onClick={() => handleDeleteVendor(v.id)} className="text-red-400 hover:text-red-600 p-1 shrink-0"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
