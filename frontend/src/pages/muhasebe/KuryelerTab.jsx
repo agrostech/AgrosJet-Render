@@ -9,7 +9,7 @@ import { Plus, Minus, User, Trash2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function KuryelerTab({ companyId }) {
+export default function KuryelerTab({ companyId, adminId, adminName }) {
   const [couriers, setCouriers] = useState([]);
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [transactions, setTransactions] = useState([]);
