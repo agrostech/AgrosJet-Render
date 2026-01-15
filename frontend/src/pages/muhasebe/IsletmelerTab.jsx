@@ -14,7 +14,7 @@ import { Plus, Minus, Building2, Trash2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function IsletmelerTab({ companyId }) {
+export default function IsletmelerTab({ companyId, adminId, adminName }) {
   const [businesses, setBusinesses] = useState([]);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [transactions, setTransactions] = useState([]);

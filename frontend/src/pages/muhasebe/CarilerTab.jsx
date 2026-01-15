@@ -14,7 +14,7 @@ import { Plus, Minus, Wallet, Trash2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function CarilerTab({ companyId }) {
+export default function CarilerTab({ companyId, adminId, adminName }) {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [transactions, setTransactions] = useState([]);
