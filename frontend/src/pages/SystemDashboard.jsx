@@ -436,6 +436,29 @@ function SirketlerPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Admin Modal */}
+      <Dialog open={showEditAdminModal} onOpenChange={setShowEditAdminModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Yönetici Düzenle</DialogTitle>
+          </DialogHeader>
+          {selectedAdmin && (
+            <form onSubmit={handleEditAdmin} className="space-y-4">
+              <p className="text-sm text-muted-foreground"><strong>{selectedAdmin.username}</strong> bilgilerini düzenleyin</p>
+              <div>
+                <Label className="text-sm font-semibold">İsim Soyisim</Label>
+                <Input value={editAdminData.name} onChange={(e) => setEditAdminData({ ...editAdminData, name: e.target.value })} className="mt-1 h-12 border-2" required />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Yeni Şifre (boş bırakılırsa değişmez)</Label>
+                <Input type="password" value={editAdminData.password} onChange={(e) => setEditAdminData({ ...editAdminData, password: e.target.value })} className="mt-1 h-12 border-2" placeholder="Yeni şifre" />
+              </div>
+              <Button type="submit" className="w-full h-12 font-semibold">Kaydet</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
