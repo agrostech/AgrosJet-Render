@@ -312,6 +312,7 @@ function YoneticilerPage({ companyId }) {
 
   useEffect(() => {
     if (companyId) fetchAdmins();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
   const handleAddAdmin = async (e) => {
