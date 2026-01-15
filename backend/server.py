@@ -623,6 +623,136 @@ async def remove_leave(leave_id: str):
         raise HTTPException(status_code=404, detail="İzin bulunamadı")
     return {"message": "İzin kaldırıldı"}
 
+# ==================== MUHASEBE (ACCOUNTING) ====================
+
+# --- Pydantic Models ---
+class BusinessCreate(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+class VendorCreate(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+class TransactionCreate(BaseModel):
+    entity_type: str  # "courier", "business", "vendor"
+    entity_id: str
+    company_id: str
+    type: str  # "payment_in" (ödeme al - tahsil), "payment_out" (ödeme yap - borçlandır)
+    amount: float
+    description: Optional[str] = None
+    is_hakedis: Optional[bool] = False
+
+# --- İşletmeler (Businesses) ---
+@api_router.get("/companies/{company_id}/businesses")
+async def get_businesses(company_id: str):
+    """Get all businesses for a company"""
+    businesses = await db.businesses.find({"company_id": company_id}, {"_id": 0}).to_list(500)
+    return businesses
+
+@api_router.post("/companies/{company_id}/businesses")
+async def create_business(company_id: str, data: BusinessCreate):
+    """Create a new business"""
+    business = {
+        "id": str(uuid.uuid4()),
+        "name": data.name,
+        "phone": data.phone,
+        "address": data.address,
+        "company_id": company_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.businesses.insert_one(business)
+    return {"message": "İşletme oluşturuldu", "id": business["id"]}
+
+@api_router.delete("/businesses/{business_id}")
+async def delete_business(business_id: str):
+    """Delete a business"""
+    result = await db.businesses.delete_one({"id": business_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="İşletme bulunamadı")
+    return {"message": "İşletme silindi"}
+
+# --- Cariler (Vendors) ---
+@api_router.get("/companies/{company_id}/vendors")
+async def get_vendors(company_id: str):
+    """Get all vendors for a company"""
+    vendors = await db.vendors.find({"company_id": company_id}, {"_id": 0}).to_list(500)
+    return vendors
+
+@api_router.post("/companies/{company_id}/vendors")
+async def create_vendor(company_id: str, data: VendorCreate):
+    """Create a new vendor"""
+    vendor = {
+        "id": str(uuid.uuid4()),
+        "name": data.name,
+        "phone": data.phone,
+        "address": data.address,
+        "company_id": company_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.vendors.insert_one(vendor)
+    return {"message": "Cari oluşturuldu", "id": vendor["id"]}
+
+@api_router.delete("/vendors/{vendor_id}")
+async def delete_vendor(vendor_id: str):
+    """Delete a vendor"""
+    result = await db.vendors.delete_one({"id": vendor_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Cari bulunamadı")
+    return {"message": "Cari silindi"}
+
+# --- İşlemler (Transactions) ---
+@api_router.post("/transactions")
+async def create_transaction(data: TransactionCreate):
+    """Create a new transaction"""
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "entity_type": data.entity_type,
+        "entity_id": data.entity_id,
+        "company_id": data.company_id,
+        "type": data.type,
+        "amount": data.amount,
+        "description": data.description or ("Ödeme alındı" if data.type == "payment_in" else "Ödeme yapıldı"),
+        "is_hakedis": data.is_hakedis if data.entity_type == "courier" else False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.transactions.insert_one(transaction)
+    return {"message": "İşlem kaydedildi", "id": transaction["id"]}
+
+async def get_entity_transactions(entity_type: str, entity_id: str):
+    """Helper to get transactions and calculate balance for an entity"""
+    transactions = await db.transactions.find(
+        {"entity_type": entity_type, "entity_id": entity_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    # Calculate balance: payment_out adds debt (+), payment_in reduces debt (-)
+    balance = 0
+    for tx in transactions:
+        if tx["type"] == "payment_out":
+            balance += tx["amount"]
+        else:  # payment_in
+            balance -= tx["amount"]
+    
+    return {"transactions": transactions, "balance": balance}
+
+@api_router.get("/transactions/courier/{courier_id}")
+async def get_courier_transactions(courier_id: str):
+    """Get all transactions for a courier"""
+    return await get_entity_transactions("courier", courier_id)
+
+@api_router.get("/transactions/business/{business_id}")
+async def get_business_transactions(business_id: str):
+    """Get all transactions for a business"""
+    return await get_entity_transactions("business", business_id)
+
+@api_router.get("/transactions/vendor/{vendor_id}")
+async def get_vendor_transactions(vendor_id: str):
+    """Get all transactions for a vendor"""
+    return await get_entity_transactions("vendor", vendor_id)
+
 # Health check
 @api_router.get("/")
 async def root():
