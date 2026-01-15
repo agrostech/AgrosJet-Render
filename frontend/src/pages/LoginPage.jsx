@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -12,16 +13,27 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function LoginPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [rememberCourier, setRememberCourier] = useState(false);
+  const [rememberAdmin, setRememberAdmin] = useState(false);
   
   const [courierData, setCourierData] = useState({ phone: "", password: "" });
   const [adminData, setAdminData] = useState({ username: "", password: "" });
+
+  const saveSession = (userData, remember) => {
+    const sessionData = {
+      ...userData,
+      rememberMe: remember,
+      expiresAt: remember ? null : Date.now() + (60 * 60 * 1000) // 60 dakika
+    };
+    localStorage.setItem("user", JSON.stringify(sessionData));
+  };
 
   const handleCourierLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       const res = await axios.post(`${API}/auth/courier/login`, courierData);
-      localStorage.setItem("user", JSON.stringify(res.data));
+      saveSession(res.data, rememberCourier);
       toast.success("Giriş başarılı");
       navigate("/courier");
     } catch (err) {
@@ -36,7 +48,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await axios.post(`${API}/auth/admin/login`, adminData);
-      localStorage.setItem("user", JSON.stringify(res.data));
+      saveSession(res.data, rememberAdmin);
       toast.success("Giriş başarılı");
       
       if (res.data.role === "systemadmin") {
@@ -120,6 +132,17 @@ export default function LoginPage() {
                 >
                   {loading ? "Yükleniyor..." : "Giriş Yap"}
                 </Button>
+                <div className="flex items-center gap-2 mt-2">
+                  <Checkbox 
+                    id="rememberCourier" 
+                    checked={rememberCourier}
+                    onCheckedChange={setRememberCourier}
+                    data-testid="remember-courier-checkbox"
+                  />
+                  <Label htmlFor="rememberCourier" className="text-sm text-muted-foreground cursor-pointer">
+                    Beni Hatırla
+                  </Label>
+                </div>
               </form>
               <p className="mt-4 text-sm text-center text-muted-foreground">
                 Hesabınız yok mu?{" "}
@@ -171,6 +194,17 @@ export default function LoginPage() {
                 >
                   {loading ? "Yükleniyor..." : "Giriş Yap"}
                 </Button>
+                <div className="flex items-center gap-2 mt-2">
+                  <Checkbox 
+                    id="rememberAdmin" 
+                    checked={rememberAdmin}
+                    onCheckedChange={setRememberAdmin}
+                    data-testid="remember-admin-checkbox"
+                  />
+                  <Label htmlFor="rememberAdmin" className="text-sm text-muted-foreground cursor-pointer">
+                    Beni Hatırla
+                  </Label>
+                </div>
               </form>
             </TabsContent>
           </Tabs>
