@@ -604,7 +604,8 @@ export default function AdminDashboard() {
 
         <main className="flex-1 p-4 md:p-6 pb-16 overflow-x-auto">
           <Routes>
-            <Route index element={<VardiyaPage companyId={user.company_id} />} />
+            <Route index element={<GuncelDurumPage companyId={user.company_id} />} />
+            <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
             <Route path="muhasebe" element={<MuhasebePage />} />
             <Route path="zimmet" element={<ZimmetPage />} />
             <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
