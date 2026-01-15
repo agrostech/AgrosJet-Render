@@ -222,9 +222,12 @@ export default function VardiyaPage({ companyId }) {
           <Table className="text-xs">
             <TableHeader>
               <TableRow className="border-b-2 border-primary">
-                <TableHead className="font-bold text-xs min-w-[90px] bg-slate-50 p-2">Vardiya</TableHead>
-                {DAYS.map(day => (
-                  <TableHead key={day.key} className="font-bold text-xs min-w-[85px] text-center p-2">
+                <TableHead className="font-bold text-xs min-w-[90px] bg-slate-100 p-2 border-r border-slate-300">Vardiya</TableHead>
+                {DAYS.map((day, index) => (
+                  <TableHead 
+                    key={day.key} 
+                    className={`font-bold text-xs min-w-[100px] text-center p-2 border-r border-slate-300 ${index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-50'}`}
+                  >
                     {day.label}
                   </TableHead>
                 ))}
