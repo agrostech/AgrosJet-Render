@@ -24,19 +24,9 @@ import { Menu, X, LogOut, Clock, FileText, Package, Users, UserCog, Trash2, Sett
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 import VardiyaPage from "./VardiyaPage";
 import GuncelDurumPage from "./GuncelDurumPage";
+import MuhasebePage from "./MuhasebePage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-function MuhasebePage() {
-  return (
-    <div data-testid="admin-muhasebe-page">
-      <h2 className="font-heading text-2xl font-bold tracking-tight mb-6">Muhasebe</h2>
-      <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Muhasebe içeriği burada görünecek.</p>
-      </div>
-    </div>
-  );
-}
 
 function ZimmetPage() {
   return (
