@@ -236,11 +236,11 @@ export default function GuncelDurumPage({ companyId }) {
                       {shiftAssignments.length === 0 ? (
                         <span className="text-xs text-muted-foreground">-</span>
                       ) : (
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-1 max-h-[52px] overflow-hidden" style={{ direction: 'rtl' }}>
+                        <div className="grid grid-cols-[repeat(auto-fill,100px)] gap-1 justify-end" style={{ direction: 'rtl' }}>
                           {shiftAssignments.map(a => (
                             <span 
                               key={a.id} 
-                              className={`text-[11px] px-2 py-1 rounded font-medium text-center truncate ${
+                              className={`text-[11px] px-2 py-1 rounded font-medium text-center truncate w-[100px] ${
                                 isActive 
                                   ? 'bg-green-200 text-green-800' 
                                   : 'bg-blue-100 text-blue-800'
