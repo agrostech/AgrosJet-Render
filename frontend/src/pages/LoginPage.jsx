@@ -91,7 +91,7 @@ export default function LoginPage() {
                     id="phone"
                     data-testid="courier-phone-input"
                     type="tel"
-                    placeholder="05XX XXX XX XX"
+                    placeholder="05XXXXXXXXX"
                     value={courierData.phone}
                     onChange={(e) => setCourierData({ ...courierData, phone: e.target.value })}
                     className="mt-1 h-12 border-2"
