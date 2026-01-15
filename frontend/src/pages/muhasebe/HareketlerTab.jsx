@@ -107,7 +107,7 @@ export default function HareketlerTab({ companyId }) {
                   <th className="text-left p-3 font-semibold">Tarih</th>
                   <th className="text-left p-3 font-semibold">Admin</th>
                   <th className="text-left p-3 font-semibold">İşlem</th>
-                  <th className="text-left p-3 font-semibold">Kime</th>
+                  <th className="text-left p-3 font-semibold">Kim</th>
                   <th className="text-left p-3 font-semibold">Açıklama</th>
                   <th className="text-right p-3 font-semibold">Tutar</th>
                 </tr>
