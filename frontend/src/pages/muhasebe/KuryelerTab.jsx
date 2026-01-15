@@ -196,7 +196,7 @@ export default function KuryelerTab({ companyId }) {
                           {tx.is_hakedis && <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">Hakediş</span>}
                         </td>
                         <td className={`p-2 text-right font-medium ${tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'}`}>
-                          {tx.type === 'payment_in' ? '-' : '+'}{formatCurrency(tx.amount)}
+                          {tx.type === 'payment_out' && '-'}{formatCurrency(tx.amount)}
                         </td>
                       </tr>
                     ))}

@@ -186,7 +186,7 @@ export default function IsletmelerTab({ companyId }) {
                       <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
                         <td className="p-2">{tx.description}</td>
-                        <td className={`p-2 text-right font-medium ${tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'}`}>{tx.type === 'payment_in' ? '-' : '+'}{formatCurrency(tx.amount)}</td>
+                        <td className={`p-2 text-right font-medium ${tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'}`}>{tx.type === 'payment_out' && '-'}{formatCurrency(tx.amount)}</td>
                       </tr>
                     ))}
                   </tbody>
