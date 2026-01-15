@@ -552,7 +552,7 @@ export default function AdminDashboard() {
       )}
 
       <div className="flex">
-        <aside className={`hidden lg:flex flex-col min-h-screen bg-primary text-white transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
+        <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
           <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2' : ''}`}>
             {!sidebarCollapsed && (
               <>
@@ -566,7 +566,7 @@ export default function AdminDashboard() {
               </>
             )}
           </div>
-          <nav className="flex-1 py-2">
+          <nav className="flex-1 py-2 overflow-y-auto">
             {NAV_ITEMS.map((item) => (
               <Link 
                 key={item.path} 
@@ -602,7 +602,7 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
-        <main className="flex-1 p-4 md:p-6 pb-16 overflow-x-auto">
+        <main className={`flex-1 p-4 md:p-6 pb-16 overflow-x-auto transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'}`}>
           <Routes>
             <Route index element={<GuncelDurumPage companyId={user.company_id} />} />
             <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
