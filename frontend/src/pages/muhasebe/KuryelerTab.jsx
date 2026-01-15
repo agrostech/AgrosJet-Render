@@ -123,14 +123,28 @@ export default function KuryelerTab({ companyId }) {
     return { text: `${formatCurrency(bal)} Alacak`, color: 'text-green-600 bg-green-50' };
   };
 
+  // Toplam bakiye hesaplama
+  const totalBalance = Object.values(courierBalances).reduce((sum, bal) => sum + (bal || 0), 0);
+  const getTotalBalanceLabel = () => {
+    if (totalBalance === 0) return null;
+    if (totalBalance > 0) return { text: `${formatCurrency(totalBalance)} Borç`, color: 'text-red-600' };
+    return { text: `${formatCurrency(totalBalance)} Alacak`, color: 'text-green-600' };
+  };
+  const totalBalanceInfo = getTotalBalanceLabel();
+
   if (loading) return <p>Yükleniyor...</p>;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Sol: Kurye Listesi */}
       <div className="lg:col-span-1 border-2 border-border bg-white">
-        <div className="p-3 border-b border-slate-200 bg-slate-50">
+        <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
           <h3 className="font-semibold text-sm">Kuryeler</h3>
+          {totalBalanceInfo && (
+            <span className={`text-xs font-bold ${totalBalanceInfo.color}`}>
+              {totalBalanceInfo.text}
+            </span>
+          )}
         </div>
         <div className="max-h-[500px] overflow-y-auto">
           {couriers.length === 0 ? (
