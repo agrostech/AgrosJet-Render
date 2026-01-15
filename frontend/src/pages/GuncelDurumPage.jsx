@@ -188,38 +188,6 @@ export default function GuncelDurumPage({ companyId }) {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <div className="flex items-center gap-2 text-blue-700 mb-1">
-              <Users className="w-4 h-4" />
-              <span className="text-xs font-semibold">Toplam Atama</span>
-            </div>
-            <p className="text-2xl font-bold text-blue-900">{totalAssigned}</p>
-          </div>
-          <div className="bg-orange-50 p-3 rounded-lg">
-            <div className="flex items-center gap-2 text-orange-700 mb-1">
-              <UserX className="w-4 h-4" />
-              <span className="text-xs font-semibold">İzinli</span>
-            </div>
-            <p className="text-2xl font-bold text-orange-900">{totalOnLeave}</p>
-          </div>
-          <div className="bg-green-50 p-3 rounded-lg">
-            <div className="flex items-center gap-2 text-green-700 mb-1">
-              <Clock className="w-4 h-4" />
-              <span className="text-xs font-semibold">Vardiya Sayısı</span>
-            </div>
-            <p className="text-2xl font-bold text-green-900">{shifts.length}</p>
-          </div>
-          <div className="bg-purple-50 p-3 rounded-lg">
-            <div className="flex items-center gap-2 text-purple-700 mb-1">
-              <Users className="w-4 h-4" />
-              <span className="text-xs font-semibold">Toplam Kurye</span>
-            </div>
-            <p className="text-2xl font-bold text-purple-900">{couriers.length}</p>
-          </div>
-        </div>
-
         {/* Shift Details */}
         <div className="space-y-2">
           <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
