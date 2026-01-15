@@ -192,8 +192,9 @@ export default function CarilerTab({ companyId }) {
                 {selectedVendor.phone && <p className="text-xs text-muted-foreground">{selectedVendor.phone}</p>}
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Bakiye</p>
-                <p className={`text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(balance)}</p>
+                <p className={`text-xl font-bold ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                  {balance === 0 ? '₺0,00' : balance > 0 ? `-${formatCurrency(balance)}` : formatCurrency(balance)}
+                </p>
               </div>
             </div>
             {/* Ödeme Formu */}
