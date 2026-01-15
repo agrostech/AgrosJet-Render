@@ -125,12 +125,6 @@ export default function KuryelerTab({ companyId }) {
 
   // Toplam bakiye hesaplama
   const totalBalance = Object.values(courierBalances).reduce((sum, bal) => sum + (bal || 0), 0);
-  const getTotalBalanceLabel = () => {
-    if (totalBalance === 0) return null;
-    if (totalBalance > 0) return { text: `${formatCurrency(totalBalance)} Borç`, color: 'text-red-600' };
-    return { text: `${formatCurrency(totalBalance)} Alacak`, color: 'text-green-600' };
-  };
-  const totalBalanceInfo = getTotalBalanceLabel();
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -140,9 +134,9 @@ export default function KuryelerTab({ companyId }) {
       <div className="lg:col-span-1 border-2 border-border bg-white">
         <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
           <h3 className="font-semibold text-sm">Kuryeler</h3>
-          {totalBalanceInfo && (
-            <span className={`text-xs font-bold ${totalBalanceInfo.color}`}>
-              {totalBalanceInfo.text}
+          {totalBalance !== 0 && (
+            <span className={`text-xs font-bold ${totalBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              {totalBalance > 0 && '-'}{formatCurrency(totalBalance)}
             </span>
           )}
         </div>
