@@ -62,9 +62,12 @@ function KuryelerPage({ companyId }) {
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState(null);
   const [searchPhone, setSearchPhone] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [filterQuery, setFilterQuery] = useState("");
 
   const fetchCouriers = async () => {
     try {
@@ -98,33 +101,13 @@ function KuryelerPage({ companyId }) {
   const handleAddCourier = async () => {
     try {
       await axios.post(`${API}/companies/${companyId}/couriers`, { phone: searchPhone });
-      toast.success("Kurye eklendi");
+      toast.success("Kurye şirkete eklendi");
       setShowAddModal(false);
       setSearchPhone("");
       setSearchResult(null);
       fetchCouriers();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Ekleme başarısız");
-    }
-  };
-
-  const handleApprove = async (courierId) => {
-    try {
-      await axios.put(`${API}/companies/${companyId}/couriers/${courierId}/approve`);
-      toast.success("Kurye onaylandı");
-      fetchCouriers();
-    } catch (err) {
-      toast.error("Onaylama başarısız");
-    }
-  };
-
-  const handleReject = async (courierId) => {
-    try {
-      await axios.put(`${API}/companies/${companyId}/couriers/${courierId}/reject`);
-      toast.success("Kurye reddedildi");
-      fetchCouriers();
-    } catch (err) {
-      toast.error("Reddetme başarısız");
     }
   };
 
@@ -139,34 +122,40 @@ function KuryelerPage({ companyId }) {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const styles = {
-      pending: "bg-amber-100 text-amber-800",
-      approved: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-    };
-    const labels = {
-      pending: "Bekliyor",
-      approved: "Onaylandı",
-      rejected: "Reddedildi",
-    };
-    return (
-      <span className={`px-2 py-1 text-xs font-semibold ${styles[status]}`}>
-        {labels[status]}
-      </span>
-    );
+  const openDetailModal = (courier) => {
+    setSelectedCourier(courier);
+    setShowDetailModal(true);
   };
+
+  // Filtreleme
+  const filteredCouriers = couriers.filter(c => {
+    if (!filterQuery.trim()) return true;
+    const query = filterQuery.toLowerCase();
+    return c.name.toLowerCase().includes(query) || c.plate.toLowerCase().includes(query);
+  });
 
   if (loading) return <p>Yükleniyor...</p>;
 
   return (
     <div data-testid="admin-kuryeler-page">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <h2 className="font-heading text-2xl font-bold tracking-tight">Kuryeler</h2>
-        <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-courier-btn">
-          <UserPlus className="w-4 h-4 mr-2" />
-          Kurye Ekle
-        </Button>
+        <div className="flex gap-2">
+          <div className="relative flex-1 md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="İsim veya plaka ara..." 
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              className="pl-10 h-10 border-2"
+              data-testid="filter-couriers-input"
+            />
+          </div>
+          <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-courier-btn">
+            <UserPlus className="w-4 h-4 mr-2" />
+            Kurye Ekle
+          </Button>
+        </div>
       </div>
 
       <div className="hidden md:block border-2 border-border bg-white overflow-x-auto">
@@ -176,36 +165,27 @@ function KuryelerPage({ companyId }) {
               <TableHead className="font-bold text-xs">İsim</TableHead>
               <TableHead className="font-bold text-xs">Telefon</TableHead>
               <TableHead className="font-bold text-xs">Plaka</TableHead>
-              <TableHead className="font-bold text-xs">Durum</TableHead>
               <TableHead className="font-bold text-xs">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {couriers.length === 0 ? (
+            {filteredCouriers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  Kayıtlı kurye bulunmuyor
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                  {filterQuery ? "Arama sonucu bulunamadı" : "Kayıtlı kurye bulunmuyor"}
                 </TableCell>
               </TableRow>
             ) : (
-              couriers.map((c) => (
+              filteredCouriers.map((c) => (
                 <TableRow key={c.id} className="border-b border-border hover:bg-slate-50">
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="font-mono text-sm">{c.phone}</TableCell>
                   <TableCell className="font-mono text-sm">{c.plate}</TableCell>
-                  <TableCell>{getStatusBadge(c.company_status)}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      {c.company_status === "pending" && (
-                        <>
-                          <Button size="sm" onClick={() => handleApprove(c.id)} className="h-8 px-3 bg-green-600 hover:bg-green-700" data-testid={`approve-${c.id}`}>
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleReject(c.id)} className="h-8 px-3" data-testid={`reject-${c.id}`}>
-                            <XIcon className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
+                      <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="h-8 px-3 border-2" data-testid={`detail-${c.id}`}>
+                        Detaylar
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`remove-${c.id}`}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -219,33 +199,30 @@ function KuryelerPage({ companyId }) {
       </div>
 
       <div className="md:hidden space-y-4">
-        {couriers.length === 0 ? (
-          <div className="border-2 border-border p-6 bg-white text-center text-muted-foreground">Kayıtlı kurye bulunmuyor</div>
+        {filteredCouriers.length === 0 ? (
+          <div className="border-2 border-border p-6 bg-white text-center text-muted-foreground">
+            {filterQuery ? "Arama sonucu bulunamadı" : "Kayıtlı kurye bulunmuyor"}
+          </div>
         ) : (
-          couriers.map((c) => (
+          filteredCouriers.map((c) => (
             <div key={c.id} className="border-2 border-border p-4 bg-white">
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="font-bold">{c.name}</p>
                   <p className="font-mono text-sm text-muted-foreground">{c.phone}</p>
                 </div>
-                {getStatusBadge(c.company_status)}
               </div>
               <p className="text-sm mb-3"><span className="text-muted-foreground">Plaka:</span> <span className="font-mono">{c.plate}</span></p>
               <div className="flex gap-2">
-                {c.company_status === "pending" && (
-                  <>
-                    <Button size="sm" onClick={() => handleApprove(c.id)} className="flex-1 bg-green-600 hover:bg-green-700">Onayla</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleReject(c.id)} className="flex-1">Reddet</Button>
-                  </>
-                )}
-                <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="border-2">Çıkar</Button>
+                <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="flex-1 border-2">Detaylar</Button>
+                <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="border-2 hover:bg-red-50 hover:text-red-600">Çıkar</Button>
               </div>
             </div>
           ))
         )}
       </div>
 
+      {/* Kurye Ekle Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -268,6 +245,45 @@ function KuryelerPage({ companyId }) {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Kurye Detay Modal */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Kurye Detayları</DialogTitle>
+          </DialogHeader>
+          {selectedCourier && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">İsim Soyisim</p>
+                  <p className="font-semibold">{selectedCourier.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Telefon</p>
+                  <p className="font-mono">{selectedCourier.phone}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Plaka</p>
+                  <p className="font-mono">{selectedCourier.plate}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Kayıt Tarihi</p>
+                  <p className="font-mono text-sm">{new Date(selectedCourier.created_at).toLocaleDateString('tr-TR')}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Adres</p>
+                <p className="text-sm">{selectedCourier.address}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">İban</p>
+                <p className="font-mono text-sm break-all">{selectedCourier.iban}</p>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
