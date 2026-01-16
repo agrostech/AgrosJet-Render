@@ -231,10 +231,13 @@ function KuryelerPage({ companyId }) {
                   <TableCell className="font-mono text-sm">{c.plate}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
-                      <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="h-8 px-3 border-2" data-testid={`detail-${c.id}`}>
+                      <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="h-8 px-3 border-2" data-testid={`detail-${c.id}`} title="Detaylar">
                         Detaylar
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`remove-${c.id}`}>
+                      <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-courier-${c.id}`} title="Düzenle">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`remove-${c.id}`} title="Şirketten Çıkar">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
