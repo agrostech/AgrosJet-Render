@@ -128,5 +128,12 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - **transactions**: `{_id, company_id, entity_id, entity_type, amount, type, description, is_hakedis, created_at}`
 
 ## Test Reports
-- `/app/test_reports/iteration_5.json` - En son test raporu (100% başarı)
+- `/app/test_reports/iteration_6.json` - En son test raporu (100% başarı - Bug fixes verified)
+- `/app/test_reports/iteration_5.json` - Muhasebe module tests
 - `/app/tests/test_muhasebe_api.py` - Muhasebe API testleri
+
+## Changelog (16 Ocak 2026)
+- **Bug Fix**: Tarih/saat seçici timezone sorunu düzeltildi - `getLocalDateTimeString()` fonksiyonu eklendi
+- **Bug Fix**: PDF export kalitesi iyileştirildi - `jspdf-autotable` kütüphanesi ile tablo formatı
+- **Bug Fix**: Tutar input scroll sorunu düzeltildi - `onWheel` handler ile engellendi
+- **Enhancement**: Cariler sekmesi "Şimdi" buton sistemine güncellendi (diğer sekmelerle tutarlı)
