@@ -976,8 +976,14 @@ async def root():
 async def proxy_image(url: str):
     """Proxy external images to avoid CORS issues in PDF generation"""
     try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": url
+        }
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=10.0)
+            response = await client.get(url, timeout=10.0, headers=headers, follow_redirects=True)
             response.raise_for_status()
             content_type = response.headers.get('content-type', 'image/png')
             return Response(content=response.content, media_type=content_type)
