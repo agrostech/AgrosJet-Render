@@ -364,11 +364,12 @@ export default function VardiyaPage({ companyId }) {
           <Table className="text-xs">
             <TableHeader>
               <TableRow className="border-b-2 border-primary">
-                <TableHead className="font-bold text-xs min-w-[90px] bg-slate-100 p-2 border-r border-slate-300">Vardiya</TableHead>
+                <TableHead className="font-bold text-xs min-w-[90px] bg-slate-200 p-2 border-r-2 border-slate-400">Vardiya</TableHead>
                 {DAYS.map((day, index) => (
                   <TableHead 
                     key={day.key} 
-                    className={`font-bold text-xs min-w-[100px] text-center p-2 border-r border-slate-300 ${index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-50'}`}
+                    className={`font-bold text-xs min-w-[100px] text-center p-2 border-r border-slate-300 
+                      ${index % 2 === 0 ? 'bg-blue-100 text-blue-800' : 'bg-amber-50 text-amber-800'}`}
                   >
                     {day.label}
                   </TableHead>
@@ -376,12 +377,15 @@ export default function VardiyaPage({ companyId }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shifts.map((shift, shiftIndex) => (
-                <TableRow key={shift.id} className="border-b border-border hover:bg-slate-50">
-                  <TableCell className="font-semibold bg-slate-100 p-2 text-xs border-r border-slate-200">
+              {shifts.map((shift, shiftIndex) => {
+                const isEvenRow = shiftIndex % 2 === 0;
+                const rowBgClass = isEvenRow ? 'bg-slate-50' : 'bg-white';
+                return (
+                <TableRow key={shift.id} className={`border-b border-border ${rowBgClass}`}>
+                  <TableCell className={`font-semibold p-2 text-xs border-r-2 border-slate-400 ${isEvenRow ? 'bg-slate-200' : 'bg-slate-100'}`}>
                     <div className="flex items-center gap-1">
                       <span className="whitespace-nowrap">{shift.start_time}-{shift.end_time}</span>
-                      {editMode && (
+                      {editMode && !ctrlPressed && (
                         <button
                           onClick={() => handleDeleteShift(shift.id)}
                           className="text-red-500 hover:text-red-700 ml-1"
@@ -397,13 +401,20 @@ export default function VardiyaPage({ companyId }) {
                     const isEvenColumn = dayIndex % 2 === 0;
                     const courierCount = cellAssignments.length;
                     const isSelected = isCellSelected(shift.id, day.key);
+                    // Satır ve sütun renklerini birleştir
+                    const cellBg = isSelected 
+                      ? 'bg-green-100' 
+                      : isEvenColumn 
+                        ? (isEvenRow ? 'bg-blue-50/70' : 'bg-blue-50/40')
+                        : (isEvenRow ? 'bg-amber-50/50' : 'bg-amber-50/30');
                     return (
                       <TableCell 
                         key={day.key} 
-                        className={`p-1 align-top border-r border-slate-200 cursor-pointer transition-all
-                          ${isEvenColumn ? 'bg-slate-50/50' : 'bg-white'}
-                          ${isSelected ? 'ring-2 ring-green-500 ring-inset bg-green-50' : ''}
-                          ${editMode ? 'hover:bg-blue-50' : ''}
+                        className={`p-1 align-top border-r border-slate-200 transition-all
+                          ${cellBg}
+                          ${isSelected ? 'ring-2 ring-green-500 ring-inset' : ''}
+                          ${editMode ? 'cursor-pointer hover:bg-blue-100' : ''}
+                          ${ctrlPressed && editMode ? 'hover:ring-2 hover:ring-green-400 hover:ring-inset' : ''}
                         `}
                         onClick={(e) => handleCellClick(e, shift.id, day.key)}
                       >
