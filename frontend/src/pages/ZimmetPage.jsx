@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Package, Plus, Search, Settings, Trash2, User, History, 
-  AlertTriangle, XCircle, ArrowLeftRight, ChevronRight, Filter
+  AlertTriangle, XCircle, ArrowLeftRight, Pencil
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
