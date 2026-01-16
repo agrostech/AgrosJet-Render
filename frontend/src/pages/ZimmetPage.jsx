@@ -575,9 +575,18 @@ export default function ZimmetPage() {
                               <User className="w-3 h-3 inline mr-1" />{log.courier_name}
                             </p>
                           )}
-                          {log.details?.serial_number && (
-                            <p className="text-[10px] text-slate-400">SN: {log.details.serial_number}</p>
-                          )}
+                          {/* Seri numaraları gösterimi */}
+                          <div className="text-[10px] text-slate-400">
+                            {log.details?.serial_number && (
+                              <span>SN: {log.details.serial_number} </span>
+                            )}
+                            {log.details?.pos_serial && (
+                              <span>POS: {log.details.pos_serial} </span>
+                            )}
+                            {log.details?.pos_terminal && (
+                              <span>Terminal: {log.details.pos_terminal}</span>
+                            )}
+                          </div>
                           {log.details?.notes && (
                             <p className="text-[10px] text-slate-500 italic">"{log.details.notes}"</p>
                           )}
