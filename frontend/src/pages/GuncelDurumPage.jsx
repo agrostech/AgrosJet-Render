@@ -143,8 +143,8 @@ export default function GuncelDurumPage({ companyId }) {
   }, []);
 
   // Get today's data
-  const todayAssignments = assignments.filter(a => a.day === workDay.dayKey);
-  const todayLeaves = leaves.filter(l => l.day === workDay.dayKey);
+  const todayAssignments = assignments.filter(a => a.day === activeDay);
+  const todayLeaves = leaves.filter(l => l.day === activeDay);
   const sortedShifts = sortShifts(shifts);
 
   // Group assignments by shift
