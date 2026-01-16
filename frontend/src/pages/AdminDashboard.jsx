@@ -690,6 +690,88 @@ export default function AdminDashboard() {
       <footer className={`fixed bottom-0 right-0 bg-white border-t py-2 text-center text-xs text-muted-foreground transition-all duration-300 z-30 ${sidebarCollapsed ? 'lg:left-16' : 'lg:left-56'} left-0`}>
         © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
       </footer>
+
+      {/* Profil Ayarları Modal */}
+      <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Profil Ayarları
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleProfileUpdate} className="space-y-4">
+            <div className="p-3 bg-slate-50 rounded border">
+              <p className="text-xs text-muted-foreground">Giriş yapmış kullanıcı</p>
+              <p className="font-semibold">{user.name}</p>
+              <p className="text-sm text-muted-foreground font-mono">{user.username}</p>
+            </div>
+            
+            <div>
+              <Label className="text-sm font-semibold">Yeni Kullanıcı Adı</Label>
+              <Input 
+                data-testid="profile-username"
+                value={profileData.username} 
+                onChange={(e) => setProfileData({ ...profileData, username: e.target.value })} 
+                className="mt-1 h-11 border-2" 
+                placeholder="Değiştirmek istemiyorsanız boş bırakın"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-sm font-semibold">Yeni Şifre</Label>
+              <Input 
+                data-testid="profile-new-password"
+                type="password" 
+                value={profileData.password} 
+                onChange={(e) => setProfileData({ ...profileData, password: e.target.value })} 
+                className="mt-1 h-11 border-2" 
+                placeholder="Değiştirmek istemiyorsanız boş bırakın"
+              />
+            </div>
+            
+            {profileData.password && (
+              <div>
+                <Label className="text-sm font-semibold">Yeni Şifre (Tekrar)</Label>
+                <Input 
+                  data-testid="profile-confirm-password"
+                  type="password" 
+                  value={profileData.confirmPassword} 
+                  onChange={(e) => setProfileData({ ...profileData, confirmPassword: e.target.value })} 
+                  className="mt-1 h-11 border-2" 
+                  placeholder="Yeni şifreyi tekrar girin"
+                />
+              </div>
+            )}
+            
+            <div className="border-t pt-4">
+              <Label className="text-sm font-semibold text-orange-600">Mevcut Şifre (Zorunlu)</Label>
+              <Input 
+                data-testid="profile-current-password"
+                type="password" 
+                value={profileData.currentPassword} 
+                onChange={(e) => setProfileData({ ...profileData, currentPassword: e.target.value })} 
+                className="mt-1 h-11 border-2 border-orange-200" 
+                placeholder="Değişiklikleri onaylamak için mevcut şifrenizi girin"
+                required
+              />
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-700">
+              <strong>Not:</strong> Kullanıcı adı veya şifre değiştirildiğinde güvenlik nedeniyle yeniden giriş yapmanız istenecektir.
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full h-11 font-semibold" 
+              disabled={profileLoading}
+              data-testid="profile-submit-btn"
+            >
+              {profileLoading ? "Güncelleniyor..." : "Değişiklikleri Kaydet"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
