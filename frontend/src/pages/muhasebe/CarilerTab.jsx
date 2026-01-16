@@ -63,13 +63,6 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     );
   }, [transactions, searchQuery]);
 
-  const handleScroll = useCallback((e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    if (scrollHeight - scrollTop <= clientHeight + 50) {
-      setDisplayCount(prev => Math.min(prev + 10, filteredTransactions.length));
-    }
-  }, [filteredTransactions.length]);
-
   useEffect(() => { setDisplayCount(10); }, [searchQuery]);
 
   const fetchVendorBalance = async (id, isArchived = false) => {
