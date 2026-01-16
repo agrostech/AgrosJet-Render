@@ -25,13 +25,6 @@ export default function HareketlerTab({ companyId }) {
     );
   }, [logs, searchQuery]);
 
-  const handleScroll = useCallback((e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    if (scrollHeight - scrollTop <= clientHeight + 50) {
-      setDisplayCount(prev => Math.min(prev + 10, filteredLogs.length));
-    }
-  }, [filteredLogs.length]);
-
   // Arama değiştiğinde displayCount sıfırla
   useEffect(() => {
     setDisplayCount(10);
