@@ -19,7 +19,8 @@ export default function HareketlerTab({ companyId }) {
     const query = searchQuery.toLowerCase().trim();
     return logs.filter(log => 
       log.admin_name?.toLowerCase().includes(query) ||
-      log.entity_name?.toLowerCase().includes(query)
+      log.entity_name?.toLowerCase().includes(query) ||
+      log.details?.description?.toLowerCase().includes(query)
     );
   }, [logs, searchQuery]);
 
@@ -114,7 +115,7 @@ export default function HareketlerTab({ companyId }) {
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
-              placeholder="Admin veya isim ara..." 
+              placeholder="Admin, isim veya açıklama ara..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8 h-8 text-sm"
