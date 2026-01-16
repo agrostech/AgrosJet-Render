@@ -273,24 +273,40 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     // Table with autoTable
     const tableData = transactions.map(tx => [
       new Date(tx.created_at).toLocaleDateString('tr-TR') + ' ' + new Date(tx.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-      (tx.description || '').substring(0, 40) + (tx.is_hakedis ? ' (Hakediş)' : ''),
+      (tx.description || '').substring(0, 40) + (tx.is_hakedis ? ' (Hakedis)' : ''),
       (tx.type === 'payment_out' ? '-' : '') + formatMoney(tx.amount)
     ]);
     
     autoTable(doc, {
       startY: 58,
-      head: [['Tarih', 'Açıklama', 'Tutar']],
+      head: [['Tarih', 'Aciklama', 'Tutar']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [70, 130, 180], textColor: 255, font: 'Roboto' },
-      bodyStyles: { font: 'Roboto' },
+      headStyles: { 
+        fillColor: [70, 130, 180], 
+        textColor: 255,
+        font: 'Roboto',
+        fontStyle: 'normal'
+      },
+      bodyStyles: { 
+        font: 'Roboto',
+        fontStyle: 'normal'
+      },
       columnStyles: {
         0: { cellWidth: 40 },
         1: { cellWidth: 'auto' },
         2: { cellWidth: 35, halign: 'right' }
       },
-      styles: { fontSize: 9, font: 'Roboto' },
+      styles: { 
+        fontSize: 9, 
+        font: 'Roboto',
+        fontStyle: 'normal'
+      },
       didParseCell: (data) => {
+        // Ensure font is set for each cell
+        data.cell.styles.font = 'Roboto';
+        data.cell.styles.fontStyle = 'normal';
+        
         if (data.section === 'body' && data.column.index === 2) {
           const text = data.cell.raw;
           if (text.startsWith('-')) {
