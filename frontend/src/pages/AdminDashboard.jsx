@@ -25,19 +25,9 @@ import { useSessionCheck } from "@/hooks/useSessionCheck";
 import VardiyaPage from "./VardiyaPage";
 import GuncelDurumPage from "./GuncelDurumPage";
 import MuhasebePage from "./MuhasebePage";
+import ZimmetPage from "./ZimmetPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-function ZimmetPage() {
-  return (
-    <div data-testid="admin-zimmet-page">
-      <h2 className="font-heading text-2xl font-bold tracking-tight mb-6">Zimmet</h2>
-      <div className="border-2 border-border p-6 bg-white">
-        <p className="text-muted-foreground">Zimmet takibi içeriği burada görünecek.</p>
-      </div>
-    </div>
-  );
-}
 
 function KuryelerPage({ companyId }) {
   const [couriers, setCouriers] = useState([]);
