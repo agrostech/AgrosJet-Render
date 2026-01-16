@@ -682,7 +682,7 @@ export default function ZimmetPage() {
               <div className="flex-1 overflow-y-auto">
                 <div className="p-3 bg-slate-50 border-b border-slate-200 sticky top-0">
                   <h3 className="text-sm font-semibold flex items-center gap-2">
-                    <History className="w-4 h-4" /> Zimmet Geçmişi
+                    <History className="w-4 h-4" /> Ürün Hareketleri
                   </h3>
                 </div>
                 {productHistory.length === 0 ? (
@@ -692,8 +692,8 @@ export default function ZimmetPage() {
                     {productHistory.map((log) => (
                       <div key={log.id} className="p-3">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getActionColor(log.action)}`}>
-                            {getActionLabel(log.action)}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getActionColor(log.action, log.details)}`}>
+                            {getActionLabel(log.action, log.details)}
                           </span>
                           <span className="text-xs text-muted-foreground">{formatDate(log.created_at)}</span>
                         </div>
