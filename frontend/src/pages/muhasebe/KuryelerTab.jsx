@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, User, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import { Plus, Minus, User, Trash2, Archive, ArchiveRestore, Search, Download } from "lucide-react";
+import jsPDF from "jspdf";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -18,24 +19,48 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
   const [displayCount, setDisplayCount] = useState(10);
   const [balance, setBalance] = useState(0);
   const [courierBalances, setCourierBalances] = useState({});
+  const [archivedBalances, setArchivedBalances] = useState({});
   const [loading, setLoading] = useState(true);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [isHakedis, setIsHakedis] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [txDate, setTxDate] = useState(() => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16);
+  });
+  const [searchQuery, setSearchQuery] = useState("");
   const listRef = useRef(null);
+
+  // Filtrelenmiş işlemler
+  const filteredTransactions = useMemo(() => {
+    if (!searchQuery.trim()) return transactions;
+    const query = searchQuery.toLowerCase().trim();
+    return transactions.filter(tx => 
+      tx.description?.toLowerCase().includes(query) ||
+      new Date(tx.created_at).toLocaleDateString('tr-TR').includes(query)
+    );
+  }, [transactions, searchQuery]);
 
   const handleScroll = useCallback((e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     if (scrollHeight - scrollTop <= clientHeight + 50) {
-      setDisplayCount(prev => Math.min(prev + 10, transactions.length));
+      setDisplayCount(prev => Math.min(prev + 10, filteredTransactions.length));
     }
-  }, [transactions.length]);
+  }, [filteredTransactions.length]);
 
-  const fetchCourierBalance = async (courierId) => {
+  useEffect(() => {
+    setDisplayCount(10);
+  }, [searchQuery]);
+
+  const fetchCourierBalance = async (courierId, isArchived = false) => {
     try {
       const res = await axios.get(`${API}/transactions/courier/${courierId}`);
-      setCourierBalances(prev => ({ ...prev, [courierId]: res.data.balance }));
+      if (isArchived) {
+        setArchivedBalances(prev => ({ ...prev, [courierId]: res.data.balance }));
+      } else {
+        setCourierBalances(prev => ({ ...prev, [courierId]: res.data.balance }));
+      }
     } catch (err) {}
   };
 
@@ -46,7 +71,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
       if (res.data.length > 0 && !selectedCourier) {
         setSelectedCourier(res.data[0]);
       }
-      res.data.forEach(c => fetchCourierBalance(c.id));
+      res.data.forEach(c => fetchCourierBalance(c.id, false));
     } catch (err) {
       toast.error("Kuryeler yüklenemedi");
     } finally {
@@ -59,7 +84,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
       const res = await axios.get(`${API}/companies/${companyId}/couriers?include_archived=true`);
       const archived = res.data.filter(c => c.is_archived);
       setArchivedCouriers(archived);
-      archived.forEach(c => fetchCourierBalance(c.id));
+      archived.forEach(c => fetchCourierBalance(c.id, true));
     } catch (err) {}
   };
 
@@ -68,7 +93,6 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
       fetchCouriers();
       fetchArchivedCouriers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
   const fetchTransactions = async (courierId) => {
@@ -88,6 +112,8 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
       setDescription("");
       setIsHakedis(false);
       setDisplayCount(10);
+      setSearchQuery("");
+      setTxDate(new Date().toISOString().slice(0, 16));
     }
   }, [selectedCourier]);
 
@@ -107,14 +133,16 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
         description: description || (type === "in" ? "Verilen" : "Alınan"),
         is_hakedis: type === "in" ? isHakedis : false,
         admin_id: adminId,
-        admin_name: adminName
+        admin_name: adminName,
+        custom_date: txDate
       });
       toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
       setAmount("");
       setDescription("");
       setIsHakedis(false);
+      setTxDate(new Date().toISOString().slice(0, 16));
       fetchTransactions(selectedCourier.id);
-      fetchCourierBalance(selectedCourier.id);
+      fetchCourierBalance(selectedCourier.id, selectedCourier.is_archived);
     } catch (err) {
       toast.error("İşlem başarısız");
     } finally {
@@ -130,7 +158,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
       });
       toast.success("İşlem silindi");
       fetchTransactions(selectedCourier.id);
-      fetchCourierBalance(selectedCourier.id);
+      fetchCourierBalance(selectedCourier.id, selectedCourier.is_archived);
     } catch (err) {
       toast.error("İşlem silinemedi");
     }
@@ -160,6 +188,71 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
     }
   };
 
+  const exportPDF = () => {
+    if (!selectedCourier || transactions.length === 0) {
+      toast.error("İndirilecek işlem bulunamadı");
+      return;
+    }
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFontSize(18);
+    doc.text("İşlem Geçmişi Raporu", pageWidth / 2, 20, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.text(`Kurye: ${selectedCourier.name}`, 14, 35);
+    doc.text(`Telefon: ${selectedCourier.phone}`, 14, 42);
+    doc.text(`Bakiye: ${balance > 0 ? '-' : ''}${formatCurrency(balance)}`, 14, 49);
+    doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 14, 56);
+    
+    // Table header
+    let y = 70;
+    doc.setFillColor(240, 240, 240);
+    doc.rect(14, y - 5, pageWidth - 28, 10, 'F');
+    doc.setFontSize(10);
+    doc.text("Tarih", 16, y);
+    doc.text("Açıklama", 50, y);
+    doc.text("Tutar", pageWidth - 30, y, { align: "right" });
+    
+    y += 10;
+    
+    // Table rows
+    transactions.forEach((tx, index) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      
+      const date = new Date(tx.created_at).toLocaleDateString('tr-TR');
+      const amount = `${tx.type === 'payment_out' ? '-' : ''}${formatCurrency(tx.amount)}`;
+      const desc = tx.description + (tx.is_hakedis ? ' (Hakediş)' : '');
+      
+      if (index % 2 === 0) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(14, y - 5, pageWidth - 28, 8, 'F');
+      }
+      
+      doc.setTextColor(tx.type === 'payment_in' ? 0 : 200, tx.type === 'payment_in' ? 128 : 0, 0);
+      doc.text(date, 16, y);
+      doc.setTextColor(0, 0, 0);
+      doc.text(desc.substring(0, 40), 50, y);
+      doc.setTextColor(tx.type === 'payment_in' ? 0 : 200, tx.type === 'payment_in' ? 128 : 0, 0);
+      doc.text(amount, pageWidth - 30, y, { align: "right" });
+      
+      y += 8;
+    });
+    
+    // Footer
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(8);
+    doc.text(`Toplam ${transactions.length} işlem`, 14, y + 10);
+    
+    doc.save(`${selectedCourier.name}_islem_gecmisi.pdf`);
+    toast.success("PDF indirildi");
+  };
+
   const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
   const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   
@@ -169,9 +262,13 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
     return { text: formatCurrency(bal), color: 'text-green-600 bg-green-50' };
   };
 
-  // Toplam bakiye
-  const totalBalance = Object.values(courierBalances).reduce((sum, bal) => sum + (bal || 0), 0);
+  // Toplam bakiye - sadece aktif kuryeler için
+  const totalBalance = showArchived 
+    ? Object.values(archivedBalances).reduce((sum, bal) => sum + (bal || 0), 0)
+    : Object.values(courierBalances).reduce((sum, bal) => sum + (bal || 0), 0);
+  
   const displayList = showArchived ? archivedCouriers : couriers;
+  const balancesMap = showArchived ? archivedBalances : courierBalances;
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -181,7 +278,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
       <div className="lg:col-span-1 border-2 border-border bg-white">
         <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center gap-2">
           <h3 className="font-semibold text-sm">{showArchived ? 'Arşiv' : 'Kuryeler'}</h3>
-          {!showArchived && totalBalance !== 0 && (
+          {totalBalance !== 0 && (
             <span className={`text-xs font-bold ${totalBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
               {totalBalance > 0 && '-'}{formatCurrency(totalBalance)}
             </span>
@@ -202,7 +299,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
             </p>
           ) : (
             displayList.map((c) => {
-              const balanceInfo = getBalanceLabel(courierBalances[c.id]);
+              const balanceInfo = getBalanceLabel(balancesMap[c.id]);
               return (
                 <div
                   key={c.id}
@@ -268,6 +365,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                     placeholder="Tutar" 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
+                    onWheel={(e) => e.target.blur()}
                     className="h-9"
                   />
                 </div>
@@ -277,6 +375,15 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                     placeholder="Açıklama" 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <div className="w-44">
+                  <Label className="text-xs">Tarih</Label>
+                  <Input 
+                    type="datetime-local" 
+                    value={txDate}
+                    onChange={(e) => setTxDate(e.target.value)}
                     className="h-9"
                   />
                 </div>
@@ -293,10 +400,29 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
               </div>
             </div>
 
+            {/* Arama ve PDF */}
+            <div className="p-3 border-b border-slate-200 flex items-center gap-3">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Açıklama veya tarih ara..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-8 text-sm"
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">{filteredTransactions.length} / {transactions.length}</span>
+              <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto">
+                <Download className="w-4 h-4 mr-1" />PDF
+              </Button>
+            </div>
+
             {/* İşlem Geçmişi */}
-            <div ref={listRef} onScroll={handleScroll} className="max-h-[320px] overflow-y-auto">
-              {transactions.length === 0 ? (
-                <p className="text-sm text-muted-foreground p-4 text-center">Henüz işlem yok</p>
+            <div ref={listRef} onScroll={handleScroll} className="max-h-[280px] overflow-y-auto">
+              {filteredTransactions.length === 0 ? (
+                <p className="text-sm text-muted-foreground p-4 text-center">
+                  {searchQuery ? "Arama sonucu bulunamadı" : "Henüz işlem yok"}
+                </p>
               ) : (
                 <>
                   <table className="w-full text-sm">
@@ -309,7 +435,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.slice(0, displayCount).map((tx) => (
+                      {filteredTransactions.slice(0, displayCount).map((tx) => (
                         <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50 group">
                           <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
                           <td className="p-2">
@@ -331,7 +457,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                       ))}
                     </tbody>
                   </table>
-                  {displayCount < transactions.length && (
+                  {displayCount < filteredTransactions.length && (
                     <p className="text-xs text-muted-foreground text-center py-2">Daha fazla görmek için kaydırın...</p>
                   )}
                 </>
