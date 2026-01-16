@@ -1404,6 +1404,8 @@ async def delete_product(product_id: str, admin_id: str = "", admin_name: str = 
             "product_deleted", None, product["name"],
             None, None, {
                 "serial_number": product.get("serial_number", ""),
+                "pos_serial": product.get("pos_serial", ""),
+                "pos_terminal": product.get("pos_terminal", ""),
                 "product_type": product.get("product_type_name", "")
             }
         )
