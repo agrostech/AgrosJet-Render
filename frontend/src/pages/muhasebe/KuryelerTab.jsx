@@ -366,7 +366,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
               const balanceInfo = getBalanceLabel(balancesMap[c.id]);
               return (
                 <div key={c.id} className={`flex items-center gap-2 p-3 border-b border-slate-100 transition-colors ${selectedCourier?.id === c.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
-                  <button onClick={() => setSelectedCourier(c)} className="flex-1 flex items-center gap-3 text-left">
+                  <button onClick={() => handleCourierSelect(c)} className="flex-1 flex items-center gap-3 text-left">
                     <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0"><User className="w-4 h-4 text-slate-600" /></div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">{c.name}</p>
@@ -386,7 +386,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
         </div>
       </div>
 
-      <div className="lg:col-span-2 border-2 border-border bg-white">
+      <div ref={transactionRef} className="lg:col-span-2 border-2 border-border bg-white">
         {selectedCourier ? (
           <>
             <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
