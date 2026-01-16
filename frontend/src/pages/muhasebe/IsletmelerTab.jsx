@@ -33,7 +33,9 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
   const [showArchived, setShowArchived] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [displayCount, setDisplayCount] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [balance, setBalance] = useState(0);
   const [businessBalances, setBusinessBalances] = useState({});
   const [archivedBalances, setArchivedBalances] = useState({});
@@ -60,11 +62,9 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     return transactions.filter(tx => tx.description?.toLowerCase().includes(query) || new Date(tx.created_at).toLocaleDateString('tr-TR').includes(query));
   }, [transactions, searchQuery]);
 
-  useEffect(() => { setDisplayCount(10); }, [searchQuery]);
-
   const fetchBusinessBalance = async (id, isArchived = false) => {
     try {
-      const res = await axios.get(`${API}/transactions/business/${id}`);
+      const res = await axios.get(`${API}/transactions/business/${id}?limit=1`);
       if (isArchived) setArchivedBalances(prev => ({ ...prev, [id]: res.data.balance }));
       else setBusinessBalances(prev => ({ ...prev, [id]: res.data.balance }));
     } catch (err) {}
