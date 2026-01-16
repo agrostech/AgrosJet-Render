@@ -1370,16 +1370,20 @@ async def delete_product(product_id: str, admin_id: str = "", admin_name: str = 
     if product.get("assigned_to_courier_id"):
         raise HTTPException(status_code=400, detail="Zimmetli ürün silinemez, önce zimmeti geri alın")
     
-    # Log oluştur
+    # Önce ürünü ve ürüne ait logları sil
+    await db.products.delete_one({"id": product_id})
+    await db.zimmet_logs.delete_many({"product_id": product_id})
+    
+    # Silme logunu en son oluştur (product_id: None ile, böylece silinmez)
     if admin_id:
         await create_zimmet_log(
             product["company_id"], admin_id, admin_name,
-            "product_deleted", product_id, product["name"],
-            None, None, {"serial_number": product.get("serial_number", "")}
+            "product_deleted", None, product["name"],
+            None, None, {
+                "serial_number": product.get("serial_number", ""),
+                "product_type": product.get("product_type_name", "")
+            }
         )
-    
-    await db.products.delete_one({"id": product_id})
-    await db.zimmet_logs.delete_many({"product_id": product_id})
     
     return {"message": "Silindi"}
 
