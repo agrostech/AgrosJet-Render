@@ -643,8 +643,11 @@ export default function ZimmetPage() {
                               <User className="w-3 h-3 inline mr-1" />{log.courier_name}
                             </p>
                           )}
-                          {/* Seri numaraları gösterimi */}
+                          {/* Detaylar gösterimi */}
                           <div className="text-[10px] text-slate-400">
+                            {log.details?.product_type && (
+                              <span>Tip: {log.details.product_type} </span>
+                            )}
                             {log.details?.serial_number && (
                               <span>SN: {log.details.serial_number} </span>
                             )}
