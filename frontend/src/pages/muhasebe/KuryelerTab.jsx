@@ -210,8 +210,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     // Add company logo if available (top right corner, 50x50 in PDF which is ~250px)
     if (companyLogo && companyLogo.trim() !== '') {
       try {
-        // Fetch image as blob to avoid CORS issues
-        const response = await fetch(companyLogo);
+        // Fetch image through backend proxy to avoid CORS issues
+        const proxyUrl = `${API}/proxy-image?url=${encodeURIComponent(companyLogo)}`;
+        const response = await fetch(proxyUrl);
         const blob = await response.blob();
         const dataUrl = await new Promise((resolve) => {
           const reader = new FileReader();
