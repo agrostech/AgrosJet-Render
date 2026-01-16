@@ -91,18 +91,32 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
 
   useEffect(() => { if (companyId) { fetchBusinesses(); fetchArchivedBusinesses(); } }, [companyId]);
 
-  const fetchTransactions = async (businessId) => {
+  const fetchTransactions = async (businessId, append = false) => {
     try {
-      const res = await axios.get(`${API}/transactions/business/${businessId}`);
-      setTransactions(res.data.transactions);
+      const skip = append ? transactions.length : 0;
+      const res = await axios.get(`${API}/transactions/business/${businessId}?skip=${skip}&limit=10`);
+      if (append) {
+        setTransactions(prev => [...prev, ...res.data.transactions]);
+      } else {
+        setTransactions(res.data.transactions);
+      }
       setBalance(res.data.balance);
+      setTotalCount(res.data.total_count);
+      setHasMore(res.data.has_more);
     } catch (err) { toast.error("İşlemler yüklenemedi"); }
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore || !selectedBusiness) return;
+    setLoadingMore(true);
+    await fetchTransactions(selectedBusiness.id, true);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
     if (selectedBusiness) {
       fetchTransactions(selectedBusiness.id);
-      setAmount(""); setDescription(""); setDisplayCount(10); setSearchQuery("");
+      setAmount(""); setDescription(""); setSearchQuery("");
       setUseCustomDate(false); setTxDate("");
     }
   }, [selectedBusiness]);
