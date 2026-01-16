@@ -826,6 +826,18 @@ async def delete_vendor(vendor_id: str):
 @api_router.post("/transactions")
 async def create_transaction(data: TransactionCreate):
     """Create a new transaction"""
+    # Parse custom date or use current time
+    if data.custom_date:
+        try:
+            tx_date = datetime.fromisoformat(data.custom_date.replace('Z', '+00:00'))
+            if tx_date.tzinfo is None:
+                tx_date = tx_date.replace(tzinfo=timezone.utc)
+            created_at = tx_date.isoformat()
+        except:
+            created_at = datetime.now(timezone.utc).isoformat()
+    else:
+        created_at = datetime.now(timezone.utc).isoformat()
+    
     transaction = {
         "id": str(uuid.uuid4()),
         "entity_type": data.entity_type,
@@ -835,7 +847,7 @@ async def create_transaction(data: TransactionCreate):
         "amount": data.amount,
         "description": data.description or ("Verilen" if data.type == "payment_in" else "Alınan"),
         "is_hakedis": data.is_hakedis if data.entity_type == "courier" else False,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": created_at
     }
     await db.transactions.insert_one(transaction)
     
