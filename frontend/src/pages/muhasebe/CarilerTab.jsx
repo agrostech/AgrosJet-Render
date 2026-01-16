@@ -33,7 +33,9 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
   const [showArchived, setShowArchived] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [displayCount, setDisplayCount] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [balance, setBalance] = useState(0);
   const [vendorBalances, setVendorBalances] = useState({});
   const [archivedBalances, setArchivedBalances] = useState({});
@@ -63,11 +65,9 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     );
   }, [transactions, searchQuery]);
 
-  useEffect(() => { setDisplayCount(10); }, [searchQuery]);
-
   const fetchVendorBalance = async (id, isArchived = false) => {
     try {
-      const res = await axios.get(`${API}/transactions/vendor/${id}`);
+      const res = await axios.get(`${API}/transactions/vendor/${id}?limit=1`);
       if (isArchived) {
         setArchivedBalances(prev => ({ ...prev, [id]: res.data.balance }));
       } else {
