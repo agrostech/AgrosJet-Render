@@ -60,11 +60,6 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     return transactions.filter(tx => tx.description?.toLowerCase().includes(query) || new Date(tx.created_at).toLocaleDateString('tr-TR').includes(query));
   }, [transactions, searchQuery]);
 
-  const handleScroll = useCallback((e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    if (scrollHeight - scrollTop <= clientHeight + 50) setDisplayCount(prev => Math.min(prev + 10, filteredTransactions.length));
-  }, [filteredTransactions.length]);
-
   useEffect(() => { setDisplayCount(10); }, [searchQuery]);
 
   const fetchBusinessBalance = async (id, isArchived = false) => {
