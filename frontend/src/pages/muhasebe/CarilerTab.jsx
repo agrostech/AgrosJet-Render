@@ -102,20 +102,34 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     if (companyId) { fetchVendors(); fetchArchivedVendors(); }
   }, [companyId]);
 
-  const fetchTransactions = async (vendorId) => {
+  const fetchTransactions = async (vendorId, append = false) => {
     try {
-      const res = await axios.get(`${API}/transactions/vendor/${vendorId}`);
-      setTransactions(res.data.transactions);
+      const skip = append ? transactions.length : 0;
+      const res = await axios.get(`${API}/transactions/vendor/${vendorId}?skip=${skip}&limit=10`);
+      if (append) {
+        setTransactions(prev => [...prev, ...res.data.transactions]);
+      } else {
+        setTransactions(res.data.transactions);
+      }
       setBalance(res.data.balance);
+      setTotalCount(res.data.total_count);
+      setHasMore(res.data.has_more);
     } catch (err) {
       toast.error("İşlemler yüklenemedi");
     }
   };
 
+  const loadMore = async () => {
+    if (loadingMore || !hasMore || !selectedVendor) return;
+    setLoadingMore(true);
+    await fetchTransactions(selectedVendor.id, true);
+    setLoadingMore(false);
+  };
+
   useEffect(() => {
     if (selectedVendor) {
       fetchTransactions(selectedVendor.id);
-      setAmount(""); setDescription(""); setDisplayCount(10); setSearchQuery("");
+      setAmount(""); setDescription(""); setSearchQuery("");
       setUseCustomDate(false); setTxDate("");
     }
   }, [selectedVendor]);
