@@ -47,16 +47,22 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Aktif vardiya vurgulama
 - [x] Kurye sayısı ve listesi (responsive grid)
 
-### Muhasebe (Tamamlandı - 15 Ocak 2026)
-- [x] Üç alt sekme: Kuryeler, İşletmeler, Cariler
+### Muhasebe (Tamamlandı - 16 Ocak 2026)
+- [x] Üç alt sekme: Kuryeler, İşletmeler, Cariler + Hareketler (Activity Log)
 - [x] **Inline form ile ödeme işlemleri (Modal kaldırıldı)**
 - [x] Ödeme Al (payment_in) ve Ödeme Yap (payment_out)
 - [x] Bakiye takibi (yeşil/kırmızı renk kodlaması)
-- [x] İşlem geçmişi tablosu
+- [x] İşlem geçmişi tablosu (infinite scroll, arama/filtreleme)
 - [x] **Hakediş checkbox'ı (sadece Kuryeler tabında)**
 - [x] Hakediş etiketi işlem geçmişinde görünüyor
-- [x] İşletme ekleme/silme
-- [x] Cari ekleme/silme
+- [x] İşletme ekleme/silme/arşivleme
+- [x] Cari ekleme/silme/arşivleme
+- [x] Kurye arşivleme (bakiye kontrolü ile)
+- [x] **İşlem silme** (onay ile, Activity Log'a kaydedilir)
+- [x] **Özel tarih seçimi** ("Şimdi" butonu + datetime-local input)
+- [x] **PDF Export** (jspdf-autotable ile tablo formatında)
+- [x] **Tarih seçici timezone düzeltmesi** (yerel saat gösterimi)
+- [x] **Tutar input scroll engelleme** (onWheel blur)
 
 ### Kuryeler Sayfası (Tamamlandı - 15 Ocak 2026)
 - [x] İsim veya plaka ile arama/filtreleme
