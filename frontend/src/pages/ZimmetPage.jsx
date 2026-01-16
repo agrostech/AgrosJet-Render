@@ -446,7 +446,7 @@ export default function ZimmetPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Zimmet Yönetimi</h1>
+          <h2 className="font-heading text-xl font-bold tracking-tight">Zimmet Yönetimi</h2>
           <p className="text-sm text-muted-foreground">{totalProducts} ürün kayıtlı</p>
         </div>
         <div className="flex gap-2">
@@ -459,28 +459,34 @@ export default function ZimmetPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab("products")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === "products" 
-              ? "border-blue-500 text-blue-600" 
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          <Package className="w-4 h-4 inline mr-1" /> Ürünler
-        </button>
-        <button
-          onClick={() => setActiveTab("logs")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === "logs" 
-              ? "border-blue-500 text-blue-600" 
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          <History className="w-4 h-4 inline mr-1" /> Tüm Hareketler
-        </button>
+      {/* Tabs - Muhasebe ile aynı stil */}
+      <div className="relative mb-4">
+        <div className="overflow-x-auto scrollbar-hide scroll-smooth">
+          <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
+            <button
+              onClick={() => setActiveTab("products")}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
+                activeTab === "products" 
+                  ? "border-primary text-primary bg-primary/5" 
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
+              }`}
+              data-testid="zimmet-tab-products"
+            >
+              <Package className="w-4 h-4" /> Ürünler
+            </button>
+            <button
+              onClick={() => setActiveTab("logs")}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
+                activeTab === "logs" 
+                  ? "border-primary text-primary bg-primary/5" 
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
+              }`}
+              data-testid="zimmet-tab-logs"
+            >
+              <History className="w-4 h-4" /> Tüm Hareketler
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
