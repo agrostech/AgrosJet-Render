@@ -27,7 +27,7 @@ const isApproximatelyNow = (dateStr) => {
   return diff < 2 * 60 * 1000;
 };
 
-export default function KuryelerTab({ companyId, adminId, adminName, companyLogo, companyName }) {
+export default function KuryelerTab({ companyId, adminId, adminName, companyLogo, companyName, transactionRef, onSelect }) {
   const [couriers, setCouriers] = useState([]);
   const [archivedCouriers, setArchivedCouriers] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -46,6 +46,12 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   const [txDate, setTxDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const listRef = useRef(null);
+
+  // Kurye seçildiğinde scroll
+  const handleCourierSelect = (courier) => {
+    setSelectedCourier(courier);
+    if (onSelect) onSelect();
+  };
 
   const filteredTransactions = useMemo(() => {
     if (!searchQuery.trim()) return transactions;
