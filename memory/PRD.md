@@ -51,6 +51,7 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Hareketler sekmesinde açıklama ile arama (16 Ocak 2026)
 - [x] Hareketler kartı tam ekran yükseklik ve iç kaydırma (16 Ocak 2026)
 - [x] Tüm sekmelerde gerçek backend pagination ile "Daha Fazla Yükle" (16 Ocak 2026)
+- [x] PDF Türkçe karakter sorunu ÇÖZÜLDÜ - styles.font ile Roboto font eklendi (16 Ocak 2026)
 - [x] Üç alt sekme: Kuryeler, İşletmeler, Cariler + Hareketler (Activity Log)
 - [x] **Inline form ile ödeme işlemleri (Modal kaldırıldı)**
 - [x] Ödeme Al (payment_in) ve Ödeme Yap (payment_out)
