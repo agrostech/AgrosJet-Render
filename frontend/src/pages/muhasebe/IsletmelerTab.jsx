@@ -195,14 +195,18 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
         // Fetch image through backend proxy to avoid CORS issues
         const proxyUrl = `${API}/proxy-image?url=${encodeURIComponent(companyLogo)}`;
         const response = await fetch(proxyUrl);
-        const blob = await response.blob();
-        const dataUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-        const logoSize = 50;
-        doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 5, logoSize, logoSize);
+        if (response.ok) {
+          const blob = await response.blob();
+          const dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          const logoSize = 50;
+          doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 5, logoSize, logoSize);
+        } else {
+          console.log("Logo proxy failed:", response.status);
+        }
       } catch (e) {
         console.log("Logo yüklenemedi:", e);
       }
