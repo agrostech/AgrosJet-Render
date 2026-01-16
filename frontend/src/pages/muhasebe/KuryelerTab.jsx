@@ -25,10 +25,10 @@ const isApproximatelyNow = (dateStr) => {
   const inputDate = new Date(dateStr);
   const now = new Date();
   const diff = Math.abs(now.getTime() - inputDate.getTime());
-  return diff < 2 * 60 * 1000; // 2 minutes tolerance
+  return diff < 2 * 60 * 1000;
 };
 
-export default function KuryelerTab({ companyId, adminId, adminName }) {
+export default function KuryelerTab({ companyId, adminId, adminName, companyLogo }) {
   const [couriers, setCouriers] = useState([]);
   const [archivedCouriers, setArchivedCouriers] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -194,7 +194,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
     }
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     if (!selectedCourier || transactions.length === 0) {
       toast.error("İndirilecek işlem bulunamadı");
       return;
@@ -203,34 +203,58 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     
-    // Header
-    doc.setFillColor(51, 51, 51);
+    // Add company logo if available (top right)
+    if (companyLogo) {
+      try {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = companyLogo;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          setTimeout(reject, 3000);
+        });
+        // Logo at top right, max 30x30
+        const maxSize = 30;
+        const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+        const w = img.width * ratio;
+        const h = img.height * ratio;
+        doc.addImage(img, 'PNG', pageWidth - w - 14, 10, w, h);
+      } catch (e) {
+        console.log("Logo yüklenemedi");
+      }
+    }
+    
+    // Header (white background for printing)
+    doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, pageWidth, 30, 'F');
-    doc.setTextColor(255, 255, 255);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 30, pageWidth - 14, 30);
+    
+    doc.setTextColor(51, 51, 51);
     doc.setFontSize(18);
-    doc.text("Islem Gecmisi Raporu", pageWidth / 2, 12, { align: "center" });
+    doc.text("\u0130\u015Flem Ge\u00E7mi\u015Fi Raporu", 14, 15);
     doc.setFontSize(11);
-    doc.text(`Kurye: ${selectedCourier.name}`, pageWidth / 2, 20, { align: "center" });
-    doc.text(`Tel: ${selectedCourier.phone}`, pageWidth / 2, 26, { align: "center" });
+    doc.text(`Kurye: ${selectedCourier.name}`, 14, 24);
     
     // Summary box
-    doc.setTextColor(0, 0, 0);
-    doc.setFillColor(245, 245, 245);
+    doc.setFillColor(250, 250, 250);
     doc.rect(14, 36, pageWidth - 28, 14, 'F');
     doc.setFontSize(10);
-    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Borc)` : `${formatMoney(balance)} (Alacak)`);
-    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam: ${transactions.length} islem  |  Bakiye: ${balanceText}`, pageWidth / 2, 44, { align: "center" });
+    doc.setTextColor(80, 80, 80);
+    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Bor\u00E7)` : `${formatMoney(balance)} (Alacak)`);
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam \u0130\u015Flem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 44);
     
     // Table with autoTable
     const tableData = transactions.map(tx => [
       new Date(tx.created_at).toLocaleDateString('tr-TR') + ' ' + new Date(tx.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-      (tx.description || '').substring(0, 40) + (tx.is_hakedis ? ' (Hakedis)' : ''),
+      (tx.description || '').substring(0, 40) + (tx.is_hakedis ? ' (Hakedi\u015F)' : ''),
       (tx.type === 'payment_out' ? '-' : '') + formatMoney(tx.amount)
     ]);
     
     autoTable(doc, {
       startY: 55,
-      head: [['Tarih', 'Aciklama', 'Tutar']],
+      head: [['Tarih', 'A\u00E7\u0131klama', 'Tutar']],
       body: tableData,
       theme: 'striped',
       headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
@@ -259,10 +283,10 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
-      doc.text("ShiftJet Kurye Yonetim Sistemi", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+      doc.text("Powered by AgrosJet", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
     
-    doc.save(`${selectedCourier.name.replace(/[^a-zA-Z0-9]/g, '_')}_islem_gecmisi.pdf`);
+    doc.save(`${selectedCourier.name.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g, '_')}_islem_gecmisi.pdf`);
     toast.success("PDF indirildi");
   };
 
@@ -393,8 +417,11 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                   <Checkbox id="hakedis" checked={isHakedis} onCheckedChange={setIsHakedis} />
                   <Label htmlFor="hakedis" className="text-xs cursor-pointer">Hakediş</Label>
                 </div>
-                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
-                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
+              </div>
+              {/* Buttons at bottom, side by side */}
+              <div className="flex gap-2 mt-3">
+                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9 flex-1" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
+                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9 flex-1" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
             <div className="p-3 border-b border-slate-200 flex items-center gap-3">

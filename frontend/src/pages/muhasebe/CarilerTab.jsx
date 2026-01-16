@@ -28,7 +28,7 @@ const isApproximatelyNow = (dateStr) => {
   return diff < 2 * 60 * 1000;
 };
 
-export default function CarilerTab({ companyId, adminId, adminName }) {
+export default function CarilerTab({ companyId, adminId, adminName, companyLogo }) {
   const [vendors, setVendors] = useState([]);
   const [archivedVendors, setArchivedVendors] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -212,28 +212,52 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
 
   const formatMoney = (amt) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(amt)) + ' TL';
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     if (!selectedVendor || transactions.length === 0) { toast.error("İndirilecek işlem bulunamadı"); return; }
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     
-    // Header
-    doc.setFillColor(51, 51, 51);
+    // Add company logo if available (top right)
+    if (companyLogo) {
+      try {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = companyLogo;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          setTimeout(reject, 3000);
+        });
+        const maxSize = 30;
+        const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+        const w = img.width * ratio;
+        const h = img.height * ratio;
+        doc.addImage(img, 'PNG', pageWidth - w - 14, 10, w, h);
+      } catch (e) {
+        console.log("Logo yüklenemedi");
+      }
+    }
+    
+    // Header (white background)
+    doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, pageWidth, 30, 'F');
-    doc.setTextColor(255, 255, 255);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 30, pageWidth - 14, 30);
+    
+    doc.setTextColor(51, 51, 51);
     doc.setFontSize(18);
-    doc.text("Islem Gecmisi Raporu", pageWidth / 2, 12, { align: "center" });
+    doc.text("\u0130\u015Flem Ge\u00E7mi\u015Fi Raporu", 14, 15);
     doc.setFontSize(11);
-    doc.text(`Cari: ${selectedVendor.name}`, pageWidth / 2, 22, { align: "center" });
+    doc.text(`Cari: ${selectedVendor.name}`, 14, 24);
     
     // Summary box
-    doc.setTextColor(0, 0, 0);
-    doc.setFillColor(245, 245, 245);
+    doc.setFillColor(250, 250, 250);
     doc.rect(14, 36, pageWidth - 28, 14, 'F');
     doc.setFontSize(10);
-    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Borc)` : `${formatMoney(balance)} (Alacak)`);
-    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam: ${transactions.length} islem  |  Bakiye: ${balanceText}`, pageWidth / 2, 44, { align: "center" });
+    doc.setTextColor(80, 80, 80);
+    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Bor\u00E7)` : `${formatMoney(balance)} (Alacak)`);
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam \u0130\u015Flem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 44);
     
     // Table
     const tableData = transactions.map(tx => [
@@ -244,7 +268,7 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
     
     autoTable(doc, {
       startY: 55,
-      head: [['Tarih', 'Aciklama', 'Tutar']],
+      head: [['Tarih', 'A\u00E7\u0131klama', 'Tutar']],
       body: tableData,
       theme: 'striped',
       headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
@@ -265,10 +289,10 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
-      doc.text("ShiftJet Kurye Yonetim Sistemi", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+      doc.text("Powered by AgrosJet", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
     
-    doc.save(`${selectedVendor.name.replace(/[^a-zA-Z0-9]/g, '_')}_islem_gecmisi.pdf`);
+    doc.save(`${selectedVendor.name.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g, '_')}_islem_gecmisi.pdf`);
     toast.success("PDF indirildi");
   };
 
@@ -377,8 +401,11 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
                   )}
                   {useCustomDate && <Button size="sm" variant="ghost" onClick={() => { setUseCustomDate(false); setTxDate(""); }} className="h-9 px-2 text-xs">İptal</Button>}
                 </div>
-                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
-                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
+              </div>
+              {/* Buttons at bottom, side by side */}
+              <div className="flex gap-2 mt-3">
+                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9 flex-1" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
+                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9 flex-1" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
             <div className="p-3 border-b border-slate-200 flex items-center gap-3">
