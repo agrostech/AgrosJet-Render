@@ -847,13 +847,20 @@ async def create_activity_log(log_data: dict):
     return log
 
 @api_router.get("/activity-logs/{company_id}")
-async def get_activity_logs(company_id: str, limit: int = 100):
-    """Get activity logs for a company"""
+async def get_activity_logs(company_id: str, skip: int = 0, limit: int = 10):
+    """Get paginated activity logs for a company"""
+    total_count = await db.activity_logs.count_documents({"company_id": company_id})
+    
     logs = await db.activity_logs.find(
         {"company_id": company_id},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(limit)
-    return logs
+    ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    return {
+        "logs": logs,
+        "total_count": total_count,
+        "has_more": skip + limit < total_count
+    }
 
 # --- İşletmeler (Businesses) ---
 @api_router.get("/companies/{company_id}/businesses")
