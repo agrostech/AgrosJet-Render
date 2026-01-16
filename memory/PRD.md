@@ -82,6 +82,8 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [ ] **Zimmet sekmesi içeriği** (Placeholder durumunda)
 
 ### P1 - Sıradaki
+- [ ] Kullanıcı profil yönetimi (kendi şifre değiştirme)
+- [ ] Silinme durumunda otomatik logout
 - [ ] Güncel Durum sayfasına ek bilgi kartları
 - [ ] Hakediş checkbox'ının backend mantığı (örn. haftalık rapor)
 - [ ] server.py modülerleştirme (routers/ klasörü)
