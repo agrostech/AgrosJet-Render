@@ -204,6 +204,21 @@ export default function ZimmetPage() {
     }
   };
 
+  const handleEditProductType = async () => {
+    if (!editingType || !editingType.name.trim()) return;
+    try {
+      await axios.put(`${API}/product-types/${editingType.id}`, {
+        name: editingType.name.trim(),
+        has_pos_fields: editingType.has_pos_fields
+      });
+      toast.success("Ürün tipi güncellendi");
+      setEditingType(null);
+      fetchProductTypes();
+    } catch (err) {
+      toast.error("Güncellenemedi");
+    }
+  };
+
   const handleDeleteProductType = async (typeId) => {
     if (!window.confirm("Bu ürün tipini silmek istediğinize emin misiniz?")) return;
     try {
