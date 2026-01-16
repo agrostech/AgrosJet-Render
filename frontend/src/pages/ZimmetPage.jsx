@@ -110,7 +110,10 @@ export default function ZimmetPage() {
     return logs.filter(l => 
       l.product_name?.toLowerCase().includes(q) ||
       l.courier_name?.toLowerCase().includes(q) ||
-      l.admin_name?.toLowerCase().includes(q)
+      l.admin_name?.toLowerCase().includes(q) ||
+      l.details?.serial_number?.toLowerCase().includes(q) ||
+      l.details?.pos_serial?.toLowerCase().includes(q) ||
+      l.details?.pos_terminal?.toLowerCase().includes(q)
     );
   }, [logs, searchQuery]);
 
