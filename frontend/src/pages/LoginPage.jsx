@@ -211,7 +211,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+            © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
           </p>
         </div>
       </div>
@@ -220,10 +220,10 @@ export default function LoginPage() {
       <div 
         className="hidden lg:block lg:w-1/2 bg-cover bg-center"
         style={{ 
-          backgroundImage: `url('https://images.unsplash.com/photo-1586626277605-7720525d251a?crop=entropy&cs=srgb&fm=jpg&q=85')` 
+          backgroundImage: `url('https://customer-assets.emergentagent.com/job_courier-dashboard-7/artifacts/ktc5mfpb_shiftjetlogin.png')` 
         }}
       >
-        <div className="w-full h-full bg-primary/60 flex items-end p-12">
+        <div className="w-full h-full bg-black/50 flex items-end p-12">
           <div className="text-white">
             <h2 className="font-heading text-4xl font-bold mb-2">
               ShiftJet
