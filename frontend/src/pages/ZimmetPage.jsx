@@ -187,12 +187,68 @@ export default function ZimmetPage() {
     } catch (err) {}
   };
 
+  // Mali Bellek functions
+  const fetchMaliBellek = async () => {
+    if (!companyId) return;
+    setMaliBellekLoading(true);
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}/mali-bellek?year_month=${selectedYearMonth}`);
+      setMaliBellekData(res.data.products || []);
+    } catch (err) {
+      toast.error("Mali bellek verileri yüklenemedi");
+    } finally {
+      setMaliBellekLoading(false);
+    }
+  };
+
+  const toggleMaliBellek = async (productId) => {
+    try {
+      await axios.post(`${API}/mali-bellek/${productId}/toggle?year_month=${selectedYearMonth}`, {
+        admin_id: adminId,
+        admin_name: adminName
+      });
+      fetchMaliBellek();
+    } catch (err) {
+      toast.error("İşlem başarısız");
+    }
+  };
+
+  const fetchMaliBellekLogs = async (product) => {
+    setSelectedMaliBellekProduct(product);
+    try {
+      const res = await axios.get(`${API}/mali-bellek/${product.id}/logs?year_month=${selectedYearMonth}`);
+      setMaliBellekLogs(res.data);
+      setShowMaliBellekLogsModal(true);
+    } catch (err) {
+      toast.error("Loglar yüklenemedi");
+    }
+  };
+
+  // Ay seçenekleri (son 24 ay)
+  const monthOptions = useMemo(() => {
+    const options = [];
+    const now = new Date();
+    for (let i = 1; i <= 24; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('tr-TR', { year: 'numeric', month: 'long' });
+      options.push({ value, label });
+    }
+    return options;
+  }, []);
+
   useEffect(() => {
     if (companyId) {
       Promise.all([fetchProducts(), fetchProductTypes(), fetchCouriers(), fetchLogs()])
         .finally(() => setLoading(false));
     }
   }, [companyId]);
+
+  useEffect(() => {
+    if (activeTab === "mali_bellek" && companyId) {
+      fetchMaliBellek();
+    }
+  }, [activeTab, selectedYearMonth, companyId]);
 
   useEffect(() => {
     if (selectedProduct) {
