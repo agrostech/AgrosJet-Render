@@ -492,7 +492,7 @@ export default function ZimmetPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
-                  placeholder={activeTab === "products" ? "Ürün, tip veya kurye ara..." : "Ürün, kurye veya admin ara..."} 
+                  placeholder={activeTab === "products" ? "Ürün, tip, kurye veya seri no ara..." : "Ürün, kurye veya admin ara..."} 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8 h-8 text-sm"
