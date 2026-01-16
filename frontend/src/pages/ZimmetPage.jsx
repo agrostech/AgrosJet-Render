@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Package, Plus, Search, Settings, Trash2, User, History, 
-  AlertTriangle, XCircle, ArrowLeftRight, ChevronRight
+  AlertTriangle, XCircle, ArrowLeftRight, ChevronRight, Filter
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -34,6 +34,11 @@ export default function ZimmetPage() {
   const [activeTab, setActiveTab] = useState("products"); // products | logs
   const [loading, setLoading] = useState(true);
 
+  // Filter states
+  const [filterAvailable, setFilterAvailable] = useState(false); // Boştakiler
+  const [filterDefective, setFilterDefective] = useState(false); // Arızalı
+  const [filterLost, setFilterLost] = useState(false); // Kayıp
+
   // Modals
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showProductTypes, setShowProductTypes] = useState(false);
@@ -52,17 +57,45 @@ export default function ZimmetPage() {
 
   const listRef = useRef(null);
 
-  // Filtered products
+  // Filtered and sorted products
   const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products;
-    const q = searchQuery.toLowerCase();
-    return products.filter(p => 
-      p.name?.toLowerCase().includes(q) ||
-      p.serial_number?.toLowerCase().includes(q) ||
-      p.product_type_name?.toLowerCase().includes(q) ||
-      p.assigned_to_courier_name?.toLowerCase().includes(q)
-    );
-  }, [products, searchQuery]);
+    let result = [...products];
+    
+    // Text search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(p => 
+        p.name?.toLowerCase().includes(q) ||
+        p.serial_number?.toLowerCase().includes(q) ||
+        p.product_type_name?.toLowerCase().includes(q) ||
+        p.assigned_to_courier_name?.toLowerCase().includes(q)
+      );
+    }
+    
+    // Checkbox filters
+    if (filterAvailable) {
+      result = result.filter(p => !p.assigned_to_courier_id);
+    }
+    if (filterDefective) {
+      result = result.filter(p => p.is_defective);
+    }
+    if (filterLost) {
+      result = result.filter(p => p.is_lost);
+    }
+    
+    // Sort: Zimmetli olanlar önce, sonra alfabetik
+    result.sort((a, b) => {
+      // Önce zimmetli olanlar
+      const aAssigned = a.assigned_to_courier_id ? 0 : 1;
+      const bAssigned = b.assigned_to_courier_id ? 0 : 1;
+      if (aAssigned !== bAssigned) return aAssigned - bAssigned;
+      
+      // Sonra alfabetik
+      return (a.name || "").localeCompare(b.name || "", 'tr');
+    });
+    
+    return result;
+  }, [products, searchQuery, filterAvailable, filterDefective, filterLost]);
 
   // Filtered logs
   const filteredLogs = useMemo(() => {
