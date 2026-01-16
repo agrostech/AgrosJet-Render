@@ -127,7 +127,7 @@ export default function HareketlerTab({ companyId }) {
         </span>
       </div>
 
-      <div ref={listRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
+      <div ref={listRef} className="flex-1 overflow-y-auto">
         {filteredLogs.length === 0 ? (
           <p className="text-sm text-muted-foreground p-8 text-center">
             {searchQuery ? "Arama sonucu bulunamadı" : "Henüz hareket kaydı yok"}
@@ -188,7 +188,11 @@ export default function HareketlerTab({ companyId }) {
               </tbody>
             </table>
             {displayCount < filteredLogs.length && (
-              <p className="text-xs text-muted-foreground text-center py-2">Daha fazla görmek için kaydırın...</p>
+              <div className="text-center py-3 border-t border-slate-100">
+                <Button size="sm" variant="outline" onClick={() => setDisplayCount(prev => Math.min(prev + 10, filteredLogs.length))} className="h-8 text-xs">
+                  Daha Fazla Göster ({filteredLogs.length - displayCount} kaldı)
+                </Button>
+              </div>
             )}
           </>
         )}
