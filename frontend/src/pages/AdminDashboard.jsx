@@ -651,6 +651,16 @@ export default function AdminDashboard() {
             </Button>
             <Button 
               variant="ghost" 
+              onClick={openProfileModal} 
+              className={`w-full text-white hover:bg-white/10 font-semibold text-sm py-2.5 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-4'}`} 
+              data-testid="profile-btn"
+              title={sidebarCollapsed ? 'Profil Ayarları' : ''}
+            >
+              <Settings className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="ml-2">Profil Ayarları</span>}
+            </Button>
+            <Button 
+              variant="ghost" 
               onClick={handleLogout} 
               className={`w-full text-white hover:bg-white/10 font-semibold text-sm py-2.5 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-4'}`} 
               data-testid="admin-logout-btn"
