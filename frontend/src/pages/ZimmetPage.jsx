@@ -1021,6 +1021,62 @@ export default function ZimmetPage() {
           )}
         </div>
       </div>
+      )}
+
+      {/* Mali Bellek Logs Modal */}
+      <Dialog open={showMaliBellekLogsModal} onOpenChange={setShowMaliBellekLogsModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Mali Bellek Geçmişi</DialogTitle>
+          </DialogHeader>
+          {selectedMaliBellekProduct && (
+            <div className="space-y-4">
+              <div className="p-3 bg-slate-50 rounded-lg">
+                <p className="font-medium">{selectedMaliBellekProduct.name}</p>
+                <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                  {selectedMaliBellekProduct.pos_serial && <p>POS SN: {selectedMaliBellekProduct.pos_serial}</p>}
+                  {selectedMaliBellekProduct.pos_terminal && <p>Terminal: {selectedMaliBellekProduct.pos_terminal}</p>}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Dönem: {monthOptions.find(m => m.value === selectedYearMonth)?.label}
+                </p>
+              </div>
+              
+              {maliBellekLogs.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Bu dönem için işlem kaydı yok</p>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {maliBellekLogs.map((log) => (
+                    <div key={log.id} className="p-2 border rounded text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          log.action === 'collected' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {log.action === 'collected' ? 'Mali Bellek Alındı' : 'İşaret Kaldırıldı'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(log.created_at).toLocaleDateString('tr-TR', { 
+                            day: '2-digit', month: '2-digit', year: 'numeric', 
+                            hour: '2-digit', minute: '2-digit' 
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        İşlemi yapan: {log.admin_name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMaliBellekLogsModal(false)}>Kapat</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Product Types Modal */}
       <Dialog open={showProductTypes} onOpenChange={(open) => { setShowProductTypes(open); if (!open) setEditingType(null); }}>
