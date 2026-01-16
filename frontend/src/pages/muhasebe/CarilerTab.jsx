@@ -410,7 +410,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
       <div ref={transactionRef} className="lg:col-span-2 border-2 border-border bg-white flex flex-col h-full">
         {selectedVendor ? (
           <>
-            <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2 shrink-0">
               <div><h3 className="font-semibold">{selectedVendor.name}</h3>{selectedVendor.phone && <p className="text-xs text-muted-foreground">{selectedVendor.phone}</p>}</div>
               <div className="text-right">
                 <p className={`text-xl font-bold ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : 'text-slate-600'}`}>
@@ -418,7 +418,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                 </p>
               </div>
             </div>
-            <div className="p-4 border-b border-slate-200">
+            <div className="p-4 border-b border-slate-200 shrink-0">
               <div className="flex flex-wrap items-end gap-3">
                 <div className="w-32">
                   <Label className="text-xs">Tutar</Label>
@@ -447,7 +447,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                 <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9 flex-1" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
-            <div className="p-3 border-b border-slate-200 flex items-center gap-3">
+            <div className="p-3 border-b border-slate-200 flex items-center gap-3 shrink-0">
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Açıklama veya tarih ara..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-8 h-8 text-sm" />
@@ -455,7 +455,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
               <span className="text-xs text-muted-foreground">{filteredTransactions.length} / {transactions.length}</span>
               <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto" data-testid="export-pdf-btn"><Download className="w-4 h-4 mr-1" />PDF</Button>
             </div>
-            <div ref={listRef} onScroll={handleScroll} className="max-h-[280px] overflow-y-auto">
+            <div ref={listRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
               {filteredTransactions.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-4 text-center">{searchQuery ? "Arama sonucu bulunamadı" : "Henüz işlem yok"}</p>
               ) : (
