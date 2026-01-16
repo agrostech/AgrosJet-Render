@@ -294,8 +294,11 @@ function YoneticilerPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPermModal, setShowPermModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
+  const [editData, setEditData] = useState({ name: "", username: "", password: "" });
+  const [editLoading, setEditLoading] = useState(false);
 
   const fetchAdmins = async () => {
     try {
@@ -341,7 +344,7 @@ function YoneticilerPage({ companyId }) {
     if (!window.confirm("Bu yöneticiyi silmek istediğinize emin misiniz?")) return;
     try {
       await axios.delete(`${API}/admins/${id}`);
-      toast.success("Yönetici silindi");
+      toast.success("Yönetici silindi (oturumu kapatıldı)");
       fetchAdmins();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
@@ -351,6 +354,47 @@ function YoneticilerPage({ companyId }) {
   const openPermModal = (admin) => {
     setSelectedAdmin({ ...admin });
     setShowPermModal(true);
+  };
+
+  const openEditModal = (admin) => {
+    setSelectedAdmin(admin);
+    setEditData({ name: admin.name, username: admin.username, password: "" });
+    setShowEditModal(true);
+  };
+
+  const handleEditAdmin = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    try {
+      const updatePayload = {};
+      if (editData.name && editData.name !== selectedAdmin.name) {
+        updatePayload.name = editData.name;
+      }
+      if (editData.password) {
+        updatePayload.password = editData.password;
+      }
+      
+      if (Object.keys(updatePayload).length === 0) {
+        toast.error("Değişiklik yapılmadı");
+        setEditLoading(false);
+        return;
+      }
+
+      const res = await axios.put(`${API}/admins/${selectedAdmin.id}`, updatePayload);
+      
+      if (res.data.password_changed) {
+        toast.success("Yönetici güncellendi. Şifre değiştiği için oturumu kapatıldı.");
+      } else {
+        toast.success("Yönetici güncellendi");
+      }
+      
+      setShowEditModal(false);
+      fetchAdmins();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const togglePermission = (key) => {
