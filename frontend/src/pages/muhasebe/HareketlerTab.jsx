@@ -9,8 +9,10 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function HareketlerTab({ companyId }) {
   const [logs, setLogs] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [displayCount, setDisplayCount] = useState(10);
   const [loading, setLoading] = useState(true);
   const listRef = useRef(null);
 
@@ -25,20 +27,29 @@ export default function HareketlerTab({ companyId }) {
     );
   }, [logs, searchQuery]);
 
-  // Arama değiştiğinde displayCount sıfırla
-  useEffect(() => {
-    setDisplayCount(10);
-  }, [searchQuery]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = async (append = false) => {
     try {
-      const res = await axios.get(`${API}/activity-logs/${companyId}`);
-      setLogs(res.data);
+      const skip = append ? logs.length : 0;
+      const res = await axios.get(`${API}/activity-logs/${companyId}?skip=${skip}&limit=10`);
+      if (append) {
+        setLogs(prev => [...prev, ...res.data.logs]);
+      } else {
+        setLogs(res.data.logs);
+      }
+      setTotalCount(res.data.total_count);
+      setHasMore(res.data.has_more);
     } catch (err) {
       toast.error("Hareketler yüklenemedi");
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    await fetchLogs(true);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
