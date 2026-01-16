@@ -35,6 +35,7 @@ export default function ZimmetPage() {
   const [loading, setLoading] = useState(true);
 
   // Filter states
+  const [filterAssigned, setFilterAssigned] = useState(false); // Zimmetliler
   const [filterAvailable, setFilterAvailable] = useState(false); // Boştakiler
   const [filterDefective, setFilterDefective] = useState(false); // Arızalı
   const [filterLost, setFilterLost] = useState(false); // Kayıp
