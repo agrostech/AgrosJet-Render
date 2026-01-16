@@ -62,18 +62,23 @@ export default function ZimmetPage() {
   const filteredProducts = useMemo(() => {
     let result = [...products];
     
-    // Text search
+    // Text search - POS alanları dahil
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(p => 
         p.name?.toLowerCase().includes(q) ||
         p.serial_number?.toLowerCase().includes(q) ||
+        p.pos_serial?.toLowerCase().includes(q) ||
+        p.pos_terminal?.toLowerCase().includes(q) ||
         p.product_type_name?.toLowerCase().includes(q) ||
         p.assigned_to_courier_name?.toLowerCase().includes(q)
       );
     }
     
     // Checkbox filters
+    if (filterAssigned) {
+      result = result.filter(p => p.assigned_to_courier_id);
+    }
     if (filterAvailable) {
       result = result.filter(p => !p.assigned_to_courier_id);
     }
@@ -96,9 +101,9 @@ export default function ZimmetPage() {
     });
     
     return result;
-  }, [products, searchQuery, filterAvailable, filterDefective, filterLost]);
+  }, [products, searchQuery, filterAssigned, filterAvailable, filterDefective, filterLost]);
 
-  // Filtered logs
+  // Filtered logs - POS alanları dahil
   const filteredLogs = useMemo(() => {
     if (!searchQuery.trim()) return logs;
     const q = searchQuery.toLowerCase();
