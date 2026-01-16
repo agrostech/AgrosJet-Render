@@ -516,9 +516,18 @@ export default function ZimmetPage() {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">{product.product_type_name}</p>
-                          {product.serial_number && (
-                            <p className="text-[10px] text-slate-400">SN: {product.serial_number}</p>
-                          )}
+                          {/* Seri numaraları gösterimi */}
+                          <div className="text-[10px] text-slate-400 space-y-0.5">
+                            {product.serial_number && (
+                              <p>SN: {product.serial_number}</p>
+                            )}
+                            {product.pos_serial && (
+                              <p>POS: {product.pos_serial}</p>
+                            )}
+                            {product.pos_terminal && (
+                              <p>Terminal: {product.pos_terminal}</p>
+                            )}
+                          </div>
                         </div>
                         <div className="text-right shrink-0 ml-2">
                           {product.assigned_to_courier_id ? (
