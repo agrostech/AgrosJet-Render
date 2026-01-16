@@ -130,17 +130,41 @@ export default function ZimmetPage() {
 
   // Filtered logs - POS alanları dahil
   const filteredLogs = useMemo(() => {
-    if (!searchQuery.trim()) return logs;
-    const q = searchQuery.toLowerCase();
-    return logs.filter(l => 
-      l.product_name?.toLowerCase().includes(q) ||
-      l.courier_name?.toLowerCase().includes(q) ||
-      l.admin_name?.toLowerCase().includes(q) ||
-      l.details?.serial_number?.toLowerCase().includes(q) ||
-      l.details?.pos_serial?.toLowerCase().includes(q) ||
-      l.details?.pos_terminal?.toLowerCase().includes(q)
-    );
-  }, [logs, searchQuery]);
+    let result = [...logs];
+    
+    // Text search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(l => 
+        l.product_name?.toLowerCase().includes(q) ||
+        l.courier_name?.toLowerCase().includes(q) ||
+        l.admin_name?.toLowerCase().includes(q) ||
+        l.details?.serial_number?.toLowerCase().includes(q) ||
+        l.details?.pos_serial?.toLowerCase().includes(q) ||
+        l.details?.pos_terminal?.toLowerCase().includes(q)
+      );
+    }
+    
+    // Checkbox filters - herhangi biri aktifse sadece o türleri göster
+    const anyLogFilterActive = logFilterAssigned || logFilterReturned || logFilterDefective || 
+      logFilterDefectiveRemoved || logFilterLost || logFilterLostRemoved || logFilterDeleted;
+    
+    if (anyLogFilterActive) {
+      result = result.filter(l => {
+        if (logFilterAssigned && l.action === 'assigned') return true;
+        if (logFilterReturned && l.action === 'returned') return true;
+        if (logFilterDefective && l.action === 'product_updated' && l.details?.changes?.includes('Arızalı')) return true;
+        if (logFilterDefectiveRemoved && l.action === 'product_updated' && l.details?.changes?.includes('Arıza kaldırıldı')) return true;
+        if (logFilterLost && l.action === 'product_updated' && l.details?.changes?.includes('Kayıp')) return true;
+        if (logFilterLostRemoved && l.action === 'product_updated' && l.details?.changes?.includes('Kayıp kaldırıldı')) return true;
+        if (logFilterDeleted && l.action === 'product_deleted') return true;
+        return false;
+      });
+    }
+    
+    return result;
+  }, [logs, searchQuery, logFilterAssigned, logFilterReturned, logFilterDefective, 
+      logFilterDefectiveRemoved, logFilterLost, logFilterLostRemoved, logFilterDeleted]);
 
   // Fetch data
   const fetchProducts = async (append = false) => {
