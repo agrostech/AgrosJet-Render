@@ -247,7 +247,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
       balanceText = `${formatMoney(balance)} (${cName} Borçlu)`;
     }
     
-    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam İşlem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 46);
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam Islem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 46);
     
     // Table
     const tableData = transactions.map(tx => [
@@ -258,14 +258,32 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     
     autoTable(doc, {
       startY: 58,
-      head: [['Tarih', 'Açıklama', 'Tutar']],
+      head: [['Tarih', 'Aciklama', 'Tutar']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [70, 130, 180], textColor: 255, font: 'Roboto' },
-      bodyStyles: { font: 'Roboto' },
-      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 35, halign: 'right' } },
-      styles: { fontSize: 9, font: 'Roboto' },
+      headStyles: { 
+        fillColor: [70, 130, 180], 
+        textColor: 255, 
+        font: 'Roboto',
+        fontStyle: 'normal'
+      },
+      bodyStyles: { 
+        font: 'Roboto',
+        fontStyle: 'normal'
+      },
+      columnStyles: { 
+        0: { cellWidth: 40 }, 
+        1: { cellWidth: 'auto' }, 
+        2: { cellWidth: 35, halign: 'right' } 
+      },
+      styles: { 
+        fontSize: 9, 
+        font: 'Roboto',
+        fontStyle: 'normal'
+      },
       didParseCell: (data) => {
+        data.cell.styles.font = 'Roboto';
+        data.cell.styles.fontStyle = 'normal';
         if (data.section === 'body' && data.column.index === 2) {
           if (data.cell.raw.startsWith('-')) data.cell.styles.textColor = [200, 0, 0];
           else data.cell.styles.textColor = [0, 128, 0];
