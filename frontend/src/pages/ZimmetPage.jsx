@@ -31,8 +31,21 @@ export default function ZimmetPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productHistory, setProductHistory] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("products"); // products | logs
+  const [activeTab, setActiveTab] = useState("products"); // products | mali_bellek | logs
   const [loading, setLoading] = useState(true);
+
+  // Mali Bellek states
+  const [maliBellekData, setMaliBellekData] = useState([]);
+  const [maliBellekLoading, setMaliBellekLoading] = useState(false);
+  const [selectedYearMonth, setSelectedYearMonth] = useState(() => {
+    // Default: geçen ay
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [maliBellekLogs, setMaliBellekLogs] = useState([]);
+  const [showMaliBellekLogsModal, setShowMaliBellekLogsModal] = useState(false);
+  const [selectedMaliBellekProduct, setSelectedMaliBellekProduct] = useState(null);
 
   // Filter states
   const [filterAssigned, setFilterAssigned] = useState(false); // Zimmetliler
