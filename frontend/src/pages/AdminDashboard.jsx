@@ -613,7 +613,7 @@ export default function AdminDashboard() {
           <Routes>
             <Route index element={<GuncelDurumPage companyId={user.company_id} />} />
             <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
-            <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} />} />
+            <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} />} />
             <Route path="zimmet" element={<ZimmetPage />} />
             <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
             {(isSuperAdmin || permissions.yoneticiler) && (
@@ -625,7 +625,7 @@ export default function AdminDashboard() {
 
       {/* Footer */}
       <footer className={`fixed bottom-0 right-0 bg-white border-t py-2 text-center text-xs text-muted-foreground transition-all duration-300 z-30 ${sidebarCollapsed ? 'lg:left-16' : 'lg:left-56'} left-0`}>
-        © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+        © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
       </footer>
     </div>
   );
