@@ -156,7 +156,8 @@ function KuryelerPage({ companyId }) {
       toast.success("Kurye şirketten çıkarıldı");
       fetchCouriers();
     } catch (err) {
-      toast.error("İşlem başarısız");
+      const errorMsg = err.response?.data?.detail || "İşlem başarısız";
+      toast.error(errorMsg);
     }
   };
 
