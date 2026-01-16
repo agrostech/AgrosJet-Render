@@ -695,6 +695,10 @@ export default function ZimmetPage() {
                     <XCircle className="w-4 h-4" />
                   </Button>
                 </div>
+                {/* Düzenle butonu */}
+                <Button size="sm" variant="outline" onClick={() => openEditProduct(selectedProduct)} className="mt-2">
+                  <Pencil className="w-4 h-4 mr-1" /> Düzenle
+                </Button>
               </div>
 
               {/* Product Info */}
@@ -707,13 +711,13 @@ export default function ZimmetPage() {
                 )}
                 {selectedProduct.pos_serial && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">POS Seri No:</span>
+                    <span className="text-muted-foreground">Pos SN:</span>
                     <span className="font-mono">{selectedProduct.pos_serial}</span>
                   </div>
                 )}
                 {selectedProduct.pos_terminal && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Terminal No:</span>
+                    <span className="text-muted-foreground">Pos Terminal:</span>
                     <span className="font-mono">{selectedProduct.pos_terminal}</span>
                   </div>
                 )}
