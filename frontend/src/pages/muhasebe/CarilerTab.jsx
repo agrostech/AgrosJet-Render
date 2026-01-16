@@ -223,19 +223,17 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     doc.setFont("Roboto");
     
     // Add company logo if available (top right corner, 50x50 in PDF which is ~250px)
-    console.log("Company Logo URL:", companyLogo);
     if (companyLogo && companyLogo.trim() !== '') {
       try {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = companyLogo;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          setTimeout(reject, 5000);
+        const response = await fetch(companyLogo);
+        const blob = await response.blob();
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
         });
         const logoSize = 50;
-        doc.addImage(img, 'PNG', pageWidth - logoSize - 14, 5, logoSize, logoSize);
+        doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 5, logoSize, logoSize);
       } catch (e) {
         console.log("Logo yüklenemedi:", e);
       }
