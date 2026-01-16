@@ -275,9 +275,32 @@ export default function VardiyaPage({ companyId }) {
     <div data-testid="admin-vardiya-page">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
         <h2 className="font-heading text-xl font-bold tracking-tight">Vardiya Yönetimi</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {editMode && selectedCells.length > 0 && (
+            <>
+              <Button 
+                onClick={() => setShowBulkAssignModal(true)} 
+                size="sm" 
+                className="font-semibold bg-green-600 hover:bg-green-700"
+                data-testid="bulk-assign-btn"
+              >
+                <Users className="w-4 h-4 mr-1" />
+                {selectedCells.length} Vardiyaya Kurye Ekle
+              </Button>
+              <Button 
+                onClick={clearSelection} 
+                size="sm" 
+                variant="outline"
+                className="font-semibold border-2"
+                data-testid="clear-selection-btn"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Seçimi Temizle
+              </Button>
+            </>
+          )}
           <Button 
-            onClick={() => setEditMode(!editMode)} 
+            onClick={() => { setEditMode(!editMode); clearSelection(); }} 
             variant={editMode ? "default" : "outline"}
             size="sm"
             className={`font-semibold ${editMode ? "" : "border-2"}`}
@@ -294,6 +317,13 @@ export default function VardiyaPage({ companyId }) {
           )}
         </div>
       </div>
+
+      {/* Toplu seçim ipucu */}
+      {editMode && selectedCells.length === 0 && (
+        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+          <strong>İpucu:</strong> Ctrl tuşuna basılı tutarak birden fazla vardiya kutucuğu seçebilir, ardından toplu kurye atayabilirsiniz.
+        </div>
+      )}
 
       {shifts.length === 0 ? (
         <div className="border-2 border-border p-8 bg-white text-center">
