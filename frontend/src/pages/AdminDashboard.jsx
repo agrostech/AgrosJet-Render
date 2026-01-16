@@ -444,10 +444,13 @@ function YoneticilerPage({ companyId }) {
                 <TableCell>
                   {a.role !== "superadmin" && (
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="h-8 px-3 border-2" data-testid={`perm-${a.id}`}>
+                      <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-admin-${a.id}`} title="Düzenle">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="h-8 px-3 border-2" data-testid={`perm-${a.id}`} title="Yetkiler">
                         <Settings className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`}>
+                      <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`} title="Sil">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
