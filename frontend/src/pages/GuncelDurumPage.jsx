@@ -173,29 +173,61 @@ export default function GuncelDurumPage({ companyId }) {
         </Button>
       </div>
 
-      {/* Gün Seçici */}
-      <div className="flex flex-wrap gap-1 p-2 bg-slate-100 rounded-lg border">
-        <button
-          onClick={() => setSelectedDay(null)}
-          className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
-            isToday ? 'bg-primary text-white' : 'bg-white hover:bg-slate-50 border'
-          }`}
-        >
-          Bugün ({workDay.dayLabel})
-        </button>
-        {DAYS.map((day) => (
-          day.key !== workDay.dayKey && (
-            <button
-              key={day.key}
-              onClick={() => setSelectedDay(day.key)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
-                selectedDay === day.key ? 'bg-primary text-white' : 'bg-white hover:bg-slate-50 border'
-              }`}
-            >
-              {day.label}
-            </button>
-          )
-        ))}
+      {/* Gün Seçici - Haftalık takvim görünümü */}
+      <div className="bg-white border-2 border-border rounded-lg p-3">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={() => {
+              const currentIndex = DAYS.findIndex(d => d.key === activeDay);
+              const prevIndex = currentIndex === 0 ? 6 : currentIndex - 1;
+              setSelectedDay(DAYS[prevIndex].key === workDay.dayKey ? null : DAYS[prevIndex].key);
+            }}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-slate-500" />
+          </button>
+          
+          <div className="flex-1 grid grid-cols-7 gap-1">
+            {DAYS.map((day) => {
+              const isActive = activeDay === day.key;
+              const isTodayDay = workDay.dayKey === day.key;
+              return (
+                <button
+                  key={day.key}
+                  onClick={() => setSelectedDay(day.key === workDay.dayKey ? null : day.key)}
+                  className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all ${
+                    isActive 
+                      ? 'bg-primary text-white shadow-md scale-105' 
+                      : isTodayDay
+                        ? 'bg-primary/10 text-primary hover:bg-primary/20 ring-2 ring-primary/30'
+                        : 'hover:bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">
+                    {day.label.slice(0, 3)}
+                  </span>
+                  <span className={`text-sm font-bold ${isActive ? '' : isTodayDay ? 'text-primary' : ''}`}>
+                    {day.label.slice(0, 2)}
+                  </span>
+                  {isTodayDay && !isActive && (
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-0.5"></span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          
+          <button
+            onClick={() => {
+              const currentIndex = DAYS.findIndex(d => d.key === activeDay);
+              const nextIndex = currentIndex === 6 ? 0 : currentIndex + 1;
+              setSelectedDay(DAYS[nextIndex].key === workDay.dayKey ? null : DAYS[nextIndex].key);
+            }}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <ChevronRight className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
       </div>
 
       {/* Günlük Rapor Kartı */}
