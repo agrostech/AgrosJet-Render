@@ -286,12 +286,14 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     
     autoTable(doc, {
       startY: 58,
-      head: [['Tarih', 'Aciklama', 'Tutar']],
+      head: [['Tarih', 'Açıklama', 'Tutar']],
       body: tableData,
       theme: 'striped',
       headStyles: { 
         fillColor: [70, 130, 180], 
-        textColor: 255
+        textColor: 255,
+        font: 'Roboto',
+        fontStyle: 'normal'
       },
       columnStyles: {
         0: { cellWidth: 40 },
@@ -299,10 +301,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
         2: { cellWidth: 35, halign: 'right' }
       },
       styles: { 
-        fontSize: 9
-      },
-      willDrawCell: (data) => {
-        doc.setFont('Roboto', 'normal');
+        fontSize: 9,
+        font: 'Roboto',
+        fontStyle: 'normal'
       },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index === 2) {
