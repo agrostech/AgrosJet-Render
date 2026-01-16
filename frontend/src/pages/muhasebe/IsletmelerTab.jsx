@@ -242,7 +242,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
       head: [['Tarih', 'Açıklama', 'Tutar']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold', font: 'Roboto' },
+      headStyles: { fillColor: [70, 130, 180], textColor: 255, font: 'Roboto' },
       bodyStyles: { font: 'Roboto' },
       columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 35, halign: 'right' } },
       styles: { fontSize: 9, font: 'Roboto' },
