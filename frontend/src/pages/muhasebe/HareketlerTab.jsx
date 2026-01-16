@@ -192,10 +192,10 @@ export default function HareketlerTab({ companyId }) {
                 ))}
               </tbody>
             </table>
-            {displayCount < filteredLogs.length && (
+            {hasMore && !searchQuery && (
               <div className="text-center py-3 border-t border-slate-100">
-                <Button size="sm" variant="outline" onClick={() => setDisplayCount(prev => Math.min(prev + 10, filteredLogs.length))} className="h-8 text-xs">
-                  Daha Fazla Yükle ({filteredLogs.length - displayCount} kaldı)
+                <Button size="sm" variant="outline" onClick={loadMore} disabled={loadingMore} className="h-8 text-xs">
+                  {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalCount - logs.length} kaldı)`}
                 </Button>
               </div>
             )}
