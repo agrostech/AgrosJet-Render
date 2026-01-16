@@ -389,7 +389,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
               <span className="text-xs text-muted-foreground">{filteredTransactions.length} / {transactions.length}</span>
               <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto" data-testid="export-pdf-btn"><Download className="w-4 h-4 mr-1" />PDF</Button>
             </div>
-            <div ref={listRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
+            <div ref={listRef} className="flex-1 overflow-y-auto">
               {filteredTransactions.length === 0 ? <p className="text-sm text-muted-foreground p-4 text-center">{searchQuery ? "Arama sonucu bulunamadı" : "Henüz işlem yok"}</p> : (
                 <><table className="w-full text-sm"><thead className="bg-slate-50 sticky top-0"><tr><th className="text-left p-2 font-semibold">Tarih</th><th className="text-left p-2 font-semibold">Açıklama</th><th className="text-right p-2 font-semibold">Tutar</th><th className="w-10"></th></tr></thead>
                 <tbody>{filteredTransactions.slice(0, displayCount).map((tx) => (
@@ -400,7 +400,13 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                     <td className="p-1"><button onClick={() => handleDeleteTransaction(tx.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1 transition-opacity"><Trash2 className="w-4 h-4" /></button></td>
                   </tr>
                 ))}</tbody></table>
-                {displayCount < filteredTransactions.length && <p className="text-xs text-muted-foreground text-center py-2">Daha fazla görmek için kaydırın...</p>}</>
+                {displayCount < filteredTransactions.length && (
+                  <div className="text-center py-3 border-t border-slate-100">
+                    <Button size="sm" variant="outline" onClick={() => setDisplayCount(prev => Math.min(prev + 10, filteredTransactions.length))} className="h-8 text-xs">
+                      Daha Fazla Göster ({filteredTransactions.length - displayCount} kaldı)
+                    </Button>
+                  </div>
+                )}</>
               )}
             </div>
           </>
