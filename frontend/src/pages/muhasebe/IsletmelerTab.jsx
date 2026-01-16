@@ -317,9 +317,10 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
   if (loading) return <p>Yükleniyor...</p>;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div className="lg:col-span-1 border-2 border-border bg-white">
-        <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center gap-2">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-220px)] min-h-[500px]">
+      {/* İşletmeler Listesi - Sol Kart */}
+      <div className="lg:col-span-1 border-2 border-border bg-white flex flex-col h-full">
+        <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center gap-2 shrink-0">
           <h3 className="font-semibold text-sm">{showArchived ? 'Arşiv' : 'İşletmeler'}</h3>
           {totalBalance !== 0 && <span className={`text-xs font-bold ${totalBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>{totalBalance > 0 && '-'}{formatCurrency(totalBalance)}</span>}
           <div className="flex gap-1 ml-auto">
@@ -327,7 +328,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
             {!showArchived && <Button size="sm" variant="ghost" onClick={() => setShowAddModal(true)} className="h-7 px-2"><Plus className="w-4 h-4" /></Button>}
           </div>
         </div>
-        <div className="max-h-[500px] overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           {displayList.length === 0 ? <p className="text-sm text-muted-foreground p-4 text-center">{showArchived ? 'Arşivde işletme yok' : 'İşletme bulunamadı'}</p> : displayList.map((b) => {
             const bal = balancesMap[b.id];
             return (
