@@ -442,7 +442,16 @@ export default function ZimmetPage() {
             </div>
             {/* Filter checkboxes - only for products tab */}
             {activeTab === "products" && (
-              <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-4 text-xs flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <Checkbox 
+                    id="filterAssigned" 
+                    checked={filterAssigned} 
+                    onCheckedChange={setFilterAssigned}
+                    className="h-3.5 w-3.5"
+                  />
+                  <Label htmlFor="filterAssigned" className="text-xs text-blue-600 cursor-pointer">Zimmetliler</Label>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <Checkbox 
                     id="filterAvailable" 
@@ -450,7 +459,7 @@ export default function ZimmetPage() {
                     onCheckedChange={setFilterAvailable}
                     className="h-3.5 w-3.5"
                   />
-                  <Label htmlFor="filterAvailable" className="text-xs text-slate-600 cursor-pointer">Boştakiler</Label>
+                  <Label htmlFor="filterAvailable" className="text-xs text-green-600 cursor-pointer">Boştakiler</Label>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Checkbox 
