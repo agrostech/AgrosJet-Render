@@ -578,114 +578,132 @@ export default function ZimmetPage() {
 
       {/* Main Content */}
       {activeTab === "mali_bellek" ? (
-        /* Mali Bellek Tab Content */
-        <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-          <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <Select value={selectedYearMonth} onValueChange={setSelectedYearMonth}>
-                  <SelectTrigger className="w-48 h-8 text-sm">
-                    <SelectValue placeholder="Ay Seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthOptions.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-4 text-xs">
-                <span className="text-muted-foreground">
-                  {maliBellekData.length} POS Cihazı
-                </span>
-                <span className="text-green-600 font-medium">
-                  {maliBellekData.filter(p => p.mali_bellek?.is_collected).length} Alındı
-                </span>
-                <span className="text-orange-600 font-medium">
-                  {maliBellekData.filter(p => !p.mali_bellek?.is_collected).length} Alınmadı
-                </span>
+        /* Mali Bellek Tab Content - Grid layout: Sol POS listesi, Sağ Loglar */
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Sol Panel - POS Listesi */}
+          <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
+            <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <Select value={selectedYearMonth} onValueChange={setSelectedYearMonth}>
+                    <SelectTrigger className="w-44 h-8 text-sm">
+                      <SelectValue placeholder="Ay Seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthOptions.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="text-green-600 font-medium">
+                    {maliBellekData.filter(p => p.mali_bellek?.is_collected).length} Alındı
+                  </span>
+                  <span className="text-orange-600 font-medium">
+                    {maliBellekData.filter(p => !p.mali_bellek?.is_collected).length} Alınmadı
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {maliBellekLoading ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground">Yükleniyor...</div>
-            ) : maliBellekData.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <FileCheck className="w-12 h-12 mb-2 opacity-30" />
-                <p>POS cihazı bulunamadı</p>
-                <p className="text-xs">Önce "Ürünler" sekmesinden POS cihazı ekleyin</p>
-              </div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 sticky top-0">
-                  <tr>
-                    <th className="text-left p-3 font-semibold">Cihaz Adı</th>
-                    <th className="text-left p-3 font-semibold">POS Seri No</th>
-                    <th className="text-left p-3 font-semibold">Terminal No</th>
-                    <th className="text-left p-3 font-semibold">Zimmetli</th>
-                    <th className="text-center p-3 font-semibold">Mali Bellek</th>
-                    <th className="text-center p-3 font-semibold">İşlemler</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="flex-1 overflow-y-auto">
+              {maliBellekLoading ? (
+                <div className="flex items-center justify-center h-full text-muted-foreground">Yükleniyor...</div>
+              ) : maliBellekData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <FileCheck className="w-12 h-12 mb-2 opacity-30" />
+                  <p>POS cihazı bulunamadı</p>
+                  <p className="text-xs">Önce Ürünler sekmesinden POS cihazı ekleyin</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
                   {maliBellekData.map((product) => (
-                    <tr key={product.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="p-3">
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          {product.serial_number && (
-                            <p className="text-[10px] text-slate-400">SN: {product.serial_number}</p>
-                          )}
+                    <div key={product.id} className="p-3 hover:bg-slate-50 flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{product.name}</p>
+                        <div className="text-[10px] text-slate-400 space-y-0.5">
+                          {product.pos_serial && <p>POS SN: {product.pos_serial}</p>}
+                          {product.pos_terminal && <p>Terminal: {product.pos_terminal}</p>}
                         </div>
-                      </td>
-                      <td className="p-3 font-mono text-xs">{product.pos_serial || '-'}</td>
-                      <td className="p-3 font-mono text-xs">{product.pos_terminal || '-'}</td>
-                      <td className="p-3">
-                        {product.assigned_to_courier_name ? (
-                          <span className="text-xs text-blue-600 flex items-center gap-1">
+                        {product.assigned_to_courier_name && (
+                          <p className="text-[10px] text-blue-600 mt-1 flex items-center gap-1">
                             <User className="w-3 h-3" /> {product.assigned_to_courier_name}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-slate-400">-</span>
+                          </p>
                         )}
-                      </td>
-                      <td className="p-3 text-center">
-                        <button
-                          onClick={() => toggleMaliBellek(product.id)}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                            product.mali_bellek?.is_collected
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                          }`}
-                        >
-                          {product.mali_bellek?.is_collected ? (
-                            <>
-                              <CheckCircle2 className="w-3 h-3" /> Alındı
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="w-3 h-3" /> Alınmadı
-                            </>
-                          )}
-                        </button>
-                      </td>
-                      <td className="p-3 text-center">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => fetchMaliBellekLogs(product)}
-                          className="h-7 px-2 text-xs"
-                        >
-                          <History className="w-3 h-3 mr-1" /> Log
-                        </Button>
-                      </td>
-                    </tr>
+                      </div>
+                      <button
+                        onClick={() => toggleMaliBellek(product.id)}
+                        className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                          product.mali_bellek?.is_collected
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                        }`}
+                      >
+                        {product.mali_bellek?.is_collected ? (
+                          <><CheckCircle2 className="w-3 h-3" /> Alındı</>
+                        ) : (
+                          <><XCircle className="w-3 h-3" /> Alınmadı</>
+                        )}
+                      </button>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sağ Panel - Ay Bazında Tüm Loglar */}
+          <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
+            <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <History className="w-4 h-4" /> İşlem Geçmişi
+                </h3>
+                <span className="text-xs text-muted-foreground">{maliBellekAllLogs.length} kayıt</span>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {maliBellekAllLogs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <History className="w-12 h-12 mb-2 opacity-30" />
+                  <p>Bu dönem için işlem kaydı yok</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {maliBellekAllLogs.map((log) => (
+                    <div key={log.id} className="p-3 hover:bg-slate-50">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              log.action === 'collected' 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-orange-100 text-orange-700'
+                            }`}>
+                              {log.action === 'collected' ? 'Alındı' : 'Kaldırıldı'}
+                            </span>
+                            <span className="text-xs font-medium truncate">{log.product_name}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {log.pos_serial && <span>POS SN: {log.pos_serial} </span>}
+                            {log.pos_terminal && <span>| Terminal: {log.pos_terminal}</span>}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(log.created_at).toLocaleDateString('tr-TR', { 
+                              day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+                            })}
+                          </p>
+                          <p className="text-[10px] text-slate-500">{log.admin_name}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ) : (
