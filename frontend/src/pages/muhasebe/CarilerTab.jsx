@@ -365,7 +365,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
               const bal = balancesMap[v.id];
               return (
                 <div key={v.id} className={`flex items-center gap-2 p-3 border-b border-slate-100 transition-colors ${selectedVendor?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
-                  <button onClick={() => setSelectedVendor(v)} className="flex-1 flex items-center gap-3 text-left">
+                  <button onClick={() => handleVendorSelect(v)} className="flex-1 flex items-center gap-3 text-left">
                     <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Wallet className="w-4 h-4 text-purple-600" /></div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">{v.name}</p>
@@ -394,7 +394,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
         </div>
       </div>
 
-      <div className="lg:col-span-2 border-2 border-border bg-white">
+      <div ref={transactionRef} className="lg:col-span-2 border-2 border-border bg-white">
         {selectedVendor ? (
           <>
             <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
