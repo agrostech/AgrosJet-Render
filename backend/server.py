@@ -1308,7 +1308,9 @@ async def create_product(company_id: str, data: ProductCreate, admin_id: str = "
     if admin_id:
         await create_zimmet_log(company_id, admin_id, admin_name, "product_created", product["id"], product["name"], None, None, {
             "product_type": product_type["name"],
-            "serial_number": data.serial_number
+            "serial_number": data.serial_number or "",
+            "pos_serial": data.pos_serial or "",
+            "pos_terminal": data.pos_terminal or ""
         })
     
     del product["_id"]
@@ -1479,7 +1481,12 @@ async def return_product(product_id: str, data: ZimmetReturn):
         product["company_id"], data.admin_id, data.admin_name,
         "returned", product_id, product["name"],
         old_courier_id, old_courier_name,
-        {"notes": data.notes}
+        {
+            "notes": data.notes,
+            "serial_number": product.get("serial_number", ""),
+            "pos_serial": product.get("pos_serial", ""),
+            "pos_terminal": product.get("pos_terminal", "")
+        }
     )
     
     return {"message": f"Zimmet {old_courier_name}'dan geri alındı"}
