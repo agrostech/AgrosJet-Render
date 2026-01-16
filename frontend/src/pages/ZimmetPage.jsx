@@ -980,6 +980,81 @@ export default function ZimmetPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Product Modal */}
+      <Dialog open={showEditProduct} onOpenChange={setShowEditProduct}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ürünü Düzenle</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditProduct} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Ürün Adı *</Label>
+              <Input
+                value={editProduct.name}
+                onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })}
+                placeholder="Ürün adı"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Ürün Tipi *</Label>
+              <Select 
+                value={editProduct.product_type_id} 
+                onValueChange={(v) => setEditProduct({ ...editProduct, product_type_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tip seçin..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {productTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Seri Numarası</Label>
+              <Input
+                value={editProduct.serial_number}
+                onChange={(e) => setEditProduct({ ...editProduct, serial_number: e.target.value })}
+                placeholder="Opsiyonel"
+              />
+            </div>
+            {productTypes.find(t => t.id === editProduct.product_type_id)?.has_pos_fields && (
+              <>
+                <div className="space-y-2">
+                  <Label>Pos SN</Label>
+                  <Input
+                    value={editProduct.pos_serial}
+                    onChange={(e) => setEditProduct({ ...editProduct, pos_serial: e.target.value })}
+                    placeholder="POS seri numarası"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pos Terminal</Label>
+                  <Input
+                    value={editProduct.pos_terminal}
+                    onChange={(e) => setEditProduct({ ...editProduct, pos_terminal: e.target.value })}
+                    placeholder="Terminal numarası"
+                  />
+                </div>
+              </>
+            )}
+            <div className="space-y-2">
+              <Label>Notlar</Label>
+              <Input
+                value={editProduct.notes}
+                onChange={(e) => setEditProduct({ ...editProduct, notes: e.target.value })}
+                placeholder="Opsiyonel notlar"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowEditProduct(false)}>İptal</Button>
+              <Button type="submit">Kaydet</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Assign Modal */}
       <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
         <DialogContent>
