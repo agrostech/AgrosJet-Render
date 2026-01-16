@@ -340,9 +340,14 @@ export default function VardiyaPage({ companyId }) {
       </div>
 
       {/* Toplu seçim ipucu */}
-      {editMode && selectedCells.length === 0 && (
+      {editMode && selectedCells.length === 0 && !ctrlPressed && (
         <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
           <strong>İpucu:</strong> Ctrl tuşuna basılı tutarak birden fazla vardiya kutucuğu seçebilir, ardından toplu kurye atayabilirsiniz.
+        </div>
+      )}
+      {editMode && ctrlPressed && (
+        <div className="mb-3 p-2 bg-green-50 border border-green-300 rounded text-xs text-green-700 font-medium">
+          🎯 <strong>Toplu Seçim Modu Aktif</strong> - Kutucuklara tıklayarak seçin. Seçili: {selectedCells.length}
         </div>
       )}
 
