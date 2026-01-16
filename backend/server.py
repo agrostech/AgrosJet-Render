@@ -302,6 +302,47 @@ async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
     await db.company_couriers.insert_one(relation)
     return {"message": "Kurye şirkete eklendi", "courier_name": courier["name"]}
 
+class CourierUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    plate: Optional[str] = None
+    address: Optional[str] = None
+    password: Optional[str] = None
+
+@api_router.put("/couriers/{courier_id}")
+async def update_courier(courier_id: str, data: CourierUpdate):
+    """Update courier info (by Super Admin)"""
+    courier = await db.couriers.find_one({"id": courier_id})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    update_data = {}
+    if data.name:
+        update_data["name"] = format_name(data.name)
+    if data.phone:
+        # Check phone uniqueness
+        existing = await db.couriers.find_one({"phone": data.phone})
+        if existing and existing["id"] != courier_id:
+            raise HTTPException(status_code=400, detail="Bu telefon numarası başka bir kurye tarafından kullanılıyor")
+        update_data["phone"] = data.phone
+    if data.plate:
+        update_data["plate"] = data.plate.upper()
+    if data.address is not None:
+        update_data["address"] = data.address
+    if data.password:
+        update_data["password"] = hash_password(data.password)
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
+    
+    await db.couriers.update_one({"id": courier_id}, {"$set": update_data})
+    
+    # Şifre değiştiyse session invalidate et
+    if data.password:
+        await invalidate_user_session(courier_id)
+    
+    return {"message": "Kurye güncellendi", "password_changed": bool(data.password)}
+
 @api_router.put("/companies/{company_id}/couriers/{courier_id}/archive")
 async def archive_company_courier(company_id: str, courier_id: str):
     """Archive a courier from company"""
