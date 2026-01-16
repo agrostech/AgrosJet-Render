@@ -1324,6 +1324,15 @@ async def update_product(product_id: str, data: ProductUpdate, admin_id: str = "
     update_data = {}
     changes = []
     
+    # Alan etiketleri
+    field_labels = {
+        "name": "Ad",
+        "serial_number": "Seri No",
+        "pos_serial": "POS Seri No",
+        "pos_terminal": "Terminal No",
+        "notes": "Notlar"
+    }
+    
     for key, value in data.model_dump().items():
         if value is not None:
             if key == "product_type_id":
@@ -1341,6 +1350,18 @@ async def update_product(product_id: str, data: ProductUpdate, admin_id: str = "
                 update_data[key] = value
                 if product.get("is_lost") != value:
                     changes.append("Kayıp" if value else "Kayıp kaldırıldı")
+            elif key in field_labels:
+                # Değişiklik varsa logla
+                old_value = product.get(key, "")
+                if old_value != value:
+                    update_data[key] = value
+                    label = field_labels[key]
+                    if old_value:
+                        changes.append(f"{label}: {old_value} → {value}")
+                    else:
+                        changes.append(f"{label}: {value}")
+                else:
+                    update_data[key] = value
             else:
                 update_data[key] = value
     
@@ -1349,7 +1370,7 @@ async def update_product(product_id: str, data: ProductUpdate, admin_id: str = "
     
     await db.products.update_one({"id": product_id}, {"$set": update_data})
     
-    # Log oluştur
+    # Log oluştur - değişiklik varsa
     if admin_id and changes:
         await create_zimmet_log(
             product["company_id"], admin_id, admin_name, 
