@@ -401,19 +401,19 @@ export default function VardiyaPage({ companyId }) {
                     const isEvenColumn = dayIndex % 2 === 0;
                     const courierCount = cellAssignments.length;
                     const isSelected = isCellSelected(shift.id, day.key);
-                    // Satır ve sütun renklerini birleştir
+                    // Satır ve sütun renklerini birleştir - daha belirgin renkler
                     const cellBg = isSelected 
                       ? 'bg-green-100' 
                       : isEvenColumn 
-                        ? (isEvenRow ? 'bg-blue-50/70' : 'bg-blue-50/40')
-                        : (isEvenRow ? 'bg-amber-50/50' : 'bg-amber-50/30');
+                        ? (isEvenRow ? 'bg-blue-100/80' : 'bg-blue-50/60')
+                        : (isEvenRow ? 'bg-amber-100/60' : 'bg-amber-50/40');
                     return (
                       <TableCell 
                         key={day.key} 
-                        className={`p-1 align-top border-r border-slate-200 transition-all
+                        className={`p-1 align-top border-r border-slate-300 transition-all
                           ${cellBg}
                           ${isSelected ? 'ring-2 ring-green-500 ring-inset' : ''}
-                          ${editMode ? 'cursor-pointer hover:bg-blue-100' : ''}
+                          ${editMode ? 'cursor-pointer hover:bg-blue-200' : ''}
                           ${ctrlPressed && editMode ? 'hover:ring-2 hover:ring-green-400 hover:ring-inset' : ''}
                         `}
                         onClick={(e) => handleCellClick(e, shift.id, day.key)}
