@@ -27,7 +27,7 @@ const isApproximatelyNow = (dateStr) => {
   return diff < 2 * 60 * 1000;
 };
 
-export default function IsletmelerTab({ companyId, adminId, adminName, companyLogo, companyName }) {
+export default function IsletmelerTab({ companyId, adminId, adminName, companyLogo, companyName, transactionRef, onSelect }) {
   const [businesses, setBusinesses] = useState([]);
   const [archivedBusinesses, setArchivedBusinesses] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -47,6 +47,12 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
   const [txDate, setTxDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const listRef = useRef(null);
+
+  // İşletme seçildiğinde scroll
+  const handleBusinessSelect = (business) => {
+    setSelectedBusiness(business);
+    if (onSelect) onSelect();
+  };
 
   const filteredTransactions = useMemo(() => {
     if (!searchQuery.trim()) return transactions;
