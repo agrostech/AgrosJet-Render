@@ -1667,6 +1667,16 @@ async def get_mali_bellek_logs(product_id: str, year_month: str = None):
     
     return logs
 
+@api_router.get("/companies/{company_id}/mali-bellek-logs")
+async def get_company_mali_bellek_logs(company_id: str, year_month: str):
+    """Şirketin belirli aydaki tüm mali bellek loglarını getir"""
+    logs = await db.mali_bellek_logs.find(
+        {"company_id": company_id, "year_month": year_month},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    return logs
+
 # Health check
 @api_router.get("/")
 async def root():
