@@ -200,7 +200,18 @@ export default function ZimmetPage() {
     setMaliBellekLoading(true);
     try {
       const res = await axios.get(`${API}/companies/${companyId}/mali-bellek?year_month=${selectedYearMonth}`);
-      setMaliBellekData(res.data.products || []);
+      // Sıralama: Alınanlar üstte, sonra alfabetik
+      const sorted = (res.data.products || []).sort((a, b) => {
+        const aCollected = a.mali_bellek?.is_collected ? 1 : 0;
+        const bCollected = b.mali_bellek?.is_collected ? 1 : 0;
+        if (bCollected !== aCollected) return bCollected - aCollected; // Alınanlar üstte
+        return a.name.localeCompare(b.name, 'tr'); // Alfabetik
+      });
+      setMaliBellekData(sorted);
+      
+      // Ay bazında tüm logları getir
+      const logsRes = await axios.get(`${API}/companies/${companyId}/mali-bellek-logs?year_month=${selectedYearMonth}`);
+      setMaliBellekAllLogs(logsRes.data || []);
     } catch (err) {
       toast.error("Mali bellek verileri yüklenemedi");
     } finally {
@@ -217,17 +228,6 @@ export default function ZimmetPage() {
       fetchMaliBellek();
     } catch (err) {
       toast.error("İşlem başarısız");
-    }
-  };
-
-  const fetchMaliBellekLogs = async (product) => {
-    setSelectedMaliBellekProduct(product);
-    try {
-      const res = await axios.get(`${API}/mali-bellek/${product.id}/logs?year_month=${selectedYearMonth}`);
-      setMaliBellekLogs(res.data);
-      setShowMaliBellekLogsModal(true);
-    } catch (err) {
-      toast.error("Loglar yüklenemedi");
     }
   };
 
