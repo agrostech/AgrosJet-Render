@@ -680,6 +680,7 @@ class TransactionCreate(BaseModel):
     is_hakedis: Optional[bool] = False
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
+    custom_date: Optional[str] = None
 
 class ActivityLogCreate(BaseModel):
     company_id: str
