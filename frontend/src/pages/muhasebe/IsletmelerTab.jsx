@@ -321,7 +321,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
             const bal = balancesMap[b.id];
             return (
               <div key={b.id} className={`flex items-center gap-2 p-3 border-b border-slate-100 transition-colors ${selectedBusiness?.id === b.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}>
-                <button onClick={() => setSelectedBusiness(b)} className="flex-1 flex items-center gap-3 text-left">
+                <button onClick={() => handleBusinessSelect(b)} className="flex-1 flex items-center gap-3 text-left">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><Building2 className="w-4 h-4 text-blue-600" /></div>
                   <div className="flex-1 min-w-0"><p className="font-medium text-sm truncate">{b.name}</p>{b.phone && <p className="text-xs text-muted-foreground">{b.phone}</p>}</div>
                   {bal !== 0 && bal !== undefined && <span className={`text-xs font-semibold px-2 py-1 rounded shrink-0 ${bal > 0 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>{bal > 0 && '-'}{formatCurrency(bal)}</span>}
@@ -338,7 +338,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
         </div>
       </div>
 
-      <div className="lg:col-span-2 border-2 border-border bg-white">
+      <div ref={transactionRef} className="lg:col-span-2 border-2 border-border bg-white">
         {selectedBusiness ? (
           <>
             <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
