@@ -352,9 +352,10 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   if (loading) return <p>Yükleniyor...</p>;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div className="lg:col-span-1 border-2 border-border bg-white">
-        <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center gap-2">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-220px)] min-h-[500px]">
+      {/* Kuryeler Listesi - Sol Kart */}
+      <div className="lg:col-span-1 border-2 border-border bg-white flex flex-col h-full">
+        <div className="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center gap-2 shrink-0">
           <h3 className="font-semibold text-sm">{showArchived ? 'Arşiv' : 'Kuryeler'}</h3>
           {totalBalance !== 0 && (
             <span className={`text-xs font-bold ${totalBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
@@ -365,7 +366,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
             {showArchived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
           </Button>
         </div>
-        <div className="max-h-[500px] overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           {displayList.length === 0 ? (
             <p className="text-sm text-muted-foreground p-4 text-center">{showArchived ? 'Arşivde kurye yok' : 'Kurye bulunamadı'}</p>
           ) : (
@@ -393,10 +394,11 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
         </div>
       </div>
 
-      <div ref={transactionRef} className="lg:col-span-2 border-2 border-border bg-white">
+      {/* İşlem Geçmişi - Sağ Kart */}
+      <div ref={transactionRef} className="lg:col-span-2 border-2 border-border bg-white flex flex-col h-full">
         {selectedCourier ? (
           <>
-            <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2 shrink-0">
               <div><h3 className="font-semibold">{selectedCourier.name}</h3><p className="text-xs text-muted-foreground">{selectedCourier.phone}</p></div>
               <div className="text-right">
                 <p className={`text-xl font-bold ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : 'text-slate-600'}`}>
