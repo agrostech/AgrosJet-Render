@@ -544,10 +544,30 @@ export default function ZimmetPage() {
               <Package className="w-4 h-4" /> Ürünler
             </button>
             <button
+              onClick={() => setActiveTab("mali_bellek")}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
+                activeTab === "mali_bellek" 
+                  ? "border-primary text-primary bg-primary/5" 
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
+              }`}
+              data-testid="zimmet-tab-mali-bellek"
+            >
+              <FileCheck className="w-4 h-4" /> Mali Bellek
+            </button>
+            <button
               onClick={() => setActiveTab("logs")}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
                 activeTab === "logs" 
                   ? "border-primary text-primary bg-primary/5" 
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
+              }`}
+              data-testid="zimmet-tab-logs"
+            >
+              <History className="w-4 h-4" /> Tüm Hareketler
+            </button>
+          </div>
+        </div>
+      </div>
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
               }`}
               data-testid="zimmet-tab-logs"
