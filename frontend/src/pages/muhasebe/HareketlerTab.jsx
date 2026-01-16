@@ -128,7 +128,7 @@ export default function HareketlerTab({ companyId }) {
           </div>
         </div>
         <span className="text-xs text-muted-foreground shrink-0">
-          {filteredLogs.length} / {logs.length} kayıt
+          {logs.length} / {totalCount} kayıt
         </span>
       </div>
 
@@ -151,7 +151,7 @@ export default function HareketlerTab({ companyId }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredLogs.slice(0, displayCount).map((log) => (
+                {filteredLogs.map((log) => (
                   <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
                       {formatDate(log.created_at)}
