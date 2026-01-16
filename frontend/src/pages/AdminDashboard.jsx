@@ -491,6 +491,9 @@ export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileData, setProfileData] = useState({ username: "", password: "", confirmPassword: "", currentPassword: "" });
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useSessionCheck();
 
@@ -511,6 +514,56 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     navigate("/login");
+  };
+
+  const openProfileModal = () => {
+    setProfileData({ username: user.username, password: "", confirmPassword: "", currentPassword: "" });
+    setShowProfileModal(true);
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    
+    if (profileData.password && profileData.password !== profileData.confirmPassword) {
+      toast.error("Yeni şifreler eşleşmiyor");
+      return;
+    }
+    
+    if (!profileData.currentPassword) {
+      toast.error("Mevcut şifrenizi girin");
+      return;
+    }
+
+    setProfileLoading(true);
+    try {
+      const payload = {
+        current_password: profileData.currentPassword
+      };
+      
+      if (profileData.username !== user.username) {
+        payload.username = profileData.username;
+      }
+      if (profileData.password) {
+        payload.password = profileData.password;
+      }
+      
+      const res = await axios.put(`${API}/profile/${user.id}`, payload);
+      
+      toast.success("Profil güncellendi");
+      setShowProfileModal(false);
+      
+      if (res.data.requires_relogin) {
+        toast.info("Bilgileriniz değişti. Yeniden giriş yapmanız gerekiyor.");
+        setTimeout(() => {
+          localStorage.removeItem("user");
+          navigate("/login");
+        }, 1500);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
   if (!user) return null;
