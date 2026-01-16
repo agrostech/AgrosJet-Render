@@ -582,6 +582,67 @@ export default function VardiyaPage({ companyId }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Toplu Kurye Atama Modal */}
+      <Dialog open={showBulkAssignModal} onOpenChange={setShowBulkAssignModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-base flex items-center gap-2">
+              <Users className="w-5 h-5 text-green-600" />
+              Toplu Kurye Atama
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+            <strong>{selectedCells.length} vardiya</strong> seçildi. Aşağıdan bir kurye seçerek tüm vardiyalara atayın.
+          </div>
+          <div className="mb-2 text-xs text-muted-foreground">
+            Seçili vardiyalar:
+            <div className="flex flex-wrap gap-1 mt-1">
+              {selectedCells.map((cell, idx) => {
+                const shift = shifts.find(s => s.id === cell.shiftId);
+                const dayLabel = DAYS.find(d => d.key === cell.day)?.label;
+                return (
+                  <span key={idx} className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">
+                    {shift?.start_time}-{shift?.end_time} / {dayLabel}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+            {bulkAssigning ? (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-sm text-muted-foreground">Kuryeler atanıyor...</p>
+              </div>
+            ) : couriers.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4 text-sm">Kurye bulunamadı</p>
+            ) : (
+              getAvailableCouriersForBulkAssign().map(courier => (
+                <button
+                  key={courier.id}
+                  onClick={() => handleBulkAssign(courier.id)}
+                  className={`w-full flex items-center justify-between p-2 border rounded transition-colors text-sm
+                    ${courier.alreadyAssignedSomewhere 
+                      ? 'border-orange-300 bg-orange-50 hover:bg-orange-100' 
+                      : 'border-border hover:bg-green-50 hover:border-green-400'
+                    }`}
+                  data-testid={`bulk-select-courier-${courier.id}`}
+                >
+                  <div className="text-left">
+                    <p className="font-semibold">{courier.name}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{courier.plate}</p>
+                    {courier.alreadyAssignedSomewhere && (
+                      <p className="text-[9px] text-orange-600">Bazı vardiyalarda zaten atanmış</p>
+                    )}
+                  </div>
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
