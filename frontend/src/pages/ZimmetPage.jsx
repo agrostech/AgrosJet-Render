@@ -42,6 +42,7 @@ export default function ZimmetPage() {
 
   // Modals
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [showEditProduct, setShowEditProduct] = useState(false);
   const [showProductTypes, setShowProductTypes] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
@@ -50,8 +51,12 @@ export default function ZimmetPage() {
   const [newProduct, setNewProduct] = useState({
     name: "", product_type_id: "", serial_number: "", pos_serial: "", pos_terminal: "", notes: ""
   });
+  const [editProduct, setEditProduct] = useState({
+    id: "", name: "", product_type_id: "", serial_number: "", pos_serial: "", pos_terminal: "", notes: ""
+  });
   const [newTypeName, setNewTypeName] = useState("");
   const [newTypeHasPos, setNewTypeHasPos] = useState(false);
+  const [editingType, setEditingType] = useState(null);
   const [assignCourierId, setAssignCourierId] = useState("");
   const [assignNotes, setAssignNotes] = useState("");
   const [returnNotes, setReturnNotes] = useState("");
