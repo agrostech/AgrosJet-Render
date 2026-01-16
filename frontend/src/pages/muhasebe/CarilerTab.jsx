@@ -27,7 +27,7 @@ const isApproximatelyNow = (dateStr) => {
   return diff < 2 * 60 * 1000;
 };
 
-export default function CarilerTab({ companyId, adminId, adminName, companyLogo, companyName }) {
+export default function CarilerTab({ companyId, adminId, adminName, companyLogo, companyName, transactionRef, onSelect }) {
   const [vendors, setVendors] = useState([]);
   const [archivedVendors, setArchivedVendors] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -47,6 +47,12 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
   const [txDate, setTxDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const listRef = useRef(null);
+
+  // Cari seçildiğinde scroll
+  const handleVendorSelect = (vendor) => {
+    setSelectedVendor(vendor);
+    if (onSelect) onSelect();
+  };
 
   const filteredTransactions = useMemo(() => {
     if (!searchQuery.trim()) return transactions;
