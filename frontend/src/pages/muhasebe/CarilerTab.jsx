@@ -469,7 +469,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                   {displayCount < filteredTransactions.length && (
                     <div className="text-center py-3 border-t border-slate-100">
                       <Button size="sm" variant="outline" onClick={() => setDisplayCount(prev => Math.min(prev + 10, filteredTransactions.length))} className="h-8 text-xs">
-                        Daha Fazla Göster ({filteredTransactions.length - displayCount} kaldı)
+                        Daha Fazla Yükle ({filteredTransactions.length - displayCount} kaldı)
                       </Button>
                     </div>
                   )}

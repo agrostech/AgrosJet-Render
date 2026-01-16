@@ -50,6 +50,7 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 ### Muhasebe (Tamamlandı - 16 Ocak 2026)
 - [x] Hareketler sekmesinde açıklama ile arama (16 Ocak 2026)
 - [x] Hareketler kartı tam ekran yükseklik ve iç kaydırma (16 Ocak 2026)
+- [x] Tüm sekmelerde "Daha Fazla Göster" butonu (scroll yerine tıklama) (16 Ocak 2026)
 - [x] Üç alt sekme: Kuryeler, İşletmeler, Cariler + Hareketler (Activity Log)
 - [x] **Inline form ile ödeme işlemleri (Modal kaldırıldı)**
 - [x] Ödeme Al (payment_in) ve Ödeme Yap (payment_out)

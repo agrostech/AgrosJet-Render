@@ -184,7 +184,7 @@ export default function HareketlerTab({ companyId }) {
             {displayCount < filteredLogs.length && (
               <div className="text-center py-3 border-t border-slate-100">
                 <Button size="sm" variant="outline" onClick={() => setDisplayCount(prev => Math.min(prev + 10, filteredLogs.length))} className="h-8 text-xs">
-                  Daha Fazla Göster ({filteredLogs.length - displayCount} kaldı)
+                  Daha Fazla Yükle ({filteredLogs.length - displayCount} kaldı)
                 </Button>
               </div>
             )}
