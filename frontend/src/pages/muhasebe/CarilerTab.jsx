@@ -222,7 +222,13 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
     doc.setFont("Roboto");
     
-    // Add company logo if available (top right corner, 50x50 in PDF which is ~250px)
+    // Header (white background)
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, pageWidth, 32, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 32, pageWidth - 14, 32);
+    
+    // Add company logo if available (top right corner, fits within header)
     if (companyLogo && companyLogo.trim() !== '') {
       try {
         // Fetch image through backend proxy to avoid CORS issues
@@ -235,8 +241,9 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
             reader.onloadend = () => resolve(reader.result);
             reader.readAsDataURL(blob);
           });
-          const logoSize = 50;
-          doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 5, logoSize, logoSize);
+          // Logo 25x25 mm positioned in header area (y=4 to y=29, within 32mm header)
+          const logoSize = 25;
+          doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 4, logoSize, logoSize);
         } else {
           console.log("Logo proxy failed:", response.status);
         }
@@ -244,12 +251,6 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
         console.log("Logo yüklenemedi:", e);
       }
     }
-    
-    // Header (white background)
-    doc.setFillColor(255, 255, 255);
-    doc.rect(0, 0, pageWidth, 32, 'F');
-    doc.setDrawColor(200, 200, 200);
-    doc.line(14, 32, pageWidth - 14, 32);
     
     doc.setTextColor(51, 51, 51);
     doc.setFontSize(18);
