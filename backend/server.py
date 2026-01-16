@@ -971,6 +971,19 @@ async def delete_transaction(transaction_id: str, data: TransactionDeleteRequest
 async def root():
     return {"message": "Kurye Yönetim Sistemi API"}
 
+# Image proxy for PDF logo (to avoid CORS issues)
+@api_router.get("/proxy-image")
+async def proxy_image(url: str):
+    """Proxy external images to avoid CORS issues in PDF generation"""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, timeout=10.0)
+            response.raise_for_status()
+            content_type = response.headers.get('content-type', 'image/png')
+            return Response(content=response.content, media_type=content_type)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Görsel yüklenemedi: {str(e)}")
+
 app.include_router(api_router)
 
 app.add_middleware(
