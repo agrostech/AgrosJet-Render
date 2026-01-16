@@ -47,6 +47,15 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Aktif vardiya vurgulama
 - [x] Kurye sayısı ve listesi (responsive grid)
 
+### Zimmet (Tamamlandı - 16 Ocak 2026)
+- [x] Ürün Tipleri yönetimi (POS Cihazı için ekstra alanlar)
+- [x] Ürün ekleme/silme/güncelleme
+- [x] Kuryeye zimmetleme ve geri alma
+- [x] Arızalı/Kayıp durumları
+- [x] Zimmet geçmişi (her ürün için)
+- [x] Hareketler sekmesi (tüm zimmet logları)
+- [x] Pagination desteği
+
 ### Muhasebe (Tamamlandı - 16 Ocak 2026)
 - [x] Hareketler sekmesinde açıklama ile arama (16 Ocak 2026)
 - [x] Hareketler kartı tam ekran yükseklik ve iç kaydırma (16 Ocak 2026)
