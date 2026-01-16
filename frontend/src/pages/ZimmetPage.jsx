@@ -643,10 +643,10 @@ export default function ZimmetPage() {
                               <span>SN: {log.details.serial_number} </span>
                             )}
                             {log.details?.pos_serial && (
-                              <span>POS: {log.details.pos_serial} </span>
+                              <span>Pos SN: {log.details.pos_serial} </span>
                             )}
                             {log.details?.pos_terminal && (
-                              <span>Terminal: {log.details.pos_terminal}</span>
+                              <span>Pos Terminal: {log.details.pos_terminal}</span>
                             )}
                           </div>
                           {log.details?.notes && (
