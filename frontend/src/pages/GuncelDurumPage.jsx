@@ -103,8 +103,12 @@ export default function GuncelDurumPage({ companyId }) {
   const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null); // null = bugün (default)
 
   const workDay = getWorkDay();
+  const activeDay = selectedDay || workDay.dayKey;
+  const activeDayLabel = DAYS.find(d => d.key === activeDay)?.label || workDay.dayLabel;
+  const isToday = !selectedDay || selectedDay === workDay.dayKey;
 
   const fetchData = async () => {
     try {
