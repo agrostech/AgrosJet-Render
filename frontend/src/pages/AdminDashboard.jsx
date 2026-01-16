@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Menu, X, LogOut, Clock, FileText, Package, Users, UserCog, Trash2, Settings, Search, UserPlus, ChevronLeft, ChevronRight, LayoutDashboard } from "lucide-react";
+import { Menu, X, LogOut, Clock, FileText, Package, Users, UserCog, Trash2, Settings, Search, UserPlus, ChevronLeft, ChevronRight, LayoutDashboard, Pencil } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 import VardiyaPage from "./VardiyaPage";
 import GuncelDurumPage from "./GuncelDurumPage";
