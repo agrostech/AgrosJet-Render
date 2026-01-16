@@ -584,10 +584,10 @@ export default function ZimmetPage() {
                               <p>SN: {product.serial_number}</p>
                             )}
                             {product.pos_serial && (
-                              <p>POS: {product.pos_serial}</p>
+                              <p>Pos SN: {product.pos_serial}</p>
                             )}
                             {product.pos_terminal && (
-                              <p>Terminal: {product.pos_terminal}</p>
+                              <p>Pos Terminal: {product.pos_terminal}</p>
                             )}
                           </div>
                         </div>
