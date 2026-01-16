@@ -472,7 +472,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Açıklama veya tarih ara..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-8 h-8 text-sm" />
               </div>
-              <span className="text-xs text-muted-foreground">{filteredTransactions.length} / {transactions.length}</span>
+              <span className="text-xs text-muted-foreground">{transactions.length} / {totalCount}</span>
               <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto" data-testid="export-pdf-btn"><Download className="w-4 h-4 mr-1" />PDF</Button>
             </div>
             <div ref={listRef} className="flex-1 overflow-y-auto">
@@ -483,7 +483,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 sticky top-0"><tr><th className="text-left p-2 font-semibold">Tarih</th><th className="text-left p-2 font-semibold">Açıklama</th><th className="text-right p-2 font-semibold">Tutar</th><th className="w-10"></th></tr></thead>
                     <tbody>
-                      {filteredTransactions.slice(0, displayCount).map((tx) => (
+                      {filteredTransactions.map((tx) => (
                         <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50 group">
                           <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
                           <td className="p-2">{tx.description}{tx.is_hakedis && <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">Hakediş</span>}</td>
@@ -493,10 +493,10 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                       ))}
                     </tbody>
                   </table>
-                  {displayCount < filteredTransactions.length && (
+                  {hasMore && !searchQuery && (
                     <div className="text-center py-3 border-t border-slate-100">
-                      <Button size="sm" variant="outline" onClick={() => setDisplayCount(prev => Math.min(prev + 10, filteredTransactions.length))} className="h-8 text-xs">
-                        Daha Fazla Yükle ({filteredTransactions.length - displayCount} kaldı)
+                      <Button size="sm" variant="outline" onClick={loadMore} disabled={loadingMore} className="h-8 text-xs">
+                        {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalCount - transactions.length} kaldı)`}
                       </Button>
                     </div>
                   )}
