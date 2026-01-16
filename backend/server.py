@@ -1448,6 +1448,7 @@ async def assign_product(product_id: str, data: ZimmetAction):
         {
             "serial_number": product.get("serial_number", ""),
             "pos_serial": product.get("pos_serial", ""),
+            "pos_terminal": product.get("pos_terminal", ""),
             "notes": data.notes
         }
     )
