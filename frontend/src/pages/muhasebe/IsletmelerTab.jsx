@@ -8,10 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { RobotoRegular } from "@/utils/robotoFont";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Helper: Get local datetime string for datetime-local input
 const getLocalDateTimeString = () => {
   const now = new Date();
   const offset = now.getTimezoneOffset();
@@ -19,7 +19,6 @@ const getLocalDateTimeString = () => {
   return local.toISOString().slice(0, 16);
 };
 
-// Helper: Check if datetime is approximately "now" (within 2 minutes)
 const isApproximatelyNow = (dateStr) => {
   if (!dateStr) return true;
   const inputDate = new Date(dateStr);
@@ -185,6 +184,11 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     
+    // Add Roboto font for Turkish character support
+    doc.addFileToVFS("Roboto-Regular.ttf", RobotoRegular);
+    doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+    doc.setFont("Roboto");
+    
     // Add company logo if available (top right)
     if (companyLogo) {
       try {
@@ -214,17 +218,17 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     
     doc.setTextColor(51, 51, 51);
     doc.setFontSize(18);
-    doc.text("\u0130\u015Flem Ge\u00E7mi\u015Fi Raporu", 14, 15);
+    doc.text("İşlem Geçmişi Raporu", 14, 15);
     doc.setFontSize(11);
-    doc.text(`\u0130\u015Fletme: ${selectedBusiness.name}`, 14, 24);
+    doc.text(`İşletme: ${selectedBusiness.name}`, 14, 24);
     
     // Summary box
     doc.setFillColor(250, 250, 250);
     doc.rect(14, 36, pageWidth - 28, 14, 'F');
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
-    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Bor\u00E7)` : `${formatMoney(balance)} (Alacak)`);
-    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam \u0130\u015Flem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 44);
+    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Borç)` : `${formatMoney(balance)} (Alacak)`);
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam İşlem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 44);
     
     // Table
     const tableData = transactions.map(tx => [
@@ -235,12 +239,13 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     
     autoTable(doc, {
       startY: 55,
-      head: [['Tarih', 'A\u00E7\u0131klama', 'Tutar']],
+      head: [['Tarih', 'Açıklama', 'Tutar']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold', font: 'Roboto' },
+      bodyStyles: { font: 'Roboto' },
       columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 35, halign: 'right' } },
-      styles: { fontSize: 9 },
+      styles: { fontSize: 9, font: 'Roboto' },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index === 2) {
           if (data.cell.raw.startsWith('-')) data.cell.styles.textColor = [200, 0, 0];
@@ -339,7 +344,6 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                   {useCustomDate && <Button size="sm" variant="ghost" onClick={() => { setUseCustomDate(false); setTxDate(""); }} className="h-9 px-2 text-xs">İptal</Button>}
                 </div>
               </div>
-              {/* Buttons at bottom, side by side */}
               <div className="flex gap-2 mt-3">
                 <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9 flex-1" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
                 <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9 flex-1" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Minus, User, Trash2, Archive, ArchiveRestore, Search, Download, Clock } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { RobotoRegular } from "@/utils/robotoFont";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -203,6 +204,11 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     
+    // Add Roboto font for Turkish character support
+    doc.addFileToVFS("Roboto-Regular.ttf", RobotoRegular);
+    doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+    doc.setFont("Roboto");
+    
     // Add company logo if available (top right)
     if (companyLogo) {
       try {
@@ -214,7 +220,6 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           img.onerror = reject;
           setTimeout(reject, 3000);
         });
-        // Logo at top right, max 30x30
         const maxSize = 30;
         const ratio = Math.min(maxSize / img.width, maxSize / img.height);
         const w = img.width * ratio;
@@ -233,7 +238,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     
     doc.setTextColor(51, 51, 51);
     doc.setFontSize(18);
-    doc.text("\u0130\u015Flem Ge\u00E7mi\u015Fi Raporu", 14, 15);
+    doc.text("İşlem Geçmişi Raporu", 14, 15);
     doc.setFontSize(11);
     doc.text(`Kurye: ${selectedCourier.name}`, 14, 24);
     
@@ -242,28 +247,29 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     doc.rect(14, 36, pageWidth - 28, 14, 'F');
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
-    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Bor\u00E7)` : `${formatMoney(balance)} (Alacak)`);
-    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam \u0130\u015Flem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 44);
+    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Borç)` : `${formatMoney(balance)} (Alacak)`);
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam İşlem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 44);
     
     // Table with autoTable
     const tableData = transactions.map(tx => [
       new Date(tx.created_at).toLocaleDateString('tr-TR') + ' ' + new Date(tx.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-      (tx.description || '').substring(0, 40) + (tx.is_hakedis ? ' (Hakedi\u015F)' : ''),
+      (tx.description || '').substring(0, 40) + (tx.is_hakedis ? ' (Hakediş)' : ''),
       (tx.type === 'payment_out' ? '-' : '') + formatMoney(tx.amount)
     ]);
     
     autoTable(doc, {
       startY: 55,
-      head: [['Tarih', 'A\u00E7\u0131klama', 'Tutar']],
+      head: [['Tarih', 'Açıklama', 'Tutar']],
       body: tableData,
       theme: 'striped',
-      headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold', font: 'Roboto' },
+      bodyStyles: { font: 'Roboto' },
       columnStyles: {
         0: { cellWidth: 40 },
         1: { cellWidth: 'auto' },
         2: { cellWidth: 35, halign: 'right' }
       },
-      styles: { fontSize: 9 },
+      styles: { fontSize: 9, font: 'Roboto' },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index === 2) {
           const text = data.cell.raw;
@@ -307,7 +313,6 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   const displayList = showArchived ? archivedCouriers : couriers;
   const balancesMap = showArchived ? archivedBalances : courierBalances;
 
-  // Get display text for date button
   const getDateDisplayText = () => {
     if (!useCustomDate) return "Şimdi";
     if (isApproximatelyNow(txDate)) return "Şimdi";
@@ -418,7 +423,6 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                   <Label htmlFor="hakedis" className="text-xs cursor-pointer">Hakediş</Label>
                 </div>
               </div>
-              {/* Buttons at bottom, side by side */}
               <div className="flex gap-2 mt-3">
                 <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9 flex-1" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
                 <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9 flex-1" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
