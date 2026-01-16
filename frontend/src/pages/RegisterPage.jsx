@@ -86,7 +86,7 @@ export default function RegisterPage() {
 
           {/* Footer */}
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+            © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
           </p>
         </div>
       </div>

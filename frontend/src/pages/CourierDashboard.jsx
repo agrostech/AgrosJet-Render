@@ -229,7 +229,7 @@ export default function CourierDashboard() {
 
       {/* Footer */}
       <footer className="fixed bottom-0 left-0 right-0 lg:left-64 bg-white border-t py-3 text-center text-xs text-muted-foreground">
-        © 2026 ShiftJet. Tüm hakları saklıdır. Bir AgrosJet kuruluşudur.
+        © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
       </footer>
     </div>
   );
