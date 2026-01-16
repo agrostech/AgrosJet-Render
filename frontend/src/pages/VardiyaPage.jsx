@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { X, Clock, Trash2, UserPlus, Pencil, Check } from "lucide-react";
+import { X, Clock, Trash2, UserPlus, Pencil, Check, Users } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -42,9 +42,13 @@ export default function VardiyaPage({ companyId }) {
   const [showAddShiftModal, setShowAddShiftModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [newShift, setNewShift] = useState({ start_time: "", end_time: "" });
+  // Toplu seçim için state
+  const [selectedCells, setSelectedCells] = useState([]); // [{shiftId, day}]
+  const [bulkAssigning, setBulkAssigning] = useState(false);
 
   const fetchData = async () => {
     try {
