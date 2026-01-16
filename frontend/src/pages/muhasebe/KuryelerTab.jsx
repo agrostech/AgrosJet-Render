@@ -12,7 +12,6 @@ import { RobotoRegular } from "@/utils/robotoFont";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Helper: Get local datetime string for datetime-local input
 const getLocalDateTimeString = () => {
   const now = new Date();
   const offset = now.getTimezoneOffset();
@@ -20,7 +19,6 @@ const getLocalDateTimeString = () => {
   return local.toISOString().slice(0, 16);
 };
 
-// Helper: Check if datetime is approximately "now" (within 2 minutes)
 const isApproximatelyNow = (dateStr) => {
   if (!dateStr) return true;
   const inputDate = new Date(dateStr);
@@ -29,7 +27,7 @@ const isApproximatelyNow = (dateStr) => {
   return diff < 2 * 60 * 1000;
 };
 
-export default function KuryelerTab({ companyId, adminId, adminName, companyLogo }) {
+export default function KuryelerTab({ companyId, adminId, adminName, companyLogo, companyName }) {
   const [couriers, setCouriers] = useState([]);
   const [archivedCouriers, setArchivedCouriers] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -209,7 +207,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
     doc.setFont("Roboto");
     
-    // Add company logo if available (top right)
+    // Add company logo if available (top right corner)
     if (companyLogo) {
       try {
         const img = new Image();
@@ -218,37 +216,51 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
-          setTimeout(reject, 3000);
+          setTimeout(reject, 5000);
         });
-        const maxSize = 30;
+        // Logo max 35x35 at top right
+        const maxSize = 35;
         const ratio = Math.min(maxSize / img.width, maxSize / img.height);
         const w = img.width * ratio;
         const h = img.height * ratio;
-        doc.addImage(img, 'PNG', pageWidth - w - 14, 10, w, h);
+        doc.addImage(img, 'PNG', pageWidth - w - 14, 8, w, h);
       } catch (e) {
-        console.log("Logo yüklenemedi");
+        console.log("Logo yüklenemedi:", e);
       }
     }
     
     // Header (white background for printing)
     doc.setFillColor(255, 255, 255);
-    doc.rect(0, 0, pageWidth, 30, 'F');
+    doc.rect(0, 0, pageWidth, 32, 'F');
     doc.setDrawColor(200, 200, 200);
-    doc.line(14, 30, pageWidth - 14, 30);
+    doc.line(14, 32, pageWidth - 14, 32);
     
     doc.setTextColor(51, 51, 51);
     doc.setFontSize(18);
     doc.text("İşlem Geçmişi Raporu", 14, 15);
     doc.setFontSize(11);
-    doc.text(`Kurye: ${selectedCourier.name}`, 14, 24);
+    doc.text(`Kurye: ${selectedCourier.name}`, 14, 26);
     
     // Summary box
     doc.setFillColor(250, 250, 250);
-    doc.rect(14, 36, pageWidth - 28, 14, 'F');
+    doc.rect(14, 38, pageWidth - 28, 14, 'F');
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
-    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Borç)` : `${formatMoney(balance)} (Alacak)`);
-    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam İşlem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 44);
+    
+    // Balance text with company name
+    const cName = companyName || 'Şirket';
+    let balanceText;
+    if (balance === 0) {
+      balanceText = '0,00 TL';
+    } else if (balance > 0) {
+      // Positive balance means courier owes company (company gave money)
+      balanceText = `${formatMoney(balance)} (${cName} Alacaklı)`;
+    } else {
+      // Negative balance means company owes courier
+      balanceText = `${formatMoney(balance)} (${cName} Borçlu)`;
+    }
+    
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam İşlem: ${transactions.length}  |  Bakiye: ${balanceText}`, 20, 46);
     
     // Table with autoTable
     const tableData = transactions.map(tx => [
@@ -258,7 +270,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     ]);
     
     autoTable(doc, {
-      startY: 55,
+      startY: 58,
       head: [['Tarih', 'Açıklama', 'Tutar']],
       body: tableData,
       theme: 'striped',
