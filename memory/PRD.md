@@ -51,6 +51,7 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Üç alt sekme: Kuryeler, İşletmeler, Cariler + Hareketler (Activity Log)
 - [x] **Inline form ile ödeme işlemleri (Modal kaldırıldı)**
 - [x] Ödeme Al (payment_in) ve Ödeme Yap (payment_out)
+- [x] **Butonlar alt kısımda yan yana hizalı (Verilen/Alınan)**
 - [x] Bakiye takibi (yeşil/kırmızı renk kodlaması)
 - [x] İşlem geçmişi tablosu (infinite scroll, arama/filtreleme)
 - [x] **Hakediş checkbox'ı (sadece Kuryeler tabında)**
@@ -60,9 +61,15 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Kurye arşivleme (bakiye kontrolü ile)
 - [x] **İşlem silme** (onay ile, Activity Log'a kaydedilir)
 - [x] **Özel tarih seçimi** ("Şimdi" butonu + datetime-local input)
-- [x] **PDF Export** (jspdf-autotable ile tablo formatında)
+- [x] **PDF Export** (jspdf-autotable ile tablo formatında, beyaz başlık)
+- [x] **PDF'e şirket logosu ekleme** (sağ üst köşe, 30x30)
 - [x] **Tarih seçici timezone düzeltmesi** (yerel saat gösterimi)
 - [x] **Tutar input scroll engelleme** (onWheel blur)
+- [x] **PDF'de Türkçe karakter desteği** (Unicode escape ile)
+
+### UI/UX Güncellemeleri (16 Ocak 2026)
+- [x] Login sayfası arka plan görseli değiştirildi
+- [x] Footer: "Bir AgrosJet kuruluşudur" → "Powered by AgrosJet." (tüm sayfalarda)
 
 ### Kuryeler Sayfası (Tamamlandı - 15 Ocak 2026)
 - [x] İsim veya plaka ile arama/filtreleme
