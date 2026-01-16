@@ -248,6 +248,48 @@ export default function ZimmetPage() {
     }
   };
 
+  const openEditProduct = (product) => {
+    setEditProduct({
+      id: product.id,
+      name: product.name,
+      product_type_id: product.product_type_id,
+      serial_number: product.serial_number || "",
+      pos_serial: product.pos_serial || "",
+      pos_terminal: product.pos_terminal || "",
+      notes: product.notes || ""
+    });
+    setShowEditProduct(true);
+  };
+
+  const handleEditProduct = async (e) => {
+    e.preventDefault();
+    if (!editProduct.name.trim() || !editProduct.product_type_id) {
+      toast.error("Ürün adı ve tipi gerekli");
+      return;
+    }
+    try {
+      await axios.put(`${API}/products/${editProduct.id}?admin_id=${adminId}&admin_name=${encodeURIComponent(adminName)}`, {
+        name: editProduct.name,
+        product_type_id: editProduct.product_type_id,
+        serial_number: editProduct.serial_number,
+        pos_serial: editProduct.pos_serial,
+        pos_terminal: editProduct.pos_terminal,
+        notes: editProduct.notes
+      });
+      toast.success("Ürün güncellendi");
+      setShowEditProduct(false);
+      fetchProducts();
+      fetchLogs();
+      // Refresh selected product if it was the edited one
+      if (selectedProduct?.id === editProduct.id) {
+        const updated = await axios.get(`${API}/products/${editProduct.id}`);
+        setSelectedProduct(updated.data);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncellenemedi");
+    }
+  };
+
   const handleDeleteProduct = async (productId) => {
     if (!window.confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
     try {
