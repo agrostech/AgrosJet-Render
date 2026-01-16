@@ -187,6 +187,88 @@ export default function VardiyaPage({ companyId }) {
     return couriers.filter(c => !onLeaveIds.includes(c.id));
   };
 
+  // Toplu seçim fonksiyonları
+  const isCellSelected = (shiftId, day) => {
+    return selectedCells.some(c => c.shiftId === shiftId && c.day === day);
+  };
+
+  const handleCellClick = (e, shiftId, day) => {
+    if (!editMode) return;
+    
+    // Ctrl veya Cmd tuşu basılı ise toplu seçim modunda
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      setSelectedCells(prev => {
+        const exists = prev.some(c => c.shiftId === shiftId && c.day === day);
+        if (exists) {
+          // Zaten seçili ise kaldır
+          return prev.filter(c => !(c.shiftId === shiftId && c.day === day));
+        } else {
+          // Seçili değilse ekle
+          return [...prev, { shiftId, day }];
+        }
+      });
+    } else {
+      // Normal tıklama - tek kurye ekleme modalı aç
+      const shift = shifts.find(s => s.id === shiftId);
+      openAssignModal(shift, day);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedCells([]);
+  };
+
+  const handleBulkAssign = async (courierId) => {
+    if (selectedCells.length === 0) return;
+    
+    setBulkAssigning(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const cell of selectedCells) {
+      try {
+        await axios.post(`${API}/shifts/${cell.shiftId}/assign`, {
+          courier_id: courierId,
+          day: cell.day
+        });
+        successCount++;
+      } catch (err) {
+        failCount++;
+      }
+    }
+
+    setBulkAssigning(false);
+    setShowBulkAssignModal(false);
+    clearSelection();
+    fetchData();
+
+    if (successCount > 0) {
+      toast.success(`${successCount} vardiyaya kurye atandı`);
+    }
+    if (failCount > 0) {
+      toast.error(`${failCount} vardiyaya atama başarısız (zaten atanmış olabilir)`);
+    }
+  };
+
+  const getAvailableCouriersForBulkAssign = useCallback(() => {
+    // Tüm seçili hücrelerde zaten atanmış olan kuryeleri bul
+    const assignedInAllCells = new Set();
+    
+    selectedCells.forEach(cell => {
+      const cellAssignments = assignments.filter(
+        a => a.shift_id === cell.shiftId && a.day === cell.day
+      );
+      cellAssignments.forEach(a => assignedInAllCells.add(a.courier_id));
+    });
+
+    // Tüm kuryeleri döndür (zaten atanmış olanları işaretle)
+    return couriers.map(c => ({
+      ...c,
+      alreadyAssignedSomewhere: assignedInAllCells.has(c.id)
+    }));
+  }, [selectedCells, assignments, couriers]);
+
   if (loading) return <p>Yükleniyor...</p>;
 
   return (
