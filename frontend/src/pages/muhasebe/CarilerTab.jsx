@@ -4,16 +4,29 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Plus, Minus, Wallet, Trash2, Archive, ArchiveRestore, Search, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Minus, Wallet, Trash2, Archive, ArchiveRestore, Search, Download, Clock } from "lucide-react";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Helper: Get local datetime string for datetime-local input
+const getLocalDateTimeString = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const local = new Date(now.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 16);
+};
+
+// Helper: Check if datetime is approximately "now" (within 2 minutes)
+const isApproximatelyNow = (dateStr) => {
+  if (!dateStr) return true;
+  const inputDate = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.abs(now.getTime() - inputDate.getTime());
+  return diff < 2 * 60 * 1000;
+};
 
 export default function CarilerTab({ companyId, adminId, adminName }) {
   const [vendors, setVendors] = useState([]);
@@ -31,7 +44,8 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [txDate, setTxDate] = useState(() => new Date().toISOString().slice(0, 16));
+  const [useCustomDate, setUseCustomDate] = useState(false);
+  const [txDate, setTxDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const listRef = useRef(null);
 
@@ -104,7 +118,7 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
     if (selectedVendor) {
       fetchTransactions(selectedVendor.id);
       setAmount(""); setDescription(""); setDisplayCount(10); setSearchQuery("");
-      setTxDate(new Date().toISOString().slice(0, 16));
+      setUseCustomDate(false); setTxDate("");
     }
   }, [selectedVendor]);
 
@@ -160,7 +174,7 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
     if (!amount || parseFloat(amount) <= 0) { toast.error("Geçerli bir tutar girin"); return; }
     setSubmitting(true);
     try {
-      await axios.post(`${API}/transactions`, {
+      const payload = {
         entity_type: "vendor",
         entity_id: selectedVendor.id,
         company_id: companyId,
@@ -169,11 +183,12 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
         description: description || (type === "in" ? "Verilen" : "Alınan"),
         is_hakedis: false,
         admin_id: adminId,
-        admin_name: adminName,
-        custom_date: txDate
-      });
+        admin_name: adminName
+      };
+      if (useCustomDate && txDate) payload.custom_date = txDate;
+      await axios.post(`${API}/transactions`, payload);
       toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
-      setAmount(""); setDescription(""); setTxDate(new Date().toISOString().slice(0, 16));
+      setAmount(""); setDescription(""); setUseCustomDate(false); setTxDate("");
       fetchTransactions(selectedVendor.id);
       fetchVendorBalance(selectedVendor.id, selectedVendor.is_archived);
     } catch (err) {
@@ -195,33 +210,65 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
     }
   };
 
+  const formatMoney = (amt) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(amt)) + ' TL';
+
   const exportPDF = () => {
     if (!selectedVendor || transactions.length === 0) { toast.error("İndirilecek işlem bulunamadı"); return; }
+    
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(51, 51, 51);
+    doc.rect(0, 0, pageWidth, 30, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(18);
-    doc.text("İşlem Geçmişi Raporu", pageWidth / 2, 20, { align: "center" });
-    doc.setFontSize(12);
-    doc.text(`Cari: ${selectedVendor.name}`, 14, 35);
-    doc.text(`Bakiye: ${balance > 0 ? '-' : ''}${formatCurrency(balance)}`, 14, 42);
-    doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 14, 49);
-    let y = 65;
-    doc.setFillColor(240, 240, 240);
-    doc.rect(14, y - 5, pageWidth - 28, 10, 'F');
+    doc.text("Islem Gecmisi Raporu", pageWidth / 2, 12, { align: "center" });
+    doc.setFontSize(11);
+    doc.text(`Cari: ${selectedVendor.name}`, pageWidth / 2, 22, { align: "center" });
+    
+    // Summary box
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(245, 245, 245);
+    doc.rect(14, 36, pageWidth - 28, 14, 'F');
     doc.setFontSize(10);
-    doc.text("Tarih", 16, y); doc.text("Açıklama", 50, y); doc.text("Tutar", pageWidth - 30, y, { align: "right" });
-    y += 10;
-    transactions.forEach((tx, index) => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      if (index % 2 === 0) { doc.setFillColor(250, 250, 250); doc.rect(14, y - 5, pageWidth - 28, 8, 'F'); }
-      doc.setTextColor(0, 0, 0);
-      doc.text(new Date(tx.created_at).toLocaleDateString('tr-TR'), 16, y);
-      doc.text(tx.description.substring(0, 40), 50, y);
-      doc.setTextColor(tx.type === 'payment_in' ? 0 : 200, tx.type === 'payment_in' ? 128 : 0, 0);
-      doc.text(`${tx.type === 'payment_out' ? '-' : ''}${formatCurrency(tx.amount)}`, pageWidth - 30, y, { align: "right" });
-      y += 8;
+    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Borc)` : `${formatMoney(balance)} (Alacak)`);
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam: ${transactions.length} islem  |  Bakiye: ${balanceText}`, pageWidth / 2, 44, { align: "center" });
+    
+    // Table
+    const tableData = transactions.map(tx => [
+      new Date(tx.created_at).toLocaleDateString('tr-TR') + ' ' + new Date(tx.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+      (tx.description || '').substring(0, 40),
+      (tx.type === 'payment_out' ? '-' : '') + formatMoney(tx.amount)
+    ]);
+    
+    autoTable(doc, {
+      startY: 55,
+      head: [['Tarih', 'Aciklama', 'Tutar']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
+      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 35, halign: 'right' } },
+      styles: { fontSize: 9 },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 2) {
+          if (data.cell.raw.startsWith('-')) data.cell.styles.textColor = [200, 0, 0];
+          else data.cell.styles.textColor = [0, 128, 0];
+        }
+      },
+      margin: { left: 14, right: 14 },
     });
-    doc.save(`${selectedVendor.name}_islem_gecmisi.pdf`);
+    
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text("ShiftJet Kurye Yonetim Sistemi", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+    }
+    
+    doc.save(`${selectedVendor.name.replace(/[^a-zA-Z0-9]/g, '_')}_islem_gecmisi.pdf`);
     toast.success("PDF indirildi");
   };
 
@@ -233,6 +280,12 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
     : Object.values(vendorBalances).reduce((sum, bal) => sum + (bal || 0), 0);
   const displayList = showArchived ? archivedVendors : vendors;
   const balancesMap = showArchived ? archivedBalances : vendorBalances;
+
+  const getDateDisplayText = () => {
+    if (!useCustomDate) return "Şimdi";
+    if (isApproximatelyNow(txDate)) return "Şimdi";
+    return new Date(txDate).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  };
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -303,11 +356,29 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
             </div>
             <div className="p-4 border-b border-slate-200">
               <div className="flex flex-wrap items-end gap-3">
-                <div className="w-32"><Label className="text-xs">Tutar</Label><Input type="number" placeholder="Tutar" value={amount} onChange={(e) => setAmount(e.target.value)} onWheel={(e) => e.target.blur()} className="h-9" /></div>
-                <div className="flex-1 min-w-[150px]"><Label className="text-xs">Açıklama</Label><Input placeholder="Açıklama" value={description} onChange={(e) => setDescription(e.target.value)} className="h-9" /></div>
-                <div className="w-44"><Label className="text-xs">Tarih</Label><Input type="datetime-local" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9" /></div>
-                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
-                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
+                <div className="w-32">
+                  <Label className="text-xs">Tutar</Label>
+                  <Input type="number" placeholder="Tutar" value={amount} onChange={(e) => setAmount(e.target.value)} onWheel={(e) => e.target.blur()} className="h-9" data-testid="amount-input" />
+                </div>
+                <div className="flex-1 min-w-[150px]">
+                  <Label className="text-xs">Açıklama</Label>
+                  <Input placeholder="Açıklama" value={description} onChange={(e) => setDescription(e.target.value)} className="h-9" />
+                </div>
+                <div className="flex items-center gap-2">
+                  {useCustomDate ? (
+                    <div className="w-44">
+                      <Label className="text-xs">{isApproximatelyNow(txDate) ? 'Şimdi' : 'Tarih'}</Label>
+                      <Input type="datetime-local" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9" />
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => { setUseCustomDate(true); setTxDate(getLocalDateTimeString()); }} className="h-9" data-testid="date-picker-btn">
+                      <Clock className="w-4 h-4 mr-1" />{getDateDisplayText()}
+                    </Button>
+                  )}
+                  {useCustomDate && <Button size="sm" variant="ghost" onClick={() => { setUseCustomDate(false); setTxDate(""); }} className="h-9 px-2 text-xs">İptal</Button>}
+                </div>
+                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
+                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
             <div className="p-3 border-b border-slate-200 flex items-center gap-3">
@@ -316,7 +387,7 @@ export default function CarilerTab({ companyId, adminId, adminName }) {
                 <Input placeholder="Açıklama veya tarih ara..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-8 h-8 text-sm" />
               </div>
               <span className="text-xs text-muted-foreground">{filteredTransactions.length} / {transactions.length}</span>
-              <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto"><Download className="w-4 h-4 mr-1" />PDF</Button>
+              <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto" data-testid="export-pdf-btn"><Download className="w-4 h-4 mr-1" />PDF</Button>
             </div>
             <div ref={listRef} onScroll={handleScroll} className="max-h-[280px] overflow-y-auto">
               {filteredTransactions.length === 0 ? (

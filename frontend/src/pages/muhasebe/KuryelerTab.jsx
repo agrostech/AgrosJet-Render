@@ -7,8 +7,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, User, Trash2, Archive, ArchiveRestore, Search, Download, Clock } from "lucide-react";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Helper: Get local datetime string for datetime-local input
+const getLocalDateTimeString = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const local = new Date(now.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 16);
+};
+
+// Helper: Check if datetime is approximately "now" (within 2 minutes)
+const isApproximatelyNow = (dateStr) => {
+  if (!dateStr) return true;
+  const inputDate = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.abs(now.getTime() - inputDate.getTime());
+  return diff < 2 * 60 * 1000; // 2 minutes tolerance
+};
 
 export default function KuryelerTab({ companyId, adminId, adminName }) {
   const [couriers, setCouriers] = useState([]);
@@ -184,91 +202,71 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    
-    // Turkish character mapping
-    const turkishMap = { 'ş': 's', 'Ş': 'S', 'ı': 'i', 'İ': 'I', 'ğ': 'g', 'Ğ': 'G', 'ü': 'u', 'Ü': 'U', 'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C' };
-    const toAscii = (str) => str ? str.replace(/[şŞıİğĞüÜöÖçÇ]/g, c => turkishMap[c] || c) : '';
-    const formatMoney = (amt) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(amt)) + ' TL';
     
     // Header
     doc.setFillColor(51, 51, 51);
-    doc.rect(0, 0, pageWidth, 35, 'F');
+    doc.rect(0, 0, pageWidth, 30, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
-    doc.text(toAscii("İşlem Geçmişi Raporu"), pageWidth / 2, 15, { align: "center" });
+    doc.setFontSize(18);
+    doc.text("Islem Gecmisi Raporu", pageWidth / 2, 12, { align: "center" });
     doc.setFontSize(11);
-    doc.text(toAscii(`Kurye: ${selectedCourier.name}`), pageWidth / 2, 25, { align: "center" });
-    doc.text(`Tel: ${selectedCourier.phone}`, pageWidth / 2, 31, { align: "center" });
+    doc.text(`Kurye: ${selectedCourier.name}`, pageWidth / 2, 20, { align: "center" });
+    doc.text(`Tel: ${selectedCourier.phone}`, pageWidth / 2, 26, { align: "center" });
     
-    // Info box
+    // Summary box
     doc.setTextColor(0, 0, 0);
     doc.setFillColor(245, 245, 245);
-    doc.rect(14, 42, pageWidth - 28, 18, 'F');
+    doc.rect(14, 36, pageWidth - 28, 14, 'F');
     doc.setFontSize(10);
-    doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 20, 52);
-    doc.text(toAscii(`Toplam İşlem: ${transactions.length}`), 80, 52);
-    const balText = balance > 0 ? `-${formatMoney(balance)} (Borc)` : balance < 0 ? `${formatMoney(balance)} (Alacak)` : '0,00 TL';
-    doc.text(`Bakiye: ${balText}`, 140, 52);
+    const balanceText = balance === 0 ? '0,00 TL' : (balance > 0 ? `-${formatMoney(balance)} (Borc)` : `${formatMoney(balance)} (Alacak)`);
+    doc.text(`Rapor: ${new Date().toLocaleDateString('tr-TR')}  |  Toplam: ${transactions.length} islem  |  Bakiye: ${balanceText}`, pageWidth / 2, 44, { align: "center" });
     
-    // Table header
-    let y = 70;
-    doc.setFillColor(70, 130, 180);
-    doc.rect(14, y, pageWidth - 28, 10, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.text("Tarih", 18, y + 7);
-    doc.text(toAscii("Açıklama"), 55, y + 7);
-    doc.text("Tutar", pageWidth - 20, y + 7, { align: "right" });
-    y += 14;
+    // Table with autoTable
+    const tableData = transactions.map(tx => [
+      new Date(tx.created_at).toLocaleDateString('tr-TR') + ' ' + new Date(tx.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+      (tx.description || '').substring(0, 40) + (tx.is_hakedis ? ' (Hakedis)' : ''),
+      (tx.type === 'payment_out' ? '-' : '') + formatMoney(tx.amount)
+    ]);
     
-    // Table rows
-    doc.setTextColor(0, 0, 0);
-    transactions.forEach((tx, index) => {
-      if (y > pageHeight - 30) {
-        doc.addPage();
-        y = 20;
-        // Repeat header on new page
-        doc.setFillColor(70, 130, 180);
-        doc.rect(14, y, pageWidth - 28, 10, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.text("Tarih", 18, y + 7);
-        doc.text(toAscii("Açıklama"), 55, y + 7);
-        doc.text("Tutar", pageWidth - 20, y + 7, { align: "right" });
-        y += 14;
-        doc.setTextColor(0, 0, 0);
-      }
-      
-      if (index % 2 === 0) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(14, y - 5, pageWidth - 28, 10, 'F');
-      }
-      
-      const date = new Date(tx.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const time = new Date(tx.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-      const desc = toAscii(tx.description) + (tx.is_hakedis ? ' (Hakedis)' : '');
-      const amtText = `${tx.type === 'payment_out' ? '-' : ''}${formatMoney(tx.amount)}`;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`${date} ${time}`, 18, y + 2);
-      doc.setTextColor(0, 0, 0);
-      doc.text(desc.substring(0, 45), 55, y + 2);
-      doc.setTextColor(tx.type === 'payment_in' ? 0 : 200, tx.type === 'payment_in' ? 128 : 0, 0);
-      doc.text(amtText, pageWidth - 20, y + 2, { align: "right" });
-      
-      y += 10;
+    autoTable(doc, {
+      startY: 55,
+      head: [['Tarih', 'Aciklama', 'Tutar']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 35, halign: 'right' }
+      },
+      styles: { fontSize: 9 },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 2) {
+          const text = data.cell.raw;
+          if (text.startsWith('-')) {
+            data.cell.styles.textColor = [200, 0, 0];
+          } else {
+            data.cell.styles.textColor = [0, 128, 0];
+          }
+        }
+      },
+      margin: { left: 14, right: 14 },
     });
     
     // Footer
-    doc.setTextColor(150, 150, 150);
-    doc.setFontSize(8);
-    doc.text("ShiftJet Kurye Yonetim Sistemi", pageWidth / 2, pageHeight - 10, { align: "center" });
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text("ShiftJet Kurye Yonetim Sistemi", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+    }
     
-    doc.save(`${toAscii(selectedCourier.name)}_islem_gecmisi.pdf`);
+    doc.save(`${selectedCourier.name.replace(/[^a-zA-Z0-9]/g, '_')}_islem_gecmisi.pdf`);
     toast.success("PDF indirildi");
   };
 
+  const formatMoney = (amt) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(amt)) + ' TL';
   const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
   const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   
@@ -284,6 +282,13 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
   
   const displayList = showArchived ? archivedCouriers : couriers;
   const balancesMap = showArchived ? archivedBalances : courierBalances;
+
+  // Get display text for date button
+  const getDateDisplayText = () => {
+    if (!useCustomDate) return "Şimdi";
+    if (isApproximatelyNow(txDate)) return "Şimdi";
+    return new Date(txDate).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  };
 
   if (loading) return <p>Yükleniyor...</p>;
 
@@ -344,7 +349,15 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
               <div className="flex flex-wrap items-end gap-3">
                 <div className="w-28">
                   <Label className="text-xs">Tutar</Label>
-                  <Input type="number" placeholder="Tutar" value={amount} onChange={(e) => setAmount(e.target.value)} onWheel={(e) => e.target.blur()} className="h-9" />
+                  <Input 
+                    type="number" 
+                    placeholder="Tutar" 
+                    value={amount} 
+                    onChange={(e) => setAmount(e.target.value)} 
+                    onWheel={(e) => e.target.blur()} 
+                    className="h-9" 
+                    data-testid="amount-input"
+                  />
                 </div>
                 <div className="flex-1 min-w-[120px]">
                   <Label className="text-xs">Açıklama</Label>
@@ -353,12 +366,23 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                 <div className="flex items-center gap-2">
                   {useCustomDate ? (
                     <div className="w-44">
-                      <Label className="text-xs">Tarih</Label>
-                      <Input type="datetime-local" value={txDate} onChange={(e) => setTxDate(e.target.value)} className="h-9" />
+                      <Label className="text-xs">{isApproximatelyNow(txDate) ? 'Şimdi' : 'Tarih'}</Label>
+                      <Input 
+                        type="datetime-local" 
+                        value={txDate} 
+                        onChange={(e) => setTxDate(e.target.value)} 
+                        className="h-9" 
+                      />
                     </div>
                   ) : (
-                    <Button size="sm" variant="outline" onClick={() => { setUseCustomDate(true); setTxDate(new Date().toISOString().slice(0, 16)); }} className="h-9">
-                      <Clock className="w-4 h-4 mr-1" />Şimdi
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => { setUseCustomDate(true); setTxDate(getLocalDateTimeString()); }} 
+                      className="h-9"
+                      data-testid="date-picker-btn"
+                    >
+                      <Clock className="w-4 h-4 mr-1" />{getDateDisplayText()}
                     </Button>
                   )}
                   {useCustomDate && (
@@ -369,8 +393,8 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                   <Checkbox id="hakedis" checked={isHakedis} onCheckedChange={setIsHakedis} />
                   <Label htmlFor="hakedis" className="text-xs cursor-pointer">Hakediş</Label>
                 </div>
-                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
-                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
+                <Button size="sm" onClick={() => handlePayment("in")} disabled={submitting} className="bg-green-600 hover:bg-green-700 h-9" data-testid="payment-in-btn"><Plus className="w-4 h-4 mr-1" />Verilen</Button>
+                <Button size="sm" onClick={() => handlePayment("out")} disabled={submitting} className="bg-red-600 hover:bg-red-700 h-9" data-testid="payment-out-btn"><Minus className="w-4 h-4 mr-1" />Alınan</Button>
               </div>
             </div>
             <div className="p-3 border-b border-slate-200 flex items-center gap-3">
@@ -379,7 +403,7 @@ export default function KuryelerTab({ companyId, adminId, adminName }) {
                 <Input placeholder="Açıklama veya tarih ara..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-8 h-8 text-sm" />
               </div>
               <span className="text-xs text-muted-foreground">{filteredTransactions.length} / {transactions.length}</span>
-              <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto"><Download className="w-4 h-4 mr-1" />PDF</Button>
+              <Button size="sm" variant="outline" onClick={exportPDF} className="h-8 ml-auto" data-testid="export-pdf-btn"><Download className="w-4 h-4 mr-1" />PDF</Button>
             </div>
             <div ref={listRef} onScroll={handleScroll} className="max-h-[280px] overflow-y-auto">
               {filteredTransactions.length === 0 ? (
