@@ -142,7 +142,11 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - `/app/tests/test_muhasebe_api.py` - Muhasebe API testleri
 
 ## Changelog (16 Ocak 2026)
-- **Bug Fix**: Tarih/saat seçici timezone sorunu düzeltildi - `getLocalDateTimeString()` fonksiyonu eklendi
-- **Bug Fix**: PDF export kalitesi iyileştirildi - `jspdf-autotable` kütüphanesi ile tablo formatı
-- **Bug Fix**: Tutar input scroll sorunu düzeltildi - `onWheel` handler ile engellendi
-- **Enhancement**: Cariler sekmesi "Şimdi" buton sistemine güncellendi (diğer sekmelerle tutarlı)
+- **UI Fix**: Verilen/Alınan butonları alt kısımda yan yana hizalandı
+- **PDF Fix**: Başlık beyaz yapıldı (baskı için), Tel bilgisi kaldırıldı
+- **PDF Feature**: Şirket logosu sağ üst köşeye eklendi (30x30)
+- **PDF Fix**: Türkçe karakterler Unicode escape ile düzeltildi (İşlem Geçmişi Raporu)
+- **UI Update**: Login sayfası arka plan görseli değiştirildi
+- **Footer Update**: "Bir AgrosJet kuruluşudur" → "Powered by AgrosJet." (tüm sayfalar)
+- **Bug Fix**: Tarih/saat seçici timezone sorunu düzeltildi
+- **Bug Fix**: Tutar input scroll sorunu düzeltildi
