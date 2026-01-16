@@ -445,6 +445,16 @@ async def delete_admin(admin_id: str):
     if admin["role"] == "systemadmin":
         raise HTTPException(status_code=403, detail="Sistem yöneticisi silinemez")
     await db.admins.delete_one({"id": admin_id})
+    # Session invalidate et (silinen kullanıcı aktif oturumdaysa çıkış yapsın)
+    await db.invalidated_sessions.update_one(
+        {"user_id": admin_id},
+        {"$set": {
+            "user_id": admin_id,
+            "invalidated_at": datetime.now(timezone.utc).isoformat(),
+            "reason": "user_deleted"
+        }},
+        upsert=True
+    )
     return {"message": "Yönetici silindi", "invalidated_user_id": admin_id}
 
 class AdminUpdate(BaseModel):
