@@ -207,8 +207,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
     doc.setFont("Roboto");
     
-    // Add company logo if available (top right corner)
-    if (companyLogo) {
+    // Add company logo if available (top right corner, 50x50 in PDF which is ~250px)
+    console.log("Company Logo URL:", companyLogo);
+    if (companyLogo && companyLogo.trim() !== '') {
       try {
         const img = new Image();
         img.crossOrigin = "anonymous";
@@ -218,12 +219,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           img.onerror = reject;
           setTimeout(reject, 5000);
         });
-        // Logo max 35x35 at top right
-        const maxSize = 35;
-        const ratio = Math.min(maxSize / img.width, maxSize / img.height);
-        const w = img.width * ratio;
-        const h = img.height * ratio;
-        doc.addImage(img, 'PNG', pageWidth - w - 14, 8, w, h);
+        // Logo 50x50 mm in PDF (approximately 250x250 pixels at 72 DPI)
+        const logoSize = 50;
+        doc.addImage(img, 'PNG', pageWidth - logoSize - 14, 5, logoSize, logoSize);
       } catch (e) {
         console.log("Logo yüklenemedi:", e);
       }
