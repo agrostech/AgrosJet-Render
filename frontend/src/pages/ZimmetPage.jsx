@@ -537,8 +537,8 @@ export default function ZimmetPage() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getActionColor(log.action)}`}>
-                              {getActionLabel(log.action)}
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getActionColor(log.action, log.details)}`}>
+                              {getActionLabel(log.action, log.details)}
                             </span>
                             <span className="text-xs text-muted-foreground">{formatDate(log.created_at)}</span>
                           </div>
