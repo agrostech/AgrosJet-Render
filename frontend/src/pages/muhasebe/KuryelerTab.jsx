@@ -284,13 +284,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       theme: 'striped',
       headStyles: { 
         fillColor: [70, 130, 180], 
-        textColor: 255,
-        font: 'Roboto',
-        fontStyle: 'normal'
-      },
-      bodyStyles: { 
-        font: 'Roboto',
-        fontStyle: 'normal'
+        textColor: 255
       },
       columnStyles: {
         0: { cellWidth: 40 },
@@ -298,15 +292,12 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
         2: { cellWidth: 35, halign: 'right' }
       },
       styles: { 
-        fontSize: 9, 
-        font: 'Roboto',
-        fontStyle: 'normal'
+        fontSize: 9
+      },
+      willDrawCell: (data) => {
+        doc.setFont('Roboto', 'normal');
       },
       didParseCell: (data) => {
-        // Ensure font is set for each cell
-        data.cell.styles.font = 'Roboto';
-        data.cell.styles.fontStyle = 'normal';
-        
         if (data.section === 'body' && data.column.index === 2) {
           const text = data.cell.raw;
           if (text.startsWith('-')) {
