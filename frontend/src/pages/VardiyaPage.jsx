@@ -49,6 +49,27 @@ export default function VardiyaPage({ companyId }) {
   // Toplu seçim için state
   const [selectedCells, setSelectedCells] = useState([]); // [{shiftId, day}]
   const [bulkAssigning, setBulkAssigning] = useState(false);
+  const [ctrlPressed, setCtrlPressed] = useState(false);
+
+  // Ctrl tuşu takibi
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        setCtrlPressed(true);
+      }
+    };
+    const handleKeyUp = (e) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        setCtrlPressed(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   const fetchData = async () => {
     try {
