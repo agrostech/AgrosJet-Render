@@ -103,21 +103,35 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     if (companyId) { fetchCouriers(); fetchArchivedCouriers(); }
   }, [companyId]);
 
-  const fetchTransactions = async (courierId) => {
+  const fetchTransactions = async (courierId, append = false) => {
     try {
-      const res = await axios.get(`${API}/transactions/courier/${courierId}`);
-      setTransactions(res.data.transactions);
+      const skip = append ? transactions.length : 0;
+      const res = await axios.get(`${API}/transactions/courier/${courierId}?skip=${skip}&limit=10`);
+      if (append) {
+        setTransactions(prev => [...prev, ...res.data.transactions]);
+      } else {
+        setTransactions(res.data.transactions);
+      }
       setBalance(res.data.balance);
+      setTotalCount(res.data.total_count);
+      setHasMore(res.data.has_more);
     } catch (err) {
       toast.error("İşlemler yüklenemedi");
     }
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore || !selectedCourier) return;
+    setLoadingMore(true);
+    await fetchTransactions(selectedCourier.id, true);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
     if (selectedCourier) {
       fetchTransactions(selectedCourier.id);
       setAmount(""); setDescription(""); setIsHakedis(false);
-      setDisplayCount(10); setSearchQuery("");
+      setSearchQuery("");
       setUseCustomDate(false); setTxDate("");
     }
   }, [selectedCourier]);
