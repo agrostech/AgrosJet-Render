@@ -426,7 +426,8 @@ export default function VardiyaPage({ companyId }) {
                             </div>
                           )}
                           {courierCount === 0 ? (
-                            editMode && !isSelected && (
+                            // Boş hücre - Ctrl basılı DEĞİLSE + butonu göster
+                            editMode && !isSelected && !ctrlPressed && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); openAssignModal(shift, day.key); }}
                                 className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
@@ -446,9 +447,9 @@ export default function VardiyaPage({ companyId }) {
                               {/* Scrollable kurye listesi */}
                               <div className="max-h-[60px] overflow-y-auto space-y-0.5 scrollbar-thin">
                                 {cellAssignments.map(a => (
-                                  <div key={a.id} className="flex items-center justify-between bg-blue-50 px-1 py-0.5 rounded text-[9px] group">
+                                  <div key={a.id} className="flex items-center justify-between bg-blue-50/80 px-1 py-0.5 rounded text-[9px] group">
                                     <span className="font-medium truncate" title={a.courier_name}>{a.courier_name}</span>
-                                    {editMode && (
+                                    {editMode && !ctrlPressed && (
                                       <button
                                         onClick={(e) => { e.stopPropagation(); handleRemoveAssignment(a.id); }}
                                         className="text-red-500 hover:text-red-700 ml-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100"
@@ -459,7 +460,8 @@ export default function VardiyaPage({ companyId }) {
                                   </div>
                                 ))}
                               </div>
-                              {editMode && !isSelected && (
+                              {/* Ctrl basılı DEĞİLSE + butonu göster */}
+                              {editMode && !isSelected && !ctrlPressed && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); openAssignModal(shift, day.key); }}
                                   className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300 mt-0.5"
