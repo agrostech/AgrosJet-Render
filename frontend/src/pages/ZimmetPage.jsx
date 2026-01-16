@@ -822,7 +822,7 @@ export default function ZimmetPage() {
       </div>
 
       {/* Product Types Modal */}
-      <Dialog open={showProductTypes} onOpenChange={setShowProductTypes}>
+      <Dialog open={showProductTypes} onOpenChange={(open) => { setShowProductTypes(open); if (!open) setEditingType(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Ürün Tipleri</DialogTitle>
@@ -855,16 +855,45 @@ export default function ZimmetPage() {
                 <p className="p-4 text-sm text-muted-foreground text-center">Henüz ürün tipi yok</p>
               ) : (
                 productTypes.map((type) => (
-                  <div key={type.id} className="p-3 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{type.name}</p>
-                      {type.has_pos_fields && (
-                        <p className="text-xs text-muted-foreground">POS alanları aktif</p>
-                      )}
-                    </div>
-                    <Button size="sm" variant="ghost" onClick={() => handleDeleteProductType(type.id)}>
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
+                  <div key={type.id} className="p-3">
+                    {editingType?.id === type.id ? (
+                      <div className="space-y-2">
+                        <Input
+                          value={editingType.name}
+                          onChange={(e) => setEditingType({ ...editingType, name: e.target.value })}
+                          className="h-8"
+                        />
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            id={`editHasPos-${type.id}`}
+                            checked={editingType.has_pos_fields} 
+                            onCheckedChange={(checked) => setEditingType({ ...editingType, has_pos_fields: checked })}
+                          />
+                          <Label htmlFor={`editHasPos-${type.id}`} className="text-xs">POS alanları</Label>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleEditProductType}>Kaydet</Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingType(null)}>İptal</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{type.name}</p>
+                          {type.has_pos_fields && (
+                            <p className="text-xs text-muted-foreground">POS alanları aktif</p>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => setEditingType({ id: type.id, name: type.name, has_pos_fields: type.has_pos_fields })}>
+                            <Pencil className="w-4 h-4 text-slate-500" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDeleteProductType(type.id)}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
