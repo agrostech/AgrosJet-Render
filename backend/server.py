@@ -1027,37 +1027,51 @@ async def create_transaction(data: TransactionCreate):
     
     return {"message": "İşlem kaydedildi", "id": transaction["id"]}
 
-async def get_entity_transactions(entity_type: str, entity_id: str):
+async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 0, limit: int = 10):
     """Helper to get transactions and calculate balance for an entity"""
+    # Get total count
+    total_count = await db.transactions.count_documents({"entity_type": entity_type, "entity_id": entity_id})
+    
+    # Get paginated transactions
     transactions = await db.transactions.find(
         {"entity_type": entity_type, "entity_id": entity_id},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(1000)
+    ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
-    # Calculate balance: payment_out adds debt (+), payment_in reduces debt (-)
+    # Calculate balance from ALL transactions (not just paginated)
+    all_transactions = await db.transactions.find(
+        {"entity_type": entity_type, "entity_id": entity_id},
+        {"_id": 0, "type": 1, "amount": 1}
+    ).to_list(10000)
+    
     balance = 0
-    for tx in transactions:
+    for tx in all_transactions:
         if tx["type"] == "payment_out":
             balance += tx["amount"]
         else:  # payment_in
             balance -= tx["amount"]
     
-    return {"transactions": transactions, "balance": balance}
+    return {
+        "transactions": transactions, 
+        "balance": balance,
+        "total_count": total_count,
+        "has_more": skip + limit < total_count
+    }
 
 @api_router.get("/transactions/courier/{courier_id}")
-async def get_courier_transactions(courier_id: str):
-    """Get all transactions for a courier"""
-    return await get_entity_transactions("courier", courier_id)
+async def get_courier_transactions(courier_id: str, skip: int = 0, limit: int = 10):
+    """Get paginated transactions for a courier"""
+    return await get_entity_transactions("courier", courier_id, skip, limit)
 
 @api_router.get("/transactions/business/{business_id}")
-async def get_business_transactions(business_id: str):
-    """Get all transactions for a business"""
-    return await get_entity_transactions("business", business_id)
+async def get_business_transactions(business_id: str, skip: int = 0, limit: int = 10):
+    """Get paginated transactions for a business"""
+    return await get_entity_transactions("business", business_id, skip, limit)
 
 @api_router.get("/transactions/vendor/{vendor_id}")
-async def get_vendor_transactions(vendor_id: str):
-    """Get all transactions for a vendor"""
-    return await get_entity_transactions("vendor", vendor_id)
+async def get_vendor_transactions(vendor_id: str, skip: int = 0, limit: int = 10):
+    """Get paginated transactions for a vendor"""
+    return await get_entity_transactions("vendor", vendor_id, skip, limit)
 
 class TransactionDeleteRequest(BaseModel):
     admin_id: str
