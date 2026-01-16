@@ -5,91 +5,129 @@ The user wants to build a courier management system from scratch called SHIFTJET
 
 *   **Roles & Dashboards:** System Manager, Super Admin, Admin, Courier.
 *   **Core Functionality:**
-    *   **Courier Management:** Independent registration, search by phone, adding to a company roster, viewing details.
+    *   **Courier Management:** Independent registration, search, adding to a company, viewing details, archiving, and balance checks on deletion.
     *   **Company & Admin Management:** System Manager manages companies and Super Admins. Super Admins manage Admins and Couriers.
-    *   **Shift Management (Vardiya Yönetimi):** A grid-based system where admins can create shifts (e.g., 11:00-23:00) and assign couriers to them for each day of the week. A courier can be on leave, which removes them from all shifts for that day. A day is defined as starting at 06:00 and ending at 05:59 for sorting and reporting purposes.
-    *   **Current Status (Güncel Durum):** A dashboard overview showing the current day's shift report. It highlights the active shift, shows how many couriers are in each shift, and lists the assigned couriers in a compact, multi-line grid.
-    *   **Accounting (Muhasebe):** A system with three sub-tabs (Couriers, Businesses, Vendors). It allows tracking balances by adding Payment In (tahsilat) and Payment Out (borçlandırma) transactions. For couriers, a Hakediş (Payroll) checkbox is available when recording a payment. Businesses and Vendors (Cariler) can be created and managed within their respective tabs.
+    *   **Profile Management:** Admins and couriers can change their own credentials and are logged out upon change or deletion.
+    *   **Shift Management (Vardiya Yönetimi):** A grid-based system for assigning couriers to daily shifts.
+    *   **Current Status (Güncel Durum):** A dashboard overview of the current day's shift report.
+    *   **Accounting (Muhasebe):** A system with four sub-tabs (Couriers, Businesses, Vendors, Activity Logs). It tracks financial transactions, balances, and provides archiving, PDF export, and search capabilities.
+    *   **Activity Logs (Hareketler):** A dedicated tab to log all financial operations (transaction creation/deletion) performed by admins.
     *   **Assigned Items (Zimmet):** Placeholder for future implementation.
 *   **UI/UX & Design:**
     *   Professional, text-heavy, responsive design with Turkish character support.
-    *   Collapsible left-side navigation menu that is fixed and does not scroll with page content.
-    *   Data tables should be clean, using zebra-striping and clear borders.
+    *   Collapsible, fixed left-side navigation.
+    *   Clean data tables and intuitive forms.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A full-stack application (FastAPI + React) for the ShiftJet courier management system. The application has a multi-role architecture and includes:
-- Role-based login and dashboards.
-- System Manager dashboard for company/super admin management.
-- Admin dashboard with several key features:
-    - **Current Status Page:** Shows a real-time daily report of shifts, respecting the 06:00 day start.
-    - **Shift Management Page:** A fully functional grid (Shifts as rows, Days as columns) for creating shifts and assigning/removing couriers and leaves. Includes an edit mode.
-    - **Couriers Page:** Allows searching, viewing details, and managing couriers.
-    - **Accounting Page:** A newly implemented section with Kuryeler, İşletmeler, and Cariler sub-tabs. It tracks financial transactions and balances for each entity.
-- The frontend has been significantly refactored for better code organization (separate files for pages/tabs) and usability (collapsible fixed sidebar, responsive tables).
+A full-stack application (FastAPI + React) for the ShiftJet system. The application features role-based authentication and dashboards. The Admin dashboard is the most feature-rich section, containing:
+- **Courier & Shift Management:** Fully functional pages for managing couriers and their work shifts.
+- **Current Status Page:** A real-time overview of daily shift assignments.
+- **Accounting (Muhasebe) Page:** A comprehensive module with four tabs:
+    1.  **Kuryeler (Couriers), İşletmeler (Businesses), Cariler (Vendors):** These tabs allow for managing entities, tracking their financial balances with color-coding, and viewing transaction history. Key features include inline forms for adding transactions, transaction deletion, archiving, infinite scroll for history, search/filtering, and PDF export.
+    2.  **Hareketler (Activity Logs):** A new tab that logs all transaction additions and deletions, showing which admin performed the action, on whom, and when. It also includes search and infinite scroll.
+
+The agent has just completed a major feature push, adding numerous user-requested enhancements to the accounting section. The user has provided a new list of bug fixes and features to be implemented.
 
 **Last working item**:
-- Last item agent was working: The user requested to refactor the Muhasebe (Accounting) page. Instead of using a modal to add new transactions (Ödeme Al / Ödeme Yap), the agent was implementing an inline form directly within each tab (, , ) for a quicker user experience. The agent overwrote the three relevant files with the new implementation.
+- Last item agent was working: The user requested a large batch of fixes and new features. The agent started by addressing the first set of requests related to the accounting tabs. It overwrote , , and  with new code intended to fix a date/time picker bug, improve PDF generation, and add other UI enhancements.
 - Status: IN PROGRESS
 - Agent Testing Done: N
 - Which testing method agent to use? both
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Verify and test the new inline transaction form in the Accounting section (P0)
+  - Issue 1: Fix PDF Export Quality (P0)
+  - Issue 2: Fix Date/Time Picker Timezone and Display (P1)
+  - Issue 3: Prevent Scroll on Number Inputs (P2)
 
   Issues Detail:
   - Issue 1: 
-     - Attempted fixes: The agent replaced the modal-based forms in , , and  with code for an inline form.
+     - Attempted fixes: The agent installed  and implemented basic PDF generation. The user reported that the output is poorly formatted and does not support Turkish characters. The agent has pushed a new version of the code which needs to be verified.
      - Next debug checklist:
-       1. Start the application and navigate to the Muhasebe page ().
-       2. Go to the Kuryeler tab, select a courier, and verify the new inline form for adding transactions is displayed correctly.
-       3. Test adding a Payment In and Payment Out transaction. Check that the balance updates correctly and the transaction appears in the history.
-       4. Verify the Hakediş checkbox is present and its state is handled.
-       5. Repeat steps 2-4 for the İşletmeler and Cariler tabs (without the Hakediş checkbox).
-       6. Ensure the UI is clean and there are no layout issues.
-     - Why fix this issue and what will be achieved with the fix? This fulfills a direct user request to improve the usability of the accounting feature by removing an extra click/modal.
+       1. Investigate using a library like  to create clean, structured tables.
+       2. Find a method to embed a font that supports Turkish characters (e.g., a custom  font) within the  instance.
+       3. Test the PDF export from the , , and  tabs to ensure the layout is clean and all text renders correctly.
+     - Why fix this issue and what will be achieved with the fix? To provide a professional and usable PDF export feature, a key user requirement.
      - Status:  IN PROGRESS
      - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? both
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on other issue: None
+  - Issue 2: 
+     - Attempted fixes: The user reported the  input defaults to a time 3 hours in the past. The agent overwrote the accounting tab files to try and fix this.
+     - Next debug checklist:
+       1. Verify that the default value for the datetime input is set correctly to the user's current local time, not UTC.
+       2. Implement the UI request: if the current time is selected, the input's label or display should show Şimdi (Now) instead of the full date string. The full date string should only appear when a different date/time is chosen.
+       3. Apply the fix consistently across all three accounting tabs.
+     - Why fix this issue and what will be achieved with the fix? This corrects a time zone bug and improves the user experience for a frequently used feature.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on other issue: None
+  - Issue 3: 
+     - Attempted fixes: The user reported that scrolling with the mouse wheel over the Tutar (Amount) input field changes its value. The agent added an  event handler to prevent this.
+     - Next debug checklist:
+       1. Navigate to the  page.
+       2. Go to any of the first three tabs.
+       3. Place the mouse cursor over the Tutar input field and use the scroll wheel.
+       4. Confirm that the input value does not change.
+     - Why fix this issue and what will be achieved with the fix? Prevents accidental data entry errors and improves UI robustness.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? frontend
      - Blocked on other issue: None
 
 **In progress Task List**:
-- Task 1: Complete and test the Accounting UI refactor (P0)
-   - Where to resume: The files have been overwritten. The next step is to launch the application and begin testing the frontend functionality as described in the issue above.
-   - What will be achieved with this? A more streamlined and user-friendly accounting interface.
-   - Status: IN PROGRESS
-   - Should Test frontend/backend/both after fix? both
-   - Blocked on something: None
+  - Task 1: Implement User Profile Management (P1)
+  - Task 2: Implement Auto-Logout on User Deletion (P2)
+
+ Task Detail:
+  - Task 1: 
+     - Where to resume: This is a new feature.
+       1.  **Backend:** Create new API endpoints (e.g., , ) for authenticated users to update their own username and password.
+       2.  **Frontend:** Add a Profile or Settings page/modal accessible from the main dashboard.
+       3.  **Frontend:** Implement the logic to automatically log the user out (clear token, redirect to login) after a successful profile update.
+     - What will be achieved with this? Allows users to manage their own security credentials.
+     - Status:  NOT STARTED
+     - Should Test frontend/backend/both after fix? both
+     - Blocked on something: None
+  - Task 2: 
+     - Where to resume: This is a new feature requiring changes to the authentication flow.
+       1.  **Backend:** Modify the central authentication dependency (e.g.,  in ).
+       2.  **Logic:** In the dependency, after decoding the JWT token, add a quick database check to ensure the user ID from the token still exists in the  or  collection.
+       3.  If the user does not exist, raise an  to invalidate the session.
+     - What will be achieved with this? Enhances security by ensuring deleted users can no longer access the system with their old tokens.
+     - Status:  NOT STARTED
+     - Should Test frontend/backend/both after fix? backend
+     - Blocked on something: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0:** Implement functionality for the Zimmet (Assigned Items) tab.
-    -   **P1:** Further enhance the Güncel Durum (Current Status) page with more informational cards as requested by the user.
-    -   **P1:** Add a feature to the Hakediş checkbox in the accounting section. Currently, it's just a UI element.
+    -   **P1:** Implement functionality for the Zimmet (Assigned Items) tab.
+    -   **P1:** Further enhance the Güncel Durum (Current Status) page with more informational cards.
+    -   **P1:** Add functional business logic to the Hakediş (Payroll) checkbox in accounting.
 -   **Future Tasks:**
-    -   **P2:** Refactor  into smaller, more manageable route files (e.g., , ) to handle the growing complexity.
+    -   **P2:** Refactor  into smaller  modules (e.g., , ) to improve maintainability.
+    -   **P2:** Refactor shared logic between , , and  into a reusable React hook or HOC to reduce code duplication.
 
 **Completed work in this session**
-- **Courier Management Refactor:**
-  - Completed the  with search, a details modal, and removal of the old approval system.
-- **Shift Management (Vardiya Yönetimi):**
-  - Implemented the entire feature from a PDF specification, including a grid for assigning couriers, handling leaves, and an edit mode.
-  - Refactored the table layout to support a large number of shifts (shifts as rows, days as columns).
-  - Implemented custom sorting logic where the day starts at 06:00.
-  - Improved UI with zebra-striping and better handling of cells with many couriers (scrollable list with a counter badge).
-- **Current Status (Güncel Durum):**
-  - Created a new dashboard page showing a daily report based on the 06:00-05:59 day cycle.
-  - The UI highlights the currently active shift and displays assigned couriers in a responsive, multi-line grid.
-- **Accounting (Muhasebe):**
-  - Built the entire backend and frontend foundation for accounting, including separate tabs for Couriers, Businesses, and Vendors.
-  - Implemented APIs and DB models for transactions, businesses, and vendors.
-  - Created the initial UI for tracking balances and transaction history.
-- **General UI/UX:**
-  - Implemented a collapsible, fixed-position sidebar for a modern app feel.
-  - Refactored several components into separate files (, , accounting tabs) for better code organization.
-  - Updated the page title and added a favicon.
+- **Accounting Feature Overhaul:**
+  - Replaced modal forms with more efficient inline forms for adding transactions.
+  - Implemented transaction deletion with confirmation prompts.
+  - Added real-time balance displays (individual and total) with color-coding (green for credit, red for debit).
+  - Implemented an archiving system for couriers, businesses, and vendors, with logic to exclude archived balances from totals.
+  - Added back the 'delete' button alongside the new 'archive' button for businesses and vendors.
+- **Activity Log (Hareketler) Tab:**
+  - Created a new tab to log all transaction creation and deletion events.
+  - Implemented search/filter and infinite scroll for the activity log.
+- **Enhanced Security & UX:**
+  - Added a balance check to prevent the deletion of couriers with outstanding balances.
+  - Implemented infinite scroll for all transaction history lists.
+  - Added search/filter capabilities to all transaction history lists.
+  - Added a custom date/time selector for new transactions.
+  - Implemented a basic PDF export feature (now pending improvement).
+  - Fixed various UI labels and display formats based on user feedback.
 
 **Earlier issues found/mentioned but not fixed**
    - None.
@@ -102,86 +140,71 @@ A full-stack application (FastAPI + React) for the ShiftJet courier management s
 
 **Key Technical Concepts**
 -   **Backend:** FastAPI
--   **Frontend:** React, Tailwind CSS, Shadcn UI
+-   **Frontend:** React, Tailwind CSS, Shadcn UI, jsPDF
 -   **Database:** MongoDB
 -   **Authentication:** JWT with role-based access.
--   **State Management:** React Hooks (, ) for managing complex UI states across multiple components.
--   **Architecture:** Multi-tenant application with a modular frontend where features are broken into separate page/tab components.
+-   **State Management:** Complex UI state managed via React Hooks (, , ).
 
 **key DB schema**
-  - **companies**: 
   - **users**: 
-  - **couriers**: 
-  - **shifts**: 
-  - **shift_assignments**: 
-  - **leaves**: 
-  - **businesses**:  **(New)**
-  - **vendors**:  **(New)**
-  - **transactions**:  **(New)**
+  - **company_couriers**: 
+  - **businesses**: 
+  - **vendors**: 
+  - **transactions**: 
+  - **activity_logs**:  **(New)**
 
 **changes in tech stack**
-- None.
+-   **Frontend:**  library was added for PDF generation.
 
 **All files of reference**
--   : Contains all API logic, now including shifts and accounting.
--   : Main layout for the admin section, now acts as a router for different pages.
--   : UI for the Current Status dashboard.
--   : UI for the Shift Management grid.
--   : Container for the accounting tabs.
--   : UI for courier accounting (currently being refactored).
--   : UI for business accounting (currently being refactored).
--   : UI for vendor accounting (currently being refactored).
+-   : Modified to add archiving, activity logging, custom transaction dates, and transaction deletion endpoints.
+-   : Heavily modified to add all new accounting features.
+-   : Heavily modified to add all new accounting features.
+-   : Heavily modified to add all new accounting features.
+-   : New file for the activity log UI.
+-   : Modified to include the new  and pass down admin props.
+-   : Modified to add a courier deletion balance check and pass user info to the accounting page.
 
 **Areas that need refactoring**:
--    has become very large and contains logic for auth, system management, courier management, shifts, and accounting. It is a prime candidate for being split into separate FastAPI  modules to improve maintainability.
+-   **:** Continues to grow and should be broken down into separate  files for better organization.
+-   **Accounting Tabs (, , ):** These three files share a significant amount of duplicated code for state management, API calls, filtering, PDF generation, and UI rendering. This logic should be extracted into one or more reusable React hooks to improve maintainability and reduce redundancy.
 
 **key api endpoints**
--   **Shifts:**
-    -   : Get all shifts.
-    -   : Create a new shift.
-    -   : Update a shift.
-    -   : Delete a shift.
--   **Assignments & Leaves:**
-    -   : Get all assignments.
-    -   : Assign a courier to a shift.
-    -   : Remove an assignment.
-    -   : Get all leaves.
-    -   : Add a courier to the leave list for a day.
--   **Accounting (New):**
-    -    /  / 
-    -    /  / 
-    -   
-    -   
+-   
+-   
+-    & 
+-    & 
+-    & 
 
 **Critical Info for New Agent**
--   The user is highly engaged and prefers quick, iterative development. Always confirm your plan before major changes and be prepared for immediate feedback.
--   Code organization is important to the user. Keep features in separate files/components as demonstrated with , , and the  tabs.
--   The business logic for time is specific: a day for reporting and sorting starts at 06:00 and ends at 05:59 the next calendar day. This is crucial for the Güncel Durum and Vardiya features.
+-   The user provides feedback in large, detailed batches. It is crucial to break down each request into a distinct task or issue and address them systematically.
+-   The three main accounting tabs (, , ) are becoming difficult to maintain due to duplicated code. Proposing a refactor to use shared hooks would be a valuable next step after completing the current user requests.
+-   When fixing the PDF issue, ensure the solution ( and a custom font) is robust and correctly handles Turkish characters.
 
 **documents and test reports created in this job**
 -   
--   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (pending):** Asked the agent to refactor the accounting page to use an inline form for adding transactions instead of modals.
-2.  **User (completed):** Asked to see an example of how the shift table would handle 15 couriers in a single cell.
-3.  **User (completed):** Requested that the sidebar be fixed to the side of the screen and not scroll with the page content.
-4.  **User (completed):** Asked to change the shift table layout to have days as columns and shifts as rows to better support many shifts.
-5.  **User (completed):** Requested adding a Güncel Durum tab with a daily report card.
-6.  **User (completed):** Requested custom sorting for shifts where the day starts at 06:00.
-7.  **User (completed):** Asked for styling improvements to the shift table (zebra stripes, courier names).
-8.  **User (completed):** Requested an edit mode for the shift table to show/hide action buttons.
-9.  **User (completed):** Asked the agent to separate the  logic into its own file.
-10. **User (completed):** Requested a change to the business logic for leaves/shifts (adding to one removes from the other for that day).
+1.  **User (pending):** şimdi seçiliyken 3 saat geriyi seçiyor... - Requested fixes for the datetime picker timezone, PDF character encoding/layout, and new features for user profile management and auto-logout on deletion.
+2.  **User (pending):** arşivlenenlerin bakiyesi total bakiyeye dahil ediliyor... - Requested fixes for archived balance calculation, restoring the delete button, preventing scroll on number inputs, adding custom transaction dates, history filtering, and PDF export.
+3.  **User (completed):** arşivleme özelliği ekle - Requested the archiving feature for all accounting entities.
+4.  **User (completed):** Hareketler sekmesine, bir arama kutucuğu ekle - Requested search and lazy loading for the new Activity Log tab.
+5.  **User (completed):** KİME KISMINI KİM OLARAK DÜZELT - Requested a label change in the Activity Log tab.
+6.  **User (completed):** BİR SEKME LAZIM. ADI Hareketler - Requested the creation of the Activity Log tab.
+7.  **User (completed):** 10 işlemden daha fazlasını anlık olarak yükleme - Requested infinite scroll for transaction history.
+8.  **User (completed):** aynılarını cariler ve işletmeler içinde uygula - Requested balance display consistency across all tabs.
+9.  **User (completed):** alacak ve borç yazmasına gerek yok - Requested simplifying the balance display to use color and sign instead of text.
+10. **User (completed):** Kuryeler listesinin başında bakiye gösterimi olmalı - Requested adding balance indicators to the main entity lists.
 
 **Project Health Check:**
--   **Functional:** The application is running with many core features implemented and working.
--   **In Progress:** The accounting UI is in the middle of a refactor and is currently untested.
--   **Broken:** No part of the application is critically broken, but the accounting page might be in an inconsistent state until the current refactor is tested.
--   **Mocked:** The Zimmet tab is a placeholder.
+-   **Functional:** Most of the application and its core features are stable and working.
+-   **In Progress:** The Accounting module is actively being enhanced. Key features like PDF export and date selection are partially implemented but have known bugs.
+-   **Broken:**
+    -   PDF export does not render Turkish characters correctly and has a poor layout.
+    -   The transaction date/time picker has a timezone bug, showing UTC instead of local time by default.
 
 **3rd Party Integrations**
--   None.
+-   **jspdf**: Used for generating PDF reports of transaction history.
 
 **Testing status**
   - Testing agent used after significant changes: YES
@@ -190,9 +213,7 @@ A full-stack application (FastAPI + React) for the ShiftJet courier management s
   - Known regressions: None
 
 **Credentials to test flow:**
--   **System Admin:** Requires seeding a user or using the initial setup flow.
 -   **Super Admin:** , 
--   **Admin/Courier:** Can be created through the application flow.
 
 **What agent forgot to execute**
-- The agent has not tested or verified the latest change: overwriting the three accounting tab files to implement an inline form. The immediate next step must be to test this change.</analysis>
+The agent has a clear list of tasks from the user's last messages. It has started work on them by updating the accounting tab files but has not yet tested or fully implemented all the requested changes. The next agent must systematically complete and test all items from the Pending/In progress Issue list and In progress Task List.</analysis>
