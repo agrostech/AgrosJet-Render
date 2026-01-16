@@ -43,15 +43,22 @@ export default function ZimmetPage() {
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     return `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [maliBellekLogs, setMaliBellekLogs] = useState([]);
-  const [showMaliBellekLogsModal, setShowMaliBellekLogsModal] = useState(false);
-  const [selectedMaliBellekProduct, setSelectedMaliBellekProduct] = useState(null);
+  const [maliBellekAllLogs, setMaliBellekAllLogs] = useState([]);
 
-  // Filter states
+  // Filter states - Ürünler sekmesi
   const [filterAssigned, setFilterAssigned] = useState(false); // Zimmetliler
   const [filterAvailable, setFilterAvailable] = useState(false); // Boştakiler
   const [filterDefective, setFilterDefective] = useState(false); // Arızalı
   const [filterLost, setFilterLost] = useState(false); // Kayıp
+
+  // Filter states - Tüm Hareketler sekmesi
+  const [logFilterAssigned, setLogFilterAssigned] = useState(false);
+  const [logFilterReturned, setLogFilterReturned] = useState(false);
+  const [logFilterDefective, setLogFilterDefective] = useState(false);
+  const [logFilterDefectiveRemoved, setLogFilterDefectiveRemoved] = useState(false);
+  const [logFilterLost, setLogFilterLost] = useState(false);
+  const [logFilterLostRemoved, setLogFilterLostRemoved] = useState(false);
+  const [logFilterDeleted, setLogFilterDeleted] = useState(false);
 
   // Modals
   const [showAddProduct, setShowAddProduct] = useState(false);
