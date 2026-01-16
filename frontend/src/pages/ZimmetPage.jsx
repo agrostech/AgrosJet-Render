@@ -568,15 +568,6 @@ export default function ZimmetPage() {
           </div>
         </div>
       </div>
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
-              }`}
-              data-testid="zimmet-tab-logs"
-            >
-              <History className="w-4 h-4" /> Tüm Hareketler
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
