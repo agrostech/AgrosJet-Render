@@ -44,11 +44,14 @@ function KuryelerPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [searchPhone, setSearchPhone] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [searching, setSearching] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
+  const [editData, setEditData] = useState({ name: "", phone: "", plate: "", address: "", password: "" });
+  const [editLoading, setEditLoading] = useState(false);
 
   const fetchCouriers = async () => {
     try {
@@ -65,6 +68,52 @@ function KuryelerPage({ companyId }) {
     if (companyId) fetchCouriers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
+
+  const openEditModal = (courier) => {
+    setSelectedCourier(courier);
+    setEditData({
+      name: courier.name || "",
+      phone: courier.phone || "",
+      plate: courier.plate || "",
+      address: courier.address || "",
+      password: ""
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditCourier = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    try {
+      const updatePayload = {};
+      if (editData.name && editData.name !== selectedCourier.name) updatePayload.name = editData.name;
+      if (editData.phone && editData.phone !== selectedCourier.phone) updatePayload.phone = editData.phone;
+      if (editData.plate && editData.plate !== selectedCourier.plate) updatePayload.plate = editData.plate;
+      if (editData.address !== selectedCourier.address) updatePayload.address = editData.address;
+      if (editData.password) updatePayload.password = editData.password;
+
+      if (Object.keys(updatePayload).length === 0) {
+        toast.error("Değişiklik yapılmadı");
+        setEditLoading(false);
+        return;
+      }
+
+      const res = await axios.put(`${API}/couriers/${selectedCourier.id}`, updatePayload);
+      
+      if (res.data.password_changed) {
+        toast.success("Kurye güncellendi. Şifre değiştiği için oturumu kapatıldı.");
+      } else {
+        toast.success("Kurye güncellendi");
+      }
+      
+      setShowEditModal(false);
+      fetchCouriers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchPhone.trim()) return;
