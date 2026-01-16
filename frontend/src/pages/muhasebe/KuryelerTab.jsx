@@ -33,7 +33,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   const [showArchived, setShowArchived] = useState(false);
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [displayCount, setDisplayCount] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [balance, setBalance] = useState(0);
   const [courierBalances, setCourierBalances] = useState({});
   const [archivedBalances, setArchivedBalances] = useState({});
@@ -62,11 +64,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     );
   }, [transactions, searchQuery]);
 
-  useEffect(() => { setDisplayCount(10); }, [searchQuery]);
-
   const fetchCourierBalance = async (courierId, isArchived = false) => {
     try {
-      const res = await axios.get(`${API}/transactions/courier/${courierId}`);
+      const res = await axios.get(`${API}/transactions/courier/${courierId}?limit=1`);
       if (isArchived) {
         setArchivedBalances(prev => ({ ...prev, [courierId]: res.data.balance }));
       } else {
