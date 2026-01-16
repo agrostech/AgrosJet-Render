@@ -107,8 +107,8 @@ export default function HareketlerTab({ companyId }) {
   if (loading) return <p>Yükleniyor...</p>;
 
   return (
-    <div className="border-2 border-border bg-white">
-      <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
+    <div className="border-2 border-border bg-white h-[calc(100vh-220px)] min-h-[500px] flex flex-col">
+      <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center gap-3 shrink-0">
         <History className="w-4 h-4 text-slate-600" />
         <h3 className="font-semibold text-sm">İşlem Hareketleri</h3>
         <div className="flex-1 max-w-xs ml-auto">
@@ -127,7 +127,7 @@ export default function HareketlerTab({ companyId }) {
         </span>
       </div>
 
-      <div ref={listRef} onScroll={handleScroll} className="max-h-[500px] overflow-y-auto">
+      <div ref={listRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
         {filteredLogs.length === 0 ? (
           <p className="text-sm text-muted-foreground p-8 text-center">
             {searchQuery ? "Arama sonucu bulunamadı" : "Henüz hareket kaydı yok"}
