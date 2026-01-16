@@ -408,7 +408,7 @@ export default function ZimmetPage() {
               : "border-transparent text-slate-500 hover:text-slate-700"
           }`}
         >
-          <History className="w-4 h-4 inline mr-1" /> Hareketler
+          <History className="w-4 h-4 inline mr-1" /> Tüm Hareketler
         </button>
       </div>
 
@@ -416,19 +416,53 @@ export default function ZimmetPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left Panel - List */}
         <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-          <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center gap-3 shrink-0">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder={activeTab === "products" ? "Ürün, tip veya kurye ara..." : "Ürün, kurye veya admin ara..."} 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 h-8 text-sm"
-              />
+          <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0 space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder={activeTab === "products" ? "Ürün, tip veya kurye ara..." : "Ürün, kurye veya admin ara..."} 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-8 text-sm"
+                />
+              </div>
+              <span className="text-xs text-muted-foreground shrink-0">
+                {activeTab === "products" ? `${filteredProducts.length} / ${totalProducts}` : `${logs.length} / ${totalLogs}`}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground shrink-0">
-              {activeTab === "products" ? `${products.length} / ${totalProducts}` : `${logs.length} / ${totalLogs}`}
-            </span>
+            {/* Filter checkboxes - only for products tab */}
+            {activeTab === "products" && (
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <Checkbox 
+                    id="filterAvailable" 
+                    checked={filterAvailable} 
+                    onCheckedChange={setFilterAvailable}
+                    className="h-3.5 w-3.5"
+                  />
+                  <Label htmlFor="filterAvailable" className="text-xs text-slate-600 cursor-pointer">Boştakiler</Label>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Checkbox 
+                    id="filterDefective" 
+                    checked={filterDefective} 
+                    onCheckedChange={setFilterDefective}
+                    className="h-3.5 w-3.5"
+                  />
+                  <Label htmlFor="filterDefective" className="text-xs text-yellow-600 cursor-pointer">Arızalı</Label>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Checkbox 
+                    id="filterLost" 
+                    checked={filterLost} 
+                    onCheckedChange={setFilterLost}
+                    className="h-3.5 w-3.5"
+                  />
+                  <Label htmlFor="filterLost" className="text-xs text-red-600 cursor-pointer">Kayıp</Label>
+                </div>
+              </div>
+            )}
           </div>
 
           <div ref={listRef} className="flex-1 overflow-y-auto">
