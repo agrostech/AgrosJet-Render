@@ -387,6 +387,21 @@ async def reject_company_courier(company_id: str, courier_id: str):
 
 @api_router.delete("/companies/{company_id}/couriers/{courier_id}")
 async def remove_courier_from_company(company_id: str, courier_id: str):
+    # Zimmet kontrolü - kuryede zimmetli ürün var mı?
+    assigned_products = await db.products.find({
+        "company_id": company_id,
+        "assigned_to_courier_id": courier_id
+    }).to_list(100)
+    
+    if assigned_products:
+        product_names = ", ".join([p["name"] for p in assigned_products[:3]])
+        if len(assigned_products) > 3:
+            product_names += f" ve {len(assigned_products) - 3} ürün daha"
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Bu kuryede {len(assigned_products)} zimmetli ürün var: {product_names}. Önce zimmetleri geri alın."
+        )
+    
     result = await db.company_couriers.delete_one({
         "company_id": company_id,
         "courier_id": courier_id
@@ -398,6 +413,20 @@ async def remove_courier_from_company(company_id: str, courier_id: str):
 @api_router.delete("/couriers/{courier_id}")
 async def delete_courier(courier_id: str):
     """Delete courier completely (system admin only)"""
+    # Zimmet kontrolü - kuryede zimmetli ürün var mı?
+    assigned_products = await db.products.find({
+        "assigned_to_courier_id": courier_id
+    }).to_list(100)
+    
+    if assigned_products:
+        product_names = ", ".join([p["name"] for p in assigned_products[:3]])
+        if len(assigned_products) > 3:
+            product_names += f" ve {len(assigned_products) - 3} ürün daha"
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Bu kuryede {len(assigned_products)} zimmetli ürün var: {product_names}. Önce zimmetleri geri alın."
+        )
+    
     result = await db.couriers.delete_one({"id": courier_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
