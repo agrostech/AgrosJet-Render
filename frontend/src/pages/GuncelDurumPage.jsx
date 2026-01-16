@@ -173,23 +173,52 @@ export default function GuncelDurumPage({ companyId }) {
         </Button>
       </div>
 
+      {/* Gün Seçici */}
+      <div className="flex flex-wrap gap-1 p-2 bg-slate-100 rounded-lg border">
+        <button
+          onClick={() => setSelectedDay(null)}
+          className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+            isToday ? 'bg-primary text-white' : 'bg-white hover:bg-slate-50 border'
+          }`}
+        >
+          Bugün ({workDay.dayLabel})
+        </button>
+        {DAYS.map((day) => (
+          day.key !== workDay.dayKey && (
+            <button
+              key={day.key}
+              onClick={() => setSelectedDay(day.key)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                selectedDay === day.key ? 'bg-primary text-white' : 'bg-white hover:bg-slate-50 border'
+              }`}
+            >
+              {day.label}
+            </button>
+          )
+        ))}
+      </div>
+
       {/* Günlük Rapor Kartı */}
       <div className="border-2 border-border bg-white p-4 space-y-4">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 pb-3 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-primary" />
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isToday ? 'bg-primary/10' : 'bg-amber-100'}`}>
+              <Calendar className={`w-5 h-5 ${isToday ? 'text-primary' : 'text-amber-600'}`} />
             </div>
             <div>
-              <h3 className="font-heading font-bold text-lg">{workDay.dayLabel}</h3>
-              <p className="text-sm text-muted-foreground">{formatDate(workDay.date)}</p>
+              <h3 className="font-heading font-bold text-lg">{activeDayLabel}</h3>
+              <p className="text-sm text-muted-foreground">
+                {isToday ? formatDate(workDay.date) : 'Haftalık görünüm'}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="font-mono font-semibold">{formatTime(currentTime)}</span>
-          </div>
+          {isToday && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="font-mono font-semibold">{formatTime(currentTime)}</span>
+            </div>
+          )}
         </div>
 
         {/* Shift Details */}
@@ -205,7 +234,7 @@ export default function GuncelDurumPage({ companyId }) {
             <div className="grid gap-2">
               {sortedShifts.map(shift => {
                 const shiftAssignments = getShiftAssignments(shift.id);
-                const isActive = isShiftActive(shift);
+                const isActive = isToday && isShiftActive(shift);
                 const courierCount = shiftAssignments.length;
                 
                 return (
