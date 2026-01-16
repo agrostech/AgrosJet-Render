@@ -477,10 +477,11 @@ export default function VardiyaPage({ companyId }) {
                     );
                   })}
                 </TableRow>
-              ))}
+              );
+              })}
               {/* İzinliler Satırı */}
               <TableRow className="border-t-2 border-orange-300 bg-orange-50/50">
-                <TableCell className="font-semibold p-2 text-xs text-orange-700 bg-orange-100 border-r border-orange-200">
+                <TableCell className="font-semibold p-2 text-xs text-orange-700 bg-orange-200 border-r-2 border-orange-400">
                   İzinliler
                 </TableCell>
                 {DAYS.map((day, dayIndex) => {
@@ -489,13 +490,13 @@ export default function VardiyaPage({ companyId }) {
                   return (
                     <TableCell 
                       key={day.key} 
-                      className={`p-1 align-top border-r border-orange-200 ${isEvenColumn ? 'bg-orange-50' : 'bg-orange-50/30'}`}
+                      className={`p-1 align-top border-r border-orange-200 ${isEvenColumn ? 'bg-orange-100/60' : 'bg-orange-50/60'}`}
                     >
                       <div className="min-h-[32px] space-y-0.5">
                         {dayLeaves.map(l => (
                           <div key={l.id} className="flex items-center justify-between bg-orange-200 px-1.5 py-0.5 rounded text-[10px] group">
                             <span className="font-medium truncate">{l.courier_name}</span>
-                            {editMode && (
+                            {editMode && !ctrlPressed && (
                               <button
                                 onClick={() => handleRemoveLeave(l.id)}
                                 className="text-red-500 hover:text-red-700 ml-1"
@@ -505,7 +506,7 @@ export default function VardiyaPage({ companyId }) {
                             )}
                           </div>
                         ))}
-                        {editMode && (
+                        {editMode && !ctrlPressed && (
                           <button
                             onClick={() => openLeaveModal(day.key)}
                             className="w-full text-[9px] text-orange-600 hover:bg-orange-100 py-0.5 rounded border border-dashed border-orange-300"
