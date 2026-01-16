@@ -266,12 +266,100 @@ function KuryelerPage({ companyId }) {
               <p className="text-sm mb-3"><span className="text-muted-foreground">Plaka:</span> <span className="font-mono">{c.plate}</span></p>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="flex-1 border-2">Detaylar</Button>
+                <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">Düzenle</Button>
                 <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="border-2 hover:bg-red-50 hover:text-red-600">Çıkar</Button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Kurye Düzenleme Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              Kurye Düzenle
+            </DialogTitle>
+          </DialogHeader>
+          {selectedCourier && (
+            <form onSubmit={handleEditCourier} className="space-y-4">
+              <div className="p-3 bg-slate-50 rounded border">
+                <p className="text-xs text-muted-foreground">Düzenlenen Kurye</p>
+                <p className="font-semibold">{selectedCourier.name}</p>
+                <p className="text-sm text-muted-foreground font-mono">{selectedCourier.phone}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-sm font-semibold">İsim Soyisim</Label>
+                  <Input 
+                    data-testid="edit-courier-name"
+                    value={editData.name} 
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })} 
+                    className="mt-1 h-10 border-2" 
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold">Telefon</Label>
+                  <Input 
+                    data-testid="edit-courier-phone"
+                    value={editData.phone} 
+                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })} 
+                    className="mt-1 h-10 border-2 font-mono" 
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-semibold">Plaka</Label>
+                <Input 
+                  data-testid="edit-courier-plate"
+                  value={editData.plate} 
+                  onChange={(e) => setEditData({ ...editData, plate: e.target.value })} 
+                  className="mt-1 h-10 border-2 font-mono uppercase" 
+                />
+              </div>
+              
+              <div>
+                <Label className="text-sm font-semibold">Adres</Label>
+                <Input 
+                  data-testid="edit-courier-address"
+                  value={editData.address} 
+                  onChange={(e) => setEditData({ ...editData, address: e.target.value })} 
+                  className="mt-1 h-10 border-2" 
+                />
+              </div>
+              
+              <div>
+                <Label className="text-sm font-semibold">Yeni Şifre</Label>
+                <Input 
+                  data-testid="edit-courier-password"
+                  type="password" 
+                  value={editData.password} 
+                  onChange={(e) => setEditData({ ...editData, password: e.target.value })} 
+                  className="mt-1 h-10 border-2" 
+                  placeholder="Değiştirmek istemiyorsanız boş bırakın"
+                />
+              </div>
+              
+              <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-700">
+                <strong>Not:</strong> Şifre değiştirildiğinde kurye yeniden giriş yapmak zorunda kalacaktır.
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full h-11 font-semibold" 
+                disabled={editLoading}
+                data-testid="submit-edit-courier"
+              >
+                {editLoading ? "Güncelleniyor..." : "Kaydet"}
+              </Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Kurye Ekle Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
