@@ -165,9 +165,9 @@ export function useAccountingTab({
   }, [endpoint, fetchEntityBalance]);
 
   // Fetch transactions
-  const fetchTransactions = useCallback(async (entityId, append = false) => {
+  const fetchTransactions = useCallback(async (entityId, append = false, currentLength = 0) => {
     try {
-      const skip = append ? transactions.length : 0;
+      const skip = append ? currentLength : 0;
       const res = await axios.get(`${API}${endpoint.transactions(entityId)}?skip=${skip}&limit=10`);
       if (append) {
         setTransactions(prev => [...prev, ...res.data.transactions]);
@@ -180,13 +180,17 @@ export function useAccountingTab({
     } catch (err) {
       toast.error("İşlemler yüklenemedi");
     }
-  }, [endpoint, transactions.length]);
+  }, [endpoint]);
 
-  // Load more transactions - basit yaklaşım (Hareketler Tab mantığı)
+  // Load more transactions - güncel transactions.length'i kullan
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || !selectedEntity) return;
     setLoadingMore(true);
-    await fetchTransactions(selectedEntity.id, true);
+    // transactions.length'i burada al ve parametre olarak gönder
+    setTransactions(prev => {
+      fetchTransactions(selectedEntity.id, true, prev.length);
+      return prev;
+    });
     setLoadingMore(false);
   }, [loadingMore, hasMore, selectedEntity, fetchTransactions]);
 
