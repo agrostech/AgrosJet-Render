@@ -633,15 +633,15 @@ export default function ZimmetPage() {
       {/* Main Content */}
       {activeTab === "mali_bellek" ? (
         /* Mali Bellek Tab Content - Grid layout: Sol POS listesi, Sağ Loglar */
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Sol Panel - POS Listesi */}
-          <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-            <div className="p-2 border-b border-slate-200 bg-slate-50 shrink-0 space-y-1.5">
+          <div className="w-full lg:flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+            <div className="p-3 border-b-2 border-border bg-slate-50 shrink-0 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
                   <Select value={selectedYearMonth} onValueChange={setSelectedYearMonth}>
-                    <SelectTrigger className="w-36 h-7 text-xs">
+                    <SelectTrigger className="w-40 h-9 text-sm">
                       <SelectValue placeholder="Ay Seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -651,24 +651,24 @@ export default function ZimmetPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-2 text-[10px]">
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1.5">
                     <Checkbox 
                       id="maliBellekFilterCollected" 
                       checked={maliBellekFilterCollected} 
                       onCheckedChange={setMaliBellekFilterCollected}
-                      className="h-3 w-3"
+                      className="h-4 w-4"
                     />
                     <Label htmlFor="maliBellekFilterCollected" className="text-green-600 font-medium cursor-pointer">
                       {maliBellekData.filter(p => p.mali_bellek?.is_collected).length} Alındı
                     </Label>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <Checkbox 
                       id="maliBellekFilterNotCollected" 
                       checked={maliBellekFilterNotCollected} 
                       onCheckedChange={setMaliBellekFilterNotCollected}
-                      className="h-3 w-3"
+                      className="h-4 w-4"
                     />
                     <Label htmlFor="maliBellekFilterNotCollected" className="text-orange-600 font-medium cursor-pointer">
                       {maliBellekData.filter(p => !p.mali_bellek?.is_collected).length} Alınmadı
@@ -677,12 +677,12 @@ export default function ZimmetPage() {
                 </div>
               </div>
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   placeholder="POS ara..." 
                   value={maliBellekSearch}
                   onChange={(e) => setMaliBellekSearch(e.target.value)}
-                  className="pl-7 h-7 text-xs"
+                  className="pl-10 h-10 border-2"
                 />
               </div>
             </div>
@@ -691,40 +691,40 @@ export default function ZimmetPage() {
                 <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Yükleniyor...</div>
               ) : filteredMaliBellekData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <FileCheck className="w-10 h-10 mb-2 opacity-30" />
+                  <FileCheck className="w-12 h-12 mb-2 opacity-30" />
                   <p className="text-sm">{maliBellekSearch ? "Arama sonucu bulunamadı" : "POS cihazı bulunamadı"}</p>
                   {!maliBellekSearch && <p className="text-xs">Önce Ürünler sekmesinden POS cihazı ekleyin</p>}
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-border">
                   {filteredMaliBellekData.map((product) => (
-                    <div key={product.id} className="px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between gap-2">
+                    <div key={product.id} className="p-3 hover:bg-slate-50 flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-medium text-xs truncate">{product.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm truncate">{product.name}</p>
                           {product.assigned_to_courier_name && (
-                            <span className="text-[9px] text-blue-600 bg-blue-50 px-1 py-0.5 rounded truncate max-w-[70px]">
+                            <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded truncate max-w-[100px]">
                               {product.assigned_to_courier_name}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                          {product.pos_serial && <span>SN: {product.pos_serial}</span>}
-                          {product.pos_terminal && <span>TRM: {product.pos_terminal}</span>}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                          {product.pos_serial && <span className="font-mono">SN: {product.pos_serial}</span>}
+                          {product.pos_terminal && <span className="font-mono">TRM: {product.pos_terminal}</span>}
                         </div>
                       </div>
                       <button
                         onClick={() => toggleMaliBellek(product.id)}
-                        className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                        className={`shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                           product.mali_bellek?.is_collected
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                         }`}
                       >
                         {product.mali_bellek?.is_collected ? (
-                          <><CheckCircle2 className="w-2.5 h-2.5" /> Alındı</>
+                          <><CheckCircle2 className="w-4 h-4" /> Alındı</>
                         ) : (
-                          <><XCircle className="w-2.5 h-2.5" /> Alınmadı</>
+                          <><XCircle className="w-4 h-4" /> Alınmadı</>
                         )}
                       </button>
                     </div>
@@ -735,28 +735,28 @@ export default function ZimmetPage() {
           </div>
 
           {/* Sağ Panel - Ay Bazında Tüm Loglar */}
-          <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-            <div className="p-2 border-b border-slate-200 bg-slate-50 shrink-0">
+          <div className="w-full lg:flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+            <div className="p-3 border-b-2 border-border bg-slate-50 shrink-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-xs flex items-center gap-1">
-                  <History className="w-3.5 h-3.5" /> İşlem Geçmişi
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <History className="w-4 h-4" /> İşlem Geçmişi
                 </h3>
-                <span className="text-[10px] text-muted-foreground">{maliBellekAllLogs.length} kayıt</span>
+                <span className="text-xs text-muted-foreground">{maliBellekAllLogs.length} kayıt</span>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               {maliBellekAllLogs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <History className="w-10 h-10 mb-2 opacity-30" />
+                  <History className="w-12 h-12 mb-2 opacity-30" />
                   <p className="text-sm">Bu dönem için işlem kaydı yok</p>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-border">
                   {maliBellekAllLogs.map((log) => (
-                    <div key={log.id} className="px-2 py-1.5 hover:bg-slate-50">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                          <span className={`px-1 py-0.5 rounded text-[9px] font-medium shrink-0 ${
+                    <div key={log.id} className="p-3 hover:bg-slate-50">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${
                             log.action === 'collected' 
                               ? 'bg-green-100 text-green-700' 
                               : 'bg-orange-100 text-orange-700'
