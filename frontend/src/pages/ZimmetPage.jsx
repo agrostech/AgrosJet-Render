@@ -890,62 +890,45 @@ export default function ZimmetPage() {
         </div>
       </div>
       ) : (
-      /* Ürünler - İki sütunlu */
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      /* Ürünler - İki sütunlu - Muhasebe gibi geniş tasarım */
+      <div className="flex flex-col lg:flex-row gap-4 h-full">
         {/* Left Panel - List */}
-        <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-          <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0 space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Ürün, tip, kurye veya seri no ara..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-8 text-sm"
-                />
-              </div>
-              <span className="text-xs text-muted-foreground shrink-0">
-                {filteredProducts.length} / {totalProducts}
+        <div className="w-full lg:w-72 flex-shrink-0 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+          <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-heading font-bold text-sm flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                Ürünler ({filteredProducts.length})
               </span>
+              <span className="text-xs text-muted-foreground">{totalProducts} toplam</span>
             </div>
-            {/* Filter checkboxes - only for products tab */}
-            <div className="flex items-center gap-4 text-xs flex-wrap">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="Ürün, tip, kurye veya seri no ara..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10 border-2"
+                data-testid="search-products"
+              />
+            </div>
+            {/* Filter checkboxes */}
+            <div className="flex items-center gap-3 mt-2 text-xs flex-wrap">
               <div className="flex items-center gap-1.5">
-                <Checkbox 
-                  id="filterAssigned" 
-                  checked={filterAssigned} 
-                  onCheckedChange={setFilterAssigned}
-                  className="h-3.5 w-3.5"
-                />
-                <Label htmlFor="filterAssigned" className="text-xs text-blue-600 cursor-pointer">Zimmetliler</Label>
+                <Checkbox id="filterAssigned" checked={filterAssigned} onCheckedChange={setFilterAssigned} className="h-4 w-4" />
+                <Label htmlFor="filterAssigned" className="text-sm text-blue-600 cursor-pointer">Zimmetliler</Label>
               </div>
               <div className="flex items-center gap-1.5">
-                <Checkbox 
-                  id="filterAvailable" 
-                  checked={filterAvailable} 
-                  onCheckedChange={setFilterAvailable}
-                  className="h-3.5 w-3.5"
-                />
-                <Label htmlFor="filterAvailable" className="text-xs text-green-600 cursor-pointer">Boştakiler</Label>
+                <Checkbox id="filterAvailable" checked={filterAvailable} onCheckedChange={setFilterAvailable} className="h-4 w-4" />
+                <Label htmlFor="filterAvailable" className="text-sm text-green-600 cursor-pointer">Boştakiler</Label>
               </div>
               <div className="flex items-center gap-1.5">
-                <Checkbox 
-                  id="filterDefective" 
-                  checked={filterDefective} 
-                  onCheckedChange={setFilterDefective}
-                  className="h-3.5 w-3.5"
-                />
-                <Label htmlFor="filterDefective" className="text-xs text-yellow-600 cursor-pointer">Arızalı</Label>
+                <Checkbox id="filterDefective" checked={filterDefective} onCheckedChange={setFilterDefective} className="h-4 w-4" />
+                <Label htmlFor="filterDefective" className="text-sm text-yellow-600 cursor-pointer">Arızalı</Label>
               </div>
               <div className="flex items-center gap-1.5">
-                <Checkbox 
-                  id="filterLost" 
-                  checked={filterLost} 
-                  onCheckedChange={setFilterLost}
-                  className="h-3.5 w-3.5"
-                />
-                <Label htmlFor="filterLost" className="text-xs text-red-600 cursor-pointer">Kayıp</Label>
+                <Checkbox id="filterLost" checked={filterLost} onCheckedChange={setFilterLost} className="h-4 w-4" />
+                <Label htmlFor="filterLost" className="text-sm text-red-600 cursor-pointer">Kayıp</Label>
               </div>
             </div>
           </div>
@@ -962,44 +945,45 @@ export default function ZimmetPage() {
                   <div
                     key={product.id}
                     onClick={() => setSelectedProduct(product)}
-                    className={`px-2 py-1.5 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${
-                      selectedProduct?.id === product.id ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
+                    className={`p-3 border-b border-border cursor-pointer transition-colors ${
+                      selectedProduct?.id === product.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"
                     }`}
+                    data-testid={`product-item-${product.id}`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="font-medium text-xs truncate">{product.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm truncate">{product.name}</p>
                           {product.is_defective && (
-                            <span className="text-[9px] px-1 py-0.5 bg-yellow-100 text-yellow-700 rounded">Arızalı</span>
+                            <span className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">Arızalı</span>
                           )}
                           {product.is_lost && (
-                            <span className="text-[9px] px-1 py-0.5 bg-red-100 text-red-700 rounded">Kayıp</span>
+                            <span className="text-xs px-1.5 py-0.5 bg-red-100 text-red-700 rounded">Kayıp</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                           <span>{product.product_type_name}</span>
-                          {product.serial_number && <span>SN: {product.serial_number}</span>}
-                          {product.pos_serial && <span>SN: {product.pos_serial}</span>}
-                          {product.pos_terminal && <span>TRM: {product.pos_terminal}</span>}
+                          {product.serial_number && <span className="font-mono">SN: {product.serial_number}</span>}
+                          {product.pos_serial && <span className="font-mono">SN: {product.pos_serial}</span>}
+                          {product.pos_terminal && <span className="font-mono">TRM: {product.pos_terminal}</span>}
                         </div>
                       </div>
                       <div className="shrink-0">
                         {product.assigned_to_courier_id ? (
-                          <div className="flex items-center gap-0.5 text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                            <User className="w-2.5 h-2.5" />
-                            <span className="truncate max-w-[60px]">{product.assigned_to_courier_name}</span>
+                          <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            <User className="w-3 h-3" />
+                            <span className="truncate max-w-[80px]">{product.assigned_to_courier_name}</span>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Boşta</span>
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">Boşta</span>
                         )}
                       </div>
                     </div>
                   </div>
                 ))}
                 {hasMoreProducts && !searchQuery && (
-                  <div className="text-center py-2">
-                    <Button size="sm" variant="outline" onClick={loadMoreProducts} disabled={loadingMore} className="h-7 text-xs">
+                  <div className="text-center py-3">
+                    <Button size="sm" variant="outline" onClick={loadMoreProducts} disabled={loadingMore} className="h-9 text-sm">
                       {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalProducts - products.length} kaldı)`}
                     </Button>
                   </div>
@@ -1010,94 +994,167 @@ export default function ZimmetPage() {
         </div>
 
         {/* Right Panel - Details */}
-        <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
+        <div className="flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
           {selectedProduct ? (
             <>
-              {/* Product Header - Kompakt */}
-              <div className="px-3 py-2 border-b border-slate-200 bg-slate-50 shrink-0">
+              {/* Product Header */}
+              <div className="p-4 border-b-2 border-border bg-slate-50 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <div>
-                      <h2 className="text-base font-bold leading-tight">{selectedProduct.name}</h2>
-                      <p className="text-xs text-muted-foreground">{selectedProduct.product_type_name}</p>
+                      <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
+                      <p className="text-sm text-muted-foreground">{selectedProduct.product_type_name}</p>
                     </div>
                     {selectedProduct.is_defective && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">Arızalı</span>
+                      <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">Arızalı</span>
                     )}
                     {selectedProduct.is_lost && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded">Kayıp</span>
+                      <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">Kayıp</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button size="sm" variant="outline" onClick={() => openEditProduct(selectedProduct)} className="h-7 px-2">
-                      <Pencil className="w-3 h-3" />
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" onClick={() => openEditProduct(selectedProduct)} className="h-9 border-2">
+                      <Pencil className="w-4 h-4 mr-1" /> Düzenle
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setSelectedProduct(null)} className="h-7 px-2">
-                      <XCircle className="w-3 h-3" />
+                    <Button size="sm" variant="ghost" onClick={() => setSelectedProduct(null)} className="h-9">
+                      <XCircle className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               </div>
 
-              {/* Product Info - Kompakt Grid */}
-              <div className="px-3 py-2 border-b border-slate-200 shrink-0">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+              {/* Product Info */}
+              <div className="p-4 border-b-2 border-border flex-shrink-0">
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   {selectedProduct.serial_number && (
-                    <>
+                    <div>
                       <span className="text-muted-foreground">Seri No:</span>
-                      <span className="font-mono text-right">{selectedProduct.serial_number}</span>
-                    </>
+                      <span className="font-mono ml-2">{selectedProduct.serial_number}</span>
+                    </div>
                   )}
                   {selectedProduct.pos_serial && (
-                    <>
-                      <span className="text-muted-foreground">Pos SN:</span>
-                      <span className="font-mono text-right">{selectedProduct.pos_serial}</span>
-                    </>
+                    <div>
+                      <span className="text-muted-foreground">POS Seri No:</span>
+                      <span className="font-mono ml-2">{selectedProduct.pos_serial}</span>
+                    </div>
                   )}
                   {selectedProduct.pos_terminal && (
-                    <>
-                      <span className="text-muted-foreground">Pos Terminal:</span>
-                      <span className="font-mono text-right">{selectedProduct.pos_terminal}</span>
-                    </>
+                    <div>
+                      <span className="text-muted-foreground">POS Terminal:</span>
+                      <span className="font-mono ml-2">{selectedProduct.pos_terminal}</span>
+                    </div>
                   )}
                 </div>
                 
                 {/* Assignment Status */}
-                <div className="pt-2 mt-2 border-t border-slate-100">
+                <div className="pt-3 mt-3 border-t border-slate-200">
                   {selectedProduct.assigned_to_courier_id ? (
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1 text-blue-600">
-                        <User className="w-3 h-3" />
-                        <span className="font-medium">{selectedProduct.assigned_to_courier_name}</span>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 text-blue-600">
+                        <User className="w-4 h-4" />
+                        <span className="font-semibold">{selectedProduct.assigned_to_courier_name}</span>
                       </div>
-                      <span className="text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {selectedProduct.assigned_at && formatDate(selectedProduct.assigned_at)}
                       </span>
                     </div>
                   ) : (
-                    <p className="text-xs text-green-600 font-medium">Boşta - Zimmetli değil</p>
+                    <p className="text-sm text-green-600 font-semibold">Boşta - Zimmetli değil</p>
                   )}
                 </div>
               </div>
 
-              {/* Actions - Kompakt */}
-              <div className="px-3 py-2 border-b border-slate-200 flex flex-wrap gap-1.5 shrink-0">
+              {/* Actions */}
+              <div className="p-4 border-b-2 border-border flex flex-wrap gap-2 flex-shrink-0">
                 {selectedProduct.assigned_to_courier_id ? (
-                  <Button size="sm" variant="outline" onClick={() => setShowReturnModal(true)} className="h-7 text-xs">
-                    <ArrowLeftRight className="w-3 h-3 mr-1" /> Geri Al
+                  <Button size="sm" variant="outline" onClick={() => setShowReturnModal(true)} className="h-10 border-2">
+                    <ArrowLeftRight className="w-4 h-4 mr-2" /> Geri Al
                   </Button>
                 ) : (
-                  <Button size="sm" onClick={() => setShowAssignModal(true)} disabled={selectedProduct.is_lost} className="h-7 text-xs">
-                    <User className="w-3 h-3 mr-1" /> Zimmetle
+                  <Button size="sm" onClick={() => setShowAssignModal(true)} disabled={selectedProduct.is_lost} className="h-10">
+                    <User className="w-4 h-4 mr-2" /> Zimmetle
                   </Button>
                 )}
                 <Button 
                   size="sm" 
                   variant={selectedProduct.is_defective ? "default" : "outline"}
                   onClick={() => handleToggleDefective(selectedProduct)}
-                  className={`h-7 text-xs ${selectedProduct.is_defective ? "bg-yellow-500 hover:bg-yellow-600" : ""}`}
+                  className={`h-10 border-2 ${selectedProduct.is_defective ? "bg-yellow-500 hover:bg-yellow-600" : ""}`}
                 >
-                  <AlertTriangle className="w-3 h-3 mr-1" /> 
+                  <AlertTriangle className="w-4 h-4 mr-2" /> 
+                  {selectedProduct.is_defective ? "Arızayı Kaldır" : "Arızalı"}
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant={selectedProduct.is_lost ? "default" : "outline"}
+                  onClick={() => handleToggleLost(selectedProduct)}
+                  className={`h-10 border-2 ${selectedProduct.is_lost ? "bg-red-500 hover:bg-red-600" : ""}`}
+                >
+                  <XCircle className="w-4 h-4 mr-2" /> 
+                  {selectedProduct.is_lost ? "Kayıp Kaldır" : "Kayıp"}
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleDeleteProduct(selectedProduct.id)}
+                  className="h-10 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Sil
+                </Button>
+              </div>
+
+              {/* History */}
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="p-3 border-b border-border bg-slate-50 flex-shrink-0">
+                  <span className="text-sm font-semibold flex items-center gap-2">
+                    <History className="w-4 h-4" /> Ürün Geçmişi ({productHistory.length})
+                  </span>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {productHistory.length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-8 text-center">Henüz işlem yok</p>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {productHistory.map((log) => (
+                        <div key={log.id} className="p-3 hover:bg-slate-50">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${getActionColor(log.action, log.details)}`}>
+                                {getActionLabel(log.action, log.details)}
+                              </span>
+                              {log.courier_name && (
+                                <span className="text-sm text-blue-600 flex items-center gap-1">
+                                  <User className="w-3 h-3" /> {log.courier_name}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(log.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                              <p className="text-xs text-slate-500">{log.admin_name}</p>
+                            </div>
+                          </div>
+                          {log.details?.notes && (
+                            <p className="text-xs text-slate-500 mt-1 italic">"{log.details.notes}"</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <Package className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p>Ürün seçin</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div> 
                   {selectedProduct.is_defective ? "Arıza Kaldır" : "Arızalı"}
                 </Button>
                 <Button 
