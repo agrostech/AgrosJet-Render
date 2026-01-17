@@ -401,6 +401,48 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* İşlem Düzenleme Modal */}
+      <Dialog open={!!editingTx} onOpenChange={(open) => !open && setEditingTx(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              İşlem Düzenle
+            </DialogTitle>
+          </DialogHeader>
+          {editingTx && (
+            <div className="space-y-4">
+              <div className="p-3 bg-slate-50 rounded border">
+                <p className="text-xs text-muted-foreground">Tarih</p>
+                <p className="font-mono text-sm">{formatDate(editingTx.created_at)}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Tutar (TL)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editForm.amount}
+                  onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
+                  className="mt-1 h-11 border-2 font-mono"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Açıklama</Label>
+                <Input
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="mt-1 h-11 border-2"
+                />
+              </div>
+              <Button onClick={handleEditSubmit} className="w-full h-11 font-semibold" disabled={editLoading}>
+                {editLoading ? "Güncelleniyor..." : "Kaydet"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
