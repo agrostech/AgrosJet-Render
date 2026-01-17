@@ -632,7 +632,7 @@ export default function ZimmetPage() {
         /* Mali Bellek Tab Content - Grid layout: Sol POS listesi, Sağ Loglar */
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Sol Panel - POS Listesi */}
-          <div className="w-full lg:flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+          <div className="w-full lg:w-1/2 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
             <div className="p-3 border-b-2 border-border bg-slate-50 shrink-0 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
