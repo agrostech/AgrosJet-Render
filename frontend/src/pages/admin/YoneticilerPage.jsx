@@ -161,7 +161,7 @@ export default function YoneticilerPage({ companyId }) {
               <TableHead className="font-bold text-xs">İsim</TableHead>
               <TableHead className="font-bold text-xs">Kullanıcı Adı</TableHead>
               <TableHead className="font-bold text-xs">Rol</TableHead>
-              <TableHead className="font-bold text-xs">İşlemler</TableHead>
+              <TableHead className="font-bold text-xs text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -174,9 +174,9 @@ export default function YoneticilerPage({ companyId }) {
                     {a.role === "superadmin" ? "Süper Admin" : "Admin"}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   {a.role !== "superadmin" && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-end">
                       <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-admin-${a.id}`}><Pencil className="w-4 h-4" /></Button>
                       <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="h-8 px-3 border-2" data-testid={`perm-${a.id}`}><Settings className="w-4 h-4" /></Button>
                       <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`}><Trash2 className="w-4 h-4" /></Button>
