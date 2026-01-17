@@ -403,6 +403,106 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
               </div>
             )}
 
+            {/* Taksitli Ürünler */}
+            {!showArchived && (
+              <div className="p-3 border-b-2 border-border bg-gradient-to-r from-purple-50 to-white flex-shrink-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-purple-600" />
+                    <span className="text-xs font-semibold text-purple-800">Taksitli Ürünler</span>
+                    {installmentProducts.length > 0 && (
+                      <span className="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded-full font-medium">
+                        {installmentProducts.length}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowInstallmentModal(true)}
+                    className="h-7 text-xs border-purple-300 text-purple-700 hover:bg-purple-50"
+                    data-testid="add-installment-product-btn"
+                  >
+                    <Package className="w-3 h-3 mr-1" />
+                    Ürün Ekle
+                  </Button>
+                </div>
+                
+                {installmentProducts.length > 0 && (
+                  <div className="space-y-2">
+                    {installmentProducts.map((product) => (
+                      <div key={product.id} className="flex items-center justify-between p-2 bg-white rounded border border-purple-200">
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatMoney(product.installment_amount)} x {product.installment_count} = {formatMoney(product.total_amount)}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex-1 bg-slate-200 rounded-full h-1.5">
+                              <div 
+                                className="bg-purple-600 h-1.5 rounded-full transition-all"
+                                style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-mono text-purple-700">
+                              {product.installment_count - product.remaining_installments}/{product.installment_count}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 ml-2">
+                          {product.remaining_installments > 0 && (
+                            <Button
+                              size="sm"
+                              onClick={() => handlePayInstallment(product)}
+                              disabled={payingInstallment === product.id}
+                              className="h-7 text-xs bg-purple-600 hover:bg-purple-700"
+                              data-testid={`pay-installment-${product.id}`}
+                            >
+                              {payingInstallment === product.id ? "..." : `Taksit Öde (${product.remaining_installments})`}
+                            </Button>
+                          )}
+                          {product.paid_amount === 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteProduct(product)}
+                              className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
+                              data-testid={`delete-product-${product.id}`}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Özel tarih seçici */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <Checkbox
+                        id="installment-custom-date"
+                        checked={useInstallmentCustomDate}
+                        onCheckedChange={(checked) => {
+                          setUseInstallmentCustomDate(checked);
+                          if (checked && !installmentDate) {
+                            setInstallmentDate(getLocalDateTimeString());
+                          }
+                        }}
+                      />
+                      <Label htmlFor="installment-custom-date" className="text-xs cursor-pointer">Özel tarih</Label>
+                      {useInstallmentCustomDate && (
+                        <Input
+                          type="datetime-local"
+                          value={installmentDate}
+                          onChange={(e) => setInstallmentDate(e.target.value)}
+                          className="h-7 border text-xs w-auto"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* İşlem Geçmişi */}
             <div className="flex-1 flex flex-col min-h-0">
               <div className="p-2 border-b border-border bg-slate-50 flex items-center justify-between flex-shrink-0">
