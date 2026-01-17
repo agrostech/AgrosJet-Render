@@ -518,6 +518,7 @@ export function useAccountingTab({
     handleSelect,
     handlePayment,
     handleDeleteTransaction,
+    handleUpdateTransaction,
     handleArchive,
     handleUnarchive,
     handleDelete,
