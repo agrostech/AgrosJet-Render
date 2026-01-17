@@ -76,6 +76,130 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   const [editForm, setEditForm] = useState({ amount: "", description: "", is_hakedis: false });
   const [editLoading, setEditLoading] = useState(false);
 
+  // Taksitli Ürün State'leri
+  const [showInstallmentModal, setShowInstallmentModal] = useState(false);
+  const [installmentProducts, setInstallmentProducts] = useState([]);
+  const [newProduct, setNewProduct] = useState({ name: "", installment_amount: "", installment_count: "" });
+  const [addingProduct, setAddingProduct] = useState(false);
+  const [payingInstallment, setPayingInstallment] = useState(null);
+  const [installmentDate, setInstallmentDate] = useState("");
+  const [useInstallmentCustomDate, setUseInstallmentCustomDate] = useState(false);
+
+  // Fetch installment products when courier is selected
+  const fetchInstallmentProducts = async (courierId) => {
+    try {
+      const res = await axios.get(`${API}/couriers/${courierId}/installment-products?include_completed=false`);
+      setInstallmentProducts(res.data);
+    } catch (err) {
+      console.error("Taksitli ürünler yüklenemedi", err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedEntity) {
+      fetchInstallmentProducts(selectedEntity.id);
+    } else {
+      setInstallmentProducts([]);
+    }
+  }, [selectedEntity]);
+
+  // Add new installment product
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    if (!selectedEntity) return;
+    
+    const amount = parseFloat(newProduct.installment_amount);
+    const count = parseInt(newProduct.installment_count);
+    
+    if (!newProduct.name || amount <= 0 || count <= 0) {
+      toast.error("Lütfen tüm alanları doldurun");
+      return;
+    }
+
+    setAddingProduct(true);
+    try {
+      await axios.post(`${API}/couriers/${selectedEntity.id}/installment-products`, {
+        courier_id: selectedEntity.id,
+        company_id: companyId,
+        name: newProduct.name,
+        installment_amount: amount,
+        installment_count: count,
+        admin_id: adminId,
+        admin_name: adminName
+      });
+      toast.success("Taksitli ürün eklendi");
+      setNewProduct({ name: "", installment_amount: "", installment_count: "" });
+      setShowInstallmentModal(false);
+      fetchInstallmentProducts(selectedEntity.id);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Ürün eklenemedi");
+    } finally {
+      setAddingProduct(false);
+    }
+  };
+
+  // Pay one installment
+  const handlePayInstallment = async (product) => {
+    setPayingInstallment(product.id);
+    try {
+      const payload = {
+        admin_id: adminId,
+        admin_name: adminName
+      };
+      if (useInstallmentCustomDate && installmentDate) {
+        payload.custom_date = new Date(installmentDate).toISOString();
+      }
+      
+      const res = await axios.post(`${API}/installment-products/${product.id}/pay`, payload);
+      toast.success(res.data.message);
+      fetchInstallmentProducts(selectedEntity.id);
+      // Refresh transactions
+      if (selectedEntity) {
+        handleSelect(selectedEntity);
+      }
+      setInstallmentDate("");
+      setUseInstallmentCustomDate(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Taksit ödenemedi");
+    } finally {
+      setPayingInstallment(null);
+    }
+  };
+
+  // Delete installment product
+  const handleDeleteProduct = async (product) => {
+    if (!window.confirm(`"${product.name}" ürününü silmek istediğinize emin misiniz?`)) return;
+    
+    try {
+      await axios.delete(`${API}/installment-products/${product.id}?admin_id=${adminId}&admin_name=${encodeURIComponent(adminName)}`);
+      toast.success("Ürün silindi");
+      fetchInstallmentProducts(selectedEntity.id);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Ürün silinemedi");
+    }
+  };
+
+  // Custom delete that restores installment
+  const handleDeleteTransactionWithRestore = async (txId, tx) => {
+    if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
+    
+    try {
+      // Use special endpoint that restores installment count
+      await axios.delete(`${API}/transactions/${txId}/with-installment-restore`, {
+        data: { admin_id: adminId, admin_name: adminName }
+      });
+      toast.success(tx?.installment_product_id ? "İşlem silindi, taksit geri eklendi" : "İşlem silindi");
+      
+      // Refresh
+      if (selectedEntity) {
+        handleSelect(selectedEntity);
+        fetchInstallmentProducts(selectedEntity.id);
+      }
+    } catch (err) {
+      toast.error("İşlem silinemedi");
+    }
+  };
+
   const openEditModal = (tx) => {
     setEditingTx(tx);
     setEditForm({
