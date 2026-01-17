@@ -113,7 +113,7 @@ export default function CourierDashboard() {
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <nav className="lg:hidden bg-primary text-white border-t border-white/20">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <Link 
               key={item.path} 
               to={item.path} 
