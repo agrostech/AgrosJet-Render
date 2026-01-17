@@ -53,6 +53,7 @@ from routers.mali_bellek import router as mali_bellek_router
 from routers.zimmet import router as zimmet_router
 from routers.accounting import router as accounting_router
 from routers.shifts import router as shifts_router
+from routers.invoices import router as invoices_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
@@ -63,6 +64,7 @@ app.include_router(mali_bellek_router)
 app.include_router(zimmet_router)
 app.include_router(accounting_router)
 app.include_router(shifts_router)
+app.include_router(invoices_router)
 
 # Health check
 @api_router.get("/")
