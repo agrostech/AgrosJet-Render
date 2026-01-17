@@ -264,32 +264,78 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
                     <th className="text-left p-3 font-semibold">Tarih</th>
                     <th className="text-left p-3 font-semibold">Açıklama</th>
                     <th className="text-right p-3 font-semibold">Tutar</th>
+                    <th className="text-center p-3 font-semibold w-32">Fatura</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {transactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-50">
-                      <td className="p-3 font-mono text-xs whitespace-nowrap">{formatDate(tx.created_at)}</td>
-                      <td className="p-3">
-                        {tx.description}
-                        {tx.is_hakedis && (
-                          <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
-                            Hakediş
-                          </span>
-                        )}
-                        {tx.installment_product_id && (
-                          <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
-                            Taksit
-                          </span>
-                        )}
-                      </td>
-                      <td className={`p-3 text-right font-mono font-semibold ${
-                        tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
-                      </td>
-                    </tr>
-                  ))}
+                  {transactions.map((tx) => {
+                    const invoice = invoices[tx.id];
+                    const hasInvoice = !!invoice;
+                    const showUploadButton = tx.is_hakedis && !hasInvoice;
+                    
+                    return (
+                      <tr key={tx.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-mono text-xs whitespace-nowrap">{formatDate(tx.created_at)}</td>
+                        <td className="p-3">
+                          {tx.description}
+                          {tx.is_hakedis && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
+                              Hakediş
+                            </span>
+                          )}
+                          {tx.installment_product_id && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
+                              Taksit
+                            </span>
+                          )}
+                        </td>
+                        <td className={`p-3 text-right font-mono font-semibold ${
+                          tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
+                        </td>
+                        <td className="p-3 text-center">
+                          {showUploadButton ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUploadClick(tx.id)}
+                              disabled={uploadingFor === tx.id}
+                              className="h-7 text-xs gap-1"
+                            >
+                              <Upload className="w-3 h-3" />
+                              {uploadingFor === tx.id ? "..." : "Yükle"}
+                            </Button>
+                          ) : hasInvoice ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDownloadInvoice(invoice.id)}
+                                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                title="İndir"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
+                              {canDeleteInvoice(invoice) && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteInvoice(invoice.id)}
+                                  className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  title="Sil (24 saat içinde)"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
