@@ -324,9 +324,25 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                     </p>
                   </div>
                   {!showArchived && (
-                    <Button variant="outline" size="sm" onClick={() => handleArchive(selectedEntity.id)} className="h-9 border-2" data-testid="archive-courier-btn">
-                      <Archive className="w-4 h-4" />
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setShowInstallmentListModal(true)} 
+                        className="h-9 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 relative" 
+                        data-testid="installment-btn"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        {totalRemainingInstallments > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                            {totalRemainingInstallments}
+                          </span>
+                        )}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleArchive(selectedEntity.id)} className="h-9 border-2" data-testid="archive-courier-btn">
+                        <Archive className="w-4 h-4" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
