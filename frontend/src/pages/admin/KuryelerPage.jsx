@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Search, UserPlus, Pencil } from "lucide-react";
+import { Trash2, Search, UserPlus, Pencil, AlertTriangle, XCircle } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
