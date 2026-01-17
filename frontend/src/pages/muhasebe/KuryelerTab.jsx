@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, User, Trash2, Archive, ArchiveRestore, Search, Download, Clock } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Plus, Minus, User, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil } from "lucide-react";
 import { 
   useAccountingTab, 
   formatMoney, 
