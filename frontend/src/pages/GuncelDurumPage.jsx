@@ -263,7 +263,7 @@ export default function GuncelDurumPage({ companyId }) {
               Henüz vardiya eklenmemiş
             </p>
           ) : (
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {sortedShifts.map(shift => {
                 const shiftAssignments = getShiftAssignments(shift.id);
                 const isActive = isToday && isShiftActive(shift);
@@ -305,7 +305,7 @@ export default function GuncelDurumPage({ companyId }) {
                           {shiftAssignments.slice().reverse().map(a => (
                             <span 
                               key={a.id} 
-                              className={`text-[11px] px-2 py-1 rounded font-medium text-center truncate w-[100px] ${
+                              className={`text-[11px] px-2 py-1 rounded font-medium text-center truncate max-w-[90px] ${
                                 isActive 
                                   ? 'bg-green-200 text-green-800' 
                                   : 'bg-blue-100 text-blue-800'
