@@ -28,8 +28,43 @@ export default function CourierDashboard() {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [documentsComplete, setDocumentsComplete] = useState(true);
+  const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
 
   useSessionCheck();
+
+  // Fetch document status
+  const checkDocumentStatus = useCallback(async (courierId) => {
+    try {
+      const res = await axios.get(`${API}/documents/courier/${courierId}/status`);
+      const isComplete = res.data.all_complete;
+      setDocumentsComplete(isComplete);
+      
+      // Update nav items based on document status
+      if (!isComplete) {
+        setNavItems([...BASE_NAV_ITEMS, EVRAKLAR_NAV_ITEM]);
+      } else {
+        setNavItems(BASE_NAV_ITEMS);
+        // If user is on evraklar page and documents are complete, redirect
+        if (location.pathname === "/courier/evraklar") {
+          navigate("/courier");
+        }
+      }
+    } catch (err) {
+      console.error("Evrak durumu alınamadı", err);
+    }
+  }, [location.pathname, navigate]);
+
+  // Fetch company name
+  const fetchCompanyName = useCallback(async (companyId) => {
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}`);
+      setCompanyName(res.data.name);
+    } catch (err) {
+      console.error("Şirket bilgisi alınamadı", err);
+    }
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -43,7 +78,15 @@ export default function CourierDashboard() {
       return;
     }
     setUser(parsed);
-  }, [navigate]);
+    
+    // Fetch additional data
+    if (parsed.company_id) {
+      fetchCompanyName(parsed.company_id);
+    }
+    if (parsed.id) {
+      checkDocumentStatus(parsed.id);
+    }
+  }, [navigate, fetchCompanyName, checkDocumentStatus]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
