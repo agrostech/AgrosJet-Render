@@ -38,6 +38,12 @@ Multi-tenant kurye yönetim sistemi.
 - [x] Zimmetlerim - Çalışıyor (sadece ürün listesi, özet kartlar kaldırıldı)
 - [x] Sidebar - Admin ile aynı tasarım (collapse özelliği mevcut)
 
+### Vardiya Görüntüleme İyileştirmeleri (17 Ocak 2026)
+- [x] Ardışık vardiyalar birleştiriliyor (10:00-11:00, 11:00-12:00 → 10:00-12:00)
+- [x] Vardiya yoksa veya izinliyse "İzinli" gösteriliyor
+- [x] 06:00 gün başlangıcı kuralı ile sıralama
+- [x] POS cihazı zimmetinde "Pos SN:" gösterimi
+
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
 - [ ] Sistem Sayfası özellikleri (kullanıcı gereksinimlerini bekliyor)
