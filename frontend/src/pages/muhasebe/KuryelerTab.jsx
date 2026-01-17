@@ -160,9 +160,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       const res = await axios.post(`${API}/installment-products/${product.id}/pay`, payload);
       toast.success(res.data.message);
       fetchInstallmentProducts(selectedEntity.id);
-      // Refresh transactions
+      // Refresh transactions immediately
       if (selectedEntity) {
-        handleSelect(selectedEntity);
+        fetchTransactions(selectedEntity.id);
       }
       setInstallmentDate("");
       setUseInstallmentCustomDate(false);
