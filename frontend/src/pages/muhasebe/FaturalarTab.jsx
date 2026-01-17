@@ -130,6 +130,22 @@ export default function FaturalarTab({ companyId }) {
     window.open(`${API}/invoices/view/${invoiceId}`, '_blank');
   };
 
+  const handleDeleteInvoice = async (invoiceId) => {
+    if (!window.confirm("Bu faturayı silmek istediğinize emin misiniz?")) return;
+    
+    try {
+      await axios.delete(`${API}/invoices/admin/${invoiceId}`);
+      toast.success("Fatura silindi");
+      fetchMonthInvoices();
+      fetchMissingInvoices();
+      if (selectedCourier) {
+        fetchCourierInvoices(selectedCourier.courier_id);
+      }
+    } catch (err) {
+      toast.error("Fatura silinemedi");
+    }
+  };
+
   const handleDownloadBulk = async () => {
     if (selectedInvoices.length === 0) {
       toast.error("En az bir fatura seçin");
