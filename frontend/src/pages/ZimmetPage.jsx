@@ -44,6 +44,9 @@ export default function ZimmetPage() {
     return `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
   });
   const [maliBellekAllLogs, setMaliBellekAllLogs] = useState([]);
+  const [maliBellekSearch, setMaliBellekSearch] = useState("");
+  const [maliBellekFilterCollected, setMaliBellekFilterCollected] = useState(false);
+  const [maliBellekFilterNotCollected, setMaliBellekFilterNotCollected] = useState(false);
 
   // Filter states - Ürünler sekmesi
   const [filterAssigned, setFilterAssigned] = useState(false); // Zimmetliler
