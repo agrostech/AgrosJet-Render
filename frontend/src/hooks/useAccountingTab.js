@@ -182,12 +182,24 @@ export function useAccountingTab({
     }
   }, [endpoint, transactions.length]);
 
-  // Load more transactions
-  const loadMore = useCallback(async () => {
+  // Load more transactions - scroll pozisyonunu korur
+  const loadMore = useCallback(async (scrollContainerRef) => {
     if (loadingMore || !hasMore || !selectedEntity) return;
+    
+    // Mevcut scroll pozisyonunu kaydet
+    const scrollContainer = scrollContainerRef?.current;
+    const scrollTop = scrollContainer?.scrollTop || 0;
+    
     setLoadingMore(true);
     await fetchTransactions(selectedEntity.id, true);
     setLoadingMore(false);
+    
+    // Scroll pozisyonunu geri yükle (React render sonrası)
+    if (scrollContainer) {
+      requestAnimationFrame(() => {
+        scrollContainer.scrollTop = scrollTop;
+      });
+    }
   }, [loadingMore, hasMore, selectedEntity, fetchTransactions]);
 
   // Select entity
