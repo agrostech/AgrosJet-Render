@@ -18,7 +18,6 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function CarilerTab({ companyId, adminId, adminName, companyLogo, companyName, transactionRef, onSelect }) {
   const listRef = useRef(null);
-  const txScrollRef = useRef(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newVendor, setNewVendor] = useState({ name: "", phone: "", address: "" });
   
