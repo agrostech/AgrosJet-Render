@@ -906,55 +906,44 @@ export default function ZimmetPage() {
                   <div
                     key={product.id}
                     onClick={() => setSelectedProduct(product)}
-                    className={`p-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${
+                    className={`px-2 py-1.5 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${
                       selectedProduct?.id === product.id ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
                     }`}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm truncate">{product.name}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-medium text-xs truncate">{product.name}</p>
                           {product.is_defective && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-0.5">
-                              <AlertTriangle className="w-3 h-3" /> Arızalı
-                            </span>
+                            <span className="text-[9px] px-1 py-0.5 bg-yellow-100 text-yellow-700 rounded">Arızalı</span>
                           )}
                           {product.is_lost && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded flex items-center gap-0.5">
-                              <XCircle className="w-3 h-3" /> Kayıp
-                            </span>
+                            <span className="text-[9px] px-1 py-0.5 bg-red-100 text-red-700 rounded">Kayıp</span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">{product.product_type_name}</p>
-                        {/* Seri numaraları gösterimi */}
-                        <div className="text-[10px] text-slate-400 space-y-0.5">
-                          {product.serial_number && (
-                            <p>SN: {product.serial_number}</p>
-                          )}
-                          {product.pos_serial && (
-                            <p>Pos SN: {product.pos_serial}</p>
-                          )}
-                          {product.pos_terminal && (
-                            <p>Pos Terminal: {product.pos_terminal}</p>
-                          )}
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                          <span>{product.product_type_name}</span>
+                          {product.serial_number && <span>SN: {product.serial_number}</span>}
+                          {product.pos_serial && <span>POS: {product.pos_serial}</span>}
+                          {product.pos_terminal && <span>T: {product.pos_terminal}</span>}
                         </div>
                       </div>
-                      <div className="text-right shrink-0 ml-2">
+                      <div className="shrink-0">
                         {product.assigned_to_courier_id ? (
-                          <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                            <User className="w-3 h-3" />
-                            <span className="truncate max-w-[80px]">{product.assigned_to_courier_name}</span>
+                          <div className="flex items-center gap-0.5 text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                            <User className="w-2.5 h-2.5" />
+                            <span className="truncate max-w-[60px]">{product.assigned_to_courier_name}</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">Boşta</span>
+                          <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded">Boşta</span>
                         )}
                       </div>
                     </div>
                   </div>
                 ))}
                 {hasMoreProducts && !searchQuery && (
-                  <div className="text-center py-3">
-                    <Button size="sm" variant="outline" onClick={loadMoreProducts} disabled={loadingMore} className="h-8 text-xs">
+                  <div className="text-center py-2">
+                    <Button size="sm" variant="outline" onClick={loadMoreProducts} disabled={loadingMore} className="h-7 text-xs">
                       {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalProducts - products.length} kaldı)`}
                     </Button>
                   </div>
