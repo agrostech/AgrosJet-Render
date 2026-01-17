@@ -654,8 +654,8 @@ export default function ZimmetPage() {
                           )}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                          {product.pos_serial && <span>POS: {product.pos_serial}</span>}
-                          {product.pos_terminal && <span>T: {product.pos_terminal}</span>}
+                          {product.pos_serial && <span>SN: {product.pos_serial}</span>}
+                          {product.pos_terminal && <span>TRM: {product.pos_terminal}</span>}
                         </div>
                       </div>
                       <button
@@ -925,8 +925,8 @@ export default function ZimmetPage() {
                         <div className="flex items-center gap-2 text-[10px] text-slate-400">
                           <span>{product.product_type_name}</span>
                           {product.serial_number && <span>SN: {product.serial_number}</span>}
-                          {product.pos_serial && <span>POS: {product.pos_serial}</span>}
-                          {product.pos_terminal && <span>T: {product.pos_terminal}</span>}
+                          {product.pos_serial && <span>SN: {product.pos_serial}</span>}
+                          {product.pos_terminal && <span>TRM: {product.pos_terminal}</span>}
                         </div>
                       </div>
                       <div className="shrink-0">
