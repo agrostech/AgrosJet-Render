@@ -5,6 +5,10 @@ Multi-tenant kurye yönetim sistemi.
 
 ## What's Been Implemented
 
+### Bug Fixes (17 Ocak 2026 - Güncel)
+- [x] **"Daha Fazla Yükle" Butonu** - Muhasebe sekmelerinde bireysel işlem geçmişi için düzeltildi (useRef ile güncel transactions.length)
+- [x] **Güncel Durum Gün Seçici** - Gün adı tekrarı düzeltildi, şimdi "Paz 12", "Sal 13" formatında (gün kısaltması + ayın kaçı)
+
 ### UI/UX İyileştirmeleri (17 Ocak 2026)
 - [x] **Zimmet sayfası** - Sol/sağ sütunlar %50-%50 eşit genişlik
 - [x] **Mali Bellek** - Eşit sütun genişlikleri
@@ -14,7 +18,6 @@ Multi-tenant kurye yönetim sistemi.
 - [x] **Sidebar icon** - Muhasebe = hesap makinesi
 - [x] **Telefon kaldırıldı** - Kuryeler listesinden
 - [x] **"X ürün kayıtlı" kaldırıldı** - Zimmet başlığından
-- [x] **"Daha Fazla Yükle" scroll** - Pozisyon korunuyor
 
 ### Backend Refactoring (Tamamlandı)
 - [x] `server.py` modülerleştirildi (697 → 109 satır)
