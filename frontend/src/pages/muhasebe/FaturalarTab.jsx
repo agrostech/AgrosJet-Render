@@ -349,18 +349,6 @@ export default function FaturalarTab({ companyId }) {
                             <Circle className="w-4 h-4" />
                           )}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteInvoice(invoice.id);
-                          }}
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                          title="Sil"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
                       </div>
                     </div>
                   </div>
