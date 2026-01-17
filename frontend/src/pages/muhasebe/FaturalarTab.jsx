@@ -171,6 +171,21 @@ export default function FaturalarTab({ companyId }) {
     }
   };
 
+  const handleVerifyInvoice = async (invoiceId, currentStatus) => {
+    try {
+      if (currentStatus) {
+        await axios.put(`${API}/invoices/${invoiceId}/unverify`);
+        toast.success("Kontrol durumu kaldırıldı");
+      } else {
+        await axios.put(`${API}/invoices/${invoiceId}/verify`);
+        toast.success("Fatura kontrol edildi olarak işaretlendi");
+      }
+      fetchMonthInvoices();
+    } catch (err) {
+      toast.error("İşlem başarısız");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
