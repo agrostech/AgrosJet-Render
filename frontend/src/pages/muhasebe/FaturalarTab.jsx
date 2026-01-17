@@ -300,7 +300,7 @@ export default function FaturalarTab({ companyId }) {
                             e.stopPropagation();
                             handleViewInvoice(invoice.id);
                           }}
-                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="h-8 w-8 p-0"
                           title="Görüntüle"
                         >
                           <Eye className="w-4 h-4" />
@@ -461,7 +461,7 @@ export default function FaturalarTab({ companyId }) {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleViewInvoice(invoice.id)}
-                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          className="h-8 w-8 p-0"
                           title="Görüntüle"
                         >
                           <Eye className="w-4 h-4" />
