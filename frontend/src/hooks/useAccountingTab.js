@@ -269,6 +269,26 @@ export function useAccountingTab({
     }
   }, [selectedEntity, adminId, adminName, fetchTransactions, fetchEntityBalance]);
 
+  // Update transaction
+  const handleUpdateTransaction = useCallback(async (txId, updates) => {
+    if (!selectedEntity) return;
+
+    try {
+      await axios.put(`${API}/transactions/${txId}`, {
+        ...updates,
+        admin_id: adminId,
+        admin_name: adminName
+      });
+      toast.success("İşlem güncellendi");
+      fetchTransactions(selectedEntity.id);
+      fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
+      return true;
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem güncellenemedi");
+      return false;
+    }
+  }, [selectedEntity, adminId, adminName, fetchTransactions, fetchEntityBalance]);
+
   // Archive entity
   const handleArchive = useCallback(async (id) => {
     if (!window.confirm("Bu kaydı arşivlemek istediğinize emin misiniz?")) return;
