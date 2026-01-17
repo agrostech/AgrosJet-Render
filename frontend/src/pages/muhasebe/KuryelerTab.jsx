@@ -50,6 +50,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     handleSelect,
     handlePayment,
     handleDeleteTransaction,
+    handleUpdateTransaction,
     handleArchive,
     loadMore,
     exportPDF,
@@ -67,6 +68,32 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
 
   // Arama filtresi - useState hook'lar en üstte olmalı
   const [listSearchQuery, setListSearchQuery] = useState("");
+  const [editingTx, setEditingTx] = useState(null);
+  const [editForm, setEditForm] = useState({ amount: "", description: "", is_hakedis: false });
+  const [editLoading, setEditLoading] = useState(false);
+
+  const openEditModal = (tx) => {
+    setEditingTx(tx);
+    setEditForm({
+      amount: tx.amount.toString(),
+      description: tx.description || "",
+      is_hakedis: tx.is_hakedis || false
+    });
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingTx) return;
+    setEditLoading(true);
+    const success = await handleUpdateTransaction(editingTx.id, {
+      amount: parseFloat(editForm.amount),
+      description: editForm.description,
+      is_hakedis: editForm.is_hakedis
+    });
+    setEditLoading(false);
+    if (success) {
+      setEditingTx(null);
+    }
+  };
   
   const filteredDisplayList = displayList.filter(c => {
     if (!listSearchQuery.trim()) return true;
