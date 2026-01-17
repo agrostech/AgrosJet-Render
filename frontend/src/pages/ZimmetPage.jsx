@@ -816,7 +816,7 @@ export default function ZimmetPage() {
                   <div className="mt-1 text-[10px] text-slate-400">
                     {log.details?.product_type && <span>Tip: {log.details.product_type} </span>}
                     {log.details?.serial_number && <span>SN: {log.details.serial_number} </span>}
-                    {log.details?.pos_serial && <span>POS SN: {log.details.pos_serial} </span>}
+                    {log.details?.pos_serial && <span>SN: {log.details.pos_serial} </span>}
                     {log.details?.pos_terminal && <span>Terminal: {log.details.pos_terminal} </span>}
                     {log.details?.changes && <span className="text-slate-500">{log.details.changes}</span>}
                     {log.details?.notes && <span className="italic">"{log.details.notes}"</span>}
