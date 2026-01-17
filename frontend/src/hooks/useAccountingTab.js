@@ -65,6 +65,9 @@ export function useAccountingTab({
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [balance, setBalance] = useState(0);
+  
+  // Ref for tracking current transactions length (for loadMore)
+  const transactionsRef = useRef([]);
 
   // Balance maps
   const [entityBalances, setEntityBalances] = useState({});
