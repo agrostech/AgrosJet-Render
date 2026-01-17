@@ -154,6 +154,28 @@ export default function KuryelerPage({ companyId }) {
     setShowDetailModal(true);
   };
 
+  const handleStartTermination = async (courierId) => {
+    if (!window.confirm("Bu kurye için 15 günlük fesih sürecini başlatmak istediğinize emin misiniz? Süre yarından itibaren başlayacak.")) return;
+    try {
+      await axios.post(`${API}/companies/${companyId}/couriers/${courierId}/start-termination`);
+      toast.success("Fesih süreci başlatıldı");
+      fetchCouriers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const handleCancelTermination = async (courierId) => {
+    if (!window.confirm("Fesih sürecini iptal etmek istediğinize emin misiniz?")) return;
+    try {
+      await axios.post(`${API}/companies/${companyId}/couriers/${courierId}/cancel-termination`);
+      toast.success("Fesih süreci iptal edildi");
+      fetchCouriers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
   const filteredCouriers = couriers.filter(c => {
     if (!filterQuery.trim()) return true;
     const query = filterQuery.toLowerCase();
