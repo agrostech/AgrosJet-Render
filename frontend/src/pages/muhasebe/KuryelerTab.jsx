@@ -199,9 +199,10 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       });
       toast.success(tx?.installment_product_id ? "İşlem silindi, taksit geri eklendi" : "İşlem silindi");
       
-      // Refresh
+      // Refresh transactions and balance
       if (selectedEntity) {
-        handleSelect(selectedEntity);
+        fetchTransactions(selectedEntity.id);
+        fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
         fetchInstallmentProducts(selectedEntity.id);
       }
     } catch (err) {
