@@ -167,6 +167,7 @@ export default function KuryelerPage({ companyId }) {
 
   const openDetailModal = (courier) => {
     setSelectedCourier(courier);
+    setDetailTab("info");
     setShowDetailModal(true);
   };
 
