@@ -188,9 +188,17 @@ export default function GuncelDurumPage({ companyId }) {
           </button>
           
           <div className="flex-1 grid grid-cols-7 gap-1">
-            {DAYS.map((day) => {
+            {DAYS.map((day, index) => {
               const isActive = activeDay === day.key;
               const isTodayDay = workDay.dayKey === day.key;
+              
+              // Calculate the date for this day of the week
+              const todayIndex = DAYS.findIndex(d => d.key === workDay.dayKey);
+              const diff = index - todayIndex;
+              const dayDate = new Date(workDay.date);
+              dayDate.setDate(dayDate.getDate() + diff);
+              const dayOfMonth = dayDate.getDate();
+              
               return (
                 <button
                   key={day.key}
@@ -207,7 +215,7 @@ export default function GuncelDurumPage({ companyId }) {
                     {day.label.slice(0, 3)}
                   </span>
                   <span className={`text-sm font-bold ${isActive ? '' : isTodayDay ? 'text-primary' : ''}`}>
-                    {day.label.slice(0, 2)}
+                    {dayOfMonth}
                   </span>
                   {isTodayDay && !isActive && (
                     <span className="w-1.5 h-1.5 bg-primary rounded-full mt-0.5"></span>
