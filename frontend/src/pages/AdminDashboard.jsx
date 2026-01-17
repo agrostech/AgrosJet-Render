@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, FileText, Package, Users, UserCog, LayoutDashboard } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 
 // Page components
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
   const NAV_ITEMS = [
     { path: "/admin", label: "Güncel Durum", icon: LayoutDashboard, key: "guncel" },
     { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya" },
-    { path: "/admin/muhasebe", label: "Muhasebe", icon: FileText, key: "muhasebe" },
+    { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet" },
     { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler" },
     { path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler" },
