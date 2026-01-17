@@ -337,6 +337,71 @@ async def delete_transaction(transaction_id: str, data: TransactionDeleteRequest
     return {"message": "İşlem silindi"}
 
 
+class TransactionUpdateRequest(BaseModel):
+    amount: Optional[float] = None
+    description: Optional[str] = None
+    is_hakedis: Optional[bool] = None
+    admin_id: str
+    admin_name: str
+
+
+@router.put("/transactions/{transaction_id}")
+async def update_transaction(transaction_id: str, data: TransactionUpdateRequest):
+    """Update a transaction"""
+    transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    
+    # Build update dict
+    update_fields = {}
+    if data.amount is not None and data.amount > 0:
+        update_fields["amount"] = data.amount
+    if data.description is not None:
+        update_fields["description"] = data.description
+    if data.is_hakedis is not None:
+        update_fields["is_hakedis"] = data.is_hakedis
+    
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="Güncellenecek alan belirtilmedi")
+    
+    # Update transaction
+    await db.transactions.update_one(
+        {"id": transaction_id},
+        {"$set": update_fields}
+    )
+    
+    # Get entity name for log
+    entity_name = ""
+    if transaction["entity_type"] == "courier":
+        courier = await db.couriers.find_one({"id": transaction["entity_id"]})
+        entity_name = courier["name"] if courier else "Bilinmeyen Kurye"
+    elif transaction["entity_type"] == "business":
+        business = await db.businesses.find_one({"id": transaction["entity_id"]})
+        entity_name = business["name"] if business else "Bilinmeyen İşletme"
+    elif transaction["entity_type"] == "vendor":
+        vendor = await db.vendors.find_one({"id": transaction["entity_id"]})
+        entity_name = vendor["name"] if vendor else "Bilinmeyen Cari"
+    
+    # Create activity log
+    await create_activity_log({
+        "company_id": transaction["company_id"],
+        "admin_id": data.admin_id,
+        "admin_name": data.admin_name,
+        "action": "transaction_updated",
+        "entity_type": transaction["entity_type"],
+        "entity_id": transaction["entity_id"],
+        "entity_name": entity_name,
+        "details": {
+            "transaction_id": transaction_id,
+            "old_amount": transaction["amount"],
+            "new_amount": update_fields.get("amount", transaction["amount"]),
+            "old_description": transaction["description"],
+            "new_description": update_fields.get("description", transaction["description"]),
+        }
+    })
+    
+    return {"message": "İşlem güncellendi"}
+
 
 @router.get("/companies/{company_id}/accounting-summary")
 async def get_accounting_summary(company_id: str):
