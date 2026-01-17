@@ -360,12 +360,22 @@ async def get_accounting_summary(company_id: str):
                 balance -= tx["amount"]
         return balance
     
-    # Get all couriers for this company
-    couriers = await db.couriers.find(
-        {"company_id": company_id, "is_archived": {"$ne": True}},
-        {"_id": 0, "id": 1}
+    # Get all couriers for this company (via company_couriers junction table)
+    company_couriers = await db.company_couriers.find(
+        {"company_id": company_id},
+        {"_id": 0, "courier_id": 1}
     ).to_list(1000)
-    courier_ids = [c["id"] for c in couriers]
+    courier_ids_from_junction = [cc["courier_id"] for cc in company_couriers]
+    
+    # Filter out archived couriers
+    if courier_ids_from_junction:
+        active_couriers = await db.couriers.find(
+            {"id": {"$in": courier_ids_from_junction}, "is_archived": {"$ne": True}},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        courier_ids = [c["id"] for c in active_couriers]
+    else:
+        courier_ids = []
     
     # Get all businesses for this company
     businesses = await db.businesses.find(
