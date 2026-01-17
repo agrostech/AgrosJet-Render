@@ -718,9 +718,9 @@ export default function ZimmetPage() {
                       </div>
                       <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
                         <span>
-                          {log.pos_serial && `POS: ${log.pos_serial}`}
+                          {log.pos_serial && `SN: ${log.pos_serial}`}
                           {log.pos_serial && log.pos_terminal && ' | '}
-                          {log.pos_terminal && `T: ${log.pos_terminal}`}
+                          {log.pos_terminal && `TRM: ${log.pos_terminal}`}
                         </span>
                         <span>{log.admin_name}</span>
                       </div>
