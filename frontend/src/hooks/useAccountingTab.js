@@ -182,29 +182,12 @@ export function useAccountingTab({
     }
   }, [endpoint, transactions.length]);
 
-  // Load more transactions - scroll pozisyonunu korur
-  const loadMore = useCallback(async (scrollContainerRef) => {
+  // Load more transactions - basit yaklaşım (Hareketler Tab mantığı)
+  const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || !selectedEntity) return;
-    
     setLoadingMore(true);
-    
-    // Mevcut scroll pozisyonunu ve scroll height'ı kaydet
-    const container = scrollContainerRef?.current;
-    const prevScrollHeight = container?.scrollHeight || 0;
-    const prevScrollTop = container?.scrollTop || 0;
-    
     await fetchTransactions(selectedEntity.id, true);
-    
-    // State güncellemesi sonrası scroll pozisyonunu düzelt
-    setTimeout(() => {
-      if (container) {
-        // Yeni scroll height ile eski pozisyonu korumak için
-        const newScrollHeight = container.scrollHeight;
-        const heightDiff = newScrollHeight - prevScrollHeight;
-        container.scrollTop = prevScrollTop + heightDiff;
-      }
-      setLoadingMore(false);
-    }, 50);
+    setLoadingMore(false);
   }, [loadingMore, hasMore, selectedEntity, fetchTransactions]);
 
   // Select entity
