@@ -60,14 +60,15 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     onSelect,
   });
 
-  if (loading) return <p className="p-4">Yükleniyor...</p>;
-
-  // Arama filtresi
+  // Arama filtresi - useState hook'lar en üstte olmalı
   const [listSearchQuery, setListSearchQuery] = useState("");
+  
   const filteredDisplayList = displayList.filter(c => {
     if (!listSearchQuery.trim()) return true;
     return c.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
+
+  if (loading) return <p className="p-4">Yükleniyor...</p>;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full" ref={transactionRef}>
