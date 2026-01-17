@@ -91,75 +91,76 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
 
   return (
     <div className="space-y-4" data-testid="courier-muhasebe-page">
-      {/* Header */}
-      <div className="border-2 border-border bg-white p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
-              <Calculator className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="font-heading font-bold text-xl">Muhasebe</h2>
-              <p className="text-sm text-muted-foreground">İşlem geçmişiniz ve bakiyeniz</p>
-            </div>
-          </div>
-          <div className={`text-right px-4 py-2 rounded-lg ${getBalanceBg(balance)}`}>
-            <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
-            <p className={`text-xl font-bold font-mono ${getBalanceColor(balance)}`}>
-              {balance === 0 ? '0 TL' : formatMoney(balance)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Taksitli Ürünler */}
-      {installmentProducts.length > 0 && (
-        <div className="border-2 border-border bg-white">
-          <div className="p-4 border-b-2 border-border flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-purple-600" />
-              <h3 className="font-semibold">Taksitli Ürünler</h3>
-            </div>
-            {totalRemainingInstallments > 0 && (
-              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
-                {totalRemainingInstallments} taksit kaldı
-              </span>
-            )}
-          </div>
-          <div className="divide-y divide-border">
-            {installmentProducts.map((product) => (
-              <div key={product.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatMoney(product.installment_amount)} x {product.installment_count} = {formatMoney(product.total_amount)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-purple-600">
-                      {product.installment_count - product.remaining_installments} / {product.installment_count}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Kalan: {formatMoney(product.total_amount - product.paid_amount)}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-2 bg-slate-200 rounded-full h-2">
-                  <div 
-                    className="bg-purple-600 h-2 rounded-full transition-all"
-                    style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Transaction History */}
+      {/* Main Card */}
       <div className="border-2 border-border bg-white">
+        {/* Header */}
         <div className="p-4 border-b-2 border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
+                <Calculator className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-heading font-bold text-xl">Muhasebe</h2>
+                <p className="text-sm text-muted-foreground">İşlem geçmişiniz ve bakiyeniz</p>
+              </div>
+            </div>
+            <div className={`text-right px-4 py-2 rounded-lg ${getBalanceBg(balance)}`}>
+              <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
+              <p className={`text-xl font-bold font-mono ${getBalanceColor(balance)}`}>
+                {balance === 0 ? '0 TL' : formatMoney(balance)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Taksitli Ürünler */}
+        {installmentProducts.length > 0 && (
+          <div className="border-b-2 border-border">
+            <div className="p-4 bg-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-purple-600" />
+                <h3 className="font-semibold">Taksitli Ürünler</h3>
+              </div>
+              {totalRemainingInstallments > 0 && (
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                  {totalRemainingInstallments} taksit kaldı
+                </span>
+              )}
+            </div>
+            <div className="divide-y divide-border">
+              {installmentProducts.map((product) => (
+                <div key={product.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatMoney(product.installment_amount)} x {product.installment_count} = {formatMoney(product.total_amount)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-purple-600">
+                        {product.installment_count - product.remaining_installments} / {product.installment_count}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Kalan: {formatMoney(product.total_amount - product.paid_amount)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-2 bg-slate-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-600 h-2 rounded-full transition-all"
+                      style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Transaction History */}
+        <div className="p-4 bg-slate-50 border-b border-border">
           <h3 className="font-semibold">İşlem Geçmişi ({totalCount})</h3>
         </div>
         
