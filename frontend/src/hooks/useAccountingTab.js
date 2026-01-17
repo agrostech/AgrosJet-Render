@@ -182,18 +182,6 @@ export function useAccountingTab({
     }
   }, [endpoint]);
 
-  // Load more transactions - güncel transactions.length'i kullan
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || !selectedEntity) return;
-    setLoadingMore(true);
-    // transactions.length'i burada al ve parametre olarak gönder
-    setTransactions(prev => {
-      fetchTransactions(selectedEntity.id, true, prev.length);
-      return prev;
-    });
-    setLoadingMore(false);
-  }, [loadingMore, hasMore, selectedEntity, fetchTransactions]);
-
   // Select entity
   const handleSelect = useCallback((entity) => {
     setSelectedEntity(entity);
