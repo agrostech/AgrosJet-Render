@@ -303,9 +303,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                 )}
                 
                 {hasMore && (
-                  <div className="p-3 text-center">
-                    <Button variant="outline" size="sm" onClick={() => loadMore(txScrollRef)} disabled={loadingMore} className="text-xs" data-testid="load-more-btn">
-                      {loadingMore ? "Yükleniyor..." : "Daha Fazla Yükle"}
+                  <div className="p-3 text-center border-t border-slate-100">
+                    <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore} className="h-8 text-xs" data-testid="load-more-btn">
+                      {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalCount - filteredTransactions.length} kaldı)`}
                     </Button>
                   </div>
                 )}
