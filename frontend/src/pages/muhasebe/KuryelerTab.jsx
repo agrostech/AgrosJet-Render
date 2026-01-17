@@ -14,6 +14,7 @@ import {
 
 export default function KuryelerTab({ companyId, adminId, adminName, companyLogo, companyName, transactionRef, onSelect }) {
   const listRef = useRef(null);
+  const txScrollRef = useRef(null);
   
   const {
     displayList,
