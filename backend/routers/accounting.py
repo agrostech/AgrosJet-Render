@@ -475,3 +475,252 @@ async def get_accounting_summary(company_id: str):
             "count": len(vendor_ids)
         }
     }
+
+
+
+# --- Taksitli Ürün (Installment Products) ---
+
+class InstallmentProductCreate(BaseModel):
+    courier_id: str
+    company_id: str
+    name: str
+    installment_amount: float
+    installment_count: int
+    admin_id: str
+    admin_name: str
+
+
+class InstallmentPayRequest(BaseModel):
+    admin_id: str
+    admin_name: str
+    custom_date: Optional[str] = None  # ISO format datetime string
+
+
+@router.post("/couriers/{courier_id}/installment-products")
+async def create_installment_product(courier_id: str, data: InstallmentProductCreate):
+    """Create a new installment product for a courier"""
+    # Verify courier exists
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    product = {
+        "id": str(uuid.uuid4()),
+        "courier_id": courier_id,
+        "company_id": data.company_id,
+        "name": data.name,
+        "installment_amount": data.installment_amount,
+        "installment_count": data.installment_count,
+        "remaining_installments": data.installment_count,
+        "total_amount": data.installment_amount * data.installment_count,
+        "paid_amount": 0,
+        "is_completed": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by_admin_id": data.admin_id,
+        "created_by_admin_name": data.admin_name
+    }
+    
+    await db.installment_products.insert_one(product)
+    
+    # Create activity log
+    await create_activity_log({
+        "company_id": data.company_id,
+        "admin_id": data.admin_id,
+        "admin_name": data.admin_name,
+        "action": "installment_product_created",
+        "entity_type": "courier",
+        "entity_id": courier_id,
+        "entity_name": courier["name"],
+        "details": {
+            "product_name": data.name,
+            "installment_amount": data.installment_amount,
+            "installment_count": data.installment_count,
+            "total_amount": product["total_amount"]
+        }
+    })
+    
+    return {"message": "Taksitli ürün eklendi", "product": {k: v for k, v in product.items() if k != "_id"}}
+
+
+@router.get("/couriers/{courier_id}/installment-products")
+async def get_installment_products(courier_id: str, include_completed: bool = False):
+    """Get all installment products for a courier"""
+    query = {"courier_id": courier_id}
+    if not include_completed:
+        query["is_completed"] = False
+    
+    products = await db.installment_products.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return products
+
+
+@router.delete("/installment-products/{product_id}")
+async def delete_installment_product(product_id: str, admin_id: str, admin_name: str):
+    """Delete an installment product"""
+    product = await db.installment_products.find_one({"id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Ürün bulunamadı")
+    
+    # Check if any payments were made
+    if product["paid_amount"] > 0:
+        raise HTTPException(status_code=400, detail="Ödeme yapılmış ürün silinemez")
+    
+    await db.installment_products.delete_one({"id": product_id})
+    
+    # Get courier name
+    courier = await db.couriers.find_one({"id": product["courier_id"]}, {"_id": 0, "name": 1})
+    
+    # Create activity log
+    await create_activity_log({
+        "company_id": product["company_id"],
+        "admin_id": admin_id,
+        "admin_name": admin_name,
+        "action": "installment_product_deleted",
+        "entity_type": "courier",
+        "entity_id": product["courier_id"],
+        "entity_name": courier["name"] if courier else "Bilinmeyen",
+        "details": {
+            "product_name": product["name"]
+        }
+    })
+    
+    return {"message": "Ürün silindi"}
+
+
+@router.post("/installment-products/{product_id}/pay")
+async def pay_installment(product_id: str, data: InstallmentPayRequest):
+    """Pay one installment for a product"""
+    product = await db.installment_products.find_one({"id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Ürün bulunamadı")
+    
+    if product["remaining_installments"] <= 0:
+        raise HTTPException(status_code=400, detail="Tüm taksitler ödenmiş")
+    
+    # Get courier
+    courier = await db.couriers.find_one({"id": product["courier_id"]}, {"_id": 0})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Calculate which installment number this is
+    paid_count = product["installment_count"] - product["remaining_installments"] + 1
+    
+    # Determine transaction date
+    if data.custom_date:
+        tx_date = data.custom_date
+    else:
+        tx_date = datetime.now(timezone.utc).isoformat()
+    
+    # Create transaction (payment_out = kurye borçlanır)
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "entity_type": "courier",
+        "entity_id": product["courier_id"],
+        "company_id": product["company_id"],
+        "type": "payment_out",  # Kuryeye verilen = borçlandırma
+        "amount": product["installment_amount"],
+        "description": f"{product['name']} - Taksit {paid_count}/{product['installment_count']}",
+        "is_hakedis": False,
+        "admin_id": data.admin_id,
+        "admin_name": data.admin_name,
+        "created_at": tx_date,
+        "installment_product_id": product_id  # Link to installment product
+    }
+    
+    await db.transactions.insert_one(transaction)
+    
+    # Update product
+    new_remaining = product["remaining_installments"] - 1
+    new_paid = product["paid_amount"] + product["installment_amount"]
+    is_completed = new_remaining <= 0
+    
+    await db.installment_products.update_one(
+        {"id": product_id},
+        {"$set": {
+            "remaining_installments": new_remaining,
+            "paid_amount": new_paid,
+            "is_completed": is_completed
+        }}
+    )
+    
+    # Create activity log
+    await create_activity_log({
+        "company_id": product["company_id"],
+        "admin_id": data.admin_id,
+        "admin_name": data.admin_name,
+        "action": "installment_paid",
+        "entity_type": "courier",
+        "entity_id": product["courier_id"],
+        "entity_name": courier["name"],
+        "details": {
+            "product_name": product["name"],
+            "installment_number": paid_count,
+            "total_installments": product["installment_count"],
+            "amount": product["installment_amount"],
+            "remaining": new_remaining
+        }
+    })
+    
+    return {
+        "message": f"Taksit {paid_count}/{product['installment_count']} ödendi",
+        "transaction_id": transaction["id"],
+        "remaining_installments": new_remaining,
+        "is_completed": is_completed
+    }
+
+
+# Hook into transaction deletion to restore installment count
+@router.delete("/transactions/{transaction_id}/with-installment-restore")
+async def delete_transaction_with_installment(transaction_id: str, data: TransactionDeleteRequest = None):
+    """Delete a transaction and restore installment count if applicable"""
+    transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    
+    # Check if this is an installment transaction
+    installment_product_id = transaction.get("installment_product_id")
+    
+    if installment_product_id:
+        # Restore installment count
+        product = await db.installment_products.find_one({"id": installment_product_id})
+        if product:
+            await db.installment_products.update_one(
+                {"id": installment_product_id},
+                {"$set": {
+                    "remaining_installments": product["remaining_installments"] + 1,
+                    "paid_amount": max(0, product["paid_amount"] - transaction["amount"]),
+                    "is_completed": False
+                }}
+            )
+    
+    # Delete transaction
+    await db.transactions.delete_one({"id": transaction_id})
+    
+    # Get entity name for log
+    entity_name = ""
+    if transaction["entity_type"] == "courier":
+        courier = await db.couriers.find_one({"id": transaction["entity_id"]})
+        entity_name = courier["name"] if courier else "Bilinmeyen Kurye"
+    
+    # Create activity log
+    if data:
+        await create_activity_log({
+            "company_id": transaction["company_id"],
+            "admin_id": data.admin_id,
+            "admin_name": data.admin_name,
+            "action": "transaction_deleted",
+            "entity_type": transaction["entity_type"],
+            "entity_id": transaction["entity_id"],
+            "entity_name": entity_name,
+            "details": {
+                "transaction_id": transaction_id,
+                "amount": transaction["amount"],
+                "description": transaction.get("description", ""),
+                "installment_restored": installment_product_id is not None
+            }
+        })
+    
+    return {"message": "İşlem silindi", "installment_restored": installment_product_id is not None}
