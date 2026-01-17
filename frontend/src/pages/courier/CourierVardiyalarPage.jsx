@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Clock, Calendar, CheckCircle, XCircle } from "lucide-react";
+import { Clock, Calendar, CheckCircle, Coffee } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -14,6 +14,49 @@ const DAYS = [
   { key: "cumartesi", label: "Cumartesi", short: "Cmt" },
   { key: "pazar", label: "Pazar", short: "Paz" },
 ];
+
+// Convert time string (HH:MM) to minutes since 06:00 (day start)
+const timeToMinutesSince0600 = (timeStr) => {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  // 06:00 = 0, 07:00 = 60, ..., 05:59 = 1439
+  let mins = (hours - 6) * 60 + minutes;
+  if (mins < 0) mins += 24 * 60; // Handle times before 06:00 (e.g., 00:00-05:59)
+  return mins;
+};
+
+// Merge consecutive shifts into time ranges
+const mergeConsecutiveShifts = (dayAssignments, shifts) => {
+  if (dayAssignments.length === 0) return [];
+  
+  // Get shift times for each assignment
+  const shiftTimes = dayAssignments.map(a => {
+    const shift = shifts.find(s => s.id === a.shift_id);
+    return shift ? { start: shift.start_time, end: shift.end_time } : null;
+  }).filter(Boolean);
+  
+  if (shiftTimes.length === 0) return [];
+  
+  // Sort by start time using 06:00 rule
+  shiftTimes.sort((a, b) => timeToMinutesSince0600(a.start) - timeToMinutesSince0600(b.start));
+  
+  // Merge consecutive shifts
+  const merged = [];
+  let current = { ...shiftTimes[0] };
+  
+  for (let i = 1; i < shiftTimes.length; i++) {
+    const next = shiftTimes[i];
+    // If current end equals next start, merge them
+    if (current.end === next.start) {
+      current.end = next.end;
+    } else {
+      merged.push(current);
+      current = { ...next };
+    }
+  }
+  merged.push(current);
+  
+  return merged;
+};
 
 export default function CourierVardiyalarPage({ courierId, companyId }) {
   const [shifts, setShifts] = useState([]);
@@ -51,6 +94,15 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
   const dayIndex = today.getDay();
   const currentDayKey = DAYS[(dayIndex + 6) % 7].key; // Convert Sunday=0 to Monday=0
 
+  // Count work days (days with shifts)
+  const workDaysCount = DAYS.filter(day => {
+    const dayAssignments = myAssignments.filter(a => a.day === day.key);
+    return dayAssignments.length > 0;
+  }).length;
+
+  // Count leave days (days without shifts or explicitly on leave)
+  const leaveDaysCount = 7 - workDaysCount;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -83,7 +135,13 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
           {DAYS.map((day) => {
             const isToday = day.key === currentDayKey;
             const dayAssignments = myAssignments.filter(a => a.day === day.key);
-            const hasLeave = myLeaves.some(l => l.days?.includes(day.key));
+            const hasLeave = myLeaves.some(l => l.day === day.key);
+            
+            // No shift assigned or explicitly on leave = İzinli
+            const isOnLeave = hasLeave || dayAssignments.length === 0;
+            
+            // Merge consecutive shifts
+            const mergedShifts = mergeConsecutiveShifts(dayAssignments, shifts);
             
             return (
               <div 
@@ -100,34 +158,27 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
                     </div>
                     <div>
                       <p className={`font-semibold ${isToday ? 'text-primary' : ''}`}>{day.label}</p>
-                      {hasLeave ? (
+                      {isOnLeave ? (
                         <p className="text-sm text-orange-600 font-medium">İzinli</p>
-                      ) : dayAssignments.length > 0 ? (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {dayAssignments.map(a => {
-                            const shift = shifts.find(s => s.id === a.shift_id);
-                            return shift ? (
-                              <span 
-                                key={a.id} 
-                                className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded font-medium"
-                              >
-                                {shift.name} ({shift.start_time} - {shift.end_time})
-                              </span>
-                            ) : null;
-                          })}
-                        </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">Vardiya atanmamış</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {mergedShifts.map((range, idx) => (
+                            <span 
+                              key={idx} 
+                              className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded font-medium"
+                            >
+                              {range.start} - {range.end}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
                   <div>
-                    {hasLeave ? (
-                      <XCircle className="w-6 h-6 text-orange-500" />
-                    ) : dayAssignments.length > 0 ? (
-                      <CheckCircle className="w-6 h-6 text-green-500" />
+                    {isOnLeave ? (
+                      <Coffee className="w-6 h-6 text-orange-500" />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-slate-200" />
+                      <CheckCircle className="w-6 h-6 text-green-500" />
                     )}
                   </div>
                 </div>
@@ -142,18 +193,18 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
         <div className="border-2 border-border bg-white p-4">
           <div className="flex items-center gap-2 text-green-600 mb-1">
             <CheckCircle className="w-4 h-4" />
-            <span className="text-sm font-semibold">Aktif Vardiya</span>
+            <span className="text-sm font-semibold">Çalışma Günü</span>
           </div>
-          <p className="text-2xl font-bold">{myAssignments.length}</p>
+          <p className="text-2xl font-bold">{workDaysCount}</p>
           <p className="text-xs text-muted-foreground">Bu hafta</p>
         </div>
         <div className="border-2 border-border bg-white p-4">
           <div className="flex items-center gap-2 text-orange-600 mb-1">
-            <Calendar className="w-4 h-4" />
+            <Coffee className="w-4 h-4" />
             <span className="text-sm font-semibold">İzin Günleri</span>
           </div>
-          <p className="text-2xl font-bold">{myLeaves.reduce((sum, l) => sum + (l.days?.length || 0), 0)}</p>
-          <p className="text-xs text-muted-foreground">Tanımlı</p>
+          <p className="text-2xl font-bold">{leaveDaysCount}</p>
+          <p className="text-xs text-muted-foreground">Bu hafta</p>
         </div>
       </div>
     </div>
