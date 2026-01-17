@@ -633,6 +633,123 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Taksitli Ürünler Listesi Modal */}
+      <Dialog open={showInstallmentListModal} onOpenChange={setShowInstallmentListModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-purple-600" />
+              Taksitli Ürünler
+              {totalRemainingInstallments > 0 && (
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                  {totalRemainingInstallments} taksit kaldı
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            {installmentProducts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Package className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Taksitli ürün bulunmuyor</p>
+              </div>
+            ) : (
+              installmentProducts.map((product) => (
+                <div key={product.id} className="p-3 bg-slate-50 rounded-lg border">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="font-semibold">{product.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {formatMoney(product.installment_amount)} x {product.installment_count} = {formatMoney(product.total_amount)}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1 bg-slate-200 rounded-full h-2">
+                          <div 
+                            className="bg-purple-600 h-2 rounded-full transition-all"
+                            style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-purple-700 font-semibold">
+                          {product.installment_count - product.remaining_installments}/{product.installment_count}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Ödenen: {formatMoney(product.paid_amount)} / Kalan: {formatMoney(product.total_amount - product.paid_amount)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 ml-3">
+                      {product.remaining_installments > 0 && (
+                        <Button
+                          size="sm"
+                          onClick={() => handlePayInstallment(product)}
+                          disabled={payingInstallment === product.id}
+                          className="h-8 text-xs bg-purple-600 hover:bg-purple-700"
+                          data-testid={`pay-installment-${product.id}`}
+                        >
+                          {payingInstallment === product.id ? "..." : `Taksit Al (${product.remaining_installments})`}
+                        </Button>
+                      )}
+                      {product.paid_amount === 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteProduct(product)}
+                          className="h-8 text-xs hover:bg-red-50 hover:text-red-600"
+                          data-testid={`delete-product-${product.id}`}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Sil
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+            
+            {/* Özel tarih seçici */}
+            {installmentProducts.length > 0 && (
+              <div className="flex items-center gap-2 pt-2 border-t">
+                <Checkbox
+                  id="installment-custom-date-modal"
+                  checked={useInstallmentCustomDate}
+                  onCheckedChange={(checked) => {
+                    setUseInstallmentCustomDate(checked);
+                    if (checked && !installmentDate) {
+                      setInstallmentDate(getLocalDateTimeString());
+                    }
+                  }}
+                />
+                <Label htmlFor="installment-custom-date-modal" className="text-xs cursor-pointer">Özel tarih ile taksit al</Label>
+                {useInstallmentCustomDate && (
+                  <Input
+                    type="datetime-local"
+                    value={installmentDate}
+                    onChange={(e) => setInstallmentDate(e.target.value)}
+                    className="h-8 border text-xs w-auto"
+                  />
+                )}
+              </div>
+            )}
+            
+            {/* Yeni Ürün Ekle Butonu */}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowInstallmentListModal(false);
+                setShowInstallmentModal(true);
+              }}
+              className="w-full h-10 border-dashed border-purple-300 text-purple-700 hover:bg-purple-50"
+              data-testid="add-installment-product-btn"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Yeni Taksitli Ürün Ekle
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
