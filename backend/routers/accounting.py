@@ -335,3 +335,68 @@ async def delete_transaction(transaction_id: str, data: TransactionDeleteRequest
         })
     
     return {"message": "İşlem silindi"}
+
+
+
+@router.get("/companies/{company_id}/accounting-summary")
+async def get_accounting_summary(company_id: str):
+    """Get total balances for couriers, businesses, and vendors"""
+    
+    async def calculate_total_balance(entity_type: str, entity_ids: list):
+        """Calculate total balance for a list of entities"""
+        if not entity_ids:
+            return 0
+        
+        all_transactions = await db.transactions.find(
+            {"entity_type": entity_type, "entity_id": {"$in": entity_ids}},
+            {"_id": 0, "type": 1, "amount": 1}
+        ).to_list(100000)
+        
+        balance = 0
+        for tx in all_transactions:
+            if tx["type"] == "payment_out":
+                balance += tx["amount"]
+            else:
+                balance -= tx["amount"]
+        return balance
+    
+    # Get all couriers for this company
+    couriers = await db.couriers.find(
+        {"company_id": company_id, "is_archived": {"$ne": True}},
+        {"_id": 0, "id": 1}
+    ).to_list(1000)
+    courier_ids = [c["id"] for c in couriers]
+    
+    # Get all businesses for this company
+    businesses = await db.businesses.find(
+        {"company_id": company_id, "is_archived": {"$ne": True}},
+        {"_id": 0, "id": 1}
+    ).to_list(1000)
+    business_ids = [b["id"] for b in businesses]
+    
+    # Get all vendors for this company
+    vendors = await db.vendors.find(
+        {"company_id": company_id, "is_archived": {"$ne": True}},
+        {"_id": 0, "id": 1}
+    ).to_list(1000)
+    vendor_ids = [v["id"] for v in vendors]
+    
+    # Calculate balances
+    courier_balance = await calculate_total_balance("courier", courier_ids)
+    business_balance = await calculate_total_balance("business", business_ids)
+    vendor_balance = await calculate_total_balance("vendor", vendor_ids)
+    
+    return {
+        "couriers": {
+            "balance": courier_balance,
+            "count": len(courier_ids)
+        },
+        "businesses": {
+            "balance": business_balance,
+            "count": len(business_ids)
+        },
+        "vendors": {
+            "balance": vendor_balance,
+            "count": len(vendor_ids)
+        }
+    }
