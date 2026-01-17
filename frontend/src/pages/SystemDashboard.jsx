@@ -544,17 +544,19 @@ export default function SystemDashboard() {
           </div>
         </aside>
 
-        <main className="flex-1 p-4 md:p-8 pb-16">
-          <Routes>
-            <Route index element={<SirketlerPage />} />
-          </Routes>
+        <main className="flex-1 overflow-x-auto">
+          <div className="p-4 md:p-8 min-h-[calc(100vh-80px)]">
+            <Routes>
+              <Route index element={<SirketlerPage />} />
+            </Routes>
+          </div>
+          
+          {/* Footer */}
+          <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
+            © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
+          </footer>
         </main>
       </div>
-
-      {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 lg:left-64 bg-white border-t py-3 text-center text-xs text-muted-foreground">
-        © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
-      </footer>
     </div>
   );
 }
