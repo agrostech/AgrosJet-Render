@@ -268,7 +268,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                 </Button>
               </div>
               
-              <div className="flex-1 overflow-y-auto">
+              <div ref={txScrollRef} className="flex-1 overflow-y-auto">
                 {filteredTransactions.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">
                     {searchQuery ? "Arama sonucu bulunamadı" : "İşlem bulunamadı"}
@@ -304,7 +304,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                 
                 {hasMore && (
                   <div className="p-3 text-center">
-                    <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore} className="text-xs" data-testid="load-more-btn">
+                    <Button variant="outline" size="sm" onClick={() => loadMore(txScrollRef)} disabled={loadingMore} className="text-xs" data-testid="load-more-btn">
                       {loadingMore ? "Yükleniyor..." : "Daha Fazla Yükle"}
                     </Button>
                   </div>
