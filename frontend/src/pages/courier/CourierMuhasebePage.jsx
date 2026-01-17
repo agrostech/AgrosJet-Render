@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, CreditCard } from "lucide-react";
+import { Calculator, CreditCard, Upload, FileText, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -24,6 +24,9 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [installmentProducts, setInstallmentProducts] = useState([]);
+  const [invoices, setInvoices] = useState({});
+  const [uploadingFor, setUploadingFor] = useState(null);
+  const fileInputRef = useRef(null);
 
   const fetchTransactions = async (append = false) => {
     try {
@@ -55,16 +58,93 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
     }
   };
 
+  const fetchInvoices = async () => {
+    try {
+      const res = await axios.get(`${API}/invoices/courier/${courierId}`);
+      // Map invoices by transaction_id for quick lookup
+      const invoiceMap = {};
+      res.data.forEach(inv => {
+        invoiceMap[inv.transaction_id] = inv;
+      });
+      setInvoices(invoiceMap);
+    } catch (err) {
+      console.error("Faturalar yüklenemedi");
+    }
+  };
+
   useEffect(() => {
     if (courierId) {
       fetchTransactions();
       fetchInstallmentProducts();
+      fetchInvoices();
     }
   }, [courierId]);
 
   const loadMore = () => {
     setLoadingMore(true);
     fetchTransactions(true);
+  };
+
+  const handleUploadClick = (transactionId) => {
+    setUploadingFor(transactionId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadingFor) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error("Sadece PDF dosyası yüklenebilir");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('transaction_id', uploadingFor);
+    formData.append('courier_id', courierId);
+    formData.append('courier_name', courierName);
+    
+    // Get company_id from user data
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    formData.append('company_id', user.company_id || '');
+
+    try {
+      const res = await axios.post(`${API}/invoices/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success(res.data.message);
+      fetchInvoices();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
+    } finally {
+      setUploadingFor(null);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId) => {
+    if (!confirm("Faturayı silmek istediğinizden emin misiniz?")) return;
+
+    try {
+      await axios.delete(`${API}/invoices/${invoiceId}?courier_id=${courierId}`);
+      toast.success("Fatura silindi");
+      fetchInvoices();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Fatura silinemedi");
+    }
+  };
+
+  const handleDownloadInvoice = (invoiceId) => {
+    window.open(`${API}/invoices/download/${invoiceId}`, '_blank');
+  };
+
+  const canDeleteInvoice = (invoice) => {
+    if (!invoice?.uploaded_at) return false;
+    const uploadedAt = new Date(invoice.uploaded_at);
+    const now = new Date();
+    const hoursPassed = (now - uploadedAt) / (1000 * 60 * 60);
+    return hoursPassed <= 24;
   };
 
   const totalRemainingInstallments = installmentProducts.reduce((sum, p) => sum + p.remaining_installments, 0);
@@ -78,8 +158,6 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
   }
 
   // Kurye için bakiye renkleri TERSİNE çevrildi
-  // Şirket için: pozitif=kırmızı(borç), negatif=yeşil(alacak)
-  // Kurye için: pozitif=yeşil(alacak), negatif=kırmızı(borç)
   const getBalanceColor = (bal) => {
     if (bal === 0) return '';
     return bal > 0 ? 'text-green-600' : 'text-red-600';
