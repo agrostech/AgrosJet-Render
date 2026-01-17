@@ -161,14 +161,15 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       const res = await axios.post(`${API}/installment-products/${product.id}/pay`, payload);
       toast.success(res.data.message);
       fetchInstallmentProducts(selectedEntity.id);
-      // Refresh transactions immediately
+      // Refresh transactions and balance immediately
       if (selectedEntity) {
         fetchTransactions(selectedEntity.id);
+        fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
       }
       setInstallmentDate("");
       setUseInstallmentCustomDate(false);
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Taksit ödenemedi");
+      toast.error(err.response?.data?.detail || "Taksit alınamadı");
     } finally {
       setPayingInstallment(null);
     }
