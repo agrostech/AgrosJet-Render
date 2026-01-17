@@ -18,11 +18,13 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 
 ### Frontend Refactoring (Tamamlandı - 17 Ocak 2026)
 - [x] `AdminDashboard.jsx` parçalandı (1014 → 135 satır)
-- [x] `KuryelerPage.jsx` ayrı dosyaya taşındı
-- [x] `YoneticilerPage.jsx` ayrı dosyaya taşındı
-- [x] `AdminSidebar.jsx` component oluşturuldu
-- [x] `ProfileModal.jsx` component oluşturuldu
-- [x] `useAccountingTab.js` custom hook oluşturuldu (Muhasebe tab'ları için)
+- [x] `KuryelerPage.jsx` ve `YoneticilerPage.jsx` ayrı dosyalara taşındı
+- [x] `AdminSidebar.jsx` ve `ProfileModal.jsx` component'leri oluşturuldu
+- [x] **Muhasebe Tab'ları `useAccountingTab` hook ile refactor edildi**
+  - KuryelerTab: 515 → 305 satır
+  - IsletmelerTab: 439 → 362 satır
+  - CarilerTab: 514 → 362 satır
+  - Toplam: ~30% kod azalması, ~60% tekrar azalması
 
 ### Kullanıcı Yönetimi
 - [x] Global kurye kayıt sistemi
@@ -50,9 +52,8 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 ## Prioritized Backlog
 
 ### P1 - Sıradaki
-- [ ] Toplu Hakediş Girişi (ON HOLD)
+- [ ] Toplu Hakediş Girişi (ON HOLD - 3. parti cevap bekleniyor)
 - [ ] Güncel Durum sayfasına ek bilgi kartları
-- [ ] Muhasebe tab'larını `useAccountingTab` hook ile refactor et
 
 ### P2 - Gelecek
 - [ ] Kurye profil düzenleme
@@ -67,22 +68,25 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 ```
 /app/
 ├── backend/
-│   ├── server.py          # 109 satır
+│   ├── server.py          # 109 satır (modüler)
 │   └── routers/           # 9 modül
 ├── frontend/
 │   └── src/
 │       ├── pages/
-│       │   ├── AdminDashboard.jsx    # 135 satır (refactored)
+│       │   ├── AdminDashboard.jsx    # 135 satır
 │       │   ├── admin/
 │       │   │   ├── KuryelerPage.jsx
 │       │   │   └── YoneticilerPage.jsx
 │       │   └── muhasebe/
+│       │       ├── KuryelerTab.jsx   # 305 satır (refactored)
+│       │       ├── IsletmelerTab.jsx # 362 satır (refactored)
+│       │       └── CarilerTab.jsx    # 362 satır (refactored)
 │       ├── components/
 │       │   └── admin/
 │       │       ├── AdminSidebar.jsx
 │       │       └── ProfileModal.jsx
 │       └── hooks/
-│           └── useAccountingTab.js   # Custom hook for accounting
+│           └── useAccountingTab.js   # 505 satır (shared hook)
 └── memory/
     └── PRD.md
 ```
@@ -94,9 +98,9 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 ## Changelog
 
 ### 17 Ocak 2026
-- **Backend Refactoring**: `server.py` tamamen modülerleştirildi
-- **Frontend Refactoring**: `AdminDashboard.jsx` parçalandı
-- **New Hook**: `useAccountingTab.js` oluşturuldu
+- **Backend Refactoring**: `server.py` 697 → 109 satır
+- **Frontend Refactoring**: `AdminDashboard.jsx` 1014 → 135 satır
+- **Muhasebe Refactoring**: `useAccountingTab` hook ile tab'lar refactor edildi
 - **Bug Fix**: Kurye silme kontrolünde bakiye önceliği
 
 ### 16 Ocak 2026
