@@ -169,6 +169,15 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
 
   return (
     <div className="space-y-4" data-testid="courier-muhasebe-page">
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".pdf"
+        className="hidden"
+      />
+
       {/* Main Card */}
       <div className="border-2 border-border bg-white">
         {/* Header */}
