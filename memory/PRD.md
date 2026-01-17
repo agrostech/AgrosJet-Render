@@ -30,7 +30,14 @@ Multi-tenant kurye yönetim sistemi.
 
 ## Test Credentials
 - **Süper Admin**: `onurertas` / `Delivery32..`
-- **Kurye**: `05551234567` / `kurye123`
+- **Kurye**: `05551234567` / `123456`
+
+## Kurye Dashboard Test Durumu (17 Ocak 2026)
+- [x] Vardiyalarım - Çalışıyor (haftalık program görüntüleniyor)
+- [x] Muhasebe - Çalışıyor (bakiye renkleri ters çevrilmiş, taksitli ürünler gösteriliyor)
+- [x] Zimmetlerim - Çalışıyor (sadece ürün listesi, özet kartlar kaldırıldı)
+- [x] Sidebar - Admin ile aynı tasarım (collapse özelliği mevcut)
 
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
+- [ ] Sistem Sayfası özellikleri (kullanıcı gereksinimlerini bekliyor)
