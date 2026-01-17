@@ -94,11 +94,25 @@ export default function CourierZimmetPage({ courierId }) {
                     {assignment.product_type && (
                       <p className="text-xs text-muted-foreground">{assignment.product_type}</p>
                     )}
-                    {assignment.serial_number && (
-                      <p className="text-xs font-mono text-slate-500 mt-1">
-                        {isPosDevice(assignment) ? 'Pos SN: ' : 'SN: '}
-                        {assignment.serial_number}
-                      </p>
+                    {isPosDevice(assignment) ? (
+                      <>
+                        {assignment.pos_serial && (
+                          <p className="text-xs font-mono text-slate-500 mt-1">
+                            Pos SN: {assignment.pos_serial}
+                          </p>
+                        )}
+                        {assignment.pos_terminal && (
+                          <p className="text-xs font-mono text-slate-500">
+                            Pos TRM: {assignment.pos_terminal}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      assignment.serial_number && (
+                        <p className="text-xs font-mono text-slate-500 mt-1">
+                          SN: {assignment.serial_number}
+                        </p>
+                      )
                     )}
                     <p className="text-xs text-muted-foreground mt-1">
                       Zimmet Tarihi: {formatDate(assignment.assigned_at)}
