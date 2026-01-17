@@ -264,7 +264,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                 </Button>
               </div>
               
-              <div ref={txScrollRef} className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto">
                 {filteredTransactions.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">
                     {searchQuery ? "Arama sonucu bulunamadı" : "İşlem bulunamadı"}
