@@ -356,7 +356,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
             {!showArchived && (
               <div className="p-3 border-b-2 border-border bg-white flex-shrink-0">
                 <div className="flex flex-wrap items-end gap-2">
-                  <div className="flex-1 min-w-[120px]">
+                  <div className="w-24">
                     <Label className="text-xs font-semibold mb-1 block">Tutar</Label>
                     <Input
                       type="number"
@@ -369,7 +369,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                       data-testid="amount-input"
                     />
                   </div>
-                  <div className="flex-[2] min-w-[150px]">
+                  <div className="w-32">
                     <Label className="text-xs font-semibold mb-1 block">Açıklama</Label>
                     <Input
                       value={description}
