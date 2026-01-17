@@ -80,14 +80,15 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     }
   };
 
-  if (loading) return <p className="p-4">Yükleniyor...</p>;
-
-  // Arama filtresi
+  // Arama filtresi - useState hook'lar en üstte olmalı
   const [listSearchQuery, setListSearchQuery] = useState("");
+  
   const filteredDisplayList = displayList.filter(b => {
     if (!listSearchQuery.trim()) return true;
     return b.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
+
+  if (loading) return <p className="p-4">Yükleniyor...</p>;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full" ref={transactionRef}>
