@@ -665,7 +665,7 @@ async def pay_installment(product_id: str, data: InstallmentPayRequest):
     })
     
     return {
-        "message": f"Taksit {paid_count}/{product['installment_count']} ödendi",
+        "message": f"Taksit {paid_count}/{product['installment_count']} alındı",
         "transaction_id": transaction["id"],
         "remaining_installments": new_remaining,
         "is_completed": is_completed
