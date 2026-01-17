@@ -413,7 +413,33 @@ async def remove_courier_from_company(company_id: str, courier_id: str):
 @api_router.delete("/couriers/{courier_id}")
 async def delete_courier(courier_id: str):
     """Delete courier completely (system admin only)"""
-    # Zimmet kontrolü - kuryede zimmetli ürün var mı?
+    # 1. Bakiye kontrolü (öncelikli)
+    all_transactions = await db.transactions.find(
+        {"entity_type": "courier", "entity_id": courier_id},
+        {"_id": 0, "type": 1, "amount": 1}
+    ).to_list(10000)
+    
+    balance = 0
+    for tx in all_transactions:
+        if tx["type"] == "payment_out":
+            balance += tx["amount"]
+        else:
+            balance -= tx["amount"]
+    
+    if balance != 0:
+        balance_str = f"{abs(balance):,.2f} ₺"
+        if balance > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Bu kuryenin {balance_str} bakiyesi var. Önce bakiyeyi sıfırlayın."
+            )
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Bu kuryeye {balance_str} borçlusunuz. Önce bakiyeyi sıfırlayın."
+            )
+    
+    # 2. Zimmet kontrolü
     assigned_products = await db.products.find({
         "assigned_to_courier_id": courier_id
     }).to_list(100)
