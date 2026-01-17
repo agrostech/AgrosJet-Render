@@ -224,8 +224,8 @@ export function useAccountingTab({
         company_id: companyId,
         type: type === "in" ? "payment_in" : "payment_out",
         amount: parseFloat(amount),
-        description: description || (type === "in" ? "Verilen" : "Alınan"),
-        is_hakedis: type === "in" && entityType === "courier" ? isHakedis : false,
+        description: description || (type === "in" ? "Alınan" : "Verilen"),
+        is_hakedis: type === "out" && entityType === "courier" ? isHakedis : false,
         admin_id: adminId,
         admin_name: adminName
       };
@@ -233,7 +233,7 @@ export function useAccountingTab({
         payload.custom_date = txDate;
       }
       await axios.post(`${API}/transactions`, payload);
-      toast.success(type === "in" ? "Verilen kaydedildi" : "Alınan kaydedildi");
+      toast.success(type === "in" ? "Alınan kaydedildi" : "Verilen kaydedildi");
       
       // Reset form
       setAmount("");
