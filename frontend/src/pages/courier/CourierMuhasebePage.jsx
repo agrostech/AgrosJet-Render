@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, TrendingUp, TrendingDown, CreditCard } from "lucide-react";
+import { Calculator, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -67,9 +67,6 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
     fetchTransactions(true);
   };
 
-  // Calculate totals
-  const totalIn = transactions.filter(t => t.type === 'payment_in').reduce((sum, t) => sum + t.amount, 0);
-  const totalOut = transactions.filter(t => t.type === 'payment_out').reduce((sum, t) => sum + t.amount, 0);
   const totalRemainingInstallments = installmentProducts.reduce((sum, p) => sum + p.remaining_installments, 0);
 
   if (loading) {
@@ -79,6 +76,18 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
       </div>
     );
   }
+
+  // Kurye için bakiye renkleri TERSİNE çevrildi
+  // Şirket için: pozitif=kırmızı(borç), negatif=yeşil(alacak)
+  // Kurye için: pozitif=yeşil(alacak), negatif=kırmızı(borç)
+  const getBalanceColor = (bal) => {
+    if (bal === 0) return '';
+    return bal > 0 ? 'text-green-600' : 'text-red-600';
+  };
+  const getBalanceBg = (bal) => {
+    if (bal === 0) return 'bg-slate-100';
+    return bal > 0 ? 'bg-green-50' : 'bg-red-50';
+  };
 
   return (
     <div className="space-y-4" data-testid="courier-muhasebe-page">
@@ -94,50 +103,28 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
               <p className="text-sm text-muted-foreground">İşlem geçmişiniz ve bakiyeniz</p>
             </div>
           </div>
-          <div className={`text-right px-4 py-2 rounded-lg ${
-            balance > 0 ? 'bg-red-50' : balance < 0 ? 'bg-green-50' : 'bg-slate-100'
-          }`}>
+          <div className={`text-right px-4 py-2 rounded-lg ${getBalanceBg(balance)}`}>
             <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
-            <p className={`text-xl font-bold font-mono ${
-              balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : ''
-            }`}>
-              {balance === 0 ? '0 TL' : balance > 0 ? `-${formatMoney(balance)}` : formatMoney(balance)}
+            <p className={`text-xl font-bold font-mono ${getBalanceColor(balance)}`}>
+              {balance === 0 ? '0 TL' : formatMoney(balance)}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="border-2 border-border bg-white p-4">
-          <div className="flex items-center gap-2 text-green-600 mb-1">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-semibold">Toplam Alınan</span>
-          </div>
-          <p className="text-xl font-bold font-mono text-green-600">{formatMoney(totalIn)}</p>
-        </div>
-        <div className="border-2 border-border bg-white p-4">
-          <div className="flex items-center gap-2 text-red-600 mb-1">
-            <TrendingDown className="w-4 h-4" />
-            <span className="text-sm font-semibold">Toplam Verilen</span>
-          </div>
-          <p className="text-xl font-bold font-mono text-red-600">{formatMoney(totalOut)}</p>
-        </div>
-        <div className="border-2 border-border bg-white p-4">
-          <div className="flex items-center gap-2 text-purple-600 mb-1">
-            <CreditCard className="w-4 h-4" />
-            <span className="text-sm font-semibold">Kalan Taksit</span>
-          </div>
-          <p className="text-xl font-bold font-mono text-purple-600">{totalRemainingInstallments}</p>
-        </div>
-      </div>
-
-      {/* Installment Products */}
+      {/* Taksitli Ürünler */}
       {installmentProducts.length > 0 && (
         <div className="border-2 border-border bg-white">
-          <div className="p-4 border-b-2 border-border flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-purple-600" />
-            <h3 className="font-semibold">Taksitli Ürünler</h3>
+          <div className="p-4 border-b-2 border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-purple-600" />
+              <h3 className="font-semibold">Taksitli Ürünler</h3>
+            </div>
+            {totalRemainingInstallments > 0 && (
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                {totalRemainingInstallments} taksit kaldı
+              </span>
+            )}
           </div>
           <div className="divide-y divide-border">
             {installmentProducts.map((product) => (
@@ -209,9 +196,9 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
                         )}
                       </td>
                       <td className={`p-3 text-right font-mono font-semibold ${
-                        tx.type === 'payment_out' ? 'text-red-600' : 'text-green-600'
+                        tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
                       }`}>
-                        {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
+                        {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
                       </td>
                     </tr>
                   ))}
