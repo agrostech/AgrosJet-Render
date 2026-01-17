@@ -252,7 +252,7 @@ export default function FaturalarTab({ companyId }) {
               </h3>
             </div>
           </div>
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {!selectedCourier ? (
               <div className="p-8 text-center text-muted-foreground text-sm">
                 <User className="w-12 h-12 mx-auto mb-2 opacity-20" />
@@ -323,7 +323,7 @@ export default function FaturalarTab({ companyId }) {
               )}
             </div>
           </div>
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {monthInvoices.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-sm">
                 <Archive className="w-12 h-12 mx-auto mb-2 opacity-20" />
@@ -383,7 +383,7 @@ export default function FaturalarTab({ companyId }) {
               <span className="text-xs text-red-500">({missingInvoices.length})</span>
             </div>
           </div>
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {missingInvoices.length === 0 ? (
               <div className="p-8 text-center text-green-600 text-sm">
                 <Check className="w-12 h-12 mx-auto mb-2 opacity-50" />
