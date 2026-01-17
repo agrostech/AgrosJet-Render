@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calendar, Clock, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Clock, RefreshCw, ChevronLeft, ChevronRight, Wallet, Users, Building2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
