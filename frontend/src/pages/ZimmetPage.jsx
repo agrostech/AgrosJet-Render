@@ -575,10 +575,7 @@ export default function ZimmetPage() {
     <div className="p-4 md:p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-heading text-xl font-bold tracking-tight">Zimmet Yönetimi</h2>
-          <p className="text-sm text-muted-foreground">{totalProducts} ürün kayıtlı</p>
-        </div>
+        <h2 className="font-heading text-xl font-bold tracking-tight">Zimmet Yönetimi</h2>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={() => setShowProductTypes(true)}>
             <Settings className="w-4 h-4 mr-1" /> Ürün Tipleri
