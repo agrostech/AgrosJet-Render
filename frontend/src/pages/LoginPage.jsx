@@ -33,7 +33,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await axios.post(`${API}/auth/courier/login`, courierData);
-      saveSession(res.data, rememberCourier);
+      // Set company_id from first company
+      const userData = {
+        ...res.data,
+        company_id: res.data.companies?.[0]?.id || null
+      };
+      saveSession(userData, rememberCourier);
       toast.success("Giriş başarılı");
       navigate("/courier");
     } catch (err) {
