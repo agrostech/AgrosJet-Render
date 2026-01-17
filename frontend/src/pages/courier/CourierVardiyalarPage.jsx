@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Clock, Calendar, CheckCircle, Coffee } from "lucide-react";
+import { Clock, CheckCircle, Coffee } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -113,23 +113,18 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
 
   return (
     <div className="space-y-4" data-testid="courier-vardiyalar-page">
-      {/* Header */}
-      <div className="border-2 border-border bg-white p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
-            <Clock className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="font-heading font-bold text-xl">Vardiyalarım</h2>
-            <p className="text-sm text-muted-foreground">Haftalık çalışma programınız</p>
-          </div>
-        </div>
-      </div>
-
       {/* Weekly Schedule */}
       <div className="border-2 border-border bg-white">
         <div className="p-4 border-b-2 border-border">
-          <h3 className="font-semibold">Haftalık Program</h3>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
+              <Clock className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-heading font-bold text-xl">Vardiyalarım</h2>
+              <p className="text-sm text-muted-foreground">Haftalık çalışma programınız</p>
+            </div>
+          </div>
         </div>
         <div className="divide-y divide-border">
           {DAYS.map((day) => {
@@ -185,26 +180,6 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="border-2 border-border bg-white p-4">
-          <div className="flex items-center gap-2 text-green-600 mb-1">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-sm font-semibold">Çalışma Günü</span>
-          </div>
-          <p className="text-2xl font-bold">{workDaysCount}</p>
-          <p className="text-xs text-muted-foreground">Bu hafta</p>
-        </div>
-        <div className="border-2 border-border bg-white p-4">
-          <div className="flex items-center gap-2 text-orange-600 mb-1">
-            <Coffee className="w-4 h-4" />
-            <span className="text-sm font-semibold">İzin Günleri</span>
-          </div>
-          <p className="text-2xl font-bold">{leaveDaysCount}</p>
-          <p className="text-xs text-muted-foreground">Bu hafta</p>
         </div>
       </div>
     </div>
