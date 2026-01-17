@@ -380,3 +380,50 @@ async def get_product_history(product_id: str):
         {"_id": 0}
     ).sort("created_at", -1).to_list(100)
     return logs
+
+
+
+# --- Kurye Bazlı Zimmet ---
+@router.get("/zimmet/courier/{courier_id}/assignments")
+async def get_courier_assignments(courier_id: str):
+    """Kuryeye zimmetli ürünleri getir"""
+    # Get products assigned to this courier
+    products = await db.products.find(
+        {"assigned_to_courier_id": courier_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Transform to assignment format
+    assignments = []
+    for p in products:
+        assignments.append({
+            "id": p["id"],
+            "product_id": p["id"],
+            "product_name": p["name"],
+            "product_type": p.get("product_type_name", ""),
+            "serial_number": p.get("serial_number", ""),
+            "courier_id": courier_id,
+            "assigned_at": p.get("assigned_at"),
+            "notes": p.get("notes", ""),
+            "status": "active"
+        })
+    
+    # Get returned products from logs
+    return_logs = await db.zimmet_logs.find(
+        {"courier_id": courier_id, "action": "returned"},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    for log in return_logs:
+        assignments.append({
+            "id": log.get("id", str(uuid.uuid4())),
+            "product_id": log.get("product_id"),
+            "product_name": log.get("product_name", ""),
+            "courier_id": courier_id,
+            "assigned_at": None,
+            "returned_at": log.get("created_at"),
+            "notes": log.get("details", {}).get("notes", ""),
+            "status": "returned"
+        })
+    
+    return assignments
