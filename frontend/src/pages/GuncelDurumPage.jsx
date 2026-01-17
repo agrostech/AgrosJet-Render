@@ -365,6 +365,89 @@ export default function GuncelDurumPage({ companyId }) {
           </div>
         )}
       </div>
+
+      {/* Muhasebe Özet Kartı */}
+      {accountingSummary && (
+        <div className="border-2 border-border bg-white p-4 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-emerald-100">
+              <Wallet className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-heading font-bold text-lg">Muhasebe Durumu</h3>
+              <p className="text-sm text-muted-foreground">Güncel bakiye özeti</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-4">
+            {/* Kuryeler */}
+            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-600">Kuryeler</span>
+              </div>
+              <p className={`text-xl font-bold font-mono ${
+                accountingSummary.couriers.balance > 0 
+                  ? 'text-red-600' 
+                  : accountingSummary.couriers.balance < 0 
+                    ? 'text-green-600' 
+                    : 'text-slate-800'
+              }`}>
+                {accountingSummary.couriers.balance === 0 
+                  ? '0 TL' 
+                  : accountingSummary.couriers.balance > 0 
+                    ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.couriers.balance)} TL`
+                    : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.couriers.balance))} TL`
+                }
+              </p>
+            </div>
+            
+            {/* İşletmeler */}
+            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Building2 className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-600">İşletmeler</span>
+              </div>
+              <p className={`text-xl font-bold font-mono ${
+                accountingSummary.businesses.balance > 0 
+                  ? 'text-red-600' 
+                  : accountingSummary.businesses.balance < 0 
+                    ? 'text-green-600' 
+                    : 'text-slate-800'
+              }`}>
+                {accountingSummary.businesses.balance === 0 
+                  ? '0 TL' 
+                  : accountingSummary.businesses.balance > 0 
+                    ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.businesses.balance)} TL`
+                    : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.businesses.balance))} TL`
+                }
+              </p>
+            </div>
+            
+            {/* Cariler */}
+            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-600">Cariler</span>
+              </div>
+              <p className={`text-xl font-bold font-mono ${
+                accountingSummary.vendors.balance > 0 
+                  ? 'text-red-600' 
+                  : accountingSummary.vendors.balance < 0 
+                    ? 'text-green-600' 
+                    : 'text-slate-800'
+              }`}>
+                {accountingSummary.vendors.balance === 0 
+                  ? '0 TL' 
+                  : accountingSummary.vendors.balance > 0 
+                    ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.vendors.balance)} TL`
+                    : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.vendors.balance))} TL`
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
