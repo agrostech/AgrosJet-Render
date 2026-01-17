@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, User } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
+import CourierSidebar from "@/components/courier/CourierSidebar";
 
 // Page components
 import CourierVardiyalarPage from "./courier/CourierVardiyalarPage";
@@ -49,9 +50,7 @@ export default function CourierDashboard() {
     <div className="min-h-screen bg-slate-50" data-testid="courier-dashboard">
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="font-heading text-lg font-bold">Kurye Paneli</span>
-        </div>
+        <span className="font-heading text-lg font-bold">{user.name}</span>
         <Button 
           variant="ghost" 
           size="icon" 
@@ -90,69 +89,13 @@ export default function CourierDashboard() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className={`hidden lg:flex flex-col fixed h-screen bg-white border-r-2 border-border transition-all duration-300 z-40 ${
-          sidebarCollapsed ? 'w-16' : 'w-56'
-        }`}>
-          {/* User Info */}
-          <div className="p-4 border-b-2 border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-primary" />
-              </div>
-              {!sidebarCollapsed && (
-                <div className="overflow-hidden">
-                  <h2 className="font-heading font-bold text-sm truncate">{user.name}</h2>
-                  <p className="text-xs text-muted-foreground">Kurye</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 p-2 space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path || 
-                (item.path !== "/courier" && location.pathname.startsWith(item.path));
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${
-                    isActive 
-                      ? 'bg-primary text-white' 
-                      : 'text-slate-600 hover:bg-slate-100'
-                  } ${sidebarCollapsed ? 'justify-center' : ''}`}
-                  title={sidebarCollapsed ? item.label : undefined}
-                >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  {!sidebarCollapsed && <span>{item.label}</span>}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Bottom Actions */}
-          <div className="p-2 border-t-2 border-border space-y-1">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-all text-sm font-medium ${
-                sidebarCollapsed ? 'justify-center' : ''
-              }`}
-            >
-              <Menu className="w-5 h-5 flex-shrink-0" />
-              {!sidebarCollapsed && <span>Daralt</span>}
-            </button>
-            <button
-              onClick={handleLogout}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-all text-sm font-medium ${
-                sidebarCollapsed ? 'justify-center' : ''
-              }`}
-            >
-              <LogOut className="w-5 h-5 flex-shrink-0" />
-              {!sidebarCollapsed && <span>Çıkış</span>}
-            </button>
-          </div>
-        </aside>
+        <CourierSidebar
+          user={user}
+          navItems={NAV_ITEMS}
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+          onLogout={handleLogout}
+        />
 
         {/* Main Content */}
         <main className={`flex-1 p-4 md:p-6 pb-16 overflow-x-auto transition-all duration-300 ${
@@ -165,6 +108,11 @@ export default function CourierDashboard() {
           </Routes>
         </main>
       </div>
+
+      {/* Footer */}
+      <footer className={`fixed bottom-0 right-0 bg-white border-t py-2 text-center text-xs text-muted-foreground transition-all duration-300 z-30 ${sidebarCollapsed ? 'lg:left-16' : 'lg:left-56'} left-0`}>
+        © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
+      </footer>
     </div>
   );
 }
