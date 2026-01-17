@@ -44,6 +44,15 @@ Multi-tenant kurye yönetim sistemi.
 - [x] 06:00 gün başlangıcı kuralı ile sıralama
 - [x] POS cihazı zimmetinde "Pos SN:" gösterimi
 
+### Fatura Yönetimi Sistemi (17 Ocak 2026)
+- [x] **Backend**: `/api/invoices/` endpoint'leri (upload, delete, download, bulk download)
+- [x] **Kurye Paneli**: Hakediş işlemlerinde "Fatura Yükle" butonu
+- [x] **Kurye Paneli**: Yüklenen faturaları görme, indirme, silme (24 saat içinde)
+- [x] **Admin Paneli**: Muhasebe → Faturalar alt sekmesi
+- [x] **Admin Paneli**: 2x2 grid layout (Kuryeler, Kurye Faturaları, Ay Faturaları, Eksik Faturalar)
+- [x] **Admin Paneli**: Ay bazında filtreleme, tekli/toplu indirme (ZIP)
+- [x] Dosya isimlendirme: KuryeAdSoyad_HaftaninSalisi.pdf
+
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
 - [ ] Sistem Sayfası özellikleri (kullanıcı gereksinimlerini bekliyor)
