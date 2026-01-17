@@ -5,24 +5,33 @@ Multi-tenant kurye yönetim sistemi.
 
 ## What's Been Implemented
 
-### Güncel Durum Sayfası Güncellemeleri (17 Ocak 2026 - En Son)
-- [x] **Vardiya Takibi kartı** - Gün seçici ve tarih/saat birleştirildi
-- [x] **Gün kısaltmaları** - PZT, SAL, ÇAR, PER, CUM, CMT, PAZ + ayın kaçı
-- [x] **Muhasebe Durumu kartı** - Kuryeler, İşletmeler, Cariler toplam bakiyeleri
-- [x] **API endpoint** - `/api/companies/{id}/accounting-summary`
+### Taksitli Ürün Özelliği (17 Ocak 2026 - YENİ)
+- [x] **Backend API'leri**:
+  - `POST /api/couriers/{id}/installment-products` - Ürün ekle
+  - `GET /api/couriers/{id}/installment-products` - Ürünleri listele
+  - `POST /api/installment-products/{id}/pay` - Taksit öde
+  - `DELETE /api/installment-products/{id}` - Ürün sil
+  - `DELETE /api/transactions/{id}/with-installment-restore` - Taksit geri al
+- [x] **Frontend**: Kuryeler sekmesinde taksitli ürün bölümü ve modal
+- [x] **Özellikler**:
+  - Ürün adı, taksit tutarı, taksit sayısı girişi
+  - Otomatik toplam hesaplama
+  - İlerleme çubuğu (ödenen/toplam)
+  - Taksit öde butonu (özel tarih seçeneği ile)
+  - İşlem silinirse taksit sayısı geri eklenir
+  - İşlem geçmişinde "Taksit" etiketi
 
-### Bug Fixes (17 Ocak 2026)
-- [x] **"Daha Fazla Yükle" Butonu** - useRef ile düzeltildi
+### Muhasebe İşlem Düzenleme (17 Ocak 2026)
+- [x] `PUT /api/transactions/{id}` endpoint
+- [x] Tüm sekmelerde düzenleme modalı
 
-### UI/UX İyileştirmeleri (17 Ocak 2026)
-- [x] **Zimmet sayfası** - Sol/sağ sütunlar %50-%50 eşit genişlik
-- [x] **Mali Bellek** - Eşit sütun genişlikleri
-- [x] **Muhasebe arama** - Her sekmede liste araması
-- [x] **Güncel Durum** - Vardiyalar 2 sütunlu grid
-- [x] **Sidebar icon** - Muhasebe = hesap makinesi
+### Güncel Durum Sayfası (17 Ocak 2026)
+- [x] Vardiya Takibi kartı (birleşik)
+- [x] Muhasebe Durumu kartı
+- [x] Gün kısaltmaları düzeltildi
 
 ### Backend Refactoring (Tamamlandı)
-- [x] `server.py` modülerleştirildi (697 → 109 satır)
+- [x] `server.py` modülerleştirildi
 
 ### Frontend Refactoring (Tamamlandı)
 - [x] `AdminDashboard.jsx` parçalandı
