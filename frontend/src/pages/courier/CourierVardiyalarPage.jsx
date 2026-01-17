@@ -94,15 +94,6 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
   const dayIndex = today.getDay();
   const currentDayKey = DAYS[(dayIndex + 6) % 7].key; // Convert Sunday=0 to Monday=0
 
-  // Count work days (days with shifts)
-  const workDaysCount = DAYS.filter(day => {
-    const dayAssignments = myAssignments.filter(a => a.day === day.key);
-    return dayAssignments.length > 0;
-  }).length;
-
-  // Count leave days (days without shifts or explicitly on leave)
-  const leaveDaysCount = 7 - workDaysCount;
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
