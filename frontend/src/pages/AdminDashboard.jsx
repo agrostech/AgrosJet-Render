@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, Settings } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 
 // Page components
