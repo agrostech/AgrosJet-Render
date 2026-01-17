@@ -681,49 +681,48 @@ export default function ZimmetPage() {
 
           {/* Sağ Panel - Ay Bazında Tüm Loglar */}
           <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-            <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0">
+            <div className="p-2 border-b border-slate-200 bg-slate-50 shrink-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm flex items-center gap-2">
-                  <History className="w-4 h-4" /> İşlem Geçmişi
+                <h3 className="font-semibold text-xs flex items-center gap-1">
+                  <History className="w-3.5 h-3.5" /> İşlem Geçmişi
                 </h3>
-                <span className="text-xs text-muted-foreground">{maliBellekAllLogs.length} kayıt</span>
+                <span className="text-[10px] text-muted-foreground">{maliBellekAllLogs.length} kayıt</span>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               {maliBellekAllLogs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <History className="w-12 h-12 mb-2 opacity-30" />
-                  <p>Bu dönem için işlem kaydı yok</p>
+                  <History className="w-10 h-10 mb-2 opacity-30" />
+                  <p className="text-sm">Bu dönem için işlem kaydı yok</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
                   {maliBellekAllLogs.map((log) => (
-                    <div key={log.id} className="p-3 hover:bg-slate-50">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                              log.action === 'collected' 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-orange-100 text-orange-700'
-                            }`}>
-                              {log.action === 'collected' ? 'Alındı' : 'Kaldırıldı'}
-                            </span>
-                            <span className="text-xs font-medium truncate">{log.product_name}</span>
-                          </div>
-                          <div className="text-[10px] text-slate-400">
-                            {log.pos_serial && <span>POS SN: {log.pos_serial} </span>}
-                            {log.pos_terminal && <span>| Terminal: {log.pos_terminal}</span>}
-                          </div>
+                    <div key={log.id} className="px-2 py-1.5 hover:bg-slate-50">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <span className={`px-1 py-0.5 rounded text-[9px] font-medium shrink-0 ${
+                            log.action === 'collected' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            {log.action === 'collected' ? 'Alındı' : 'Kaldırıldı'}
+                          </span>
+                          <span className="text-xs truncate">{log.product_name}</span>
                         </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-[10px] text-muted-foreground">
-                            {new Date(log.created_at).toLocaleDateString('tr-TR', { 
-                              day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
-                            })}
-                          </p>
-                          <p className="text-[10px] text-slate-500">{log.admin_name}</p>
+                        <div className="text-right shrink-0 text-[10px] text-muted-foreground">
+                          {new Date(log.created_at).toLocaleDateString('tr-TR', { 
+                            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+                          })}
                         </div>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
+                        <span>
+                          {log.pos_serial && `POS: ${log.pos_serial}`}
+                          {log.pos_serial && log.pos_terminal && ' | '}
+                          {log.pos_terminal && `T: ${log.pos_terminal}`}
+                        </span>
+                        <span>{log.admin_name}</span>
                       </div>
                     </div>
                   ))}
@@ -735,7 +734,7 @@ export default function ZimmetPage() {
       ) : activeTab === "logs" ? (
       /* Tüm Hareketler - Tek sütun, tam genişlik */
       <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-        <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0 space-y-2">
+        <div className="p-2 border-b border-slate-200 bg-slate-50 shrink-0 space-y-2">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
