@@ -329,7 +329,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                         variant="outline" 
                         size="sm" 
                         onClick={() => setShowInstallmentListModal(true)} 
-                        className="h-9 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 relative" 
+                        className="h-9 border-2 relative" 
                         data-testid="installment-btn"
                       >
                         <CreditCard className="w-4 h-4" />
