@@ -206,7 +206,7 @@ export default function FaturalarTab({ companyId }) {
               <span className="text-xs text-muted-foreground">({couriersSummary.length})</span>
             </div>
           </div>
-          <div className="max-h-64 overflow-y-auto divide-y divide-border">
+          <div className="max-h-96 overflow-y-auto divide-y divide-border">
             {couriersSummary.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground text-sm">
                 Kurye bulunamadı
