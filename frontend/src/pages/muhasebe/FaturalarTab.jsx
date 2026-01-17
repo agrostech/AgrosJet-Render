@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { 
   FileText, Download, User, Calendar, AlertCircle, 
-  ChevronLeft, ChevronRight, Archive, Check
+  ChevronLeft, ChevronRight, Archive, Check, CheckCircle, Circle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
