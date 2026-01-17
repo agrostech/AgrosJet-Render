@@ -318,7 +318,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                         <th className="text-left p-2 font-semibold text-xs">Tarih</th>
                         <th className="text-left p-2 font-semibold text-xs">Açıklama</th>
                         <th className="text-right p-2 font-semibold text-xs">Tutar</th>
-                        <th className="w-10"></th>
+                        <th className="w-16"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -330,9 +330,14 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                             {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
                           </td>
                           <td className="p-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                            <div className="flex gap-1 justify-end">
+                              <Button variant="ghost" size="sm" onClick={() => openEditModal(tx)} className="h-6 w-6 p-0 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-tx-${tx.id}`}>
+                                <Pencil className="w-3 h-3" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
