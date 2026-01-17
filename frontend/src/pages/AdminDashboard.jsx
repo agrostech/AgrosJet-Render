@@ -59,6 +59,7 @@ export default function AdminDashboard() {
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet" },
     { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler" },
     { path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler" },
+    { path: "/admin/sistem", label: "Sistem", icon: Settings, key: "sistem" },
   ].filter((item) => isSuperAdmin || permissions[item.key]);
 
   return (
