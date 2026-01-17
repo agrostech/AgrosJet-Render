@@ -87,7 +87,10 @@ export default function CourierZimmetPage({ courierId }) {
                       <p className="text-xs text-muted-foreground">{assignment.product_type}</p>
                     )}
                     {assignment.serial_number && (
-                      <p className="text-xs font-mono text-slate-500 mt-1">SN: {assignment.serial_number}</p>
+                      <p className="text-xs font-mono text-slate-500 mt-1">
+                        {assignment.product_name?.toLowerCase().includes('pos') ? 'Pos SN: ' : 'SN: '}
+                        {assignment.serial_number}
+                      </p>
                     )}
                     <p className="text-xs text-muted-foreground mt-1">
                       Zimmet Tarihi: {formatDate(assignment.assigned_at)}
