@@ -37,6 +37,8 @@ export default function KuryelerPage({ companyId }) {
   const [filterQuery, setFilterQuery] = useState("");
   const [editData, setEditData] = useState({ name: "", phone: "", plate: "", address: "", password: "" });
   const [editLoading, setEditLoading] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [detailTab, setDetailTab] = useState("info");
 
   const fetchCouriers = async () => {
     try {
@@ -49,8 +51,20 @@ export default function KuryelerPage({ companyId }) {
     }
   };
 
+  const fetchCompanyName = async () => {
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}`);
+      setCompanyName(res.data.name);
+    } catch (err) {
+      console.error("Şirket bilgisi alınamadı");
+    }
+  };
+
   useEffect(() => {
-    if (companyId) fetchCouriers();
+    if (companyId) {
+      fetchCouriers();
+      fetchCompanyName();
+    }
   }, [companyId]);
 
   const openEditModal = (courier) => {
