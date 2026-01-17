@@ -98,21 +98,23 @@ export default function CourierDashboard() {
         />
 
         {/* Main Content */}
-        <main className={`flex-1 p-4 md:p-6 pb-16 overflow-x-auto transition-all duration-300 ${
+        <main className={`flex-1 overflow-x-auto transition-all duration-300 ${
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'
         }`}>
-          <Routes>
-            <Route index element={<CourierVardiyalarPage courierId={user.id} companyId={user.company_id} />} />
-            <Route path="muhasebe" element={<CourierMuhasebePage courierId={user.id} courierName={user.name} />} />
-            <Route path="zimmet" element={<CourierZimmetPage courierId={user.id} />} />
-          </Routes>
+          <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
+            <Routes>
+              <Route index element={<CourierVardiyalarPage courierId={user.id} companyId={user.company_id} />} />
+              <Route path="muhasebe" element={<CourierMuhasebePage courierId={user.id} courierName={user.name} />} />
+              <Route path="zimmet" element={<CourierZimmetPage courierId={user.id} />} />
+            </Routes>
+          </div>
+          
+          {/* Footer */}
+          <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
+            © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
+          </footer>
         </main>
       </div>
-
-      {/* Footer */}
-      <footer className={`fixed bottom-0 right-0 bg-white border-t py-2 text-center text-xs text-muted-foreground transition-all duration-300 z-30 ${sidebarCollapsed ? 'lg:left-16' : 'lg:left-56'} left-0`}>
-        © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
-      </footer>
     </div>
   );
 }
