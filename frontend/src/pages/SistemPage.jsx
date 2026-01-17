@@ -1,4 +1,4 @@
-import { Settings, Wrench } from "lucide-react";
+import { SlidersHorizontal, Wrench } from "lucide-react";
 
 export default function SistemPage() {
   return (
@@ -7,7 +7,7 @@ export default function SistemPage() {
       <div className="border-2 border-border bg-white p-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100">
-            <Settings className="w-5 h-5 text-slate-600" />
+            <SlidersHorizontal className="w-5 h-5 text-slate-600" />
           </div>
           <div>
             <h2 className="font-heading font-bold text-xl">Sistem</h2>
