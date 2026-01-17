@@ -198,7 +198,56 @@ async def get_company_invoices(company_id: str, year: int = None, month: int = N
         }
     
     invoices = await db.invoices.find(query, {"_id": 0}).sort("uploaded_at", -1).to_list(500)
+    
+    # Enrich with transaction amounts
+    tx_ids = [inv.get("transaction_id") for inv in invoices if inv.get("transaction_id")]
+    if tx_ids:
+        transactions = await db.transactions.find(
+            {"id": {"$in": tx_ids}},
+            {"_id": 0, "id": 1, "amount": 1, "description": 1}
+        ).to_list(500)
+        tx_map = {tx["id"]: tx for tx in transactions}
+        
+        for inv in invoices:
+            tx = tx_map.get(inv.get("transaction_id"))
+            if tx:
+                inv["transaction_amount"] = tx.get("amount")
+                inv["transaction_description"] = tx.get("description")
+    
     return invoices
+
+
+@router.put("/{invoice_id}/verify")
+async def verify_invoice(invoice_id: str):
+    """Mark invoice as verified"""
+    invoice = await db.invoices.find_one({"id": invoice_id})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    await db.invoices.update_one(
+        {"id": invoice_id},
+        {"$set": {
+            "verified": True,
+            "verified_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Fatura kontrol edildi olarak işaretlendi"}
+
+
+@router.put("/{invoice_id}/unverify")
+async def unverify_invoice(invoice_id: str):
+    """Remove verified status from invoice"""
+    invoice = await db.invoices.find_one({"id": invoice_id})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    await db.invoices.update_one(
+        {"id": invoice_id},
+        {"$set": {"verified": False}, "$unset": {"verified_at": ""}}
+    )
+    
+    return {"message": "Fatura kontrol durumu kaldırıldı"}
 
 
 @router.get("/company/{company_id}/missing")
