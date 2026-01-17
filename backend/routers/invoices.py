@@ -367,6 +367,23 @@ async def download_invoice(invoice_id: str):
     )
 
 
+@router.get("/view/{invoice_id}")
+async def view_invoice(invoice_id: str):
+    """View invoice in browser (inline)"""
+    invoice = await db.invoices.find_one({"id": invoice_id})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    if not os.path.exists(invoice["file_path"]):
+        raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
+    
+    return FileResponse(
+        invoice["file_path"],
+        media_type="application/pdf",
+        headers={"Content-Disposition": "inline"}
+    )
+
+
 @router.post("/download-bulk")
 async def download_bulk_invoices(invoice_ids: list[str]):
     """Download multiple invoices as ZIP"""
