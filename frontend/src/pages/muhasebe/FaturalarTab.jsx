@@ -126,6 +126,10 @@ export default function FaturalarTab({ companyId }) {
     window.open(`${API}/invoices/download/${invoiceId}`, '_blank');
   };
 
+  const handleViewInvoice = (invoiceId) => {
+    window.open(`${API}/invoices/view/${invoiceId}`, '_blank');
+  };
+
   const handleDownloadBulk = async () => {
     if (selectedInvoices.length === 0) {
       toast.error("En az bir fatura seçin");
