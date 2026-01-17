@@ -732,7 +732,7 @@ export default function ZimmetPage() {
           </div>
 
           {/* Sağ Panel - Ay Bazında Tüm Loglar */}
-          <div className="w-full lg:flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+          <div className="w-full lg:w-1/2 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
             <div className="p-3 border-b-2 border-border bg-slate-50 shrink-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-sm flex items-center gap-2">
