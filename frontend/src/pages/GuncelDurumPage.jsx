@@ -221,8 +221,17 @@ export default function GuncelDurumPage({ companyId }) {
               dayDate.setDate(dayDate.getDate() + diff);
               const dayOfMonth = dayDate.getDate();
               
-              // Gün kısaltmaları
-              const dayAbbr = day.key === 'cumartesi' ? 'Cts' : day.key === 'pazar' ? 'Paz' : day.label.slice(0, 3);
+              // Gün kısaltmaları - manuel tanımlı
+              const dayAbbreviations = {
+                'pazartesi': 'Pzt',
+                'sali': 'Sal',
+                'carsamba': 'Çar',
+                'persembe': 'Per',
+                'cuma': 'Cum',
+                'cumartesi': 'Cmt',
+                'pazar': 'Paz'
+              };
+              const dayAbbr = dayAbbreviations[day.key];
               
               return (
                 <button
