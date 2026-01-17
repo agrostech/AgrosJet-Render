@@ -173,8 +173,30 @@ export default function GuncelDurumPage({ companyId }) {
         </Button>
       </div>
 
-      {/* Gün Seçici - Haftalık takvim görünümü */}
-      <div className="bg-white border-2 border-border rounded-lg p-3">
+      {/* Vardiya Takibi - Birleşik Kart */}
+      <div className="border-2 border-border bg-white p-4 space-y-4">
+        {/* Header - Başlık ve Saat */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 pb-3 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isToday ? 'bg-primary/10' : 'bg-amber-100'}`}>
+              <Calendar className={`w-5 h-5 ${isToday ? 'text-primary' : 'text-amber-600'}`} />
+            </div>
+            <div>
+              <h3 className="font-heading font-bold text-lg">Vardiya Takibi</h3>
+              <p className="text-sm text-muted-foreground">
+                {activeDayLabel} - {isToday ? formatDate(workDay.date) : 'Haftalık görünüm'}
+              </p>
+            </div>
+          </div>
+          {isToday && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="font-mono font-semibold">{formatTime(currentTime)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Gün Seçici */}
         <div className="flex items-center justify-between gap-2">
           <button
             onClick={() => {
@@ -199,6 +221,9 @@ export default function GuncelDurumPage({ companyId }) {
               dayDate.setDate(dayDate.getDate() + diff);
               const dayOfMonth = dayDate.getDate();
               
+              // Gün kısaltmaları
+              const dayAbbr = day.key === 'cumartesi' ? 'Cts' : day.key === 'pazar' ? 'Paz' : day.label.slice(0, 3);
+              
               return (
                 <button
                   key={day.key}
@@ -212,7 +237,7 @@ export default function GuncelDurumPage({ companyId }) {
                   }`}
                 >
                   <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">
-                    {day.key === 'cumartesi' ? 'Cts' : day.label.slice(0, 3)}
+                    {dayAbbr}
                   </span>
                   <span className={`text-sm font-bold ${isActive ? '' : isTodayDay ? 'text-primary' : ''}`}>
                     {dayOfMonth}
@@ -236,33 +261,9 @@ export default function GuncelDurumPage({ companyId }) {
             <ChevronRight className="w-5 h-5 text-slate-500" />
           </button>
         </div>
-      </div>
-
-      {/* Günlük Rapor Kartı */}
-      <div className="border-2 border-border bg-white p-4 space-y-4">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 pb-3 border-b border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isToday ? 'bg-primary/10' : 'bg-amber-100'}`}>
-              <Calendar className={`w-5 h-5 ${isToday ? 'text-primary' : 'text-amber-600'}`} />
-            </div>
-            <div>
-              <h3 className="font-heading font-bold text-lg">{activeDayLabel}</h3>
-              <p className="text-sm text-muted-foreground">
-                {isToday ? formatDate(workDay.date) : 'Haftalık görünüm'}
-              </p>
-            </div>
-          </div>
-          {isToday && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="font-mono font-semibold">{formatTime(currentTime)}</span>
-            </div>
-          )}
-        </div>
 
         {/* Shift Details */}
-        <div className="space-y-2">
+        <div className="space-y-2 pt-2 border-t border-slate-100">
           <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
             Vardiyalar
           </h4>
