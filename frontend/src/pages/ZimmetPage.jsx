@@ -1083,23 +1083,25 @@ export default function ZimmetPage() {
                   </h3>
                 </div>
                 {productHistory.length === 0 ? (
-                  <p className="text-sm text-muted-foreground p-4 text-center">Henüz geçmiş yok</p>
+                  <p className="text-xs text-muted-foreground p-3 text-center">Henüz geçmiş yok</p>
                 ) : (
                   <div className="divide-y divide-slate-100">
                     {productHistory.map((log) => (
-                      <div key={log.id} className="p-3">
-                        <div className="flex items-center gap-2 mb-1">
+                      <div key={log.id} className="px-3 py-2">
+                        <div className="flex items-center justify-between gap-2">
                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getActionColor(log.action, log.details)}`}>
                             {getActionLabel(log.action, log.details)}
                           </span>
-                          <span className="text-xs text-muted-foreground">{formatDate(log.created_at)}</span>
+                          <span className="text-[10px] text-muted-foreground">{formatDate(log.created_at)}</span>
                         </div>
-                        {log.courier_name && (
-                          <p className="text-sm"><User className="w-3 h-3 inline mr-1" />{log.courier_name}</p>
-                        )}
-                        <p className="text-[10px] text-slate-500">Admin: {log.admin_name}</p>
+                        <div className="flex items-center justify-between mt-0.5 text-[10px]">
+                          {log.courier_name && (
+                            <span className="text-slate-600"><User className="w-2.5 h-2.5 inline mr-0.5" />{log.courier_name}</span>
+                          )}
+                          <span className="text-slate-400">{log.admin_name}</span>
+                        </div>
                         {log.details?.notes && (
-                          <p className="text-[10px] text-slate-400 italic mt-1">"{log.details.notes}"</p>
+                          <p className="text-[10px] text-slate-400 italic truncate">&quot;{log.details.notes}&quot;</p>
                         )}
                       </div>
                     ))}
