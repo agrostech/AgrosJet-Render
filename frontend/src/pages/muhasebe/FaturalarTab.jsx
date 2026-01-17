@@ -212,100 +212,7 @@ export default function FaturalarTab({ companyId }) {
 
       {/* 2x2 Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Row 1 Col 1: Couriers List */}
-        <div className="border-2 border-border bg-white">
-          <div className="p-3 border-b-2 border-border bg-slate-50">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-primary" />
-              <h3 className="font-semibold text-sm">Kuryeler</h3>
-              <span className="text-xs text-muted-foreground">({couriersSummary.length})</span>
-            </div>
-          </div>
-          <div className="max-h-96 overflow-y-auto divide-y divide-border">
-            {couriersSummary.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground text-sm">
-                Kurye bulunamadı
-              </div>
-            ) : (
-              couriersSummary.map((courier) => (
-                <div
-                  key={courier.courier_id}
-                  onClick={() => setSelectedCourier(
-                    selectedCourier?.courier_id === courier.courier_id ? null : courier
-                  )}
-                  className={`p-3 cursor-pointer hover:bg-slate-50 transition-colors ${
-                    selectedCourier?.courier_id === courier.courier_id ? 'bg-primary/5 border-l-4 border-l-primary' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{courier.courier_name}</p>
-                      <p className="text-xs text-muted-foreground">{courier.phone}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className={`text-sm font-semibold ${
-                        courier.invoice_count > 0 ? 'text-green-600' : 'text-muted-foreground'
-                      }`}>
-                        {courier.invoice_count}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Row 1 Col 2: Selected Courier's Invoices */}
-        <div className="border-2 border-border bg-white">
-          <div className="p-3 border-b-2 border-border bg-slate-50">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary" />
-              <h3 className="font-semibold text-sm">
-                {selectedCourier ? `${selectedCourier.courier_name} - Faturalar` : 'Kurye Seçin'}
-              </h3>
-            </div>
-          </div>
-          <div className="max-h-96 overflow-y-auto">
-            {!selectedCourier ? (
-              <div className="p-8 text-center text-muted-foreground text-sm">
-                <User className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                Faturalarını görmek için bir kurye seçin
-              </div>
-            ) : courierInvoices.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground text-sm">
-                <FileText className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                Bu kuryenin faturası yok
-              </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {courierInvoices.map((invoice) => (
-                  <div key={invoice.id} className="p-3 hover:bg-slate-50">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{invoice.file_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDateTime(invoice.uploaded_at)}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDownloadSingle(invoice.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Row 2 Col 1: All Month Invoices */}
+        {/* Row 1 Col 1: All Month Invoices */}
         <div className="border-2 border-border bg-white">
           <div className="p-3 border-b-2 border-border bg-slate-50">
             <div className="flex items-center justify-between">
@@ -419,7 +326,7 @@ export default function FaturalarTab({ companyId }) {
           </div>
         </div>
 
-        {/* Row 2 Col 2: Missing Invoices */}
+        {/* Row 1 Col 2: Missing Invoices */}
         <div className="border-2 border-border bg-white">
           <div className="p-3 border-b-2 border-border bg-red-50">
             <div className="flex items-center gap-2">
@@ -448,6 +355,99 @@ export default function FaturalarTab({ companyId }) {
                       <span className="text-sm font-semibold text-red-600">
                         {formatMoney(tx.amount)}
                       </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 2 Col 1: Couriers List */}
+        <div className="border-2 border-border bg-white">
+          <div className="p-3 border-b-2 border-border bg-slate-50">
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold text-sm">Kuryeler</h3>
+              <span className="text-xs text-muted-foreground">({couriersSummary.length})</span>
+            </div>
+          </div>
+          <div className="max-h-96 overflow-y-auto divide-y divide-border">
+            {couriersSummary.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground text-sm">
+                Kurye bulunamadı
+              </div>
+            ) : (
+              couriersSummary.map((courier) => (
+                <div
+                  key={courier.courier_id}
+                  onClick={() => setSelectedCourier(
+                    selectedCourier?.courier_id === courier.courier_id ? null : courier
+                  )}
+                  className={`p-3 cursor-pointer hover:bg-slate-50 transition-colors ${
+                    selectedCourier?.courier_id === courier.courier_id ? 'bg-primary/5 border-l-4 border-l-primary' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{courier.courier_name}</p>
+                      <p className="text-xs text-muted-foreground">{courier.phone}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className={`text-sm font-semibold ${
+                        courier.invoice_count > 0 ? 'text-green-600' : 'text-muted-foreground'
+                      }`}>
+                        {courier.invoice_count}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Row 2 Col 2: Selected Courier's Invoices */}
+        <div className="border-2 border-border bg-white">
+          <div className="p-3 border-b-2 border-border bg-slate-50">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold text-sm">
+                {selectedCourier ? `${selectedCourier.courier_name} - Faturalar` : 'Kurye Seçin'}
+              </h3>
+            </div>
+          </div>
+          <div className="max-h-96 overflow-y-auto">
+            {!selectedCourier ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                <User className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                Faturalarını görmek için bir kurye seçin
+              </div>
+            ) : courierInvoices.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                Bu kuryenin faturası yok
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {courierInvoices.map((invoice) => (
+                  <div key={invoice.id} className="p-3 hover:bg-slate-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">{invoice.file_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTime(invoice.uploaded_at)}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDownloadSingle(invoice.id)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
