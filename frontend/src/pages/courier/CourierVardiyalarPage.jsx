@@ -63,6 +63,7 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
   const [assignments, setAssignments] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [terminationInfo, setTerminationInfo] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,8 +83,22 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
       }
     };
 
-    if (companyId) fetchData();
-  }, [companyId]);
+    const fetchTerminationStatus = async () => {
+      try {
+        const res = await axios.get(`${API}/couriers/${courierId}/termination-status?company_id=${companyId}`);
+        if (res.data.has_termination) {
+          setTerminationInfo(res.data);
+        }
+      } catch (err) {
+        console.error("Fesih durumu alınamadı");
+      }
+    };
+
+    if (companyId) {
+      fetchData();
+      fetchTerminationStatus();
+    }
+  }, [companyId, courierId]);
 
   // Filter assignments for this courier
   const myAssignments = assignments.filter(a => a.courier_id === courierId);
