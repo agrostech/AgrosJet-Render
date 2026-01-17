@@ -636,12 +636,12 @@ export default function ZimmetPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Sol Panel - POS Listesi */}
           <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-            <div className="p-2 border-b border-slate-200 bg-slate-50 shrink-0">
+            <div className="p-2 border-b border-slate-200 bg-slate-50 shrink-0 space-y-1.5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                   <Select value={selectedYearMonth} onValueChange={setSelectedYearMonth}>
-                    <SelectTrigger className="w-40 h-7 text-xs">
+                    <SelectTrigger className="w-36 h-7 text-xs">
                       <SelectValue placeholder="Ay Seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -652,27 +652,52 @@ export default function ZimmetPage() {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2 text-[10px]">
-                  <span className="text-green-600 font-medium">
-                    {maliBellekData.filter(p => p.mali_bellek?.is_collected).length} Alındı
-                  </span>
-                  <span className="text-orange-600 font-medium">
-                    {maliBellekData.filter(p => !p.mali_bellek?.is_collected).length} Alınmadı
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <Checkbox 
+                      id="maliBellekFilterCollected" 
+                      checked={maliBellekFilterCollected} 
+                      onCheckedChange={setMaliBellekFilterCollected}
+                      className="h-3 w-3"
+                    />
+                    <Label htmlFor="maliBellekFilterCollected" className="text-green-600 font-medium cursor-pointer">
+                      {maliBellekData.filter(p => p.mali_bellek?.is_collected).length} Alındı
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Checkbox 
+                      id="maliBellekFilterNotCollected" 
+                      checked={maliBellekFilterNotCollected} 
+                      onCheckedChange={setMaliBellekFilterNotCollected}
+                      className="h-3 w-3"
+                    />
+                    <Label htmlFor="maliBellekFilterNotCollected" className="text-orange-600 font-medium cursor-pointer">
+                      {maliBellekData.filter(p => !p.mali_bellek?.is_collected).length} Alınmadı
+                    </Label>
+                  </div>
                 </div>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input 
+                  placeholder="POS ara..." 
+                  value={maliBellekSearch}
+                  onChange={(e) => setMaliBellekSearch(e.target.value)}
+                  className="pl-7 h-7 text-xs"
+                />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               {maliBellekLoading ? (
                 <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Yükleniyor...</div>
-              ) : maliBellekData.length === 0 ? (
+              ) : filteredMaliBellekData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                   <FileCheck className="w-10 h-10 mb-2 opacity-30" />
-                  <p className="text-sm">POS cihazı bulunamadı</p>
-                  <p className="text-xs">Önce Ürünler sekmesinden POS cihazı ekleyin</p>
+                  <p className="text-sm">{maliBellekSearch ? "Arama sonucu bulunamadı" : "POS cihazı bulunamadı"}</p>
+                  {!maliBellekSearch && <p className="text-xs">Önce Ürünler sekmesinden POS cihazı ekleyin</p>}
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
-                  {maliBellekData.map((product) => (
+                  {filteredMaliBellekData.map((product) => (
                     <div key={product.id} className="px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
