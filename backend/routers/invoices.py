@@ -159,6 +159,30 @@ async def delete_invoice(invoice_id: str, courier_id: str):
     return {"message": "Fatura silindi"}
 
 
+@router.delete("/admin/{invoice_id}")
+async def admin_delete_invoice(invoice_id: str):
+    """Delete invoice (admin - no restrictions)"""
+    
+    invoice = await db.invoices.find_one({"id": invoice_id})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # Delete file
+    if os.path.exists(invoice["file_path"]):
+        os.remove(invoice["file_path"])
+    
+    # Remove invoice_id from transaction
+    await db.transactions.update_one(
+        {"id": invoice["transaction_id"]},
+        {"$unset": {"invoice_id": ""}}
+    )
+    
+    # Delete invoice record
+    await db.invoices.delete_one({"id": invoice_id})
+    
+    return {"message": "Fatura silindi"}
+
+
 @router.get("/courier/{courier_id}")
 async def get_courier_invoices(courier_id: str):
     """Get all invoices for a courier"""
