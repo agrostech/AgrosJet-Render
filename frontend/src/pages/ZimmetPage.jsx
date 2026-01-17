@@ -730,7 +730,111 @@ export default function ZimmetPage() {
             </div>
           </div>
         </div>
+      ) : activeTab === "logs" ? (
+      /* Tüm Hareketler - Tek sütun, tam genişlik */
+      <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
+        <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0 space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="Ürün, kurye veya admin ara..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-8 text-sm"
+              />
+            </div>
+            <span className="text-xs text-muted-foreground shrink-0">
+              {filteredLogs.length} / {totalLogs}
+            </span>
+          </div>
+          {/* Filter checkboxes */}
+          <div className="flex items-center gap-3 text-xs flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Checkbox id="logFilterAssigned" checked={logFilterAssigned} onCheckedChange={setLogFilterAssigned} className="h-3.5 w-3.5" />
+              <Label htmlFor="logFilterAssigned" className="text-xs text-blue-600 cursor-pointer">Zimmetlendi</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Checkbox id="logFilterReturned" checked={logFilterReturned} onCheckedChange={setLogFilterReturned} className="h-3.5 w-3.5" />
+              <Label htmlFor="logFilterReturned" className="text-xs text-orange-600 cursor-pointer">Geri Alındı</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Checkbox id="logFilterDefective" checked={logFilterDefective} onCheckedChange={setLogFilterDefective} className="h-3.5 w-3.5" />
+              <Label htmlFor="logFilterDefective" className="text-xs text-yellow-600 cursor-pointer">Arızalı</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Checkbox id="logFilterDefectiveRemoved" checked={logFilterDefectiveRemoved} onCheckedChange={setLogFilterDefectiveRemoved} className="h-3.5 w-3.5" />
+              <Label htmlFor="logFilterDefectiveRemoved" className="text-xs text-green-600 cursor-pointer">Arıza Kaldırıldı</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Checkbox id="logFilterLost" checked={logFilterLost} onCheckedChange={setLogFilterLost} className="h-3.5 w-3.5" />
+              <Label htmlFor="logFilterLost" className="text-xs text-red-600 cursor-pointer">Kayıp</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Checkbox id="logFilterLostRemoved" checked={logFilterLostRemoved} onCheckedChange={setLogFilterLostRemoved} className="h-3.5 w-3.5" />
+              <Label htmlFor="logFilterLostRemoved" className="text-xs text-teal-600 cursor-pointer">Kayıp Kaldırıldı</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Checkbox id="logFilterDeleted" checked={logFilterDeleted} onCheckedChange={setLogFilterDeleted} className="h-3.5 w-3.5" />
+              <Label htmlFor="logFilterDeleted" className="text-xs text-slate-600 cursor-pointer">Silindi</Label>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {filteredLogs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+              <History className="w-12 h-12 mb-2 opacity-30" />
+              <p>Hareket kaydı bulunamadı</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {filteredLogs.map((log) => (
+                <div key={log.id} className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${getActionStyle(log.action, log.details)}`}>
+                        {getActionLabel(log.action, log.details)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{log.product_name}</p>
+                        {log.courier_name && (
+                          <p className="text-xs text-blue-600 flex items-center gap-1">
+                            <User className="w-3 h-3" /> {log.courier_name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(log.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <p className="text-xs text-slate-500">{log.admin_name}</p>
+                    </div>
+                  </div>
+                  {/* Detaylar */}
+                  <div className="mt-1 text-[10px] text-slate-400">
+                    {log.details?.product_type && <span>Tip: {log.details.product_type} </span>}
+                    {log.details?.serial_number && <span>SN: {log.details.serial_number} </span>}
+                    {log.details?.pos_serial && <span>POS SN: {log.details.pos_serial} </span>}
+                    {log.details?.pos_terminal && <span>Terminal: {log.details.pos_terminal} </span>}
+                    {log.details?.changes && <span className="text-slate-500">{log.details.changes}</span>}
+                    {log.details?.notes && <span className="italic">"{log.details.notes}"</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {hasMoreLogs && (
+            <div className="p-3 text-center">
+              <Button variant="outline" size="sm" onClick={loadMoreLogs}>
+                Daha Fazla Yükle ({totalLogs - logs.length} kaldı)
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
       ) : (
+      /* Ürünler - İki sütunlu */
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left Panel - List */}
         <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
@@ -739,65 +843,56 @@ export default function ZimmetPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
-                  placeholder={activeTab === "products" ? "Ürün, tip, kurye veya seri no ara..." : "Ürün, kurye veya admin ara..."} 
+                  placeholder="Ürün, tip, kurye veya seri no ara..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8 h-8 text-sm"
                 />
               </div>
               <span className="text-xs text-muted-foreground shrink-0">
-                {activeTab === "products" ? `${filteredProducts.length} / ${totalProducts}` : `${logs.length} / ${totalLogs}`}
+                {filteredProducts.length} / {totalProducts}
               </span>
             </div>
             {/* Filter checkboxes - only for products tab */}
-            {activeTab === "products" && (
-              <div className="flex items-center gap-4 text-xs flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="filterAssigned" 
-                    checked={filterAssigned} 
-                    onCheckedChange={setFilterAssigned}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="filterAssigned" className="text-xs text-blue-600 cursor-pointer">Zimmetliler</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="filterAvailable" 
-                    checked={filterAvailable} 
-                    onCheckedChange={setFilterAvailable}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="filterAvailable" className="text-xs text-green-600 cursor-pointer">Boştakiler</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="filterDefective" 
-                    checked={filterDefective} 
-                    onCheckedChange={setFilterDefective}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="filterDefective" className="text-xs text-yellow-600 cursor-pointer">Arızalı</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="filterLost" 
-                    checked={filterLost} 
-                    onCheckedChange={setFilterLost}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="filterLost" className="text-xs text-red-600 cursor-pointer">Kayıp</Label>
-                </div>
+            <div className="flex items-center gap-4 text-xs flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <Checkbox 
+                  id="filterAssigned" 
+                  checked={filterAssigned} 
+                  onCheckedChange={setFilterAssigned}
+                  className="h-3.5 w-3.5"
+                />
+                <Label htmlFor="filterAssigned" className="text-xs text-blue-600 cursor-pointer">Zimmetliler</Label>
               </div>
-            )}
-            {/* Filter checkboxes - for logs tab */}
-            {activeTab === "logs" && (
-              <div className="flex items-center gap-3 text-xs flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="logFilterAssigned" 
-                    checked={logFilterAssigned} 
-                    onCheckedChange={setLogFilterAssigned}
+              <div className="flex items-center gap-1.5">
+                <Checkbox 
+                  id="filterAvailable" 
+                  checked={filterAvailable} 
+                  onCheckedChange={setFilterAvailable}
+                  className="h-3.5 w-3.5"
+                />
+                <Label htmlFor="filterAvailable" className="text-xs text-green-600 cursor-pointer">Boştakiler</Label>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Checkbox 
+                  id="filterDefective" 
+                  checked={filterDefective} 
+                  onCheckedChange={setFilterDefective}
+                  className="h-3.5 w-3.5"
+                />
+                <Label htmlFor="filterDefective" className="text-xs text-yellow-600 cursor-pointer">Arızalı</Label>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Checkbox 
+                  id="filterLost" 
+                  checked={filterLost} 
+                  onCheckedChange={setFilterLost}
+                  className="h-3.5 w-3.5"
+                />
+                <Label htmlFor="filterLost" className="text-xs text-red-600 cursor-pointer">Kayıp</Label>
+              </div>
+            </div>
+          </div>
                     className="h-3.5 w-3.5"
                   />
                   <Label htmlFor="logFilterAssigned" className="text-xs text-blue-600 cursor-pointer">Zimmetlendi</Label>
