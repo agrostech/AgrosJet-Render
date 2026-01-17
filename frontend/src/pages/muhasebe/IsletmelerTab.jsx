@@ -82,15 +82,22 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
 
   if (loading) return <p className="p-4">Yükleniyor...</p>;
 
+  // Arama filtresi
+  const [listSearchQuery, setListSearchQuery] = useState("");
+  const filteredDisplayList = displayList.filter(b => {
+    if (!listSearchQuery.trim()) return true;
+    return b.name.toLowerCase().includes(listSearchQuery.toLowerCase());
+  });
+
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full" ref={transactionRef}>
       {/* Sol Panel - İşletme Listesi */}
-      <div className="w-full lg:w-72 flex-shrink-0 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+      <div className="w-full lg:w-80 flex-shrink-0 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
         <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
             <span className="font-heading font-bold text-sm flex items-center gap-2">
               <Building2 className="w-4 h-4" />
-              İşletmeler ({displayList.length})
+              İşletmeler ({filteredDisplayList.length})
             </span>
             <div className="flex gap-1">
               <Button 
@@ -109,6 +116,16 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
               )}
             </div>
           </div>
+          <div className="relative mb-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="İşletme ara..."
+              value={listSearchQuery}
+              onChange={(e) => setListSearchQuery(e.target.value)}
+              className="pl-10 h-9 border-2"
+              data-testid="search-businesses-list"
+            />
+          </div>
           <div className="text-xs text-muted-foreground">
             Toplam: <span className={totalBalance > 0 ? 'text-red-600 font-semibold' : totalBalance < 0 ? 'text-green-600 font-semibold' : ''}>
               {totalBalance === 0 ? '0 TL' : totalBalance > 0 ? `-${formatCurrency(totalBalance)}` : formatCurrency(totalBalance)}
@@ -117,12 +134,12 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
         </div>
         
         <div className="flex-1 overflow-y-auto" ref={listRef}>
-          {displayList.length === 0 ? (
+          {filteredDisplayList.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">
-              {showArchived ? "Arşivlenmiş işletme yok" : "İşletme bulunamadı"}
+              {listSearchQuery ? "Arama sonucu bulunamadı" : showArchived ? "Arşivlenmiş işletme yok" : "İşletme bulunamadı"}
             </p>
           ) : (
-            displayList.map((b) => {
+            filteredDisplayList.map((b) => {
               const bal = balancesMap[b.id];
               const balLabel = getBalanceLabel(bal);
               return (
