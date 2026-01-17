@@ -266,17 +266,31 @@ export default function KuryelerPage({ companyId }) {
           </div>
         ) : (
           filteredCouriers.map((c) => (
-            <div key={c.id} className="border-2 border-border p-4 bg-white">
+            <div key={c.id} className={`border-2 border-border p-4 bg-white ${c.termination_start_date ? 'border-orange-300 bg-orange-50' : ''}`}>
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="font-bold">{c.name}</p>
                   <p className="font-mono text-sm text-muted-foreground">{c.phone}</p>
+                  {c.termination_start_date && (
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded font-semibold">
+                      Fesih: {c.termination_remaining_days} gün kaldı
+                    </span>
+                  )}
                 </div>
               </div>
               <p className="text-sm mb-3"><span className="text-muted-foreground">Plaka:</span> <span className="font-mono">{c.plate}</span></p>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="flex-1 border-2">Detaylar</Button>
                 <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">Düzenle</Button>
+                {c.termination_start_date ? (
+                  <Button size="sm" variant="outline" onClick={() => handleCancelTermination(c.id)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Fesih İptal">
+                    <XCircle className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline" onClick={() => handleStartTermination(c.id)} className="border-2 hover:bg-orange-50 hover:text-orange-600" title="Fesih Başlat">
+                    <AlertTriangle className="w-4 h-4" />
+                  </Button>
+                )}
                 <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="border-2 hover:bg-red-50 hover:text-red-600">Çıkar</Button>
               </div>
             </div>
