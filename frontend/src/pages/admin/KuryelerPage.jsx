@@ -225,14 +225,30 @@ export default function KuryelerPage({ companyId }) {
               </TableRow>
             ) : (
               filteredCouriers.map((c) => (
-                <TableRow key={c.id} className="border-b border-border hover:bg-slate-50">
-                  <TableCell className="font-medium">{c.name}</TableCell>
+                <TableRow key={c.id} className={`border-b border-border hover:bg-slate-50 ${c.termination_start_date ? 'bg-orange-50' : ''}`}>
+                  <TableCell className="font-medium">
+                    {c.name}
+                    {c.termination_start_date && (
+                      <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] rounded font-semibold">
+                        Fesih: {c.termination_remaining_days} gün
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell className="font-mono text-sm">{c.phone}</TableCell>
                   <TableCell className="font-mono text-sm">{c.plate}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
                       <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="h-8 px-3 border-2" data-testid={`detail-${c.id}`}>Detaylar</Button>
                       <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-courier-${c.id}`}><Pencil className="w-4 h-4" /></Button>
+                      {c.termination_start_date ? (
+                        <Button size="sm" variant="outline" onClick={() => handleCancelTermination(c.id)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Fesih İptal" data-testid={`cancel-termination-${c.id}`}>
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => handleStartTermination(c.id)} className="h-8 px-3 border-2 hover:bg-orange-50 hover:text-orange-600" title="Fesih Başlat" data-testid={`start-termination-${c.id}`}>
+                          <AlertTriangle className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`remove-${c.id}`}><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </TableCell>
