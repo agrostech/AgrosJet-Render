@@ -792,7 +792,7 @@ export default function ZimmetPage() {
                 <div key={log.id} className="p-3 hover:bg-slate-50">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${getActionStyle(log.action, log.details)}`}>
+                      <span className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${getActionColor(log.action, log.details)}`}>
                         {getActionLabel(log.action, log.details)}
                       </span>
                       <div className="flex-1 min-w-0">
