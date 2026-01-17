@@ -5,40 +5,32 @@ Multi-tenant kurye yönetim sistemi.
 
 ## What's Been Implemented
 
-### Taksitli Ürün Özelliği (17 Ocak 2026 - YENİ)
-- [x] **Backend API'leri**:
-  - `POST /api/couriers/{id}/installment-products` - Ürün ekle
-  - `GET /api/couriers/{id}/installment-products` - Ürünleri listele
-  - `POST /api/installment-products/{id}/pay` - Taksit öde
-  - `DELETE /api/installment-products/{id}` - Ürün sil
-  - `DELETE /api/transactions/{id}/with-installment-restore` - Taksit geri al
-- [x] **Frontend**: Kuryeler sekmesinde taksitli ürün bölümü ve modal
-- [x] **Özellikler**:
-  - Ürün adı, taksit tutarı, taksit sayısı girişi
-  - Otomatik toplam hesaplama
-  - İlerleme çubuğu (ödenen/toplam)
-  - Taksit öde butonu (özel tarih seçeneği ile)
-  - İşlem silinirse taksit sayısı geri eklenir
-  - İşlem geçmişinde "Taksit" etiketi
+### Kurye Dashboard (17 Ocak 2026 - YENİ)
+- [x] **CourierDashboard.jsx** - Ana layout (sidebar, routing)
+- [x] **CourierVardiyalarPage.jsx** - Kuryenin haftalık vardiya programı (read-only)
+- [x] **CourierMuhasebePage.jsx** - İşlem geçmişi, bakiye, taksitli ürünler (read-only)
+- [x] **CourierZimmetPage.jsx** - Zimmetli ürünler listesi (read-only)
+- [x] **Backend API** - `/api/zimmet/courier/{id}/assignments`
+- [x] Admin dashboard tasarım dili korundu
+- [x] Modüler yapı (courier/ klasörü altında)
+
+### Taksitli Ürün Özelliği (17 Ocak 2026)
+- [x] Ürün ekleme, taksit alma, ilerleme takibi
+- [x] İşlem silinirse taksit geri eklenir
+
+### Sistem Sekmesi (17 Ocak 2026)
+- [x] Sidebar'a eklendi (SlidersHorizontal ikonu)
+- [x] Placeholder sayfa
 
 ### Muhasebe İşlem Düzenleme (17 Ocak 2026)
-- [x] `PUT /api/transactions/{id}` endpoint
 - [x] Tüm sekmelerde düzenleme modalı
 
-### Güncel Durum Sayfası (17 Ocak 2026)
-- [x] Vardiya Takibi kartı (birleşik)
-- [x] Muhasebe Durumu kartı
-- [x] Gün kısaltmaları düzeltildi
-
-### Backend Refactoring (Tamamlandı)
-- [x] `server.py` modülerleştirildi
-
-### Frontend Refactoring (Tamamlandı)
-- [x] `AdminDashboard.jsx` parçalandı
-- [x] `useAccountingTab` hook
+### Backend/Frontend Refactoring (Tamamlandı)
+- [x] Modüler yapı
 
 ## Test Credentials
 - **Süper Admin**: `onurertas` / `Delivery32..`
+- **Kurye**: `05551234567` / `kurye123`
 
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
