@@ -212,7 +212,7 @@ export default function GuncelDurumPage({ companyId }) {
                   }`}
                 >
                   <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">
-                    {day.label.slice(0, 3)}
+                    {day.key === 'cumartesi' ? 'Cts' : day.label.slice(0, 3)}
                   </span>
                   <span className={`text-sm font-bold ${isActive ? '' : isTodayDay ? 'text-primary' : ''}`}>
                     {dayOfMonth}
