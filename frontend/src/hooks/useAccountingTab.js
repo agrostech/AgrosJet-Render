@@ -173,9 +173,14 @@ export function useAccountingTab({
       const skip = append ? currentLength : 0;
       const res = await axios.get(`${API}${endpoint.transactions(entityId)}?skip=${skip}&limit=10`);
       if (append) {
-        setTransactions(prev => [...prev, ...res.data.transactions]);
+        setTransactions(prev => {
+          const newTx = [...prev, ...res.data.transactions];
+          transactionsRef.current = newTx;
+          return newTx;
+        });
       } else {
         setTransactions(res.data.transactions);
+        transactionsRef.current = res.data.transactions;
       }
       setBalance(res.data.balance);
       setTotalCount(res.data.total_count);
@@ -184,6 +189,18 @@ export function useAccountingTab({
       toast.error("İşlemler yüklenemedi");
     }
   }, [endpoint]);
+
+  // Load more transactions - ref kullanarak güncel length'i al
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || !selectedEntity) return;
+    setLoadingMore(true);
+    try {
+      const currentLength = transactionsRef.current.length;
+      await fetchTransactions(selectedEntity.id, true, currentLength);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, selectedEntity, fetchTransactions]);
 
   // Select entity
   const handleSelect = useCallback((entity) => {
