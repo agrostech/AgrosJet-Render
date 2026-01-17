@@ -547,6 +547,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                           <td className="p-2 text-xs">
                             {tx.description}
                             {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Hakediş</span>}
+                            {tx.installment_product_id && <span className="ml-1 px-1 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Taksit</span>}
                           </td>
                           <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-red-600' : 'text-green-600'}`}>
                             {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
@@ -556,7 +557,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                               <Button variant="ghost" size="sm" onClick={() => openEditModal(tx)} className="h-6 w-6 p-0 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-tx-${tx.id}`}>
                                 <Pencil className="w-3 h-3" />
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTransactionWithRestore(tx.id, tx)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
                                 <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
