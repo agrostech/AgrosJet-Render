@@ -157,7 +157,6 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                       </span>
                     )}
                   </div>
-                  {b.phone && <p className="text-xs text-muted-foreground font-mono">{b.phone}</p>}
                 </div>
               );
             })
