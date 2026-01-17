@@ -276,3 +276,101 @@ async def delete_courier(courier_id: str):
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     await db.company_couriers.delete_many({"courier_id": courier_id})
     return {"message": "Kurye silindi"}
+
+
+# --- Fesih (Termination) Endpoints ---
+
+@router.post("/companies/{company_id}/couriers/{courier_id}/start-termination")
+async def start_termination(company_id: str, courier_id: str):
+    """Start 15-day termination period for a courier"""
+    # Check if relation exists
+    relation = await db.company_couriers.find_one({
+        "company_id": company_id,
+        "courier_id": courier_id,
+        "status": "approved"
+    })
+    
+    if not relation:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Check if termination already started
+    if relation.get("termination_start_date"):
+        raise HTTPException(status_code=400, detail="Fesih süreci zaten başlatılmış")
+    
+    # Start termination from tomorrow, 15 days period
+    from datetime import timedelta
+    tomorrow = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    end_date = tomorrow + timedelta(days=15)
+    
+    await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {
+            "termination_start_date": tomorrow.isoformat(),
+            "termination_end_date": end_date.isoformat(),
+            "termination_started_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Fesih süreci başlatıldı",
+        "start_date": tomorrow.isoformat(),
+        "end_date": end_date.isoformat()
+    }
+
+
+@router.post("/companies/{company_id}/couriers/{courier_id}/cancel-termination")
+async def cancel_termination(company_id: str, courier_id: str):
+    """Cancel termination process"""
+    relation = await db.company_couriers.find_one({
+        "company_id": company_id,
+        "courier_id": courier_id
+    })
+    
+    if not relation:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    if not relation.get("termination_start_date"):
+        raise HTTPException(status_code=400, detail="Aktif fesih süreci bulunmuyor")
+    
+    await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$unset": {
+            "termination_start_date": "",
+            "termination_end_date": "",
+            "termination_started_at": ""
+        }}
+    )
+    
+    return {"message": "Fesih süreci iptal edildi"}
+
+
+@router.get("/couriers/{courier_id}/termination-status")
+async def get_termination_status(courier_id: str, company_id: str):
+    """Get termination status for a courier"""
+    relation = await db.company_couriers.find_one({
+        "company_id": company_id,
+        "courier_id": courier_id
+    }, {"_id": 0})
+    
+    if not relation:
+        return {"has_termination": False}
+    
+    if not relation.get("termination_start_date"):
+        return {"has_termination": False}
+    
+    # Calculate remaining days
+    from datetime import timedelta
+    end_date = datetime.fromisoformat(relation["termination_end_date"].replace("Z", "+00:00"))
+    now = datetime.now(timezone.utc)
+    
+    remaining_days = (end_date - now).days
+    if remaining_days < 0:
+        remaining_days = 0
+    
+    return {
+        "has_termination": True,
+        "start_date": relation["termination_start_date"],
+        "end_date": relation["termination_end_date"],
+        "remaining_days": remaining_days
+    }
+
