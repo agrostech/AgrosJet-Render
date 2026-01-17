@@ -353,11 +353,6 @@ export default function GuncelDurumPage({ companyId }) {
           </div>
         )}
       </div>
-
-      {/* Placeholder for future cards */}
-      <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center text-muted-foreground">
-        <p className="text-sm">Diğer bilgi kartları buraya eklenecek</p>
-      </div>
     </div>
   );
 }
