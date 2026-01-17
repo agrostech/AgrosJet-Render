@@ -893,61 +893,6 @@ export default function ZimmetPage() {
               </div>
             </div>
           </div>
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="logFilterAssigned" className="text-xs text-blue-600 cursor-pointer">Zimmetlendi</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="logFilterReturned" 
-                    checked={logFilterReturned} 
-                    onCheckedChange={setLogFilterReturned}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="logFilterReturned" className="text-xs text-orange-600 cursor-pointer">Geri Alındı</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="logFilterDefective" 
-                    checked={logFilterDefective} 
-                    onCheckedChange={setLogFilterDefective}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="logFilterDefective" className="text-xs text-yellow-600 cursor-pointer">Arızalı</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="logFilterDefectiveRemoved" 
-                    checked={logFilterDefectiveRemoved} 
-                    onCheckedChange={setLogFilterDefectiveRemoved}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="logFilterDefectiveRemoved" className="text-xs text-green-600 cursor-pointer">Arıza Kaldırıldı</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="logFilterLost" 
-                    checked={logFilterLost} 
-                    onCheckedChange={setLogFilterLost}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="logFilterLost" className="text-xs text-red-600 cursor-pointer">Kayıp</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="logFilterLostRemoved" 
-                    checked={logFilterLostRemoved} 
-                    onCheckedChange={setLogFilterLostRemoved}
-                    className="h-3.5 w-3.5"
-                  />
-                  <Label htmlFor="logFilterLostRemoved" className="text-xs text-teal-600 cursor-pointer">Kayıp Kaldırıldı</Label>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox 
-                    id="logFilterDeleted" 
-                    checked={logFilterDeleted} 
-                    onCheckedChange={setLogFilterDeleted}
-                    className="h-3.5 w-3.5"
                   />
                   <Label htmlFor="logFilterDeleted" className="text-xs text-slate-600 cursor-pointer">Silindi</Label>
                 </div>
