@@ -349,38 +349,68 @@ export default function FaturalarTab({ companyId }) {
                 {monthInvoices.map((invoice) => (
                   <div 
                     key={invoice.id} 
-                    className={`p-3 hover:bg-slate-50 cursor-pointer ${
+                    className={`p-3 hover:bg-slate-50 ${
                       selectedInvoices.includes(invoice.id) ? 'bg-primary/5' : ''
-                    }`}
-                    onClick={() => toggleInvoiceSelection(invoice.id)}
+                    } ${invoice.verified ? 'bg-green-50/50' : ''}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    <div className="flex items-center justify-between gap-2">
+                      <div 
+                        className="flex items-center gap-2 flex-1 cursor-pointer"
+                        onClick={() => toggleInvoiceSelection(invoice.id)}
+                      >
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
                           selectedInvoices.includes(invoice.id) 
                             ? 'bg-primary border-primary text-white' 
                             : 'border-slate-300'
                         }`}>
                           {selectedInvoices.includes(invoice.id) && <Check className="w-3 h-3" />}
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">{invoice.file_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {invoice.courier_name} • {formatDate(invoice.uploaded_at)}
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{invoice.courier_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {invoice.file_name} • {formatDate(invoice.uploaded_at)}
                           </p>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownloadSingle(invoice.id);
-                        }}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
+                      
+                      {/* Transaction Amount */}
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-semibold text-sm font-mono text-red-600">
+                          {invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
+                        </p>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadSingle(invoice.id);
+                          }}
+                          className="h-8 w-8 p-0"
+                          title="İndir"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleVerifyInvoice(invoice.id, invoice.verified);
+                          }}
+                          className={`h-8 w-8 p-0 ${invoice.verified ? 'text-green-600 hover:text-green-700' : 'text-slate-400 hover:text-green-600'}`}
+                          title={invoice.verified ? "Kontrol edildi (tıkla: kaldır)" : "Kontrol edildi olarak işaretle"}
+                        >
+                          {invoice.verified ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <Circle className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
