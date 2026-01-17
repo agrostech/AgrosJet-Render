@@ -84,6 +84,12 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   const [payingInstallment, setPayingInstallment] = useState(null);
   const [installmentDate, setInstallmentDate] = useState("");
   const [useInstallmentCustomDate, setUseInstallmentCustomDate] = useState(false);
+  const [showInstallmentListModal, setShowInstallmentListModal] = useState(false);
+
+  // Toplam kalan taksit sayısı hesapla
+  const totalRemainingInstallments = installmentProducts.reduce(
+    (sum, p) => sum + p.remaining_installments, 0
+  );
 
   // Fetch installment products when courier is selected
   const fetchInstallmentProducts = async (courierId) => {
