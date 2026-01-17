@@ -32,7 +32,7 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] "Beni Hatırla" özelliği ve oturum süresi yönetimi
 - [x] Super Admin düzenleme ve silme
 
-### Vardiya Yönetimi (Tamamlandı - 15 Ocak 2026)
+### Vardiya Yönetimi (Tamamlandı)
 - [x] Vardiya oluşturma/düzenleme/silme
 - [x] Kurye-vardiya atama (gün bazlı)
 - [x] İzin listesi yönetimi (izindeki kuryeler vardiyadan otomatik çıkar)
@@ -41,13 +41,13 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Düzenleme modu (aksiyon butonları gizle/göster)
 - [x] Zebra striping ve scrollable cell (çok kuryeli vardiyalar için)
 
-### Güncel Durum Sayfası (Tamamlandı - 15 Ocak 2026)
+### Güncel Durum Sayfası (Tamamlandı)
 - [x] Günlük vardiya raporu
 - [x] 06:00-05:59 gün döngüsü desteği
 - [x] Aktif vardiya vurgulama
 - [x] Kurye sayısı ve listesi (responsive grid)
 
-### Zimmet (Tamamlandı - 16 Ocak 2026)
+### Zimmet (Tamamlandı)
 - [x] Ürün Tipleri yönetimi (POS Cihazı için ekstra alanlar)
 - [x] Ürün ekleme/silme/güncelleme
 - [x] Kuryeye zimmetleme ve geri alma
@@ -55,12 +55,13 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Zimmet geçmişi (her ürün için)
 - [x] Hareketler sekmesi (tüm zimmet logları)
 - [x] Pagination desteği
+- [x] Mali Bellek özelliği (POS cihazları için aylık rapor takibi)
 
-### Muhasebe (Tamamlandı - 16 Ocak 2026)
-- [x] Hareketler sekmesinde açıklama ile arama (16 Ocak 2026)
-- [x] Hareketler kartı tam ekran yükseklik ve iç kaydırma (16 Ocak 2026)
-- [x] Tüm sekmelerde gerçek backend pagination ile "Daha Fazla Yükle" (16 Ocak 2026)
-- [x] PDF Türkçe karakter sorunu ÇÖZÜLDÜ - styles.font ile Roboto font eklendi (16 Ocak 2026)
+### Muhasebe (Tamamlandı)
+- [x] Hareketler sekmesinde açıklama ile arama
+- [x] Hareketler kartı tam ekran yükseklik ve iç kaydırma
+- [x] Tüm sekmelerde gerçek backend pagination ile "Daha Fazla Yükle"
+- [x] PDF Türkçe karakter sorunu ÇÖZÜLDÜ - styles.font ile Roboto font eklendi
 - [x] Üç alt sekme: Kuryeler, İşletmeler, Cariler + Hareketler (Activity Log)
 - [x] **Inline form ile ödeme işlemleri (Modal kaldırıldı)**
 - [x] Ödeme Al (payment_in) ve Ödeme Yap (payment_out)
@@ -80,14 +81,19 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] **Tutar input scroll engelleme** (onWheel blur)
 - [x] **PDF'de Türkçe karakter desteği** (Unicode escape ile)
 
-### UI/UX Güncellemeleri (16 Ocak 2026)
-- [x] Login sayfası arka plan görseli değiştirildi
-- [x] Footer: "Bir AgrosJet kuruluşudur" → "Powered by AgrosJet." (tüm sayfalarda)
-
-### Kuryeler Sayfası (Tamamlandı - 15 Ocak 2026)
-- [x] İsim veya plaka ile arama/filtreleme
-- [x] Detay modal (tüm kurye bilgileri)
-- [x] Kurye ekleme ve çıkarma işlevleri
+### Backend Refactoring (Tamamlandı - 17 Ocak 2026)
+- [x] **server.py modülerleştirme tamamlandı** - 697 satırdan 109 satıra düşürüldü
+- [x] 9 ayrı router modülü oluşturuldu:
+  - `auth.py` - Kimlik doğrulama
+  - `companies.py` - Şirket yönetimi
+  - `couriers.py` - Kurye yönetimi
+  - `admins.py` - Admin yönetimi
+  - `profile.py` - Profil ve oturum yönetimi
+  - `accounting.py` - Muhasebe işlemleri
+  - `shifts.py` - Vardiya yönetimi
+  - `zimmet.py` - Zimmet yönetimi
+  - `mali_bellek.py` - Mali bellek takibi
+- [x] **Kurye silme kontrolü düzeltildi** - Bakiye kontrolü önce yapılıyor
 
 ### UI/UX
 - [x] Türkçe karakter desteği (Montserrat font)
@@ -95,27 +101,26 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - [x] Collapsible fixed sidebar
 - [x] Responsive tasarım
 - [x] Data-testid'ler testing için
+- [x] Zimmet sayfası kompakt UI (SN: ve TRM: etiketleri)
+- [x] Mali Bellek arama ve filtreleme özellikleri
 
 ## Prioritized Backlog
 
-### P0 - Acil
-- [ ] **Zimmet sekmesi içeriği** (Placeholder durumunda)
-
 ### P1 - Sıradaki
-- [ ] Kullanıcı profil yönetimi (kendi şifre değiştirme)
-- [ ] Silinme durumunda otomatik logout
+- [ ] **Toplu Hakediş Girişi** (3. parti cevap bekleniyor - ON HOLD)
 - [ ] Güncel Durum sayfasına ek bilgi kartları
 - [ ] Hakediş checkbox'ının backend mantığı (örn. haftalık rapor)
-- [ ] server.py modülerleştirme (routers/ klasörü)
 
 ### P2 - Gelecek
+- [ ] **AdminDashboard.jsx refactoring** - Büyük bileşeni küçük parçalara ayır
+- [ ] **Muhasebe tab'ları refactoring** - Custom hook ile kod tekrarını azalt
 - [ ] Kurye profil düzenleme
 - [ ] Şifre sıfırlama
 - [ ] Raporlama özellikleri
 - [ ] SMS/E-posta bildirimleri
 
 ## Tech Stack
-- Backend: FastAPI + MongoDB
+- Backend: FastAPI + MongoDB (modüler router yapısı)
 - Frontend: React + Tailwind CSS + Shadcn UI
 - Auth: JWT (session duration based on "Remember Me")
 
@@ -123,43 +128,64 @@ Multi-tenant kurye yönetim sistemi. Kuryeler global kayıt olur (telefon eşsiz
 - **Sistem Yöneticisi**: `systemadmin` / `System123!`
 - **Süper Admin**: `onurertas` / `Delivery32..`
 - **Test Kurye**: `05321234567` / `Test123!`
-- **Company ID**: `e1c50cea-307e-4889-b33b-4b22e467b0b4`
+
+## Code Architecture
+```
+/app/
+├── backend/
+│   ├── server.py          # 109 satır - Sadece router include ve startup
+│   ├── routers/           # 9 modül
+│   │   ├── auth.py        # 101 satır
+│   │   ├── companies.py   # 80 satır
+│   │   ├── couriers.py    # 278 satır
+│   │   ├── admins.py      # 183 satır
+│   │   ├── profile.py     # 101 satır
+│   │   ├── accounting.py  # 337 satır
+│   │   ├── shifts.py      # 190 satır
+│   │   ├── zimmet.py      # 382 satır
+│   │   └── mali_bellek.py # 146 satır
+│   └── utils/
+│       ├── database.py    # DB bağlantısı
+│       └── helpers.py     # hash_password, format_name
+├── frontend/
+│   └── src/
+│       ├── pages/
+│       │   ├── AdminDashboard.jsx
+│       │   ├── ZimmetPage.jsx
+│       │   └── muhasebe/
+│       └── components/ui/  # Shadcn components
+└── memory/
+    └── PRD.md
+```
 
 ## Key Files
-- `/app/backend/server.py` - Tüm backend API
+- `/app/backend/server.py` - Main app ve router includes
+- `/app/backend/routers/` - Tüm API modülleri
 - `/app/frontend/src/pages/AdminDashboard.jsx` - Admin layout ve routing
-- `/app/frontend/src/pages/VardiyaPage.jsx` - Vardiya yönetimi
-- `/app/frontend/src/pages/GuncelDurumPage.jsx` - Güncel durum dashboard
-- `/app/frontend/src/pages/MuhasebePage.jsx` - Muhasebe container
-- `/app/frontend/src/pages/muhasebe/KuryelerTab.jsx` - Kurye muhasebe
-- `/app/frontend/src/pages/muhasebe/IsletmelerTab.jsx` - İşletme muhasebe
-- `/app/frontend/src/pages/muhasebe/CarilerTab.jsx` - Cari muhasebe
-- `/app/frontend/src/pages/LoginPage.jsx` - Login sayfası
-- `/app/frontend/src/pages/RegisterPage.jsx` - Kurye kayıt
-- `/app/frontend/src/pages/SystemDashboard.jsx` - Sistem yöneticisi dashboard
+- `/app/frontend/src/pages/ZimmetPage.jsx` - Zimmet ve Mali Bellek
 
 ## DB Schema
-- **companies**: `{_id, name, logo_url}`
-- **users**: `{_id, username, password, role, company_id}`
-- **couriers**: `{_id, name, phone, address, iban, plate, password, company_id}`
-- **shifts**: `{_id, company_id, start_time, end_time}`
-- **shift_assignments**: `{_id, shift_id, courier_id, day}`
-- **leaves**: `{_id, company_id, courier_id, day}`
-- **businesses**: `{_id, company_id, name, phone, address}`
-- **vendors**: `{_id, company_id, name, phone, address}`
-- **transactions**: `{_id, company_id, entity_id, entity_type, amount, type, description, is_hakedis, created_at}`
+- **companies**: `{id, name, logo_url, created_at}`
+- **admins**: `{id, name, username, password, role, permissions, company_id, created_at}`
+- **couriers**: `{id, name, phone, address, iban, plate, password, status, created_at}`
+- **company_couriers**: `{id, company_id, courier_id, status, is_archived, created_at}`
+- **shifts**: `{id, company_id, name, start_time, end_time, created_at}`
+- **shift_assignments**: `{id, shift_id, courier_id, day, created_at}`
+- **businesses**: `{id, company_id, name, phone, address, is_archived, created_at}`
+- **vendors**: `{id, company_id, name, phone, address, is_archived, created_at}`
+- **transactions**: `{id, company_id, entity_id, entity_type, amount, type, description, is_hakedis, created_at}`
+- **products**: `{id, company_id, product_type_id, name, serial_number, pos_serial, pos_terminal, status, assigned_to_courier_id, created_at}`
+- **mali_bellek_status**: `{id, product_id, year_month, is_collected, collected_at, collected_by_admin_id}`
+- **mali_bellek_logs**: `{id, product_id, year_month, action, admin_id, admin_name, created_at, details}`
 
-## Test Reports
-- `/app/test_reports/iteration_6.json` - En son test raporu (100% başarı - Bug fixes verified)
-- `/app/test_reports/iteration_5.json` - Muhasebe module tests
-- `/app/tests/test_muhasebe_api.py` - Muhasebe API testleri
+## Changelog
 
-## Changelog (16 Ocak 2026)
-- **UI Fix**: Verilen/Alınan butonları alt kısımda yan yana hizalandı
-- **PDF Fix**: Başlık beyaz yapıldı (baskı için), Tel bilgisi kaldırıldı
-- **PDF Feature**: Şirket logosu sağ üst köşeye eklendi (30x30)
-- **PDF Fix**: Türkçe karakterler Unicode escape ile düzeltildi (İşlem Geçmişi Raporu)
-- **UI Update**: Login sayfası arka plan görseli değiştirildi
-- **Footer Update**: "Bir AgrosJet kuruluşudur" → "Powered by AgrosJet." (tüm sayfalar)
-- **Bug Fix**: Tarih/saat seçici timezone sorunu düzeltildi
-- **Bug Fix**: Tutar input scroll sorunu düzeltildi
+### 17 Ocak 2026
+- **Major Refactoring**: `server.py` tamamen modülerleştirildi (697 → 109 satır)
+- **Bug Fix**: Kurye silme kontrolünde bakiye önceliği düzeltildi
+- **9 router modülü** oluşturuldu ve test edildi
+
+### 16 Ocak 2026
+- Mali Bellek özelliği eklendi
+- Zimmet sayfası UI iyileştirmeleri (SN:, TRM: etiketleri)
+- Tüm Hareketler filtreleme özellikleri
