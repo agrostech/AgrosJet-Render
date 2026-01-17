@@ -991,7 +991,7 @@ export default function ZimmetPage() {
         </div>
 
         {/* Right Panel - Details */}
-        <div className="flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="w-full lg:flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
           {selectedProduct ? (
             <>
               {/* Product Header */}
