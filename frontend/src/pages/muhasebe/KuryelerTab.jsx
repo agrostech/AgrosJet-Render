@@ -58,6 +58,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     handleArchive,
     loadMore,
     exportPDF,
+    fetchTransactions,
     getDateDisplayText,
     getBalanceLabel,
   } = useAccountingTab({
