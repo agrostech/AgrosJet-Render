@@ -398,39 +398,60 @@ export default function KuryelerPage({ companyId }) {
 
       {/* Kurye Detay Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-heading">Kurye Detayları</DialogTitle>
           </DialogHeader>
           {selectedCourier && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">İsim Soyisim</p>
-                  <p className="font-semibold">{selectedCourier.name}</p>
+            <Tabs value={detailTab} onValueChange={setDetailTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="info" className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Bilgiler
+                </TabsTrigger>
+                <TabsTrigger value="documents" className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Evraklar
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">İsim Soyisim</p>
+                    <p className="font-semibold">{selectedCourier.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Telefon</p>
+                    <p className="font-mono">{selectedCourier.phone}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Plaka</p>
+                    <p className="font-mono">{selectedCourier.plate}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Kayıt Tarihi</p>
+                    <p className="font-mono text-sm">{new Date(selectedCourier.created_at).toLocaleDateString('tr-TR')}</p>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Telefon</p>
-                  <p className="font-mono">{selectedCourier.phone}</p>
+                  <p className="text-xs text-muted-foreground">Adres</p>
+                  <p className="text-sm">{selectedCourier.address}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Plaka</p>
-                  <p className="font-mono">{selectedCourier.plate}</p>
+                  <p className="text-xs text-muted-foreground">İban</p>
+                  <p className="font-mono text-sm break-all">{selectedCourier.iban}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Kayıt Tarihi</p>
-                  <p className="font-mono text-sm">{new Date(selectedCourier.created_at).toLocaleDateString('tr-TR')}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Adres</p>
-                <p className="text-sm">{selectedCourier.address}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">İban</p>
-                <p className="font-mono text-sm break-all">{selectedCourier.iban}</p>
-              </div>
-            </div>
+              </TabsContent>
+              
+              <TabsContent value="documents">
+                <CourierDocumentsSection 
+                  courierId={selectedCourier.id}
+                  courierName={selectedCourier.name}
+                  companyName={companyName}
+                />
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
