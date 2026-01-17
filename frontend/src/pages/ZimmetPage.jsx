@@ -131,6 +131,33 @@ export default function ZimmetPage() {
     return result;
   }, [products, searchQuery, filterAssigned, filterAvailable, filterDefective, filterLost]);
 
+  // Filtered Mali Bellek data
+  const filteredMaliBellekData = useMemo(() => {
+    let result = [...maliBellekData];
+    
+    // Text search
+    if (maliBellekSearch.trim()) {
+      const q = maliBellekSearch.toLowerCase();
+      result = result.filter(p => 
+        p.name?.toLowerCase().includes(q) ||
+        p.pos_serial?.toLowerCase().includes(q) ||
+        p.pos_terminal?.toLowerCase().includes(q) ||
+        p.assigned_to_courier_name?.toLowerCase().includes(q)
+      );
+    }
+    
+    // Checkbox filters
+    if (maliBellekFilterCollected || maliBellekFilterNotCollected) {
+      result = result.filter(p => {
+        if (maliBellekFilterCollected && p.mali_bellek?.is_collected) return true;
+        if (maliBellekFilterNotCollected && !p.mali_bellek?.is_collected) return true;
+        return false;
+      });
+    }
+    
+    return result;
+  }, [maliBellekData, maliBellekSearch, maliBellekFilterCollected, maliBellekFilterNotCollected]);
+
   // Filtered logs - POS alanları dahil
   const filteredLogs = useMemo(() => {
     let result = [...logs];
