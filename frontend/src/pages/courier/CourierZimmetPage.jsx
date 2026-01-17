@@ -39,6 +39,13 @@ export default function CourierZimmetPage({ courierId }) {
   // Only show active assignments
   const activeAssignments = assignments.filter(a => a.status === 'active');
 
+  // Check if product is POS device
+  const isPosDevice = (assignment) => {
+    const name = (assignment.product_name || '').toLowerCase();
+    const type = (assignment.product_type || '').toLowerCase();
+    return name.includes('pos') || type.includes('pos');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -49,28 +56,29 @@ export default function CourierZimmetPage({ courierId }) {
 
   return (
     <div className="space-y-4" data-testid="courier-zimmet-page">
-      {/* Header */}
-      <div className="border-2 border-border bg-white p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
-              <Package className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="font-heading font-bold text-xl">Zimmetlerim</h2>
-              <p className="text-sm text-muted-foreground">Size zimmetli ürünler</p>
-            </div>
-          </div>
-          {activeAssignments.length > 0 && (
-            <div className="px-3 py-1.5 bg-amber-100 text-amber-800 rounded-lg">
-              <span className="text-sm font-semibold">{activeAssignments.length} ürün</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Active Assignments */}
+      {/* Main Card */}
       <div className="border-2 border-border bg-white">
+        {/* Header */}
+        <div className="p-4 border-b-2 border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
+                <Package className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-heading font-bold text-xl">Zimmetlerim</h2>
+                <p className="text-sm text-muted-foreground">Size zimmetli ürünler</p>
+              </div>
+            </div>
+            {activeAssignments.length > 0 && (
+              <div className="px-3 py-1.5 bg-amber-100 text-amber-800 rounded-lg">
+                <span className="text-sm font-semibold">{activeAssignments.length} ürün</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Assignments List */}
         {activeAssignments.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground">
             <Package className="w-16 h-16 mx-auto mb-3 opacity-20" />
@@ -88,7 +96,7 @@ export default function CourierZimmetPage({ courierId }) {
                     )}
                     {assignment.serial_number && (
                       <p className="text-xs font-mono text-slate-500 mt-1">
-                        {assignment.product_name?.toLowerCase().includes('pos') ? 'Pos SN: ' : 'SN: '}
+                        {isPosDevice(assignment) ? 'Pos SN: ' : 'SN: '}
                         {assignment.serial_number}
                       </p>
                     )}
