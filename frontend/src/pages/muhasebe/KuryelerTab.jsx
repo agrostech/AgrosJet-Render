@@ -641,6 +641,76 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Taksitli Ürün Ekle Modal */}
+      <Dialog open={showInstallmentModal} onOpenChange={setShowInstallmentModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Package className="w-5 h-5 text-purple-600" />
+              Taksitli Ürün Ekle
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddProduct} className="space-y-4">
+            <div>
+              <Label className="text-sm font-semibold">Ürün Adı</Label>
+              <Input
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                className="mt-1 h-11 border-2"
+                placeholder="Örn: Motosiklet"
+                required
+                data-testid="installment-product-name"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm font-semibold">Taksit Tutarı (TL)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={newProduct.installment_amount}
+                  onChange={(e) => setNewProduct({ ...newProduct, installment_amount: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
+                  className="mt-1 h-11 border-2 font-mono"
+                  placeholder="2500"
+                  required
+                  data-testid="installment-amount"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Taksit Sayısı</Label>
+                <Input
+                  type="number"
+                  value={newProduct.installment_count}
+                  onChange={(e) => setNewProduct({ ...newProduct, installment_count: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
+                  className="mt-1 h-11 border-2 font-mono"
+                  placeholder="20"
+                  required
+                  data-testid="installment-count"
+                />
+              </div>
+            </div>
+            
+            {/* Toplam Hesaplama */}
+            {newProduct.installment_amount && newProduct.installment_count && (
+              <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-purple-800">Toplam Tutar</span>
+                  <span className="text-lg font-bold font-mono text-purple-900">
+                    {formatMoney(parseFloat(newProduct.installment_amount || 0) * parseInt(newProduct.installment_count || 0))}
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            <Button type="submit" className="w-full h-11 font-semibold bg-purple-600 hover:bg-purple-700" disabled={addingProduct} data-testid="submit-installment-product">
+              {addingProduct ? "Ekleniyor..." : "Ürün Ekle"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
