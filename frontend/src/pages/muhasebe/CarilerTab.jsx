@@ -157,7 +157,6 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                       </span>
                     )}
                   </div>
-                  {v.phone && <p className="text-xs text-muted-foreground font-mono">{v.phone}</p>}
                 </div>
               );
             })
