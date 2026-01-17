@@ -526,6 +526,7 @@ export function useAccountingTab({
     exportPDF,
     fetchEntities,
     fetchArchivedEntities,
+    fetchTransactions,
     
     // Utilities
     getDateDisplayText,
