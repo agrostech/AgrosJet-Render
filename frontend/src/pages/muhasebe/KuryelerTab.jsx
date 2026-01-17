@@ -405,11 +405,11 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                       <span className="ml-1 text-xs">{getDateDisplayText()}</span>
                     </Button>
                   </div>
-                  <Button onClick={() => handlePayment("in")} disabled={submitting} className="h-10 bg-red-600 hover:bg-red-700" data-testid="payment-out-btn">
+                  <Button onClick={() => handlePayment("out")} disabled={submitting} className="h-10 bg-red-600 hover:bg-red-700" data-testid="payment-out-btn">
                     <Minus className="w-4 h-4 mr-1" />
                     Verilen
                   </Button>
-                  <Button onClick={() => handlePayment("out")} disabled={submitting} className="h-10 bg-green-600 hover:bg-green-700" data-testid="payment-in-btn">
+                  <Button onClick={() => handlePayment("in")} disabled={submitting} className="h-10 bg-green-600 hover:bg-green-700" data-testid="payment-in-btn">
                     <Plus className="w-4 h-4 mr-1" />
                     Alınan
                   </Button>
