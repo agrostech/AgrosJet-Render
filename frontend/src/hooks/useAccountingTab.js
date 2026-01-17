@@ -186,20 +186,25 @@ export function useAccountingTab({
   const loadMore = useCallback(async (scrollContainerRef) => {
     if (loadingMore || !hasMore || !selectedEntity) return;
     
-    // Mevcut scroll pozisyonunu kaydet
-    const scrollContainer = scrollContainerRef?.current;
-    const scrollTop = scrollContainer?.scrollTop || 0;
-    
     setLoadingMore(true);
-    await fetchTransactions(selectedEntity.id, true);
-    setLoadingMore(false);
     
-    // Scroll pozisyonunu geri yükle (React render sonrası)
-    if (scrollContainer) {
-      requestAnimationFrame(() => {
-        scrollContainer.scrollTop = scrollTop;
-      });
-    }
+    // Mevcut scroll pozisyonunu ve scroll height'ı kaydet
+    const container = scrollContainerRef?.current;
+    const prevScrollHeight = container?.scrollHeight || 0;
+    const prevScrollTop = container?.scrollTop || 0;
+    
+    await fetchTransactions(selectedEntity.id, true);
+    
+    // State güncellemesi sonrası scroll pozisyonunu düzelt
+    setTimeout(() => {
+      if (container) {
+        // Yeni scroll height ile eski pozisyonu korumak için
+        const newScrollHeight = container.scrollHeight;
+        const heightDiff = newScrollHeight - prevScrollHeight;
+        container.scrollTop = prevScrollTop + heightDiff;
+      }
+      setLoadingMore(false);
+    }, 50);
   }, [loadingMore, hasMore, selectedEntity, fetchTransactions]);
 
   // Select entity
