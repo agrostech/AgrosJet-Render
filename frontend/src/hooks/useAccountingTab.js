@@ -527,6 +527,7 @@ export function useAccountingTab({
     fetchEntities,
     fetchArchivedEntities,
     fetchTransactions,
+    fetchEntityBalance,
     
     // Utilities
     getDateDisplayText,
