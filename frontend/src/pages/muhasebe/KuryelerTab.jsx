@@ -309,7 +309,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                         <th className="text-left p-2 font-semibold text-xs">Tarih</th>
                         <th className="text-left p-2 font-semibold text-xs">Açıklama</th>
                         <th className="text-right p-2 font-semibold text-xs">Tutar</th>
-                        <th className="w-10"></th>
+                        <th className="w-16"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -324,9 +324,14 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
                             {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
                           </td>
                           <td className="p-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                            <div className="flex gap-1 justify-end">
+                              <Button variant="ghost" size="sm" onClick={() => openEditModal(tx)} className="h-6 w-6 p-0 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-tx-${tx.id}`}>
+                                <Pencil className="w-3 h-3" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -350,6 +355,63 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           </div>
         )}
       </div>
+
+      {/* İşlem Düzenleme Modal */}
+      <Dialog open={!!editingTx} onOpenChange={(open) => !open && setEditingTx(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              İşlem Düzenle
+            </DialogTitle>
+          </DialogHeader>
+          {editingTx && (
+            <div className="space-y-4">
+              <div className="p-3 bg-slate-50 rounded border">
+                <p className="text-xs text-muted-foreground">Tarih</p>
+                <p className="font-mono text-sm">{formatDate(editingTx.created_at)}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-semibold">Tutar (TL)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editForm.amount}
+                  onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
+                  className="mt-1 h-11 border-2 font-mono"
+                  data-testid="edit-tx-amount"
+                />
+              </div>
+              
+              <div>
+                <Label className="text-sm font-semibold">Açıklama</Label>
+                <Input
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="mt-1 h-11 border-2"
+                  data-testid="edit-tx-description"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="edit-hakedis"
+                  checked={editForm.is_hakedis}
+                  onCheckedChange={(checked) => setEditForm({ ...editForm, is_hakedis: checked })}
+                  data-testid="edit-tx-hakedis"
+                />
+                <Label htmlFor="edit-hakedis" className="text-sm font-medium cursor-pointer">Hakediş</Label>
+              </div>
+              
+              <Button onClick={handleEditSubmit} className="w-full h-11 font-semibold" disabled={editLoading} data-testid="submit-edit-tx">
+                {editLoading ? "Güncelleniyor..." : "Kaydet"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
