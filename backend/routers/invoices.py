@@ -190,6 +190,22 @@ async def get_courier_invoices(courier_id: str):
         {"courier_id": courier_id},
         {"_id": 0}
     ).sort("uploaded_at", -1).to_list(100)
+    
+    # Enrich with transaction amounts
+    tx_ids = [inv.get("transaction_id") for inv in invoices if inv.get("transaction_id")]
+    if tx_ids:
+        transactions = await db.transactions.find(
+            {"id": {"$in": tx_ids}},
+            {"_id": 0, "id": 1, "amount": 1, "description": 1}
+        ).to_list(100)
+        tx_map = {tx["id"]: tx for tx in transactions}
+        
+        for inv in invoices:
+            tx = tx_map.get(inv.get("transaction_id"))
+            if tx:
+                inv["transaction_amount"] = tx.get("amount")
+                inv["transaction_description"] = tx.get("description")
+    
     return invoices
 
 
