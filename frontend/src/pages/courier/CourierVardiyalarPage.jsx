@@ -119,6 +119,23 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
 
   return (
     <div className="space-y-4" data-testid="courier-vardiyalar-page">
+      {/* Termination Warning */}
+      {terminationInfo && (
+        <div className="border-2 border-orange-400 bg-orange-50 p-4 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-orange-100">
+              <AlertTriangle className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-orange-800">FESİH SÜRENİZ BAŞLATILDI</h3>
+              <p className="text-sm text-orange-700">
+                Kalan süre: <span className="font-bold">{terminationInfo.remaining_days} gün</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Weekly Schedule */}
       <div className="border-2 border-border bg-white">
         <div className="p-4 border-b-2 border-border">
