@@ -140,7 +140,7 @@ export default function CourierDashboard() {
         {/* Desktop Sidebar */}
         <CourierSidebar
           user={user}
-          navItems={NAV_ITEMS}
+          navItems={navItems}
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
           onLogout={handleLogout}
