@@ -456,14 +456,26 @@ export default function FaturalarTab({ companyId }) {
                           {formatDateTime(invoice.uploaded_at)}
                         </p>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDownloadSingle(invoice.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleViewInvoice(invoice.id)}
+                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          title="Görüntüle"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDownloadSingle(invoice.id)}
+                          className="h-8 w-8 p-0"
+                          title="İndir"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
