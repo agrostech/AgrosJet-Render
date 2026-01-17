@@ -218,6 +218,20 @@ async def get_missing_invoices(company_id: str):
         {"_id": 0}
     ).sort("created_at", -1).to_list(500)
     
+    # Enrich with courier names if missing
+    courier_ids = list(set(tx.get("courier_id") for tx in transactions if tx.get("courier_id") and not tx.get("courier_name")))
+    
+    if courier_ids:
+        couriers = await db.couriers.find(
+            {"id": {"$in": courier_ids}},
+            {"_id": 0, "id": 1, "name": 1}
+        ).to_list(500)
+        courier_map = {c["id"]: c["name"] for c in couriers}
+        
+        for tx in transactions:
+            if not tx.get("courier_name") and tx.get("courier_id"):
+                tx["courier_name"] = courier_map.get(tx["courier_id"], "Bilinmeyen Kurye")
+    
     return transactions
 
 
