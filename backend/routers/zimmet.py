@@ -402,6 +402,8 @@ async def get_courier_assignments(courier_id: str):
             "product_name": p["name"],
             "product_type": p.get("product_type_name", ""),
             "serial_number": p.get("serial_number", ""),
+            "pos_serial": p.get("pos_serial", ""),
+            "pos_terminal": p.get("pos_terminal", ""),
             "courier_id": courier_id,
             "assigned_at": p.get("assigned_at"),
             "notes": p.get("notes", ""),
