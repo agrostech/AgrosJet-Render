@@ -465,14 +465,19 @@ export default function FaturalarTab({ companyId }) {
               <div className="divide-y divide-border">
                 {courierInvoices.map((invoice) => (
                   <div key={invoice.id} className="p-3 hover:bg-slate-50">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{invoice.file_name}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{invoice.file_name}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDateTime(invoice.uploaded_at)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-semibold text-sm font-mono text-red-600">
+                          {invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         <Button
                           size="sm"
                           variant="ghost"
