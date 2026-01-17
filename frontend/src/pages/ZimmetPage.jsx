@@ -893,91 +893,74 @@ export default function ZimmetPage() {
               </div>
             </div>
           </div>
-                  />
-                  <Label htmlFor="logFilterDeleted" className="text-xs text-slate-600 cursor-pointer">Silindi</Label>
-                </div>
-              </div>
-            )}
-          </div>
 
           <div ref={listRef} className="flex-1 overflow-y-auto">
-            {activeTab === "products" ? (
-              /* Products List */
-              filteredProducts.length === 0 ? (
-                <p className="text-sm text-muted-foreground p-8 text-center">
-                  {searchQuery ? "Arama sonucu bulunamadı" : "Henüz ürün yok"}
-                </p>
-              ) : (
-                <>
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      onClick={() => setSelectedProduct(product)}
-                      className={`p-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${
-                        selectedProduct?.id === product.id ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm truncate">{product.name}</p>
-                            {product.is_defective && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-0.5">
-                                <AlertTriangle className="w-3 h-3" /> Arızalı
-                              </span>
-                            )}
-                            {product.is_lost && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded flex items-center gap-0.5">
-                                <XCircle className="w-3 h-3" /> Kayıp
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">{product.product_type_name}</p>
-                          {/* Seri numaraları gösterimi */}
-                          <div className="text-[10px] text-slate-400 space-y-0.5">
-                            {product.serial_number && (
-                              <p>SN: {product.serial_number}</p>
-                            )}
-                            {product.pos_serial && (
-                              <p>Pos SN: {product.pos_serial}</p>
-                            )}
-                            {product.pos_terminal && (
-                              <p>Pos Terminal: {product.pos_terminal}</p>
-                            )}
-                          </div>
+            {/* Products List */}
+            {filteredProducts.length === 0 ? (
+              <p className="text-sm text-muted-foreground p-8 text-center">
+                {searchQuery ? "Arama sonucu bulunamadı" : "Henüz ürün yok"}
+              </p>
+            ) : (
+              <>
+                {filteredProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    onClick={() => setSelectedProduct(product)}
+                    className={`p-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors ${
+                      selectedProduct?.id === product.id ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm truncate">{product.name}</p>
+                          {product.is_defective && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-0.5">
+                              <AlertTriangle className="w-3 h-3" /> Arızalı
+                            </span>
+                          )}
+                          {product.is_lost && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded flex items-center gap-0.5">
+                              <XCircle className="w-3 h-3" /> Kayıp
+                            </span>
+                          )}
                         </div>
-                        <div className="text-right shrink-0 ml-2">
-                          {product.assigned_to_courier_id ? (
-                            <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                              <User className="w-3 h-3" />
-                              <span className="truncate max-w-[80px]">{product.assigned_to_courier_name}</span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">Boşta</span>
+                        <p className="text-xs text-muted-foreground">{product.product_type_name}</p>
+                        {/* Seri numaraları gösterimi */}
+                        <div className="text-[10px] text-slate-400 space-y-0.5">
+                          {product.serial_number && (
+                            <p>SN: {product.serial_number}</p>
+                          )}
+                          {product.pos_serial && (
+                            <p>Pos SN: {product.pos_serial}</p>
+                          )}
+                          {product.pos_terminal && (
+                            <p>Pos Terminal: {product.pos_terminal}</p>
                           )}
                         </div>
                       </div>
+                      <div className="text-right shrink-0 ml-2">
+                        {product.assigned_to_courier_id ? (
+                          <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            <User className="w-3 h-3" />
+                            <span className="truncate max-w-[80px]">{product.assigned_to_courier_name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">Boşta</span>
+                        )}
+                      </div>
                     </div>
-                  ))}
-                  {hasMoreProducts && !searchQuery && (
-                    <div className="text-center py-3">
-                      <Button size="sm" variant="outline" onClick={loadMoreProducts} disabled={loadingMore} className="h-8 text-xs">
-                        {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalProducts - products.length} kaldı)`}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )
-            ) : (
-              /* Logs List */
-              filteredLogs.length === 0 ? (
-                <p className="text-sm text-muted-foreground p-8 text-center">
-                  {searchQuery ? "Arama sonucu bulunamadı" : "Henüz hareket yok"}
-                </p>
-              ) : (
-                <>
-                  {filteredLogs.map((log) => (
-                    <div key={log.id} className="p-3 border-b border-slate-100 hover:bg-slate-50">
+                  </div>
+                ))}
+                {hasMoreProducts && !searchQuery && (
+                  <div className="text-center py-3">
+                    <Button size="sm" variant="outline" onClick={loadMoreProducts} disabled={loadingMore} className="h-8 text-xs">
+                      {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalProducts - products.length} kaldı)`}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
