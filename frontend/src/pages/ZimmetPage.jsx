@@ -961,55 +961,6 @@ export default function ZimmetPage() {
                 )}
               </>
             )}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${getActionColor(log.action, log.details)}`}>
-                              {getActionLabel(log.action, log.details)}
-                            </span>
-                            <span className="text-xs text-muted-foreground">{formatDate(log.created_at)}</span>
-                          </div>
-                          <p className="text-sm font-medium">{log.product_name}</p>
-                          {log.courier_name && (
-                            <p className="text-xs text-slate-600">
-                              <User className="w-3 h-3 inline mr-1" />{log.courier_name}
-                            </p>
-                          )}
-                          {/* Detaylar gösterimi */}
-                          <div className="text-[10px] text-slate-400">
-                            {log.details?.product_type && (
-                              <span>Tip: {log.details.product_type} </span>
-                            )}
-                            {log.details?.serial_number && (
-                              <span>SN: {log.details.serial_number} </span>
-                            )}
-                            {log.details?.pos_serial && (
-                              <span>Pos SN: {log.details.pos_serial} </span>
-                            )}
-                            {log.details?.pos_terminal && (
-                              <span>Pos Terminal: {log.details.pos_terminal}</span>
-                            )}
-                          </div>
-                          {log.details?.notes && (
-                            <p className="text-[10px] text-slate-500 italic">"{log.details.notes}"</p>
-                          )}
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-[10px] text-muted-foreground">{log.admin_name}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {hasMoreLogs && !searchQuery && (
-                    <div className="text-center py-3">
-                      <Button size="sm" variant="outline" onClick={loadMoreLogs} disabled={loadingMore} className="h-8 text-xs">
-                        {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalLogs - logs.length} kaldı)`}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )
-            )}
           </div>
         </div>
 
