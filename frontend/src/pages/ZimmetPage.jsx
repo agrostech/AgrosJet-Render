@@ -968,115 +968,118 @@ export default function ZimmetPage() {
         <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
           {selectedProduct ? (
             <>
-              {/* Product Header */}
-              <div className="p-4 border-b border-slate-200 bg-slate-50 shrink-0">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
-                    <p className="text-sm text-muted-foreground">{selectedProduct.product_type_name}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {selectedProduct.is_defective && (
-                        <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">Arızalı</span>
-                      )}
-                      {selectedProduct.is_lost && (
-                        <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded">Kayıp</span>
-                      )}
+              {/* Product Header - Kompakt */}
+              <div className="px-3 py-2 border-b border-slate-200 bg-slate-50 shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <h2 className="text-base font-bold leading-tight">{selectedProduct.name}</h2>
+                      <p className="text-xs text-muted-foreground">{selectedProduct.product_type_name}</p>
                     </div>
+                    {selectedProduct.is_defective && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">Arızalı</span>
+                    )}
+                    {selectedProduct.is_lost && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded">Kayıp</span>
+                    )}
                   </div>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedProduct(null)}>
-                    <XCircle className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" variant="outline" onClick={() => openEditProduct(selectedProduct)} className="h-7 px-2">
+                      <Pencil className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setSelectedProduct(null)} className="h-7 px-2">
+                      <XCircle className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
-                {/* Düzenle butonu */}
-                <Button size="sm" variant="outline" onClick={() => openEditProduct(selectedProduct)} className="mt-2">
-                  <Pencil className="w-4 h-4 mr-1" /> Düzenle
-                </Button>
               </div>
 
-              {/* Product Info */}
-              <div className="p-4 border-b border-slate-200 space-y-2 shrink-0">
-                {selectedProduct.serial_number && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Seri No:</span>
-                    <span className="font-mono">{selectedProduct.serial_number}</span>
-                  </div>
-                )}
-                {selectedProduct.pos_serial && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Pos SN:</span>
-                    <span className="font-mono">{selectedProduct.pos_serial}</span>
-                  </div>
-                )}
-                {selectedProduct.pos_terminal && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Pos Terminal:</span>
-                    <span className="font-mono">{selectedProduct.pos_terminal}</span>
-                  </div>
-                )}
+              {/* Product Info - Kompakt Grid */}
+              <div className="px-3 py-2 border-b border-slate-200 shrink-0">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  {selectedProduct.serial_number && (
+                    <>
+                      <span className="text-muted-foreground">Seri No:</span>
+                      <span className="font-mono text-right">{selectedProduct.serial_number}</span>
+                    </>
+                  )}
+                  {selectedProduct.pos_serial && (
+                    <>
+                      <span className="text-muted-foreground">Pos SN:</span>
+                      <span className="font-mono text-right">{selectedProduct.pos_serial}</span>
+                    </>
+                  )}
+                  {selectedProduct.pos_terminal && (
+                    <>
+                      <span className="text-muted-foreground">Pos Terminal:</span>
+                      <span className="font-mono text-right">{selectedProduct.pos_terminal}</span>
+                    </>
+                  )}
+                </div>
                 
                 {/* Assignment Status */}
                 <div className="pt-2 mt-2 border-t border-slate-100">
                   {selectedProduct.assigned_to_courier_id ? (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-blue-600">
-                        <User className="w-4 h-4" />
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1 text-blue-600">
+                        <User className="w-3 h-3" />
                         <span className="font-medium">{selectedProduct.assigned_to_courier_name}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground">
                         {selectedProduct.assigned_at && formatDate(selectedProduct.assigned_at)}
                       </span>
                     </div>
                   ) : (
-                    <p className="text-sm text-green-600 font-medium">Boşta - Zimmetli değil</p>
+                    <p className="text-xs text-green-600 font-medium">Boşta - Zimmetli değil</p>
                   )}
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="p-4 border-b border-slate-200 flex flex-wrap gap-2 shrink-0">
+              {/* Actions - Kompakt */}
+              <div className="px-3 py-2 border-b border-slate-200 flex flex-wrap gap-1.5 shrink-0">
                 {selectedProduct.assigned_to_courier_id ? (
-                  <Button size="sm" variant="outline" onClick={() => setShowReturnModal(true)}>
-                    <ArrowLeftRight className="w-4 h-4 mr-1" /> Geri Al
+                  <Button size="sm" variant="outline" onClick={() => setShowReturnModal(true)} className="h-7 text-xs">
+                    <ArrowLeftRight className="w-3 h-3 mr-1" /> Geri Al
                   </Button>
                 ) : (
-                  <Button size="sm" onClick={() => setShowAssignModal(true)} disabled={selectedProduct.is_lost}>
-                    <User className="w-4 h-4 mr-1" /> Zimmetle
+                  <Button size="sm" onClick={() => setShowAssignModal(true)} disabled={selectedProduct.is_lost} className="h-7 text-xs">
+                    <User className="w-3 h-3 mr-1" /> Zimmetle
                   </Button>
                 )}
                 <Button 
                   size="sm" 
                   variant={selectedProduct.is_defective ? "default" : "outline"}
                   onClick={() => handleToggleDefective(selectedProduct)}
-                  className={selectedProduct.is_defective ? "bg-yellow-500 hover:bg-yellow-600" : ""}
+                  className={`h-7 text-xs ${selectedProduct.is_defective ? "bg-yellow-500 hover:bg-yellow-600" : ""}`}
                 >
-                  <AlertTriangle className="w-4 h-4 mr-1" /> 
+                  <AlertTriangle className="w-3 h-3 mr-1" /> 
                   {selectedProduct.is_defective ? "Arıza Kaldır" : "Arızalı"}
                 </Button>
                 <Button 
                   size="sm" 
                   variant={selectedProduct.is_lost ? "default" : "outline"}
                   onClick={() => handleToggleLost(selectedProduct)}
-                  className={selectedProduct.is_lost ? "bg-red-500 hover:bg-red-600" : ""}
+                  className={`h-7 text-xs ${selectedProduct.is_lost ? "bg-red-500 hover:bg-red-600" : ""}`}
                 >
-                  <XCircle className="w-4 h-4 mr-1" /> 
+                  <XCircle className="w-3 h-3 mr-1" /> 
                   {selectedProduct.is_lost ? "Kayıp Kaldır" : "Kayıp"}
                 </Button>
                 <Button 
                   size="sm" 
                   variant="ghost" 
                   onClick={() => handleDeleteProduct(selectedProduct.id)}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50 ml-auto"
+                  className="h-7 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 ml-auto"
                   disabled={selectedProduct.assigned_to_courier_id}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
 
               {/* History */}
               <div className="flex-1 overflow-y-auto">
-                <div className="p-3 bg-slate-50 border-b border-slate-200 sticky top-0">
-                  <h3 className="text-sm font-semibold flex items-center gap-2">
-                    <History className="w-4 h-4" /> Ürün Hareketleri
+                <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 sticky top-0">
+                  <h3 className="text-xs font-semibold flex items-center gap-1">
+                    <History className="w-3 h-3" /> Ürün Hareketleri
                   </h3>
                 </div>
                 {productHistory.length === 0 ? (
