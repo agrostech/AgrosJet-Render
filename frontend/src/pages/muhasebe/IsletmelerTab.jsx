@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock } from "lucide-react";
+import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil } from "lucide-react";
 import { 
   useAccountingTab, 
   formatMoney, 
