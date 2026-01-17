@@ -101,6 +101,7 @@ export default function GuncelDurumPage({ companyId }) {
   const [assignments, setAssignments] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [couriers, setCouriers] = useState([]);
+  const [accountingSummary, setAccountingSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null); // null = bugün (default)
@@ -112,16 +113,18 @@ export default function GuncelDurumPage({ companyId }) {
 
   const fetchData = async () => {
     try {
-      const [shiftsRes, assignmentsRes, leavesRes, couriersRes] = await Promise.all([
+      const [shiftsRes, assignmentsRes, leavesRes, couriersRes, accountingRes] = await Promise.all([
         axios.get(`${API}/companies/${companyId}/shifts`),
         axios.get(`${API}/companies/${companyId}/shift-assignments`),
         axios.get(`${API}/companies/${companyId}/leaves`),
         axios.get(`${API}/companies/${companyId}/couriers`),
+        axios.get(`${API}/companies/${companyId}/accounting-summary`),
       ]);
       setShifts(shiftsRes.data);
       setAssignments(assignmentsRes.data);
       setLeaves(leavesRes.data);
       setCouriers(couriersRes.data);
+      setAccountingSummary(accountingRes.data);
     } catch (err) {
       toast.error("Veriler yüklenemedi");
     } finally {
