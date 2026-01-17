@@ -606,12 +606,12 @@ export default function ZimmetPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Sol Panel - POS Listesi */}
           <div className="border-2 border-border bg-white h-[calc(100vh-280px)] min-h-[400px] flex flex-col">
-            <div className="p-3 border-b border-slate-200 bg-slate-50 shrink-0">
-              <div className="flex items-center justify-between gap-3">
+            <div className="p-2 border-b border-slate-200 bg-slate-50 shrink-0">
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                   <Select value={selectedYearMonth} onValueChange={setSelectedYearMonth}>
-                    <SelectTrigger className="w-44 h-8 text-sm">
+                    <SelectTrigger className="w-40 h-7 text-xs">
                       <SelectValue placeholder="Ay Seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -621,7 +621,7 @@ export default function ZimmetPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-3 text-xs">
+                <div className="flex items-center gap-2 text-[10px]">
                   <span className="text-green-600 font-medium">
                     {maliBellekData.filter(p => p.mali_bellek?.is_collected).length} Alındı
                   </span>
@@ -633,41 +633,43 @@ export default function ZimmetPage() {
             </div>
             <div className="flex-1 overflow-y-auto">
               {maliBellekLoading ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">Yükleniyor...</div>
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Yükleniyor...</div>
               ) : maliBellekData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                  <FileCheck className="w-12 h-12 mb-2 opacity-30" />
-                  <p>POS cihazı bulunamadı</p>
+                  <FileCheck className="w-10 h-10 mb-2 opacity-30" />
+                  <p className="text-sm">POS cihazı bulunamadı</p>
                   <p className="text-xs">Önce Ürünler sekmesinden POS cihazı ekleyin</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
                   {maliBellekData.map((product) => (
-                    <div key={product.id} className="p-3 hover:bg-slate-50 flex items-center justify-between gap-2">
+                    <div key={product.id} className="px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{product.name}</p>
-                        <div className="text-[10px] text-slate-400 space-y-0.5">
-                          {product.pos_serial && <p>POS SN: {product.pos_serial}</p>}
-                          {product.pos_terminal && <p>Terminal: {product.pos_terminal}</p>}
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-medium text-xs truncate">{product.name}</p>
+                          {product.assigned_to_courier_name && (
+                            <span className="text-[9px] text-blue-600 bg-blue-50 px-1 py-0.5 rounded truncate max-w-[70px]">
+                              {product.assigned_to_courier_name}
+                            </span>
+                          )}
                         </div>
-                        {product.assigned_to_courier_name && (
-                          <p className="text-[10px] text-blue-600 mt-1 flex items-center gap-1">
-                            <User className="w-3 h-3" /> {product.assigned_to_courier_name}
-                          </p>
-                        )}
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                          {product.pos_serial && <span>POS: {product.pos_serial}</span>}
+                          {product.pos_terminal && <span>T: {product.pos_terminal}</span>}
+                        </div>
                       </div>
                       <button
                         onClick={() => toggleMaliBellek(product.id)}
-                        className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        className={`shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
                           product.mali_bellek?.is_collected
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                         }`}
                       >
                         {product.mali_bellek?.is_collected ? (
-                          <><CheckCircle2 className="w-3 h-3" /> Alındı</>
+                          <><CheckCircle2 className="w-2.5 h-2.5" /> Alındı</>
                         ) : (
-                          <><XCircle className="w-3 h-3" /> Alınmadı</>
+                          <><XCircle className="w-2.5 h-2.5" /> Alınmadı</>
                         )}
                       </button>
                     </div>
