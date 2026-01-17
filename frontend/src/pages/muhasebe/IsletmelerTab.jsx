@@ -49,6 +49,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     handleSelect,
     handlePayment,
     handleDeleteTransaction,
+    handleUpdateTransaction,
     handleArchive,
     handleDelete,
     loadMore,
@@ -66,6 +67,26 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     companyName,
     onSelect,
   });
+
+  const [editingTx, setEditingTx] = useState(null);
+  const [editForm, setEditForm] = useState({ amount: "", description: "" });
+  const [editLoading, setEditLoading] = useState(false);
+
+  const openEditModal = (tx) => {
+    setEditingTx(tx);
+    setEditForm({ amount: tx.amount.toString(), description: tx.description || "" });
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingTx) return;
+    setEditLoading(true);
+    const success = await handleUpdateTransaction(editingTx.id, {
+      amount: parseFloat(editForm.amount),
+      description: editForm.description
+    });
+    setEditLoading(false);
+    if (success) setEditingTx(null);
+  };
 
   const handleAddBusiness = async (e) => {
     e.preventDefault();
