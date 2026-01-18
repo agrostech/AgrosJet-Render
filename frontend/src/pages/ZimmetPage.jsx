@@ -1068,42 +1068,44 @@ export default function ZimmetPage() {
               </div>
 
               {/* Actions */}
-              <div className="p-4 border-b-2 border-border flex flex-wrap gap-2 flex-shrink-0">
-                {selectedProduct.assigned_to_courier_id ? (
-                  <Button size="sm" variant="outline" onClick={() => setShowReturnModal(true)} className="h-10 border-2">
-                    <ArrowLeftRight className="w-4 h-4 mr-2" /> Geri Al
+              <div className="p-3 sm:p-4 border-b-2 border-border flex-shrink-0">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                  {selectedProduct.assigned_to_courier_id ? (
+                    <Button size="sm" variant="outline" onClick={() => setShowReturnModal(true)} className="h-9 sm:h-10 border-2 text-xs sm:text-sm">
+                      <ArrowLeftRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Geri Al
+                    </Button>
+                  ) : (
+                    <Button size="sm" onClick={() => setShowAssignModal(true)} disabled={selectedProduct.is_lost} className="h-9 sm:h-10 text-xs sm:text-sm">
+                      <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Zimmetle
+                    </Button>
+                  )}
+                  <Button 
+                    size="sm" 
+                    variant={selectedProduct.is_defective ? "default" : "outline"}
+                    onClick={() => handleToggleDefective(selectedProduct)}
+                    className={`h-9 sm:h-10 border-2 text-xs sm:text-sm ${selectedProduct.is_defective ? "bg-yellow-500 hover:bg-yellow-600" : ""}`}
+                  >
+                    <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> 
+                    {selectedProduct.is_defective ? "Arıza Kaldır" : "Arızalı"}
                   </Button>
-                ) : (
-                  <Button size="sm" onClick={() => setShowAssignModal(true)} disabled={selectedProduct.is_lost} className="h-10">
-                    <User className="w-4 h-4 mr-2" /> Zimmetle
+                  <Button 
+                    size="sm" 
+                    variant={selectedProduct.is_lost ? "default" : "outline"}
+                    onClick={() => handleToggleLost(selectedProduct)}
+                    className={`h-9 sm:h-10 border-2 text-xs sm:text-sm ${selectedProduct.is_lost ? "bg-red-500 hover:bg-red-600" : ""}`}
+                  >
+                    <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> 
+                    {selectedProduct.is_lost ? "Kayıp Kaldır" : "Kayıp"}
                   </Button>
-                )}
-                <Button 
-                  size="sm" 
-                  variant={selectedProduct.is_defective ? "default" : "outline"}
-                  onClick={() => handleToggleDefective(selectedProduct)}
-                  className={`h-10 border-2 ${selectedProduct.is_defective ? "bg-yellow-500 hover:bg-yellow-600" : ""}`}
-                >
-                  <AlertTriangle className="w-4 h-4 mr-2" /> 
-                  {selectedProduct.is_defective ? "Arızayı Kaldır" : "Arızalı"}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant={selectedProduct.is_lost ? "default" : "outline"}
-                  onClick={() => handleToggleLost(selectedProduct)}
-                  className={`h-10 border-2 ${selectedProduct.is_lost ? "bg-red-500 hover:bg-red-600" : ""}`}
-                >
-                  <XCircle className="w-4 h-4 mr-2" /> 
-                  {selectedProduct.is_lost ? "Kayıp Kaldır" : "Kayıp"}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleDeleteProduct(selectedProduct.id)}
-                  className="h-10 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" /> Sil
-                </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleDeleteProduct(selectedProduct.id)}
+                    className="h-9 sm:h-10 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs sm:text-sm"
+                  >
+                    <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Sil
+                  </Button>
+                </div>
               </div>
 
               {/* History */}
