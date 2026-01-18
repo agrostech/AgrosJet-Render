@@ -81,9 +81,9 @@ function TransactionRow({ tx, invoice, companyInfo, uploadingFor, onUploadClick,
         )}
       </td>
       <td className={`p-3 text-right font-mono font-semibold ${
-        tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
+        tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'
       }`}>
-        {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
+        {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
       </td>
       <td className="p-3 text-center">
         <div className="flex items-center justify-center gap-1">
