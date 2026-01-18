@@ -120,6 +120,91 @@ export default function SistemPage({ companyId }) {
     }
   };
 
+  const handleGoogleSave = async (e) => {
+    e.preventDefault();
+    
+    if (!googleSettings.client_id) {
+      toast.error("Client ID gereklidir");
+      return;
+    }
+    
+    // Check if client_secret is new or unchanged
+    const secretToSave = googleSettings.client_secret.startsWith("***") 
+      ? googleSettings.client_secret 
+      : googleSettings.client_secret;
+    
+    if (!googleStatus.exists && !googleSettings.client_secret) {
+      toast.error("Client Secret gereklidir");
+      return;
+    }
+    
+    setGoogleSaving(true);
+    try {
+      await axios.post(`${API}/google/settings/${companyId}`, {
+        ...googleSettings,
+        client_secret: secretToSave
+      });
+      toast.success("Google ayarları kaydedildi");
+      fetchGoogleSettings();
+    } catch (err) {
+      toast.error("Kaydetme başarısız");
+    } finally {
+      setGoogleSaving(false);
+    }
+  };
+
+  const connectDrive = async () => {
+    try {
+      const res = await axios.get(`${API}/google/oauth/connect/${companyId}/drive`);
+      window.location.href = res.data.authorization_url;
+    } catch (err) {
+      toast.error("Drive bağlantısı başlatılamadı");
+    }
+  };
+
+  const connectGmail = async () => {
+    try {
+      const res = await axios.get(`${API}/google/oauth/connect/${companyId}/gmail`);
+      window.location.href = res.data.authorization_url;
+    } catch (err) {
+      toast.error("Gmail bağlantısı başlatılamadı");
+    }
+  };
+
+  const disconnectService = async (service) => {
+    try {
+      await axios.post(`${API}/google/oauth/disconnect/${companyId}/${service}`);
+      toast.success(`${service === 'drive' ? 'Drive' : 'Gmail'} bağlantısı kesildi`);
+      fetchGoogleSettings();
+    } catch (err) {
+      toast.error("Bağlantı kesilemedi");
+    }
+  };
+
+  const testDriveConnection = async () => {
+    setTestingDrive(true);
+    try {
+      const res = await axios.get(`${API}/google/test/drive/${companyId}`);
+      toast.success(res.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Drive bağlantı testi başarısız");
+    } finally {
+      setTestingDrive(false);
+    }
+  };
+
+  const testGmailConnection = async () => {
+    setTestingGmail(true);
+    try {
+      const res = await axios.get(`${API}/google/test/gmail/${companyId}`);
+      toast.success(`${res.data.message} (${res.data.email})`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Gmail bağlantı testi başarısız");
+    } finally {
+      setTestingGmail(false);
+    }
+  };
+
   if (loading) {
     return <div className="p-8 text-center">Yükleniyor...</div>;
   }
