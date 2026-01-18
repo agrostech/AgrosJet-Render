@@ -373,13 +373,24 @@ export default function KuryelerPage({ companyId }) {
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="flex-1 border-2">Detaylar</Button>
                 <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">Düzenle</Button>
-                {c.termination_start_date ? (
-                  <Button size="sm" variant="outline" onClick={() => handleCancelTermination(c.id)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Fesih İptal">
-                    <XCircle className="w-4 h-4" />
-                  </Button>
+                {activeTab === "active" ? (
+                  <>
+                    {c.termination_start_date ? (
+                      <Button size="sm" variant="outline" onClick={() => handleCancelTermination(c.id)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Fesih İptal">
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => handleStartTermination(c.id)} className="border-2 hover:bg-orange-50 hover:text-orange-600" title="Fesih Başlat">
+                        <AlertTriangle className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => handleDeactivateCourier(c.id)} className="border-2 hover:bg-slate-100 hover:text-slate-700" title="Pasife Al">
+                      <PowerOff className="w-4 h-4" />
+                    </Button>
+                  </>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => handleStartTermination(c.id)} className="border-2 hover:bg-orange-50 hover:text-orange-600" title="Fesih Başlat">
-                    <AlertTriangle className="w-4 h-4" />
+                  <Button size="sm" variant="outline" onClick={() => handleActivateCourier(c.id)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Aktife Al">
+                    <Power className="w-4 h-4" />
                   </Button>
                 )}
                 <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="border-2 hover:bg-red-50 hover:text-red-600">Çıkar</Button>
