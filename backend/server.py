@@ -76,6 +76,7 @@ from routers.documents import router as documents_router
 from routers.jetpuan import router as jetpuan_router
 from routers.notifications import router as notifications_router
 from routers.email_settings import router as email_router
+from routers.bonus import router as bonus_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
@@ -91,6 +92,7 @@ app.include_router(documents_router)
 app.include_router(jetpuan_router)
 app.include_router(notifications_router)
 app.include_router(email_router)
+app.include_router(bonus_router)
 
 # Health check
 @api_router.get("/")
