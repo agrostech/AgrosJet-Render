@@ -131,6 +131,26 @@ Multi-tenant kurye yönetim sistemi.
   - Expand butonu gizli (sm:hidden)
   - 2 sütunlu grid layout
 
+### Google Entegrasyonu (18 Ocak 2026 - YENİ)
+- [x] **Backend**: `/api/google/` router'ı eklendi
+  - `/api/google/settings/{company_id}` - GET/POST/DELETE ayarlar
+  - `/api/google/oauth/connect/{company_id}/{service}` - OAuth akışı başlatma
+  - `/api/google/oauth/callback` - OAuth callback
+  - `/api/google/oauth/disconnect/{company_id}/{service}` - Bağlantı kesme
+  - `/api/google/drive/upload/{company_id}` - Drive'a dosya yükleme
+  - `/api/google/gmail/send/{company_id}` - Gmail ile e-posta gönderme
+  - `/api/google/test/drive/{company_id}` - Drive bağlantı testi
+  - `/api/google/test/gmail/{company_id}` - Gmail bağlantı testi
+- [x] **Frontend - Sistem Sayfası**: Google Entegrasyonu kartı
+  - Google Cloud Console kurulum talimatları
+  - Client ID, Client Secret, Drive Klasör ID form alanları
+  - Google Drive servisi - Bağlan/Bağlantıyı Kes/Test Et butonları
+  - Gmail servisi - Bağlan/Bağlantıyı Kes/Test Et butonları
+  - Aktif/Pasif toggle switch'leri
+- [x] **Yardımcı Fonksiyonlar**: `upload_file_to_drive_if_enabled()`, `send_notification_email_if_enabled()`
+- [x] **MongoDB Koleksiyonları**: `google_settings`, `google_credentials`
+
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
-- [ ] Sistem Sayfası özellikleri (kullanıcı gereksinimlerini bekliyor)
+- [ ] Google entegrasyonunu mevcut evrak/fatura yükleme akışlarına bağlama
+- [ ] Gmail entegrasyonunu bildirim sistemine bağlama
