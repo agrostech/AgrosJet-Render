@@ -200,11 +200,11 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
 
       {/* Toplu Hakediş Kartı */}
       <div className="border-2 border-border bg-white">
-        <div className="p-4 border-b-2 border-border bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="p-4 border-b-2 border-border bg-slate-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-100">
-                <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100">
+                <FileSpreadsheet className="w-5 h-5 text-slate-600" />
               </div>
               <div>
                 <h3 className="font-heading font-bold">Toplu Hakediş Ekle</h3>
@@ -214,7 +214,6 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
             <Button 
               onClick={() => fileInputRef.current?.click()} 
               disabled={uploading}
-              className="bg-blue-600 hover:bg-blue-700"
               data-testid="upload-excel-btn"
             >
               <Upload className="w-4 h-4 mr-2" />
