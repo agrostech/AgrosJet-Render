@@ -77,23 +77,31 @@ Multi-tenant kurye yönetim sistemi.
 - [x] Admin evrak silerse kurye tarafında sekme tekrar görünür
 - [x] Dosya isimlendirme: KuryeAdi_EvrakTuru_Index.uzanti
 
-### JetPuan Market Sistemi (18 Ocak 2026 - YENİ)
+### JetPuan Market Sistemi (18 Ocak 2026)
 - [x] **Backend**: `/api/jetpuan/` endpoint'leri (categories, products, orders, settings, balance, transactions)
 - [x] **Otomatik Puan Yükleme**: Hakediş girişinde otomatik JetPuan yükleme (100 TL = 1.17 JP, oran ayarlanabilir)
+- [x] **Hakediş Silinirse**: JetPuan da otomatik silinir
 - [x] **Admin Paneli - JetPuan Market sekmesi:**
+  - Siparişler: Bekleyen/Teslim Edilmiş, Teslim Et, İptal Et (ilk sekme)
   - Kategoriler: CRUD işlemleri (sadece isim)
   - Ürünler: CRUD işlemleri (isim, açıklama, fiyat, stok, kategori, görsel URL)
-  - Siparişler: Bekleyen/Teslim Edilmiş, Teslim Et, İptal Et
-  - Ayarlar: Puan oranı ayarı (her 100 TL için kaç JP)
+  - Ayarlar: Puan oranı ayarı, Manuel JetPuan Ekle/Sil
 - [x] **Kurye Paneli - JetPuan Market sekmesi:**
-  - Bakiye gösterimi (JetPuan Bakiyem)
-  - Market: Kategoriye göre filtreleme, Sepete Ekle
-  - Puan Geçmişi: Hakediş puanları, harcamalar
-  - Siparişlerim: Geçmiş siparişler ve durumları
-  - Sepet: Miktar artır/azalt, kaldır, toplam hesaplama
-  - Sipariş oluşturma (bakiye kontrolü, stok düşme)
-- [x] Sipariş iptali: Puanlar iade edilir, stok geri yüklenir
-- [x] Ürün görselleri 500x500 boyutunda gösterilir
+  - Market → Siparişlerim → Puan Geçmişi (sekme sıralaması)
+  - Bakiye gösterimi, Sepet, Sipariş oluşturma
+
+### Bildirim Sistemi (18 Ocak 2026 - YENİ)
+- [x] **Backend**: `/api/notifications/` endpoint'leri
+- [x] **Güncel Durum sayfasında**: "Bildirimler" butonu (Yenile yanında)
+- [x] **Bildirim Kaynakları:**
+  - Muhasebe hareketler logları (yeni işlem, silme, güncelleme)
+  - Zimmet hareketleri (atama, alma, ürün ekleme/silme)
+  - JetPuan Market yeni sipariş
+  - Evrak yüklendi
+  - Kurye fesih süresi 3 gün kaldı
+  - Kurye fesih süresi yarın doluyor
+- [x] Okundu işaretleme, toplu okundu, silme özellikleri
+- [x] Badge ile okunmamış bildirim sayısı
 
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
