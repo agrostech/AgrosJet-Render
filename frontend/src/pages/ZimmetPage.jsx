@@ -11,6 +11,7 @@ import {
   Package, Plus, Search, Settings, Trash2, User, History, 
   AlertTriangle, XCircle, ArrowLeftRight, Pencil, FileCheck, Calendar, CheckCircle2
 } from "lucide-react";
+import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
