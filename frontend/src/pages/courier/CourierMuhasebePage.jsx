@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, CreditCard, Upload, FileText, Trash2, Download } from "lucide-react";
+import { Calculator, CreditCard, Upload, FileText, Trash2, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -26,6 +26,7 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
   const [installmentProducts, setInstallmentProducts] = useState([]);
   const [invoices, setInvoices] = useState({});
   const [uploadingFor, setUploadingFor] = useState(null);
+  const [installmentsExpanded, setInstallmentsExpanded] = useState(false);
   const fileInputRef = useRef(null);
 
   const fetchTransactions = async (append = false) => {
