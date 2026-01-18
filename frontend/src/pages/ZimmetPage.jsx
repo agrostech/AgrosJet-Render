@@ -913,22 +913,22 @@ export default function ZimmetPage() {
               />
             </div>
             {/* Filter checkboxes */}
-            <div className="flex items-center gap-3 mt-2 text-xs flex-wrap">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 mt-2 text-xs">
               <div className="flex items-center gap-1.5">
                 <Checkbox id="filterAssigned" checked={filterAssigned} onCheckedChange={setFilterAssigned} className="h-4 w-4" />
-                <Label htmlFor="filterAssigned" className="text-sm text-blue-600 cursor-pointer">Zimmetliler</Label>
+                <Label htmlFor="filterAssigned" className="text-xs sm:text-sm text-blue-600 cursor-pointer">Zimmetliler</Label>
               </div>
               <div className="flex items-center gap-1.5">
                 <Checkbox id="filterAvailable" checked={filterAvailable} onCheckedChange={setFilterAvailable} className="h-4 w-4" />
-                <Label htmlFor="filterAvailable" className="text-sm text-green-600 cursor-pointer">Boştakiler</Label>
+                <Label htmlFor="filterAvailable" className="text-xs sm:text-sm text-green-600 cursor-pointer">Boştakiler</Label>
               </div>
               <div className="flex items-center gap-1.5">
                 <Checkbox id="filterDefective" checked={filterDefective} onCheckedChange={setFilterDefective} className="h-4 w-4" />
-                <Label htmlFor="filterDefective" className="text-sm text-yellow-600 cursor-pointer">Arızalı</Label>
+                <Label htmlFor="filterDefective" className="text-xs sm:text-sm text-yellow-600 cursor-pointer">Arızalı</Label>
               </div>
               <div className="flex items-center gap-1.5">
                 <Checkbox id="filterLost" checked={filterLost} onCheckedChange={setFilterLost} className="h-4 w-4" />
-                <Label htmlFor="filterLost" className="text-sm text-red-600 cursor-pointer">Kayıp</Label>
+                <Label htmlFor="filterLost" className="text-xs sm:text-sm text-red-600 cursor-pointer">Kayıp</Label>
               </div>
             </div>
           </div>
