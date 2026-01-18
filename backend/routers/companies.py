@@ -13,11 +13,19 @@ router = APIRouter(prefix="/api", tags=["Companies"])
 class CompanyCreate(BaseModel):
     name: str
     logo_url: Optional[str] = ""
+    tckn_vkn: Optional[str] = ""
+    address: Optional[str] = ""
+    tax_office: Optional[str] = ""
+    email: Optional[str] = ""
 
 
 class CompanyUpdate(BaseModel):
     name: Optional[str] = None
     logo_url: Optional[str] = None
+    tckn_vkn: Optional[str] = None
+    address: Optional[str] = None
+    tax_office: Optional[str] = None
+    email: Optional[str] = None
 
 
 class CompanyResponse(BaseModel):
@@ -25,6 +33,10 @@ class CompanyResponse(BaseModel):
     id: str
     name: str
     logo_url: str
+    tckn_vkn: Optional[str] = ""
+    address: Optional[str] = ""
+    tax_office: Optional[str] = ""
+    email: Optional[str] = ""
     created_at: str
 
 
