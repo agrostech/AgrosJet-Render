@@ -147,11 +147,15 @@ export function useAccountingTab({
   const fetchEntities = useCallback(async () => {
     try {
       const res = await axios.get(`${API}${endpoint.list}`);
-      setEntities(res.data);
-      if (res.data.length > 0 && !selectedEntity) {
-        setSelectedEntity(res.data[0]);
+      // Alfabetik sıralama
+      const sortedData = res.data.sort((a, b) => 
+        (a.name || '').localeCompare(b.name || '', 'tr')
+      );
+      setEntities(sortedData);
+      if (sortedData.length > 0 && !selectedEntity) {
+        setSelectedEntity(sortedData[0]);
       }
-      res.data.forEach(e => fetchEntityBalance(e.id, false));
+      sortedData.forEach(e => fetchEntityBalance(e.id, false));
     } catch (err) {
       toast.error("Veriler yüklenemedi");
     } finally {
