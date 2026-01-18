@@ -1,18 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { Users, Building2, Wallet, History, FileText, Gift, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
 import HareketlerTab from "./muhasebe/HareketlerTab";
 import FaturalarTab from "./muhasebe/FaturalarTab";
-import BonusTab from "./muhasebe/BonusTab";
+import TopluHakedisTab from "./muhasebe/BonusTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
   { key: "isletmeler", label: "İşletmeler", icon: Building2 },
   { key: "cariler", label: "Cariler", icon: Wallet },
   { key: "faturalar", label: "Faturalar", icon: FileText },
-  { key: "bonus", label: "Bonus", icon: Gift },
+  { key: "toplu-hakedis", label: "Toplu Hakediş", icon: FileSpreadsheet },
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
