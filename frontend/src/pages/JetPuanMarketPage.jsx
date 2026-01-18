@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ShoppingBag, 
   Tags, 
@@ -38,59 +37,250 @@ import {
   Trash2,
   CheckCircle,
   Clock,
-  ImageIcon
+  ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  UserPlus,
+  UserMinus,
+  Search
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+const TABS = [
+  { key: "orders", label: "Siparişler", icon: ClipboardList },
+  { key: "categories", label: "Kategoriler", icon: Tags },
+  { key: "products", label: "Ürünler", icon: Package },
+  { key: "settings", label: "Ayarlar", icon: Settings },
+];
+
 export default function JetPuanMarketPage({ companyId }) {
-  const [activeTab, setActiveTab] = useState("categories");
+  const [activeTab, setActiveTab] = useState("orders");
+  const tabsContainerRef = useRef(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
+  const checkScrollArrows = () => {
+    if (tabsContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 5);
+    }
+  };
+
+  useEffect(() => {
+    checkScrollArrows();
+    window.addEventListener('resize', checkScrollArrows);
+    return () => window.removeEventListener('resize', checkScrollArrows);
+  }, []);
+
+  const scrollTabs = (direction) => {
+    if (tabsContainerRef.current) {
+      const scrollAmount = 120;
+      tabsContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScrollArrows, 300);
+    }
+  };
   
   return (
     <div data-testid="jetpuan-market-page">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
           <ShoppingBag className="w-5 h-5 text-amber-600" />
         </div>
         <div>
-          <h2 className="font-heading text-2xl font-bold tracking-tight">JetPuan Market</h2>
+          <h2 className="font-heading text-xl font-bold tracking-tight">JetPuan Market</h2>
           <p className="text-sm text-muted-foreground">Ürün ve sipariş yönetimi</p>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="categories" className="flex items-center gap-2">
-            <Tags className="w-4 h-4" />
-            <span className="hidden sm:inline">Kategoriler</span>
-          </TabsTrigger>
-          <TabsTrigger value="products" className="flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            <span className="hidden sm:inline">Ürünler</span>
-          </TabsTrigger>
-          <TabsTrigger value="orders" className="flex items-center gap-2">
-            <ClipboardList className="w-4 h-4" />
-            <span className="hidden sm:inline">Siparişler</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">Ayarlar</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Alt Sekmeler - Muhasebe ile aynı tasarım */}
+      <div className="relative mb-4">
+        {showLeftArrow && (
+          <button 
+            onClick={() => scrollTabs('left')}
+            className="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white via-white to-transparent pr-4 pl-1 flex items-center md:hidden"
+          >
+            <ChevronLeft className="w-5 h-5 text-slate-500" />
+          </button>
+        )}
+        
+        <div 
+          ref={tabsContainerRef}
+          onScroll={checkScrollArrows}
+          className="overflow-x-auto scrollbar-hide scroll-smooth"
+        >
+          <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
+                  activeTab === tab.key
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
+                }`}
+                data-testid={`jetpuan-tab-${tab.key}`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <TabsContent value="categories">
-          <CategoriesTab />
-        </TabsContent>
-        <TabsContent value="products">
-          <ProductsTab />
-        </TabsContent>
-        <TabsContent value="orders">
-          <OrdersTab />
-        </TabsContent>
-        <TabsContent value="settings">
-          <SettingsTab />
-        </TabsContent>
-      </Tabs>
+        {showRightArrow && (
+          <button 
+            onClick={() => scrollTabs('right')}
+            className="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white via-white to-transparent pl-4 pr-1 flex items-center md:hidden"
+          >
+            <ChevronRight className="w-5 h-5 text-slate-500" />
+          </button>
+        )}
+      </div>
+
+      {/* Tab İçeriği */}
+      <div>
+        {activeTab === "orders" && <OrdersTab />}
+        {activeTab === "categories" && <CategoriesTab />}
+        {activeTab === "products" && <ProductsTab />}
+        {activeTab === "settings" && <SettingsTab companyId={companyId} />}
+      </div>
+    </div>
+  );
+}
+
+
+// ============ ORDERS TAB ============
+function OrdersTab() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/jetpuan/orders/admin`);
+      setOrders(res.data);
+    } catch (err) {
+      toast.error("Siparişler yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const handleDeliver = async (orderId) => {
+    try {
+      await axios.put(`${API}/jetpuan/orders/${orderId}/deliver`);
+      toast.success("Sipariş teslim edildi");
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const handleCancel = async (orderId) => {
+    if (!window.confirm("Bu siparişi iptal etmek istediğinize emin misiniz? Puanlar iade edilecek.")) return;
+    try {
+      await axios.delete(`${API}/jetpuan/orders/${orderId}`);
+      toast.success("Sipariş iptal edildi");
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İptal başarısız");
+    }
+  };
+
+  const filteredOrders = filterStatus === "all"
+    ? orders
+    : orders.filter(o => o.status === filterStatus);
+
+  const pendingCount = orders.filter(o => o.status === "pending").length;
+
+  if (loading) return <div className="text-center py-8">Yükleniyor...</div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold">Siparişler</h3>
+          {pendingCount > 0 && (
+            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
+              {pendingCount} Bekliyor
+            </span>
+          )}
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-40 h-10 border-2">
+            <SelectValue placeholder="Durum" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tümü</SelectItem>
+            <SelectItem value="pending">Bekliyor</SelectItem>
+            <SelectItem value="delivered">Teslim Edildi</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-3">
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+            Sipariş bulunmuyor
+          </div>
+        ) : (
+          filteredOrders.map((order) => (
+            <div key={order.id} className={`border-2 bg-white p-4 ${order.status === 'pending' ? 'border-amber-300' : 'border-border'}`}>
+              <div className="flex flex-col sm:flex-row justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                      order.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {order.status === 'pending' ? 'Bekliyor' : 'Teslim Edildi'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(order.created_at).toLocaleString('tr-TR')}
+                    </span>
+                  </div>
+                  <p className="font-semibold">{order.courier_name}</p>
+                  <p className="text-sm text-muted-foreground">{order.courier_phone}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-bold text-primary">{order.total_points} JP</p>
+                  <p className="text-xs text-muted-foreground">{order.items.length} ürün</p>
+                </div>
+              </div>
+              
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {order.items.map((item, idx) => (
+                    <span key={idx} className="text-xs px-2 py-1 bg-slate-100 rounded">
+                      {item.product_name} x{item.quantity}
+                    </span>
+                  ))}
+                </div>
+                
+                {order.status === 'pending' && (
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => handleDeliver(order.id)} className="flex-1 h-9 font-semibold bg-green-600 hover:bg-green-700">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Teslim Et
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleCancel(order.id)} className="h-9 border-2 hover:bg-red-50 hover:text-red-600">
+                      İptal Et
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
@@ -486,143 +676,19 @@ function ProductsTab() {
 }
 
 
-// ============ ORDERS TAB ============
-function OrdersTab() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState("all");
-
-  const fetchOrders = useCallback(async () => {
-    try {
-      const res = await axios.get(`${API}/jetpuan/orders/admin`);
-      setOrders(res.data);
-    } catch (err) {
-      toast.error("Siparişler yüklenemedi");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
-
-  const handleDeliver = async (orderId) => {
-    try {
-      await axios.put(`${API}/jetpuan/orders/${orderId}/deliver`);
-      toast.success("Sipariş teslim edildi");
-      fetchOrders();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
-    }
-  };
-
-  const handleCancel = async (orderId) => {
-    if (!window.confirm("Bu siparişi iptal etmek istediğinize emin misiniz? Puanlar iade edilecek.")) return;
-    try {
-      await axios.delete(`${API}/jetpuan/orders/${orderId}`);
-      toast.success("Sipariş iptal edildi");
-      fetchOrders();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İptal başarısız");
-    }
-  };
-
-  const filteredOrders = filterStatus === "all"
-    ? orders
-    : orders.filter(o => o.status === filterStatus);
-
-  const pendingCount = orders.filter(o => o.status === "pending").length;
-
-  if (loading) return <div className="text-center py-8">Yükleniyor...</div>;
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold">Siparişler</h3>
-          {pendingCount > 0 && (
-            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
-              {pendingCount} Bekliyor
-            </span>
-          )}
-        </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40 h-10 border-2">
-            <SelectValue placeholder="Durum" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tümü</SelectItem>
-            <SelectItem value="pending">Bekliyor</SelectItem>
-            <SelectItem value="delivered">Teslim Edildi</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-3">
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-border rounded-lg">
-            Sipariş bulunmuyor
-          </div>
-        ) : (
-          filteredOrders.map((order) => (
-            <div key={order.id} className={`border-2 bg-white p-4 ${order.status === 'pending' ? 'border-amber-300' : 'border-border'}`}>
-              <div className="flex flex-col sm:flex-row justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                      order.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
-                    }`}>
-                      {order.status === 'pending' ? 'Bekliyor' : 'Teslim Edildi'}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(order.created_at).toLocaleString('tr-TR')}
-                    </span>
-                  </div>
-                  <p className="font-semibold">{order.courier_name}</p>
-                  <p className="text-sm text-muted-foreground">{order.courier_phone}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-primary">{order.total_points} JP</p>
-                  <p className="text-xs text-muted-foreground">{order.items.length} ürün</p>
-                </div>
-              </div>
-              
-              <div className="mt-3 pt-3 border-t border-border">
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {order.items.map((item, idx) => (
-                    <span key={idx} className="text-xs px-2 py-1 bg-slate-100 rounded">
-                      {item.product_name} x{item.quantity}
-                    </span>
-                  ))}
-                </div>
-                
-                {order.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleDeliver(order.id)} className="flex-1 h-9 font-semibold bg-green-600 hover:bg-green-700">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Teslim Et
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleCancel(order.id)} className="h-9 border-2 hover:bg-red-50 hover:text-red-600">
-                      İptal Et
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-
 // ============ SETTINGS TAB ============
-function SettingsTab() {
+function SettingsTab({ companyId }) {
   const [settings, setSettings] = useState({ puan_per_100tl: 1.17 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Manuel puan ekleme/silme
+  const [couriers, setCouriers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCourier, setSelectedCourier] = useState(null);
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualDescription, setManualDescription] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -635,9 +701,20 @@ function SettingsTab() {
     }
   }, []);
 
+  const fetchCouriers = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}/couriers`);
+      setCouriers(res.data);
+    } catch (err) {
+      console.error("Kuryeler yüklenemedi");
+    }
+  }, [companyId]);
+
   useEffect(() => {
     fetchSettings();
-  }, [fetchSettings]);
+    fetchCouriers();
+  }, [fetchSettings, fetchCouriers]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -651,14 +728,60 @@ function SettingsTab() {
     }
   };
 
+  const handleManualPuan = async (isAdd) => {
+    if (!selectedCourier || !manualAmount) {
+      toast.error("Kurye ve miktar seçin");
+      return;
+    }
+    
+    const amount = parseFloat(manualAmount);
+    if (amount <= 0) {
+      toast.error("Miktar 0'dan büyük olmalı");
+      return;
+    }
+
+    setManualLoading(true);
+    try {
+      if (isAdd) {
+        await axios.post(`${API}/jetpuan/manual-credit/${selectedCourier}`, null, {
+          params: {
+            amount: amount,
+            description: manualDescription || "Manuel puan ekleme"
+          }
+        });
+        toast.success(`${amount} JP eklendi`);
+      } else {
+        await axios.post(`${API}/jetpuan/manual-debit/${selectedCourier}`, null, {
+          params: {
+            amount: amount,
+            description: manualDescription || "Manuel puan silme"
+          }
+        });
+        toast.success(`${amount} JP silindi`);
+      }
+      setManualAmount("");
+      setManualDescription("");
+      setSelectedCourier(null);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    } finally {
+      setManualLoading(false);
+    }
+  };
+
+  const filteredCouriers = couriers.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.phone.includes(searchQuery)
+  );
+
   if (loading) return <div className="text-center py-8">Yükleniyor...</div>;
 
-  // Calculate example: 100 TL için kaç puan
   const exampleHakedis = 100;
   const examplePoints = (exampleHakedis / 100) * settings.puan_per_100tl;
 
   return (
-    <div className="max-w-md space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Puan Oranı Ayarı */}
       <div className="border-2 border-border bg-white p-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Settings className="w-5 h-5" />
@@ -694,7 +817,97 @@ function SettingsTab() {
         </div>
       </div>
 
+      {/* Manuel Puan Ekle/Sil */}
       <div className="border-2 border-border bg-white p-6">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <UserPlus className="w-5 h-5" />
+          Manuel JetPuan Ekle/Sil
+        </h3>
+        
+        <div className="space-y-4">
+          <div>
+            <Label>Kurye Ara</Label>
+            <div className="relative mt-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="İsim veya telefon..."
+                className="h-10 border-2 pl-10"
+              />
+            </div>
+          </div>
+
+          {searchQuery && (
+            <div className="max-h-32 overflow-y-auto border rounded-lg">
+              {filteredCouriers.length === 0 ? (
+                <p className="text-sm text-muted-foreground p-2">Kurye bulunamadı</p>
+              ) : (
+                filteredCouriers.slice(0, 5).map((courier) => (
+                  <button
+                    key={courier.id}
+                    onClick={() => {
+                      setSelectedCourier(courier.id);
+                      setSearchQuery(courier.name);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-50 ${
+                      selectedCourier === courier.id ? 'bg-primary/10' : ''
+                    }`}
+                  >
+                    <p className="font-medium">{courier.name}</p>
+                    <p className="text-xs text-muted-foreground">{courier.phone}</p>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
+          <div>
+            <Label>JetPuan Miktarı</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={manualAmount}
+              onChange={(e) => setManualAmount(e.target.value)}
+              placeholder="10.00"
+              className="mt-1 h-10 border-2"
+            />
+          </div>
+
+          <div>
+            <Label>Açıklama (Opsiyonel)</Label>
+            <Input
+              value={manualDescription}
+              onChange={(e) => setManualDescription(e.target.value)}
+              placeholder="Bonus puan, düzeltme vb."
+              className="mt-1 h-10 border-2"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => handleManualPuan(true)} 
+              disabled={manualLoading || !selectedCourier || !manualAmount}
+              className="flex-1 h-10 font-semibold bg-green-600 hover:bg-green-700"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Puan Ekle
+            </Button>
+            <Button 
+              onClick={() => handleManualPuan(false)} 
+              disabled={manualLoading || !selectedCourier || !manualAmount}
+              variant="outline"
+              className="flex-1 h-10 font-semibold border-2 hover:bg-red-50 hover:text-red-600"
+            >
+              <UserMinus className="w-4 h-4 mr-2" />
+              Puan Sil
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bilgi Kutusu */}
+      <div className="lg:col-span-2 border-2 border-border bg-white p-6">
         <h3 className="font-semibold mb-3">Puan Sistemi Nasıl Çalışır?</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-start gap-2">
@@ -703,11 +916,19 @@ function SettingsTab() {
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+            Hakediş silindiğinde yüklenen JetPuan da otomatik silinir
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
             Kuryeler puanlarını JetPuan Market'te harcayabilir
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
             Sipariş iptal edilirse puanlar iade edilir
+          </li>
+          <li className="flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+            Manuel olarak kuryeye puan ekleyebilir veya silebilirsiniz
           </li>
         </ul>
       </div>
