@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Calendar, Clock, RefreshCw, ChevronLeft, ChevronRight, Wallet, Users, Building2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import NotificationsPopover from "@/components/admin/NotificationsPopover";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
