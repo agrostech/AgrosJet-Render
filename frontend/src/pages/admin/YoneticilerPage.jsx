@@ -216,34 +216,34 @@ export default function YoneticilerPage({ companyId }) {
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading flex items-center gap-2">
-              <Pencil className="w-5 h-5" />
+            <DialogTitle className="font-heading flex items-center gap-2 text-base sm:text-lg">
+              <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
               Yönetici Düzenle
             </DialogTitle>
           </DialogHeader>
           {selectedAdmin && (
-            <form onSubmit={handleEditAdmin} className="space-y-4">
-              <div className="p-3 bg-slate-50 rounded border">
-                <p className="text-xs text-muted-foreground">Düzenlenen Yönetici</p>
-                <p className="font-semibold">{selectedAdmin.name}</p>
-                <p className="text-sm text-muted-foreground font-mono">{selectedAdmin.username}</p>
+            <form onSubmit={handleEditAdmin} className="space-y-3 sm:space-y-4">
+              <div className="p-2 sm:p-3 bg-slate-50 rounded border">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Düzenlenen Yönetici</p>
+                <p className="font-semibold text-sm sm:text-base">{selectedAdmin.name}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-mono">{selectedAdmin.username}</p>
               </div>
               
               <div>
-                <Label className="text-sm font-semibold">İsim Soyisim</Label>
-                <Input data-testid="edit-admin-name" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="mt-1 h-11 border-2" placeholder="Değiştirmek istemiyorsanız boş bırakın" />
+                <Label className="text-xs sm:text-sm font-semibold">İsim Soyisim</Label>
+                <Input data-testid="edit-admin-name" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="mt-1 h-9 sm:h-11 border-2 text-sm" placeholder="Boş bırakın" />
               </div>
               
               <div>
-                <Label className="text-sm font-semibold">Yeni Şifre</Label>
-                <Input data-testid="edit-admin-password" type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} className="mt-1 h-11 border-2" placeholder="Değiştirmek istemiyorsanız boş bırakın" />
+                <Label className="text-xs sm:text-sm font-semibold">Yeni Şifre</Label>
+                <Input data-testid="edit-admin-password" type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} className="mt-1 h-9 sm:h-11 border-2 text-sm" placeholder="Boş bırakın" />
               </div>
               
-              <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-700">
+              <div className="bg-amber-50 border border-amber-200 rounded p-2 sm:p-3 text-[10px] sm:text-xs text-amber-700">
                 <strong>Not:</strong> Şifre değiştirildiğinde bu yöneticinin aktif oturumu kapatılacaktır.
               </div>
               
-              <Button type="submit" className="w-full h-11 font-semibold" disabled={editLoading} data-testid="submit-edit-admin">
+              <Button type="submit" className="w-full h-10 sm:h-11 font-semibold text-sm" disabled={editLoading} data-testid="submit-edit-admin">
                 {editLoading ? "Güncelleniyor..." : "Kaydet"}
               </Button>
             </form>
