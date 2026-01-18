@@ -535,3 +535,42 @@ async def calculate_and_credit_points(courier_id: str, hakedis_amount: float):
         await db.jetpuan_transactions.insert_one(transaction)
     
     return points
+
+
+async def calculate_and_debit_points(courier_id: str, hakedis_amount: float):
+    """Calculate and debit JetPuan when hakediş is deleted (called from accounting router)"""
+    settings = await db.jetpuan_settings.find_one({"id": "puan_ratio"}, {"_id": 0})
+    puan_per_100tl = settings["puan_per_100tl"] if settings else 1.17
+    
+    # Calculate points: (amount / 100) * puan_per_100tl
+    points = (hakedis_amount / 100) * puan_per_100tl
+    
+    if points > 0:
+        # Get current balance
+        balance_doc = await db.jetpuan_balances.find_one({"courier_id": courier_id})
+        current_balance = balance_doc["balance"] if balance_doc else 0
+        
+        # Don't go negative, deduct what's available
+        actual_debit = min(points, current_balance)
+        
+        if actual_debit > 0:
+            # Update balance
+            await db.jetpuan_balances.update_one(
+                {"courier_id": courier_id},
+                {"$inc": {"balance": -actual_debit}}
+            )
+            
+            # Record transaction
+            transaction = {
+                "id": str(uuid.uuid4()),
+                "courier_id": courier_id,
+                "amount": -actual_debit,
+                "type": "debit",
+                "description": f"Hakediş iptali ({hakedis_amount:.2f} TL)",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.jetpuan_transactions.insert_one(transaction)
+        
+        return actual_debit
+    
+    return 0
