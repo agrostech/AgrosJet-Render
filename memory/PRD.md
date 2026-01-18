@@ -147,6 +147,12 @@ Multi-tenant kurye yönetim sistemi.
   - Google Drive servisi - Bağlan/Bağlantıyı Kes/Test Et butonları
   - Gmail servisi - Bağlan/Bağlantıyı Kes/Test Et butonları
   - Aktif/Pasif toggle switch'leri
+- [x] **Dinamik Domain Desteği**: OAuth redirect URI'leri request'ten otomatik alınır
+  - Deploy sonrası domain değişse bile sistem otomatik uyum sağlar
+  - Her şirket kendi Google hesabını bağlayabilir (multi-tenant)
+- [x] **Mobil Uyumluluk**: Sistem sayfası tamamen responsive
+  - Collapsible kartlar (Şirket Bilgileri varsayılan kapalı)
+  - Mobil için optimize edilmiş form ve butonlar
 - [x] **Yardımcı Fonksiyonlar**: `upload_file_to_drive_if_enabled()`, `send_notification_email_if_enabled()`
 - [x] **MongoDB Koleksiyonları**: `google_settings`, `google_credentials`
 
