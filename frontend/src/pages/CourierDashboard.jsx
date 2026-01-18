@@ -161,6 +161,8 @@ export default function CourierDashboard() {
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
           onLogout={handleLogout}
+          companyName={companyName}
+          companyLogo={companyLogo}
         />
 
         {/* Main Content */}
