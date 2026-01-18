@@ -363,7 +363,7 @@ export default function SistemPage({ companyId }) {
         
         {googleExpanded && (
           googleLoading ? (
-            <div className="p-6 text-center text-muted-foreground">Yükleniyor...</div>
+            <div className="py-8"><LoadingSpinner size="default" /></div>
           ) : (
             <form onSubmit={handleGoogleSave} className="p-3 md:p-4 space-y-4 md:space-y-6">
               {/* Info Banner */}
