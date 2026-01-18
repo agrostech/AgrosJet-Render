@@ -416,7 +416,6 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
                 );
               })}
             </div>
-            </div>
             
             {hasMore && (
               <div className="p-4 text-center border-t border-border">
