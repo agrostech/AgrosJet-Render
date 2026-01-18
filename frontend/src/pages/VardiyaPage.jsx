@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { X, Clock, Trash2, UserPlus, Pencil, Check, Users } from "lucide-react";
-import { PageLoading } from "@/components/ui/loading-spinner";
+import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
