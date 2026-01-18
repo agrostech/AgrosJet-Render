@@ -131,6 +131,66 @@ export default function SistemPage({ companyId }) {
     }
   };
 
+  const fetchEmailSettings = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/google/email/settings/${companyId}`);
+      if (res.data.exists) {
+        setEmailSettings({
+          smtp_host: res.data.smtp_host || "",
+          smtp_port: res.data.smtp_port || 587,
+          smtp_user: res.data.smtp_user || "",
+          smtp_password: res.data.smtp_password_masked || "",
+          from_email: res.data.from_email || "",
+          from_name: res.data.from_name || "ShiftJet",
+          enabled: res.data.enabled !== false
+        });
+        setEmailStatus({ exists: true });
+      }
+    } catch (err) {
+      console.error("Email settings fetch error:", err);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  const handleEmailSave = async (e) => {
+    e.preventDefault();
+    
+    if (!emailSettings.smtp_host || !emailSettings.smtp_user) {
+      toast.error("SMTP sunucu ve kullanıcı adı gereklidir");
+      return;
+    }
+    
+    if (!emailStatus.exists && !emailSettings.smtp_password) {
+      toast.error("SMTP şifresi gereklidir");
+      return;
+    }
+    
+    setEmailSaving(true);
+    try {
+      await axios.post(`${API}/google/email/settings/${companyId}`, emailSettings);
+      toast.success("E-posta ayarları kaydedildi");
+      fetchEmailSettings();
+    } catch (err) {
+      toast.error("Kaydetme başarısız");
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  const handleTestEmail = async () => {
+    setTestingEmail(true);
+    try {
+      const res = await axios.post(`${API}/google/email/test/${companyId}`);
+      toast.success(res.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Test başarısız");
+    } finally {
+      setTestingEmail(false);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
