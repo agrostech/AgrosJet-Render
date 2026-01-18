@@ -59,6 +59,17 @@ export default function AdminDashboard() {
     // Fetch badges initially and every 30 seconds
     fetchBadges();
     const interval = setInterval(fetchBadges, 30000);
+    
+    // Listen for badge refresh events
+    const handleBadgeRefresh = () => fetchBadges();
+    window.addEventListener('refreshBadges', handleBadgeRefresh);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('refreshBadges', handleBadgeRefresh);
+    };
+  }, [navigate, fetchBadges]);
+    const interval = setInterval(fetchBadges, 30000);
     return () => clearInterval(interval);
   }, [navigate, fetchBadges]);
 
