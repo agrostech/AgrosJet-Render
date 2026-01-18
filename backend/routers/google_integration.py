@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
@@ -46,12 +46,33 @@ class GoogleSettingsResponse(BaseModel):
 
 
 # --- Helper Functions ---
-def get_redirect_uri():
-    """Get the OAuth redirect URI from environment"""
-    frontend_url = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')[0]
-    if frontend_url == '*':
-        frontend_url = 'http://localhost:3000'
-    return f"{frontend_url.rstrip('/')}/api/google/oauth/callback"
+def get_redirect_uri_from_request(request: Request) -> str:
+    """Get the OAuth redirect URI dynamically from the request"""
+    # Get the origin from the request (works with any domain)
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    host = request.headers.get("x-forwarded-host", request.headers.get("host", "localhost:3000"))
+    
+    # Remove port if it's default (80 for http, 443 for https)
+    if ":" in host:
+        host_name, port = host.rsplit(":", 1)
+        if (scheme == "https" and port == "443") or (scheme == "http" and port == "80"):
+            host = host_name
+    
+    base_url = f"{scheme}://{host}"
+    return f"{base_url}/api/google/oauth/callback"
+
+
+def get_frontend_url_from_request(request: Request) -> str:
+    """Get the frontend URL dynamically from the request"""
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    host = request.headers.get("x-forwarded-host", request.headers.get("host", "localhost:3000"))
+    
+    if ":" in host:
+        host_name, port = host.rsplit(":", 1)
+        if (scheme == "https" and port == "443") or (scheme == "http" and port == "80"):
+            host = host_name
+    
+    return f"{scheme}://{host}"
 
 
 async def get_google_settings(company_id: str):
