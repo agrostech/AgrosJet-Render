@@ -87,14 +87,9 @@ export default function JetPuanMarketPage({ companyId }) {
   
   return (
     <div data-testid="jetpuan-market-page">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-          <ShoppingBag className="w-5 h-5 text-amber-600" />
-        </div>
-        <div>
-          <h2 className="font-heading text-xl font-bold tracking-tight">JetPuan Market</h2>
-          <p className="text-sm text-muted-foreground">Ürün ve sipariş yönetimi</p>
-        </div>
+      <div className="mb-4">
+        <h2 className="font-heading text-xl font-bold tracking-tight">JetPuan Market</h2>
+        <p className="text-sm text-muted-foreground">Ürün ve sipariş yönetimi</p>
       </div>
 
       {/* Alt Sekmeler - Muhasebe ile aynı tasarım */}
