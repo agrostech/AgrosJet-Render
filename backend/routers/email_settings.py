@@ -124,12 +124,13 @@ async def test_email(company_id: str):
         </div>
         """
         
-        success = service.send_email(email, "[ShiftJet] E-posta Test", html_body)
+        result = service.send_email(email, "[ShiftJet] E-posta Test", html_body)
         
-        if success:
+        if result.get("success"):
             return {"success": True, "message": f"Test e-postası {email} adresine gönderildi"}
         else:
-            raise HTTPException(status_code=500, detail="E-posta gönderilemedi")
+            error_msg = result.get("error", "E-posta gönderilemedi")
+            raise HTTPException(status_code=500, detail=error_msg)
             
     except HTTPException:
         raise
