@@ -212,7 +212,7 @@ export default function SistemPage({ companyId }) {
   };
 
   if (loading) {
-    return <div className="p-8 text-center">Yükleniyor...</div>;
+    return <PageLoading />;
   }
 
   return (
