@@ -19,14 +19,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Search, UserPlus, Pencil, AlertTriangle, XCircle, User, FileText } from "lucide-react";
+import { Trash2, Search, UserPlus, Pencil, AlertTriangle, XCircle, User, FileText, UserCheck, UserX, Power, PowerOff } from "lucide-react";
 import CourierDocumentsSection from "@/components/admin/CourierDocumentsSection";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function KuryelerPage({ companyId }) {
-  const [couriers, setCouriers] = useState([]);
+  const [activeCouriers, setActiveCouriers] = useState([]);
+  const [inactiveCouriers, setInactiveCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -40,15 +41,23 @@ export default function KuryelerPage({ companyId }) {
   const [editLoading, setEditLoading] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [detailTab, setDetailTab] = useState("info");
+  const [activeTab, setActiveTab] = useState("active");
 
   const fetchCouriers = async () => {
     try {
-      const res = await axios.get(`${API}/companies/${companyId}/couriers`);
-      // Alfabetik sıralama
-      const sortedCouriers = res.data.sort((a, b) => 
+      // Fetch active couriers
+      const activeRes = await axios.get(`${API}/companies/${companyId}/couriers`);
+      const sortedActive = activeRes.data.sort((a, b) => 
         (a.name || '').localeCompare(b.name || '', 'tr')
       );
-      setCouriers(sortedCouriers);
+      setActiveCouriers(sortedActive);
+
+      // Fetch inactive couriers
+      const inactiveRes = await axios.get(`${API}/companies/${companyId}/couriers/inactive`);
+      const sortedInactive = inactiveRes.data.sort((a, b) => 
+        (a.name || '').localeCompare(b.name || '', 'tr')
+      );
+      setInactiveCouriers(sortedInactive);
     } catch (err) {
       toast.error("Kuryeler yüklenemedi");
     } finally {
