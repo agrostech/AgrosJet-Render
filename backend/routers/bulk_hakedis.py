@@ -26,14 +26,32 @@ class BulkHakedisCreate(BaseModel):
     custom_date: Optional[str] = None
 
 
-def parse_turkish_number(value: str) -> float:
-    """Parse Turkish number format (1.234,56) to float"""
-    if not value:
+def parse_turkish_number(value) -> float:
+    """Parse number, handling both Turkish format (1.234,56) and standard floats"""
+    if value is None:
         return 0
+    
+    # If already a number, return directly
+    if isinstance(value, (int, float)):
+        return float(value)
+    
+    # Convert to string for parsing
+    value_str = str(value).strip()
+    if not value_str:
+        return 0
+    
     # Remove currency symbol and whitespace
-    cleaned = re.sub(r'[₺TL\s]', '', str(value))
-    # Replace Turkish format: 1.234,56 -> 1234.56
-    cleaned = cleaned.replace('.', '').replace(',', '.')
+    cleaned = re.sub(r'[₺TL\s]', '', value_str)
+    
+    # Check if it's Turkish format (has comma as decimal separator)
+    if ',' in cleaned and '.' in cleaned:
+        # Turkish format: 1.234,56 -> 1234.56
+        cleaned = cleaned.replace('.', '').replace(',', '.')
+    elif ',' in cleaned:
+        # Only comma (could be Turkish decimal): 1234,56 -> 1234.56
+        cleaned = cleaned.replace(',', '.')
+    # If only dots, it's standard format, keep as is
+    
     try:
         return float(cleaned)
     except:
