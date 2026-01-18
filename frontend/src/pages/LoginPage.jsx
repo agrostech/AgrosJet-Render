@@ -39,7 +39,6 @@ export default function LoginPage() {
         company_id: res.data.companies?.[0]?.id || null
       };
       saveSession(userData, rememberCourier);
-      toast.success("Giriş başarılı");
       navigate("/courier");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Giriş başarısız");
@@ -61,8 +60,6 @@ export default function LoginPage() {
       } catch (err) {
         // Hata olsa da devam et
       }
-      
-      toast.success("Giriş başarılı");
       
       if (res.data.role === "systemadmin") {
         navigate("/system");
