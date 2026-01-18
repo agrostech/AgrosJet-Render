@@ -202,6 +202,28 @@ Multi-tenant kurye yönetim sistemi.
 - [x] Tüm tab'lar çalışıyor
 - [x] Sipariş teslim/iptal, Kategori CRUD, Ürün CRUD, Puan ayarları korundu
 
+### VardiyaPage.jsx Refactoring (18 Ocak 2026 - YENİ)
+- [x] **698 satır → 140 satır** ana dosya (%80 azalma)
+- [x] **5 yeni bileşen dosyası** oluşturuldu (`/app/frontend/src/components/vardiya/`):
+  - `VardiyaPage.jsx` (140 satır) - Ana sayfa bileşeni
+  - `useVardiyaData.js` (270 satır) - Veri yönetimi hook'u
+  - `ShiftGrid.jsx` (270 satır) - Vardiya grid bileşeni
+  - `ShiftModals.jsx` (210 satır) - AddShiftModal, AssignCourierModal, AddLeaveModal, BulkAssignModal
+  - `index.js` (9 satır) - Export'lar
+- [x] **%100 test başarısı** (26/26 test geçti)
+- [x] Tüm işlevsellik korundu (vardiya CRUD, kurye atama, izin, toplu atama)
+
+### KuryelerTab.jsx Refactoring (18 Ocak 2026 - YENİ)
+- [x] **775 satır → 200 satır** ana dosya (%74 azalma)
+- [x] **5 yeni bileşen dosyası** oluşturuldu (`/app/frontend/src/components/muhasebe/`):
+  - `KuryelerTab.jsx` (200 satır) - Ana sekme bileşeni
+  - `CourierList.jsx` (92 satır) - Kurye listesi bileşeni
+  - `CourierTransactions.jsx` (317 satır) - İşlem paneli bileşeni
+  - `InstallmentModals.jsx` (301 satır) - EditTransactionModal, AddInstallmentModal, InstallmentListModal
+  - `index.js` (8 satır) - Export'lar
+- [x] **%100 test başarısı** (26/26 test geçti)
+- [x] Tüm işlevsellik korundu (ödeme CRUD, taksitli ürün, arşiv)
+
 ### Google Drive & SMTP Entegrasyonu (18 Ocak 2026)
 **~~Google Drive Entegrasyonu~~ - KALDIRILDI (kullanıcı talebi)**
 
