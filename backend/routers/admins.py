@@ -33,6 +33,7 @@ class PermissionUpdate(BaseModel):
 class AdminUpdate(BaseModel):
     name: Optional[str] = None
     password: Optional[str] = None
+    email: Optional[str] = None
 
 
 class AdminResponse(BaseModel):
