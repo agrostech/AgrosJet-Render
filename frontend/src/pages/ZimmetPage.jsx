@@ -569,7 +569,7 @@ export default function ZimmetPage() {
   const selectedType = productTypes.find(t => t.id === newProduct.product_type_id);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">Yükleniyor...</div>;
+    return <PageLoading />;
   }
 
   return (
