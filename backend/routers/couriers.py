@@ -202,7 +202,45 @@ async def archive_company_courier(company_id: str, courier_id: str):
 
 @router.put("/companies/{company_id}/couriers/{courier_id}/deactivate")
 async def deactivate_company_courier(company_id: str, courier_id: str):
-    """Deactivate a courier (set to passive)"""
+    """Deactivate a courier (set to passive) - checks for zimmet and balance first"""
+    
+    # Check for active zimmet assignments
+    active_zimmet = await db.zimmet_assignments.find_one({
+        "courier_id": courier_id,
+        "status": "assigned"
+    })
+    if active_zimmet:
+        raise HTTPException(
+            status_code=400, 
+            detail="Bu kuryenin üzerinde zimmetli ürün bulunuyor. Önce zimmeti devredin veya geri alın."
+        )
+    
+    # Check balance
+    transactions = await db.accounting_transactions.find({
+        "entity_type": "courier",
+        "entity_id": courier_id
+    }).to_list(10000)
+    
+    balance = 0
+    for t in transactions:
+        if t["type"] == "credit":
+            balance += t["amount"]
+        else:
+            balance -= t["amount"]
+    
+    if balance != 0:
+        balance_text = f"{abs(balance):.2f} TL"
+        if balance > 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Bu kuryenin {balance_text} alacağı bulunuyor. Önce bakiyeyi sıfırlayın."
+            )
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Bu kuryenin {balance_text} borcu bulunuyor. Önce bakiyeyi sıfırlayın."
+            )
+    
     result = await db.company_couriers.update_one(
         {"company_id": company_id, "courier_id": courier_id},
         {"$set": {
