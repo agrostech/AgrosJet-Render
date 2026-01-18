@@ -336,7 +336,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" aria-describedby="bulk-hakedis-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+              <FileSpreadsheet className="w-5 h-5" />
               Toplu Hakediş Önizleme
             </DialogTitle>
             <p id="bulk-hakedis-description" className="sr-only">
@@ -348,17 +348,17 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
             <div className="flex-1 overflow-y-auto space-y-4">
               {/* Özet */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200 text-center">
-                  <p className="text-xs text-green-700">Eşleşen</p>
+                <div className="p-3 bg-slate-50 rounded-lg border text-center">
+                  <p className="text-xs text-muted-foreground">Eşleşen</p>
                   <p className="text-xl font-bold text-green-600">{parseResult.total_matched}</p>
                 </div>
-                <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-center">
-                  <p className="text-xs text-amber-700">Eşleşmeyen</p>
-                  <p className="text-xl font-bold text-amber-600">{parseResult.total_unmatched}</p>
+                <div className="p-3 bg-slate-50 rounded-lg border text-center">
+                  <p className="text-xs text-muted-foreground">Eşleşmeyen</p>
+                  <p className="text-xl font-bold text-muted-foreground">{parseResult.total_unmatched}</p>
                 </div>
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-center">
-                  <p className="text-xs text-blue-700">Toplam Tutar</p>
-                  <p className="text-lg font-bold text-blue-600">{formatMoney(grandTotal)}</p>
+                <div className="p-3 bg-slate-50 rounded-lg border text-center">
+                  <p className="text-xs text-muted-foreground">Toplam Tutar</p>
+                  <p className="text-lg font-bold">{formatMoney(grandTotal)}</p>
                 </div>
               </div>
 
@@ -389,9 +389,9 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
               {/* Eşleşen Kuryeler */}
               {parseResult.matched.length > 0 && (
                 <div className="border rounded-lg overflow-hidden">
-                  <div className="p-2 bg-green-50 border-b flex items-center gap-2">
+                  <div className="p-2 bg-slate-50 border-b flex items-center gap-2">
                     <Check className="w-4 h-4 text-green-600" />
-                    <span className="font-semibold text-sm text-green-700">Eşleşen Kuryeler ({parseResult.matched.length})</span>
+                    <span className="font-semibold text-sm">Eşleşen Kuryeler ({parseResult.matched.length})</span>
                   </div>
                   <div className="max-h-[200px] overflow-y-auto">
                     <table className="w-full text-sm">
@@ -410,8 +410,8 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                             <td className="p-2">{m.courier_name}</td>
                             <td className="p-2 text-right font-mono">{m.packet_count}</td>
                             <td className="p-2 text-right font-mono">{formatMoney(m.hakedis_amount)}</td>
-                            <td className="p-2 text-right font-mono text-amber-600">{m.bonus_amount > 0 ? formatMoney(m.bonus_amount) : '-'}</td>
-                            <td className="p-2 text-right font-mono font-semibold text-green-600">{formatMoney(m.total_amount)}</td>
+                            <td className="p-2 text-right font-mono">{m.bonus_amount > 0 ? formatMoney(m.bonus_amount) : '-'}</td>
+                            <td className="p-2 text-right font-mono font-semibold">{formatMoney(m.total_amount)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -420,8 +420,8 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                           <td className="p-2">Toplam</td>
                           <td className="p-2 text-right font-mono">{parseResult.matched.reduce((s, m) => s + m.packet_count, 0)}</td>
                           <td className="p-2 text-right font-mono">{formatMoney(totalHakedis)}</td>
-                          <td className="p-2 text-right font-mono text-amber-600">{formatMoney(totalBonus)}</td>
-                          <td className="p-2 text-right font-mono text-green-600">{formatMoney(grandTotal)}</td>
+                          <td className="p-2 text-right font-mono">{formatMoney(totalBonus)}</td>
+                          <td className="p-2 text-right font-mono">{formatMoney(grandTotal)}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -431,14 +431,14 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
 
               {/* Eşleşmeyen Kuryeler */}
               {parseResult.unmatched.length > 0 && (
-                <div className="border border-amber-200 rounded-lg overflow-hidden">
-                  <div className="p-2 bg-amber-50 border-b flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <span className="font-semibold text-sm text-amber-700">Eşleşmeyen Kuryeler ({parseResult.unmatched.length})</span>
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="p-2 bg-slate-50 border-b flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-semibold text-sm text-muted-foreground">Eşleşmeyen Kuryeler ({parseResult.unmatched.length})</span>
                   </div>
                   <div className="max-h-[150px] overflow-y-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-amber-50/50 sticky top-0">
+                      <thead className="bg-slate-50 sticky top-0">
                         <tr>
                           <th className="text-left p-2 font-semibold">Excel'deki İsim</th>
                           <th className="text-right p-2 font-semibold">Paket</th>
@@ -447,8 +447,8 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                       </thead>
                       <tbody className="divide-y">
                         {parseResult.unmatched.map((u, idx) => (
-                          <tr key={idx} className="hover:bg-amber-50/30">
-                            <td className="p-2 text-amber-700">{u.excel_name}</td>
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="p-2 text-muted-foreground">{u.excel_name}</td>
                             <td className="p-2 text-right font-mono">{u.packet_count}</td>
                             <td className="p-2 text-right font-mono">{formatMoney(u.hakedis_amount)}</td>
                           </tr>
@@ -456,7 +456,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                       </tbody>
                     </table>
                   </div>
-                  <div className="p-2 bg-amber-50 text-xs text-amber-700">
+                  <div className="p-2 bg-slate-50 text-xs text-muted-foreground">
                     Bu kuryeler sistemde bulunamadı. Lütfen isimleri kontrol edin.
                   </div>
                 </div>
