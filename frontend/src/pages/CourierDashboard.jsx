@@ -31,6 +31,7 @@ export default function CourierDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [companyName, setCompanyName] = useState("");
+  const [companyLogo, setCompanyLogo] = useState("");
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
 
