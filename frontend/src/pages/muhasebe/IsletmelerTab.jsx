@@ -150,7 +150,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
             />
           </div>
           <div className="text-xs text-muted-foreground">
-            Toplam: <span className={totalBalance > 0 ? 'text-red-600 font-semibold' : totalBalance < 0 ? 'text-green-600 font-semibold' : ''}>
+            Toplam: <span className={totalBalance > 0 ? 'text-green-600 font-semibold' : totalBalance < 0 ? 'text-red-600 font-semibold' : ''}>
               {totalBalance === 0 ? '0 TL' : totalBalance > 0 ? `-${formatCurrency(totalBalance)}` : formatCurrency(totalBalance)}
             </span>
           </div>
