@@ -186,7 +186,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
       </div>
 
       {/* Sağ Panel - İşlemler */}
-      <div className="flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+      <div ref={transactionRef} className="flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
         {selectedEntity ? (
           <>
             {/* Header */}
