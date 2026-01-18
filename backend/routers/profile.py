@@ -57,6 +57,10 @@ async def update_own_profile(admin_id: str, data: ProfileUpdate):
         update_data["password"] = hash_password(data.password)
         requires_relogin = True
     
+    # Email update (only for superadmin)
+    if data.email is not None and admin.get("role") == "superadmin":
+        update_data["email"] = data.email
+    
     if not update_data:
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
     
