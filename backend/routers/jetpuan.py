@@ -8,6 +8,22 @@ from utils.database import db
 
 router = APIRouter(prefix="/api/jetpuan", tags=["JetPuan Market"])
 
+# Forward declaration for circular import avoidance
+async def send_jetpuan_notification(company_id: str, courier_name: str, total_points: int, order_id: str):
+    """Send notification for new JetPuan order"""
+    try:
+        from routers.notifications import create_notification
+        await create_notification(
+            company_id=company_id,
+            notification_type="jetpuan_siparis",
+            title="Yeni JetPuan Siparişi",
+            message=f"{courier_name} {total_points} JP tutarında sipariş verdi.",
+            entity_type="order",
+            entity_id=order_id
+        )
+    except Exception as e:
+        print(f"JetPuan notification failed: {e}")
+
 
 # ============ PYDANTIC MODELS ============
 
