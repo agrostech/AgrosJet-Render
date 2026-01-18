@@ -20,7 +20,7 @@ const BASE_NAV_ITEMS = [
   { path: "/courier", label: "Vardiyalarım", icon: Clock },
   { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator },
   { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package },
-  { path: "/courier/jetpuan", label: "JetPuan Market", icon: ShoppingBag },
+  { path: "/courier/jetpuan", label: "Market", icon: ShoppingBag },
   { path: "/courier/akademi", label: "Akademi", icon: GraduationCap },
 ];
 
