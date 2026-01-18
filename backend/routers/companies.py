@@ -61,6 +61,10 @@ async def create_company(data: CompanyCreate):
         "id": str(uuid.uuid4()),
         "name": data.name,
         "logo_url": data.logo_url or "",
+        "tckn_vkn": data.tckn_vkn or "",
+        "address": data.address or "",
+        "tax_office": data.tax_office or "",
+        "email": data.email or "",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.companies.insert_one(company)
@@ -74,6 +78,14 @@ async def update_company(company_id: str, data: CompanyUpdate):
         update_data["name"] = data.name
     if data.logo_url is not None:
         update_data["logo_url"] = data.logo_url
+    if data.tckn_vkn is not None:
+        update_data["tckn_vkn"] = data.tckn_vkn
+    if data.address is not None:
+        update_data["address"] = data.address
+    if data.tax_office is not None:
+        update_data["tax_office"] = data.tax_office
+    if data.email is not None:
+        update_data["email"] = data.email
     
     if not update_data:
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
