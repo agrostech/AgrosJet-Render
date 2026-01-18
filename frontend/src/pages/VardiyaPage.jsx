@@ -417,7 +417,7 @@ export default function VardiyaPage({ companyId }) {
                     return (
                       <TableCell 
                         key={day.key} 
-                        className={`p-1 align-top border-r border-slate-300 transition-all
+                        className={`p-0.5 sm:p-1 align-top border-r border-slate-300 transition-all
                           ${cellBg}
                           ${isSelected ? 'ring-2 ring-green-500 ring-inset' : ''}
                           ${editMode ? 'cursor-pointer hover:bg-blue-200' : ''}
@@ -425,11 +425,11 @@ export default function VardiyaPage({ companyId }) {
                         `}
                         onClick={(e) => handleCellClick(e, shift.id, day.key)}
                       >
-                        <div className="min-h-[32px]">
+                        <div className="min-h-[24px] sm:min-h-[32px]">
                           {/* Seçim göstergesi */}
                           {isSelected && (
                             <div className="flex justify-end mb-0.5">
-                              <span className="text-[8px] bg-green-500 text-white px-1 rounded">✓ Seçili</span>
+                              <span className="text-[6px] sm:text-[8px] bg-green-500 text-white px-0.5 sm:px-1 rounded">✓</span>
                             </div>
                           )}
                           {courierCount === 0 ? (
@@ -437,7 +437,7 @@ export default function VardiyaPage({ companyId }) {
                             editMode && !isSelected && !ctrlPressed && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); openAssignModal(shift, day.key); }}
-                                className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
+                                className="w-full text-[8px] sm:text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
                                 data-testid={`assign-${shift.id}-${day.key}`}
                               >
                                 +
@@ -446,22 +446,23 @@ export default function VardiyaPage({ companyId }) {
                           ) : (
                             <div className="space-y-0.5">
                               {/* Kurye sayısı badge */}
-                              <div className="flex items-center gap-1 mb-1">
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${courierCount > 0 ? 'bg-blue-200 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
-                                  {courierCount} kişi
+                              <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
+                                <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded ${courierCount > 0 ? 'bg-blue-200 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
+                                  <span className="hidden sm:inline">{courierCount} kişi</span>
+                                  <span className="sm:hidden">{courierCount}</span>
                                 </span>
                               </div>
                               {/* Scrollable kurye listesi */}
-                              <div className="max-h-[60px] overflow-y-auto space-y-0.5 scrollbar-thin">
+                              <div className="max-h-[40px] sm:max-h-[60px] overflow-y-auto space-y-0.5 scrollbar-thin">
                                 {cellAssignments.map(a => (
-                                  <div key={a.id} className="flex items-center justify-between bg-blue-50/80 px-1 py-0.5 rounded text-[9px] group">
-                                    <span className="font-medium truncate" title={a.courier_name}>{a.courier_name}</span>
+                                  <div key={a.id} className="flex items-center justify-between bg-blue-50/80 px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-[9px] group">
+                                    <span className="font-medium truncate max-w-[30px] sm:max-w-none" title={a.courier_name}>{a.courier_name}</span>
                                     {editMode && !ctrlPressed && (
                                       <button
                                         onClick={(e) => { e.stopPropagation(); handleRemoveAssignment(a.id); }}
                                         className="text-red-500 hover:text-red-700 ml-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100"
                                       >
-                                        <X className="w-2.5 h-2.5" />
+                                        <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
                                       </button>
                                     )}
                                   </div>
@@ -471,7 +472,7 @@ export default function VardiyaPage({ companyId }) {
                               {editMode && !isSelected && !ctrlPressed && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); openAssignModal(shift, day.key); }}
-                                  className="w-full text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300 mt-0.5"
+                                  className="w-full text-[8px] sm:text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300 mt-0.5"
                                   data-testid={`assign-${shift.id}-${day.key}`}
                                 >
                                   +
