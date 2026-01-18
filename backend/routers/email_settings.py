@@ -76,6 +76,11 @@ async def save_email_settings(company_id: str, data: EmailSettingsCreate):
             "from_email": data.from_email or data.smtp_user,
             "from_name": data.from_name,
             "enabled": data.enabled,
+            "notify_muhasebe": data.notify_muhasebe,
+            "notify_zimmet": data.notify_zimmet,
+            "notify_evrak": data.notify_evrak,
+            "notify_jetpuan": data.notify_jetpuan,
+            "notify_fesih": data.notify_fesih,
             "updated_at": now
         }
         # Only update password if not masked
@@ -98,6 +103,11 @@ async def save_email_settings(company_id: str, data: EmailSettingsCreate):
             "from_email": data.from_email or data.smtp_user,
             "from_name": data.from_name,
             "enabled": data.enabled,
+            "notify_muhasebe": data.notify_muhasebe,
+            "notify_zimmet": data.notify_zimmet,
+            "notify_evrak": data.notify_evrak,
+            "notify_jetpuan": data.notify_jetpuan,
+            "notify_fesih": data.notify_fesih,
             "created_at": now
         }
         await db.email_settings.insert_one(settings)
