@@ -176,4 +176,5 @@ async def send_notification_email(company_id: str, title: str, message: str, not
     
     subject = f"[ShiftJet] {title}"
     
-    return service.send_email(email, subject, html_body, plain_body)
+    result = service.send_email(email, subject, html_body, plain_body)
+    return result.get("success", False)
