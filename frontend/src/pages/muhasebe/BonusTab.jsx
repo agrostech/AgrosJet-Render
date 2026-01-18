@@ -11,6 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { 
   Gift, 
   Plus, 
@@ -21,7 +26,9 @@ import {
   Users,
   AlertTriangle,
   Check,
-  Clock
+  Clock,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
