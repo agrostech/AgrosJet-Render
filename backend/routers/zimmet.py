@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
+from routers.notifications import create_notification
 
 router = APIRouter(prefix="/api", tags=["Zimmet"])
 
