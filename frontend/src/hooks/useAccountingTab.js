@@ -34,6 +34,12 @@ export const formatCurrency = (amt) => {
 export const formatDate = (dateStr) => 
   new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
+export const getBalanceLabel = (bal) => {
+  if (bal === 0 || bal === undefined) return null;
+  if (bal > 0) return { text: `-${formatCurrency(bal)}`, color: 'text-red-600 bg-red-50' };
+  return { text: formatCurrency(bal), color: 'text-green-600 bg-green-50' };
+};
+
 /**
  * Custom hook for accounting tab operations
  * @param {Object} config - Configuration object
