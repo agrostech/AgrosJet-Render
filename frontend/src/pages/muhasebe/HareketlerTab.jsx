@@ -65,7 +65,10 @@ export default function HareketlerTab({ companyId }) {
     minute: '2-digit' 
   });
 
-  const formatCurrency = (amt) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
+  const formatCurrency = (amt) => {
+    const formatted = new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(amt));
+    return `${formatted} TL`;
+  };
 
   const getEntityIcon = (type) => {
     switch (type) {
