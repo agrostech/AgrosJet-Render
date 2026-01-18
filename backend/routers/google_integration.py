@@ -558,3 +558,127 @@ async def test_gmail_connection(company_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Gmail bağlantı testi başarısız: {str(e)}")
+
+
+
+# --- Email (SMTP) Settings ---
+class EmailSettingsCreate(BaseModel):
+    smtp_host: str
+    smtp_port: int = 587
+    smtp_user: str
+    smtp_password: str
+    from_email: Optional[str] = None
+    from_name: str = "ShiftJet"
+    enabled: bool = True
+
+
+@router.get("/email/settings/{company_id}")
+async def get_email_settings(company_id: str):
+    """Get SMTP email settings for a company"""
+    settings = await db.email_settings.find_one({"company_id": company_id}, {"_id": 0})
+    if not settings:
+        return {"exists": False}
+    
+    # Mask password
+    masked_password = "***" + settings.get("smtp_password", "")[-4:] if settings.get("smtp_password") else ""
+    
+    return {
+        "exists": True,
+        "smtp_host": settings.get("smtp_host", ""),
+        "smtp_port": settings.get("smtp_port", 587),
+        "smtp_user": settings.get("smtp_user", ""),
+        "smtp_password_masked": masked_password,
+        "from_email": settings.get("from_email", ""),
+        "from_name": settings.get("from_name", "ShiftJet"),
+        "enabled": settings.get("enabled", True),
+        "created_at": settings.get("created_at", ""),
+        "updated_at": settings.get("updated_at")
+    }
+
+
+@router.post("/email/settings/{company_id}")
+async def save_email_settings(company_id: str, data: EmailSettingsCreate):
+    """Save or update SMTP email settings"""
+    existing = await db.email_settings.find_one({"company_id": company_id})
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    if existing:
+        update_data = {
+            "smtp_host": data.smtp_host,
+            "smtp_port": data.smtp_port,
+            "smtp_user": data.smtp_user,
+            "from_email": data.from_email or data.smtp_user,
+            "from_name": data.from_name,
+            "enabled": data.enabled,
+            "updated_at": now
+        }
+        # Only update password if not masked
+        if data.smtp_password and not data.smtp_password.startswith("***"):
+            update_data["smtp_password"] = data.smtp_password
+        
+        await db.email_settings.update_one(
+            {"company_id": company_id},
+            {"$set": update_data}
+        )
+        return {"message": "E-posta ayarları güncellendi"}
+    else:
+        settings = {
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
+            "smtp_host": data.smtp_host,
+            "smtp_port": data.smtp_port,
+            "smtp_user": data.smtp_user,
+            "smtp_password": data.smtp_password,
+            "from_email": data.from_email or data.smtp_user,
+            "from_name": data.from_name,
+            "enabled": data.enabled,
+            "created_at": now
+        }
+        await db.email_settings.insert_one(settings)
+        return {"message": "E-posta ayarları kaydedildi"}
+
+
+@router.delete("/email/settings/{company_id}")
+async def delete_email_settings(company_id: str):
+    """Delete SMTP email settings"""
+    await db.email_settings.delete_one({"company_id": company_id})
+    return {"message": "E-posta ayarları silindi"}
+
+
+@router.post("/email/test/{company_id}")
+async def test_email(company_id: str):
+    """Test SMTP email connection by sending a test email"""
+    try:
+        from services.email_service import EmailService, get_superadmin_email
+        
+        # Get super admin email
+        email = await get_superadmin_email(company_id)
+        if not email:
+            raise HTTPException(status_code=400, detail="Süper admin e-posta adresi tanımlı değil")
+        
+        # Initialize and test
+        service = EmailService()
+        if not await service.load_settings(company_id):
+            raise HTTPException(status_code=400, detail="SMTP ayarları eksik")
+        
+        # Send test email
+        html_body = """
+        <div style="font-family: sans-serif; padding: 20px;">
+            <h2>ShiftJet E-posta Test</h2>
+            <p>Bu bir test e-postasıdır. E-posta bildirimleri başarıyla yapılandırılmıştır.</p>
+            <p style="color: #22c55e; font-weight: bold;">✓ Bağlantı Başarılı</p>
+        </div>
+        """
+        
+        success = service.send_email(email, "[ShiftJet] E-posta Test", html_body)
+        
+        if success:
+            return {"success": True, "message": f"Test e-postası {email} adresine gönderildi"}
+        else:
+            raise HTTPException(status_code=500, detail="E-posta gönderilemedi")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"E-posta testi başarısız: {str(e)}")
