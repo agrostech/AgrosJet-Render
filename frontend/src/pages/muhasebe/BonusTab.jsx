@@ -472,7 +472,6 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
             <Button 
               onClick={handleApplyBulkHakedis}
               disabled={applying || !parseResult?.matched?.length}
-              className="bg-green-600 hover:bg-green-700"
               data-testid="apply-bulk-hakedis"
             >
               <Users className="w-4 h-4 mr-2" />
