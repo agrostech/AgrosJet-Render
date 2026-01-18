@@ -75,7 +75,7 @@ from routers.invoices import router as invoices_router
 from routers.documents import router as documents_router
 from routers.jetpuan import router as jetpuan_router
 from routers.notifications import router as notifications_router
-from routers.google_integration import router as google_router
+from routers.email_settings import router as email_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
@@ -90,7 +90,7 @@ app.include_router(invoices_router)
 app.include_router(documents_router)
 app.include_router(jetpuan_router)
 app.include_router(notifications_router)
-app.include_router(google_router)
+app.include_router(email_router)
 
 # Health check
 @api_router.get("/")
