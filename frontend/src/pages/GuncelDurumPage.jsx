@@ -167,8 +167,7 @@ export default function GuncelDurumPage({ companyId }) {
     <div data-testid="admin-guncel-page" className="space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h2 className="font-heading text-xl font-bold tracking-tight">Güncel Durum</h2>
-        <div className="flex gap-2">
-          <NotificationsPopover companyId={companyId} />
+        <div className="flex gap-2 justify-end">
           <Button 
             variant="outline" 
             size="sm" 
@@ -178,6 +177,7 @@ export default function GuncelDurumPage({ companyId }) {
             <RefreshCw className="w-4 h-4 mr-1" />
             Yenile
           </Button>
+          <NotificationsPopover companyId={companyId} />
         </div>
       </div>
 
