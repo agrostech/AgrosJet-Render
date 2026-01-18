@@ -106,6 +106,7 @@ export default function GuncelDurumPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null); // null = bugün (default)
+  const [expandedShift, setExpandedShift] = useState(null); // Mobilde genişletilmiş vardiya
 
   const workDay = getWorkDay();
   const activeDay = selectedDay || workDay.dayKey;
