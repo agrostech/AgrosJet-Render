@@ -284,7 +284,7 @@ function TransactionHistory({
                     {tx.installment_product_id && <span className="ml-1 px-1 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Taksit</span>}
                   </td>
                   <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-green-600' : 'text-red-600'}`}>
-                    {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
+                    {formatMoney(tx.amount)}
                   </td>
                   <td className="p-1">
                     <div className="flex gap-1 justify-end">
