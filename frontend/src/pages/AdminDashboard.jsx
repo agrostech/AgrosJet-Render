@@ -69,9 +69,6 @@ export default function AdminDashboard() {
       window.removeEventListener('refreshBadges', handleBadgeRefresh);
     };
   }, [navigate, fetchBadges]);
-    const interval = setInterval(fetchBadges, 30000);
-    return () => clearInterval(interval);
-  }, [navigate, fetchBadges]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
