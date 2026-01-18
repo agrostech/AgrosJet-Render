@@ -56,8 +56,6 @@ const playNotificationSound = () => {
   }
 };
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
 const NOTIFICATION_ICONS = {
   muhasebe_hareket: Calculator,
   zimmet_hareket: Package,
