@@ -16,6 +16,22 @@ router = APIRouter(prefix="/api/documents", tags=["Documents"])
 UPLOAD_DIR = "/app/uploads/documents"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+# Forward declaration for notification
+async def send_document_notification(company_id: str, courier_name: str, doc_label: str):
+    """Send notification for document upload"""
+    try:
+        from routers.notifications import create_notification
+        await create_notification(
+            company_id=company_id,
+            notification_type="evrak_yuklendi",
+            title="Evrak Yüklendi",
+            message=f"{courier_name} yeni evrak yükledi: {doc_label}",
+            entity_type="document",
+            entity_id=None
+        )
+    except Exception as e:
+        print(f"Document notification failed: {e}")
+
 # Document type definitions
 DOCUMENT_TYPES = {
     "company_contract": {
