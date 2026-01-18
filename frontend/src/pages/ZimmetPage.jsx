@@ -572,16 +572,18 @@ export default function ZimmetPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="font-heading text-xl font-bold tracking-tight">Zimmet Yönetimi</h2>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={() => setShowProductTypes(true)}>
-            <Settings className="w-4 h-4 mr-1" /> Ürün Tipleri
+          <Button size="sm" variant="outline" onClick={() => setShowProductTypes(true)} className="flex-1 sm:flex-none">
+            <Settings className="w-4 h-4 sm:mr-1" /> 
+            <span className="hidden sm:inline">Ürün Tipleri</span>
           </Button>
-          <Button size="sm" onClick={() => setShowAddProduct(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Yeni Ürün
+          <Button size="sm" onClick={() => setShowAddProduct(true)} className="flex-1 sm:flex-none">
+            <Plus className="w-4 h-4 sm:mr-1" /> 
+            <span className="hidden sm:inline">Yeni Ürün</span>
           </Button>
         </div>
       </div>
