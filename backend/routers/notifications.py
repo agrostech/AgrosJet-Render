@@ -1,0 +1,183 @@
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime, timezone, timedelta
+import uuid
+
+from utils.database import db
+
+router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
+
+
+# ============ PYDANTIC MODELS ============
+
+class NotificationCreate(BaseModel):
+    company_id: str
+    type: str  # muhasebe_hareket, zimmet_hareket, jetpuan_siparis, evrak_yuklendi, fesih_3_gun, fesih_yarin
+    title: str
+    message: str
+    entity_type: Optional[str] = None  # courier, business, vendor, order, document
+    entity_id: Optional[str] = None
+
+
+# ============ ENDPOINTS ============
+
+@router.get("/company/{company_id}")
+async def get_notifications(company_id: str, limit: int = 50, include_read: bool = False):
+    """Get notifications for a company"""
+    query = {"company_id": company_id}
+    if not include_read:
+        query["is_read"] = False
+    
+    notifications = await db.notifications.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    
+    return notifications
+
+
+@router.get("/company/{company_id}/unread-count")
+async def get_unread_count(company_id: str):
+    """Get count of unread notifications"""
+    count = await db.notifications.count_documents({
+        "company_id": company_id,
+        "is_read": False
+    })
+    return {"count": count}
+
+
+@router.put("/{notification_id}/read")
+async def mark_as_read(notification_id: str):
+    """Mark a notification as read"""
+    result = await db.notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
+    return {"message": "Okundu olarak işaretlendi"}
+
+
+@router.put("/company/{company_id}/read-all")
+async def mark_all_as_read(company_id: str):
+    """Mark all notifications as read for a company"""
+    result = await db.notifications.update_many(
+        {"company_id": company_id, "is_read": False},
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": f"{result.modified_count} bildirim okundu olarak işaretlendi"}
+
+
+@router.delete("/{notification_id}")
+async def delete_notification(notification_id: str):
+    """Delete a notification"""
+    result = await db.notifications.delete_one({"id": notification_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
+    return {"message": "Bildirim silindi"}
+
+
+@router.delete("/company/{company_id}/all")
+async def delete_all_notifications(company_id: str):
+    """Delete all notifications for a company"""
+    result = await db.notifications.delete_many({"company_id": company_id})
+    return {"message": f"{result.deleted_count} bildirim silindi"}
+
+
+@router.get("/company/{company_id}/check-fesih")
+async def check_fesih_notifications(company_id: str):
+    """Check and create fesih notifications for couriers"""
+    # Get company's couriers with active termination
+    company_courier_ids = await db.company_couriers.find(
+        {"company_id": company_id},
+        {"_id": 0, "courier_id": 1}
+    ).to_list(1000)
+    
+    courier_ids = [cc["courier_id"] for cc in company_courier_ids]
+    
+    now = datetime.now(timezone.utc)
+    notifications_created = 0
+    
+    for courier_id in courier_ids:
+        courier = await db.couriers.find_one(
+            {"id": courier_id, "termination_end_at": {"$ne": None}},
+            {"_id": 0}
+        )
+        
+        if not courier or not courier.get("termination_end_at"):
+            continue
+        
+        end_date = datetime.fromisoformat(courier["termination_end_at"].replace("Z", "+00:00"))
+        days_remaining = (end_date - now).days
+        
+        # Check if notification already exists for today
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        if days_remaining == 3:
+            # Check if 3-day notification exists
+            existing = await db.notifications.find_one({
+                "company_id": company_id,
+                "entity_id": courier_id,
+                "type": "fesih_3_gun",
+                "created_at": {"$gte": today_start.isoformat()}
+            })
+            
+            if not existing:
+                await create_notification(
+                    company_id=company_id,
+                    notification_type="fesih_3_gun",
+                    title="Fesih Süresi - 3 Gün Kaldı",
+                    message=f"{courier['name']} için fesih süresinin dolmasına 3 gün kaldı.",
+                    entity_type="courier",
+                    entity_id=courier_id
+                )
+                notifications_created += 1
+        
+        elif days_remaining == 1:
+            # Check if 1-day notification exists
+            existing = await db.notifications.find_one({
+                "company_id": company_id,
+                "entity_id": courier_id,
+                "type": "fesih_yarin",
+                "created_at": {"$gte": today_start.isoformat()}
+            })
+            
+            if not existing:
+                await create_notification(
+                    company_id=company_id,
+                    notification_type="fesih_yarin",
+                    title="Fesih Süresi - Yarın Doluyor!",
+                    message=f"{courier['name']} için fesih süresi yarın doluyor!",
+                    entity_type="courier",
+                    entity_id=courier_id
+                )
+                notifications_created += 1
+    
+    return {"notifications_created": notifications_created}
+
+
+# ============ HELPER FUNCTION ============
+
+async def create_notification(
+    company_id: str,
+    notification_type: str,
+    title: str,
+    message: str,
+    entity_type: str = None,
+    entity_id: str = None
+):
+    """Create a new notification (called from other routers)"""
+    notification = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "type": notification_type,
+        "title": title,
+        "message": message,
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.notifications.insert_one(notification)
+    return notification
