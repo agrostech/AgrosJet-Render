@@ -340,18 +340,14 @@ async def oauth_callback(request: Request, code: str = Query(...), state: str = 
         
         logger.info(f"Credentials stored for company {company_id}, service {service}")
         
-        # Redirect back to frontend
-        frontend_url = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')[0]
-        if frontend_url == '*':
-            frontend_url = 'http://localhost:3000'
+        # Redirect back to frontend using dynamic URL
+        frontend_url = get_frontend_url_from_request(request)
         
         return RedirectResponse(url=f"{frontend_url}/admin/sistem?{service}_connected=true")
     
     except Exception as e:
         logger.error(f"OAuth callback failed: {str(e)}")
-        frontend_url = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')[0]
-        if frontend_url == '*':
-            frontend_url = 'http://localhost:3000'
+        frontend_url = get_frontend_url_from_request(request)
         return RedirectResponse(url=f"{frontend_url}/admin/sistem?error={str(e)}")
 
 
