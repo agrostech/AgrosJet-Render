@@ -435,27 +435,29 @@ export default function GuncelDurumPage({ companyId }) {
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {/* Kuryeler */}
-            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="w-4 h-4 text-slate-500" />
-                <span className="text-sm font-medium text-slate-600">Kuryeler</span>
+            <div className="p-3 sm:p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:mb-2">
+                  <Users className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm font-medium text-slate-600">Kuryeler</span>
+                </div>
+                <p className={`text-lg sm:text-xl font-bold font-mono ${
+                  accountingSummary.couriers.balance > 0 
+                    ? 'text-red-600' 
+                    : accountingSummary.couriers.balance < 0 
+                      ? 'text-green-600' 
+                      : 'text-slate-800'
+                }`}>
+                  {accountingSummary.couriers.balance === 0 
+                    ? '0 TL' 
+                    : accountingSummary.couriers.balance > 0 
+                      ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.couriers.balance)} TL`
+                      : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.couriers.balance))} TL`
+                  }
+                </p>
               </div>
-              <p className={`text-xl font-bold font-mono ${
-                accountingSummary.couriers.balance > 0 
-                  ? 'text-red-600' 
-                  : accountingSummary.couriers.balance < 0 
-                    ? 'text-green-600' 
-                    : 'text-slate-800'
-              }`}>
-                {accountingSummary.couriers.balance === 0 
-                  ? '0 TL' 
-                  : accountingSummary.couriers.balance > 0 
-                    ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.couriers.balance)} TL`
-                    : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.couriers.balance))} TL`
-                }
-              </p>
             </div>
             
             {/* İşletmeler */}
