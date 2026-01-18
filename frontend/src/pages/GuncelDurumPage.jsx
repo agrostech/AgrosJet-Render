@@ -166,15 +166,18 @@ export default function GuncelDurumPage({ companyId }) {
     <div data-testid="admin-guncel-page" className="space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h2 className="font-heading text-xl font-bold tracking-tight">Güncel Durum</h2>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={fetchData}
-          className="border-2 font-semibold"
-        >
-          <RefreshCw className="w-4 h-4 mr-1" />
-          Yenile
-        </Button>
+        <div className="flex gap-2">
+          <NotificationsPopover companyId={companyId} />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchData}
+            className="border-2 font-semibold"
+          >
+            <RefreshCw className="w-4 h-4 mr-1" />
+            Yenile
+          </Button>
+        </div>
       </div>
 
       {/* Vardiya Takibi - Birleşik Kart */}
