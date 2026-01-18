@@ -31,6 +31,7 @@ const DOCUMENT_ORDER = [
   "id_back",
   "license_front",
   "license_back",
+  "vehicle_registration",
   "criminal_record",
   "residence_certificate"
 ];
@@ -42,6 +43,7 @@ const DOCUMENT_LABELS = {
   id_back: "Kimlik Arka Yüz",
   license_front: "Ehliyet Ön Yüz",
   license_back: "Ehliyet Arka Yüz",
+  vehicle_registration: "Araç Ruhsatı",
   criminal_record: "Adli Sicil Kaydı",
   residence_certificate: "İkametgah Belgesi"
 };
