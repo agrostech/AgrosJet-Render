@@ -215,7 +215,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
           </div>
         </div>
         <div className="p-4 text-sm text-muted-foreground">
-          <p><strong>Excel formatı:</strong> Kurye (isim), Paket Sayısı, Hakediş/Kazanç sütunları olmalı</p>
+          <p><strong>Excel formatı:</strong> <code className="bg-slate-100 px-1 rounded">Kurye</code> (isim), <code className="bg-slate-100 px-1 rounded">Total</code> (hakediş tutarı) sütunları olmalı</p>
           <p className="mt-1">Kurye isimleri sistemdeki isimlerle eşleştirilecek ve bonus otomatik hesaplanacak.</p>
         </div>
       </div>
