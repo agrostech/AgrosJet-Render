@@ -194,7 +194,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelect}
-        accept=".xlsx,.xls"
+        accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
         className="hidden"
       />
 
