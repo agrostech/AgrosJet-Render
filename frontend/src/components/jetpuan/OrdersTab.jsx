@@ -34,11 +34,16 @@ export function OrdersTab() {
     fetchOrders();
   }, [fetchOrders]);
 
+  const refreshBadges = () => {
+    window.dispatchEvent(new Event('refreshBadges'));
+  };
+
   const handleDeliver = async (orderId) => {
     try {
       await axios.put(`${API}/jetpuan/orders/${orderId}/deliver`);
       toast.success("Sipariş teslim edildi");
       fetchOrders();
+      refreshBadges();
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
     }
@@ -50,6 +55,7 @@ export function OrdersTab() {
       await axios.delete(`${API}/jetpuan/orders/${orderId}`);
       toast.success("Sipariş iptal edildi");
       fetchOrders();
+      refreshBadges();
     } catch (err) {
       toast.error(err.response?.data?.detail || "İptal başarısız");
     }
