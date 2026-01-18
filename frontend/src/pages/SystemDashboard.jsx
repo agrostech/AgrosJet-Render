@@ -196,7 +196,7 @@ function SirketlerPage() {
 
   const hasSuperAdmin = companyAdmins.some(a => a.role === "superadmin");
 
-  if (loading) return <p>Yükleniyor...</p>;
+  if (loading) return <PageLoading />;
 
   return (
     <div data-testid="system-sirketler-page">
