@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trash2, Search, UserPlus, Pencil, AlertTriangle, XCircle, User, FileText } from "lucide-react";
 import CourierDocumentsSection from "@/components/admin/CourierDocumentsSection";
+import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
