@@ -174,6 +174,8 @@ async def update_admin(admin_id: str, data: AdminUpdate):
         update_data["name"] = format_name(data.name)
     if data.password:
         update_data["password"] = hash_password(data.password)
+    if data.email is not None:
+        update_data["email"] = data.email
     
     if not update_data:
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
