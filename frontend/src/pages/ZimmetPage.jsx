@@ -845,34 +845,34 @@ export default function ZimmetPage() {
           ) : (
             <div className="divide-y divide-border">
               {filteredLogs.map((log) => (
-                <div key={log.id} className="p-4 hover:bg-slate-50">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className={`px-3 py-1.5 rounded text-sm font-medium shrink-0 ${getActionColor(log.action, log.details)}`}>
+                <div key={log.id} className="p-3 sm:p-4 hover:bg-slate-50">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                      <span className={`px-2 py-1 rounded text-xs font-medium shrink-0 ${getActionColor(log.action, log.details)}`}>
                         {getActionLabel(log.action, log.details)}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">{log.product_name}</p>
+                        <p className="font-semibold text-sm truncate">{log.product_name}</p>
                         {log.courier_name && (
-                          <p className="text-sm text-blue-600 flex items-center gap-1">
-                            <User className="w-4 h-4" /> {log.courier_name}
+                          <p className="text-xs text-blue-600 flex items-center gap-1">
+                            <User className="w-3 h-3" /> {log.courier_name}
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm text-muted-foreground">
+                    <div className="text-left sm:text-right shrink-0 text-xs text-muted-foreground">
+                      <p>
                         {new Date(log.created_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      <p className="text-xs text-slate-500">{log.admin_name}</p>
+                      <p className="text-slate-500">{log.admin_name}</p>
                     </div>
                   </div>
                   {/* Detaylar */}
-                  <div className="mt-2 text-xs text-slate-500 font-mono">
-                    {log.details?.product_type && <span>Tip: {log.details.product_type} </span>}
-                    {log.details?.serial_number && <span>SN: {log.details.serial_number} </span>}
-                    {log.details?.pos_serial && <span>SN: {log.details.pos_serial} </span>}
-                    {log.details?.pos_terminal && <span>TRM: {log.details.pos_terminal} </span>}
+                  <div className="mt-2 text-xs text-slate-500 font-mono flex flex-wrap gap-x-2">
+                    {log.details?.product_type && <span>Tip: {log.details.product_type}</span>}
+                    {log.details?.serial_number && <span>SN: {log.details.serial_number}</span>}
+                    {log.details?.pos_serial && <span>SN: {log.details.pos_serial}</span>}
+                    {log.details?.pos_terminal && <span>TRM: {log.details.pos_terminal}</span>}
                     {log.details?.changes && <span className="text-slate-600">{log.details.changes}</span>}
                     {log.details?.notes && <span className="italic text-slate-600">"{log.details.notes}"</span>}
                   </div>
