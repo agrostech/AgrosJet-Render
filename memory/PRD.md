@@ -58,23 +58,42 @@ Multi-tenant kurye yönetim sistemi.
 - [x] Kurye panelinde fesih uyarısı ve geri sayım gösterimi
 - [x] Admin fesih sürecini iptal edebilir
 
-### Evraklar (Documents) Sistemi (18 Ocak 2026 - YENİ)
+### Evraklar (Documents) Sistemi (18 Ocak 2026)
 - [x] **Backend**: `/api/documents/` endpoint'leri (upload, view, delete, download-all ZIP)
 - [x] **Kurye Paneli**: Yeni "Evraklar" sekmesi (evraklar eksikse görünür)
-- [x] **7 Evrak Türü:**
+- [x] **8 Evrak Türü:**
   - Şirket Sözleşmesi (14 fotoğraf)
   - Kimlik Ön Yüz (1 fotoğraf)
   - Kimlik Arka Yüz (1 fotoğraf)
   - Ehliyet Ön Yüz (1 fotoğraf)
   - Ehliyet Arka Yüz (1 fotoğraf)
+  - Araç Ruhsatı (1 fotoğraf)
   - Adli Sicil Kaydı (1 PDF)
   - İkametgah Belgesi (1 PDF)
-- [x] İlerleme çubuğu ve yüzde gösterimi (0/20 → 100%)
+- [x] İlerleme çubuğu ve yüzde gösterimi (0/21 → 100%)
 - [x] Tüm evraklar yüklenince sekme otomatik gizlenir
 - [x] **Admin Paneli**: Kurye detaylarında Bilgiler/Evraklar sekmeleri
 - [x] Admin evrakları görüntüleyebilir, silebilir, toplu ZIP indirebilir
 - [x] Admin evrak silerse kurye tarafında sekme tekrar görünür
 - [x] Dosya isimlendirme: KuryeAdi_EvrakTuru_Index.uzanti
+
+### JetPuan Market Sistemi (18 Ocak 2026 - YENİ)
+- [x] **Backend**: `/api/jetpuan/` endpoint'leri (categories, products, orders, settings, balance, transactions)
+- [x] **Otomatik Puan Yükleme**: Hakediş girişinde otomatik JetPuan yükleme (100 TL = 1.17 JP, oran ayarlanabilir)
+- [x] **Admin Paneli - JetPuan Market sekmesi:**
+  - Kategoriler: CRUD işlemleri (sadece isim)
+  - Ürünler: CRUD işlemleri (isim, açıklama, fiyat, stok, kategori, görsel URL)
+  - Siparişler: Bekleyen/Teslim Edilmiş, Teslim Et, İptal Et
+  - Ayarlar: Puan oranı ayarı (her 100 TL için kaç JP)
+- [x] **Kurye Paneli - JetPuan Market sekmesi:**
+  - Bakiye gösterimi (JetPuan Bakiyem)
+  - Market: Kategoriye göre filtreleme, Sepete Ekle
+  - Puan Geçmişi: Hakediş puanları, harcamalar
+  - Siparişlerim: Geçmiş siparişler ve durumları
+  - Sepet: Miktar artır/azalt, kaldır, toplam hesaplama
+  - Sipariş oluşturma (bakiye kontrolü, stok düşme)
+- [x] Sipariş iptali: Puanlar iade edilir, stok geri yüklenir
+- [x] Ürün görselleri 500x500 boyutunda gösterilir
 
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
