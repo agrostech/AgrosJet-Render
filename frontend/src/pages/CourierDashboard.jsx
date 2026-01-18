@@ -102,8 +102,21 @@ export default function CourierDashboard() {
   return (
     <div className="min-h-screen bg-slate-50" data-testid="courier-dashboard">
       {/* Mobile Header */}
-      <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
-        <span className="font-heading text-lg font-bold">{user.name}</span>
+      <header className="lg:hidden bg-primary text-white p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {companyLogo ? (
+            <img 
+              src={companyLogo} 
+              alt={companyName} 
+              className="w-8 h-8 rounded-full object-cover bg-white"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : null}
+          <div>
+            <span className="font-heading text-base font-bold block leading-tight">{user.name}</span>
+            {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
+          </div>
+        </div>
         <Button 
           variant="ghost" 
           size="icon" 
