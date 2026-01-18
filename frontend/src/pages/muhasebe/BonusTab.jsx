@@ -125,8 +125,11 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+    // Check file extension (case-insensitive)
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
       toast.error("Sadece Excel dosyası (.xlsx, .xls) yüklenebilir");
+      e.target.value = ''; // Reset input
       return;
     }
 
