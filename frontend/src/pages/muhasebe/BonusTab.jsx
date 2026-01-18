@@ -189,12 +189,11 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
 
   return (
     <div className="space-y-6" data-testid="toplu-hakedis-tab">
-      {/* Hidden file input */}
+      {/* Hidden file input - accept removed for better mobile compatibility */}
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelect}
-        accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
         className="hidden"
       />
 
