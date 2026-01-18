@@ -343,11 +343,11 @@ export default function SistemPage({ companyId }) {
         <button 
           type="button"
           onClick={() => setGoogleExpanded(!googleExpanded)}
-          className="w-full p-3 md:p-4 border-b-2 border-border bg-blue-50 flex items-center justify-between"
+          className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
         >
           <div className="flex items-center gap-2">
-            <Cloud className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
-            <h3 className="font-semibold text-blue-900 text-sm md:text-base">Google Entegrasyonu</h3>
+            <Cloud className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+            <h3 className="font-semibold text-sm md:text-base">Google Entegrasyonu</h3>
             {(googleStatus.drive_connected || googleStatus.gmail_connected) && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
                 {googleStatus.drive_connected && googleStatus.gmail_connected ? '2 Bağlı' : '1 Bağlı'}
@@ -355,9 +355,9 @@ export default function SistemPage({ companyId }) {
             )}
           </div>
           {googleExpanded ? (
-            <ChevronUp className="w-5 h-5 text-blue-600" />
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-blue-600" />
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
           )}
         </button>
         
