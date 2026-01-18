@@ -109,6 +109,21 @@ export default function HareketlerTab({ companyId }) {
         </span>
       );
     }
+    if (action === 'installment_paid') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-purple-600" />
+          <span className="text-purple-700 font-medium">Taksit Ödendi</span>
+        </span>
+      );
+    }
+    if (action === 'transaction_updated') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <span className="text-orange-700 font-medium">İşlem Güncellendi</span>
+        </span>
+      );
+    }
     return action;
   };
 
