@@ -39,11 +39,11 @@ class EmailService:
         
         return all([self.smtp_host, self.smtp_user, self.smtp_password])
     
-    def send_email(self, to_email: str, subject: str, html_body: str, plain_body: str = None) -> bool:
-        """Send email via SMTP"""
+    def send_email(self, to_email: str, subject: str, html_body: str, plain_body: str = None) -> dict:
+        """Send email via SMTP. Returns dict with success status and error message."""
         if not all([self.smtp_host, self.smtp_user, self.smtp_password]):
             logger.warning("SMTP settings not configured")
-            return False
+            return {"success": False, "error": "SMTP ayarları eksik"}
         
         try:
             msg = MIMEMultipart("alternative")
@@ -70,11 +70,19 @@ class EmailService:
                 server.sendmail(self.from_email, to_email, msg.as_string())
             
             logger.info(f"Email sent successfully to {to_email}")
-            return True
+            return {"success": True}
             
+        except smtplib.SMTPAuthenticationError as e:
+            error_msg = "SMTP kimlik doğrulama hatası. Gmail kullanıyorsanız App Password (Uygulama Şifresi) oluşturun."
+            logger.error(f"SMTP Auth Error: {str(e)}")
+            return {"success": False, "error": error_msg}
+        except smtplib.SMTPConnectError as e:
+            error_msg = f"SMTP sunucusuna bağlanılamadı: {self.smtp_host}:{self.smtp_port}"
+            logger.error(f"SMTP Connect Error: {str(e)}")
+            return {"success": False, "error": error_msg}
         except Exception as e:
             logger.error(f"Failed to send email: {str(e)}")
-            return False
+            return {"success": False, "error": str(e)}
 
 
 async def get_superadmin_email(company_id: str) -> Optional[str]:
