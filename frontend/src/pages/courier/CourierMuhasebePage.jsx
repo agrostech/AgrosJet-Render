@@ -340,6 +340,20 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
                 </tbody>
               </table>
             </div>
+            
+            {/* Load More - Desktop */}
+            {hasMore && (
+              <div className="hidden sm:block p-4 text-center border-t border-border">
+                <Button 
+                  variant="outline" 
+                  onClick={loadMore} 
+                  disabled={loadingMore}
+                  className="h-9"
+                >
+                  {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalCount - transactions.length} kaldı)`}
+                </Button>
+              </div>
+            )}
 
             {/* Mobile Card List */}
             <div className="sm:hidden divide-y divide-border">
