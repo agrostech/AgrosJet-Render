@@ -120,23 +120,34 @@ export function EditProductModal({
   productTypes,
   onEditProduct,
 }) {
-  const [editProduct, setEditProduct] = useState({
+  // Initialize state directly from product prop
+  const initialState = product ? {
+    id: product.id,
+    name: product.name,
+    product_type_id: product.product_type_id,
+    serial_number: product.serial_number || "",
+    pos_serial: product.pos_serial || "",
+    pos_terminal: product.pos_terminal || "",
+    notes: product.notes || ""
+  } : {
     id: "", name: "", product_type_id: "", serial_number: "", pos_serial: "", pos_terminal: "", notes: ""
-  });
+  };
+  
+  const [editProduct, setEditProduct] = useState(initialState);
 
-  useEffect(() => {
-    if (product) {
-      setEditProduct({
-        id: product.id,
-        name: product.name,
-        product_type_id: product.product_type_id,
-        serial_number: product.serial_number || "",
-        pos_serial: product.pos_serial || "",
-        pos_terminal: product.pos_terminal || "",
-        notes: product.notes || ""
-      });
-    }
-  }, [product]);
+  // Reset form when product changes
+  const productId = product?.id;
+  if (productId && editProduct.id !== productId) {
+    setEditProduct({
+      id: product.id,
+      name: product.name,
+      product_type_id: product.product_type_id,
+      serial_number: product.serial_number || "",
+      pos_serial: product.pos_serial || "",
+      pos_terminal: product.pos_terminal || "",
+      notes: product.notes || ""
+    });
+  }
 
   const selectedType = productTypes.find(t => t.id === editProduct.product_type_id);
 
