@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
@@ -18,6 +18,26 @@ export default function LoginPage() {
   
   const [courierData, setCourierData] = useState({ phone: "", password: "" });
   const [adminData, setAdminData] = useState({ username: "", password: "" });
+
+  // Zaten giriş yapılmışsa panele yönlendir
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    if (user) {
+      // Session süresi kontrolü
+      if (user.expiresAt && Date.now() > user.expiresAt) {
+        localStorage.removeItem("user");
+        return;
+      }
+      // Role göre yönlendir
+      if (user.role === "courier") {
+        navigate("/courier");
+      } else if (user.role === "systemadmin") {
+        navigate("/system");
+      } else {
+        navigate("/admin");
+      }
+    }
+  }, [navigate]);
 
   const saveSession = (userData, remember) => {
     const sessionData = {
