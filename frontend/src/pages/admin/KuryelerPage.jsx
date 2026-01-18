@@ -233,7 +233,9 @@ export default function KuryelerPage({ companyId }) {
   const filteredCouriers = couriers.filter(c => {
     if (!filterQuery.trim()) return true;
     const query = filterQuery.toLowerCase();
-    return c.name.toLowerCase().includes(query) || c.plate.toLowerCase().includes(query);
+    const name = (c.name || '').toLowerCase();
+    const plate = (c.plate || '').toLowerCase();
+    return name.includes(query) || plate.includes(query);
   });
 
   if (loading) return <PageLoading />;
