@@ -431,15 +431,16 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
               })}
             </div>
             
+            {/* Load More - Mobile */}
             {hasMore && (
-              <div className="p-4 text-center border-t border-border">
+              <div className="sm:hidden p-4 text-center border-t border-border">
                 <Button 
                   variant="outline" 
                   onClick={loadMore} 
                   disabled={loadingMore}
-                  className="h-9"
+                  className="h-9 w-full"
                 >
-                  {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalCount - transactions.length} kaldı)`}
+                  {loadingMore ? "Yükleniyor..." : `Daha Fazla (${totalCount - transactions.length})`}
                 </Button>
               </div>
             )}
