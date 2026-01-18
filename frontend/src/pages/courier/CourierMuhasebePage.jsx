@@ -1,36 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, CreditCard, Upload, FileText, Trash2, Download, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { PageLoading } from "@/components/ui/loading-spinner";
+import { 
+  InstallmentSection, 
+  TransactionTable, 
+  TransactionMobileList,
+  InvoiceMessageModal 
+} from "@/components/courier/muhasebe";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount)) + ' TL';
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-};
-
-// Haftanın pazartesi tarihini bul
-const getMondayDate = () => {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Pazar için -6, diğerleri için 1-gün
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + diff);
-  return monday.toLocaleDateString('tr-TR');
 };
 
 export default function CourierMuhasebePage({ courierId, courierName, companyId }) {
@@ -82,7 +66,6 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   const fetchInvoices = async () => {
     try {
       const res = await axios.get(`${API}/invoices/courier/${courierId}`);
-      // Map invoices by transaction_id for quick lookup
       const invoiceMap = {};
       res.data.forEach(inv => {
         invoiceMap[inv.transaction_id] = inv;
@@ -114,35 +97,6 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     }
   }, [courierId, companyId]);
 
-  const generateInvoiceMessage = (amount) => {
-    if (!companyInfo) return "";
-    
-    const mondayDate = getMondayDate();
-    
-    return `Merhaba, hizmet vermiş olduğum şirket için fatura kesmem gerekiyor. Yardımcı olur musunuz?
-
-FATURA BİLGİLERİ
-
-Kesilecek Firma:
-${companyInfo.name}
-${companyInfo.tckn_vkn ? `TCKN/VKN: ${companyInfo.tckn_vkn}` : ''}
-${companyInfo.address ? `Adres: ${companyInfo.address}` : ''}
-${companyInfo.tax_office ? `Vergi Dairesi: ${companyInfo.tax_office}` : ''}
-${companyInfo.email ? `E-posta: ${companyInfo.email}` : ''}
-
-Fatura Tarihi: ${mondayDate} (Hafta Pazartesi)
-Hizmet: Kurye Hizmeti
-
-FATURA TUTARI: ${formatMoney(amount)} (KDV DAHİL)
-
-Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
-  };
-
-  const openInvoiceMessageModal = (amount) => {
-    setSelectedHakedisAmount(amount);
-    setShowInvoiceMessageModal(true);
-  };
-
   const loadMore = () => {
     setLoadingMore(true);
     fetchTransactions(true);
@@ -168,7 +122,6 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
     formData.append('courier_id', courierId);
     formData.append('courier_name', courierName);
     
-    // Get company_id from user data
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     formData.append('company_id', user.company_id || '');
 
@@ -202,19 +155,12 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
     window.open(`${API}/invoices/download/${invoiceId}`, '_blank');
   };
 
-  const canDeleteInvoice = (invoice) => {
-    if (!invoice?.uploaded_at) return false;
-    const uploadedAt = new Date(invoice.uploaded_at);
-    const now = new Date();
-    const hoursPassed = (now - uploadedAt) / (1000 * 60 * 60);
-    return hoursPassed <= 24;
+  const openInvoiceMessageModal = (amount) => {
+    setSelectedHakedisAmount(amount);
+    setShowInvoiceMessageModal(true);
   };
 
-  const totalRemainingInstallments = installmentProducts.reduce((sum, p) => sum + p.remaining_installments, 0);
-
-  if (loading) {
-    return <PageLoading />;
-  }
+  if (loading) return <PageLoading />;
 
   // Kurye için bakiye renkleri TERSİNE çevrildi
   const getBalanceColor = (bal) => {
@@ -260,60 +206,12 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
           </div>
         </div>
 
-        {/* Taksitli Ürünler - Collapsible */}
-        {installmentProducts.length > 0 && (
-          <div className="border-b-2 border-border">
-            <button 
-              onClick={() => setInstallmentsExpanded(!installmentsExpanded)}
-              className="w-full p-3 sm:p-4 bg-slate-50 flex items-center justify-between hover:bg-slate-100 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-purple-600" />
-                <h3 className="font-semibold text-sm sm:text-base">Taksitli Ürünler</h3>
-                {totalRemainingInstallments > 0 && (
-                  <span className="text-[10px] sm:text-xs bg-purple-100 text-purple-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
-                    {totalRemainingInstallments} taksit
-                  </span>
-                )}
-              </div>
-              {installmentsExpanded ? (
-                <ChevronUp className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              )}
-            </button>
-            {installmentsExpanded && (
-              <div className="divide-y divide-border">
-                {installmentProducts.map((product) => (
-                  <div key={product.id} className="p-3 sm:p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-sm truncate">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatMoney(product.installment_amount)} x {product.installment_count}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold text-purple-600">
-                          {product.installment_count - product.remaining_installments}/{product.installment_count}
-                        </p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground">
-                          Kalan: {formatMoney(product.total_amount - product.paid_amount)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-2 bg-slate-200 rounded-full h-1.5 sm:h-2">
-                      <div 
-                        className="bg-purple-600 h-1.5 sm:h-2 rounded-full transition-all"
-                        style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {/* Taksitli Ürünler */}
+        <InstallmentSection
+          installmentProducts={installmentProducts}
+          installmentsExpanded={installmentsExpanded}
+          setInstallmentsExpanded={setInstallmentsExpanded}
+        />
 
         {/* Transaction History */}
         <div className="p-3 sm:p-4 bg-slate-50 border-b border-border">
@@ -327,103 +225,16 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
         ) : (
           <>
             {/* Desktop Table */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="text-left p-3 font-semibold">Tarih</th>
-                    <th className="text-left p-3 font-semibold">Açıklama</th>
-                    <th className="text-right p-3 font-semibold">Tutar</th>
-                    <th className="text-center p-3 font-semibold w-32">Fatura</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {transactions.map((tx) => {
-                    const invoice = invoices[tx.id];
-                    const hasInvoice = !!invoice;
-                    const showUploadButton = tx.is_hakedis && !hasInvoice;
-                    
-                    return (
-                      <tr key={tx.id} className="hover:bg-slate-50">
-                        <td className="p-3 font-mono text-xs whitespace-nowrap">{formatDate(tx.created_at)}</td>
-                        <td className="p-3">
-                          {tx.description}
-                          {tx.is_hakedis && (
-                            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
-                              Hakediş
-                            </span>
-                          )}
-                          {tx.installment_product_id && (
-                            <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
-                              Taksit
-                            </span>
-                          )}
-                        </td>
-                        <td className={`p-3 text-right font-mono font-semibold ${
-                          tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
-                        </td>
-                        <td className="p-3 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            {/* Fatura Talep Butonu - Desktop */}
-                            {showUploadButton && companyInfo && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openInvoiceMessageModal(tx.amount)}
-                                className="h-7 text-xs gap-1"
-                                title="Fatura Talep Et"
-                              >
-                                <Send className="w-3 h-3" />
-                                Talep
-                              </Button>
-                            )}
-                            {showUploadButton ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleUploadClick(tx.id)}
-                                disabled={uploadingFor === tx.id}
-                                className="h-7 text-xs gap-1"
-                              >
-                                <Upload className="w-3 h-3" />
-                                {uploadingFor === tx.id ? "..." : "Yükle"}
-                              </Button>
-                            ) : hasInvoice ? (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDownloadInvoice(invoice.id)}
-                                  className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  title="İndir"
-                                >
-                                  <FileText className="w-4 h-4" />
-                                </Button>
-                                {canDeleteInvoice(invoice) && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleDeleteInvoice(invoice.id)}
-                                    className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                    title="Sil (24 saat içinde)"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
-                                )}
-                              </>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <TransactionTable
+              transactions={transactions}
+              invoices={invoices}
+              companyInfo={companyInfo}
+              uploadingFor={uploadingFor}
+              onUploadClick={handleUploadClick}
+              onDownloadInvoice={handleDownloadInvoice}
+              onDeleteInvoice={handleDeleteInvoice}
+              onOpenInvoiceMessage={openInvoiceMessageModal}
+            />
             
             {/* Load More - Desktop */}
             {hasMore && (
@@ -440,93 +251,16 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
             )}
 
             {/* Mobile Card List */}
-            <div className="sm:hidden divide-y divide-border">
-              {transactions.map((tx) => {
-                const invoice = invoices[tx.id];
-                const hasInvoice = !!invoice;
-                const showUploadButton = tx.is_hakedis && !hasInvoice;
-                
-                return (
-                  <div key={tx.id} className="p-3 hover:bg-slate-50">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-mono text-muted-foreground">
-                            {formatDate(tx.created_at)}
-                          </span>
-                          {tx.is_hakedis && (
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
-                              Hakediş
-                            </span>
-                          )}
-                          {tx.installment_product_id && (
-                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
-                              Taksit
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm mt-0.5 truncate">{tx.description || '-'}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className={`font-mono font-semibold text-sm ${
-                          tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
-                        </p>
-                        <div className="mt-1 flex items-center justify-end gap-1">
-                          {/* Fatura Talep Butonu */}
-                          {showUploadButton && companyInfo && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openInvoiceMessageModal(tx.amount)}
-                              className="h-6 text-[10px] gap-1 px-2"
-                              title="Fatura Talep Et"
-                            >
-                              <Send className="w-3 h-3" />
-                              Talep
-                            </Button>
-                          )}
-                          {showUploadButton ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUploadClick(tx.id)}
-                              disabled={uploadingFor === tx.id}
-                              className="h-6 text-[10px] gap-1 px-2"
-                            >
-                              <Upload className="w-3 h-3" />
-                              Fatura
-                            </Button>
-                          ) : hasInvoice ? (
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDownloadInvoice(invoice.id)}
-                                className="h-6 w-6 p-0 text-green-600"
-                              >
-                                <FileText className="w-3.5 h-3.5" />
-                              </Button>
-                              {canDeleteInvoice(invoice) && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDeleteInvoice(invoice.id)}
-                                  className="h-6 w-6 p-0 text-red-500"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              )}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <TransactionMobileList
+              transactions={transactions}
+              invoices={invoices}
+              companyInfo={companyInfo}
+              uploadingFor={uploadingFor}
+              onUploadClick={handleUploadClick}
+              onDownloadInvoice={handleDownloadInvoice}
+              onDeleteInvoice={handleDeleteInvoice}
+              onOpenInvoiceMessage={openInvoiceMessageModal}
+            />
             
             {/* Load More - Mobile */}
             {hasMore && (
@@ -545,46 +279,13 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
         )}
       </div>
 
-      {/* Fatura Mesajı Modal */}
-      <Dialog open={showInvoiceMessageModal} onOpenChange={setShowInvoiceMessageModal}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Send className="w-5 h-5" />
-              Fatura Talep Et
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4">
-              <pre className="whitespace-pre-wrap text-xs sm:text-sm font-sans text-slate-700 leading-relaxed">
-                {generateInvoiceMessage(selectedHakedisAmount)}
-              </pre>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => {
-                  const message = generateInvoiceMessage(selectedHakedisAmount);
-                  const encodedMessage = encodeURIComponent(message);
-                  window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-                }}
-                className="flex-1 h-10"
-              >
-                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
-                WhatsApp ile Gönder
-              </Button>
-            </div>
-            
-            {(!companyInfo?.tckn_vkn || !companyInfo?.address) && (
-              <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                ⚠️ Şirket bilgileri eksik. Yöneticinizle iletişime geçin.
-              </p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Invoice Message Modal */}
+      <InvoiceMessageModal
+        open={showInvoiceMessageModal}
+        onOpenChange={setShowInvoiceMessageModal}
+        selectedAmount={selectedHakedisAmount}
+        companyInfo={companyInfo}
+      />
     </div>
   );
 }
