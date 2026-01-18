@@ -475,7 +475,19 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
                         }`}>
                           {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
                         </p>
-                        <div className="mt-1">
+                        <div className="mt-1 flex items-center justify-end gap-1">
+                          {/* Fatura Mesajı Butonu */}
+                          {showUploadButton && companyInfo && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => openInvoiceMessageModal(tx.amount)}
+                              className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              title="Fatura Mesajı"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
                           {showUploadButton ? (
                             <Button
                               size="sm"
