@@ -198,7 +198,7 @@ function OrdersTab() {
 
   const pendingCount = orders.filter(o => o.status === "pending").length;
 
-  if (loading) return <div className="text-center py-8">Yükleniyor...</div>;
+  if (loading) return <PageLoading />;
 
   return (
     <div className="space-y-4">
@@ -350,7 +350,7 @@ function CategoriesTab() {
     }
   };
 
-  if (loading) return <div className="text-center py-8">Yükleniyor...</div>;
+  if (loading) return <PageLoading />;
 
   return (
     <div className="space-y-4">
@@ -518,7 +518,7 @@ function ProductsTab() {
     ? products 
     : products.filter(p => p.category_id === filterCategory);
 
-  if (loading) return <div className="text-center py-8">Yükleniyor...</div>;
+  if (loading) return <PageLoading />;
 
   return (
     <div className="space-y-4">
@@ -770,7 +770,7 @@ function SettingsTab({ companyId }) {
     c.phone.includes(searchQuery)
   );
 
-  if (loading) return <div className="text-center py-8">Yükleniyor...</div>;
+  if (loading) return <PageLoading />;
 
   const exampleHakedis = 100;
   const examplePoints = (exampleHakedis / 100) * settings.puan_per_100tl;
