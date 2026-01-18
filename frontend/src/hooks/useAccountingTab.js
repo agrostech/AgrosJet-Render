@@ -36,8 +36,8 @@ export const formatDate = (dateStr) =>
 
 export const getBalanceLabel = (bal) => {
   if (bal === 0 || bal === undefined) return null;
-  if (bal > 0) return { text: `-${formatCurrency(bal)}`, color: 'text-red-600 bg-red-50' };
-  return { text: formatCurrency(bal), color: 'text-green-600 bg-green-50' };
+  if (bal > 0) return { text: `-${formatCurrency(bal)}`, color: 'text-green-600 bg-green-50' };
+  return { text: formatCurrency(bal), color: 'text-red-600 bg-red-50' };
 };
 
 /**
