@@ -675,6 +675,154 @@ export default function SistemPage({ companyId }) {
           )
         )}
       </div>
+
+      {/* E-posta (SMTP) Ayarları - Collapsible */}
+      <div className="border-2 border-border bg-white">
+        <button 
+          type="button"
+          onClick={() => setEmailExpanded(!emailExpanded)}
+          className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+            <h3 className="font-semibold text-sm md:text-base">E-posta Bildirimleri (SMTP)</h3>
+            {emailStatus.exists && emailSettings.enabled && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
+                Aktif
+              </span>
+            )}
+          </div>
+          {emailExpanded ? (
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+          )}
+        </button>
+        
+        {emailExpanded && (
+          emailLoading ? (
+            <div className="py-8"><LoadingSpinner size="default" /></div>
+          ) : (
+            <form onSubmit={handleEmailSave} className="p-3 md:p-4 space-y-4 md:space-y-6">
+              {/* Info Banner */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 md:p-4">
+                <div className="flex gap-2 md:gap-3">
+                  <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs md:text-sm text-amber-800">
+                    <p className="font-medium mb-1">E-posta bildirimleri nereye gönderilir?</p>
+                    <p>Tüm bildirimler (hakediş, zimmet, evrak, fesih vb.) <strong>Süper Admin</strong> e-posta adresine gönderilir.</p>
+                    <p className="mt-1 text-amber-600">Süper admin e-posta adresini Profil sayfasından güncelleyebilirsiniz.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enable/Disable Switch */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                <div>
+                  <p className="font-medium text-sm">E-posta Bildirimleri</p>
+                  <p className="text-xs text-muted-foreground">Tüm bildirimler e-posta olarak gönderilsin</p>
+                </div>
+                <Switch 
+                  checked={emailSettings.enabled}
+                  onCheckedChange={(checked) => setEmailSettings({...emailSettings, enabled: checked})}
+                />
+              </div>
+
+              {/* SMTP Settings */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">SMTP Sunucu *</Label>
+                  <Input 
+                    value={emailSettings.smtp_host} 
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_host: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="smtp.gmail.com"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Port</Label>
+                  <Input 
+                    type="number"
+                    value={emailSettings.smtp_port} 
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_port: parseInt(e.target.value) || 587})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="587"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">SMTP Kullanıcı Adı *</Label>
+                  <Input 
+                    value={emailSettings.smtp_user} 
+                    onChange={(e) => setEmailSettings({...emailSettings, smtp_user: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="email@sirket.com"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">SMTP Şifresi *</Label>
+                  <div className="relative mt-1">
+                    <Input 
+                      type={showSmtpPassword ? "text" : "password"}
+                      value={emailSettings.smtp_password} 
+                      onChange={(e) => setEmailSettings({...emailSettings, smtp_password: e.target.value})}
+                      className="h-10 md:h-11 border-2 pr-10 text-sm"
+                      placeholder={emailStatus.exists ? "••••••••" : "Şifre girin"}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                      onClick={() => setShowSmtpPassword(!showSmtpPassword)}
+                    >
+                      {showSmtpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Gmail için App Password kullanın</p>
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Gönderici E-posta</Label>
+                  <Input 
+                    value={emailSettings.from_email} 
+                    onChange={(e) => setEmailSettings({...emailSettings, from_email: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="Boş bırakılırsa SMTP kullanıcısı kullanılır"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs md:text-sm font-semibold">Gönderici Adı</Label>
+                  <Input 
+                    value={emailSettings.from_name} 
+                    onChange={(e) => setEmailSettings({...emailSettings, from_name: e.target.value})}
+                    className="mt-1 h-10 md:h-11 border-2 text-sm"
+                    placeholder="ShiftJet"
+                  />
+                </div>
+              </div>
+
+              {/* Test & Save */}
+              <div className="pt-3 md:pt-4 border-t border-border flex flex-wrap gap-2">
+                <Button type="submit" disabled={emailSaving} className="h-10 md:h-11 font-semibold text-sm">
+                  <Save className="w-4 h-4 mr-2" />
+                  {emailSaving ? "Kaydediliyor..." : "Ayarları Kaydet"}
+                </Button>
+                {emailStatus.exists && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleTestEmail}
+                    disabled={testingEmail}
+                    className="h-10 md:h-11 text-sm"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    {testingEmail ? "Gönderiliyor..." : "Test E-postası Gönder"}
+                  </Button>
+                )}
+              </div>
+            </form>
+          )
+        )}
+      </div>
     </div>
   );
 }
