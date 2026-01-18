@@ -260,6 +260,32 @@ export default function KuryelerPage({ companyId }) {
         </div>
       </div>
 
+      {/* Aktif/Pasif Sekmeleri */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setActiveTab("active")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+            activeTab === "active" 
+              ? "bg-primary text-white" 
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          <UserCheck className="w-4 h-4" />
+          Aktif ({activeCouriers.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("inactive")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+            activeTab === "inactive" 
+              ? "bg-slate-700 text-white" 
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          <UserX className="w-4 h-4" />
+          Pasif ({inactiveCouriers.length})
+        </button>
+      </div>
+
       <div className="hidden md:block border-2 border-border bg-white overflow-x-auto">
         <Table>
           <TableHeader>
@@ -274,7 +300,7 @@ export default function KuryelerPage({ companyId }) {
             {filteredCouriers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                  {filterQuery ? "Arama sonucu bulunamadı" : "Kayıtlı kurye bulunmuyor"}
+                  {filterQuery ? "Arama sonucu bulunamadı" : activeTab === "active" ? "Aktif kurye bulunmuyor" : "Pasif kurye bulunmuyor"}
                 </TableCell>
               </TableRow>
             ) : (
