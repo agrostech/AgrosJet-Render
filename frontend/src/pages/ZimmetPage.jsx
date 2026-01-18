@@ -636,11 +636,12 @@ export default function ZimmetPage() {
           {/* Sol Panel - POS Listesi */}
           <div className="w-full lg:w-1/2 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
             <div className="p-3 border-b-2 border-border bg-slate-50 shrink-0 space-y-2">
-              <div className="flex items-center justify-between gap-2">
+              {/* Mobilde alt alta, masaüstünde yan yana */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                   <Select value={selectedYearMonth} onValueChange={setSelectedYearMonth}>
-                    <SelectTrigger className="w-40 h-9 text-sm">
+                    <SelectTrigger className="w-full sm:w-40 h-9 text-sm">
                       <SelectValue placeholder="Ay Seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -658,8 +659,8 @@ export default function ZimmetPage() {
                       onCheckedChange={setMaliBellekFilterCollected}
                       className="h-4 w-4"
                     />
-                    <Label htmlFor="maliBellekFilterCollected" className="text-green-600 font-medium cursor-pointer">
-                      {maliBellekData.filter(p => p.mali_bellek?.is_collected).length} Alındı
+                    <Label htmlFor="maliBellekFilterCollected" className="text-green-600 font-medium cursor-pointer text-xs sm:text-sm">
+                      <span className="hidden sm:inline">{maliBellekData.filter(p => p.mali_bellek?.is_collected).length} </span>Alındı
                     </Label>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -669,8 +670,8 @@ export default function ZimmetPage() {
                       onCheckedChange={setMaliBellekFilterNotCollected}
                       className="h-4 w-4"
                     />
-                    <Label htmlFor="maliBellekFilterNotCollected" className="text-orange-600 font-medium cursor-pointer">
-                      {maliBellekData.filter(p => !p.mali_bellek?.is_collected).length} Alınmadı
+                    <Label htmlFor="maliBellekFilterNotCollected" className="text-orange-600 font-medium cursor-pointer text-xs sm:text-sm">
+                      <span className="hidden sm:inline">{maliBellekData.filter(p => !p.mali_bellek?.is_collected).length} </span>Alınmadı
                     </Label>
                   </div>
                 </div>
