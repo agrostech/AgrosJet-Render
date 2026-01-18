@@ -663,8 +663,7 @@ export default function VardiyaPage({ companyId }) {
           <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
             {bulkAssigning ? (
               <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-                <p className="text-sm text-muted-foreground">Kuryeler atanıyor...</p>
+                <LoadingSpinner size="default" text="Kuryeler atanıyor..." />
               </div>
             ) : couriers.length === 0 ? (
               <p className="text-center text-muted-foreground py-4 text-sm">Kurye bulunamadı</p>
