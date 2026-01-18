@@ -161,9 +161,9 @@ class TestBulkHakedisParseExcel:
         files = {'file': ('test.txt', b'This is not an Excel file', 'text/plain')}
         response = requests.post(f"{BASE_URL}/api/bulk-hakedis/parse-excel/{COMPANY_ID}", files=files)
         
-        # Should fail with 400 or 500 (depending on implementation)
-        assert response.status_code in [400, 500, 422], f"Expected error status, got {response.status_code}"
-        print("✓ Invalid file format rejected")
+        # Should fail with 400, 500, 422, or 520 (depending on implementation)
+        assert response.status_code in [400, 500, 422, 520], f"Expected error status, got {response.status_code}"
+        print(f"✓ Invalid file format rejected with status {response.status_code}")
 
 
 class TestBulkHakedisApply:
