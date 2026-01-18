@@ -285,7 +285,7 @@ function TransactionHistory({
                     {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Hakediş</span>}
                     {tx.installment_product_id && <span className="ml-1 px-1 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Taksit</span>}
                   </td>
-                  <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-red-600' : 'text-green-600'}`}>
+                  <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-green-600' : 'text-red-600'}`}>
                     {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
                   </td>
                   <td className="p-1">
