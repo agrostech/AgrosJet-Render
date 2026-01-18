@@ -229,7 +229,8 @@ async def create_notification(
     title: str,
     message: str,
     entity_type: str = None,
-    entity_id: str = None
+    entity_id: str = None,
+    send_email: bool = True
 ):
     """Create a new notification (called from other routers)"""
     notification = {
@@ -244,4 +245,14 @@ async def create_notification(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.notifications.insert_one(notification)
+    
+    # Send email notification to super admin if enabled
+    if send_email:
+        try:
+            from services.email_service import send_notification_email
+            await send_notification_email(company_id, title, message, notification_type)
+        except Exception as e:
+            # Don't fail notification creation if email fails
+            print(f"Email notification failed: {e}")
+    
     return notification
