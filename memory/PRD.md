@@ -160,3 +160,16 @@ Multi-tenant kurye yönetim sistemi.
 - [ ] Toplu Hakediş Girişi (ON HOLD)
 - [ ] Google entegrasyonunu mevcut evrak/fatura yükleme akışlarına bağlama
 - [ ] Gmail entegrasyonunu bildirim sistemine bağlama
+
+### Refactoring ve Sistem Sağlığı (18 Ocak 2026)
+- [x] **Health Check Endpoint**: `/api/health` - Veritabanı ve sistem durumu kontrolü
+- [x] **Pydantic Modeller**: `/app/backend/models/schemas.py` dosyasına taşındı
+- [x] **Kurye Aktif/Pasif Sistemi**: Kuryeler artık silinmek yerine pasife alınabiliyor
+  - Zimmet ve bakiye kontrolü (pasife almadan önce)
+  - Aktif/Pasif sekmeleri
+- [x] **Loading Spinner**: Tüm sayfalarda ShiftJet logosu ile merkezi spinner
+- [x] **Akademi Modülü**: Placeholder sayfalar (admin + kurye paneli)
+- [x] **İsim Değişiklikleri**: 
+  - "Güncel Durum" → "Anasayfa"
+  - "JetPuan Market" → "Market"
+- [x] **Alfabetik Sıralama**: Muhasebe listeleri ve kurye listesi
