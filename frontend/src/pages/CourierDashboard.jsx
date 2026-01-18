@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 
@@ -11,6 +11,7 @@ import CourierVardiyalarPage from "./courier/CourierVardiyalarPage";
 import CourierMuhasebePage from "./courier/CourierMuhasebePage";
 import CourierZimmetPage from "./courier/CourierZimmetPage";
 import CourierEvraklarPage from "./courier/CourierEvraklarPage";
+import CourierJetPuanPage from "./courier/CourierJetPuanPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -18,6 +19,7 @@ const BASE_NAV_ITEMS = [
   { path: "/courier", label: "Vardiyalarım", icon: Clock },
   { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator },
   { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package },
+  { path: "/courier/jetpuan", label: "JetPuan Market", icon: ShoppingBag },
 ];
 
 const EVRAKLAR_NAV_ITEM = { path: "/courier/evraklar", label: "Evraklar", icon: FileText };
