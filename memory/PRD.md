@@ -156,8 +156,27 @@ Multi-tenant kurye yönetim sistemi.
 - [x] **Yardımcı Fonksiyonlar**: `upload_file_to_drive_if_enabled()`, `send_notification_email_if_enabled()`
 - [x] **MongoDB Koleksiyonları**: `google_settings`, `google_credentials`
 
+### Toplu Hakediş (Bulk Payroll) Özelliği (19 Ocak 2026 - YENİ)
+- [x] **Backend API:**
+  - `POST /api/bulk-hakedis/parse-excel/{company_id}` - Excel dosyası parse etme
+  - `POST /api/bulk-hakedis/apply/{company_id}` - Toplu hakediş uygulama
+  - `GET/POST/DELETE /api/bonus/settings/{company_id}` - Bonus kuralları CRUD
+- [x] **Excel Format:** "Kurye" (isim) ve "Total" (hakediş tutarı) sütunları
+- [x] **Kurye Eşleştirme:** Case-insensitive isim eşleştirme
+- [x] **Bonus Hesaplama:** Paket sayısına göre otomatik bonus hesaplama
+- [x] **Frontend:**
+  - Muhasebe → "Toplu Hakediş" sekmesi
+  - Excel dosyası yükleme UI
+  - Eşleşen/Eşleşmeyen kuryeler önizleme modalı
+  - Toplu hakediş uygulama butonu
+- [x] **Entegrasyonlar:**
+  - JetPuan otomatik yükleme
+  - Aktivite log kaydı
+  - Bildirim sistemi
+- [x] **Test Durumu:** %100 (13/13 backend test, tüm frontend testleri)
+
 ## Prioritized Backlog
-- [ ] Toplu Hakediş Girişi (ON HOLD)
+- [x] ~~Toplu Hakediş Girişi~~ (TAMAMLANDI - 19 Ocak 2026)
 - [ ] Dosya depolama çözümü belirleme (Google Drive yerine alternatif)
 - [ ] Backend organizasyonu (utils klasörü oluşturma)
 
