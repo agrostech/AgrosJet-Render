@@ -125,6 +125,23 @@ export default function ProfileModal({ user, open, onOpenChange }) {
             />
           </div>
           
+          {isSuperAdmin && (
+            <div>
+              <Label className="text-sm font-semibold">E-posta Adresi</Label>
+              <Input 
+                data-testid="profile-email"
+                type="email"
+                value={profileData.email} 
+                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} 
+                className="mt-1 h-11 border-2" 
+                placeholder="E-posta bildirimleri için"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Sistem bildirimleri bu adrese gönderilir
+              </p>
+            </div>
+          )}
+          
           <div>
             <Label className="text-sm font-semibold">Yeni Şifre</Label>
             <Input 
