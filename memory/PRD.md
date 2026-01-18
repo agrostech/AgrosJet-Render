@@ -202,6 +202,33 @@ Multi-tenant kurye yönetim sistemi.
 - [x] Tüm tab'lar çalışıyor
 - [x] Sipariş teslim/iptal, Kategori CRUD, Ürün CRUD, Puan ayarları korundu
 
+### Backend jetpuan.py Refactoring (18 Ocak 2026 - YENİ)
+- [x] **608 satır → 395 satır** ana router dosyası (%35 azalma)
+- [x] **Helper fonksiyonlar** `/app/backend/services/jetpuan_service.py`'ye taşındı (157 satır):
+  - `send_jetpuan_notification()`, `get_puan_ratio()`, `credit_points_to_courier()`, `debit_points_from_courier()`
+  - `get_courier_balance()`, `validate_order_stock()`, `deduct_product_stock()`, `restore_product_stock()`
+  - `enrich_orders_with_courier_info()`, `enrich_products_with_category_names()`
+- [x] **Pydantic modelleri** `/app/backend/models/schemas.py`'ye taşındı
+- [x] **%100 test başarısı** (24/24 backend test geçti)
+- [x] Tüm API endpoint'leri korundu ve çalışıyor
+
+### Frontend CourierJetPuanPage.jsx Refactoring (18 Ocak 2026 - YENİ)
+- [x] **600 satır → 180 satır** ana dosya (%70 azalma)
+- [x] **4 yeni bileşen** `/app/frontend/src/components/courier/jetpuan/` klasörüne taşındı:
+  - `MarketTab.jsx` (147 satır) - Ürün listesi ve filtreleme
+  - `HistoryTab.jsx` (67 satır) - Puan geçmişi
+  - `OrdersTab.jsx` (85 satır) - Sipariş geçmişi
+  - `CartModal.jsx` (132 satır) - Sepet modalı
+- [x] Tüm işlevsellik korundu
+
+### Frontend CourierMuhasebePage.jsx Refactoring (18 Ocak 2026 - YENİ)
+- [x] **590 satır → 200 satır** ana dosya (%66 azalma)
+- [x] **3 yeni bileşen** `/app/frontend/src/components/courier/muhasebe/` klasörüne taşındı:
+  - `InstallmentSection.jsx` (72 satır) - Taksitli ürünler bölümü
+  - `TransactionList.jsx` (257 satır) - İşlem tablosu (desktop/mobile)
+  - `InvoiceMessageModal.jsx` (99 satır) - Fatura talep modalı
+- [x] Tüm işlevsellik korundu
+
 ### Backend accounting.py Refactoring (18 Ocak 2026 - YENİ)
 - [x] **786 satır → 650 satır** ana router dosyası (%17 azalma)
 - [x] **Helper fonksiyonlar** `/app/backend/services/accounting_service.py`'ye taşındı (82 satır):
