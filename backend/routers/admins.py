@@ -23,6 +23,7 @@ class SuperAdminCreate(BaseModel):
     username: str
     password: str
     company_id: str
+    email: Optional[str] = None
 
 
 class PermissionUpdate(BaseModel):
