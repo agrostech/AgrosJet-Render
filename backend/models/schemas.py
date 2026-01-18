@@ -102,26 +102,75 @@ class LeaveCreate(BaseModel):
 
 
 # ============ ACCOUNTING MODELS ============
+class BusinessCreate(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+
+class VendorCreate(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+
 class TransactionCreate(BaseModel):
-    type: str  # "credit" or "debit"
+    entity_type: str  # "courier", "business", "vendor"
+    entity_id: str
+    company_id: str
+    type: str  # "payment_in" (ödeme al - tahsil), "payment_out" (ödeme yap - borçlandır)
     amount: float
-    description: Optional[str] = ""
-    date: Optional[str] = None
+    description: Optional[str] = None
+    is_hakedis: Optional[bool] = False
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
+    custom_date: Optional[str] = None
+
+
+class TransactionDeleteRequest(BaseModel):
+    admin_id: str
+    admin_name: str
+
+
+class TransactionUpdateRequest(BaseModel):
+    amount: Optional[float] = None
+    description: Optional[str] = None
+    is_hakedis: Optional[bool] = None
+    admin_id: str
+    admin_name: str
+
+
+class ActivityLogCreate(BaseModel):
+    company_id: str
+    admin_id: str
+    admin_name: str
+    action: str
+    entity_type: str
+    entity_id: str
+    entity_name: str
+    details: Optional[dict] = None
 
 
 class InstallmentProductCreate(BaseModel):
-    product_name: str
-    total_amount: float
-    installment_count: int
+    courier_id: str
+    company_id: str
+    name: str
     installment_amount: float
+    installment_count: int
+    admin_id: str
+    admin_name: str
 
 
 class InstallmentPayment(BaseModel):
     amount: float
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
+
+
+class InstallmentPayRequest(BaseModel):
+    admin_id: str
+    admin_name: str
+    custom_date: Optional[str] = None
 
 
 # ============ ZIMMET MODELS ============
