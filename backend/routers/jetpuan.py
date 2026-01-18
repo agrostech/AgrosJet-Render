@@ -460,6 +460,14 @@ async def create_order(courier_id: str, data: OrderCreate):
     }
     await db.jetpuan_orders.insert_one(order)
     
+    # Send notification for new order
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
+    if courier:
+        # Get company_id from courier relation
+        relation = await db.company_couriers.find_one({"courier_id": courier_id}, {"_id": 0, "company_id": 1})
+        if relation:
+            await send_jetpuan_notification(relation["company_id"], courier["name"], total_points, order["id"])
+    
     return {"message": "Sipariş oluşturuldu", "order_id": order["id"], "total_points": total_points}
 
 @router.put("/orders/{order_id}/deliver")
