@@ -63,7 +63,6 @@ async def create_activity_log(log_data: dict):
         action = log_data.get("action", "")
         entity_name = log_data.get("entity_name", "")
         admin_name = log_data.get("admin_name", "")
-        details = log_data.get("details", {})
         
         # Map action to notification
         notification_map = {
