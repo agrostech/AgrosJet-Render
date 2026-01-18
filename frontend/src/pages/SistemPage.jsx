@@ -283,13 +283,92 @@ export default function SistemPage({ companyId }) {
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
                 <div>
                   <p className="font-medium text-sm">E-posta Bildirimleri</p>
-                  <p className="text-xs text-muted-foreground">Tüm bildirimler e-posta olarak gönderilsin</p>
+                  <p className="text-xs text-muted-foreground">Bildirimleri e-posta olarak gönder</p>
                 </div>
                 <Switch 
                   checked={emailSettings.enabled}
                   onCheckedChange={(checked) => setEmailSettings({...emailSettings, enabled: checked})}
                 />
               </div>
+
+              {/* Notification Types */}
+              {emailSettings.enabled && (
+                <div className="border rounded-lg p-3 md:p-4 space-y-3">
+                  <p className="font-medium text-sm mb-3">Hangi bildirimler için e-posta gönderilsin?</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">💰</span>
+                        <div>
+                          <p className="text-sm font-medium">Muhasebe İşlemleri</p>
+                          <p className="text-xs text-muted-foreground">Hakediş ekleme, güncelleme, silme</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={emailSettings.notify_muhasebe}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_muhasebe: checked})}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📦</span>
+                        <div>
+                          <p className="text-sm font-medium">Zimmet İşlemleri</p>
+                          <p className="text-xs text-muted-foreground">Zimmet atama, geri alma, ürün ekleme</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={emailSettings.notify_zimmet}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_zimmet: checked})}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📄</span>
+                        <div>
+                          <p className="text-sm font-medium">Evrak Yüklemeleri</p>
+                          <p className="text-xs text-muted-foreground">Kurye evrak yüklediğinde</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={emailSettings.notify_evrak}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_evrak: checked})}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🛒</span>
+                        <div>
+                          <p className="text-sm font-medium">Market Siparişleri</p>
+                          <p className="text-xs text-muted-foreground">Yeni JetPuan sipariş geldiğinde</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={emailSettings.notify_jetpuan}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_jetpuan: checked})}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded sm:col-span-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">⚠️</span>
+                        <div>
+                          <p className="text-sm font-medium">Fesih Süreçleri</p>
+                          <p className="text-xs text-muted-foreground">Fesih süresi 3 gün kala ve son gün</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={emailSettings.notify_fesih}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_fesih: checked})}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* SMTP Settings */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
