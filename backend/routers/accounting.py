@@ -541,13 +541,13 @@ async def pay_installment(product_id: str, data: InstallmentPayRequest):
     else:
         tx_date = datetime.now(timezone.utc).isoformat()
     
-    # Create transaction (payment_in = kuryeden alınan = tahsil)
+    # Create transaction (payment_out = kuryeye verilen)
     transaction = {
         "id": str(uuid.uuid4()),
         "entity_type": "courier",
         "entity_id": product["courier_id"],
         "company_id": product["company_id"],
-        "type": "payment_in",  # Kuryeden alınan = tahsil
+        "type": "payment_out",  # Kuryeye verilen
         "amount": product["installment_amount"],
         "description": f"{product['name']} - Taksit {paid_count}/{product['installment_count']}",
         "is_hakedis": False,
