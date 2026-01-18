@@ -446,9 +446,9 @@ export default function GuncelDurumPage({ companyId }) {
                 </div>
                 <p className={`text-lg sm:text-xl font-bold font-mono ${
                   accountingSummary.couriers.balance > 0 
-                    ? 'text-red-600' 
+                    ? 'text-green-600' 
                     : accountingSummary.couriers.balance < 0 
-                      ? 'text-green-600' 
+                      ? 'text-red-600' 
                       : 'text-slate-800'
                 }`}>
                   {accountingSummary.couriers.balance === 0 
@@ -470,9 +470,9 @@ export default function GuncelDurumPage({ companyId }) {
                 </div>
                 <p className={`text-lg sm:text-xl font-bold font-mono ${
                   accountingSummary.businesses.balance > 0 
-                    ? 'text-red-600' 
+                    ? 'text-green-600' 
                     : accountingSummary.businesses.balance < 0 
-                      ? 'text-green-600' 
+                      ? 'text-red-600' 
                       : 'text-slate-800'
                 }`}>
                   {accountingSummary.businesses.balance === 0 
@@ -494,9 +494,9 @@ export default function GuncelDurumPage({ companyId }) {
                 </div>
                 <p className={`text-lg sm:text-xl font-bold font-mono ${
                   accountingSummary.vendors.balance > 0 
-                    ? 'text-red-600' 
+                    ? 'text-green-600' 
                     : accountingSummary.vendors.balance < 0 
-                      ? 'text-green-600' 
+                      ? 'text-red-600' 
                       : 'text-slate-800'
                 }`}>
                   {accountingSummary.vendors.balance === 0 
