@@ -208,32 +208,41 @@ class ZimmetReturn(BaseModel):
 # ============ JETPUAN MODELS ============
 class JetPuanCategoryCreate(BaseModel):
     name: str
-    icon: Optional[str] = "Package"
+
+
+class JetPuanCategoryUpdate(BaseModel):
+    name: Optional[str] = None
 
 
 class JetPuanProductCreate(BaseModel):
     name: str
     description: Optional[str] = ""
-    points_cost: int
-    stock: int = 0
+    price: int  # JetPuan fiyatı
+    stock: int
+    category_id: str
     image_url: Optional[str] = ""
-    category_id: Optional[str] = None
-    is_active: bool = True
 
 
 class JetPuanProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    points_cost: Optional[int] = None
+    price: Optional[int] = None
     stock: Optional[int] = None
-    image_url: Optional[str] = None
     category_id: Optional[str] = None
-    is_active: Optional[bool] = None
+    image_url: Optional[str] = None
+
+
+class JetPuanOrderItem(BaseModel):
+    product_id: str
+    quantity: int
 
 
 class JetPuanOrderCreate(BaseModel):
-    product_id: str
-    quantity: int = 1
+    items: List[JetPuanOrderItem]
+
+
+class JetPuanSettingsUpdate(BaseModel):
+    puan_per_100tl: float
 
 
 class JetPuanPointsAdjust(BaseModel):
