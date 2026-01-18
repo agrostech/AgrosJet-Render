@@ -60,6 +60,8 @@ const NOTIFICATION_ICONS = {
   zimmet_hareket: Package,
   jetpuan_siparis: ShoppingBag,
   evrak_yuklendi: FileText,
+  invoice_uploaded: FileText,
+  fatura_eksik: AlertTriangle,
   fesih_3_gun: AlertTriangle,
   fesih_yarin: AlertTriangle,
 };
@@ -69,6 +71,8 @@ const NOTIFICATION_COLORS = {
   zimmet_hareket: "text-purple-600 bg-purple-100",
   jetpuan_siparis: "text-amber-600 bg-amber-100",
   evrak_yuklendi: "text-green-600 bg-green-100",
+  invoice_uploaded: "text-green-600 bg-green-100",
+  fatura_eksik: "text-orange-600 bg-orange-100",
   fesih_3_gun: "text-orange-600 bg-orange-100",
   fesih_yarin: "text-red-600 bg-red-100",
 };
