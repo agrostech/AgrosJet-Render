@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 
@@ -12,6 +12,7 @@ import CourierMuhasebePage from "./courier/CourierMuhasebePage";
 import CourierZimmetPage from "./courier/CourierZimmetPage";
 import CourierEvraklarPage from "./courier/CourierEvraklarPage";
 import CourierJetPuanPage from "./courier/CourierJetPuanPage";
+import CourierAkademiPage from "./courier/CourierAkademiPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
