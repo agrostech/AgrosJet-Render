@@ -1,134 +1,49 @@
-import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { toast } from "sonner";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { X, Clock, Pencil, Check, Users } from "lucide-react";
+import { PageLoading } from "@/components/ui/loading-spinner";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { X, Clock, Trash2, UserPlus, Pencil, Check, Users } from "lucide-react";
-import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-const DAYS = [
-  { key: "pazartesi", label: "Pzt", shortLabel: "Pt" },
-  { key: "sali", label: "Sal", shortLabel: "Sa" },
-  { key: "carsamba", label: "Çar", shortLabel: "Ça" },
-  { key: "persembe", label: "Per", shortLabel: "Pe" },
-  { key: "cuma", label: "Cum", shortLabel: "Cu" },
-  { key: "cumartesi", label: "Cmt", shortLabel: "Ct" },
-  { key: "pazar", label: "Paz", shortLabel: "Pa" },
-];
+  useVardiyaData,
+  ShiftGrid,
+  AddShiftModal,
+  AssignCourierModal,
+  AddLeaveModal,
+  BulkAssignModal,
+} from "@/components/vardiya";
 
 export default function VardiyaPage({ companyId }) {
-  const [shifts, setShifts] = useState([]);
-  const [assignments, setAssignments] = useState([]);
-  const [leaves, setLeaves] = useState([]);
-  const [couriers, setCouriers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
   const [showAddShiftModal, setShowAddShiftModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
-  const [newShift, setNewShift] = useState({ start_time: "", end_time: "" });
-  // Toplu seçim için state
-  const [selectedCells, setSelectedCells] = useState([]); // [{shiftId, day}]
   const [bulkAssigning, setBulkAssigning] = useState(false);
-  const [ctrlPressed, setCtrlPressed] = useState(false);
 
-  // Ctrl tuşu takibi
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Control' || e.key === 'Meta') {
-        setCtrlPressed(true);
-      }
-    };
-    const handleKeyUp = (e) => {
-      if (e.key === 'Control' || e.key === 'Meta') {
-        setCtrlPressed(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [shiftsRes, assignmentsRes, leavesRes, couriersRes] = await Promise.all([
-        axios.get(`${API}/companies/${companyId}/shifts`),
-        axios.get(`${API}/companies/${companyId}/shift-assignments`),
-        axios.get(`${API}/companies/${companyId}/leaves`),
-        axios.get(`${API}/companies/${companyId}/couriers`),
-      ]);
-      setShifts(shiftsRes.data);
-      setAssignments(assignmentsRes.data);
-      setLeaves(leavesRes.data);
-      setCouriers(couriersRes.data);
-    } catch (err) {
-      toast.error("Veriler yüklenemedi");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (companyId) fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId]);
-
-  const handleAddShift = async (e) => {
-    e.preventDefault();
-    if (!newShift.start_time || !newShift.end_time) {
-      toast.error("Başlangıç ve bitiş saati gerekli");
-      return;
-    }
-    try {
-      const shiftName = `${newShift.start_time} - ${newShift.end_time}`;
-      await axios.post(`${API}/companies/${companyId}/shifts`, {
-        name: shiftName,
-        start_time: newShift.start_time,
-        end_time: newShift.end_time,
-        company_id: companyId
-      });
-      toast.success("Vardiya eklendi");
-      setShowAddShiftModal(false);
-      setNewShift({ start_time: "", end_time: "" });
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Vardiya eklenemedi");
-    }
-  };
-
-  const handleDeleteShift = async (shiftId) => {
-    if (!window.confirm("Bu vardiyayı silmek istediğinize emin misiniz?")) return;
-    try {
-      await axios.delete(`${API}/shifts/${shiftId}`);
-      toast.success("Vardiya silindi");
-      fetchData();
-    } catch (err) {
-      toast.error("Vardiya silinemedi");
-    }
-  };
+  const {
+    shifts,
+    couriers,
+    loading,
+    editMode,
+    setEditMode,
+    selectedCells,
+    ctrlPressed,
+    handleAddShift,
+    handleDeleteShift,
+    handleAssignCourier,
+    handleRemoveAssignment,
+    handleAddLeave,
+    handleRemoveLeave,
+    handleBulkAssign,
+    isCellSelected,
+    toggleCellSelection,
+    clearSelection,
+    getAssignmentsForCell,
+    getLeavesForDay,
+    getAvailableCouriersForShift,
+    getAvailableCouriersForLeave,
+    getAvailableCouriersForBulkAssign,
+  } = useVardiyaData(companyId);
 
   const openAssignModal = (shift, day) => {
     setSelectedShift(shift);
@@ -141,160 +56,43 @@ export default function VardiyaPage({ companyId }) {
     setShowLeaveModal(true);
   };
 
-  const handleAssignCourier = async (courierId) => {
-    try {
-      await axios.post(`${API}/shifts/${selectedShift.id}/assign`, {
-        courier_id: courierId,
-        day: selectedDay
-      });
-      toast.success("Kurye atandı");
-      setShowAssignModal(false);
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Atama başarısız");
-    }
-  };
-
-  const handleRemoveAssignment = async (assignmentId) => {
-    try {
-      await axios.delete(`${API}/shift-assignments/${assignmentId}`);
-      toast.success("Kurye çıkarıldı");
-      fetchData();
-    } catch (err) {
-      toast.error("İşlem başarısız");
-    }
-  };
-
-  const handleAddLeave = async (courierId) => {
-    try {
-      await axios.post(`${API}/companies/${companyId}/leaves`, {
-        courier_id: courierId,
-        day: selectedDay
-      });
-      toast.success("İzin eklendi");
-      setShowLeaveModal(false);
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İzin eklenemedi");
-    }
-  };
-
-  const handleRemoveLeave = async (leaveId) => {
-    try {
-      await axios.delete(`${API}/leaves/${leaveId}`);
-      toast.success("İzin kaldırıldı");
-      fetchData();
-    } catch (err) {
-      toast.error("İşlem başarısız");
-    }
-  };
-
-  const getAssignmentsForCell = (shiftId, day) => {
-    return assignments.filter(a => a.shift_id === shiftId && a.day === day);
-  };
-
-  const getLeavesForDay = (day) => {
-    return leaves.filter(l => l.day === day);
-  };
-
-  const getAvailableCouriersForShift = (day) => {
-    const assignedIds = assignments
-      .filter(a => a.shift_id === selectedShift?.id && a.day === day)
-      .map(a => a.courier_id);
-    return couriers.filter(c => !assignedIds.includes(c.id));
-  };
-
-  const getAvailableCouriersForLeave = (day) => {
-    const onLeaveIds = leaves.filter(l => l.day === day).map(l => l.courier_id);
-    return couriers.filter(c => !onLeaveIds.includes(c.id));
-  };
-
-  // Toplu seçim fonksiyonları
-  const isCellSelected = (shiftId, day) => {
-    return selectedCells.some(c => c.shiftId === shiftId && c.day === day);
-  };
-
   const handleCellClick = (e, shiftId, day) => {
     if (!editMode) return;
     
-    // Ctrl veya Cmd tuşu basılı ise toplu seçim modunda
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
-      setSelectedCells(prev => {
-        const exists = prev.some(c => c.shiftId === shiftId && c.day === day);
-        if (exists) {
-          // Zaten seçili ise kaldır
-          return prev.filter(c => !(c.shiftId === shiftId && c.day === day));
-        } else {
-          // Seçili değilse ekle
-          return [...prev, { shiftId, day }];
-        }
-      });
+      toggleCellSelection(shiftId, day);
     } else {
-      // Normal tıklama - tek kurye ekleme modalı aç
       const shift = shifts.find(s => s.id === shiftId);
       openAssignModal(shift, day);
     }
   };
 
-  const clearSelection = () => {
-    setSelectedCells([]);
-  };
-
-  const handleBulkAssign = async (courierId) => {
-    if (selectedCells.length === 0) return;
-    
-    setBulkAssigning(true);
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const cell of selectedCells) {
-      try {
-        await axios.post(`${API}/shifts/${cell.shiftId}/assign`, {
-          courier_id: courierId,
-          day: cell.day
-        });
-        successCount++;
-      } catch (err) {
-        failCount++;
-      }
-    }
-
-    setBulkAssigning(false);
-    setShowBulkAssignModal(false);
-    clearSelection();
-    fetchData();
-
-    if (successCount > 0) {
-      toast.success(`${successCount} vardiyaya kurye atandı`);
-    }
-    if (failCount > 0) {
-      toast.error(`${failCount} vardiyaya atama başarısız (zaten atanmış olabilir)`);
-    }
-  };
-
-  const getAvailableCouriersForBulkAssign = useCallback(() => {
-    // Tüm seçili hücrelerde zaten atanmış olan kuryeleri bul
-    const assignedInAllCells = new Set();
-    
-    selectedCells.forEach(cell => {
-      const cellAssignments = assignments.filter(
-        a => a.shift_id === cell.shiftId && a.day === cell.day
-      );
-      cellAssignments.forEach(a => assignedInAllCells.add(a.courier_id));
+  const onAssignCourier = (courierId) => {
+    handleAssignCourier(selectedShift.id, courierId, selectedDay, () => {
+      setShowAssignModal(false);
     });
+  };
 
-    // Tüm kuryeleri döndür (zaten atanmış olanları işaretle)
-    return couriers.map(c => ({
-      ...c,
-      alreadyAssignedSomewhere: assignedInAllCells.has(c.id)
-    }));
-  }, [selectedCells, assignments, couriers]);
+  const onAddLeave = (courierId) => {
+    handleAddLeave(courierId, selectedDay, () => {
+      setShowLeaveModal(false);
+    });
+  };
+
+  const onBulkAssign = async (courierId) => {
+    setBulkAssigning(true);
+    await handleBulkAssign(courierId, () => {
+      setShowBulkAssignModal(false);
+    });
+    setBulkAssigning(false);
+  };
 
   if (loading) return <PageLoading />;
 
   return (
     <div data-testid="admin-vardiya-page">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
         <h2 className="font-heading text-xl font-bold tracking-tight">Vardiya Yönetimi</h2>
         <div className="flex gap-2 flex-wrap">
@@ -349,10 +147,11 @@ export default function VardiyaPage({ companyId }) {
       )}
       {editMode && ctrlPressed && (
         <div className="mb-3 p-2 bg-green-50 border border-green-300 rounded text-[10px] sm:text-xs text-green-700 font-medium">
-          🎯 <strong>Toplu Seçim</strong> - Seçili: {selectedCells.length}
+          <strong>Toplu Seçim</strong> - Seçili: {selectedCells.length}
         </div>
       )}
 
+      {/* Grid veya Boş State */}
       {shifts.length === 0 ? (
         <div className="border-2 border-border p-8 bg-white text-center">
           <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -362,337 +161,55 @@ export default function VardiyaPage({ companyId }) {
           </Button>
         </div>
       ) : (
-        <div className="border-2 border-border bg-white overflow-x-auto">
-          <Table className="text-xs">
-            <TableHeader>
-              <TableRow className="border-b-2 border-primary">
-                <TableHead className="font-bold text-[10px] sm:text-xs min-w-[50px] sm:min-w-[70px] md:min-w-[90px] bg-slate-200 p-1 sm:p-2 border-r-2 border-slate-400">
-                  <span className="hidden sm:inline">Vardiya</span>
-                  <span className="sm:hidden">V</span>
-                </TableHead>
-                {DAYS.map((day, index) => (
-                  <TableHead 
-                    key={day.key} 
-                    className={`font-bold text-[10px] sm:text-xs min-w-[38px] sm:min-w-[70px] md:min-w-[100px] text-center p-1 sm:p-2 border-r border-slate-300 
-                      ${index % 2 === 0 ? 'bg-blue-100 text-blue-800' : 'bg-amber-50 text-amber-800'}`}
-                  >
-                    <span className="hidden sm:inline">{day.label}</span>
-                    <span className="sm:hidden">{day.shortLabel}</span>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shifts.map((shift, shiftIndex) => {
-                const isEvenRow = shiftIndex % 2 === 0;
-                const rowBgClass = isEvenRow ? 'bg-slate-50' : 'bg-white';
-                return (
-                <TableRow key={shift.id} className={`border-b border-border ${rowBgClass}`}>
-                  <TableCell className={`font-semibold p-1 sm:p-2 text-[9px] sm:text-xs border-r-2 border-slate-400 ${isEvenRow ? 'bg-slate-200' : 'bg-slate-100'}`}>
-                    <div className="flex items-center gap-0.5 sm:gap-1">
-                      <span className="whitespace-nowrap text-[8px] sm:text-[10px] md:text-xs">
-                        <span className="hidden sm:inline">{shift.start_time}-{shift.end_time}</span>
-                        <span className="sm:hidden">{shift.start_time?.slice(0,5)}<br/>{shift.end_time?.slice(0,5)}</span>
-                      </span>
-                      {editMode && !ctrlPressed && (
-                        <button
-                          onClick={() => handleDeleteShift(shift.id)}
-                          className="text-red-500 hover:text-red-700 ml-0.5 sm:ml-1"
-                          title="Vardiyayı Sil"
-                        >
-                          <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </TableCell>
-                  {DAYS.map((day, dayIndex) => {
-                    const cellAssignments = getAssignmentsForCell(shift.id, day.key);
-                    const isEvenColumn = dayIndex % 2 === 0;
-                    const courierCount = cellAssignments.length;
-                    const isSelected = isCellSelected(shift.id, day.key);
-                    // Satır ve sütun renklerini birleştir - daha belirgin renkler
-                    const cellBg = isSelected 
-                      ? 'bg-green-100' 
-                      : isEvenColumn 
-                        ? (isEvenRow ? 'bg-blue-100/80' : 'bg-blue-50/60')
-                        : (isEvenRow ? 'bg-amber-100/60' : 'bg-amber-50/40');
-                    return (
-                      <TableCell 
-                        key={day.key} 
-                        className={`p-0.5 sm:p-1 align-top border-r border-slate-300 transition-all
-                          ${cellBg}
-                          ${isSelected ? 'ring-2 ring-green-500 ring-inset' : ''}
-                          ${editMode ? 'cursor-pointer hover:bg-blue-200' : ''}
-                          ${ctrlPressed && editMode ? 'hover:ring-2 hover:ring-green-400 hover:ring-inset' : ''}
-                        `}
-                        onClick={(e) => handleCellClick(e, shift.id, day.key)}
-                      >
-                        <div className="min-h-[24px] sm:min-h-[32px]">
-                          {/* Seçim göstergesi */}
-                          {isSelected && (
-                            <div className="flex justify-end mb-0.5">
-                              <span className="text-[6px] sm:text-[8px] bg-green-500 text-white px-0.5 sm:px-1 rounded">✓</span>
-                            </div>
-                          )}
-                          {courierCount === 0 ? (
-                            // Boş hücre - Ctrl basılı DEĞİLSE + butonu göster
-                            editMode && !isSelected && !ctrlPressed && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); openAssignModal(shift, day.key); }}
-                                className="w-full text-[8px] sm:text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
-                                data-testid={`assign-${shift.id}-${day.key}`}
-                              >
-                                +
-                              </button>
-                            )
-                          ) : (
-                            <div className="space-y-0.5">
-                              {/* Kurye sayısı badge */}
-                              <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
-                                <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded ${courierCount > 0 ? 'bg-blue-200 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
-                                  <span className="hidden sm:inline">{courierCount} kişi</span>
-                                  <span className="sm:hidden">{courierCount}</span>
-                                </span>
-                              </div>
-                              {/* Scrollable kurye listesi */}
-                              <div className="max-h-[40px] sm:max-h-[60px] overflow-y-auto space-y-0.5 scrollbar-thin">
-                                {cellAssignments.map(a => (
-                                  <div key={a.id} className="flex items-center justify-between bg-blue-50/80 px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-[9px] group">
-                                    <span className="font-medium truncate max-w-[30px] sm:max-w-none" title={a.courier_name}>{a.courier_name}</span>
-                                    {editMode && !ctrlPressed && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleRemoveAssignment(a.id); }}
-                                        className="text-red-500 hover:text-red-700 ml-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100"
-                                      >
-                                        <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
-                                      </button>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                              {/* Ctrl basılı DEĞİLSE + butonu göster */}
-                              {editMode && !isSelected && !ctrlPressed && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); openAssignModal(shift, day.key); }}
-                                  className="w-full text-[8px] sm:text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300 mt-0.5"
-                                  data-testid={`assign-${shift.id}-${day.key}`}
-                                >
-                                  +
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-              })}
-              {/* İzinliler Satırı */}
-              <TableRow className="border-t-2 border-orange-300 bg-orange-50/50">
-                <TableCell className="font-semibold p-1 sm:p-2 text-[9px] sm:text-xs text-orange-700 bg-orange-200 border-r-2 border-orange-400">
-                  <span className="hidden sm:inline">İzinliler</span>
-                  <span className="sm:hidden">İzin</span>
-                </TableCell>
-                {DAYS.map((day, dayIndex) => {
-                  const dayLeaves = getLeavesForDay(day.key);
-                  const isEvenColumn = dayIndex % 2 === 0;
-                  return (
-                    <TableCell 
-                      key={day.key} 
-                      className={`p-0.5 sm:p-1 align-top border-r border-orange-200 ${isEvenColumn ? 'bg-orange-100/60' : 'bg-orange-50/60'}`}
-                    >
-                      <div className="min-h-[24px] sm:min-h-[32px] space-y-0.5">
-                        {dayLeaves.map(l => (
-                          <div key={l.id} className="flex items-center justify-between bg-orange-200 px-0.5 sm:px-1.5 py-0.5 rounded text-[7px] sm:text-[10px] group">
-                            <span className="font-medium truncate max-w-[30px] sm:max-w-none">{l.courier_name}</span>
-                            {editMode && !ctrlPressed && (
-                              <button
-                                onClick={() => handleRemoveLeave(l.id)}
-                                className="text-red-500 hover:text-red-700 ml-0.5 sm:ml-1"
-                              >
-                                <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        {editMode && !ctrlPressed && (
-                          <button
-                            onClick={() => openLeaveModal(day.key)}
-                            className="w-full text-[8px] sm:text-[9px] text-orange-600 hover:bg-orange-100 py-0.5 rounded border border-dashed border-orange-300"
-                            data-testid={`add-leave-${day.key}`}
-                          >
-                            +
-                          </button>
-                        )}
-                      </div>
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+        <ShiftGrid
+          shifts={shifts}
+          editMode={editMode}
+          ctrlPressed={ctrlPressed}
+          isCellSelected={isCellSelected}
+          getAssignmentsForCell={getAssignmentsForCell}
+          getLeavesForDay={getLeavesForDay}
+          onCellClick={handleCellClick}
+          onDeleteShift={handleDeleteShift}
+          onRemoveAssignment={handleRemoveAssignment}
+          onRemoveLeave={handleRemoveLeave}
+          onOpenAssignModal={openAssignModal}
+          onOpenLeaveModal={openLeaveModal}
+        />
       )}
 
-      {/* Vardiya Ekle Modal */}
-      <Dialog open={showAddShiftModal} onOpenChange={setShowAddShiftModal}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Yeni Vardiya</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddShift} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-sm font-semibold">Giriş</Label>
-                <Input
-                  type="time"
-                  value={newShift.start_time}
-                  onChange={(e) => setNewShift({ ...newShift, start_time: e.target.value })}
-                  className="mt-1 h-10 border-2"
-                  required
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Çıkış</Label>
-                <Input
-                  type="time"
-                  value={newShift.end_time}
-                  onChange={(e) => setNewShift({ ...newShift, end_time: e.target.value })}
-                  className="mt-1 h-10 border-2"
-                  required
-                />
-              </div>
-            </div>
-            <Button type="submit" className="w-full h-10 font-semibold" data-testid="submit-shift">
-              Ekle
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Modals */}
+      <AddShiftModal
+        open={showAddShiftModal}
+        onOpenChange={setShowAddShiftModal}
+        onSubmit={handleAddShift}
+      />
 
-      {/* Kurye Ata Modal */}
-      <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-base">
-              {selectedShift?.start_time}-{selectedShift?.end_time} / {DAYS.find(d => d.key === selectedDay)?.label}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-            {getAvailableCouriersForShift(selectedDay).length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">Atanabilecek kurye yok</p>
-            ) : (
-              getAvailableCouriersForShift(selectedDay).map(courier => (
-                <button
-                  key={courier.id}
-                  onClick={() => handleAssignCourier(courier.id)}
-                  className="w-full flex items-center justify-between p-2 border border-border rounded hover:bg-slate-50 hover:border-primary transition-colors text-sm"
-                  data-testid={`select-courier-${courier.id}`}
-                >
-                  <div className="text-left">
-                    <p className="font-semibold">{courier.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-mono">{courier.plate}</p>
-                  </div>
-                  <UserPlus className="w-4 h-4 text-muted-foreground" />
-                </button>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AssignCourierModal
+        open={showAssignModal}
+        onOpenChange={setShowAssignModal}
+        shift={selectedShift}
+        day={selectedDay}
+        availableCouriers={selectedShift ? getAvailableCouriersForShift(selectedShift.id, selectedDay) : []}
+        onAssign={onAssignCourier}
+      />
 
-      {/* İzin Ekle Modal */}
-      <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-base">
-              {DAYS.find(d => d.key === selectedDay)?.label} - İzin Ekle
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-            {getAvailableCouriersForLeave(selectedDay).length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">İzin eklenebilecek kurye yok</p>
-            ) : (
-              getAvailableCouriersForLeave(selectedDay).map(courier => (
-                <button
-                  key={courier.id}
-                  onClick={() => handleAddLeave(courier.id)}
-                  className="w-full flex items-center justify-between p-2 border border-border rounded hover:bg-orange-50 hover:border-orange-400 transition-colors text-sm"
-                  data-testid={`select-leave-courier-${courier.id}`}
-                >
-                  <div className="text-left">
-                    <p className="font-semibold">{courier.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-mono">{courier.plate}</p>
-                  </div>
-                  <UserPlus className="w-4 h-4 text-muted-foreground" />
-                </button>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AddLeaveModal
+        open={showLeaveModal}
+        onOpenChange={setShowLeaveModal}
+        day={selectedDay}
+        availableCouriers={getAvailableCouriersForLeave(selectedDay)}
+        onAddLeave={onAddLeave}
+      />
 
-      {/* Toplu Kurye Atama Modal */}
-      <Dialog open={showBulkAssignModal} onOpenChange={setShowBulkAssignModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-base flex items-center gap-2">
-              <Users className="w-5 h-5 text-green-600" />
-              Toplu Kurye Atama
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
-            <strong>{selectedCells.length} vardiya</strong> seçildi. Aşağıdan bir kurye seçerek tüm vardiyalara atayın.
-          </div>
-          <div className="mb-2 text-xs text-muted-foreground">
-            Seçili vardiyalar:
-            <div className="flex flex-wrap gap-1 mt-1">
-              {selectedCells.map((cell, idx) => {
-                const shift = shifts.find(s => s.id === cell.shiftId);
-                const dayLabel = DAYS.find(d => d.key === cell.day)?.label;
-                return (
-                  <span key={idx} className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">
-                    {shift?.start_time}-{shift?.end_time} / {dayLabel}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-          <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-            {bulkAssigning ? (
-              <div className="text-center py-8">
-                <LoadingSpinner size="default" text="Kuryeler atanıyor..." />
-              </div>
-            ) : couriers.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4 text-sm">Kurye bulunamadı</p>
-            ) : (
-              getAvailableCouriersForBulkAssign().map(courier => (
-                <button
-                  key={courier.id}
-                  onClick={() => handleBulkAssign(courier.id)}
-                  className={`w-full flex items-center justify-between p-2 border rounded transition-colors text-sm
-                    ${courier.alreadyAssignedSomewhere 
-                      ? 'border-orange-300 bg-orange-50 hover:bg-orange-100' 
-                      : 'border-border hover:bg-green-50 hover:border-green-400'
-                    }`}
-                  data-testid={`bulk-select-courier-${courier.id}`}
-                >
-                  <div className="text-left">
-                    <p className="font-semibold">{courier.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-mono">{courier.plate}</p>
-                    {courier.alreadyAssignedSomewhere && (
-                      <p className="text-[9px] text-orange-600">Bazı vardiyalarda zaten atanmış</p>
-                    )}
-                  </div>
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                </button>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <BulkAssignModal
+        open={showBulkAssignModal}
+        onOpenChange={setShowBulkAssignModal}
+        selectedCells={selectedCells}
+        shifts={shifts}
+        couriers={getAvailableCouriersForBulkAssign()}
+        bulkAssigning={bulkAssigning}
+        onBulkAssign={onBulkAssign}
+      />
     </div>
   );
 }
