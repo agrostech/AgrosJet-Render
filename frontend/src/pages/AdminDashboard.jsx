@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
@@ -19,6 +20,8 @@ import AkademiPage from "./AkademiPage";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import ProfileModal from "@/components/admin/ProfileModal";
 
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,8 +29,19 @@ export default function AdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [badges, setBadges] = useState({});
 
   useSessionCheck();
+
+  // Fetch pending orders count for badge
+  const fetchBadges = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/jetpuan/orders/pending-count`);
+      setBadges(prev => ({ ...prev, jetpuan: res.data.count }));
+    } catch (err) {
+      console.error("Badge fetch error:", err);
+    }
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -41,7 +55,12 @@ export default function AdminDashboard() {
       return;
     }
     setUser(parsed);
-  }, [navigate]);
+    
+    // Fetch badges initially and every 30 seconds
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 30000);
+    return () => clearInterval(interval);
+  }, [navigate, fetchBadges]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
