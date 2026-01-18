@@ -68,6 +68,7 @@ export default function SistemPage({ companyId }) {
   useEffect(() => {
     fetchCompanyInfo();
     fetchGoogleSettings();
+    fetchEmailSettings();
     
     // Check for OAuth callback results
     const params = new URLSearchParams(window.location.search);
