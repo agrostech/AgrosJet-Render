@@ -247,8 +247,8 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
         )}
 
         {/* Transaction History */}
-        <div className="p-4 bg-slate-50 border-b border-border">
-          <h3 className="font-semibold">İşlem Geçmişi ({totalCount})</h3>
+        <div className="p-3 sm:p-4 bg-slate-50 border-b border-border">
+          <h3 className="font-semibold text-sm sm:text-base">İşlem Geçmişi ({totalCount})</h3>
         </div>
         
         {transactions.length === 0 ? (
@@ -257,7 +257,8 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50">
                   <tr>
@@ -338,6 +339,83 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card List */}
+            <div className="sm:hidden divide-y divide-border">
+              {transactions.map((tx) => {
+                const invoice = invoices[tx.id];
+                const hasInvoice = !!invoice;
+                const showUploadButton = tx.is_hakedis && !hasInvoice;
+                
+                return (
+                  <div key={tx.id} className="p-3 hover:bg-slate-50">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-mono text-muted-foreground">
+                            {formatDate(tx.created_at)}
+                          </span>
+                          {tx.is_hakedis && (
+                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
+                              Hakediş
+                            </span>
+                          )}
+                          {tx.installment_product_id && (
+                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
+                              Taksit
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm mt-0.5 truncate">{tx.description || '-'}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className={`font-mono font-semibold text-sm ${
+                          tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
+                        </p>
+                        <div className="mt-1">
+                          {showUploadButton ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUploadClick(tx.id)}
+                              disabled={uploadingFor === tx.id}
+                              className="h-6 text-[10px] gap-1 px-2"
+                            >
+                              <Upload className="w-3 h-3" />
+                              Fatura
+                            </Button>
+                          ) : hasInvoice ? (
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDownloadInvoice(invoice.id)}
+                                className="h-6 w-6 p-0 text-green-600"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                              </Button>
+                              {canDeleteInvoice(invoice) && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteInvoice(invoice.id)}
+                                  className="h-6 w-6 p-0 text-red-500"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
             </div>
             
             {hasMore && (
