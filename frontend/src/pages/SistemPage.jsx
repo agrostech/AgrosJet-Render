@@ -83,7 +83,12 @@ export default function SistemPage({ companyId }) {
           smtp_password: res.data.smtp_password_masked || "",
           from_email: res.data.from_email || "",
           from_name: res.data.from_name || "ShiftJet",
-          enabled: res.data.enabled !== false
+          enabled: res.data.enabled !== false,
+          notify_muhasebe: res.data.notify_muhasebe !== false,
+          notify_zimmet: res.data.notify_zimmet !== false,
+          notify_evrak: res.data.notify_evrak !== false,
+          notify_jetpuan: res.data.notify_jetpuan !== false,
+          notify_fesih: res.data.notify_fesih !== false
         });
         setEmailStatus({ exists: true });
       }
