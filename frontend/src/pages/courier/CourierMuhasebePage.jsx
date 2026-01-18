@@ -202,48 +202,58 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
           </div>
         </div>
 
-        {/* Taksitli Ürünler */}
+        {/* Taksitli Ürünler - Collapsible */}
         {installmentProducts.length > 0 && (
           <div className="border-b-2 border-border">
-            <div className="p-4 bg-slate-50 flex items-center justify-between">
+            <button 
+              onClick={() => setInstallmentsExpanded(!installmentsExpanded)}
+              className="w-full p-3 sm:p-4 bg-slate-50 flex items-center justify-between hover:bg-slate-100 transition-colors"
+            >
               <div className="flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-purple-600" />
-                <h3 className="font-semibold">Taksitli Ürünler</h3>
+                <h3 className="font-semibold text-sm sm:text-base">Taksitli Ürünler</h3>
+                {totalRemainingInstallments > 0 && (
+                  <span className="text-[10px] sm:text-xs bg-purple-100 text-purple-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium">
+                    {totalRemainingInstallments} taksit
+                  </span>
+                )}
               </div>
-              {totalRemainingInstallments > 0 && (
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
-                  {totalRemainingInstallments} taksit kaldı
-                </span>
+              {installmentsExpanded ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
               )}
-            </div>
-            <div className="divide-y divide-border">
-              {installmentProducts.map((product) => (
-                <div key={product.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatMoney(product.installment_amount)} x {product.installment_count} = {formatMoney(product.total_amount)}
-                      </p>
+            </button>
+            {installmentsExpanded && (
+              <div className="divide-y divide-border">
+                {installmentProducts.map((product) => (
+                  <div key={product.id} className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm truncate">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatMoney(product.installment_amount)} x {product.installment_count}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-semibold text-purple-600">
+                          {product.installment_count - product.remaining_installments}/{product.installment_count}
+                        </p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">
+                          Kalan: {formatMoney(product.total_amount - product.paid_amount)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-purple-600">
-                        {product.installment_count - product.remaining_installments} / {product.installment_count}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Kalan: {formatMoney(product.total_amount - product.paid_amount)}
-                      </p>
+                    <div className="mt-2 bg-slate-200 rounded-full h-1.5 sm:h-2">
+                      <div 
+                        className="bg-purple-600 h-1.5 sm:h-2 rounded-full transition-all"
+                        style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="mt-2 bg-slate-200 rounded-full h-2">
-                    <div 
-                      className="bg-purple-600 h-2 rounded-full transition-all"
-                      style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
