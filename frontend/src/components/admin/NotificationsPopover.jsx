@@ -81,12 +81,23 @@ export default function NotificationsPopover({ companyId }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const prevUnreadCount = useRef(0);
+  const isFirstLoad = useRef(true);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!companyId) return;
     try {
       const res = await axios.get(`${API}/notifications/company/${companyId}/unread-count`);
-      setUnreadCount(res.data.count);
+      const newCount = res.data.count;
+      
+      // Play sound if new notifications arrived (not on first load)
+      if (!isFirstLoad.current && newCount > prevUnreadCount.current) {
+        playNotificationSound();
+      }
+      
+      prevUnreadCount.current = newCount;
+      isFirstLoad.current = false;
+      setUnreadCount(newCount);
     } catch (err) {
       console.error("Bildirim sayısı alınamadı");
     }
