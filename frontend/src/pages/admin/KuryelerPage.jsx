@@ -207,6 +207,29 @@ export default function KuryelerPage({ companyId }) {
     }
   };
 
+  const handleDeactivateCourier = async (courierId) => {
+    if (!window.confirm("Bu kuryeyi pasife almak istediğinize emin misiniz?")) return;
+    try {
+      await axios.put(`${API}/companies/${companyId}/couriers/${courierId}/deactivate`);
+      toast.success("Kurye pasife alındı");
+      fetchCouriers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const handleActivateCourier = async (courierId) => {
+    try {
+      await axios.put(`${API}/companies/${companyId}/couriers/${courierId}/activate`);
+      toast.success("Kurye aktife alındı");
+      fetchCouriers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const couriers = activeTab === "active" ? activeCouriers : inactiveCouriers;
+  
   const filteredCouriers = couriers.filter(c => {
     if (!filterQuery.trim()) return true;
     const query = filterQuery.toLowerCase();
