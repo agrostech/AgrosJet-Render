@@ -116,6 +116,18 @@ async def upload_invoice(
         {"$set": {"invoice_id": invoice["id"]}}
     )
     
+    # Create notification for admin
+    notification = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "type": "invoice_uploaded",
+        "message": f"{courier_name} hakediş faturası yükledi",
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "link": f"/admin/muhasebe"
+    }
+    await db.notifications.insert_one(notification)
+    
     return {
         "message": "Fatura başarıyla yüklendi",
         "invoice_id": invoice["id"],
