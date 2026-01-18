@@ -221,31 +221,37 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
             {/* Ödeme Formu */}
             {!showArchived && (
               <div className="p-3 border-b-2 border-border bg-white flex-shrink-0">
-                <div className="flex flex-wrap items-end gap-2">
-                  <div className="w-24">
-                    <Label className="text-xs font-semibold mb-1 block">Tutar</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      onWheel={(e) => e.target.blur()}
-                      className="h-10 border-2 font-mono"
-                      placeholder="0.00"
-                      data-testid="amount-input"
-                    />
+                {/* Mobilde alt alta, masaüstünde yan yana */}
+                <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-end sm:gap-2">
+                  {/* Tutar ve Açıklama - mobilde tam genişlik */}
+                  <div className="flex gap-2">
+                    <div className="flex-1 sm:w-24 sm:flex-none">
+                      <Label className="text-xs font-semibold mb-1 block">Tutar</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        onWheel={(e) => e.target.blur()}
+                        className="h-10 border-2 font-mono"
+                        placeholder="0.00"
+                        data-testid="amount-input"
+                      />
+                    </div>
+                    <div className="flex-1 sm:w-32 sm:flex-none">
+                      <Label className="text-xs font-semibold mb-1 block">Açıklama</Label>
+                      <Input
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="h-10 border-2"
+                        placeholder="İsteğe bağlı"
+                        data-testid="description-input"
+                      />
+                    </div>
                   </div>
-                  <div className="w-32">
-                    <Label className="text-xs font-semibold mb-1 block">Açıklama</Label>
-                    <Input
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      className="h-10 border-2"
-                      placeholder="İsteğe bağlı"
-                      data-testid="description-input"
-                    />
-                  </div>
-                  <div className="flex items-center gap-1">
+                  
+                  {/* Tarih butonu */}
+                  <div className="flex items-center">
                     <Button
                       variant="outline"
                       size="sm"
@@ -253,7 +259,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                         if (!useCustomDate) setTxDate(getLocalDateTimeString());
                         setUseCustomDate(!useCustomDate);
                       }}
-                      className={`h-10 px-2 border-2 ${useCustomDate ? 'bg-orange-50 border-orange-300' : ''}`}
+                      className={`h-10 px-3 border-2 ${useCustomDate ? 'bg-orange-50 border-orange-300' : ''}`}
                       title="Özel tarih seç"
                       data-testid="custom-date-toggle"
                     >
@@ -261,22 +267,27 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                       <span className="ml-1 text-xs">{getDateDisplayText()}</span>
                     </Button>
                   </div>
-                  <Button onClick={() => handlePayment("out")} disabled={submitting} className="h-10 bg-red-600 hover:bg-red-700" data-testid="payment-out-btn">
-                    <Minus className="w-4 h-4 mr-1" />
-                    Verilen
-                  </Button>
-                  <Button onClick={() => handlePayment("in")} disabled={submitting} className="h-10 bg-green-600 hover:bg-green-700" data-testid="payment-in-btn">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Alınan
-                  </Button>
+                  
+                  {/* Butonlar - mobilde tam genişlik ve yan yana */}
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button onClick={() => handlePayment("in")} disabled={submitting} className="flex-1 sm:flex-none h-10 bg-green-600 hover:bg-green-700" data-testid="payment-in-btn">
+                      <Plus className="w-4 h-4 mr-1" />
+                      Alınan
+                    </Button>
+                    <Button onClick={() => handlePayment("out")} disabled={submitting} className="flex-1 sm:flex-none h-10 bg-red-600 hover:bg-red-700" data-testid="payment-out-btn">
+                      <Minus className="w-4 h-4 mr-1" />
+                      Verilen
+                    </Button>
+                  </div>
                 </div>
+                
                 {useCustomDate && (
                   <div className="mt-2">
                     <Input
                       type="datetime-local"
                       value={txDate}
                       onChange={(e) => setTxDate(e.target.value)}
-                      className="h-9 border-2 text-sm w-auto"
+                      className="h-9 border-2 text-sm w-full sm:w-auto"
                       data-testid="custom-date-input"
                     />
                   </div>
