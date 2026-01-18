@@ -58,6 +58,7 @@ export default function AdminDashboard() {
     { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet" },
+    { path: "/admin/jetpuan", label: "JetPuan Market", icon: ShoppingBag, key: "jetpuan" },
     { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler" },
     { path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler" },
     { path: "/admin/sistem", label: "Sistem", icon: SlidersHorizontal, key: "sistem" },
