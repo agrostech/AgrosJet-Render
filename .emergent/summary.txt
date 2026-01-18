@@ -13,157 +13,152 @@ The user wants to build a comprehensive courier management system from scratch c
     *   **Activity Logs (Hareketler):** A log of all major financial and system operations.
     *   **Assigned Items (Zimmet):** A system to track items assigned to couriers.
     *   **Installment Products (Taksitli Ürün):** A system within accounting to track and pay for products in installments for couriers.
-    *   **System Page:** A new section for future system-wide settings.
+    *   **System Page (Sistem):** A new section for system-wide settings, now including company information and integration settings.
     *   **Courier Dashboard:** A read-only dashboard for couriers to view their own shifts, accounting, and assigned items.
-    *   **Invoice Management:** A system for couriers to upload invoices for payroll transactions, and for admins to manage, review, and download them.
-    *   **Termination Process:** A feature for admins to initiate a formal termination period for couriers.
-    *   **Document Management (Evraklar):** A new section for couriers to upload required documents (contract, ID, license, etc.) and for admins to review, manage, and download them.
-    *   **Loyalty Points System (JetPuan Market):** A points-based e-commerce system where couriers earn points from payroll and spend them on products. Admins manage the store.
-    *   **Notification System (Bildirimler):** A real-time notification system for admins for critical events, complete with a UI popover and sound alerts.
+    *   **Invoice Management:** A system for couriers to upload invoices and for admins to manage them. Includes a Request Invoice feature that generates a pre-filled WhatsApp message.
+    *   **Termination Process (Fesih):** A feature for admins to initiate a formal termination period for couriers.
+    *   **Document Management (Evraklar):** A section for couriers to upload required documents and for admins to manage them.
+    *   **Loyalty Points System (JetPuan Market):** A points-based e-commerce system.
+    *   **Notification System (Bildirimler):** A real-time notification system for admins, now including alerts for invoice uploads and missing invoices.
+    *   **Google Integration (New):** Integration with Google Drive for file storage and Gmail for email notifications.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A comprehensive full-stack application (FastAPI + React) for courier management. This session saw the completion and testing of the Fesih (Termination) feature. Following this, several major new features were built from the ground up: a Evraklar (Documents) management system for couriers to upload required files and admins to manage them; a JetPuan Market loyalty points system with a mini e-commerce store for couriers; and a real-time Bildirimler (Notifications) system for admins. Numerous UI/UX fixes were implemented based on iterative user feedback. The application is stable and the newly developed features have been tested. The last request was a UI improvement for mobile devices.
+A comprehensive, full-stack courier management application. The current session focused heavily on mobile responsiveness. A large number of pages, including , ,  (all tabs), , , and various modals, were refactored to provide a better user experience on small screens.
+
+Additionally, several new features and improvements were implemented based on user requests:
+*   A Request Invoice feature that generates a pre-filled WhatsApp message for couriers.
+*   The Company model was expanded to include invoice details, with a corresponding settings form added to the Sistem page for admins.
+*   The notification system was enhanced to alert admins about newly uploaded invoices and payroll transactions that are missing an invoice after 24 hours.
+*   The company logo is now displayed on the courier dashboard.
+*   Various minor UI/UX bugs and inconsistencies reported by the user were fixed.
+
+The application is stable, and the agent has just begun the initial planning for Google Drive and Gmail integration.
 
 **Last working item**:
-- Last item agent was working: The user requested to make the shift assignment page () more compact and usable on mobile devices, as the current grid layout is too wide. The agent has viewed the file but has not started implementation.
+- Last item agent was working: The agent is starting the implementation of Google Drive and Gmail integration as requested by the user. The user wants to auto-upload documents/invoices to Drive and send notifications via Gmail. The agent has used the  subagent to retrieve playbooks for both integrations and is formulating a plan to implement them, starting with creating a settings UI for API keys on the Sistem page.
 - Status: NOT STARTED
 - Agent Testing Done: N
-- Which testing method agent to use? screenshot tool. The agent should verify that the desktop view remains unchanged while the mobile view is improved.
+- Which testing method agent to use? backend testing agent. The agent should start by implementing the backend logic and test API endpoints for Google authentication and file upload/email sending. Frontend testing can follow once the UI is built.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
 - None.
 
 **In progress Task List**:
-- **Task 1: Make Shift Page Mobile-Friendly (P0)**
-    - **Where to resume**: The agent needs to edit . The goal is to apply responsive design principles (e.g., using Tailwind CSS responsive prefixes like , , ) to create a more compact view for the shift grid on small screens without breaking the existing desktop layout.
-    - **What will be achieved with this?**: A more user-friendly experience for admins managing shifts on mobile devices.
-    - **Status**: NOT STARTED
-    - **Should Test frontend/backend/both after fix?**: Frontend
+- **Task 1: Implement Google Drive and Gmail Integration (P0)**
+    - **Where to resume**: The agent has the integration playbooks. The next step is to create a UI on the  for the user to input their Google API credentials (Client ID, Client Secret, etc.). Following that, the agent needs to implement the backend logic for OAuth2 flow (for Drive) and SMTP/API calls (for Gmail), and then integrate these into the existing document upload and notification flows.
+    - **What will be achieved with this?**: The application will be able to automatically upload courier documents and invoices to a designated Google Drive folder and send system notifications (e.g., missing invoice alerts) via the user's Gmail account.
+    - **Status**: IN PROGRESS
+    - **Should Test frontend/backend/both after fix?**: Both
     - **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
     - **P1: Bulk Payroll Entry (Toplu hakediş girme):** This feature for the Accounting module is on hold, pending a decision from the user.
 - **Future Tasks:**
-    - **P2: Add Features to Sistem Page:** This is a placeholder page waiting for feature requirements.
+    - **P2: Add Features to Sistem Page:** This page can be expanded with more system-wide settings beyond company info and integrations.
     - **P2: Move Pydantic Models:** The backend Pydantic models are currently defined within their respective router files. They should be moved to a dedicated  directory for better organization.
     - **P2: Enhance Güncel Durum Page:** Add more informational cards as previously requested by the user.
 
 **Completed work in this session**
-- **Feature: Evraklar (Documents) System:**
-  - Implemented a complete system for couriers to upload required documents and for admins to view, delete, and download them as a single ZIP file. Added Araç Ruhsatı (Vehicle License) as a new required document type based on user feedback.
-- **Feature: JetPuan Market System:**
-  - Built a full loyalty points system. Couriers earn JetPuan automatically from payroll transactions, which they can spend in a mini e-commerce store.
-  - Admins can manage product categories, products (with stock), view orders, and configure the point conversion rate.
-  - Implemented logic to automatically deduct points if the associated payroll transaction is deleted.
-- **Feature: Bildirim (Notification) System:**
-  - Created a real-time notification system for admins, accessible from the Güncel Durum page.
-  - Notifications are generated for new JetPuan orders, document uploads, accounting/asset logs, and courier termination warnings.
-  - The system includes a popover UI, an unread-count badge, and an audible sound alert for new notifications, with real-time updates via polling.
-- **UI/UX Refinements:**
-  - Redesigned the JetPuan Market tabs (for both admin and courier) to match the style of the Muhasebe page.
-  - Reordered tabs on Admin and Courier pages as per user request.
-  - Added a Manual JetPuan Adjustment card for admins.
-  - Made the notification popover responsive for mobile devices.
-  - Adjusted the notification sound based on user feedback.
-- **Testing:**
-  - The Evraklar and JetPuan Market features were successfully validated using the testing agent.
+- **Major Mobile Responsiveness Overhaul:**
+  - : Made the shift grid compact and usable on mobile.
+  - : Implemented a collapsible courier list for shifts and a responsive layout for accounting summary cards.
+  -  (all tabs): Replaced tables with card layouts, refactored transaction forms, and fixed header layouts for mobile.
+  - : Fixed numerous layout, overflow, and alignment issues across all sub-tabs for mobile.
+  - : Implemented a 2-column grid for products on mobile.
+  - : Converted the transaction history table to a card list on mobile, eliminating horizontal scroll.
+  - : Made all Shadcn modals responsive to prevent full-screen takeover on mobile.
+- **Feature: Invoice Request via WhatsApp:**
+  - Added a Talep Et button for couriers on payroll items, which opens WhatsApp with a pre-filled message including company invoice details and the payroll amount.
+- **Feature: Company Invoice Information:**
+  - Extended the  model in the backend () to store invoice-related data (TCKN, address, etc.).
+  - Created a form on the  for admins to manage this information.
+- **Feature: Enhanced Notifications:**
+  - Implemented a backend job and notification type to alert admins if a payroll transaction lacks an invoice for more than a day ().
+  - Added a notification trigger when a courier successfully uploads an invoice ().
+- **UI/UX Improvements:**
+  - Added the company logo to the courier dashboard header and sidebar ().
+  - Fixed the pagination limit for the Load More button on the courier accounting page.
+  - Made the installment products section on the courier accounting page collapsible.
+  - Corrected the display of installment payment logs in the Hareketler tab.
 
 **Earlier issues found/mentioned but not fixed**
-   - None.
+- None.
 
 **Known issue recurrence from previous fork**
-  - None.
+- None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Real-time UI Updates:** Implemented a dynamic notification system using  for polling, window focus event listeners for instant refresh, and the Web Audio API for client-side sound generation without external assets.
-- **File Management & ZIP Archiving:** Created backend logic to handle multiple file uploads, store them persistently, and dynamically generate a ZIP archive for bulk download using Python's  and  modules.
-- **Modular Feature Development:** Followed the user's request to build each new feature (Documents, JetPuan, Notifications) in separate, self-contained files for both frontend and backend to improve maintainability.
-- **State-driven UI:** The visibility of the Evraklar tab for couriers is now driven by the completion status of their document uploads, disappearing once all documents are submitted and reappearing if an admin deletes one.
+- **Responsive Design:** Extensive use of Tailwind CSS responsive prefixes (, , ) to adapt complex layouts (grids, tables, forms) for mobile devices. This includes using /, changing grid columns, and using / to switch between different components (e.g., table vs. card list).
+- **Collapsible UI:** Implemented collapsible sections using React state () to manage visibility, improving UI compactness on mobile.
+- **External URL Schemes:** Used the  protocol to create a Send via WhatsApp feature that opens the app with a pre-filled message.
+- **Dynamic Feature Integration:** Seamlessly added new backend fields ( model) and connected them to a new frontend settings form (), then used that data in another feature ().
+- **Scheduled/Triggered Logic:** Implemented a backend endpoint that is called from the frontend to check for time-sensitive conditions (invoices not uploaded within a day) and generate notifications.
 
 **key DB schema**
-- ** (New):** 
-- ** (New):** 
-- **, , , ,  (New):** Collections to manage the entire loyalty market system.
-- ** (New):** 
-- ** (Modified):** Added  to link a payroll entry to its corresponding JetPuan transaction, allowing for automatic reversal.
-
-**changes in tech stack**
-- None.
+- ** (Modified):** Added optional fields for invoicing: .
+- All other schemas remain as per the previous handoff.
 
 **All files of reference**
-*   : Target file for the next task (mobile optimization).
-*   : Backend for the new Document Management feature.
-*   : Backend for the new JetPuan Market feature.
-*   : Backend for the new Notification System.
-*   : Admin UI for the JetPuan market.
-*   : Courier UI for the JetPuan market.
-*   : UI component for displaying notifications.
-*   : Modified to integrate JetPuan creation/deletion with payroll transactions.
+- : This will be the location for the new Google integration settings UI.
+- : The company model was updated here.
+- : Contains the new Request Invoice feature.
+- : Contains the new logic for missing invoice alerts.
+- , , : Key examples of the extensive mobile responsive work completed.
 
 **Areas that need refactoring**:
 - The Pydantic models are still defined within their respective router files. This is a known backlog item for improving code organization.
 
 **key api endpoints**
-- **Documents (New):**
-    - : Checks completion status of a courier's documents.
-    - : Uploads a document file.
-    - : Downloads all of a courier's documents as a ZIP file.
-- **JetPuan Market (New):**
-    - : Create/update products.
-    - : Place a new order using points.
-    - : Manually add or remove points from a courier.
-    - : Get/update the point conversion ratio.
-- **Notifications (New):**
-    - : Fetches notifications for the admin.
-    - : Gets the count of unread notifications for the badge.
-    - : Marks a single notification as read.
+- ** (Modified):** Now accepts new invoice-related fields (, , etc.).
+- ** (New):** A GET endpoint that triggers a check for payroll transactions older than 24 hours without an invoice and creates notifications if any are found.
 
 **Critical Info for New Agent**
-- Your immediate priority is the user's request to make the shift management page () mobile-friendly. This is a UI/UX task that should not affect backend logic.
-- The user is very hands-on with design and provides specific, iterative feedback. Be prepared for quick adjustments after showing the result.
-- Follow the established pattern of creating new, separate files for any significant new functionality, as this is explicitly preferred by the user.
+- Your immediate and highest priority task is to implement the Google Drive and Gmail integration. The user has explicitly requested this and is waiting for it. Start by building the settings UI on the Sistem page for API key entry.
+- The user is highly engaged and provides frequent, specific feedback, often including screenshots. Expect to work in an iterative cycle of implementing a change and then getting feedback.
+- The user is now doing their own testing for mobile UI changes. For the Google integration, you will need to perform backend testing first.
+- The codebase has been significantly improved for mobile responsiveness. Maintain this pattern for any new UI you build.
 
 **documents and test reports created in this job**
 -  (Updated)
-- 
-- 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requested to make the shift page () more compact and usable on mobile devices. **(IN PROGRESS)**
-2.  **User:** Requested to make the notification popover mobile-friendly by adding margins. **(Completed)**
-3.  **User:** Preferred the original, more subtle notification sound after trying a louder one. **(Completed)**
-4.  **User:** Requested a more attention-grabbing notification sound. **(Completed & Reverted)**
-5.  **User:** Provided the frontend compile error log showing  was declared twice. **(Completed)**
-6.  **User:** Requested an audible sound alert when a new notification arrives. **(Completed)**
-7.  **User:** Requested that notifications update dynamically without requiring a page refresh. **(Completed)**
-8.  **User:** Requested the creation of the new Notification System. **(Completed)**
-9.  **User:** Specified the tab order for the courier's JetPuan market page should be Market → Siparişlerim → Puan Geçmişi. **(Completed)**
-10. **User:** Requested the removal of the header icon from the admin's JetPuan Market page. **(Completed)**
+1.  **User:** Asks if Google Drive/Workspace/Gmail integration is possible. **(Answered)**
+2.  **User:** Specifies they want (a) auto-upload to Drive and (b) notifications via Gmail, and asks the agent to proceed. **(In Progress)**
+3.  **User:** Requests a settings card on the Sistem tab for any needed API keys for the integration. **(In Progress)**
+4.  **User:** Requests to change the WhatsApp button to a more professional Talep Et (Request) button. **(Completed)**
+5.  **User:** Asks to remove the preview card from the company settings form. **(Completed)**
+6.  **User:** Asks to change the title on the company settings page. **(Completed)**
+7.  **User:** Asks to change the invoice message button from Copy to Send via WhatsApp. **(Completed)**
+8.  **User:** Provides an error log () after the agent added the System page form. **(Completed)**
+9.  **User:** Specifies where the admin should enter the new company invoice information. **(Completed)**
+10. **User:** Requests a button to generate a pre-filled invoice request message for couriers. **(Completed)**
 
 **Project Health Check:**
-- **Broken:** None.
+- **Broken:** None. The app is stable.
 - **Mocked:** The Toplu hakediş girme (Bulk Payroll Entry) feature remains on hold by user request.
 
 **3rd Party Integrations**
 -   : Used for generating PDF reports.
 -   : Used for icons.
+-   : **(PENDING)** For automatic document/invoice uploads.
+-   : **(PENDING)** For sending email notifications.
 
 **Testing status**
-  - Testing agent used after significant changes: YES
-  - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: []
-  - Known regressions: None.
+- Testing agent used after significant changes: NO (Agent performed extensive manual testing with screenshots, and the user also verified changes.)
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: []
+- Known regressions: None.
 
 **Credentials to test flow:**
 -   **Super Admin:** , 
 -   **Courier:** , 
 
 **What agent forgot to execute**
-- The agent has successfully addressed all user requests from this session. The pending backlog items (like Pydantic model refactoring) have not been forgotten but are lower priority than the user's direct, immediate requests.</analysis>
+- The agent has successfully addressed all user requests and has a clear path for the next major task. No items were forgotten.</analysis>
