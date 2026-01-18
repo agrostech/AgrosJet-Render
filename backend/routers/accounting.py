@@ -339,6 +339,13 @@ async def delete_transaction(transaction_id: str, data: TransactionDeleteRequest
         vendor = await db.vendors.find_one({"id": transaction["entity_id"]})
         entity_name = vendor["name"] if vendor else "Bilinmeyen Cari"
     
+    # If this was a hakediş transaction for a courier, debit JetPuan
+    if transaction["entity_type"] == "courier" and transaction.get("is_hakedis") and transaction["type"] == "payment_out":
+        try:
+            await calculate_and_debit_points(transaction["entity_id"], transaction["amount"])
+        except Exception as e:
+            print(f"JetPuan debit failed: {e}")
+    
     await db.transactions.delete_one({"id": transaction_id})
     
     if data and data.admin_id and data.admin_name:
