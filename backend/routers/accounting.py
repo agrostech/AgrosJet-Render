@@ -284,16 +284,7 @@ async def delete_transaction(transaction_id: str, data: TransactionDeleteRequest
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
     
     # Get entity name for log
-    entity_name = ""
-    if transaction["entity_type"] == "courier":
-        courier = await db.couriers.find_one({"id": transaction["entity_id"]})
-        entity_name = courier["name"] if courier else "Bilinmeyen Kurye"
-    elif transaction["entity_type"] == "business":
-        business = await db.businesses.find_one({"id": transaction["entity_id"]})
-        entity_name = business["name"] if business else "Bilinmeyen İşletme"
-    elif transaction["entity_type"] == "vendor":
-        vendor = await db.vendors.find_one({"id": transaction["entity_id"]})
-        entity_name = vendor["name"] if vendor else "Bilinmeyen Cari"
+    entity_name = await get_entity_name(transaction["entity_type"], transaction["entity_id"])
     
     # If this was a hakediş transaction for a courier, debit JetPuan
     if transaction["entity_type"] == "courier" and transaction.get("is_hakedis") and transaction["type"] == "payment_out":
