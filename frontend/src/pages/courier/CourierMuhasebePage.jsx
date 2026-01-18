@@ -369,16 +369,17 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
                         </td>
                         <td className="p-3 text-center">
                           <div className="flex items-center justify-center gap-1">
-                            {/* Fatura Mesajı Butonu - Desktop */}
+                            {/* Fatura Talep Butonu - Desktop */}
                             {showUploadButton && companyInfo && (
                               <Button
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
                                 onClick={() => openInvoiceMessageModal(tx.amount)}
-                                className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                title="Fatura Mesajı Oluştur"
+                                className="h-7 text-xs gap-1"
+                                title="Fatura Talep Et"
                               >
-                                <MessageSquare className="w-4 h-4" />
+                                <Send className="w-3 h-3" />
+                                Talep
                               </Button>
                             )}
                             {showUploadButton ? (
