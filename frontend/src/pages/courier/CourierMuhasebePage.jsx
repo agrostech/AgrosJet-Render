@@ -93,13 +93,68 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     }
   };
 
+  const fetchCompanyInfo = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}`);
+      setCompanyInfo(res.data);
+    } catch (err) {
+      console.error("Şirket bilgisi alınamadı");
+    }
+  };
+
   useEffect(() => {
     if (courierId) {
       fetchTransactions();
       fetchInstallmentProducts();
       fetchInvoices();
     }
-  }, [courierId]);
+    if (companyId) {
+      fetchCompanyInfo();
+    }
+  }, [courierId, companyId]);
+
+  const generateInvoiceMessage = (amount) => {
+    if (!companyInfo) return "";
+    
+    const mondayDate = getMondayDate();
+    
+    return `Merhaba, hizmet vermiş olduğum şirket için fatura kesmem gerekiyor. Yardımcı olur musunuz?
+
+FATURA BİLGİLERİ
+
+Kesilecek Firma:
+${companyInfo.name}
+${companyInfo.tckn_vkn ? `TCKN/VKN: ${companyInfo.tckn_vkn}` : ''}
+${companyInfo.address ? `Adres: ${companyInfo.address}` : ''}
+${companyInfo.tax_office ? `Vergi Dairesi: ${companyInfo.tax_office}` : ''}
+${companyInfo.email ? `E-posta: ${companyInfo.email}` : ''}
+
+Fatura Tarihi: ${mondayDate} (Hafta Pazartesi)
+Hizmet: Kurye Hizmeti
+
+FATURA TUTARI: ${formatMoney(amount)} (KDV DAHİL)
+
+Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
+  };
+
+  const openInvoiceMessageModal = (amount) => {
+    setSelectedHakedisAmount(amount);
+    setCopied(false);
+    setShowInvoiceMessageModal(true);
+  };
+
+  const copyToClipboard = async () => {
+    const message = generateInvoiceMessage(selectedHakedisAmount);
+    try {
+      await navigator.clipboard.writeText(message);
+      setCopied(true);
+      toast.success("Mesaj kopyalandı!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Kopyalama başarısız");
+    }
+  };
 
   const loadMore = () => {
     setLoadingMore(true);
