@@ -197,16 +197,7 @@ async def delete_vendor(vendor_id: str):
 @router.post("/transactions")
 async def create_transaction(data: TransactionCreate):
     """Create a new transaction"""
-    if data.custom_date:
-        try:
-            tx_date = datetime.fromisoformat(data.custom_date.replace('Z', '+00:00'))
-            if tx_date.tzinfo is None:
-                tx_date = tx_date.replace(tzinfo=timezone.utc)
-            created_at = tx_date.isoformat()
-        except Exception:
-            created_at = datetime.now(timezone.utc).isoformat()
-    else:
-        created_at = datetime.now(timezone.utc).isoformat()
+    created_at = parse_custom_date(data.custom_date)
     
     transaction = {
         "id": str(uuid.uuid4()),
@@ -222,16 +213,7 @@ async def create_transaction(data: TransactionCreate):
     await db.transactions.insert_one(transaction)
     
     # Get entity name for log
-    entity_name = ""
-    if data.entity_type == "courier":
-        courier = await db.couriers.find_one({"id": data.entity_id})
-        entity_name = courier["name"] if courier else "Bilinmeyen Kurye"
-    elif data.entity_type == "business":
-        business = await db.businesses.find_one({"id": data.entity_id})
-        entity_name = business["name"] if business else "Bilinmeyen İşletme"
-    elif data.entity_type == "vendor":
-        vendor = await db.vendors.find_one({"id": data.entity_id})
-        entity_name = vendor["name"] if vendor else "Bilinmeyen Cari"
+    entity_name = await get_entity_name(data.entity_type, data.entity_id)
     
     # Create activity log
     if data.admin_id and data.admin_name:
