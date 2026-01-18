@@ -190,3 +190,14 @@ Multi-tenant kurye yönetim sistemi.
 - [x] **%100 test başarısı** (38/38 test geçti)
 - [x] Tüm işlevsellik korundu
 - [x] Custom hooks ile veri yönetimi ayrıldı
+
+### JetPuanMarketPage.jsx Refactoring (18 Ocak 2026 - YENİ)
+- [x] **933 satır → 114 satır** ana dosya
+- [x] **5 yeni bileşen dosyası** oluşturuldu (`/app/frontend/src/components/jetpuan/`):
+  - `OrdersTab.jsx` (145 satır) - Siparişler sekmesi
+  - `CategoriesTab.jsx` (165 satır) - Kategoriler sekmesi
+  - `JetPuanProductsTab.jsx` (269 satır) - Ürünler sekmesi
+  - `SettingsTab.jsx` (269 satır) - Ayarlar sekmesi
+  - `index.js` (5 satır) - Export'lar
+- [x] Tüm tab'lar çalışıyor
+- [x] Sipariş teslim/iptal, Kategori CRUD, Ürün CRUD, Puan ayarları korundu
