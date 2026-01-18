@@ -311,12 +311,15 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
 
       {/* Toplu Hakediş Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" aria-describedby="bulk-hakedis-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-blue-600" />
               Toplu Hakediş Önizleme
             </DialogTitle>
+            <p id="bulk-hakedis-description" className="sr-only">
+              Excel dosyasından okunan kurye hakedişlerini gözden geçirin ve onaylayın
+            </p>
           </DialogHeader>
 
           {parseResult && (
