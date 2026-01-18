@@ -228,94 +228,109 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
         </div>
       </div>
 
-      {/* Haftalık Bonus Ayarları Kartı */}
-      <div className="border-2 border-border bg-white">
-        <div className="p-4 border-b-2 border-border bg-slate-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-amber-100">
-              <Gift className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <h3 className="font-heading font-bold">Haftalık Bonus Ayarları</h3>
-              <p className="text-sm text-muted-foreground">Paket sayısına göre bonus kuralları</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Kural Ekleme Formu */}
-        <form onSubmit={handleAddRule} className="p-4 border-b border-border bg-slate-50/50">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[120px]">
-              <Label className="text-xs font-semibold mb-1 block">Min. Paket Sayısı</Label>
-              <div className="relative">
-                <Package className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="number"
-                  value={newRule.min_packets}
-                  onChange={(e) => setNewRule({ ...newRule, min_packets: e.target.value })}
-                  onWheel={(e) => e.target.blur()}
-                  placeholder="100"
-                  className="pl-10 h-10 border-2"
-                  data-testid="bonus-min-packets"
-                />
-              </div>
-            </div>
-            <div className="flex-1 min-w-[120px]">
-              <Label className="text-xs font-semibold mb-1 block">Bonus Tutarı (TL)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={newRule.amount}
-                onChange={(e) => setNewRule({ ...newRule, amount: e.target.value })}
-                onWheel={(e) => e.target.blur()}
-                placeholder="500"
-                className="h-10 border-2 font-mono"
-                data-testid="bonus-amount"
-              />
-            </div>
-            <Button type="submit" disabled={adding} className="h-10" data-testid="add-bonus-rule">
-              <Plus className="w-4 h-4 mr-1" />
-              {adding ? "..." : "Ekle"}
-            </Button>
-          </div>
-        </form>
-
-        {/* Kurallar Listesi */}
-        <div className="divide-y divide-border">
-          {rules.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground">
-              <Gift className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p>Henüz bonus kuralı eklenmemiş</p>
-            </div>
-          ) : (
-            rules.map((rule) => (
-              <div key={rule.id} className="p-3 flex items-center justify-between hover:bg-slate-50">
+      {/* Haftalık Bonus Ayarları Kartı - Collapsible */}
+      <Collapsible open={bonusSettingsOpen} onOpenChange={setBonusSettingsOpen}>
+        <div className="border-2 border-border bg-white">
+          <CollapsibleTrigger asChild>
+            <button className="w-full p-4 border-b-2 border-border bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                    <Package className="w-5 h-5 text-amber-600" />
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-amber-100">
+                    <Gift className="w-5 h-5 text-amber-600" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-sm">
-                      <span className="text-amber-600">{rule.min_packets}+</span> paket
+                  <div className="text-left">
+                    <h3 className="font-heading font-bold">Haftalık Bonus Ayarları</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {rules.length > 0 ? `${rules.length} kural tanımlı` : "Paket sayısına göre bonus kuralları"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-lg font-bold text-green-600 font-mono">{formatMoney(rule.amount)}</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteRule(rule.id)}
-                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                {bonusSettingsOpen ? (
+                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                )}
               </div>
-            ))
-          )}
+            </button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            {/* Kural Ekleme Formu */}
+            <form onSubmit={handleAddRule} className="p-4 border-b border-border bg-slate-50/50">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex-1 min-w-[120px]">
+                  <Label className="text-xs font-semibold mb-1 block">Min. Paket Sayısı</Label>
+                  <div className="relative">
+                    <Package className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      value={newRule.min_packets}
+                      onChange={(e) => setNewRule({ ...newRule, min_packets: e.target.value })}
+                      onWheel={(e) => e.target.blur()}
+                      placeholder="100"
+                      className="pl-10 h-10 border-2"
+                      data-testid="bonus-min-packets"
+                    />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-[120px]">
+                  <Label className="text-xs font-semibold mb-1 block">Bonus Tutarı (TL)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={newRule.amount}
+                    onChange={(e) => setNewRule({ ...newRule, amount: e.target.value })}
+                    onWheel={(e) => e.target.blur()}
+                    placeholder="500"
+                    className="h-10 border-2 font-mono"
+                    data-testid="bonus-amount"
+                  />
+                </div>
+                <Button type="submit" disabled={adding} className="h-10" data-testid="add-bonus-rule">
+                  <Plus className="w-4 h-4 mr-1" />
+                  {adding ? "..." : "Ekle"}
+                </Button>
+              </div>
+            </form>
+
+            {/* Kurallar Listesi */}
+            <div className="divide-y divide-border">
+              {rules.length === 0 ? (
+                <div className="p-6 text-center text-muted-foreground">
+                  <Gift className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p>Henüz bonus kuralı eklenmemiş</p>
+                </div>
+              ) : (
+                rules.map((rule) => (
+                  <div key={rule.id} className="p-3 flex items-center justify-between hover:bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                        <Package className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">
+                          <span className="text-amber-600">{rule.min_packets}+</span> paket
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold text-green-600 font-mono">{formatMoney(rule.amount)}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteRule(rule.id)}
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CollapsibleContent>
         </div>
-      </div>
+      </Collapsible>
 
       {/* Toplu Hakediş Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
