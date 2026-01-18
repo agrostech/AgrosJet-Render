@@ -40,14 +40,18 @@ export function useZimmetData(companyId, adminId, adminName) {
     try {
       const res = await axios.get(`${API}/companies/${companyId}/product-types`);
       setProductTypes(res.data);
-    } catch (err) {}
+    } catch (err) {
+      console.error("Ürün tipleri yüklenemedi", err);
+    }
   }, [companyId]);
 
   const fetchCouriers = useCallback(async () => {
     try {
       const res = await axios.get(`${API}/companies/${companyId}/couriers`);
       setCouriers(res.data.filter(c => !c.is_archived));
-    } catch (err) {}
+    } catch (err) {
+      console.error("Kuryeler yüklenemedi", err);
+    }
   }, [companyId]);
 
   const fetchLogs = useCallback(async (append = false) => {
@@ -61,14 +65,18 @@ export function useZimmetData(companyId, adminId, adminName) {
       }
       setTotalLogs(res.data.total_count);
       setHasMoreLogs(res.data.has_more);
-    } catch (err) {}
+    } catch (err) {
+      console.error("Loglar yüklenemedi", err);
+    }
   }, [companyId, logs.length]);
 
   const fetchProductHistory = useCallback(async (productId) => {
     try {
       const res = await axios.get(`${API}/products/${productId}/history`);
       setProductHistory(res.data);
-    } catch (err) {}
+    } catch (err) {
+      console.error("Ürün geçmişi yüklenemedi", err);
+    }
   }, []);
 
   // Load more functions
