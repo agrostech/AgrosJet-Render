@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 
 // Page components
@@ -13,6 +13,7 @@ import KuryelerPage from "./admin/KuryelerPage";
 import YoneticilerPage from "./admin/YoneticilerPage";
 import SistemPage from "./SistemPage";
 import JetPuanMarketPage from "./JetPuanMarketPage";
+import AkademiPage from "./AkademiPage";
 
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
