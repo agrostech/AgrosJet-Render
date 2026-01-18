@@ -57,6 +57,34 @@ async def create_activity_log(log_data: dict):
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.activity_logs.insert_one(log)
+    
+    # Create notification for activity log
+    try:
+        action = log_data.get("action", "")
+        entity_name = log_data.get("entity_name", "")
+        admin_name = log_data.get("admin_name", "")
+        details = log_data.get("details", {})
+        
+        # Map action to notification
+        notification_map = {
+            "transaction_created": ("muhasebe_hareket", "Yeni İşlem", f"{admin_name} tarafından {entity_name} için yeni işlem eklendi."),
+            "transaction_deleted": ("muhasebe_hareket", "İşlem Silindi", f"{admin_name} tarafından {entity_name} için işlem silindi."),
+            "transaction_updated": ("muhasebe_hareket", "İşlem Güncellendi", f"{admin_name} tarafından {entity_name} için işlem güncellendi."),
+        }
+        
+        if action in notification_map:
+            notif_type, title, message = notification_map[action]
+            await create_notification(
+                company_id=log_data.get("company_id"),
+                notification_type=notif_type,
+                title=title,
+                message=message,
+                entity_type=log_data.get("entity_type"),
+                entity_id=log_data.get("entity_id")
+            )
+    except Exception as e:
+        print(f"Notification creation failed: {e}")
+    
     return log
 
 
