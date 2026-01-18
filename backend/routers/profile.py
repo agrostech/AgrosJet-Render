@@ -13,6 +13,7 @@ router = APIRouter(prefix="/api", tags=["Profile"])
 class ProfileUpdate(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
+    email: Optional[str] = None  # Only for superadmin
     current_password: str  # Mevcut şifre doğrulaması için
 
 
