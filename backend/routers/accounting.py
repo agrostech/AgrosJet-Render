@@ -228,7 +228,7 @@ async def create_transaction(data: TransactionCreate):
             if tx_date.tzinfo is None:
                 tx_date = tx_date.replace(tzinfo=timezone.utc)
             created_at = tx_date.isoformat()
-        except:
+        except Exception:
             created_at = datetime.now(timezone.utc).isoformat()
     else:
         created_at = datetime.now(timezone.utc).isoformat()
