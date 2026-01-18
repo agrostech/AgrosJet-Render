@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   const company = user.company;
 
   const NAV_ITEMS = [
-    { path: "/admin", label: "Güncel Durum", icon: LayoutDashboard, key: "guncel" },
+    { path: "/admin", label: "Anasayfa", icon: LayoutDashboard, key: "guncel" },
     { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet" },
