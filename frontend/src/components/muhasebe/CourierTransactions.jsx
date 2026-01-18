@@ -59,7 +59,7 @@ export default function CourierTransactions({
             <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
               <p className="text-[10px] sm:text-xs text-muted-foreground">Bakiye</p>
               <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : ''}`}>
-                {balance === 0 ? '0 TL' : balance > 0 ? `-${formatMoney(balance)}` : formatMoney(balance)}
+                {balance === 0 ? '0 TL' : balance > 0 ? `${formatMoney(balance)}` : formatMoney(balance)}
               </p>
             </div>
           </div>

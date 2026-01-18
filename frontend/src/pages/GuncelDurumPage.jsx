@@ -454,7 +454,7 @@ export default function GuncelDurumPage({ companyId }) {
                   {accountingSummary.couriers.balance === 0 
                     ? '0 TL' 
                     : accountingSummary.couriers.balance > 0 
-                      ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.couriers.balance)} TL`
+                      ? `${new Intl.NumberFormat('tr-TR').format(accountingSummary.couriers.balance)} TL`
                       : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.couriers.balance))} TL`
                   }
                 </p>
@@ -478,7 +478,7 @@ export default function GuncelDurumPage({ companyId }) {
                   {accountingSummary.businesses.balance === 0 
                     ? '0 TL' 
                     : accountingSummary.businesses.balance > 0 
-                      ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.businesses.balance)} TL`
+                      ? `${new Intl.NumberFormat('tr-TR').format(accountingSummary.businesses.balance)} TL`
                       : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.businesses.balance))} TL`
                   }
                 </p>
@@ -502,7 +502,7 @@ export default function GuncelDurumPage({ companyId }) {
                   {accountingSummary.vendors.balance === 0 
                     ? '0 TL' 
                     : accountingSummary.vendors.balance > 0 
-                      ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.vendors.balance)} TL`
+                      ? `${new Intl.NumberFormat('tr-TR').format(accountingSummary.vendors.balance)} TL`
                       : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.vendors.balance))} TL`
                   }
                 </p>
