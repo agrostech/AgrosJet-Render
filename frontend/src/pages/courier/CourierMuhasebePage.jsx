@@ -382,43 +382,57 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
                           {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
                         </td>
                         <td className="p-3 text-center">
-                          {showUploadButton ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUploadClick(tx.id)}
-                              disabled={uploadingFor === tx.id}
-                              className="h-7 text-xs gap-1"
-                            >
-                              <Upload className="w-3 h-3" />
-                              {uploadingFor === tx.id ? "..." : "Yükle"}
-                            </Button>
-                          ) : hasInvoice ? (
-                            <div className="flex items-center justify-center gap-1">
+                          <div className="flex items-center justify-center gap-1">
+                            {/* Fatura Mesajı Butonu - Desktop */}
+                            {showUploadButton && companyInfo && (
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDownloadInvoice(invoice.id)}
-                                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                title="İndir"
+                                onClick={() => openInvoiceMessageModal(tx.amount)}
+                                className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                title="Fatura Mesajı Oluştur"
                               >
-                                <FileText className="w-4 h-4" />
+                                <MessageSquare className="w-4 h-4" />
                               </Button>
-                              {canDeleteInvoice(invoice) && (
+                            )}
+                            {showUploadButton ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleUploadClick(tx.id)}
+                                disabled={uploadingFor === tx.id}
+                                className="h-7 text-xs gap-1"
+                              >
+                                <Upload className="w-3 h-3" />
+                                {uploadingFor === tx.id ? "..." : "Yükle"}
+                              </Button>
+                            ) : hasInvoice ? (
+                              <>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => handleDeleteInvoice(invoice.id)}
-                                  className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                  title="Sil (24 saat içinde)"
+                                  onClick={() => handleDownloadInvoice(invoice.id)}
+                                  className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  title="İndir"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <FileText className="w-4 h-4" />
                                 </Button>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">-</span>
-                          )}
+                                {canDeleteInvoice(invoice) && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDeleteInvoice(invoice.id)}
+                                    className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    title="Sil (24 saat içinde)"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">-</span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
