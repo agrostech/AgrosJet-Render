@@ -627,10 +627,7 @@ async def delete_transaction_with_installment(transaction_id: str, data: Transac
     await db.transactions.delete_one({"id": transaction_id})
     
     # Get entity name for log
-    entity_name = ""
-    if transaction["entity_type"] == "courier":
-        courier = await db.couriers.find_one({"id": transaction["entity_id"]})
-        entity_name = courier["name"] if courier else "Bilinmeyen Kurye"
+    entity_name = await get_entity_name(transaction["entity_type"], transaction["entity_id"])
     
     # Create activity log
     if data:
