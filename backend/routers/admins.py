@@ -43,6 +43,7 @@ class AdminResponse(BaseModel):
     role: str
     permissions: dict
     company_id: Optional[str] = None
+    email: Optional[str] = None
     created_at: str
 
 
