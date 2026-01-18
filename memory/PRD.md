@@ -119,6 +119,18 @@ Multi-tenant kurye yönetim sistemi.
   - "X kişi" badge formatı
   - "İzinliler" tam yazı
 
+### Güncel Durum - Vardiya Takibi Mobil İyileştirmesi (18 Ocak 2026)
+- [x] **Collapse/Expand sistemi** - Mobilde kurye listesi varsayılan kapalı
+- [x] **Mobil görünüm:**
+  - Her vardiya kartı kompakt (sadece sayı ve saat görünür)
+  - Aşağı ok (chevron) ile kurye listesi açılır
+  - Açılan liste badge'ler halinde kurye isimlerini gösterir
+  - Sayfa uzamaz, sadece seçilen vardiya genişler
+- [x] **Masaüstü görünüm korundu:**
+  - Kurye isimleri inline badge olarak görünür
+  - Expand butonu gizli (sm:hidden)
+  - 2 sütunlu grid layout
+
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
 - [ ] Sistem Sayfası özellikleri (kullanıcı gereksinimlerini bekliyor)
