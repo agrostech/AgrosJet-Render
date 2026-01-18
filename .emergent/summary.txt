@@ -5,85 +5,94 @@ The user wants to build a comprehensive courier management system from scratch c
 
 *   **Roles & Dashboards:** System Manager, Super Admin, Admin, Courier.
 *   **Core Functionality:**
-    *   **Courier & Company Management:** Full CRUD operations for companies, admins, and couriers with role-based restrictions.
+    *   **Courier & Company Management:** Full CRUD operations for companies, admins, and couriers with role-based restrictions. Includes an active/passive status for couriers.
     *   **Profile Management:** Users can manage their own credentials.
     *   **Shift Management (Vardiya Yönetimi):** A grid-based system for assigning couriers to shifts.
-    *   **Current Status (Güncel Durum):** A dashboard overview of the daily shift report.
-    *   **Accounting (Muhasebe):** A multi-tab module for tracking financial transactions, including PDF export and search functionality. A bulk payroll entry feature is on hold.
+    *   **Homepage (Anasayfa):** A dashboard overview of the daily shift report (formerly Güncel Durum).
+    *   **Accounting (Muhasebe):** A multi-tab module for tracking financial transactions, including PDF export and search functionality. A bulk payroll entry feature is on hold. Lists (Couriers, Businesses, Vendors) are alphabetically sorted.
     *   **Activity Logs (Hareketler):** A log of all major financial and system operations.
     *   **Assigned Items (Zimmet):** A system to track items assigned to couriers.
     *   **Installment Products (Taksitli Ürün):** A system within accounting to track and pay for products in installments for couriers.
-    *   **System Page (Sistem):** A new section for system-wide settings, now including company information and integration settings.
+    *   **System Page (Sistem):** A section for system-wide settings, including company information and integration settings.
     *   **Courier Dashboard:** A read-only dashboard for couriers to view their own shifts, accounting, and assigned items.
-    *   **Invoice Management:** A system for couriers to upload invoices and for admins to manage them. Includes a Request Invoice feature that generates a pre-filled WhatsApp message.
+    *   **Invoice Management:** A system for couriers to upload invoices and for admins to manage them. Includes a Request Invoice feature.
     *   **Termination Process (Fesih):** A feature for admins to initiate a formal termination period for couriers.
     *   **Document Management (Evraklar):** A section for couriers to upload required documents and for admins to manage them.
-    *   **Loyalty Points System (JetPuan Market):** A points-based e-commerce system.
-    *   **Notification System (Bildirimler):** A real-time notification system for admins, now including alerts for invoice uploads and missing invoices.
-    *   **Google Integration (New):** Integration with Google Drive for file storage and Gmail for email notifications.
+    *   **Market (Market):** A points-based e-commerce system (formerly JetPuan Market).
+    *   **Academy (Akademi):** A new placeholder section for training materials.
+    *   **Notification System (Bildirimler):** A real-time notification system.
+    *   **Google Integration:** Integration with Google Drive for file storage and Gmail for email notifications. The UI is complete, but backend logic is pending.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A comprehensive, full-stack courier management application. The current session focused heavily on mobile responsiveness. A large number of pages, including , ,  (all tabs), , , and various modals, were refactored to provide a better user experience on small screens.
+A full-stack courier management system with a FastAPI backend and React frontend. The recent session focused on significant UI/UX improvements and backend refactoring.
 
-Additionally, several new features and improvements were implemented based on user requests:
-*   A Request Invoice feature that generates a pre-filled WhatsApp message for couriers.
-*   The Company model was expanded to include invoice details, with a corresponding settings form added to the Sistem page for admins.
-*   The notification system was enhanced to alert admins about newly uploaded invoices and payroll transactions that are missing an invoice after 24 hours.
-*   The company logo is now displayed on the courier dashboard.
-*   Various minor UI/UX bugs and inconsistencies reported by the user were fixed.
+A new UI for Google Drive and Gmail integration has been added to the Sistem page, with a dynamic backend that can handle changing redirect URIs. All page loading indicators across the application have been standardized to a single, centered component featuring the company logo.
 
-The application is stable, and the agent has just begun the initial planning for Google Drive and Gmail integration.
+Multiple user-requested features were added: an active/passive status for couriers (with checks for outstanding balances or items before deactivation), alphabetical sorting on several list pages, and new placeholder Akademi pages for both admin and courier dashboards. Several pages and navigation items were renamed for clarity (Güncel Durum -> Anasayfa, JetPuan Market -> Market).
+
+The agent also performed backend refactoring by adding a health check endpoint, moving Pydantic models to a dedicated file, and resolving all linting issues. The application is stable.
 
 **Last working item**:
-- Last item agent was working: The agent is starting the implementation of Google Drive and Gmail integration as requested by the user. The user wants to auto-upload documents/invoices to Drive and send notifications via Gmail. The agent has used the  subagent to retrieve playbooks for both integrations and is formulating a plan to implement them, starting with creating a settings UI for API keys on the Sistem page.
-- Status: NOT STARTED
+- Last item agent was working: Refactoring the  file. The user requested this because the file is over 1400 lines long, making it difficult to maintain. The agent began by analyzing the file's structure to identify logical sections (tabs, forms, lists, modals) that can be extracted into separate, smaller components.
+- Status: IN PROGRESS
 - Agent Testing Done: N
-- Which testing method agent to use? backend testing agent. The agent should start by implementing the backend logic and test API endpoints for Google authentication and file upload/email sending. Frontend testing can follow once the UI is built.
+- Which testing method agent to use? frontend testing agent. This is a major refactoring of a complex page with multiple user interactions (CRUD for products, assignments, and logs). The testing agent should be used after the refactor to ensure all functionalities remain intact and no regressions were introduced.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-- None.
+  - **Issue 1: Search filter on Kuryeler page throws error (P0)**
+     - **Attempted fixes:** The agent added a check for  values ( and ) before calling .
+     - **Next debug checklist:** Verify the fix by manually testing the search/filter functionality on the  page. Check the browser console for any new errors.
+     - **Why fix this issue and what will be achieved with the fix?** The search functionality on the couriers page is currently broken, preventing admins from filtering the courier list. Fixing this will restore essential functionality.
+     - **Status:** USER VERIFICATION PENDING
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** Frontend
+     - **Blocked on other issue:** None.
 
 **In progress Task List**:
-- **Task 1: Implement Google Drive and Gmail Integration (P0)**
-    - **Where to resume**: The agent has the integration playbooks. The next step is to create a UI on the  for the user to input their Google API credentials (Client ID, Client Secret, etc.). Following that, the agent needs to implement the backend logic for OAuth2 flow (for Drive) and SMTP/API calls (for Gmail), and then integrate these into the existing document upload and notification flows.
-    - **What will be achieved with this?**: The application will be able to automatically upload courier documents and invoices to a designated Google Drive folder and send system notifications (e.g., missing invoice alerts) via the user's Gmail account.
-    - **Status**: IN PROGRESS
-    - **Should Test frontend/backend/both after fix?**: Both
-    - **Blocked on something**: No.
+  - **Task 1: Refactor  (P0)**
+     - **Where to resume**: The agent has analyzed the file structure. The next steps are to create a new directory, e.g., , and start moving the logic for each tab (Ürünler, Zimmetler, Loglar) and modals into their own component files. The main  will then be simplified to import and render these new components.
+     - **What will be achieved with this?**: The  file will be broken down into smaller, more manageable components. This will improve code readability, maintainability, and make future changes easier and safer.
+     - **Status**: IN PROGRESS
+     - **Should Test frontend/backend/both after fix?**: Frontend
+     - **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **P1: Bulk Payroll Entry (Toplu hakediş girme):** This feature for the Accounting module is on hold, pending a decision from the user.
+    - **P1: Implement Google Integration Backend Logic:** The UI and API settings endpoints are ready. The next step is to implement the OAuth2 flow and the actual logic for uploading files to Google Drive and sending emails via Gmail.
+    - **P1: Refactor other large frontend components:** As identified in the health check,  (933 lines),  (775 lines), and  (698 lines) should also be broken down into smaller components.
 - **Future Tasks:**
-    - **P2: Add Features to Sistem Page:** This page can be expanded with more system-wide settings beyond company info and integrations.
-    - **P2: Move Pydantic Models:** The backend Pydantic models are currently defined within their respective router files. They should be moved to a dedicated  directory for better organization.
-    - **P2: Enhance Güncel Durum Page:** Add more informational cards as previously requested by the user.
+    - **P2: Bulk Payroll Entry (Toplu hakediş girme):** This feature for the Accounting module is on hold, pending a decision from the user.
+    - **P2: Backend Organization:** Move helper functions from router files into a dedicated  directory.
 
 **Completed work in this session**
-- **Major Mobile Responsiveness Overhaul:**
-  - : Made the shift grid compact and usable on mobile.
-  - : Implemented a collapsible courier list for shifts and a responsive layout for accounting summary cards.
-  -  (all tabs): Replaced tables with card layouts, refactored transaction forms, and fixed header layouts for mobile.
-  - : Fixed numerous layout, overflow, and alignment issues across all sub-tabs for mobile.
-  - : Implemented a 2-column grid for products on mobile.
-  - : Converted the transaction history table to a card list on mobile, eliminating horizontal scroll.
-  - : Made all Shadcn modals responsive to prevent full-screen takeover on mobile.
-- **Feature: Invoice Request via WhatsApp:**
-  - Added a Talep Et button for couriers on payroll items, which opens WhatsApp with a pre-filled message including company invoice details and the payroll amount.
-- **Feature: Company Invoice Information:**
-  - Extended the  model in the backend () to store invoice-related data (TCKN, address, etc.).
-  - Created a form on the  for admins to manage this information.
-- **Feature: Enhanced Notifications:**
-  - Implemented a backend job and notification type to alert admins if a payroll transaction lacks an invoice for more than a day ().
-  - Added a notification trigger when a courier successfully uploads an invoice ().
-- **UI/UX Improvements:**
-  - Added the company logo to the courier dashboard header and sidebar ().
-  - Fixed the pagination limit for the Load More button on the courier accounting page.
-  - Made the installment products section on the courier accounting page collapsible.
-  - Corrected the display of installment payment logs in the Hareketler tab.
+- **Google Integration UI:**
+  - Created a form on  for users to input Google API credentials.
+  - Implemented backend endpoints (, , ) to store settings and generate auth URLs.
+  - Made the backend redirect URI dynamic to support different deployment domains.
+  - Made the settings sections on  collapsible and improved mobile responsiveness.
+  - Neutralized the color scheme of the Google Integration card for a more professional look.
+- **UI/UX Standardization:**
+  - Created a reusable  component () with the ShiftJet logo.
+  - Replaced all old Yükleniyor... text and spinners across ~25 files with the new  component.
+- **Feature: Courier Active/Passive Status:**
+  - Added an  boolean field to the  model in the backend.
+  - Created backend endpoints to activate/deactivate a courier, including a check to prevent deactivation if the courier has an outstanding balance or assigned items.
+  - Updated  with Aktif and Pasif tabs and corresponding action buttons.
+  - Fixed mobile layout issues on the  action buttons.
+- **Feature: New Akademi Section:**
+  - Created placeholder pages for Akademi in both the admin () and courier () dashboards.
+  - Added navigation links to both sidebars.
+- **General Improvements & Fixes:**
+  - Implemented alphabetical sorting for the lists in  tabs (Kuryeler, İşletmeler, Cariler) and on .
+  - Renamed Güncel Durum to Anasayfa and JetPuan Market to Market throughout the application.
+  - Fixed a runtime error in the  search filter caused by  on an  value.
+- **Backend Refactoring:**
+  - Added a  endpoint to  for system health monitoring.
+  - Moved all Pydantic models from router files into a central .
+  - Ran  to fix all linting errors in the backend codebase.
 
 **Earlier issues found/mentioned but not fixed**
 - None.
@@ -95,63 +104,73 @@ The application is stable, and the agent has just begun the initial planning for
 
 
 **Key Technical Concepts**
-- **Responsive Design:** Extensive use of Tailwind CSS responsive prefixes (, , ) to adapt complex layouts (grids, tables, forms) for mobile devices. This includes using /, changing grid columns, and using / to switch between different components (e.g., table vs. card list).
-- **Collapsible UI:** Implemented collapsible sections using React state () to manage visibility, improving UI compactness on mobile.
-- **External URL Schemes:** Used the  protocol to create a Send via WhatsApp feature that opens the app with a pre-filled message.
-- **Dynamic Feature Integration:** Seamlessly added new backend fields ( model) and connected them to a new frontend settings form (), then used that data in another feature ().
-- **Scheduled/Triggered Logic:** Implemented a backend endpoint that is called from the frontend to check for time-sensitive conditions (invoices not uploaded within a day) and generate notifications.
+- **Component Refactoring:** Breaking down large, monolithic React components into smaller, reusable child components to improve maintainability.
+- **Centralized UI Components:** Creating a single, reusable component () to ensure a consistent look and feel for loading states across the entire application.
+- **Dynamic OAuth Redirect URI:** Implementing backend logic that constructs the  for Google OAuth based on the  headers, allowing the same code to work across different environments (local, preview, production).
+- **Conditional State Logic:** Adding business logic to prevent state changes based on other conditions (e.g., preventing a courier from being set to passive if they have a balance or assigned items).
+- **Backend Code Organization:** Moving Pydantic models out of API router files and into a dedicated  directory to improve separation of concerns and code structure.
 
 **key DB schema**
-- ** (Modified):** Added optional fields for invoicing: .
-- All other schemas remain as per the previous handoff.
+- ** (Modified):** Added a new boolean field  (defaulting to ) to manage the active/passive status of a courier.
 
 **All files of reference**
-- : This will be the location for the new Google integration settings UI.
-- : The company model was updated here.
-- : Contains the new Request Invoice feature.
-- : Contains the new logic for missing invoice alerts.
-- , , : Key examples of the extensive mobile responsive work completed.
+- : The primary file for the current refactoring task.
+- : Was heavily modified to add active/passive tabs and logic.
+- : Was modified to add the active/passive endpoints and checks.
+- : Contains the newly created UI for Google integration.
+- : Contains the backend logic for the Google settings UI.
+- : The new centralized loading component.
+- : The new location for all Pydantic models.
 
 **Areas that need refactoring**:
-- The Pydantic models are still defined within their respective router files. This is a known backlog item for improving code organization.
+-  (933 lines)
+-  (775 lines)
+-  (698 lines)
+-  (787 lines) - Helper functions should be extracted.
 
 **key api endpoints**
-- ** (Modified):** Now accepts new invoice-related fields (, , etc.).
-- ** (New):** A GET endpoint that triggers a check for payroll transactions older than 24 hours without an invoice and creates notifications if any are found.
+- ** (New):** Sets a courier's  status to  after checking for balances or assigned items.
+- ** (New):** Sets a courier's  status to .
+- ** (New):** Saves Google API credentials for a company.
+- ** (New):** Generates and returns a Google OAuth authorization URL.
+- ** (New):** Handles the callback from Google after user authorization.
+- ** (New):** Returns the health status of the application and its database connection.
 
 **Critical Info for New Agent**
-- Your immediate and highest priority task is to implement the Google Drive and Gmail integration. The user has explicitly requested this and is waiting for it. Start by building the settings UI on the Sistem page for API key entry.
-- The user is highly engaged and provides frequent, specific feedback, often including screenshots. Expect to work in an iterative cycle of implementing a change and then getting feedback.
-- The user is now doing their own testing for mobile UI changes. For the Google integration, you will need to perform backend testing first.
-- The codebase has been significantly improved for mobile responsiveness. Maintain this pattern for any new UI you build.
+- Your immediate priority is to refactor  as requested by the user. Be extremely careful to break it down into smaller components without altering or breaking its existing functionality. Use the frontend testing agent after the refactor is complete to ensure full regression testing.
+- The user is closely monitoring the UI for consistency and professionalism. Avoid bright or out-of-place colors. Ensure mobile views are clean and free of overflow issues.
+- After the refactoring, the next major task is to implement the backend logic for the Google Drive and Gmail integrations. The UI and placeholder endpoints are already in place.
 
 **documents and test reports created in this job**
--  (Updated)
+-  (Updated with refactoring tasks and name changes)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks if Google Drive/Workspace/Gmail integration is possible. **(Answered)**
-2.  **User:** Specifies they want (a) auto-upload to Drive and (b) notifications via Gmail, and asks the agent to proceed. **(In Progress)**
-3.  **User:** Requests a settings card on the Sistem tab for any needed API keys for the integration. **(In Progress)**
-4.  **User:** Requests to change the WhatsApp button to a more professional Talep Et (Request) button. **(Completed)**
-5.  **User:** Asks to remove the preview card from the company settings form. **(Completed)**
-6.  **User:** Asks to change the title on the company settings page. **(Completed)**
-7.  **User:** Asks to change the invoice message button from Copy to Send via WhatsApp. **(Completed)**
-8.  **User:** Provides an error log () after the agent added the System page form. **(Completed)**
-9.  **User:** Specifies where the admin should enter the new company invoice information. **(Completed)**
-10. **User:** Requests a button to generate a pre-filled invoice request message for couriers. **(Completed)**
+1.  **User:** Requests refactoring of . **(In Progress)**
+2.  **User:** Asks for a system health check and refactoring suggestions. **(Completed)**
+3.  **User:** Approves the refactoring plan. **(Completed)**
+4.  **User:** Reports a search error on the Kuryeler page. **(Completed)**
+5.  **User:** Reports that a courier cannot be deactivated if they have a balance or assigned items and that there is a mobile view overflow. **(Completed)**
+6.  **User:** Requests an active and passive mode for couriers, with separate tabs on the Kuryeler page. **(Completed)**
+7.  **User:** Requests the Google integration card to be black/neutral instead of blue. **(Completed)**
+8.  **User:** Requests that the Google settings card on the System page be closed by default and that the Kuryeler list be alphabetically sorted. **(Completed)**
+9.  **User:** Requests alphabetical sorting for lists in the Muhasebe tabs (Kuryeler, İşletmeler, Cariler). **(Completed)**
+10. **User:** Reports that some loading indicators are still old-style text/icons and requests all of them to be the new centered logo spinner. **(Completed)**
 
 **Project Health Check:**
-- **Broken:** None. The app is stable.
-- **Mocked:** The Toplu hakediş girme (Bulk Payroll Entry) feature remains on hold by user request.
+- **Broken:** The search filter on the  might still be buggy, pending user verification.
+- **Mocked:**
+    - The Toplu hakediş girme (Bulk Payroll Entry) feature is on hold.
+    - The Akademi pages are placeholders with no functionality.
+    - Google integration is UI-only; the backend logic for file uploads and email sending is not implemented.
 
 **3rd Party Integrations**
 -   : Used for generating PDF reports.
 -   : Used for icons.
--   : **(PENDING)** For automatic document/invoice uploads.
--   : **(PENDING)** For sending email notifications.
+-   : **UI Implemented, Backend Pending.**
+-   : **UI Implemented, Backend Pending.**
 
 **Testing status**
-- Testing agent used after significant changes: NO (Agent performed extensive manual testing with screenshots, and the user also verified changes.)
+- Testing agent used after significant changes: NO
 - Troubleshoot agent used after agent stuck in loop: NO
 - Test files created: []
 - Known regressions: None.
@@ -161,4 +180,4 @@ The application is stable, and the agent has just begun the initial planning for
 -   **Courier:** , 
 
 **What agent forgot to execute**
-- The agent has successfully addressed all user requests and has a clear path for the next major task. No items were forgotten.</analysis>
+- The agent correctly deferred the refactoring of other large frontend files (, etc.) to focus on the user's immediate request for . No tasks were forgotten.</analysis>
