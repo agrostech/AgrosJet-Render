@@ -85,12 +85,12 @@ export default function CourierDashboard() {
     
     // Fetch additional data
     if (parsed.company_id) {
-      fetchCompanyName(parsed.company_id);
+      fetchCompanyInfo(parsed.company_id);
     }
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
     }
-  }, [navigate, fetchCompanyName, checkDocumentStatus]);
+  }, [navigate, fetchCompanyInfo, checkDocumentStatus]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
