@@ -146,6 +146,7 @@ async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
         "courier_id": courier["id"],
         "status": "approved",
         "is_archived": False,
+        "is_active": True,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.company_couriers.insert_one(relation)
