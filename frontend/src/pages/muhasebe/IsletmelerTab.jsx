@@ -278,11 +278,9 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                   {/* Butonlar - mobilde tam genişlik ve yan yana */}
                   <div className="flex gap-2 w-full sm:w-auto">
                     <Button onClick={() => handlePayment("in")} disabled={submitting} className="flex-1 sm:flex-none h-10 bg-red-600 hover:bg-red-700" data-testid="payment-in-btn">
-                      <Plus className="w-4 h-4 mr-1" />
                       Alınan
                     </Button>
                     <Button onClick={() => handlePayment("out")} disabled={submitting} className="flex-1 sm:flex-none h-10 bg-green-600 hover:bg-green-700" data-testid="payment-out-btn">
-                      <Minus className="w-4 h-4 mr-1" />
                       Verilen
                     </Button>
                   </div>
