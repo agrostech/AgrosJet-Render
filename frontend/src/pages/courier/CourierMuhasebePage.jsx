@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, CreditCard, Upload, FileText, Trash2, Download, ChevronDown, ChevronUp, MessageSquare, Copy, Check } from "lucide-react";
+import { Calculator, CreditCard, Upload, FileText, Trash2, Download, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
