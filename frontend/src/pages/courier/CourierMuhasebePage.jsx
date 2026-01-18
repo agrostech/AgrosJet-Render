@@ -46,7 +46,6 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   const [companyInfo, setCompanyInfo] = useState(null);
   const [showInvoiceMessageModal, setShowInvoiceMessageModal] = useState(false);
   const [selectedHakedisAmount, setSelectedHakedisAmount] = useState(0);
-  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef(null);
 
   const fetchTransactions = async (append = false) => {
