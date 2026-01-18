@@ -341,13 +341,14 @@ export default function VardiyaPage({ companyId }) {
 
       {/* Toplu seçim ipucu */}
       {editMode && selectedCells.length === 0 && !ctrlPressed && (
-        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-          <strong>İpucu:</strong> Ctrl tuşuna basılı tutarak birden fazla vardiya kutucuğu seçebilir, ardından toplu kurye atayabilirsiniz.
+        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-[10px] sm:text-xs text-blue-700">
+          <strong>İpucu:</strong> <span className="hidden sm:inline">Ctrl tuşuna basılı tutarak birden fazla vardiya kutucuğu seçebilir, ardından toplu kurye atayabilirsiniz.</span>
+          <span className="sm:hidden">Ctrl+tıklama ile çoklu seçim yapabilirsiniz.</span>
         </div>
       )}
       {editMode && ctrlPressed && (
-        <div className="mb-3 p-2 bg-green-50 border border-green-300 rounded text-xs text-green-700 font-medium">
-          🎯 <strong>Toplu Seçim Modu Aktif</strong> - Kutucuklara tıklayarak seçin. Seçili: {selectedCells.length}
+        <div className="mb-3 p-2 bg-green-50 border border-green-300 rounded text-[10px] sm:text-xs text-green-700 font-medium">
+          🎯 <strong>Toplu Seçim</strong> - Seçili: {selectedCells.length}
         </div>
       )}
 
