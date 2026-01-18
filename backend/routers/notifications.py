@@ -224,12 +224,24 @@ async def check_missing_invoice_notifications(company_id: str):
 # ============ HELPER FUNCTION ============
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
-async def _send_email_background(company_id: str, title: str, message: str, notification_type: str):
-    """Background task to send email without blocking"""
+# Thread pool for email sending (completely non-blocking)
+_email_executor = ThreadPoolExecutor(max_workers=2)
+
+
+def _send_email_sync(company_id: str, title: str, message: str, notification_type: str):
+    """Synchronous email sending for thread pool"""
+    import asyncio
     try:
-        from services.email_service import send_notification_email
-        await send_notification_email(company_id, title, message, notification_type)
+        # Create new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            from services.email_service import send_notification_email
+            loop.run_until_complete(send_notification_email(company_id, title, message, notification_type))
+        finally:
+            loop.close()
     except Exception as e:
         print(f"Background email failed: {e}")
 
@@ -257,8 +269,8 @@ async def create_notification(
     }
     await db.notifications.insert_one(notification)
     
-    # Send email in background (non-blocking)
+    # Send email in separate thread (completely non-blocking)
     if send_email:
-        asyncio.create_task(_send_email_background(company_id, title, message, notification_type))
+        _email_executor.submit(_send_email_sync, company_id, title, message, notification_type)
     
     return notification
