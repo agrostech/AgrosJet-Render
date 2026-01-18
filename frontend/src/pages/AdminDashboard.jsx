@@ -60,6 +60,7 @@ export default function AdminDashboard() {
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet" },
     { path: "/admin/jetpuan", label: "JetPuan Market", icon: ShoppingBag, key: "jetpuan" },
+    { path: "/admin/akademi", label: `${company?.name || 'Şirket'} Akademi`, icon: GraduationCap, key: "akademi" },
     { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler" },
     { path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler" },
     { path: "/admin/sistem", label: "Sistem", icon: SlidersHorizontal, key: "sistem" },
