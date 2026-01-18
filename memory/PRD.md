@@ -103,6 +103,22 @@ Multi-tenant kurye yönetim sistemi.
 - [x] Okundu işaretleme, toplu okundu, silme özellikleri
 - [x] Badge ile okunmamış bildirim sayısı
 
+### Vardiya Sayfası Mobil Uyumluluk (18 Ocak 2026)
+- [x] **Responsive tasarım** - Mobil ve masaüstü görünüm ayrı optimizasyon
+- [x] **Mobil görünüm:**
+  - Gün başlıkları kısa: Pt, Sa, Ça, Pe, Cu, Ct, Pa
+  - Vardiya sütunu "V" olarak kısaltıldı
+  - Vardiya saatleri iki satıra ayrıldı (06:00 / 14:00)
+  - Kurye sayısı sadece rakam (1, 12)
+  - Küçültülmüş padding ve font boyutları
+  - İzinliler satırı "İzin" olarak kısaltıldı
+- [x] **Masaüstü görünüm korundu:**
+  - Tam gün isimleri: Pzt, Sal, Çar, Per, Cum, Cmt, Paz
+  - "Vardiya" sütun başlığı
+  - Vardiya saatleri tek satırda: 06:00-14:00
+  - "X kişi" badge formatı
+  - "İzinliler" tam yazı
+
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
 - [ ] Sistem Sayfası özellikleri (kullanıcı gereksinimlerini bekliyor)
