@@ -343,7 +343,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                         <tr key={tx.id} className="border-b border-border hover:bg-slate-50">
                           <td className="p-2 text-xs font-mono whitespace-nowrap">{formatDate(tx.created_at)}</td>
                           <td className="p-2 text-xs">{tx.description}</td>
-                          <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-red-600' : 'text-green-600'}`}>
+                          <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-green-600' : 'text-red-600'}`}>
                             {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
                           </td>
                           <td className="p-1">
