@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, CreditCard, Upload, FileText, Trash2, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { Calculator, CreditCard, Upload, FileText, Trash2, Download, ChevronDown, ChevronUp, MessageSquare, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -16,7 +22,17 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 };
 
-export default function CourierMuhasebePage({ courierId, courierName }) {
+// Haftanın pazartesi tarihini bul
+const getMondayDate = () => {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Pazar için -6, diğerleri için 1-gün
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diff);
+  return monday.toLocaleDateString('tr-TR');
+};
+
+export default function CourierMuhasebePage({ courierId, courierName, companyId }) {
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -27,6 +43,10 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
   const [invoices, setInvoices] = useState({});
   const [uploadingFor, setUploadingFor] = useState(null);
   const [installmentsExpanded, setInstallmentsExpanded] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState(null);
+  const [showInvoiceMessageModal, setShowInvoiceMessageModal] = useState(false);
+  const [selectedHakedisAmount, setSelectedHakedisAmount] = useState(0);
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef(null);
 
   const fetchTransactions = async (append = false) => {
