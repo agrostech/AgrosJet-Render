@@ -162,7 +162,7 @@ export default function GuncelDurumPage({ companyId }) {
   const totalAssigned = todayAssignments.length;
   const totalOnLeave = todayLeaves.length;
 
-  if (loading) return <p>Yükleniyor...</p>;
+  if (loading) return <PageLoading />;
 
   return (
     <div data-testid="admin-guncel-page" className="space-y-6">
