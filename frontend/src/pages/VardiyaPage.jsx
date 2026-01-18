@@ -23,13 +23,13 @@ import { X, Clock, Trash2, UserPlus, Pencil, Check, Users } from "lucide-react";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const DAYS = [
-  { key: "pazartesi", label: "Pzt" },
-  { key: "sali", label: "Sal" },
-  { key: "carsamba", label: "Çar" },
-  { key: "persembe", label: "Per" },
-  { key: "cuma", label: "Cum" },
-  { key: "cumartesi", label: "Cmt" },
-  { key: "pazar", label: "Paz" },
+  { key: "pazartesi", label: "Pzt", shortLabel: "Pt" },
+  { key: "sali", label: "Sal", shortLabel: "Sa" },
+  { key: "carsamba", label: "Çar", shortLabel: "Ça" },
+  { key: "persembe", label: "Per", shortLabel: "Pe" },
+  { key: "cuma", label: "Cum", shortLabel: "Cu" },
+  { key: "cumartesi", label: "Cmt", shortLabel: "Ct" },
+  { key: "pazar", label: "Paz", shortLabel: "Pa" },
 ];
 
 export default function VardiyaPage({ companyId }) {
