@@ -223,27 +223,38 @@ async def check_missing_invoice_notifications(company_id: str):
 
 # ============ HELPER FUNCTION ============
 
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 # Thread pool for email sending (completely non-blocking)
 _email_executor = ThreadPoolExecutor(max_workers=2)
 
 
-def _send_email_sync(company_id: str, title: str, message: str, notification_type: str):
-    """Synchronous email sending for thread pool"""
-    import asyncio
+def _send_email_thread(smtp_host, smtp_port, smtp_user, smtp_password, from_email, from_name, to_email, subject, html_body):
+    """Send email in thread (pure sync, no async)"""
+    import smtplib
+    import ssl
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    
     try:
-        # Create new event loop for this thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            from services.email_service import send_notification_email
-            loop.run_until_complete(send_notification_email(company_id, title, message, notification_type))
-        finally:
-            loop.close()
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"{from_name} <{from_email}>"
+        msg["To"] = to_email
+        
+        part = MIMEText(html_body, "html", "utf-8")
+        msg.attach(part)
+        
+        context = ssl.create_default_context()
+        
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls(context=context)
+            server.login(smtp_user, smtp_password)
+            server.sendmail(from_email, to_email, msg.as_string())
+        
+        print(f"Email sent to {to_email}")
     except Exception as e:
-        print(f"Background email failed: {e}")
+        print(f"Email thread error: {e}")
 
 
 async def create_notification(
@@ -269,8 +280,61 @@ async def create_notification(
     }
     await db.notifications.insert_one(notification)
     
-    # Send email in separate thread (completely non-blocking)
+    # Send email in separate thread if enabled
     if send_email:
-        _email_executor.submit(_send_email_sync, company_id, title, message, notification_type)
+        try:
+            # Quick check: get email settings
+            settings = await db.email_settings.find_one({"company_id": company_id}, {"_id": 0})
+            if not settings or not settings.get("enabled"):
+                return notification
+            
+            # Check notification type setting
+            type_to_setting = {
+                "muhasebe_hareket": "notify_muhasebe",
+                "zimmet_hareket": "notify_zimmet",
+                "evrak_yuklendi": "notify_evrak",
+                "jetpuan_siparis": "notify_jetpuan",
+                "fesih_3_gun": "notify_fesih",
+                "fesih_yarin": "notify_fesih",
+            }
+            setting_key = type_to_setting.get(notification_type)
+            if setting_key and not settings.get(setting_key, True):
+                return notification
+            
+            # Get super admin email
+            superadmin = await db.admins.find_one(
+                {"company_id": company_id, "role": "superadmin"},
+                {"_id": 0, "email": 1}
+            )
+            to_email = superadmin.get("email") if superadmin else None
+            if not to_email:
+                return notification
+            
+            # Prepare email content
+            subject = f"[ShiftJet] {title}"
+            html_body = f"""
+            <div style="font-family: sans-serif; padding: 20px; max-width: 600px;">
+                <h2 style="color: #0f172a; margin-bottom: 16px;">{title}</h2>
+                <p style="color: #475569; line-height: 1.6;">{message}</p>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                <p style="color: #94a3b8; font-size: 12px;">ShiftJet Kurye Yönetim Sistemi</p>
+            </div>
+            """
+            
+            # Submit to thread pool (non-blocking)
+            _email_executor.submit(
+                _send_email_thread,
+                settings.get("smtp_host"),
+                settings.get("smtp_port", 587),
+                settings.get("smtp_user"),
+                settings.get("smtp_password"),
+                settings.get("from_email") or settings.get("smtp_user"),
+                settings.get("from_name", "ShiftJet"),
+                to_email,
+                subject,
+                html_body
+            )
+        except Exception as e:
+            print(f"Email setup error: {e}")
     
     return notification
