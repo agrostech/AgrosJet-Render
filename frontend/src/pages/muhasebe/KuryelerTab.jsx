@@ -241,7 +241,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   if (loading) return <p className="p-4">Yükleniyor...</p>;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-full" ref={transactionRef}>
+    <div className="flex flex-col lg:flex-row gap-4 h-full">
       {/* Sol Panel - Kurye Listesi */}
       <div className="w-full lg:w-80 flex-shrink-0 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
         <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
