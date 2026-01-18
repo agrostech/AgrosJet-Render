@@ -202,6 +202,21 @@ Multi-tenant kurye yönetim sistemi.
 - [x] Tüm tab'lar çalışıyor
 - [x] Sipariş teslim/iptal, Kategori CRUD, Ürün CRUD, Puan ayarları korundu
 
+### Backend accounting.py Refactoring (18 Ocak 2026 - YENİ)
+- [x] **786 satır → 650 satır** ana router dosyası (%17 azalma)
+- [x] **Helper fonksiyonlar** `/app/backend/services/accounting_service.py`'ye taşındı (82 satır):
+  - `get_entity_name()` - Entity adı getirme
+  - `get_entity_transactions()` - İşlem listeleme
+  - `calculate_total_balance()` - Bakiye hesaplama
+  - `parse_custom_date()` - Tarih parse etme
+- [x] **Pydantic modelleri** `/app/backend/models/schemas.py`'ye taşındı:
+  - TransactionCreate, TransactionUpdateRequest, TransactionDeleteRequest
+  - BusinessCreate, VendorCreate
+  - InstallmentProductCreate, InstallmentPayRequest
+  - ActivityLogCreate
+- [x] **%100 test başarısı** (38/38 backend test geçti)
+- [x] Tüm API endpoint'leri korundu ve çalışıyor
+
 ### VardiyaPage.jsx Refactoring (18 Ocak 2026 - YENİ)
 - [x] **698 satır → 140 satır** ana dosya (%80 azalma)
 - [x] **5 yeni bileşen dosyası** oluşturuldu (`/app/frontend/src/components/vardiya/`):
