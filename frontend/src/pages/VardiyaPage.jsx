@@ -364,14 +364,18 @@ export default function VardiyaPage({ companyId }) {
           <Table className="text-xs">
             <TableHeader>
               <TableRow className="border-b-2 border-primary">
-                <TableHead className="font-bold text-xs min-w-[90px] bg-slate-200 p-2 border-r-2 border-slate-400">Vardiya</TableHead>
+                <TableHead className="font-bold text-[10px] sm:text-xs min-w-[50px] sm:min-w-[70px] md:min-w-[90px] bg-slate-200 p-1 sm:p-2 border-r-2 border-slate-400">
+                  <span className="hidden sm:inline">Vardiya</span>
+                  <span className="sm:hidden">V</span>
+                </TableHead>
                 {DAYS.map((day, index) => (
                   <TableHead 
                     key={day.key} 
-                    className={`font-bold text-xs min-w-[100px] text-center p-2 border-r border-slate-300 
+                    className={`font-bold text-[10px] sm:text-xs min-w-[38px] sm:min-w-[70px] md:min-w-[100px] text-center p-1 sm:p-2 border-r border-slate-300 
                       ${index % 2 === 0 ? 'bg-blue-100 text-blue-800' : 'bg-amber-50 text-amber-800'}`}
                   >
-                    {day.label}
+                    <span className="hidden sm:inline">{day.label}</span>
+                    <span className="sm:hidden">{day.shortLabel}</span>
                   </TableHead>
                 ))}
               </TableRow>
