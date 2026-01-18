@@ -386,16 +386,19 @@ export default function VardiyaPage({ companyId }) {
                 const rowBgClass = isEvenRow ? 'bg-slate-50' : 'bg-white';
                 return (
                 <TableRow key={shift.id} className={`border-b border-border ${rowBgClass}`}>
-                  <TableCell className={`font-semibold p-2 text-xs border-r-2 border-slate-400 ${isEvenRow ? 'bg-slate-200' : 'bg-slate-100'}`}>
-                    <div className="flex items-center gap-1">
-                      <span className="whitespace-nowrap">{shift.start_time}-{shift.end_time}</span>
+                  <TableCell className={`font-semibold p-1 sm:p-2 text-[9px] sm:text-xs border-r-2 border-slate-400 ${isEvenRow ? 'bg-slate-200' : 'bg-slate-100'}`}>
+                    <div className="flex items-center gap-0.5 sm:gap-1">
+                      <span className="whitespace-nowrap text-[8px] sm:text-[10px] md:text-xs">
+                        <span className="hidden sm:inline">{shift.start_time}-{shift.end_time}</span>
+                        <span className="sm:hidden">{shift.start_time?.slice(0,5)}<br/>{shift.end_time?.slice(0,5)}</span>
+                      </span>
                       {editMode && !ctrlPressed && (
                         <button
                           onClick={() => handleDeleteShift(shift.id)}
-                          className="text-red-500 hover:text-red-700 ml-1"
+                          className="text-red-500 hover:text-red-700 ml-0.5 sm:ml-1"
                           title="Vardiyayı Sil"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </button>
                       )}
                     </div>
