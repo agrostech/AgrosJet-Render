@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Plus, Minus, User, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil, CreditCard, Package } from "lucide-react";
+import { PageLoading } from "@/components/ui/loading-spinner";
 import { 
   useAccountingTab, 
   formatMoney, 
