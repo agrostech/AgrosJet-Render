@@ -27,8 +27,7 @@ const playNotificationSound = () => {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     
-    // Create a pleasant notification sound (two-tone chime)
-    const playTone = (frequency, startTime, duration) => {
+    const playTone = (frequency, startTime, duration, volume = 0.5) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -39,7 +38,7 @@ const playNotificationSound = () => {
       oscillator.type = 'sine';
       
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
+      gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
       gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
       
       oscillator.start(startTime);
@@ -47,9 +46,12 @@ const playNotificationSound = () => {
     };
     
     const now = audioContext.currentTime;
-    playTone(880, now, 0.15);        // A5
-    playTone(1108.73, now + 0.1, 0.2); // C#6
-    playTone(1318.51, now + 0.2, 0.25); // E6
+    
+    // Dikkat çekici "ding-ding" sesi
+    playTone(1760, now, 0.12, 0.6);          // A6 - yüksek ve parlak
+    playTone(2093, now + 0.08, 0.15, 0.5);   // C7
+    playTone(1760, now + 0.2, 0.12, 0.6);    // A6 tekrar
+    playTone(2637, now + 0.28, 0.2, 0.4);    // E7 - final
     
   } catch (e) {
     console.log("Audio not supported");
