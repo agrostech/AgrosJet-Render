@@ -70,6 +70,7 @@ app.include_router(shifts_router)
 app.include_router(invoices_router)
 app.include_router(documents_router)
 app.include_router(jetpuan_router)
+app.include_router(notifications_router)
 
 # Health check
 @api_router.get("/")
