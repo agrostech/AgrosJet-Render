@@ -22,6 +22,12 @@ class EmailSettingsCreate(BaseModel):
     from_email: Optional[str] = None
     from_name: str = "ShiftJet"
     enabled: bool = True
+    # Bildirim türleri
+    notify_muhasebe: bool = True      # Hakediş işlemleri
+    notify_zimmet: bool = True        # Zimmet işlemleri
+    notify_evrak: bool = True         # Evrak yüklemeleri
+    notify_jetpuan: bool = True       # Market siparişleri
+    notify_fesih: bool = True         # Fesih süreçleri
 
 
 # --- Email Settings Routes ---
