@@ -30,8 +30,8 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TABS = [
   { key: "market", label: "Market", icon: ShoppingBag },
-  { key: "history", label: "Puan Geçmişi", icon: History },
   { key: "orders", label: "Siparişlerim", icon: Package },
+  { key: "history", label: "Puan Geçmişi", icon: History },
 ];
 
 export default function CourierJetPuanPage({ courierId }) {
