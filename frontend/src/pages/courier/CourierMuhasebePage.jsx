@@ -139,20 +139,7 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
 
   const openInvoiceMessageModal = (amount) => {
     setSelectedHakedisAmount(amount);
-    setCopied(false);
     setShowInvoiceMessageModal(true);
-  };
-
-  const copyToClipboard = async () => {
-    const message = generateInvoiceMessage(selectedHakedisAmount);
-    try {
-      await navigator.clipboard.writeText(message);
-      setCopied(true);
-      toast.success("Mesaj kopyalandı!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast.error("Kopyalama başarısız");
-    }
   };
 
   const loadMore = () => {
