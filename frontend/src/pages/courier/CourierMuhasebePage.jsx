@@ -31,7 +31,7 @@ export default function CourierMuhasebePage({ courierId, courierName }) {
   const fetchTransactions = async (append = false) => {
     try {
       const skip = append ? transactions.length : 0;
-      const res = await axios.get(`${API}/transactions/courier/${courierId}?skip=${skip}&limit=20`);
+      const res = await axios.get(`${API}/transactions/courier/${courierId}?skip=${skip}&limit=10`);
       
       if (append) {
         setTransactions(prev => [...prev, ...res.data.transactions]);
