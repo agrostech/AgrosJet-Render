@@ -201,9 +201,9 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                     <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
                     {selectedEntity.phone && <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>}
                   </div>
-                  <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-red-50' : balance < 0 ? 'bg-green-50' : 'bg-slate-100'}`}>
+                  <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
                     <p className="text-[10px] sm:text-xs text-muted-foreground">Bakiye</p>
-                    <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : ''}`}>
+                    <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : ''}`}>
                       {balance === 0 ? '0 TL' : balance > 0 ? `-${formatMoney(balance)}` : formatMoney(balance)}
                     </p>
                   </div>
