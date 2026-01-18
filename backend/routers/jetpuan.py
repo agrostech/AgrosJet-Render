@@ -372,6 +372,14 @@ async def get_all_orders(status: Optional[str] = None):
     
     return orders
 
+
+@router.get("/orders/pending-count")
+async def get_pending_orders_count():
+    """Get count of pending orders for badge"""
+    count = await db.jetpuan_orders.count_documents({"status": "pending"})
+    return {"count": count}
+
+
 @router.get("/orders/courier/{courier_id}")
 async def get_courier_orders(courier_id: str):
     """Get courier's orders"""
