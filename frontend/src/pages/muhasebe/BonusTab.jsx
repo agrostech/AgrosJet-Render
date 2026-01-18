@@ -51,6 +51,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
   const [loading, setLoading] = useState(true);
   const [newRule, setNewRule] = useState({ min_packets: "", amount: "" });
   const [adding, setAdding] = useState(false);
+  const [bonusSettingsOpen, setBonusSettingsOpen] = useState(false);
 
   // Bulk Hakediş State
   const [showModal, setShowModal] = useState(false);
