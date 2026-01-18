@@ -289,61 +289,112 @@ export default function GuncelDurumPage({ companyId }) {
               Henüz vardiya eklenmemiş
             </p>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3">
               {sortedShifts.map(shift => {
                 const shiftAssignments = getShiftAssignments(shift.id);
                 const isActive = isToday && isShiftActive(shift);
                 const courierCount = shiftAssignments.length;
+                const isExpanded = expandedShift === shift.id;
                 
                 return (
                   <div 
                     key={shift.id} 
-                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                    className={`rounded-lg border transition-colors ${
                       isActive 
                         ? 'bg-green-50 border-green-300' 
                         : 'bg-slate-50 border-slate-200'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${
-                        isActive 
-                          ? 'bg-green-200 text-green-800' 
-                          : courierCount > 0 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-slate-200 text-slate-500'
-                      }`}>
-                        {courierCount}
+                    {/* Compact Header - Always visible */}
+                    <div 
+                      className={`flex items-center justify-between p-2 sm:p-3 ${courierCount > 0 ? 'cursor-pointer sm:cursor-default' : ''}`}
+                      onClick={() => {
+                        if (courierCount > 0 && window.innerWidth < 640) {
+                          setExpandedShift(isExpanded ? null : shift.id);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center font-bold text-base sm:text-lg ${
+                          isActive 
+                            ? 'bg-green-200 text-green-800' 
+                            : courierCount > 0 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-slate-200 text-slate-500'
+                        }`}>
+                          {courierCount}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-xs sm:text-sm">
+                            {shift.start_time} - {shift.end_time}
+                          </p>
+                          {isActive && (
+                            <span className="text-[10px] sm:text-xs text-green-700">Aktif vardiya</span>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm">
-                          {shift.start_time} - {shift.end_time}
-                        </p>
-                        {isActive && (
-                          <span className="text-xs text-green-700">Aktif vardiya</span>
+                      
+                      {/* Desktop: Show names inline, Mobile: Show expand button */}
+                      <div className="flex items-center gap-2">
+                        {/* Desktop view - inline names */}
+                        <div className="hidden sm:flex flex-wrap-reverse gap-1 justify-end max-w-[200px] lg:max-w-[250px]">
+                          {shiftAssignments.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          ) : (
+                            shiftAssignments.slice().reverse().map(a => (
+                              <span 
+                                key={a.id} 
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-medium truncate max-w-[80px] ${
+                                  isActive 
+                                    ? 'bg-green-200 text-green-800' 
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}
+                                title={a.courier_name}
+                              >
+                                {a.courier_name}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                        
+                        {/* Mobile view - expand button */}
+                        {courierCount > 0 && (
+                          <button 
+                            className="sm:hidden p-1 rounded hover:bg-white/50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedShift(isExpanded ? null : shift.id);
+                            }}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4 text-slate-500" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-slate-500" />
+                            )}
+                          </button>
                         )}
                       </div>
                     </div>
-                    <div className="flex-1 ml-4 flex justify-end">
-                      {shiftAssignments.length === 0 ? (
-                        <span className="text-xs text-muted-foreground">-</span>
-                      ) : (
-                        <div className="flex flex-wrap-reverse gap-1 justify-end max-w-full">
-                          {shiftAssignments.slice().reverse().map(a => (
+                    
+                    {/* Mobile Expanded Content */}
+                    {isExpanded && courierCount > 0 && (
+                      <div className="sm:hidden px-2 pb-2 border-t border-slate-200/50">
+                        <div className="flex flex-wrap gap-1 pt-2">
+                          {shiftAssignments.map(a => (
                             <span 
                               key={a.id} 
-                              className={`text-[11px] px-2 py-1 rounded font-medium text-center truncate max-w-[90px] ${
+                              className={`text-[10px] px-2 py-1 rounded font-medium ${
                                 isActive 
                                   ? 'bg-green-200 text-green-800' 
                                   : 'bg-blue-100 text-blue-800'
                               }`}
-                              title={a.courier_name}
                             >
                               {a.courier_name}
                             </span>
                           ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
