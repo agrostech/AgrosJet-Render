@@ -423,22 +423,6 @@ async def get_accounting_summary(company_id: str):
 
 # --- Taksitli Ürün (Installment Products) ---
 
-class InstallmentProductCreate(BaseModel):
-    courier_id: str
-    company_id: str
-    name: str
-    installment_amount: float
-    installment_count: int
-    admin_id: str
-    admin_name: str
-
-
-class InstallmentPayRequest(BaseModel):
-    admin_id: str
-    admin_name: str
-    custom_date: Optional[str] = None  # ISO format datetime string
-
-
 @router.post("/couriers/{courier_id}/installment-products")
 async def create_installment_product(courier_id: str, data: InstallmentProductCreate):
     """Create a new installment product for a courier"""
