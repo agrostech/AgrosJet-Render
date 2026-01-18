@@ -223,6 +223,17 @@ async def check_missing_invoice_notifications(company_id: str):
 
 # ============ HELPER FUNCTION ============
 
+import asyncio
+
+async def _send_email_background(company_id: str, title: str, message: str, notification_type: str):
+    """Background task to send email without blocking"""
+    try:
+        from services.email_service import send_notification_email
+        await send_notification_email(company_id, title, message, notification_type)
+    except Exception as e:
+        print(f"Background email failed: {e}")
+
+
 async def create_notification(
     company_id: str,
     notification_type: str,
@@ -246,13 +257,8 @@ async def create_notification(
     }
     await db.notifications.insert_one(notification)
     
-    # Send email notification to super admin if enabled
+    # Send email in background (non-blocking)
     if send_email:
-        try:
-            from services.email_service import send_notification_email
-            await send_notification_email(company_id, title, message, notification_type)
-        except Exception as e:
-            # Don't fail notification creation if email fails
-            print(f"Email notification failed: {e}")
+        asyncio.create_task(_send_email_background(company_id, title, message, notification_type))
     
     return notification
