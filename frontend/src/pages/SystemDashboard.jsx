@@ -337,7 +337,7 @@ function SirketlerPage() {
             <DialogTitle className="font-heading">{selectedCompany?.name} - Yöneticiler</DialogTitle>
           </DialogHeader>
           {adminsLoading ? (
-            <p>Yükleniyor...</p>
+            <div className="py-8"><LoadingSpinner size="default" /></div>
           ) : (
             <div className="space-y-4">
               {companyAdmins.length === 0 ? (
