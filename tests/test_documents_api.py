@@ -15,31 +15,34 @@ COURIER_PASSWORD = "123456"
 ADMIN_USERNAME = "onurertas"
 ADMIN_PASSWORD = "Delivery32.."
 
+# Module-level state
+test_state = {
+    "courier_id": None,
+    "company_id": None,
+    "uploaded_doc_ids": []
+}
+
+
+@pytest.fixture(scope="module")
+def session():
+    """Create a session for all tests"""
+    s = requests.Session()
+    s.headers.update({"Content-Type": "application/json"})
+    yield s
+    # Cleanup uploaded documents at end
+    for doc_id in test_state["uploaded_doc_ids"]:
+        try:
+            s.delete(f"{BASE_URL}/api/documents/{doc_id}")
+        except:
+            pass
+
 
 class TestDocumentsAPI:
     """Test suite for Documents API endpoints"""
     
-    courier_id = None
-    company_id = None
-    uploaded_doc_ids = []
-    
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        """Setup test data"""
-        self.session = requests.Session()
-        self.session.headers.update({"Content-Type": "application/json"})
-        yield
-        # Cleanup uploaded documents
-        for doc_id in self.uploaded_doc_ids:
-            try:
-                self.session.delete(f"{BASE_URL}/api/documents/{doc_id}")
-            except:
-                pass
-        self.uploaded_doc_ids.clear()
-    
-    def test_01_courier_login(self):
+    def test_01_courier_login(self, session):
         """Test courier login to get courier_id"""
-        response = self.session.post(f"{BASE_URL}/api/auth/courier/login", json={
+        response = session.post(f"{BASE_URL}/api/auth/courier/login", json={
             "phone": COURIER_PHONE,
             "password": COURIER_PASSWORD
         })
@@ -47,14 +50,14 @@ class TestDocumentsAPI:
         data = response.json()
         assert "id" in data, "Courier ID not in response"
         assert data["role"] == "courier", "Role should be courier"
-        TestDocumentsAPI.courier_id = data["id"]
+        test_state["courier_id"] = data["id"]
         if data.get("companies") and len(data["companies"]) > 0:
-            TestDocumentsAPI.company_id = data["companies"][0]["id"]
+            test_state["company_id"] = data["companies"][0]["id"]
         print(f"Courier logged in: {data['name']}, ID: {data['id']}")
     
-    def test_02_get_document_types(self):
+    def test_02_get_document_types(self, session):
         """Test GET /api/documents/types - Get all document types"""
-        response = self.session.get(f"{BASE_URL}/api/documents/types")
+        response = session.get(f"{BASE_URL}/api/documents/types")
         assert response.status_code == 200, f"Get document types failed: {response.text}"
         data = response.json()
         
@@ -77,12 +80,12 @@ class TestDocumentsAPI:
         assert data["id_front"]["is_pdf"] == False, "ID front should be image"
         print(f"Document types verified: {list(data.keys())}")
     
-    def test_03_get_document_status_empty(self):
+    def test_03_get_document_status_initial(self, session):
         """Test GET /api/documents/courier/{courier_id}/status - Initial status"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
         
-        response = self.session.get(
-            f"{BASE_URL}/api/documents/courier/{TestDocumentsAPI.courier_id}/status"
+        response = session.get(
+            f"{BASE_URL}/api/documents/courier/{test_state['courier_id']}/status"
         )
         assert response.status_code == 200, f"Get status failed: {response.text}"
         data = response.json()
@@ -98,21 +101,21 @@ class TestDocumentsAPI:
         assert data["total_required"] == 20, f"Total required should be 20, got {data['total_required']}"
         print(f"Document status: {data['total_uploaded']}/{data['total_required']} ({data['progress_percent']}%)")
     
-    def test_04_get_courier_documents_empty(self):
-        """Test GET /api/documents/courier/{courier_id} - Get documents (initially empty)"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+    def test_04_get_courier_documents_initial(self, session):
+        """Test GET /api/documents/courier/{courier_id} - Get documents"""
+        assert test_state["courier_id"], "Courier ID not set"
         
-        response = self.session.get(
-            f"{BASE_URL}/api/documents/courier/{TestDocumentsAPI.courier_id}"
+        response = session.get(
+            f"{BASE_URL}/api/documents/courier/{test_state['courier_id']}"
         )
         assert response.status_code == 200, f"Get documents failed: {response.text}"
         data = response.json()
         assert isinstance(data, list), "Response should be a list"
         print(f"Current documents count: {len(data)}")
     
-    def test_05_upload_image_document(self):
+    def test_05_upload_image_document(self, session):
         """Test POST /api/documents/upload/{courier_id}/{document_type} - Upload image"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
         
         # Create a simple test image (1x1 pixel PNG)
         png_data = bytes([
@@ -135,7 +138,7 @@ class TestDocumentsAPI:
         }
         
         response = requests.post(
-            f"{BASE_URL}/api/documents/upload/{TestDocumentsAPI.courier_id}/id_front",
+            f"{BASE_URL}/api/documents/upload/{test_state['courier_id']}/id_front",
             files=files,
             data=data
         )
@@ -146,12 +149,12 @@ class TestDocumentsAPI:
         assert "file_name" in result, "Missing file_name in response"
         assert "message" in result, "Missing message in response"
         
-        TestDocumentsAPI.uploaded_doc_ids.append(result["document_id"])
+        test_state["uploaded_doc_ids"].append(result["document_id"])
         print(f"Uploaded document: {result['file_name']}, ID: {result['document_id']}")
     
-    def test_06_upload_pdf_document(self):
+    def test_06_upload_pdf_document(self, session):
         """Test POST /api/documents/upload - Upload PDF document"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
         
         # Create a minimal valid PDF
         pdf_content = b"""%PDF-1.4
@@ -184,7 +187,7 @@ startxref
         }
         
         response = requests.post(
-            f"{BASE_URL}/api/documents/upload/{TestDocumentsAPI.courier_id}/criminal_record",
+            f"{BASE_URL}/api/documents/upload/{test_state['courier_id']}/criminal_record",
             files=files,
             data=data
         )
@@ -192,15 +195,15 @@ startxref
         result = response.json()
         
         assert "document_id" in result, "Missing document_id"
-        TestDocumentsAPI.uploaded_doc_ids.append(result["document_id"])
+        test_state["uploaded_doc_ids"].append(result["document_id"])
         print(f"Uploaded PDF: {result['file_name']}")
     
-    def test_07_verify_status_after_upload(self):
+    def test_07_verify_status_after_upload(self, session):
         """Test document status updates after uploads"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
         
-        response = self.session.get(
-            f"{BASE_URL}/api/documents/courier/{TestDocumentsAPI.courier_id}/status"
+        response = session.get(
+            f"{BASE_URL}/api/documents/courier/{test_state['courier_id']}/status"
         )
         assert response.status_code == 200, f"Get status failed: {response.text}"
         data = response.json()
@@ -214,12 +217,12 @@ startxref
         assert data["details"]["criminal_record"]["uploaded"] >= 1, "Criminal record should have 1 upload"
         print(f"Status after uploads: {data['total_uploaded']}/{data['total_required']} ({data['progress_percent']}%)")
     
-    def test_08_get_courier_documents_list(self):
+    def test_08_get_courier_documents_list(self, session):
         """Test GET /api/documents/courier/{courier_id} - Verify uploaded documents"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
         
-        response = self.session.get(
-            f"{BASE_URL}/api/documents/courier/{TestDocumentsAPI.courier_id}"
+        response = session.get(
+            f"{BASE_URL}/api/documents/courier/{test_state['courier_id']}"
         )
         assert response.status_code == 200, f"Get documents failed: {response.text}"
         data = response.json()
@@ -236,27 +239,27 @@ startxref
         
         print(f"Documents list: {[d['document_type'] for d in data]}")
     
-    def test_09_view_document(self):
+    def test_09_view_document(self, session):
         """Test GET /api/documents/view/{document_id} - View document"""
-        assert len(TestDocumentsAPI.uploaded_doc_ids) > 0, "No documents uploaded"
+        assert len(test_state["uploaded_doc_ids"]) > 0, "No documents uploaded"
         
-        doc_id = TestDocumentsAPI.uploaded_doc_ids[0]
-        response = self.session.get(f"{BASE_URL}/api/documents/view/{doc_id}")
+        doc_id = test_state["uploaded_doc_ids"][0]
+        response = session.get(f"{BASE_URL}/api/documents/view/{doc_id}")
         assert response.status_code == 200, f"View document failed: {response.text}"
         
         # Should return file content
         assert len(response.content) > 0, "Document content should not be empty"
         print(f"Document viewed successfully, size: {len(response.content)} bytes")
     
-    def test_10_view_nonexistent_document(self):
+    def test_10_view_nonexistent_document(self, session):
         """Test GET /api/documents/view/{document_id} - Non-existent document"""
-        response = self.session.get(f"{BASE_URL}/api/documents/view/nonexistent-id-12345")
+        response = session.get(f"{BASE_URL}/api/documents/view/nonexistent-id-12345")
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
         print("Non-existent document returns 404 as expected")
     
-    def test_11_upload_invalid_file_type(self):
+    def test_11_upload_invalid_file_type(self, session):
         """Test upload with invalid file type"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
         
         # Try to upload PDF to image-only field
         pdf_content = b"%PDF-1.4\n%%EOF"
@@ -268,16 +271,16 @@ startxref
         }
         
         response = requests.post(
-            f"{BASE_URL}/api/documents/upload/{TestDocumentsAPI.courier_id}/id_back",
+            f"{BASE_URL}/api/documents/upload/{test_state['courier_id']}/id_back",
             files=files,
             data=data
         )
         assert response.status_code == 400, f"Expected 400 for invalid file type, got {response.status_code}"
         print("Invalid file type rejected as expected")
     
-    def test_12_upload_invalid_document_type(self):
+    def test_12_upload_invalid_document_type(self, session):
         """Test upload with invalid document type"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
         
         png_data = bytes([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
         files = {
@@ -288,68 +291,21 @@ startxref
         }
         
         response = requests.post(
-            f"{BASE_URL}/api/documents/upload/{TestDocumentsAPI.courier_id}/invalid_type",
+            f"{BASE_URL}/api/documents/upload/{test_state['courier_id']}/invalid_type",
             files=files,
             data=data
         )
         assert response.status_code == 400, f"Expected 400 for invalid document type, got {response.status_code}"
         print("Invalid document type rejected as expected")
     
-    def test_13_delete_document(self):
-        """Test DELETE /api/documents/{document_id} - Delete document"""
-        assert len(TestDocumentsAPI.uploaded_doc_ids) > 0, "No documents to delete"
-        
-        doc_id = TestDocumentsAPI.uploaded_doc_ids[0]
-        response = self.session.delete(f"{BASE_URL}/api/documents/{doc_id}")
-        assert response.status_code == 200, f"Delete failed: {response.text}"
-        
-        result = response.json()
-        assert "message" in result, "Missing message in response"
-        
-        # Remove from tracking list
-        TestDocumentsAPI.uploaded_doc_ids.remove(doc_id)
-        print(f"Document {doc_id} deleted successfully")
-    
-    def test_14_delete_nonexistent_document(self):
-        """Test DELETE /api/documents/{document_id} - Non-existent document"""
-        response = self.session.delete(f"{BASE_URL}/api/documents/nonexistent-id-12345")
-        assert response.status_code == 404, f"Expected 404, got {response.status_code}"
-        print("Delete non-existent document returns 404 as expected")
-    
-    def test_15_download_all_documents(self):
+    def test_13_download_all_documents(self, session):
         """Test GET /api/documents/courier/{courier_id}/download-all - Download ZIP"""
-        assert TestDocumentsAPI.courier_id, "Courier ID not set"
+        assert test_state["courier_id"], "Courier ID not set"
+        assert len(test_state["uploaded_doc_ids"]) > 0, "No documents uploaded"
         
-        # First ensure we have at least one document
-        if len(TestDocumentsAPI.uploaded_doc_ids) == 0:
-            # Upload a document first
-            png_data = bytes([
-                0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-                0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-                0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
-                0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41,
-                0x54, 0x08, 0xD7, 0x63, 0xF8, 0xFF, 0xFF, 0x3F,
-                0x00, 0x05, 0xFE, 0x02, 0xFE, 0xDC, 0xCC, 0x59,
-                0xE7, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E,
-                0x44, 0xAE, 0x42, 0x60, 0x82
-            ])
-            files = {'file': ('test.png', io.BytesIO(png_data), 'image/png')}
-            data = {'company_name': 'TestCompany'}
-            resp = requests.post(
-                f"{BASE_URL}/api/documents/upload/{TestDocumentsAPI.courier_id}/license_front",
-                files=files, data=data
-            )
-            if resp.status_code == 200:
-                TestDocumentsAPI.uploaded_doc_ids.append(resp.json()["document_id"])
-        
-        response = self.session.get(
-            f"{BASE_URL}/api/documents/courier/{TestDocumentsAPI.courier_id}/download-all"
+        response = session.get(
+            f"{BASE_URL}/api/documents/courier/{test_state['courier_id']}/download-all"
         )
-        
-        if response.status_code == 404:
-            print("No documents to download (404 expected if no documents)")
-            return
         
         assert response.status_code == 200, f"Download all failed: {response.text}"
         
@@ -361,9 +317,30 @@ startxref
         assert response.content[:2] == b'PK', "Should be a valid ZIP file"
         print(f"Downloaded ZIP file, size: {len(response.content)} bytes")
     
-    def test_16_download_all_nonexistent_courier(self):
+    def test_14_delete_document(self, session):
+        """Test DELETE /api/documents/{document_id} - Delete document"""
+        assert len(test_state["uploaded_doc_ids"]) > 0, "No documents to delete"
+        
+        doc_id = test_state["uploaded_doc_ids"][0]
+        response = session.delete(f"{BASE_URL}/api/documents/{doc_id}")
+        assert response.status_code == 200, f"Delete failed: {response.text}"
+        
+        result = response.json()
+        assert "message" in result, "Missing message in response"
+        
+        # Remove from tracking list
+        test_state["uploaded_doc_ids"].remove(doc_id)
+        print(f"Document {doc_id} deleted successfully")
+    
+    def test_15_delete_nonexistent_document(self, session):
+        """Test DELETE /api/documents/{document_id} - Non-existent document"""
+        response = session.delete(f"{BASE_URL}/api/documents/nonexistent-id-12345")
+        assert response.status_code == 404, f"Expected 404, got {response.status_code}"
+        print("Delete non-existent document returns 404 as expected")
+    
+    def test_16_download_all_nonexistent_courier(self, session):
         """Test download-all for non-existent courier"""
-        response = self.session.get(
+        response = session.get(
             f"{BASE_URL}/api/documents/courier/nonexistent-courier-id/download-all"
         )
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
@@ -373,15 +350,9 @@ startxref
 class TestAdminDocumentAccess:
     """Test admin access to courier documents"""
     
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.session = requests.Session()
-        self.session.headers.update({"Content-Type": "application/json"})
-        yield
-    
-    def test_01_admin_login(self):
+    def test_01_admin_login(self, session):
         """Test admin login"""
-        response = self.session.post(f"{BASE_URL}/api/auth/admin/login", json={
+        response = session.post(f"{BASE_URL}/api/auth/admin/login", json={
             "username": ADMIN_USERNAME,
             "password": ADMIN_PASSWORD
         })
@@ -390,10 +361,10 @@ class TestAdminDocumentAccess:
         assert "id" in data, "Admin ID not in response"
         print(f"Admin logged in: {data['name']}")
     
-    def test_02_admin_can_view_courier_documents(self):
+    def test_02_admin_can_view_courier_documents(self, session):
         """Test admin can view courier documents"""
         # First get courier ID
-        courier_response = self.session.post(f"{BASE_URL}/api/auth/courier/login", json={
+        courier_response = session.post(f"{BASE_URL}/api/auth/courier/login", json={
             "phone": COURIER_PHONE,
             "password": COURIER_PASSWORD
         })
@@ -401,19 +372,19 @@ class TestAdminDocumentAccess:
         courier_id = courier_response.json()["id"]
         
         # Admin views courier documents
-        response = self.session.get(f"{BASE_URL}/api/documents/courier/{courier_id}")
+        response = session.get(f"{BASE_URL}/api/documents/courier/{courier_id}")
         assert response.status_code == 200, f"Admin view documents failed: {response.text}"
         print(f"Admin can view courier documents: {len(response.json())} documents")
     
-    def test_03_admin_can_view_courier_status(self):
+    def test_03_admin_can_view_courier_status(self, session):
         """Test admin can view courier document status"""
-        courier_response = self.session.post(f"{BASE_URL}/api/auth/courier/login", json={
+        courier_response = session.post(f"{BASE_URL}/api/auth/courier/login", json={
             "phone": COURIER_PHONE,
             "password": COURIER_PASSWORD
         })
         courier_id = courier_response.json()["id"]
         
-        response = self.session.get(f"{BASE_URL}/api/documents/courier/{courier_id}/status")
+        response = session.get(f"{BASE_URL}/api/documents/courier/{courier_id}/status")
         assert response.status_code == 200, f"Admin view status failed: {response.text}"
         data = response.json()
         print(f"Admin can view status: {data['progress_percent']}% complete")
