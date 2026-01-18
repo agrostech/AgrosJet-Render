@@ -796,7 +796,7 @@ function SettingsTab({ companyId }) {
               data-testid="puan-ratio-input"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Varsayılan: 1.17 (85'te 1 oranı)
+              Varsayılan: 1.17 (85&#39;te 1 oranı)
             </p>
           </div>
 
@@ -916,7 +916,7 @@ function SettingsTab({ companyId }) {
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-            Kuryeler puanlarını JetPuan Market'te harcayabilir
+            Kuryeler puanlarını JetPuan Market&#39;te harcayabilir
           </li>
           <li className="flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
