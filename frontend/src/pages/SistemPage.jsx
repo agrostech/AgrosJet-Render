@@ -367,14 +367,14 @@ export default function SistemPage({ companyId }) {
           ) : (
             <form onSubmit={handleGoogleSave} className="p-3 md:p-4 space-y-4 md:space-y-6">
               {/* Info Banner */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 md:p-4">
                 <div className="flex gap-2 md:gap-3">
-                  <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs md:text-sm text-blue-800 space-y-1">
+                  <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-slate-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs md:text-sm text-slate-700 space-y-1">
                     <p className="font-medium">Google Cloud Console Kurulumu</p>
-                    <ol className="list-decimal list-inside space-y-0.5 md:space-y-1 text-blue-700">
+                    <ol className="list-decimal list-inside space-y-0.5 md:space-y-1 text-slate-600">
                       <li>
-                        <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
+                        <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-900">
                           Google Cloud Console
                         </a>'a gidin
                       </li>
@@ -382,11 +382,11 @@ export default function SistemPage({ companyId }) {
                       <li>OAuth 2.0 istemci kimliği oluşturun</li>
                       <li className="break-all">
                         <span className="hidden md:inline">Yönlendirme URI: </span>
-                        <code className="bg-blue-100 px-1 rounded text-xs">{currentDomain}/api/google/oauth/callback</code>
+                        <code className="bg-slate-200 px-1 rounded text-xs">{currentDomain}/api/google/oauth/callback</code>
                       </li>
                     </ol>
-                    <p className="text-xs text-blue-600 mt-2">
-                      💡 Her şirket kendi Google hesabını bağlayabilir. Domain değişse bile sistem otomatik uyum sağlar.
+                    <p className="text-xs text-slate-500 mt-2">
+                      Her şirket kendi Google hesabını bağlayabilir. Domain değişse bile sistem otomatik uyum sağlar.
                     </p>
                   </div>
                 </div>
