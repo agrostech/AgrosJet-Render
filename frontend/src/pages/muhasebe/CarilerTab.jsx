@@ -342,7 +342,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                           <td className="p-2 text-xs font-mono whitespace-nowrap">{formatDate(tx.created_at)}</td>
                           <td className="p-2 text-xs">{tx.description}</td>
                           <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatMoney(tx.amount)}
+                            {tx.type === 'payment_in' ? '-' : ''}{formatMoney(tx.amount)}
                           </td>
                           <td className="p-1">
                             <div className="flex gap-1 justify-end">
