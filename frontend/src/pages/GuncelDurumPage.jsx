@@ -461,47 +461,51 @@ export default function GuncelDurumPage({ companyId }) {
             </div>
             
             {/* İşletmeler */}
-            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Building2 className="w-4 h-4 text-slate-500" />
-                <span className="text-sm font-medium text-slate-600">İşletmeler</span>
+            <div className="p-3 sm:p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:mb-2">
+                  <Building2 className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm font-medium text-slate-600">İşletmeler</span>
+                </div>
+                <p className={`text-lg sm:text-xl font-bold font-mono ${
+                  accountingSummary.businesses.balance > 0 
+                    ? 'text-red-600' 
+                    : accountingSummary.businesses.balance < 0 
+                      ? 'text-green-600' 
+                      : 'text-slate-800'
+                }`}>
+                  {accountingSummary.businesses.balance === 0 
+                    ? '0 TL' 
+                    : accountingSummary.businesses.balance > 0 
+                      ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.businesses.balance)} TL`
+                      : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.businesses.balance))} TL`
+                  }
+                </p>
               </div>
-              <p className={`text-xl font-bold font-mono ${
-                accountingSummary.businesses.balance > 0 
-                  ? 'text-red-600' 
-                  : accountingSummary.businesses.balance < 0 
-                    ? 'text-green-600' 
-                    : 'text-slate-800'
-              }`}>
-                {accountingSummary.businesses.balance === 0 
-                  ? '0 TL' 
-                  : accountingSummary.businesses.balance > 0 
-                    ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.businesses.balance)} TL`
-                    : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.businesses.balance))} TL`
-                }
-              </p>
             </div>
             
             {/* Cariler */}
-            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Briefcase className="w-4 h-4 text-slate-500" />
-                <span className="text-sm font-medium text-slate-600">Cariler</span>
+            <div className="p-3 sm:p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:mb-2">
+                  <Briefcase className="w-4 h-4 text-slate-500" />
+                  <span className="text-sm font-medium text-slate-600">Cariler</span>
+                </div>
+                <p className={`text-lg sm:text-xl font-bold font-mono ${
+                  accountingSummary.vendors.balance > 0 
+                    ? 'text-red-600' 
+                    : accountingSummary.vendors.balance < 0 
+                      ? 'text-green-600' 
+                      : 'text-slate-800'
+                }`}>
+                  {accountingSummary.vendors.balance === 0 
+                    ? '0 TL' 
+                    : accountingSummary.vendors.balance > 0 
+                      ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.vendors.balance)} TL`
+                      : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.vendors.balance))} TL`
+                  }
+                </p>
               </div>
-              <p className={`text-xl font-bold font-mono ${
-                accountingSummary.vendors.balance > 0 
-                  ? 'text-red-600' 
-                  : accountingSummary.vendors.balance < 0 
-                    ? 'text-green-600' 
-                    : 'text-slate-800'
-              }`}>
-                {accountingSummary.vendors.balance === 0 
-                  ? '0 TL' 
-                  : accountingSummary.vendors.balance > 0 
-                    ? `-${new Intl.NumberFormat('tr-TR').format(accountingSummary.vendors.balance)} TL`
-                    : `${new Intl.NumberFormat('tr-TR').format(Math.abs(accountingSummary.vendors.balance))} TL`
-                }
-              </p>
             </div>
           </div>
         </div>
