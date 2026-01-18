@@ -121,6 +121,7 @@ async def create_superadmin(data: SuperAdminCreate):
             "yoneticiler": True
         },
         "company_id": data.company_id,
+        "email": data.email,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.admins.insert_one(admin)
