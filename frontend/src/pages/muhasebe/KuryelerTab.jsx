@@ -239,7 +239,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     return c.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
 
-  if (loading) return <p className="p-4">Yükleniyor...</p>;
+  if (loading) return <PageLoading />;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full">
