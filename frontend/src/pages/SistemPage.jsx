@@ -508,7 +508,7 @@ export default function SistemPage({ companyId }) {
                         className="h-8 text-xs md:text-sm"
                       >
                         <Link2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                        Drive'a Bağlan
+                        Drive&#39;a Bağlan
                       </Button>
                     )}
                   </div>
@@ -576,7 +576,7 @@ export default function SistemPage({ companyId }) {
                         className="h-8 text-xs md:text-sm"
                       >
                         <Link2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                        Gmail'e Bağlan
+                        Gmail&#39;e Bağlan
                       </Button>
                     )}
                   </div>
