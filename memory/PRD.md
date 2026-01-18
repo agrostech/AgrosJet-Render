@@ -201,3 +201,22 @@ Multi-tenant kurye yönetim sistemi.
   - `index.js` (5 satır) - Export'lar
 - [x] Tüm tab'lar çalışıyor
 - [x] Sipariş teslim/iptal, Kategori CRUD, Ürün CRUD, Puan ayarları korundu
+
+### Google Drive & SMTP Entegrasyonu (18 Ocak 2026 - YENİ)
+**Drive Entegrasyonu:**
+- [x] Klasör yapısı: `ShiftJet/Kuryeler/{Kurye Adı}/Evraklar/` ve `Faturalar/`
+- [x] Evrak yüklendiğinde otomatik Drive'a yükleme
+- [x] Fatura yüklendiğinde otomatik Drive'a yükleme
+- [x] Dinamik klasör oluşturma (kurye adına göre)
+
+**SMTP E-posta Entegrasyonu:**
+- [x] SMTP ayarları UI (Sistem sayfası)
+- [x] Test e-postası gönderme
+- [x] Tüm bildirimler süper admin'e e-posta olarak gönderilir
+- [x] Süper admin email alanı (Profil'de düzenlenebilir)
+- [x] E-posta aktif/pasif toggle
+
+**Yeni Dosyalar:**
+- `/app/backend/services/email_service.py` - SMTP servisi
+- `/app/backend/services/drive_service.py` - Drive klasör yapısı servisi
+
