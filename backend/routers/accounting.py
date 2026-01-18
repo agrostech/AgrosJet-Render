@@ -261,36 +261,6 @@ async def create_transaction(data: TransactionCreate):
     return {"message": "İşlem kaydedildi", "id": transaction["id"]}
 
 
-async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 0, limit: int = 10):
-    """Helper to get transactions and calculate balance for an entity"""
-    total_count = await db.transactions.count_documents({"entity_type": entity_type, "entity_id": entity_id})
-    
-    transactions = await db.transactions.find(
-        {"entity_type": entity_type, "entity_id": entity_id},
-        {"_id": 0}
-    ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
-    
-    # Calculate balance from ALL transactions
-    all_transactions = await db.transactions.find(
-        {"entity_type": entity_type, "entity_id": entity_id},
-        {"_id": 0, "type": 1, "amount": 1}
-    ).to_list(10000)
-    
-    balance = 0
-    for tx in all_transactions:
-        if tx["type"] == "payment_out":
-            balance += tx["amount"]
-        else:
-            balance -= tx["amount"]
-    
-    return {
-        "transactions": transactions, 
-        "balance": balance,
-        "total_count": total_count,
-        "has_more": skip + limit < total_count
-    }
-
-
 @router.get("/transactions/courier/{courier_id}")
 async def get_courier_transactions(courier_id: str, skip: int = 0, limit: int = 10):
     """Get paginated transactions for a courier"""
