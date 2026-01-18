@@ -287,7 +287,7 @@ export function ProductsTab({
                           </div>
                         </div>
                         {log.details?.notes && (
-                          <p className="text-xs text-slate-500 mt-1 italic">"{log.details.notes}"</p>
+                          <p className="text-xs text-slate-500 mt-1 italic">&quot;{log.details.notes}&quot;</p>
                         )}
                       </div>
                     ))}

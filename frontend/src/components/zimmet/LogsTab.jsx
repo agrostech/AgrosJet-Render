@@ -115,7 +115,7 @@ export function LogsTab({
                   {log.details?.pos_serial && <span>SN: {log.details.pos_serial}</span>}
                   {log.details?.pos_terminal && <span>TRM: {log.details.pos_terminal}</span>}
                   {log.details?.changes && <span className="text-slate-600">{log.details.changes}</span>}
-                  {log.details?.notes && <span className="italic text-slate-600">"{log.details.notes}"</span>}
+                  {log.details?.notes && <span className="italic text-slate-600">&quot;{log.details.notes}&quot;</span>}
                 </div>
               </div>
             ))}
