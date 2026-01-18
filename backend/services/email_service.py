@@ -101,6 +101,21 @@ async def send_notification_email(company_id: str, title: str, message: str, not
     if not settings or not settings.get("enabled"):
         return False
     
+    # Check if this notification type is enabled
+    type_to_setting = {
+        "muhasebe_hareket": "notify_muhasebe",
+        "zimmet_hareket": "notify_zimmet",
+        "evrak_yuklendi": "notify_evrak",
+        "jetpuan_siparis": "notify_jetpuan",
+        "fesih_3_gun": "notify_fesih",
+        "fesih_yarin": "notify_fesih",
+    }
+    
+    setting_key = type_to_setting.get(notification_type)
+    if setting_key and not settings.get(setting_key, True):
+        logger.info(f"Email notification disabled for type: {notification_type}")
+        return False
+    
     # Get super admin email
     email = await get_superadmin_email(company_id)
     if not email:
