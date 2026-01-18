@@ -559,6 +559,51 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
           </>
         )}
       </div>
+
+      {/* Fatura Mesajı Modal */}
+      <Dialog open={showInvoiceMessageModal} onOpenChange={setShowInvoiceMessageModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <MessageSquare className="w-5 h-5 text-blue-600" />
+              Fatura Talep Mesajı
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4">
+              <pre className="whitespace-pre-wrap text-xs sm:text-sm font-sans text-slate-700 leading-relaxed">
+                {generateInvoiceMessage(selectedHakedisAmount)}
+              </pre>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                onClick={copyToClipboard} 
+                className="flex-1 h-10"
+                variant={copied ? "default" : "outline"}
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Kopyalandı
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Mesajı Kopyala
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {(!companyInfo?.tckn_vkn || !companyInfo?.address) && (
+              <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                ⚠️ Şirket bilgileri eksik. Yöneticinizle iletişime geçin.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
