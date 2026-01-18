@@ -248,6 +248,30 @@ async def create_transaction(data: TransactionCreate):
             }
         })
     
+    # Auto-credit JetPuan for hakediş transactions (payment_out to courier)
+    if data.entity_type == "courier" and data.is_hakedis and data.type == "payment_out":
+        try:
+            jetpuan_amount = await calculate_and_credit_points(data.entity_id, data.amount)
+            if jetpuan_amount > 0:
+                # Log the JetPuan credit
+                if data.admin_id and data.admin_name:
+                    await create_activity_log({
+                        "company_id": data.company_id,
+                        "admin_id": data.admin_id,
+                        "admin_name": data.admin_name,
+                        "action": "jetpuan_credited",
+                        "entity_type": "courier",
+                        "entity_id": data.entity_id,
+                        "entity_name": entity_name,
+                        "details": {
+                            "hakedis_amount": data.amount,
+                            "jetpuan_amount": jetpuan_amount
+                        }
+                    })
+        except Exception as e:
+            # Don't fail the transaction if JetPuan credit fails
+            print(f"JetPuan credit failed: {e}")
+    
     return {"message": "İşlem kaydedildi", "id": transaction["id"]}
 
 
