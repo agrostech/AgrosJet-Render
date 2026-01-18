@@ -270,6 +270,66 @@ async def credit_points(courier_id: str, amount: float, description: str = "Hake
     return {"message": f"{amount:.2f} JetPuan yüklendi"}
 
 
+@router.post("/manual-credit/{courier_id}")
+async def manual_credit_points(courier_id: str, amount: float, description: str = "Manuel puan ekleme"):
+    """Manually add points to courier's balance (admin)"""
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Puan miktarı pozitif olmalı")
+    
+    # Update balance
+    await db.jetpuan_balances.update_one(
+        {"courier_id": courier_id},
+        {"$inc": {"balance": amount}},
+        upsert=True
+    )
+    
+    # Record transaction
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "courier_id": courier_id,
+        "amount": amount,
+        "type": "credit",
+        "description": description,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.jetpuan_transactions.insert_one(transaction)
+    
+    return {"message": f"{amount:.2f} JetPuan eklendi"}
+
+
+@router.post("/manual-debit/{courier_id}")
+async def manual_debit_points(courier_id: str, amount: float, description: str = "Manuel puan silme"):
+    """Manually remove points from courier's balance (admin)"""
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Puan miktarı pozitif olmalı")
+    
+    # Get current balance
+    balance_doc = await db.jetpuan_balances.find_one({"courier_id": courier_id})
+    current_balance = balance_doc["balance"] if balance_doc else 0
+    
+    if current_balance < amount:
+        raise HTTPException(status_code=400, detail=f"Yetersiz bakiye. Mevcut: {current_balance:.2f} JP")
+    
+    # Update balance
+    await db.jetpuan_balances.update_one(
+        {"courier_id": courier_id},
+        {"$inc": {"balance": -amount}}
+    )
+    
+    # Record transaction
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "courier_id": courier_id,
+        "amount": -amount,
+        "type": "debit",
+        "description": description,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.jetpuan_transactions.insert_one(transaction)
+    
+    return {"message": f"{amount:.2f} JetPuan silindi"}
+
+
 # ============ ORDERS ============
 
 @router.get("/orders/admin")
