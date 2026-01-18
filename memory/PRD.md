@@ -53,6 +53,29 @@ Multi-tenant kurye yönetim sistemi.
 - [x] **Admin Paneli**: Ay bazında filtreleme, tekli/toplu indirme (ZIP)
 - [x] Dosya isimlendirme: KuryeAdSoyad_HaftaninSalisi.pdf
 
+### Fesih (Termination) Özelliği (17 Ocak 2026)
+- [x] Admin kuryeler için 15 günlük fesih süreci başlatabilir
+- [x] Kurye panelinde fesih uyarısı ve geri sayım gösterimi
+- [x] Admin fesih sürecini iptal edebilir
+
+### Evraklar (Documents) Sistemi (18 Ocak 2026 - YENİ)
+- [x] **Backend**: `/api/documents/` endpoint'leri (upload, view, delete, download-all ZIP)
+- [x] **Kurye Paneli**: Yeni "Evraklar" sekmesi (evraklar eksikse görünür)
+- [x] **7 Evrak Türü:**
+  - Şirket Sözleşmesi (14 fotoğraf)
+  - Kimlik Ön Yüz (1 fotoğraf)
+  - Kimlik Arka Yüz (1 fotoğraf)
+  - Ehliyet Ön Yüz (1 fotoğraf)
+  - Ehliyet Arka Yüz (1 fotoğraf)
+  - Adli Sicil Kaydı (1 PDF)
+  - İkametgah Belgesi (1 PDF)
+- [x] İlerleme çubuğu ve yüzde gösterimi (0/20 → 100%)
+- [x] Tüm evraklar yüklenince sekme otomatik gizlenir
+- [x] **Admin Paneli**: Kurye detaylarında Bilgiler/Evraklar sekmeleri
+- [x] Admin evrakları görüntüleyebilir, silebilir, toplu ZIP indirebilir
+- [x] Admin evrak silerse kurye tarafında sekme tekrar görünür
+- [x] Dosya isimlendirme: KuryeAdi_EvrakTuru_Index.uzanti
+
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
 - [ ] Sistem Sayfası özellikleri (kullanıcı gereksinimlerini bekliyor)
