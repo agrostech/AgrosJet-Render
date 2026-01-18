@@ -26,8 +26,10 @@ export const isApproximatelyNow = (dateStr) => {
 export const formatMoney = (amt) => 
   new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(amt)) + ' TL';
 
-export const formatCurrency = (amt) => 
-  new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(Math.abs(amt));
+export const formatCurrency = (amt) => {
+  const formatted = new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(amt));
+  return `${formatted} TL`;
+};
 
 export const formatDate = (dateStr) => 
   new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
