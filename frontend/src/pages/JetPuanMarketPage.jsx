@@ -521,11 +521,11 @@ function ProductsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h3 className="font-semibold">Ürünler ({filteredProducts.length})</h3>
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+        <h3 className="font-semibold text-sm sm:text-base">Ürünler ({filteredProducts.length})</h3>
+        <div className="flex gap-2 w-full sm:w-auto">
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-40 h-10 border-2">
+            <SelectTrigger className="flex-1 sm:w-40 h-9 sm:h-10 border-2 text-xs sm:text-sm">
               <SelectValue placeholder="Kategori" />
             </SelectTrigger>
             <SelectContent>
@@ -535,9 +535,9 @@ function ProductsTab() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={openAddModal} className="font-semibold" data-testid="add-product-btn">
-            <Plus className="w-4 h-4 mr-2" />
-            Ürün Ekle
+          <Button onClick={openAddModal} className="font-semibold h-9 sm:h-10 text-xs sm:text-sm" data-testid="add-product-btn">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Ürün Ekle</span>
           </Button>
         </div>
       </div>
