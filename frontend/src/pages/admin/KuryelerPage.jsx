@@ -200,7 +200,7 @@ export default function KuryelerPage({ companyId }) {
     return c.name.toLowerCase().includes(query) || c.plate.toLowerCase().includes(query);
   });
 
-  if (loading) return <p>Yükleniyor...</p>;
+  if (loading) return <PageLoading />;
 
   return (
     <div data-testid="admin-kuryeler-page">
