@@ -198,9 +198,9 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
         </div>
         <div className="text-right shrink-0">
           <p className={`font-mono font-semibold text-sm ${
-            tx.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
+            tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'
           }`}>
-            {tx.type === 'payment_in' ? '-' : '+'}{formatMoney(tx.amount)}
+            {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
           </p>
           <div className="mt-1 flex items-center justify-end gap-1">
             {showUploadButton && companyInfo && (
