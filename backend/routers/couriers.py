@@ -66,11 +66,13 @@ async def search_courier(phone: str):
 
 
 @router.get("/companies/{company_id}/couriers")
-async def get_company_couriers(company_id: str, include_archived: bool = False):
+async def get_company_couriers(company_id: str, include_archived: bool = False, include_inactive: bool = False):
     """Get couriers assigned to a specific company"""
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
+    if not include_inactive:
+        query["is_active"] = {"$ne": False}
     relations = await db.company_couriers.find(query, {"_id": 0}).to_list(1000)
     
     couriers = []
@@ -79,6 +81,7 @@ async def get_company_couriers(company_id: str, include_archived: bool = False):
         if courier:
             courier["company_status"] = rel["status"]
             courier["is_archived"] = rel.get("is_archived", False)
+            courier["is_active"] = rel.get("is_active", True)
             # Add termination info
             courier["termination_start_date"] = rel.get("termination_start_date")
             courier["termination_end_date"] = rel.get("termination_end_date")
@@ -88,6 +91,25 @@ async def get_company_couriers(company_id: str, include_archived: bool = False):
                 now = datetime.now(timezone.utc)
                 remaining = (end_date - now).days
                 courier["termination_remaining_days"] = max(0, remaining)
+            couriers.append(courier)
+    
+    return couriers
+
+
+@router.get("/companies/{company_id}/couriers/inactive")
+async def get_inactive_company_couriers(company_id: str):
+    """Get inactive couriers assigned to a specific company"""
+    query = {"company_id": company_id, "is_active": False, "is_archived": {"$ne": True}}
+    relations = await db.company_couriers.find(query, {"_id": 0}).to_list(1000)
+    
+    couriers = []
+    for rel in relations:
+        courier = await db.couriers.find_one({"id": rel["courier_id"]}, {"_id": 0, "password": 0})
+        if courier:
+            courier["company_status"] = rel["status"]
+            courier["is_archived"] = rel.get("is_archived", False)
+            courier["is_active"] = rel.get("is_active", True)
+            courier["deactivated_at"] = rel.get("deactivated_at")
             couriers.append(courier)
     
     return couriers
