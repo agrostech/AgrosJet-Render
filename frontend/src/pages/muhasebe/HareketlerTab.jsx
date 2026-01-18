@@ -196,9 +196,20 @@ export default function HareketlerTab({ companyId }) {
                       </div>
                     </td>
                     <td className="p-3 text-muted-foreground">
-                      {log.details?.description || '-'}
-                      {log.details?.is_hakedis && (
-                        <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">Hakediş</span>
+                      {log.action === 'installment_paid' && log.details?.product_name ? (
+                        <span>
+                          <span className="font-medium text-purple-700">{log.details.product_name}</span>
+                          <span className="text-xs ml-1">
+                            ({log.details.installment_number}/{log.details.total_installments}. taksit)
+                          </span>
+                        </span>
+                      ) : (
+                        <>
+                          {log.details?.description || '-'}
+                          {log.details?.is_hakedis && (
+                            <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">Hakediş</span>
+                          )}
+                        </>
                       )}
                     </td>
                     <td className={`p-3 text-right font-medium ${
