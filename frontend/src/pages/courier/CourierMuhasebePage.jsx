@@ -162,14 +162,14 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
 
   if (loading) return <PageLoading />;
 
-  // Kurye için bakiye renkleri TERSİNE çevrildi
+  // Kurye için bakiye renkleri
   const getBalanceColor = (bal) => {
     if (bal === 0) return '';
-    return bal > 0 ? 'text-green-600' : 'text-red-600';
+    return bal > 0 ? 'text-red-600' : 'text-green-600';
   };
   const getBalanceBg = (bal) => {
     if (bal === 0) return 'bg-slate-100';
-    return bal > 0 ? 'bg-green-50' : 'bg-red-50';
+    return bal > 0 ? 'bg-red-50' : 'bg-green-50';
   };
 
   return (
