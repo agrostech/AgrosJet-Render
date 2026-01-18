@@ -213,9 +213,10 @@ export default function HareketlerTab({ companyId }) {
                       )}
                     </td>
                     <td className={`p-3 text-right font-medium ${
+                      log.action === 'installment_paid' ? 'text-purple-600' :
                       log.details?.type === 'payment_in' ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {log.details?.type === 'payment_out' && '-'}{formatCurrency(log.details?.amount || 0)}
+                      {(log.details?.type === 'payment_out' || log.action === 'installment_paid') && '-'}{formatCurrency(log.details?.amount || 0)}
                     </td>
                   </tr>
                 ))}
