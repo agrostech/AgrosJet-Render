@@ -23,7 +23,7 @@ export default function SistemPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [companyExpanded, setCompanyExpanded] = useState(false);
-  const [googleExpanded, setGoogleExpanded] = useState(true);
+  const [googleExpanded, setGoogleExpanded] = useState(false);
 
   // Google Integration States
   const [googleSettings, setGoogleSettings] = useState({

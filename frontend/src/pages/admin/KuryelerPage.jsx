@@ -44,7 +44,11 @@ export default function KuryelerPage({ companyId }) {
   const fetchCouriers = async () => {
     try {
       const res = await axios.get(`${API}/companies/${companyId}/couriers`);
-      setCouriers(res.data);
+      // Alfabetik sıralama
+      const sortedCouriers = res.data.sort((a, b) => 
+        (a.name || '').localeCompare(b.name || '', 'tr')
+      );
+      setCouriers(sortedCouriers);
     } catch (err) {
       toast.error("Kuryeler yüklenemedi");
     } finally {
