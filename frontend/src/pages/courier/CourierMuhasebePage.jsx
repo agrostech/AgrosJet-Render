@@ -213,11 +213,7 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
   const totalRemainingInstallments = installmentProducts.reduce((sum, p) => sum + p.remaining_installments, 0);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
+    return <PageLoading />;
   }
 
   // Kurye için bakiye renkleri TERSİNE çevrildi
