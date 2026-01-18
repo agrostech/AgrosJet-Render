@@ -118,18 +118,29 @@ async def parse_excel(company_id: str, file: UploadFile = File(...)):
     packet_col = None
     hakedis_col = None
     
+    # Search for header row - must have at least 2 recognized columns to be valid header
     for row_idx, row in enumerate(ws.iter_rows(min_row=1, max_row=10, values_only=True), 1):
+        temp_name_col = None
+        temp_packet_col = None
+        temp_hakedis_col = None
+        
         for col_idx, cell in enumerate(row):
             if cell:
                 cell_str = str(cell).lower().strip()
-                if 'kurye' in cell_str or 'isim' in cell_str or 'ad' == cell_str:
-                    name_col = col_idx
-                    header_row = row_idx
+                # Check for name column - but must be exactly "kurye" not "kurye raporu"
+                if cell_str == 'kurye' or cell_str == 'isim' or cell_str == 'ad' or cell_str == 'kurye adı':
+                    temp_name_col = col_idx
                 elif 'paket' in cell_str:
-                    packet_col = col_idx
-                elif 'kazanç' in cell_str or 'hakediş' in cell_str or 'hakedis' in cell_str or 'total' in cell_str:
-                    hakedis_col = col_idx
-        if header_row:
+                    temp_packet_col = col_idx
+                elif 'kazanç' in cell_str or 'hakediş' in cell_str or 'hakedis' in cell_str or cell_str == 'total':
+                    temp_hakedis_col = col_idx
+        
+        # Valid header row must have name column AND at least one other column
+        if temp_name_col is not None and (temp_packet_col is not None or temp_hakedis_col is not None):
+            name_col = temp_name_col
+            packet_col = temp_packet_col
+            hakedis_col = temp_hakedis_col
+            header_row = row_idx
             break
     
     if not header_row or name_col is None:
