@@ -234,8 +234,8 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
             <button className="w-full p-4 border-b-2 border-border bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-amber-100">
-                    <Gift className="w-5 h-5 text-amber-600" />
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100">
+                    <Gift className="w-5 h-5 text-slate-600" />
                   </div>
                   <div className="text-left">
                     <h3 className="font-heading font-bold">Haftalık Bonus Ayarları</h3>
@@ -303,17 +303,17 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                 rules.map((rule) => (
                   <div key={rule.id} className="p-3 flex items-center justify-between hover:bg-slate-50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                        <Package className="w-5 h-5 text-amber-600" />
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <Package className="w-5 h-5 text-slate-600" />
                       </div>
                       <div>
                         <p className="font-semibold text-sm">
-                          <span className="text-amber-600">{rule.min_packets}+</span> paket
+                          <span className="text-primary">{rule.min_packets}+</span> paket
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <p className="text-lg font-bold text-green-600 font-mono">{formatMoney(rule.amount)}</p>
+                      <p className="text-lg font-bold font-mono">{formatMoney(rule.amount)}</p>
                       <Button
                         variant="ghost"
                         size="sm"
