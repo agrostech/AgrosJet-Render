@@ -585,7 +585,7 @@ export default function SistemPage({ companyId }) {
 
               {/* Save Button */}
               <div className="pt-3 md:pt-4 border-t border-border">
-                <Button type="submit" disabled={googleSaving} className="h-10 md:h-11 font-semibold bg-blue-600 hover:bg-blue-700 text-sm">
+                <Button type="submit" disabled={googleSaving} className="h-10 md:h-11 font-semibold text-sm">
                   <Save className="w-4 h-4 mr-2" />
                   {googleSaving ? "Kaydediliyor..." : "Ayarları Kaydet"}
                 </Button>
