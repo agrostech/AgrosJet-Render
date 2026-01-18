@@ -104,8 +104,10 @@ export default function NotificationsPopover({ companyId }) {
     if (!companyId) return;
     setLoading(true);
     try {
-      // Also check fesih notifications
+      // Check fesih notifications
       await axios.get(`${API}/notifications/company/${companyId}/check-fesih`);
+      // Check missing invoice notifications
+      await axios.get(`${API}/notifications/company/${companyId}/check-missing-invoices`);
       
       const res = await axios.get(`${API}/notifications/company/${companyId}?include_read=true&limit=30`);
       setNotifications(res.data);
