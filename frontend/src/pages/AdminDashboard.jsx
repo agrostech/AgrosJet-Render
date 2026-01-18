@@ -127,6 +127,7 @@ export default function AdminDashboard() {
           setSidebarCollapsed={setSidebarCollapsed}
           onProfileClick={() => setShowProfileModal(true)}
           onLogout={handleLogout}
+          badges={badges}
         />
 
         {/* Main Content */}
