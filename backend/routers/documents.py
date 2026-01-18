@@ -48,6 +48,12 @@ DOCUMENT_TYPES = {
         "allowed_types": ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"],
         "extensions": [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"]
     },
+    "vehicle_registration": {
+        "label": "Araç Ruhsatı",
+        "max_count": 1,
+        "allowed_types": ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"],
+        "extensions": [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"]
+    },
     "criminal_record": {
         "label": "Adli Sicil Kaydı",
         "max_count": 1,
