@@ -81,6 +81,32 @@ export default function SistemPage({ companyId }) {
     }
   };
 
+  const fetchGoogleSettings = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/google/settings/${companyId}`);
+      if (res.data.exists) {
+        setGoogleSettings({
+          client_id: res.data.client_id || "",
+          client_secret: res.data.client_secret_masked || "",
+          drive_folder_id: res.data.drive_folder_id || "",
+          gmail_enabled: res.data.gmail_enabled || false,
+          drive_enabled: res.data.drive_enabled || false
+        });
+        setGoogleStatus({
+          exists: true,
+          drive_connected: res.data.drive_connected,
+          gmail_connected: res.data.gmail_connected,
+          client_secret_masked: res.data.client_secret_masked
+        });
+      }
+    } catch (err) {
+      console.error("Google settings fetch error:", err);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
