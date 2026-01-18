@@ -542,7 +542,7 @@ function ProductsTab() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
         {filteredProducts.length === 0 ? (
           <div className="col-span-full text-center py-8 text-muted-foreground border-2 border-dashed border-border rounded-lg">
             Henüz ürün eklenmemiş
@@ -560,25 +560,25 @@ function ProductsTab() {
                   />
                 ) : null}
                 <div className={`flex-col items-center justify-center text-muted-foreground ${product.image_url ? 'hidden' : 'flex'}`}>
-                  <ImageIcon className="w-12 h-12 mb-2 opacity-50" />
-                  <span className="text-xs">Görsel Yok</span>
+                  <ImageIcon className="w-8 h-8 sm:w-12 sm:h-12 mb-1 sm:mb-2 opacity-50" />
+                  <span className="text-[10px] sm:text-xs">Görsel Yok</span>
                 </div>
               </div>
-              <div className="p-3">
-                <p className="text-xs text-amber-600 font-medium mb-1">{product.category_name}</p>
-                <h4 className="font-semibold truncate">{product.name}</h4>
-                <p className="text-xs text-muted-foreground line-clamp-2 h-8">{product.description}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-lg font-bold text-primary">{product.price} JP</span>
-                  <span className={`text-xs px-2 py-0.5 rounded ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    Stok: {product.stock}
+              <div className="p-2 sm:p-3">
+                <p className="text-[10px] sm:text-xs text-amber-600 font-medium mb-0.5 sm:mb-1">{product.category_name}</p>
+                <h4 className="font-semibold text-xs sm:text-base truncate">{product.name}</h4>
+                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2 h-6 sm:h-8 hidden sm:block">{product.description}</p>
+                <div className="flex items-center justify-between mt-1 sm:mt-2">
+                  <span className="text-sm sm:text-lg font-bold text-primary">{product.price} JP</span>
+                  <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {product.stock}
                   </span>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  <Button size="sm" variant="outline" onClick={() => openEditModal(product)} className="flex-1 h-8 border-2">
-                    <Pencil className="w-3 h-3 mr-1" /> Düzenle
+                <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-3">
+                  <Button size="sm" variant="outline" onClick={() => openEditModal(product)} className="flex-1 h-7 sm:h-8 border-2 text-[10px] sm:text-xs px-1 sm:px-2">
+                    <Pencil className="w-3 h-3 sm:mr-1" /> <span className="hidden sm:inline">Düzenle</span>
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleDelete(product.id)} className="h-8 border-2 hover:bg-red-50 hover:text-red-600">
+                  <Button size="sm" variant="outline" onClick={() => handleDelete(product.id)} className="h-7 sm:h-8 border-2 hover:bg-red-50 hover:text-red-600 px-1.5 sm:px-2">
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
