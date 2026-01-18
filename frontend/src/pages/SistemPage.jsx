@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { SlidersHorizontal, Save, FileText, Cloud, Mail, HardDrive, Link2, Unlink, CheckCircle2, AlertCircle, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { SlidersHorizontal, Save, FileText, Cloud, Mail, HardDrive, Link2, Unlink, CheckCircle2, AlertCircle, Eye, EyeOff, ChevronDown, ChevronUp, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,8 @@ export default function SistemPage({ companyId }) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [companyExpanded, setCompanyExpanded] = useState(false);
+  const [googleExpanded, setGoogleExpanded] = useState(true);
 
   // Google Integration States
   const [googleSettings, setGoogleSettings] = useState({
@@ -41,6 +43,9 @@ export default function SistemPage({ companyId }) {
   const [showClientSecret, setShowClientSecret] = useState(false);
   const [testingDrive, setTestingDrive] = useState(false);
   const [testingGmail, setTestingGmail] = useState(false);
+
+  // Get current domain for redirect URI display
+  const currentDomain = typeof window !== 'undefined' ? window.location.origin : 'https://shiftjet.app';
 
   useEffect(() => {
     fetchCompanyInfo();
