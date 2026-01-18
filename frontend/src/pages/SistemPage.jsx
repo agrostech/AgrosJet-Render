@@ -297,13 +297,10 @@ export default function SistemPage({ companyId }) {
                   <p className="font-medium text-sm mb-3">Hangi bildirimler için e-posta gönderilsin?</p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">💰</span>
-                        <div>
-                          <p className="text-sm font-medium">Muhasebe İşlemleri</p>
-                          <p className="text-xs text-muted-foreground">Hakediş ekleme, güncelleme, silme</p>
-                        </div>
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
+                      <div>
+                        <p className="text-sm font-medium">Muhasebe İşlemleri</p>
+                        <p className="text-xs text-muted-foreground">Hakediş ekleme, güncelleme, silme</p>
                       </div>
                       <Switch 
                         checked={emailSettings.notify_muhasebe}
@@ -311,13 +308,10 @@ export default function SistemPage({ companyId }) {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">📦</span>
-                        <div>
-                          <p className="text-sm font-medium">Zimmet İşlemleri</p>
-                          <p className="text-xs text-muted-foreground">Zimmet atama, geri alma, ürün ekleme</p>
-                        </div>
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
+                      <div>
+                        <p className="text-sm font-medium">Zimmet İşlemleri</p>
+                        <p className="text-xs text-muted-foreground">Zimmet atama, geri alma, ürün ekleme</p>
                       </div>
                       <Switch 
                         checked={emailSettings.notify_zimmet}
@@ -325,13 +319,10 @@ export default function SistemPage({ companyId }) {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">📄</span>
-                        <div>
-                          <p className="text-sm font-medium">Evrak Yüklemeleri</p>
-                          <p className="text-xs text-muted-foreground">Kurye evrak yüklediğinde</p>
-                        </div>
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
+                      <div>
+                        <p className="text-sm font-medium">Evrak Yüklemeleri</p>
+                        <p className="text-xs text-muted-foreground">Kurye evrak yüklediğinde</p>
                       </div>
                       <Switch 
                         checked={emailSettings.notify_evrak}
@@ -339,13 +330,10 @@ export default function SistemPage({ companyId }) {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🛒</span>
-                        <div>
-                          <p className="text-sm font-medium">Market Siparişleri</p>
-                          <p className="text-xs text-muted-foreground">Yeni JetPuan sipariş geldiğinde</p>
-                        </div>
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
+                      <div>
+                        <p className="text-sm font-medium">Market Siparişleri</p>
+                        <p className="text-xs text-muted-foreground">Yeni JetPuan sipariş geldiğinde</p>
                       </div>
                       <Switch 
                         checked={emailSettings.notify_jetpuan}
@@ -353,13 +341,10 @@ export default function SistemPage({ companyId }) {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded sm:col-span-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">⚠️</span>
-                        <div>
-                          <p className="text-sm font-medium">Fesih Süreçleri</p>
-                          <p className="text-xs text-muted-foreground">Fesih süresi 3 gün kala ve son gün</p>
-                        </div>
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border sm:col-span-2">
+                      <div>
+                        <p className="text-sm font-medium">Fesih Süreçleri</p>
+                        <p className="text-xs text-muted-foreground">Fesih süresi 3 gün kala ve son gün</p>
                       </div>
                       <Switch 
                         checked={emailSettings.notify_fesih}
