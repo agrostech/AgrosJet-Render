@@ -59,11 +59,12 @@ export default function CourierDashboard() {
     }
   }, [location.pathname, navigate]);
 
-  // Fetch company name
-  const fetchCompanyName = useCallback(async (companyId) => {
+  // Fetch company name and logo
+  const fetchCompanyInfo = useCallback(async (companyId) => {
     try {
       const res = await axios.get(`${API}/companies/${companyId}`);
       setCompanyName(res.data.name);
+      setCompanyLogo(res.data.logo_url || "");
     } catch (err) {
       console.error("Şirket bilgisi alınamadı", err);
     }
