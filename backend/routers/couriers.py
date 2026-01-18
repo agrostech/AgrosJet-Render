@@ -200,6 +200,36 @@ async def archive_company_courier(company_id: str, courier_id: str):
     return {"message": "Kurye arşivlendi"}
 
 
+@router.put("/companies/{company_id}/couriers/{courier_id}/deactivate")
+async def deactivate_company_courier(company_id: str, courier_id: str):
+    """Deactivate a courier (set to passive)"""
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {
+            "is_active": False,
+            "deactivated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    return {"message": "Kurye pasife alındı"}
+
+
+@router.put("/companies/{company_id}/couriers/{courier_id}/activate")
+async def activate_company_courier(company_id: str, courier_id: str):
+    """Activate a courier (set to active)"""
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {
+            "is_active": True,
+            "deactivated_at": None
+        }}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    return {"message": "Kurye aktife alındı"}
+
+
 @router.put("/companies/{company_id}/couriers/{courier_id}/unarchive")
 async def unarchive_company_courier(company_id: str, courier_id: str):
     """Unarchive a courier from company"""
