@@ -24,6 +24,7 @@ export default function SistemPage({ companyId }) {
   const [saving, setSaving] = useState(false);
   const [companyExpanded, setCompanyExpanded] = useState(false);
   const [googleExpanded, setGoogleExpanded] = useState(false);
+  const [emailExpanded, setEmailExpanded] = useState(false);
 
   // Google Integration States
   const [googleSettings, setGoogleSettings] = useState({
@@ -44,6 +45,22 @@ export default function SistemPage({ companyId }) {
   const [showClientSecret, setShowClientSecret] = useState(false);
   const [testingDrive, setTestingDrive] = useState(false);
   const [testingGmail, setTestingGmail] = useState(false);
+
+  // Email (SMTP) Settings States
+  const [emailSettings, setEmailSettings] = useState({
+    smtp_host: "",
+    smtp_port: 587,
+    smtp_user: "",
+    smtp_password: "",
+    from_email: "",
+    from_name: "ShiftJet",
+    enabled: true
+  });
+  const [emailStatus, setEmailStatus] = useState({ exists: false });
+  const [emailLoading, setEmailLoading] = useState(true);
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [showSmtpPassword, setShowSmtpPassword] = useState(false);
 
   // Get current domain for redirect URI display
   const currentDomain = typeof window !== 'undefined' ? window.location.origin : 'https://shiftjet.app';
