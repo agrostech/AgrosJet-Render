@@ -320,13 +320,24 @@ export default function KuryelerPage({ companyId }) {
                     <div className="flex gap-2 justify-end">
                       <Button size="sm" variant="outline" onClick={() => openDetailModal(c)} className="h-8 px-3 border-2" data-testid={`detail-${c.id}`}>Detaylar</Button>
                       <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-courier-${c.id}`}><Pencil className="w-4 h-4" /></Button>
-                      {c.termination_start_date ? (
-                        <Button size="sm" variant="outline" onClick={() => handleCancelTermination(c.id)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Fesih İptal" data-testid={`cancel-termination-${c.id}`}>
-                          <XCircle className="w-4 h-4" />
-                        </Button>
+                      {activeTab === "active" ? (
+                        <>
+                          {c.termination_start_date ? (
+                            <Button size="sm" variant="outline" onClick={() => handleCancelTermination(c.id)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Fesih İptal" data-testid={`cancel-termination-${c.id}`}>
+                              <XCircle className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" onClick={() => handleStartTermination(c.id)} className="h-8 px-3 border-2 hover:bg-orange-50 hover:text-orange-600" title="Fesih Başlat" data-testid={`start-termination-${c.id}`}>
+                              <AlertTriangle className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" onClick={() => handleDeactivateCourier(c.id)} className="h-8 px-3 border-2 hover:bg-slate-100 hover:text-slate-700" title="Pasife Al" data-testid={`deactivate-${c.id}`}>
+                            <PowerOff className="w-4 h-4" />
+                          </Button>
+                        </>
                       ) : (
-                        <Button size="sm" variant="outline" onClick={() => handleStartTermination(c.id)} className="h-8 px-3 border-2 hover:bg-orange-50 hover:text-orange-600" title="Fesih Başlat" data-testid={`start-termination-${c.id}`}>
-                          <AlertTriangle className="w-4 h-4" />
+                        <Button size="sm" variant="outline" onClick={() => handleActivateCourier(c.id)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Aktife Al" data-testid={`activate-${c.id}`}>
+                          <Power className="w-4 h-4" />
                         </Button>
                       )}
                       <Button size="sm" variant="outline" onClick={() => handleRemove(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`remove-${c.id}`}><Trash2 className="w-4 h-4" /></Button>
@@ -342,7 +353,7 @@ export default function KuryelerPage({ companyId }) {
       <div className="md:hidden space-y-4">
         {filteredCouriers.length === 0 ? (
           <div className="border-2 border-border p-6 bg-white text-center text-muted-foreground">
-            {filterQuery ? "Arama sonucu bulunamadı" : "Kayıtlı kurye bulunmuyor"}
+            {filterQuery ? "Arama sonucu bulunamadı" : activeTab === "active" ? "Aktif kurye bulunmuyor" : "Pasif kurye bulunmuyor"}
           </div>
         ) : (
           filteredCouriers.map((c) => (
