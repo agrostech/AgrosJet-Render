@@ -191,29 +191,35 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
           <>
             {/* Header */}
             <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-heading font-bold">{selectedEntity.name}</h3>
-                  {selectedEntity.phone && <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className={`text-right px-3 py-1.5 rounded ${balance > 0 ? 'bg-red-50' : balance < 0 ? 'bg-green-50' : 'bg-slate-100'}`}>
-                    <p className="text-xs text-muted-foreground">Bakiye</p>
-                    <p className={`font-bold font-mono ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : ''}`}>
+              {/* Mobilde: İsim ve bakiye üstte, butonlar altta */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                {/* Üst satır: İsim ve Bakiye */}
+                <div className="flex items-center justify-between sm:justify-start sm:gap-4">
+                  <div className="min-w-0">
+                    <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
+                    {selectedEntity.phone && <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>}
+                  </div>
+                  <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-red-50' : balance < 0 ? 'bg-green-50' : 'bg-slate-100'}`}>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Bakiye</p>
+                    <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : ''}`}>
                       {balance === 0 ? '0 TL' : balance > 0 ? `-${formatMoney(balance)}` : formatMoney(balance)}
                     </p>
                   </div>
-                  {!showArchived && (
-                    <>
-                      <Button variant="outline" size="sm" onClick={() => handleArchive(selectedEntity.id)} className="h-9 border-2" data-testid="archive-vendor-btn">
-                        <Archive className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(selectedEntity.id)} className="h-9 border-2 hover:bg-red-50 hover:text-red-600" data-testid="delete-vendor-btn">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </>
-                  )}
                 </div>
+                
+                {/* Alt satır (mobilde) / Sağ taraf (masaüstünde): Butonlar */}
+                {!showArchived && (
+                  <div className="flex items-center gap-2 justify-end">
+                    <Button variant="outline" size="sm" onClick={() => handleArchive(selectedEntity.id)} className="h-9 border-2" data-testid="archive-vendor-btn">
+                      <Archive className="w-4 h-4" />
+                      <span className="ml-1.5 text-xs sm:hidden">Arşiv</span>
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(selectedEntity.id)} className="h-9 border-2 hover:bg-red-50 hover:text-red-600" data-testid="delete-vendor-btn">
+                      <Trash2 className="w-4 h-4" />
+                      <span className="ml-1.5 text-xs sm:hidden">Sil</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 
