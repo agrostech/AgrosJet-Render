@@ -169,26 +169,6 @@ export default function SistemPage({ companyId }) {
           </div>
         </form>
       </div>
-
-      {/* Önizleme */}
-      {(companyInfo.tckn_vkn || companyInfo.address) && (
-        <div className="border-2 border-border bg-white">
-          <div className="p-4 border-b-2 border-border bg-slate-50 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold">Fatura Mesajı Önizlemesi</h3>
-          </div>
-          <div className="p-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm font-mono whitespace-pre-wrap">
-{`Kesilecek Firma:
-${companyInfo.name}
-${companyInfo.tckn_vkn ? `TCKN/VKN: ${companyInfo.tckn_vkn}` : ''}
-${companyInfo.address ? `Adres: ${companyInfo.address}` : ''}
-${companyInfo.tax_office ? `Vergi Dairesi: ${companyInfo.tax_office}` : ''}
-${companyInfo.email ? `E-posta: ${companyInfo.email}` : ''}`.trim().replace(/\n{2,}/g, '\n')}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
