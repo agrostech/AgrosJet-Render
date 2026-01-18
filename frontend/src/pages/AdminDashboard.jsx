@@ -119,6 +119,7 @@ export default function AdminDashboard() {
               <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} />} />
               <Route path="zimmet" element={<ZimmetPage />} />
               <Route path="jetpuan" element={<JetPuanMarketPage companyId={user.company_id} />} />
+              <Route path="akademi" element={<AkademiPage companyId={user.company_id} companyName={company?.name} />} />
               <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
               {(isSuperAdmin || permissions.yoneticiler) && (
                 <Route path="yoneticiler" element={<YoneticilerPage companyId={user.company_id} />} />
