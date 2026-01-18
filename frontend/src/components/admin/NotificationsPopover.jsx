@@ -79,14 +79,25 @@ export default function NotificationsPopover({ companyId }) {
   // Fetch unread count on mount and periodically
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // Every 30 seconds
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchUnreadCount, 10000); // Every 10 seconds
+    
+    // Also fetch when window gains focus
+    const handleFocus = () => fetchUnreadCount();
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [fetchUnreadCount]);
 
   // Fetch notifications when popover opens
   useEffect(() => {
     if (open) {
       fetchNotifications();
+      // Keep fetching while popover is open
+      const interval = setInterval(fetchNotifications, 15000);
+      return () => clearInterval(interval);
     }
   }, [open, fetchNotifications]);
 
