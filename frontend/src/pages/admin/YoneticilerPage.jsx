@@ -146,7 +146,7 @@ export default function YoneticilerPage({ companyId }) {
     yoneticiler: "Yöneticiler"
   };
 
-  if (loading) return <p>Yükleniyor...</p>;
+  if (loading) return <PageLoading />;
 
   return (
     <div data-testid="admin-yoneticiler-page">
