@@ -538,7 +538,7 @@ async def test_drive_connection(company_id: str):
     try:
         service = await get_drive_service(company_id)
         # Try to list files (limited to 1) to verify connection
-        results = service.files().list(pageSize=1, fields="files(id, name)").execute()
+        service.files().list(pageSize=1, fields="files(id, name)").execute()
         return {"success": True, "message": "Google Drive bağlantısı başarılı"}
     except HTTPException:
         raise
