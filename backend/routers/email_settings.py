@@ -50,6 +50,12 @@ async def get_email_settings(company_id: str):
         "from_email": settings.get("from_email", ""),
         "from_name": settings.get("from_name", "ShiftJet"),
         "enabled": settings.get("enabled", True),
+        # Bildirim türleri (varsayılan hepsi açık)
+        "notify_muhasebe": settings.get("notify_muhasebe", True),
+        "notify_zimmet": settings.get("notify_zimmet", True),
+        "notify_evrak": settings.get("notify_evrak", True),
+        "notify_jetpuan": settings.get("notify_jetpuan", True),
+        "notify_fesih": settings.get("notify_fesih", True),
         "created_at": settings.get("created_at", ""),
         "updated_at": settings.get("updated_at")
     }
