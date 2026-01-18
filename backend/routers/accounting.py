@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
+from routers.jetpuan import calculate_and_credit_points
 
 router = APIRouter(prefix="/api", tags=["Muhasebe"])
 
