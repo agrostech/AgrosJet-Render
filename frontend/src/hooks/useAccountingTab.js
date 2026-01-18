@@ -168,8 +168,12 @@ export function useAccountingTab({
     try {
       const res = await axios.get(`${API}${endpoint.list}?include_archived=true`);
       const archived = res.data.filter(e => e.is_archived);
-      setArchivedEntities(archived);
-      archived.forEach(e => fetchEntityBalance(e.id, true));
+      // Alfabetik sıralama
+      const sortedArchived = archived.sort((a, b) => 
+        (a.name || '').localeCompare(b.name || '', 'tr')
+      );
+      setArchivedEntities(sortedArchived);
+      sortedArchived.forEach(e => fetchEntityBalance(e.id, true));
     } catch (err) { /* ignore */ }
   }, [endpoint, fetchEntityBalance]);
 
