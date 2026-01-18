@@ -19,11 +19,14 @@ export default function ProfileModal({ user, open, onOpenChange }) {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState({ 
     username: user?.username || "", 
+    email: user?.email || "",
     password: "", 
     confirmPassword: "", 
     currentPassword: "" 
   });
   const [profileLoading, setProfileLoading] = useState(false);
+  
+  const isSuperAdmin = user?.role === "superadmin";
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -50,10 +53,21 @@ export default function ProfileModal({ user, open, onOpenChange }) {
       if (profileData.password) {
         payload.password = profileData.password;
       }
+      if (isSuperAdmin && profileData.email !== (user.email || "")) {
+        payload.email = profileData.email;
+      }
       
       const res = await axios.put(`${API}/profile/${user.id}`, payload);
       
       toast.success("Profil güncellendi");
+      
+      // Update local storage if email changed
+      if (isSuperAdmin && profileData.email) {
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        storedUser.email = profileData.email;
+        localStorage.setItem("user", JSON.stringify(storedUser));
+      }
+      
       onOpenChange(false);
       
       if (res.data.requires_relogin) {
@@ -75,6 +89,7 @@ export default function ProfileModal({ user, open, onOpenChange }) {
     if (isOpen) {
       setProfileData({ 
         username: user?.username || "", 
+        email: user?.email || "",
         password: "", 
         confirmPassword: "", 
         currentPassword: "" 
