@@ -33,7 +33,13 @@ export default function SistemPage({ companyId }) {
     smtp_password: "",
     from_email: "",
     from_name: "ShiftJet",
-    enabled: true
+    enabled: true,
+    // Bildirim türleri
+    notify_muhasebe: true,
+    notify_zimmet: true,
+    notify_evrak: true,
+    notify_jetpuan: true,
+    notify_fesih: true
   });
   const [emailStatus, setEmailStatus] = useState({ exists: false });
   const [emailLoading, setEmailLoading] = useState(true);
