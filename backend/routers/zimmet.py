@@ -68,6 +68,28 @@ async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, act
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.zimmet_logs.insert_one(log)
+    
+    # Create notification for zimmet log
+    try:
+        notification_map = {
+            "assigned": ("zimmet_hareket", "Zimmet Atandı", f"{admin_name}: {product_name} → {courier_name}"),
+            "unassigned": ("zimmet_hareket", "Zimmet Alındı", f"{admin_name}: {product_name} ← {courier_name}"),
+            "product_created": ("zimmet_hareket", "Yeni Ürün", f"{admin_name} tarafından yeni ürün eklendi: {product_name}"),
+            "product_deleted": ("zimmet_hareket", "Ürün Silindi", f"{admin_name} tarafından ürün silindi: {product_name}"),
+        }
+        
+        if action in notification_map:
+            notif_type, title, message = notification_map[action]
+            await create_notification(
+                company_id=company_id,
+                notification_type=notif_type,
+                title=title,
+                message=message,
+                entity_type="product",
+                entity_id=product_id
+            )
+    except Exception as e:
+        print(f"Zimmet notification failed: {e}")
 
 
 # --- Ürün Tipleri Endpoint'leri ---
