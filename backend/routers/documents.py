@@ -195,30 +195,6 @@ async def upload_document(
     relation = await db.company_couriers.find_one({"courier_id": courier_id}, {"_id": 0, "company_id": 1})
     if relation:
         await send_document_notification(relation["company_id"], courier["name"], document["document_label"])
-        
-        # Upload to Google Drive if enabled
-        try:
-            from services.drive_service import upload_to_courier_folder
-            mime_type = "application/pdf" if file_ext == ".pdf" else f"image/{file_ext[1:]}"
-            drive_result = await upload_to_courier_folder(
-                company_id=relation["company_id"],
-                courier_name=courier["name"],
-                folder_type="evraklar",
-                file_bytes=content,
-                file_name=file_name,
-                mime_type=mime_type
-            )
-            if drive_result:
-                # Update document with Drive info
-                await db.courier_documents.update_one(
-                    {"id": document["id"]},
-                    {"$set": {
-                        "drive_file_id": drive_result["file_id"],
-                        "drive_web_link": drive_result["web_link"]
-                    }}
-                )
-        except Exception as e:
-            print(f"Drive upload failed: {e}")
     
     return {
         "message": "Evrak başarıyla yüklendi",

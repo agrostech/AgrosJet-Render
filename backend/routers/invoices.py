@@ -114,29 +114,6 @@ async def upload_invoice(
         {"$set": {"invoice_id": invoice["id"]}}
     )
     
-    # Upload to Google Drive if enabled
-    try:
-        from services.drive_service import upload_to_courier_folder
-        drive_result = await upload_to_courier_folder(
-            company_id=company_id,
-            courier_name=courier_name,
-            folder_type="faturalar",
-            file_bytes=content,
-            file_name=file_name,
-            mime_type="application/pdf"
-        )
-        if drive_result:
-            # Update invoice with Drive info
-            await db.invoices.update_one(
-                {"id": invoice["id"]},
-                {"$set": {
-                    "drive_file_id": drive_result["file_id"],
-                    "drive_web_link": drive_result["web_link"]
-                }}
-            )
-    except Exception as e:
-        print(f"Drive upload failed for invoice: {e}")
-    
     # Create notification for admin
     notification = {
         "id": str(uuid.uuid4()),
