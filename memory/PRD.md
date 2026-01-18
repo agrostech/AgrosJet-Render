@@ -158,8 +158,8 @@ Multi-tenant kurye yönetim sistemi.
 
 ## Prioritized Backlog
 - [ ] Toplu Hakediş Girişi (ON HOLD)
-- [ ] Google entegrasyonunu mevcut evrak/fatura yükleme akışlarına bağlama
-- [ ] Gmail entegrasyonunu bildirim sistemine bağlama
+- [ ] Dosya depolama çözümü belirleme (Google Drive yerine alternatif)
+- [ ] Backend organizasyonu (utils klasörü oluşturma)
 
 ### Refactoring ve Sistem Sağlığı (18 Ocak 2026)
 - [x] **Health Check Endpoint**: `/api/health` - Veritabanı ve sistem durumu kontrolü
