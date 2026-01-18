@@ -4,7 +4,6 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
-import os
 import logging
 import base64
 from email.mime.text import MIMEText

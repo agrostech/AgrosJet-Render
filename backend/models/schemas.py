@@ -3,7 +3,6 @@ Pydantic models for the ShiftJet API
 """
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
-from datetime import datetime
 
 
 # ============ AUTH MODELS ============

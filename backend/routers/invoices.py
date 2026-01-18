@@ -1,7 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime, timezone, timedelta
 import uuid
 import os
@@ -124,7 +122,7 @@ async def upload_invoice(
         "message": f"{courier_name} hakediş faturası yükledi",
         "is_read": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "link": f"/admin/muhasebe"
+        "link": "/admin/muhasebe"
     }
     await db.notifications.insert_one(notification)
     

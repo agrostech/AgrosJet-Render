@@ -86,7 +86,6 @@ async def get_company_couriers(company_id: str, include_archived: bool = False, 
             courier["termination_start_date"] = rel.get("termination_start_date")
             courier["termination_end_date"] = rel.get("termination_end_date")
             if rel.get("termination_end_date"):
-                from datetime import timedelta
                 end_date = datetime.fromisoformat(rel["termination_end_date"].replace("Z", "+00:00"))
                 now = datetime.now(timezone.utc)
                 remaining = (end_date - now).days
@@ -459,7 +458,6 @@ async def get_termination_status(courier_id: str, company_id: str):
         return {"has_termination": False}
     
     # Calculate remaining days
-    from datetime import timedelta
     end_date = datetime.fromisoformat(relation["termination_end_date"].replace("Z", "+00:00"))
     now = datetime.now(timezone.utc)
     
