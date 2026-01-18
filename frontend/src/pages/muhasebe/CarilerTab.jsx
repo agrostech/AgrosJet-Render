@@ -1,3 +1,4 @@
+import { PageLoading } from "@/components/ui/loading-spinner";
 import { useState, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -108,7 +109,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     return v.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
 
-  if (loading) return <p className="p-4">Yükleniyor...</p>;
+  if (loading) return <PageLoading />;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full">

@@ -1,3 +1,4 @@
+import { PageLoading } from "@/components/ui/loading-spinner";
 import { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -127,7 +128,7 @@ export default function HareketlerTab({ companyId }) {
     return action;
   };
 
-  if (loading) return <p>Yükleniyor...</p>;
+  if (loading) return <PageLoading />;
 
   return (
     <div className="border-2 border-border bg-white h-[calc(100vh-220px)] min-h-[500px] flex flex-col">
