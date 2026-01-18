@@ -463,12 +463,7 @@ export function useAccountingTab({
     return new Date(txDate).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }, [useCustomDate, txDate]);
 
-  // Get balance label for list item
-  const getBalanceLabel = useCallback((bal) => {
-    if (bal === 0 || bal === undefined) return null;
-    if (bal > 0) return { text: `-${formatCurrency(bal)}`, color: 'text-red-600 bg-red-50' };
-    return { text: formatCurrency(bal), color: 'text-green-600 bg-green-50' };
-  }, []);
+  // Balance label uses shared utility
 
   // Initial fetch
   useEffect(() => {
