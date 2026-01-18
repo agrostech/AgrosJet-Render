@@ -157,6 +157,70 @@ async def check_fesih_notifications(company_id: str):
     return {"notifications_created": notifications_created}
 
 
+@router.get("/company/{company_id}/check-missing-invoices")
+async def check_missing_invoice_notifications(company_id: str):
+    """Check and create notifications for hakediş transactions older than 1 day without invoice"""
+    now = datetime.now(timezone.utc)
+    one_day_ago = now - timedelta(days=1)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Find hakediş transactions older than 1 day without invoice
+    transactions = await db.transactions.find(
+        {
+            "company_id": company_id,
+            "is_hakedis": True,
+            "entity_type": "courier",
+            "created_at": {"$lte": one_day_ago.isoformat()},
+            "$or": [
+                {"invoice_id": {"$exists": False}},
+                {"invoice_id": None},
+                {"invoice_id": ""}
+            ]
+        },
+        {"_id": 0}
+    ).to_list(500)
+    
+    notifications_created = 0
+    
+    for tx in transactions:
+        # Check if notification already exists for this transaction today
+        existing = await db.notifications.find_one({
+            "company_id": company_id,
+            "entity_id": tx["id"],
+            "type": "fatura_eksik",
+            "created_at": {"$gte": today_start.isoformat()}
+        })
+        
+        if existing:
+            continue
+        
+        # Get courier name
+        courier_name = tx.get("courier_name")
+        if not courier_name:
+            courier = await db.couriers.find_one({"id": tx["entity_id"]}, {"_id": 0, "name": 1})
+            courier_name = courier["name"] if courier else "Bilinmeyen Kurye"
+        
+        # Create notification
+        tx_date = datetime.fromisoformat(tx["created_at"].replace("Z", "+00:00"))
+        date_str = tx_date.strftime("%d.%m.%Y")
+        amount = tx.get("amount", 0)
+        
+        await db.notifications.insert_one({
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
+            "type": "fatura_eksik",
+            "message": f"{courier_name} - {date_str} tarihli {amount:.2f} TL hakediş faturası yüklenmedi",
+            "entity_type": "transaction",
+            "entity_id": tx["id"],
+            "is_read": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "link": "/admin/muhasebe"
+        })
+        notifications_created += 1
+    
+    return {"notifications_created": notifications_created, "missing_count": len(transactions)}
+
+
 # ============ HELPER FUNCTION ============
 
 async def create_notification(
