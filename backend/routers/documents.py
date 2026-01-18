@@ -193,6 +193,11 @@ async def upload_document(
     }
     await db.courier_documents.insert_one(document)
     
+    # Send notification for document upload
+    relation = await db.company_couriers.find_one({"courier_id": courier_id}, {"_id": 0, "company_id": 1})
+    if relation:
+        await send_document_notification(relation["company_id"], courier["name"], document["document_label"])
+    
     return {
         "message": "Evrak başarıyla yüklendi",
         "document_id": document["id"],
