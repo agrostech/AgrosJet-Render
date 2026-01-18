@@ -22,8 +22,44 @@ export default function SistemPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Google Integration States
+  const [googleSettings, setGoogleSettings] = useState({
+    client_id: "",
+    client_secret: "",
+    drive_folder_id: "",
+    gmail_enabled: false,
+    drive_enabled: false
+  });
+  const [googleStatus, setGoogleStatus] = useState({
+    exists: false,
+    drive_connected: false,
+    gmail_connected: false,
+    client_secret_masked: ""
+  });
+  const [googleLoading, setGoogleLoading] = useState(true);
+  const [googleSaving, setGoogleSaving] = useState(false);
+  const [showClientSecret, setShowClientSecret] = useState(false);
+  const [testingDrive, setTestingDrive] = useState(false);
+  const [testingGmail, setTestingGmail] = useState(false);
+
   useEffect(() => {
     fetchCompanyInfo();
+    fetchGoogleSettings();
+    
+    // Check for OAuth callback results
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('drive_connected') === 'true') {
+      toast.success("Google Drive başarıyla bağlandı!");
+      window.history.replaceState({}, '', window.location.pathname);
+      fetchGoogleSettings();
+    } else if (params.get('gmail_connected') === 'true') {
+      toast.success("Gmail başarıyla bağlandı!");
+      window.history.replaceState({}, '', window.location.pathname);
+      fetchGoogleSettings();
+    } else if (params.get('error')) {
+      toast.error(`Bağlantı hatası: ${params.get('error')}`);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, [companyId]);
 
   const fetchCompanyInfo = async () => {
