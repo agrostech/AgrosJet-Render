@@ -80,7 +80,7 @@ export default function SistemPage({ companyId }) {
       <div className="border-2 border-border bg-white">
         <div className="p-4 border-b-2 border-border bg-slate-50 flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold">Şirket Fatura Bilgileri</h3>
+          <h3 className="font-semibold">Şirket Bilgileri</h3>
         </div>
         <form onSubmit={handleSave} className="p-4 space-y-4">
           <p className="text-sm text-muted-foreground mb-4">
