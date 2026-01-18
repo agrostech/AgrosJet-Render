@@ -236,7 +236,7 @@ async def delete_settings(company_id: str):
 
 # --- OAuth Routes ---
 @router.get("/oauth/connect/{company_id}/{service}")
-async def start_oauth(company_id: str, service: str):
+async def start_oauth(company_id: str, service: str, request: Request):
     """Start OAuth flow for Google Drive or Gmail"""
     if service not in ["drive", "gmail"]:
         raise HTTPException(status_code=400, detail="Geçersiz servis. 'drive' veya 'gmail' olmalı.")
@@ -251,7 +251,7 @@ async def start_oauth(company_id: str, service: str):
     else:  # gmail
         scopes = ['https://www.googleapis.com/auth/gmail.send']
     
-    redirect_uri = get_redirect_uri()
+    redirect_uri = get_redirect_uri_from_request(request)
     
     try:
         flow = Flow.from_client_config(
@@ -275,8 +275,8 @@ async def start_oauth(company_id: str, service: str):
             state=f"{company_id}:{service}"
         )
         
-        logger.info(f"OAuth initiated for company {company_id}, service {service}")
-        return {"authorization_url": authorization_url}
+        logger.info(f"OAuth initiated for company {company_id}, service {service}, redirect_uri: {redirect_uri}")
+        return {"authorization_url": authorization_url, "redirect_uri": redirect_uri}
     
     except Exception as e:
         logger.error(f"OAuth initiation failed: {str(e)}")
@@ -284,7 +284,7 @@ async def start_oauth(company_id: str, service: str):
 
 
 @router.get("/oauth/callback")
-async def oauth_callback(code: str = Query(...), state: str = Query(...)):
+async def oauth_callback(request: Request, code: str = Query(...), state: str = Query(...)):
     """Handle OAuth callback from Google"""
     try:
         # Parse state
@@ -298,7 +298,7 @@ async def oauth_callback(code: str = Query(...), state: str = Query(...)):
         if not settings:
             raise HTTPException(status_code=400, detail="Şirket ayarları bulunamadı")
         
-        redirect_uri = get_redirect_uri()
+        redirect_uri = get_redirect_uri_from_request(request)
         
         # Create flow without specifying scopes to accept whatever Google granted
         flow = Flow.from_client_config(
