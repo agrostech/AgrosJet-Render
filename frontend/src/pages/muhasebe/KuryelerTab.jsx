@@ -1,25 +1,18 @@
 import { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Plus, Minus, User, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil, CreditCard, Package } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { 
   useAccountingTab, 
-  formatMoney, 
-  formatCurrency, 
-  formatDate, 
   getLocalDateTimeString 
 } from "@/hooks/useAccountingTab";
+import {
+  CourierList,
+  CourierTransactions,
+  EditTransactionModal,
+  AddInstallmentModal,
+  InstallmentListModal,
+} from "@/components/muhasebe";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -54,7 +47,6 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     setSearchQuery,
     handleSelect,
     handlePayment,
-    handleDeleteTransaction,
     handleUpdateTransaction,
     handleArchive,
     loadMore,
@@ -62,7 +54,6 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     fetchTransactions,
     fetchEntityBalance,
     getDateDisplayText,
-    getBalanceLabel,
   } = useAccountingTab({
     entityType: "courier",
     companyId,
@@ -73,7 +64,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     onSelect,
   });
 
-  // Arama filtresi - useState hook'lar en üstte olmalı
+  // State'ler
   const [listSearchQuery, setListSearchQuery] = useState("");
   const [editingTx, setEditingTx] = useState(null);
   const [editForm, setEditForm] = useState({ amount: "", description: "", is_hakedis: false });
@@ -89,12 +80,12 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   const [useInstallmentCustomDate, setUseInstallmentCustomDate] = useState(false);
   const [showInstallmentListModal, setShowInstallmentListModal] = useState(false);
 
-  // Toplam kalan taksit sayısı hesapla
+  // Toplam kalan taksit sayısı
   const totalRemainingInstallments = installmentProducts.reduce(
     (sum, p) => sum + p.remaining_installments, 0
   );
 
-  // Fetch installment products when courier is selected
+  // Taksitli ürünleri getir
   const fetchInstallmentProducts = async (courierId) => {
     try {
       const res = await axios.get(`${API}/couriers/${courierId}/installment-products?include_completed=false`);
@@ -112,7 +103,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     }
   }, [selectedEntity]);
 
-  // Add new installment product
+  // Taksitli ürün ekle
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!selectedEntity) return;
@@ -147,7 +138,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     }
   };
 
-  // Pay one installment
+  // Taksit öde
   const handlePayInstallment = async (product) => {
     setPayingInstallment(product.id);
     try {
@@ -162,7 +153,6 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       const res = await axios.post(`${API}/installment-products/${product.id}/pay`, payload);
       toast.success(res.data.message);
       fetchInstallmentProducts(selectedEntity.id);
-      // Refresh transactions and balance immediately
       if (selectedEntity) {
         fetchTransactions(selectedEntity.id);
         fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
@@ -176,7 +166,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     }
   };
 
-  // Delete installment product
+  // Taksitli ürün sil
   const handleDeleteProduct = async (product) => {
     if (!window.confirm(`"${product.name}" ürününü silmek istediğinize emin misiniz?`)) return;
     
@@ -189,18 +179,16 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     }
   };
 
-  // Custom delete that restores installment
+  // İşlem sil (taksit geri ekle)
   const handleDeleteTransactionWithRestore = async (txId, tx) => {
     if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
     
     try {
-      // Use special endpoint that restores installment count
       await axios.delete(`${API}/transactions/${txId}/with-installment-restore`, {
         data: { admin_id: adminId, admin_name: adminName }
       });
       toast.success(tx?.installment_product_id ? "İşlem silindi, taksit geri eklendi" : "İşlem silindi");
       
-      // Refresh transactions and balance
       if (selectedEntity) {
         fetchTransactions(selectedEntity.id);
         fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
@@ -211,6 +199,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     }
   };
 
+  // Edit modal
   const openEditModal = (tx) => {
     setEditingTx(tx);
     setEditForm({
@@ -233,543 +222,97 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       setEditingTx(null);
     }
   };
-  
-  const filteredDisplayList = displayList.filter(c => {
-    if (!listSearchQuery.trim()) return true;
-    return c.name.toLowerCase().includes(listSearchQuery.toLowerCase());
-  });
 
   if (loading) return <PageLoading />;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full">
       {/* Sol Panel - Kurye Listesi */}
-      <div className="w-full lg:w-80 flex-shrink-0 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
-        <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-heading font-bold text-sm flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Kuryeler ({filteredDisplayList.length})
-            </span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowArchived(!showArchived)}
-              className={`text-xs h-7 px-2 ${showArchived ? 'bg-orange-100 text-orange-700' : ''}`}
-              data-testid="toggle-archived-couriers"
-            >
-              {showArchived ? <ArchiveRestore className="w-3 h-3 mr-1" /> : <Archive className="w-3 h-3 mr-1" />}
-              {showArchived ? "Aktif" : "Arşiv"}
-            </Button>
-          </div>
-          <div className="relative mb-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Kurye ara..."
-              value={listSearchQuery}
-              onChange={(e) => setListSearchQuery(e.target.value)}
-              className="pl-10 h-9 border-2"
-              data-testid="search-couriers-list"
-            />
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Toplam: <span className={totalBalance > 0 ? 'text-red-600 font-semibold' : totalBalance < 0 ? 'text-green-600 font-semibold' : ''}>
-              {totalBalance === 0 ? '0 TL' : totalBalance > 0 ? `-${formatCurrency(totalBalance)}` : formatCurrency(totalBalance)}
-            </span>
-          </div>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto" ref={listRef}>
-          {filteredDisplayList.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8 text-sm">
-              {listSearchQuery ? "Arama sonucu bulunamadı" : showArchived ? "Arşivlenmiş kurye yok" : "Kurye bulunamadı"}
-            </p>
-          ) : (
-            filteredDisplayList.map((c) => {
-              const bal = balancesMap[c.id];
-              const balLabel = getBalanceLabel(bal);
-              return (
-                <div
-                  key={c.id}
-                  onClick={() => handleSelect(c)}
-                  className={`p-3 border-b border-border cursor-pointer transition-colors ${selectedEntity?.id === c.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}
-                  data-testid={`courier-item-${c.id}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-sm truncate">{c.name}</p>
-                    {balLabel && (
-                      <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${balLabel.color}`}>
-                        {balLabel.text}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+      <CourierList
+        displayList={displayList}
+        showArchived={showArchived}
+        setShowArchived={setShowArchived}
+        selectedEntity={selectedEntity}
+        totalBalance={totalBalance}
+        balancesMap={balancesMap}
+        listSearchQuery={listSearchQuery}
+        setListSearchQuery={setListSearchQuery}
+        onSelect={handleSelect}
+      />
 
       {/* Sağ Panel - İşlemler */}
       <div ref={transactionRef} className="flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
-        {selectedEntity ? (
-          <>
-            {/* Header */}
-            <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
-              {/* Mobilde: İsim ve bakiye üstte, butonlar altta */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                {/* Üst satır: İsim ve Bakiye */}
-                <div className="flex items-center justify-between sm:justify-start sm:gap-4">
-                  <div className="min-w-0">
-                    <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
-                    <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>
-                  </div>
-                  <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-red-50' : balance < 0 ? 'bg-green-50' : 'bg-slate-100'}`}>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Bakiye</p>
-                    <p className={`text-sm sm:text-base font-bold font-mono ${balance > 0 ? 'text-red-600' : balance < 0 ? 'text-green-600' : ''}`}>
-                      {balance === 0 ? '0 TL' : balance > 0 ? `-${formatMoney(balance)}` : formatMoney(balance)}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Alt satır (mobilde) / Sağ taraf (masaüstünde): Butonlar */}
-                {!showArchived && (
-                  <div className="flex items-center gap-2 justify-end">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setShowInstallmentListModal(true)} 
-                      className="h-9 border-2 relative" 
-                      data-testid="installment-btn"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      <span className="ml-1.5 text-xs sm:hidden">Taksit</span>
-                      {totalRemainingInstallments > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                          {totalRemainingInstallments}
-                        </span>
-                      )}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleArchive(selectedEntity.id)} className="h-9 border-2" data-testid="archive-courier-btn">
-                      <Archive className="w-4 h-4" />
-                      <span className="ml-1.5 text-xs sm:hidden">Arşiv</span>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Ödeme Formu */}
-            {!showArchived && (
-              <div className="p-3 border-b-2 border-border bg-white flex-shrink-0">
-                {/* Mobilde alt alta, masaüstünde yan yana */}
-                <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-end sm:gap-2">
-                  {/* Tutar ve Açıklama - mobilde tam genişlik */}
-                  <div className="flex gap-2">
-                    <div className="flex-1 sm:w-24 sm:flex-none">
-                      <Label className="text-xs font-semibold mb-1 block">Tutar</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        onWheel={(e) => e.target.blur()}
-                        className="h-10 border-2 font-mono"
-                        placeholder="0.00"
-                        data-testid="amount-input"
-                      />
-                    </div>
-                    <div className="flex-1 sm:w-32 sm:flex-none">
-                      <Label className="text-xs font-semibold mb-1 block">Açıklama</Label>
-                      <Input
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="h-10 border-2"
-                        placeholder="İsteğe bağlı"
-                        data-testid="description-input"
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Hakediş ve Tarih - mobilde bir satır */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 rounded h-10">
-                      <Checkbox
-                        id="hakedis"
-                        checked={isHakedis}
-                        onCheckedChange={setIsHakedis}
-                        data-testid="hakedis-checkbox"
-                      />
-                      <Label htmlFor="hakedis" className="text-xs font-medium cursor-pointer">Hakediş</Label>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (!useCustomDate) setTxDate(getLocalDateTimeString());
-                        setUseCustomDate(!useCustomDate);
-                      }}
-                      className={`h-10 px-3 border-2 ${useCustomDate ? 'bg-orange-50 border-orange-300' : ''}`}
-                      title="Özel tarih seç"
-                      data-testid="custom-date-toggle"
-                    >
-                      <Clock className="w-4 h-4" />
-                      <span className="ml-1 text-xs">{getDateDisplayText()}</span>
-                    </Button>
-                  </div>
-                  
-                  {/* Butonlar - mobilde tam genişlik ve yan yana */}
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <Button onClick={() => handlePayment("in")} disabled={submitting} className="flex-1 sm:flex-none h-10 bg-green-600 hover:bg-green-700" data-testid="payment-in-btn">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Alınan
-                    </Button>
-                    <Button onClick={() => handlePayment("out")} disabled={submitting} className="flex-1 sm:flex-none h-10 bg-red-600 hover:bg-red-700" data-testid="payment-out-btn">
-                      <Minus className="w-4 h-4 mr-1" />
-                      Verilen
-                    </Button>
-                  </div>
-                </div>
-                
-                {useCustomDate && (
-                  <div className="mt-2">
-                    <Input
-                      type="datetime-local"
-                      value={txDate}
-                      onChange={(e) => setTxDate(e.target.value)}
-                      className="h-9 border-2 text-sm w-full sm:w-auto"
-                      data-testid="custom-date-input"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* İşlem Geçmişi */}
-            <div className="flex-1 flex flex-col min-h-0">
-              <div className="p-2 border-b border-border bg-slate-50 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold">İşlem Geçmişi ({totalCount})</span>
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Ara..."
-                      className="h-7 pl-7 text-xs w-32 border"
-                      data-testid="search-transactions"
-                    />
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" onClick={exportPDF} className="h-7 text-xs border" data-testid="export-pdf-btn">
-                  <Download className="w-3 h-3 mr-1" />
-                  PDF
-                </Button>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto">
-                {filteredTransactions.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">
-                    {searchQuery ? "Arama sonucu bulunamadı" : "İşlem bulunamadı"}
-                  </p>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-100 sticky top-0">
-                      <tr>
-                        <th className="text-left p-2 font-semibold text-xs">Tarih</th>
-                        <th className="text-left p-2 font-semibold text-xs">Açıklama</th>
-                        <th className="text-right p-2 font-semibold text-xs">Tutar</th>
-                        <th className="w-16"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredTransactions.map((tx) => (
-                        <tr key={tx.id} className="border-b border-border hover:bg-slate-50">
-                          <td className="p-2 text-xs font-mono whitespace-nowrap">{formatDate(tx.created_at)}</td>
-                          <td className="p-2 text-xs">
-                            {tx.description}
-                            {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Hakediş</span>}
-                            {tx.installment_product_id && <span className="ml-1 px-1 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Taksit</span>}
-                          </td>
-                          <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-red-600' : 'text-green-600'}`}>
-                            {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
-                          </td>
-                          <td className="p-1">
-                            <div className="flex gap-1 justify-end">
-                              <Button variant="ghost" size="sm" onClick={() => openEditModal(tx)} className="h-6 w-6 p-0 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-tx-${tx.id}`}>
-                                <Pencil className="w-3 h-3" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTransactionWithRestore(tx.id, tx)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-                
-                {hasMore && (
-                  <div className="p-3 text-center border-t border-slate-100">
-                    <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore} className="h-8 text-xs" data-testid="load-more-btn">
-                      {loadingMore ? "Yükleniyor..." : `Daha Fazla Yükle (${totalCount - filteredTransactions.length} kaldı)`}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <p>Kurye seçin</p>
-          </div>
-        )}
+        <CourierTransactions
+          selectedEntity={selectedEntity}
+          showArchived={showArchived}
+          balance={balance}
+          amount={amount}
+          setAmount={setAmount}
+          description={description}
+          setDescription={setDescription}
+          isHakedis={isHakedis}
+          setIsHakedis={setIsHakedis}
+          submitting={submitting}
+          useCustomDate={useCustomDate}
+          setUseCustomDate={setUseCustomDate}
+          txDate={txDate}
+          setTxDate={setTxDate}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filteredTransactions={filteredTransactions}
+          totalCount={totalCount}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          totalRemainingInstallments={totalRemainingInstallments}
+          transactionRef={transactionRef}
+          getDateDisplayText={getDateDisplayText}
+          getLocalDateTimeString={getLocalDateTimeString}
+          handlePayment={handlePayment}
+          handleArchive={handleArchive}
+          loadMore={loadMore}
+          exportPDF={exportPDF}
+          onOpenEditModal={openEditModal}
+          onDeleteTransaction={handleDeleteTransactionWithRestore}
+          onOpenInstallmentListModal={() => setShowInstallmentListModal(true)}
+        />
       </div>
 
-      {/* İşlem Düzenleme Modal */}
-      <Dialog open={!!editingTx} onOpenChange={(open) => !open && setEditingTx(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading flex items-center gap-2">
-              <Pencil className="w-5 h-5" />
-              İşlem Düzenle
-            </DialogTitle>
-          </DialogHeader>
-          {editingTx && (
-            <div className="space-y-4">
-              <div className="p-3 bg-slate-50 rounded border">
-                <p className="text-xs text-muted-foreground">Tarih</p>
-                <p className="font-mono text-sm">{formatDate(editingTx.created_at)}</p>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-semibold">Tutar (TL)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={editForm.amount}
-                  onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
-                  onWheel={(e) => e.target.blur()}
-                  className="mt-1 h-11 border-2 font-mono"
-                  data-testid="edit-tx-amount"
-                />
-              </div>
-              
-              <div>
-                <Label className="text-sm font-semibold">Açıklama</Label>
-                <Input
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  className="mt-1 h-11 border-2"
-                  data-testid="edit-tx-description"
-                />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="edit-hakedis"
-                  checked={editForm.is_hakedis}
-                  onCheckedChange={(checked) => setEditForm({ ...editForm, is_hakedis: checked })}
-                  data-testid="edit-tx-hakedis"
-                />
-                <Label htmlFor="edit-hakedis" className="text-sm font-medium cursor-pointer">Hakediş</Label>
-              </div>
-              
-              <Button onClick={handleEditSubmit} className="w-full h-11 font-semibold" disabled={editLoading} data-testid="submit-edit-tx">
-                {editLoading ? "Güncelleniyor..." : "Kaydet"}
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Modals */}
+      <EditTransactionModal
+        editingTx={editingTx}
+        setEditingTx={setEditingTx}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        editLoading={editLoading}
+        onSubmit={handleEditSubmit}
+      />
 
-      {/* Taksitli Ürün Ekle Modal */}
-      <Dialog open={showInstallmentModal} onOpenChange={setShowInstallmentModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading flex items-center gap-2">
-              <Package className="w-5 h-5 text-purple-600" />
-              Taksitli Ürün Ekle
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddProduct} className="space-y-4">
-            <div>
-              <Label className="text-sm font-semibold">Ürün Adı</Label>
-              <Input
-                value={newProduct.name}
-                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                className="mt-1 h-11 border-2"
-                placeholder="Örn: Motosiklet"
-                required
-                data-testid="installment-product-name"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-sm font-semibold">Taksit Tutarı (TL)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={newProduct.installment_amount}
-                  onChange={(e) => setNewProduct({ ...newProduct, installment_amount: e.target.value })}
-                  onWheel={(e) => e.target.blur()}
-                  className="mt-1 h-11 border-2 font-mono"
-                  placeholder="2500"
-                  required
-                  data-testid="installment-amount"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Taksit Sayısı</Label>
-                <Input
-                  type="number"
-                  value={newProduct.installment_count}
-                  onChange={(e) => setNewProduct({ ...newProduct, installment_count: e.target.value })}
-                  onWheel={(e) => e.target.blur()}
-                  className="mt-1 h-11 border-2 font-mono"
-                  placeholder="20"
-                  required
-                  data-testid="installment-count"
-                />
-              </div>
-            </div>
-            
-            {/* Toplam Hesaplama */}
-            {newProduct.installment_amount && newProduct.installment_count && (
-              <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-purple-800">Toplam Tutar</span>
-                  <span className="text-lg font-bold font-mono text-purple-900">
-                    {formatMoney(parseFloat(newProduct.installment_amount || 0) * parseInt(newProduct.installment_count || 0))}
-                  </span>
-                </div>
-              </div>
-            )}
-            
-            <Button type="submit" className="w-full h-11 font-semibold bg-purple-600 hover:bg-purple-700" disabled={addingProduct} data-testid="submit-installment-product">
-              {addingProduct ? "Ekleniyor..." : "Ürün Ekle"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <AddInstallmentModal
+        open={showInstallmentModal}
+        onOpenChange={setShowInstallmentModal}
+        newProduct={newProduct}
+        setNewProduct={setNewProduct}
+        addingProduct={addingProduct}
+        onSubmit={handleAddProduct}
+      />
 
-      {/* Taksitli Ürünler Listesi Modal */}
-      <Dialog open={showInstallmentListModal} onOpenChange={setShowInstallmentListModal}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-heading flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-purple-600" />
-              Taksitli Ürünler
-              {totalRemainingInstallments > 0 && (
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                  {totalRemainingInstallments} taksit kaldı
-                </span>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-3">
-            {installmentProducts.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Package className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Taksitli ürün bulunmuyor</p>
-              </div>
-            ) : (
-              installmentProducts.map((product) => (
-                <div key={product.id} className="p-3 bg-slate-50 rounded-lg border">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="font-semibold">{product.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {formatMoney(product.installment_amount)} x {product.installment_count} = {formatMoney(product.total_amount)}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="flex-1 bg-slate-200 rounded-full h-2">
-                          <div 
-                            className="bg-purple-600 h-2 rounded-full transition-all"
-                            style={{ width: `${((product.installment_count - product.remaining_installments) / product.installment_count) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-mono text-purple-700 font-semibold">
-                          {product.installment_count - product.remaining_installments}/{product.installment_count}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        Ödenen: {formatMoney(product.paid_amount)} / Kalan: {formatMoney(product.total_amount - product.paid_amount)}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 ml-3">
-                      {product.remaining_installments > 0 && (
-                        <Button
-                          size="sm"
-                          onClick={() => handlePayInstallment(product)}
-                          disabled={payingInstallment === product.id}
-                          className="h-8 text-xs bg-purple-600 hover:bg-purple-700"
-                          data-testid={`pay-installment-${product.id}`}
-                        >
-                          {payingInstallment === product.id ? "..." : `Taksit Al (${product.remaining_installments})`}
-                        </Button>
-                      )}
-                      {product.paid_amount === 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteProduct(product)}
-                          className="h-8 text-xs hover:bg-red-50 hover:text-red-600"
-                          data-testid={`delete-product-${product.id}`}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Sil
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-            
-            {/* Özel tarih seçici */}
-            {installmentProducts.length > 0 && (
-              <div className="flex items-center gap-2 pt-2 border-t">
-                <Checkbox
-                  id="installment-custom-date-modal"
-                  checked={useInstallmentCustomDate}
-                  onCheckedChange={(checked) => {
-                    setUseInstallmentCustomDate(checked);
-                    if (checked && !installmentDate) {
-                      setInstallmentDate(getLocalDateTimeString());
-                    }
-                  }}
-                />
-                <Label htmlFor="installment-custom-date-modal" className="text-xs cursor-pointer">Özel tarih ile taksit al</Label>
-                {useInstallmentCustomDate && (
-                  <Input
-                    type="datetime-local"
-                    value={installmentDate}
-                    onChange={(e) => setInstallmentDate(e.target.value)}
-                    className="h-8 border text-xs w-auto"
-                  />
-                )}
-              </div>
-            )}
-            
-            {/* Yeni Ürün Ekle Butonu */}
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowInstallmentListModal(false);
-                setShowInstallmentModal(true);
-              }}
-              className="w-full h-10 border-dashed border-purple-300 text-purple-700 hover:bg-purple-50"
-              data-testid="add-installment-product-btn"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Yeni Taksitli Ürün Ekle
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <InstallmentListModal
+        open={showInstallmentListModal}
+        onOpenChange={setShowInstallmentListModal}
+        installmentProducts={installmentProducts}
+        totalRemainingInstallments={totalRemainingInstallments}
+        payingInstallment={payingInstallment}
+        useInstallmentCustomDate={useInstallmentCustomDate}
+        setUseInstallmentCustomDate={setUseInstallmentCustomDate}
+        installmentDate={installmentDate}
+        setInstallmentDate={setInstallmentDate}
+        onPayInstallment={handlePayInstallment}
+        onDeleteProduct={handleDeleteProduct}
+        onOpenAddModal={() => {
+          setShowInstallmentListModal(false);
+          setShowInstallmentModal(true);
+        }}
+      />
     </div>
   );
 }
