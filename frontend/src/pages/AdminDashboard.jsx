@@ -122,7 +122,7 @@ export default function AdminDashboard() {
                 <Route path="yoneticiler" element={<YoneticilerPage companyId={user.company_id} />} />
               )}
               {(isSuperAdmin || permissions.sistem) && (
-                <Route path="sistem" element={<SistemPage companyId={companyId} />} />
+                <Route path="sistem" element={<SistemPage companyId={user.company_id} />} />
               )}
             </Routes>
           </div>
