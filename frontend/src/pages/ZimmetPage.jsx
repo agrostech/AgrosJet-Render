@@ -998,25 +998,28 @@ export default function ZimmetPage() {
           {selectedProduct ? (
             <>
               {/* Product Header */}
-              <div className="p-4 border-b-2 border-border bg-slate-50 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
-                      <p className="text-sm text-muted-foreground">{selectedProduct.product_type_name}</p>
+              <div className="p-3 sm:p-4 border-b-2 border-border bg-slate-50 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-base sm:text-lg font-bold truncate">{selectedProduct.name}</h2>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{selectedProduct.product_type_name}</p>
                     </div>
-                    {selectedProduct.is_defective && (
-                      <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">Arızalı</span>
-                    )}
-                    {selectedProduct.is_lost && (
-                      <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">Kayıp</span>
-                    )}
+                    <div className="flex gap-1 shrink-0">
+                      {selectedProduct.is_defective && (
+                        <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-yellow-100 text-yellow-700 rounded font-medium">Arızalı</span>
+                      )}
+                      {selectedProduct.is_lost && (
+                        <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-red-100 text-red-700 rounded font-medium">Kayıp</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" onClick={() => openEditProduct(selectedProduct)} className="h-9 border-2">
-                      <Pencil className="w-4 h-4 mr-1" /> Düzenle
+                  <div className="flex items-center gap-2 justify-end">
+                    <Button size="sm" variant="outline" onClick={() => openEditProduct(selectedProduct)} className="h-8 sm:h-9 border-2 text-xs sm:text-sm">
+                      <Pencil className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" /> 
+                      <span className="hidden sm:inline">Düzenle</span>
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setSelectedProduct(null)} className="h-9">
+                    <Button size="sm" variant="ghost" onClick={() => setSelectedProduct(null)} className="h-8 sm:h-9">
                       <XCircle className="w-4 h-4" />
                     </Button>
                   </div>
