@@ -9,7 +9,8 @@ export default function AdminSidebar({
   sidebarCollapsed, 
   setSidebarCollapsed, 
   onProfileClick,
-  onLogout 
+  onLogout,
+  badges = {}
 }) {
   const location = useLocation();
   const isSuperAdmin = user?.role === "superadmin";
@@ -35,12 +36,17 @@ export default function AdminSidebar({
           <Link 
             key={item.path} 
             to={item.path} 
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"} ${sidebarCollapsed ? 'justify-center px-2' : ''}`} 
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors relative ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"} ${sidebarCollapsed ? 'justify-center px-2' : ''}`} 
             data-testid={`admin-nav-${item.key}`}
             title={sidebarCollapsed ? item.label : ''}
           >
             <item.icon className="w-5 h-5 flex-shrink-0" />
             {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+            {badges[item.key] > 0 && (
+              <span className={`bg-orange-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center ${sidebarCollapsed ? 'absolute -top-1 -right-1' : 'ml-auto'}`}>
+                {badges[item.key] > 99 ? '99+' : badges[item.key]}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
