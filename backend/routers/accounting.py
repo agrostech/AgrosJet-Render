@@ -23,43 +23,6 @@ from services.accounting_service import (
 
 router = APIRouter(prefix="/api", tags=["Muhasebe"])
 
-# --- Pydantic Models ---
-class BusinessCreate(BaseModel):
-    name: str
-    phone: Optional[str] = None
-    address: Optional[str] = None
-
-class VendorCreate(BaseModel):
-    name: str
-    phone: Optional[str] = None
-    address: Optional[str] = None
-
-class TransactionCreate(BaseModel):
-    entity_type: str  # "courier", "business", "vendor"
-    entity_id: str
-    company_id: str
-    type: str  # "payment_in" (ödeme al - tahsil), "payment_out" (ödeme yap - borçlandır)
-    amount: float
-    description: Optional[str] = None
-    is_hakedis: Optional[bool] = False
-    admin_id: Optional[str] = None
-    admin_name: Optional[str] = None
-    custom_date: Optional[str] = None
-
-class TransactionDeleteRequest(BaseModel):
-    admin_id: str
-    admin_name: str
-
-class ActivityLogCreate(BaseModel):
-    company_id: str
-    admin_id: str
-    admin_name: str
-    action: str
-    entity_type: str
-    entity_id: str
-    entity_name: str
-    details: Optional[dict] = None
-
 
 # --- Activity Logs Helper ---
 async def create_activity_log(log_data: dict):
