@@ -20,6 +20,24 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Health check endpoint
+@api_router.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        # Check MongoDB connection
+        await db.command("ping")
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "database": db_status,
+        "version": "1.0.0"
+    }
+
 # Helper functions
 def hash_password(password: str) -> str:
     import hashlib
