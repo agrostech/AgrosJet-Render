@@ -284,3 +284,43 @@ class DocumentCreate(BaseModel):
     document_type: str
     file_url: str
     file_name: str
+
+
+# ============ JETPUAN MODELS ============
+class JetPuanCategoryCreate(BaseModel):
+    name: str
+
+
+class JetPuanCategoryUpdate(BaseModel):
+    name: Optional[str] = None
+
+
+class JetPuanProductCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    price: int  # JetPuan fiyatı
+    stock: int
+    category_id: str
+    image_url: Optional[str] = ""
+
+
+class JetPuanProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[int] = None
+    stock: Optional[int] = None
+    category_id: Optional[str] = None
+    image_url: Optional[str] = None
+
+
+class JetPuanOrderItem(BaseModel):
+    product_id: str
+    quantity: int
+
+
+class JetPuanOrderCreate(BaseModel):
+    items: List[JetPuanOrderItem]
+
+
+class JetPuanSettingsUpdate(BaseModel):
+    puan_per_100tl: float
