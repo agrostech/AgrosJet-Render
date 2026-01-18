@@ -7,7 +7,9 @@ export default function CourierSidebar({
   navItems, 
   sidebarCollapsed, 
   setSidebarCollapsed, 
-  onLogout 
+  onLogout,
+  companyName,
+  companyLogo
 }) {
   const location = useLocation();
 
@@ -17,18 +19,41 @@ export default function CourierSidebar({
         {!sidebarCollapsed && (
           <>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-                <User className="w-4 h-4" />
+              {companyLogo ? (
+                <img 
+                  src={companyLogo} 
+                  alt={companyName} 
+                  className="w-9 h-9 rounded-lg object-cover bg-white flex-shrink-0"
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                />
+              ) : null}
+              <div className={`w-9 h-9 rounded-lg bg-white/20 items-center justify-center flex-shrink-0 ${companyLogo ? 'hidden' : 'flex'}`}>
+                <User className="w-5 h-5" />
               </div>
-              <h1 className="font-heading text-lg font-bold truncate">{user?.name}</h1>
+              <div className="min-w-0">
+                <h1 className="font-heading text-base font-bold truncate leading-tight">{user?.name}</h1>
+                {companyName && <p className="text-white/60 text-[10px] truncate">{companyName}</p>}
+              </div>
             </div>
             <p className="text-white/60 text-xs">Kurye Paneli</p>
           </>
         )}
         {sidebarCollapsed && (
-          <div className="w-10 h-10 mx-auto rounded-lg bg-white/20 flex items-center justify-center">
-            <User className="w-5 h-5" />
-          </div>
+          companyLogo ? (
+            <img 
+              src={companyLogo} 
+              alt={companyName} 
+              className="w-10 h-10 mx-auto rounded-lg object-cover bg-white"
+              onError={(e) => { 
+                e.target.style.display = 'none'; 
+                e.target.parentElement.innerHTML = '<div class="w-10 h-10 mx-auto rounded-lg bg-white/20 flex items-center justify-center"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
+              }}
+            />
+          ) : (
+            <div className="w-10 h-10 mx-auto rounded-lg bg-white/20 flex items-center justify-center">
+              <User className="w-5 h-5" />
+            </div>
+          )
         )}
       </div>
       
