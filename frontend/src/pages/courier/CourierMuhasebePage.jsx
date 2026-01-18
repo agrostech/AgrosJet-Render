@@ -553,8 +553,8 @@ Teşekkürler.`.trim().replace(/\n{3,}/g, '\n\n');
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
-              Fatura Talep Mesajı
+              <Send className="w-5 h-5" />
+              Fatura Talep Et
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
