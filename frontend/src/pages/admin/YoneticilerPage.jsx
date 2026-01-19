@@ -264,12 +264,28 @@ export default function YoneticilerPage({ companyId }) {
     });
   };
 
-  const permissionLabels = {
-    vardiya: "Vardiya",
-    muhasebe: "Muhasebe",
-    zimmet: "Zimmet",
-    kuryeler: "Kuryeler",
-    yoneticiler: "Yöneticiler"
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
+  const toggleAllInGroup = (group, checked) => {
+    const newPermissions = { ...selectedAdmin.permissions };
+    group.permissions.forEach(perm => {
+      if (!perm.disabled) {
+        newPermissions[perm.key] = checked;
+      }
+    });
+    setSelectedAdmin({ ...selectedAdmin, permissions: newPermissions });
+  };
+
+  const getGroupStatus = (group) => {
+    const enabledCount = group.permissions.filter(p => !p.disabled && selectedAdmin?.permissions?.[p.key]).length;
+    const totalCount = group.permissions.filter(p => !p.disabled).length;
+    return { enabledCount, totalCount, allEnabled: enabledCount === totalCount };
   };
 
   if (loading) return <PageLoading />;
