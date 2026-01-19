@@ -129,28 +129,30 @@ export default function CourierDashboard() {
         </Button>
       </header>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation - Grid Layout */}
       {mobileMenuOpen && (
-        <nav className="lg:hidden bg-primary text-white border-t border-white/20">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              onClick={() => setMobileMenuOpen(false)} 
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold ${
-                location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-            </Link>
-          ))}
+        <nav className="lg:hidden bg-primary text-white border-t border-white/20 p-3">
+          <div className="grid grid-cols-3 gap-2">
+            {navItems.map((item) => (
+              <Link 
+                key={item.path} 
+                to={item.path} 
+                onClick={() => setMobileMenuOpen(false)} 
+                className={`flex flex-col items-center justify-center p-3 rounded-lg text-center ${
+                  location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
+                }`}
+              >
+                <item.icon className="w-5 h-5 mb-1" />
+                <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+              </Link>
+            ))}
+          </div>
           <button 
             onClick={handleLogout} 
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left"
+            className="w-full flex items-center justify-center gap-2 mt-3 px-3 py-2 text-xs font-semibold bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors"
           >
-            <LogOut className="w-5 h-5" />
-            Çıkış
+            <LogOut className="w-4 h-4" />
+            Çıkış Yap
           </button>
         </nav>
       )}
