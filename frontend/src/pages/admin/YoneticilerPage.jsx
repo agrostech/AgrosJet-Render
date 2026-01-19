@@ -418,22 +418,90 @@ export default function YoneticilerPage({ companyId }) {
       </Dialog>
 
       <Dialog open={showPermModal} onOpenChange={setShowPermModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="font-heading">Yetki Ayarları</DialogTitle>
           </DialogHeader>
           {selectedAdmin && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">{selectedAdmin.name} için yetkileri ayarlayın</p>
-              <div className="space-y-3">
-                {Object.entries(selectedAdmin.permissions).map(([key, value]) => (
-                  <div key={key} className="flex items-center gap-3">
-                    <Checkbox id={key} checked={value} onCheckedChange={() => togglePermission(key)} disabled={key === "yoneticiler"} data-testid={`perm-checkbox-${key}`} />
-                    <Label htmlFor={key} className="text-sm font-medium">{permissionLabels[key] || key}</Label>
-                  </div>
-                ))}
-              </div>
-              <Button onClick={handleUpdatePermissions} className="w-full h-12 font-semibold" data-testid="save-permissions-btn">Kaydet</Button>
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+              <p className="text-sm text-muted-foreground sticky top-0 bg-background pb-2">
+                <span className="font-semibold text-foreground">{selectedAdmin.name}</span> için detaylı yetkileri ayarlayın
+              </p>
+              
+              {PERMISSION_GROUPS.map((group) => {
+                const Icon = group.icon;
+                const { enabledCount, totalCount, allEnabled } = getGroupStatus(group);
+                const isExpanded = expandedGroups.includes(group.id);
+                
+                return (
+                  <Collapsible 
+                    key={group.id} 
+                    open={isExpanded}
+                    onOpenChange={() => toggleGroup(group.id)}
+                    className="border-2 border-border rounded-lg overflow-hidden"
+                  >
+                    <CollapsibleTrigger className="w-full p-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-semibold text-sm">{group.label}</p>
+                          <p className="text-xs text-muted-foreground">{enabledCount}/{totalCount} aktif</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          checked={allEnabled}
+                          onCheckedChange={(checked) => {
+                            toggleAllInGroup(group, checked);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="data-[state=checked]:bg-primary"
+                        />
+                        {isExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent>
+                      <div className="border-t border-border bg-slate-50/50 p-3 space-y-2">
+                        {group.permissions.map((perm) => (
+                          <div 
+                            key={perm.key} 
+                            className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-white transition-colors"
+                          >
+                            <Label 
+                              htmlFor={perm.key} 
+                              className={`text-sm cursor-pointer ${perm.disabled ? 'text-muted-foreground' : ''}`}
+                            >
+                              {perm.label}
+                            </Label>
+                            <Checkbox 
+                              id={perm.key}
+                              checked={selectedAdmin.permissions?.[perm.key] || false}
+                              onCheckedChange={() => togglePermission(perm.key)}
+                              disabled={perm.disabled}
+                              data-testid={`perm-checkbox-${perm.key}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+              
+              <Button 
+                onClick={handleUpdatePermissions} 
+                className="w-full h-12 font-semibold sticky bottom-0" 
+                data-testid="save-permissions-btn"
+              >
+                Kaydet
+              </Button>
             </div>
           )}
         </DialogContent>
