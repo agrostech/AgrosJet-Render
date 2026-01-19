@@ -393,37 +393,37 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                 <div className="border rounded-lg overflow-hidden">
                   <div className="p-2 bg-slate-50 border-b flex items-center gap-2">
                     <Check className="w-4 h-4 text-green-600" />
-                    <span className="font-semibold text-sm">Eşleşen Kuryeler ({parseResult.matched.length})</span>
+                    <span className="font-semibold text-xs sm:text-sm">Eşleşen Kuryeler ({parseResult.matched.length})</span>
                   </div>
-                  <div className="max-h-[200px] overflow-y-auto">
-                    <table className="w-full text-sm">
+                  <div className="max-h-[180px] sm:max-h-[200px] overflow-auto">
+                    <table className="w-full text-xs sm:text-sm">
                       <thead className="bg-slate-50 sticky top-0">
                         <tr>
-                          <th className="text-left p-2 font-semibold">Kurye</th>
-                          <th className="text-right p-2 font-semibold">Paket</th>
-                          <th className="text-right p-2 font-semibold">Hakediş</th>
-                          <th className="text-right p-2 font-semibold">Bonus</th>
-                          <th className="text-right p-2 font-semibold">Toplam</th>
+                          <th className="text-left p-1.5 sm:p-2 font-semibold">Kurye</th>
+                          <th className="text-right p-1.5 sm:p-2 font-semibold hidden sm:table-cell">Paket</th>
+                          <th className="text-right p-1.5 sm:p-2 font-semibold">Hakediş</th>
+                          <th className="text-right p-1.5 sm:p-2 font-semibold hidden sm:table-cell">Bonus</th>
+                          <th className="text-right p-1.5 sm:p-2 font-semibold">Toplam</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
                         {parseResult.matched.map((m, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
-                            <td className="p-2">{m.courier_name}</td>
-                            <td className="p-2 text-right font-mono">{m.packet_count}</td>
-                            <td className="p-2 text-right font-mono">{formatMoney(m.hakedis_amount)}</td>
-                            <td className="p-2 text-right font-mono">{m.bonus_amount > 0 ? formatMoney(m.bonus_amount) : '-'}</td>
-                            <td className="p-2 text-right font-mono font-semibold">{formatMoney(m.total_amount)}</td>
+                            <td className="p-1.5 sm:p-2 truncate max-w-[100px] sm:max-w-none">{m.courier_name}</td>
+                            <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{m.packet_count}</td>
+                            <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(m.hakedis_amount)}</td>
+                            <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{m.bonus_amount > 0 ? formatMoney(m.bonus_amount) : '-'}</td>
+                            <td className="p-1.5 sm:p-2 text-right font-mono font-semibold text-[11px] sm:text-sm">{formatMoney(m.total_amount)}</td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot className="bg-slate-100 font-semibold">
                         <tr>
-                          <td className="p-2">Toplam</td>
-                          <td className="p-2 text-right font-mono">{parseResult.matched.reduce((s, m) => s + m.packet_count, 0)}</td>
-                          <td className="p-2 text-right font-mono">{formatMoney(totalHakedis)}</td>
-                          <td className="p-2 text-right font-mono">{formatMoney(totalBonus)}</td>
-                          <td className="p-2 text-right font-mono">{formatMoney(grandTotal)}</td>
+                          <td className="p-1.5 sm:p-2 text-xs sm:text-sm">Toplam</td>
+                          <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{parseResult.matched.reduce((s, m) => s + m.packet_count, 0)}</td>
+                          <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(totalHakedis)}</td>
+                          <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{formatMoney(totalBonus)}</td>
+                          <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(grandTotal)}</td>
                         </tr>
                       </tfoot>
                     </table>
