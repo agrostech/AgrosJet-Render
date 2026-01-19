@@ -35,6 +35,10 @@ export default function YoneticilerPage({ companyId }) {
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
   const [editData, setEditData] = useState({ name: "", username: "", password: "" });
   const [editLoading, setEditLoading] = useState(false);
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const fetchAdmins = async () => {
     try {
