@@ -85,8 +85,13 @@ async def get_activity_logs(company_id: str, skip: int = 0, limit: int = 10):
 
 # --- İşletmeler (Businesses) ---
 @router.get("/companies/{company_id}/businesses")
-async def get_businesses(company_id: str, include_archived: bool = False):
+async def get_businesses(
+    company_id: str, 
+    include_archived: bool = False,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Get all businesses for a company"""
+    await require_permission(x_admin_id, "muhasebe_view")
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
@@ -94,8 +99,13 @@ async def get_businesses(company_id: str, include_archived: bool = False):
     return businesses
 
 @router.post("/companies/{company_id}/businesses")
-async def create_business(company_id: str, data: BusinessCreate):
+async def create_business(
+    company_id: str, 
+    data: BusinessCreate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Create a new business"""
+    await require_permission(x_admin_id, "muhasebe_add_transaction")
     business = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -109,8 +119,12 @@ async def create_business(company_id: str, data: BusinessCreate):
     return {"message": "İşletme oluşturuldu", "id": business["id"]}
 
 @router.put("/businesses/{business_id}/archive")
-async def archive_business(business_id: str):
+async def archive_business(
+    business_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Archive a business"""
+    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.businesses.update_one(
         {"id": business_id},
         {"$set": {"is_archived": True}}
@@ -120,8 +134,12 @@ async def archive_business(business_id: str):
     return {"message": "İşletme arşivlendi"}
 
 @router.put("/businesses/{business_id}/unarchive")
-async def unarchive_business(business_id: str):
+async def unarchive_business(
+    business_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Unarchive a business"""
+    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.businesses.update_one(
         {"id": business_id},
         {"$set": {"is_archived": False}}
@@ -131,8 +149,12 @@ async def unarchive_business(business_id: str):
     return {"message": "İşletme arşivden çıkarıldı"}
 
 @router.delete("/businesses/{business_id}")
-async def delete_business(business_id: str):
+async def delete_business(
+    business_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete a business"""
+    await require_permission(x_admin_id, "muhasebe_delete_transaction")
     result = await db.businesses.delete_one({"id": business_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="İşletme bulunamadı")
