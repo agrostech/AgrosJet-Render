@@ -30,6 +30,10 @@ export function CategoriesTab() {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({ name: "" });
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -81,13 +85,21 @@ export function CategoriesTab() {
   };
 
   const handleDelete = async (categoryId) => {
-    if (!window.confirm("Bu kategoriyi silmek istediğinize emin misiniz?")) return;
+    setPendingDeleteId(categoryId);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
     try {
-      await axios.delete(`${API}/jetpuan/categories/${categoryId}`);
+      await axios.delete(`${API}/jetpuan/categories/${pendingDeleteId}`);
       toast.success("Kategori silindi");
       fetchCategories();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
