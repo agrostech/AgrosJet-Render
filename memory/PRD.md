@@ -25,7 +25,28 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### December 19, 2025 - Session Updates
+### January 20, 2026 - Session Updates
+
+#### ✅ Completed: Backend Permission Enforcement (P1 - Critical)
+- **X-Admin-Id header** ile tüm korumalı API endpoint'leri güvence altına alındı
+- Header olmadan 401 "Yetkilendirme gerekli" hatası döner
+- Yetkisi olmayan admin'ler 403 "Bu işlem için yetkiniz yok" hatası alır
+- Superadmin/systemadmin rolleri tüm izinlere sahip
+- **Korunan Router'lar:**
+  - `/app/backend/routers/accounting.py` - Muhasebe (işlem, işletme, cari)
+  - `/app/backend/routers/couriers.py` - Kurye yönetimi
+  - `/app/backend/routers/zimmet.py` - Zimmet takibi
+  - `/app/backend/routers/shifts.py` - Vardiya planlama
+  - `/app/backend/routers/jetpuan.py` - JetPuan market
+  - `/app/backend/routers/academy.py` - Akademi eğitimleri
+  - `/app/backend/routers/backup.py` - Yedekleme
+- **Yeni Dosyalar:**
+  - `/app/backend/utils/permissions.py` - İzin kontrol fonksiyonları
+  - `/app/frontend/src/utils/axiosConfig.js` - Axios interceptor (otomatik header ekleme)
+- **Test durumu:** %100 başarı oranı (35/35 test geçti)
+- **Test raporu:** `/app/test_reports/iteration_18.json`
+
+### December 19, 2025 - Previous Session
 
 #### ✅ Completed: PWA (Progressive Web App) Desteği
 - Manifest.json ve service worker eklendi
@@ -39,7 +60,7 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 - Mobil menüde Profil butonu eklendi
 - Yedekleme koleksiyonları genişletildi (transactions dahil edildi)
 
-#### ✅ Completed: Detaylı Yetkiler (Granular Permissions)
+#### ✅ Completed: Detaylı Yetkiler (Granular Permissions) - Frontend
 - **44 adet granüler izin** 8 gruba ayrılarak implement edildi
 - Gruplar: Sayfa Erişimi, Muhasebe, Kuryeler, Zimmet, Market, Akademi, Vardiya, Sistem
 - Collapsible gruplar ve Switch ile toplu kontrol
@@ -79,64 +100,62 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## Prioritized Backlog
 
-### P0 - Critical (Next Up)
-1. **Detaylı Yetkiler (Granular Permissions)**
-   - Status: ✅ COMPLETED (December 19, 2025)
-   - 8 izin grubu implement edildi
-   - Migration endpoint oluşturuldu ve mevcut adminler güncellendi
-   - Test: %100 başarı oranı
-
 ### P1 - High Priority
-2. **Import/Restore Functionality**
+1. **Import/Restore Functionality**
    - Yedekleme modülünde geri yükleme özelliği eksik
    - Backend TODO olarak işaretli
 
-3. **Otomatik Yedekleme Scheduler**
+2. **Otomatik Yedekleme Scheduler**
    - APScheduler ile günlük otomatik yedekleme çalıştırma
    - Background task olarak çalışacak
 
 ### P2 - Medium Priority
+3. **Kalıcı Dosya Depolama Çözümü**
+   - Akademi video yüklemeleri için S3 veya kalıcı volume
+   - Production için kritik
+
 4. **Kalan Büyük Dosyaların Refactoring'i**
    - `GuncelDurumPage.jsx` (497 satır)
    - `SistemPage.jsx` (455 satır)
    - `invoices.py` (468 satır)
    - `zimmet.py` (454 satır)
 
-5. **Otomatik Yedekleme Scheduler**
-   - Background task olarak günlük yedekleme çalıştırma
-   - APScheduler veya Celery entegrasyonu gerekebilir
-
 ---
 
 ## Key API Endpoints
 
+### Permission-Protected Endpoints (X-Admin-Id Header Required)
+All endpoints below require `X-Admin-Id` header for authorization.
+
 ### Academy
-- `GET /api/academy/company/{company_id}/trainings`
-- `POST /api/academy/company/{company_id}/trainings`
-- `PUT /api/academy/training/{training_id}`
-- `DELETE /api/academy/training/{training_id}`
-- `GET /api/academy/video/{training_id}`
+- `GET /api/academy/company/{company_id}/trainings` - akademi_view
+- `POST /api/academy/company/{company_id}/trainings` - akademi_add
+- `PUT /api/academy/training/{training_id}` - akademi_edit
+- `DELETE /api/academy/training/{training_id}` - akademi_delete
+- `GET /api/academy/video/{training_id}` - public (video streaming)
 
 ### Backup
-- `GET /api/backup/company/{company_id}/export`
-- `POST /api/backup/company/{company_id}/import` (TODO)
-- `GET /api/backup/company/{company_id}/schedule`
-- `POST /api/backup/company/{company_id}/schedule`
-- `POST /api/backup/company/{company_id}/send-now`
+- `GET /api/backup/company/{company_id}/export` - sistem_backup
+- `POST /api/backup/company/{company_id}/import` - sistem_backup (TODO)
+- `GET /api/backup/company/{company_id}/schedule` - sistem_backup
+- `POST /api/backup/company/{company_id}/schedule` - sistem_backup
+- `POST /api/backup/company/{company_id}/send-now` - sistem_backup
 
 ---
 
 ## Test Reports
 - `/app/test_reports/iteration_16.json` - ConfirmModal tests (100% pass)
 - `/app/test_reports/iteration_17.json` - Granular Permissions tests (100% pass)
+- `/app/test_reports/iteration_18.json` - Backend Permission Enforcement tests (100% pass - 35/35)
 
 ## Credentials
 - **Super Admin:** username: onurertas, password: Delivery32..
 - **Courier:** phone: 05551234567, password: 123456
+- **Test Admin (no perms):** ID: 64b44a19-1323-482a-9ba3-184d4afde1d1
 
 ---
 
-## Proposed Granular Permissions (✅ IMPLEMENTED)
+## Granular Permissions (✅ FULLY IMPLEMENTED - Frontend + Backend)
 
 ### Sayfa Erişimi (8 izin)
 - `page_vardiya`: Vardiya sayfasına erişim
