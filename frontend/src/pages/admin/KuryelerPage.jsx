@@ -35,6 +35,10 @@ export default function KuryelerPage({ companyId }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
 
   const couriers = activeTab === "active" ? activeCouriers : inactiveCouriers;
   
@@ -47,39 +51,67 @@ export default function KuryelerPage({ companyId }) {
   });
 
   const handleRemove = async (courierId) => {
-    if (!window.confirm("Bu kuryeyi şirketten çıkarmak istediğinize emin misiniz?")) return;
-    try {
-      await removeCourier(courierId);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
-    }
+    setConfirmConfig({
+      title: "Kurye Çıkarma",
+      description: "Bu kuryeyi şirketten çıkarmak istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await removeCourier(courierId);
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "İşlem başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const handleStartTermination = async (courierId) => {
-    if (!window.confirm("Bu kurye için 15 günlük fesih sürecini başlatmak istediğinize emin misiniz?")) return;
-    try {
-      await startTermination(courierId);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
-    }
+    setConfirmConfig({
+      title: "Fesih Süreci Başlatma",
+      description: "Bu kurye için 15 günlük fesih sürecini başlatmak istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await startTermination(courierId);
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "İşlem başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const handleCancelTermination = async (courierId) => {
-    if (!window.confirm("Fesih sürecini iptal etmek istediğinize emin misiniz?")) return;
-    try {
-      await cancelTermination(courierId);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
-    }
+    setConfirmConfig({
+      title: "Fesih İptali",
+      description: "Fesih sürecini iptal etmek istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await cancelTermination(courierId);
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "İşlem başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const handleDeactivate = async (courierId) => {
-    if (!window.confirm("Bu kuryeyi pasife almak istediğinize emin misiniz?")) return;
-    try {
-      await deactivateCourier(courierId);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
-    }
+    setConfirmConfig({
+      title: "Kuryeyi Pasife Alma",
+      description: "Bu kuryeyi pasife almak istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await deactivateCourier(courierId);
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "İşlem başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const handleActivate = async (courierId) => {
