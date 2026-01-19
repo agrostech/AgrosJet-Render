@@ -17,6 +17,8 @@ export default function FaturalarTab({ companyId }) {
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [courierInvoices, setCourierInvoices] = useState([]);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const {
     couriersSummary,
@@ -88,14 +90,22 @@ export default function FaturalarTab({ companyId }) {
   };
 
   const handleDeleteInvoice = async (invoiceId) => {
-    if (!window.confirm("Bu faturayı silmek istediğinize emin misiniz?")) return;
+    setPendingDeleteId(invoiceId);
+    setConfirmOpen(true);
+  };
+
+  const confirmDeleteInvoice = async () => {
+    if (!pendingDeleteId) return;
     try {
-      await deleteInvoice(invoiceId);
+      await deleteInvoice(pendingDeleteId);
       if (selectedCourier) {
         fetchCourierInvoices(selectedCourier.courier_id).then(setCourierInvoices);
       }
     } catch (err) {
       toast.error("Fatura silinemedi");
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
@@ -138,6 +148,15 @@ export default function FaturalarTab({ companyId }) {
           onDelete={handleDeleteInvoice}
         />
       </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Fatura Silme"
+        description="Bu faturayı silmek istediğinize emin misiniz?"
+        onConfirm={confirmDeleteInvoice}
+        variant="danger"
+      />
     </div>
   );
 }
