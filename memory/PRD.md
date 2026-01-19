@@ -79,9 +79,9 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
    - Yedekleme modülünde geri yükleme özelliği eksik
    - Backend TODO olarak işaretli
 
-3. **Dosya Depolama Çözümü**
-   - Video ve belge yüklemeleri için kalıcı depolama gerekli
-   - Mevcut: Geçici `/app/uploads` dizini
+3. **Otomatik Yedekleme Scheduler**
+   - APScheduler ile günlük otomatik yedekleme çalıştırma
+   - Background task olarak çalışacak
 
 ### P2 - Medium Priority
 4. **Kalan Büyük Dosyaların Refactoring'i**
