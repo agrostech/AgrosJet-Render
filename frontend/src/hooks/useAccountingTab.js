@@ -269,10 +269,26 @@ export function useAccountingTab({
   }, [amount, selectedEntity, entityType, companyId, description, isHakedis, adminId, adminName, useCustomDate, txDate, fetchTransactions, fetchEntityBalance]);
 
   // Delete transaction
-  const handleDeleteTransaction = useCallback(async (txId) => {
-    if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
+  const handleDeleteTransaction = useCallback(async (txId, skipConfirm = false) => {
+    if (!skipConfirm) {
+      return { needsConfirm: true, txId };
+    }
     if (!selectedEntity) return;
 
+    try {
+      await axios.delete(`${API}/transactions/${txId}`, {
+        data: { admin_id: adminId, admin_name: adminName }
+      });
+      toast.success("İşlem silindi");
+      fetchTransactions(selectedEntity.id);
+      fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
+    } catch (err) {
+      toast.error("İşlem silinemedi");
+    }
+  }, [selectedEntity, adminId, adminName, fetchTransactions, fetchEntityBalance]);
+
+  const confirmDeleteTransaction = useCallback(async (txId) => {
+    if (!selectedEntity) return;
     try {
       await axios.delete(`${API}/transactions/${txId}`, {
         data: { admin_id: adminId, admin_name: adminName }
@@ -306,8 +322,22 @@ export function useAccountingTab({
   }, [selectedEntity, adminId, adminName, fetchTransactions, fetchEntityBalance]);
 
   // Archive entity
-  const handleArchive = useCallback(async (id) => {
-    if (!window.confirm("Bu kaydı arşivlemek istediğinize emin misiniz?")) return;
+  const handleArchive = useCallback(async (id, skipConfirm = false) => {
+    if (!skipConfirm) {
+      return { needsConfirm: true, id, action: 'archive' };
+    }
+    try {
+      await axios.put(`${API}${endpoint.archive(id)}`);
+      toast.success("Arşivlendi");
+      if (selectedEntity?.id === id) setSelectedEntity(null);
+      fetchEntities();
+      fetchArchivedEntities();
+    } catch (err) {
+      toast.error("Arşivleme başarısız");
+    }
+  }, [endpoint, selectedEntity, fetchEntities, fetchArchivedEntities]);
+
+  const confirmArchive = useCallback(async (id) => {
     try {
       await axios.put(`${API}${endpoint.archive(id)}`);
       toast.success("Arşivlendi");
@@ -332,9 +362,24 @@ export function useAccountingTab({
   }, [endpoint, fetchEntities, fetchArchivedEntities]);
 
   // Delete entity (only for business/vendor)
-  const handleDelete = useCallback(async (id) => {
+  const handleDelete = useCallback(async (id, skipConfirm = false) => {
     if (!endpoint.delete) return;
-    if (!window.confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
+    if (!skipConfirm) {
+      return { needsConfirm: true, id, action: 'delete' };
+    }
+    try {
+      await axios.delete(`${API}${endpoint.delete(id)}`);
+      toast.success("Silindi");
+      if (selectedEntity?.id === id) setSelectedEntity(null);
+      fetchEntities();
+      fetchArchivedEntities();
+    } catch (err) {
+      toast.error("Silinemedi");
+    }
+  }, [endpoint, selectedEntity, fetchEntities, fetchArchivedEntities]);
+
+  const confirmDelete = useCallback(async (id) => {
+    if (!endpoint.delete) return;
     try {
       await axios.delete(`${API}${endpoint.delete(id)}`);
       toast.success("Silindi");
