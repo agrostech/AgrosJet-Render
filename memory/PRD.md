@@ -124,9 +124,9 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ---
 
-## Proposed Granular Permissions (Awaiting User Approval)
+## Proposed Granular Permissions (✅ IMPLEMENTED)
 
-### Sayfa Erişimi (Mevcut)
+### Sayfa Erişimi (8 izin)
 - `page_vardiya`: Vardiya sayfasına erişim
 - `page_muhasebe`: Muhasebe sayfasına erişim
 - `page_zimmet`: Zimmet sayfasına erişim
@@ -134,9 +134,9 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 - `page_market`: JetPuan Market sayfasına erişim
 - `page_akademi`: Akademi sayfasına erişim
 - `page_sistem`: Sistem ayarlarına erişim
-- `page_yoneticiler`: Yöneticiler sayfasına erişim
+- `page_yoneticiler`: Yöneticiler sayfasına erişim (disabled - sadece superadmin)
 
-### Muhasebe Modülü
+### Muhasebe Modülü (7 izin)
 - `muhasebe_view`: İşlemleri görüntüleme
 - `muhasebe_add_transaction`: İşlem ekleme
 - `muhasebe_edit_transaction`: İşlem düzenleme
@@ -145,7 +145,7 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 - `muhasebe_export_pdf`: PDF dışa aktarma
 - `muhasebe_bulk_hakedis`: Toplu hakediş işlemi
 
-### Kuryeler Modülü
+### Kuryeler Modülü (6 izin)
 - `kurye_add`: Kurye ekleme
 - `kurye_edit`: Kurye bilgilerini düzenleme
 - `kurye_remove`: Kuryeyi şirketten çıkarma
@@ -153,7 +153,7 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 - `kurye_start_termination`: Fesih başlatma
 - `kurye_cancel_termination`: Fesih iptal
 
-### Zimmet Modülü
+### Zimmet Modülü (6 izin)
 - `zimmet_view`: Zimmetleri görüntüleme
 - `zimmet_add_product`: Ürün ekleme
 - `zimmet_edit_product`: Ürün düzenleme
@@ -161,7 +161,7 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 - `zimmet_assign`: Zimmet atama
 - `zimmet_return`: Zimmet iade
 
-### Market (JetPuan) Modülü
+### Market (JetPuan) Modülü (6 izin)
 - `market_view`: Market görüntüleme
 - `market_add_product`: Ürün ekleme
 - `market_edit_product`: Ürün düzenleme
@@ -169,19 +169,19 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 - `market_manage_orders`: Sipariş yönetimi
 - `market_add_jetpuan`: JetPuan ekleme
 
-### Akademi Modülü
+### Akademi Modülü (4 izin)
 - `akademi_view`: Eğitimleri görüntüleme
 - `akademi_add`: Eğitim ekleme
 - `akademi_edit`: Eğitim düzenleme
 - `akademi_delete`: Eğitim silme
 
-### Vardiya Modülü
+### Vardiya Modülü (4 izin)
 - `vardiya_view`: Vardiyaları görüntüleme
 - `vardiya_add`: Vardiya ekleme
 - `vardiya_delete`: Vardiya silme
 - `vardiya_assign`: Atama yapma
 
-### Sistem Ayarları
+### Sistem Ayarları (3 izin)
 - `sistem_company_info`: Şirket bilgileri düzenleme
 - `sistem_email_settings`: E-posta ayarları
 - `sistem_backup`: Yedekleme işlemleri
