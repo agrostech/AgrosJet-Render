@@ -34,6 +34,10 @@ export function JetPuanProductsTab() {
     name: "", description: "", price: "", stock: "", category_id: "", image_url: ""
   });
   const [filterCategory, setFilterCategory] = useState("all");
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -102,13 +106,21 @@ export function JetPuanProductsTab() {
   };
 
   const handleDelete = async (productId) => {
-    if (!window.confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+    setPendingDeleteId(productId);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
     try {
-      await axios.delete(`${API}/jetpuan/products/${productId}`);
+      await axios.delete(`${API}/jetpuan/products/${pendingDeleteId}`);
       toast.success("Ürün silindi");
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
