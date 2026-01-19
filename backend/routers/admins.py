@@ -10,6 +10,151 @@ from utils.helpers import hash_password, format_name
 router = APIRouter(prefix="/api", tags=["Admins"])
 
 
+# --- Granular Permission Definitions ---
+def get_default_admin_permissions():
+    """Returns default permissions for a new admin (most permissions enabled)"""
+    return {
+        # Sayfa Erişimi
+        "page_vardiya": True,
+        "page_muhasebe": True,
+        "page_zimmet": True,
+        "page_kuryeler": True,
+        "page_market": True,
+        "page_akademi": True,
+        "page_sistem": False,  # Default kapalı - hassas ayarlar
+        "page_yoneticiler": False,  # Default kapalı - sadece superadmin
+        
+        # Muhasebe Modülü
+        "muhasebe_view": True,
+        "muhasebe_add_transaction": True,
+        "muhasebe_edit_transaction": True,
+        "muhasebe_delete_transaction": True,
+        "muhasebe_archive": True,
+        "muhasebe_export_pdf": True,
+        "muhasebe_bulk_hakedis": True,
+        
+        # Kuryeler Modülü
+        "kurye_add": True,
+        "kurye_edit": True,
+        "kurye_remove": False,  # Tehlikeli işlem - default kapalı
+        "kurye_deactivate": True,
+        "kurye_start_termination": False,  # Tehlikeli işlem - default kapalı
+        "kurye_cancel_termination": True,
+        
+        # Zimmet Modülü
+        "zimmet_view": True,
+        "zimmet_add_product": True,
+        "zimmet_edit_product": True,
+        "zimmet_delete_product": False,  # Tehlikeli işlem - default kapalı
+        "zimmet_assign": True,
+        "zimmet_return": True,
+        
+        # Market (JetPuan) Modülü
+        "market_view": True,
+        "market_add_product": True,
+        "market_edit_product": True,
+        "market_delete_product": False,  # Tehlikeli işlem - default kapalı
+        "market_manage_orders": True,
+        "market_add_jetpuan": True,
+        
+        # Akademi Modülü
+        "akademi_view": True,
+        "akademi_add": True,
+        "akademi_edit": True,
+        "akademi_delete": False,  # Tehlikeli işlem - default kapalı
+        
+        # Vardiya Modülü
+        "vardiya_view": True,
+        "vardiya_add": True,
+        "vardiya_delete": False,  # Tehlikeli işlem - default kapalı
+        "vardiya_assign": True,
+        
+        # Sistem Ayarları
+        "sistem_company_info": False,
+        "sistem_email_settings": False,
+        "sistem_backup": False,
+        
+        # Legacy uyumluluk için eski anahtarlar (migration için)
+        "vardiya": True,
+        "muhasebe": True,
+        "zimmet": True,
+        "kuryeler": True,
+        "yoneticiler": False
+    }
+
+
+def get_superadmin_permissions():
+    """Returns all permissions enabled for superadmin"""
+    return {
+        # Sayfa Erişimi
+        "page_vardiya": True,
+        "page_muhasebe": True,
+        "page_zimmet": True,
+        "page_kuryeler": True,
+        "page_market": True,
+        "page_akademi": True,
+        "page_sistem": True,
+        "page_yoneticiler": True,
+        
+        # Muhasebe Modülü
+        "muhasebe_view": True,
+        "muhasebe_add_transaction": True,
+        "muhasebe_edit_transaction": True,
+        "muhasebe_delete_transaction": True,
+        "muhasebe_archive": True,
+        "muhasebe_export_pdf": True,
+        "muhasebe_bulk_hakedis": True,
+        
+        # Kuryeler Modülü
+        "kurye_add": True,
+        "kurye_edit": True,
+        "kurye_remove": True,
+        "kurye_deactivate": True,
+        "kurye_start_termination": True,
+        "kurye_cancel_termination": True,
+        
+        # Zimmet Modülü
+        "zimmet_view": True,
+        "zimmet_add_product": True,
+        "zimmet_edit_product": True,
+        "zimmet_delete_product": True,
+        "zimmet_assign": True,
+        "zimmet_return": True,
+        
+        # Market (JetPuan) Modülü
+        "market_view": True,
+        "market_add_product": True,
+        "market_edit_product": True,
+        "market_delete_product": True,
+        "market_manage_orders": True,
+        "market_add_jetpuan": True,
+        
+        # Akademi Modülü
+        "akademi_view": True,
+        "akademi_add": True,
+        "akademi_edit": True,
+        "akademi_delete": True,
+        
+        # Vardiya Modülü
+        "vardiya_view": True,
+        "vardiya_add": True,
+        "vardiya_delete": True,
+        "vardiya_assign": True,
+        
+        # Sistem Ayarları
+        "sistem_company_info": True,
+        "sistem_email_settings": True,
+        "sistem_backup": True,
+        
+        # Legacy uyumluluk
+        "vardiya": True,
+        "muhasebe": True,
+        "zimmet": True,
+        "kuryeler": True,
+        "yoneticiler": True
+    }
+
+
 # --- Pydantic Models ---
 class AdminCreate(BaseModel):
     name: str
