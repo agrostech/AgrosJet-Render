@@ -661,8 +661,14 @@ async def pay_installment(product_id: str, data: InstallmentPayRequest):
 
 # Hook into transaction deletion to restore installment count
 @router.delete("/transactions/{transaction_id}/with-installment-restore")
-async def delete_transaction_with_installment(transaction_id: str, data: TransactionDeleteRequest = None):
+async def delete_transaction_with_installment(
+    transaction_id: str, 
+    data: TransactionDeleteRequest = None,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete a transaction and restore installment count if applicable"""
+    await require_permission(x_admin_id, "muhasebe_delete_transaction")
+    
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
