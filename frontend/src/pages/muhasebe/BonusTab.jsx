@@ -335,10 +335,10 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
 
       {/* Toplu Hakediş Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" aria-describedby="bulk-hakedis-description">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6" aria-describedby="bulk-hakedis-description">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5" />
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FileSpreadsheet className="w-4 h-4 sm:w-5 sm:h-5" />
               Toplu Hakediş Önizleme
             </DialogTitle>
             <p id="bulk-hakedis-description" className="sr-only">
@@ -347,25 +347,25 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
           </DialogHeader>
 
           {parseResult && (
-            <div className="flex-1 overflow-y-auto space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4">
               {/* Özet */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-slate-50 rounded-lg border text-center">
-                  <p className="text-xs text-muted-foreground">Eşleşen</p>
-                  <p className="text-xl font-bold text-green-600">{parseResult.total_matched}</p>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="p-2 sm:p-3 bg-slate-50 rounded-lg border text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Eşleşen</p>
+                  <p className="text-lg sm:text-xl font-bold text-green-600">{parseResult.total_matched}</p>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-lg border text-center">
-                  <p className="text-xs text-muted-foreground">Eşleşmeyen</p>
-                  <p className="text-xl font-bold text-muted-foreground">{parseResult.total_unmatched}</p>
+                <div className="p-2 sm:p-3 bg-slate-50 rounded-lg border text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Eşleşmeyen</p>
+                  <p className="text-lg sm:text-xl font-bold text-muted-foreground">{parseResult.total_unmatched}</p>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-lg border text-center">
-                  <p className="text-xs text-muted-foreground">Toplam Tutar</p>
-                  <p className="text-lg font-bold">{formatMoney(grandTotal)}</p>
+                <div className="p-2 sm:p-3 bg-slate-50 rounded-lg border text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Toplam</p>
+                  <p className="text-sm sm:text-lg font-bold truncate">{formatMoney(grandTotal)}</p>
                 </div>
               </div>
 
               {/* Tarih Seçimi */}
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-slate-50 rounded-lg border">
                 <Checkbox
                   id="custom-date-bulk"
                   checked={useCustomDate}
@@ -374,16 +374,16 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                     if (checked) setTxDate(getLocalDateTimeString());
                   }}
                 />
-                <Label htmlFor="custom-date-bulk" className="text-sm cursor-pointer flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Özel tarih kullan
+                <Label htmlFor="custom-date-bulk" className="text-xs sm:text-sm cursor-pointer flex items-center gap-1 sm:gap-2">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Özel tarih
                 </Label>
                 {useCustomDate && (
                   <Input
                     type="datetime-local"
                     value={txDate}
                     onChange={(e) => setTxDate(e.target.value)}
-                    className="h-9 w-auto border"
+                    className="h-8 sm:h-9 w-full sm:w-auto border text-xs sm:text-sm"
                   />
                 )}
               </div>
