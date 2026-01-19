@@ -344,10 +344,12 @@ export function useZimmetData(companyId, adminId, adminName) {
     handleAddProductType,
     handleEditProductType,
     handleDeleteProductType,
+    confirmDeleteProductType,
     // Product handlers
     handleAddProduct,
     handleEditProduct,
     handleDeleteProduct,
+    confirmDeleteProduct,
     // Assignment handlers
     handleAssign,
     handleReturn,
