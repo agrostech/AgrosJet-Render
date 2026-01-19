@@ -496,6 +496,15 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Kural Silme"
+        description="Bu bonus kuralını silmek istediğinize emin misiniz?"
+        onConfirm={confirmDeleteRule}
+        variant="danger"
+      />
     </div>
   );
 }
