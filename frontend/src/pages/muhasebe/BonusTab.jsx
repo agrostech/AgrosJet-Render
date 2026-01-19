@@ -46,6 +46,16 @@ const getLocalDateTimeString = () => {
   return local.toISOString().slice(0, 16);
 };
 
+// Format name as "FirstName L." for mobile display
+const formatShortName = (fullName) => {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+  return `${firstName} ${lastInitial}.`;
+};
+
 export default function TopluHakedisTab({ companyId, adminId, adminName }) {
   // Bonus Rules State
   const [rules, setRules] = useState([]);
