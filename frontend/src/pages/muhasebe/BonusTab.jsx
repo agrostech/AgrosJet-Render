@@ -54,6 +54,10 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
   const [adding, setAdding] = useState(false);
   const [bonusSettingsOpen, setBonusSettingsOpen] = useState(false);
 
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteRuleId, setPendingDeleteRuleId] = useState(null);
+
   // Bulk Hakediş State
   const [showModal, setShowModal] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -110,14 +114,21 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
   };
 
   const handleDeleteRule = async (ruleId) => {
-    if (!window.confirm("Bu kuralı silmek istediğinize emin misiniz?")) return;
+    setPendingDeleteRuleId(ruleId);
+    setConfirmOpen(true);
+  };
 
+  const confirmDeleteRule = async () => {
+    if (!pendingDeleteRuleId) return;
     try {
-      await axios.delete(`${API}/bonus/settings/${ruleId}`);
+      await axios.delete(`${API}/bonus/settings/${pendingDeleteRuleId}`);
       toast.success("Kural silindi");
       fetchRules();
     } catch (err) {
       toast.error("Kural silinemedi");
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteRuleId(null);
     }
   };
 
