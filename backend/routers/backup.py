@@ -112,8 +112,12 @@ async def create_backup_zip(company_id: str) -> io.BytesIO:
 
 
 @router.get("/company/{company_id}/export")
-async def export_company_data(company_id: str):
+async def export_company_data(
+    company_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Export all company data as a ZIP file"""
+    await require_permission(x_admin_id, "sistem_backup")
     # Verify company exists
     company = await db.companies.find_one({"id": company_id})
     if not company:
@@ -131,8 +135,12 @@ async def export_company_data(company_id: str):
 
 
 @router.post("/company/{company_id}/import")
-async def import_company_data(company_id: str):
+async def import_company_data(
+    company_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Import company data from a backup file"""
+    await require_permission(x_admin_id, "sistem_backup")
     # TODO: Implement import functionality
     raise HTTPException(status_code=501, detail="Import özelliği yakında eklenecek")
 
