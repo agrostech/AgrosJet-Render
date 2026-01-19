@@ -70,6 +70,10 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
   const [editingTx, setEditingTx] = useState(null);
   const [editForm, setEditForm] = useState({ amount: "", description: "", is_hakedis: false });
   const [editLoading, setEditLoading] = useState(false);
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
 
   // Taksitli Ürün State'leri
   const [showInstallmentModal, setShowInstallmentModal] = useState(false);
@@ -169,35 +173,47 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
 
   // Taksitli ürün sil
   const handleDeleteProduct = async (product) => {
-    if (!window.confirm(`"${product.name}" ürününü silmek istediğinize emin misiniz?`)) return;
-    
-    try {
-      await axios.delete(`${API}/installment-products/${product.id}?admin_id=${adminId}&admin_name=${encodeURIComponent(adminName)}`);
-      toast.success("Ürün silindi");
-      fetchInstallmentProducts(selectedEntity.id);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Ürün silinemedi");
-    }
+    setConfirmConfig({
+      title: "Ürün Silme",
+      description: `"${product.name}" ürününü silmek istediğinize emin misiniz?`,
+      onConfirm: async () => {
+        try {
+          await axios.delete(`${API}/installment-products/${product.id}?admin_id=${adminId}&admin_name=${encodeURIComponent(adminName)}`);
+          toast.success("Ürün silindi");
+          fetchInstallmentProducts(selectedEntity.id);
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "Ürün silinemedi");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
   };
 
   // İşlem sil (taksit geri ekle)
   const handleDeleteTransactionWithRestore = async (txId, tx) => {
-    if (!window.confirm("Bu işlemi silmek istediğinize emin misiniz?")) return;
-    
-    try {
-      await axios.delete(`${API}/transactions/${txId}/with-installment-restore`, {
-        data: { admin_id: adminId, admin_name: adminName }
-      });
-      toast.success(tx?.installment_product_id ? "İşlem silindi, taksit geri eklendi" : "İşlem silindi");
-      
-      if (selectedEntity) {
-        fetchTransactions(selectedEntity.id);
-        fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
-        fetchInstallmentProducts(selectedEntity.id);
+    setConfirmConfig({
+      title: "İşlem Silme",
+      description: "Bu işlemi silmek istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await axios.delete(`${API}/transactions/${txId}/with-installment-restore`, {
+            data: { admin_id: adminId, admin_name: adminName }
+          });
+          toast.success(tx?.installment_product_id ? "İşlem silindi, taksit geri eklendi" : "İşlem silindi");
+          
+          if (selectedEntity) {
+            fetchTransactions(selectedEntity.id);
+            fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
+            fetchInstallmentProducts(selectedEntity.id);
+          }
+        } catch (err) {
+          toast.error("İşlem silinemedi");
+        }
+        setConfirmOpen(false);
       }
-    } catch (err) {
-      toast.error("İşlem silinemedi");
-    }
+    });
+    setConfirmOpen(true);
   };
 
   // Edit modal
