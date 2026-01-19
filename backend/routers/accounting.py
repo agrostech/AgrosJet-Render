@@ -163,8 +163,13 @@ async def delete_business(
 
 # --- Cariler (Vendors) ---
 @router.get("/companies/{company_id}/vendors")
-async def get_vendors(company_id: str, include_archived: bool = False):
+async def get_vendors(
+    company_id: str, 
+    include_archived: bool = False,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Get all vendors for a company"""
+    await require_permission(x_admin_id, "muhasebe_view")
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
@@ -172,8 +177,13 @@ async def get_vendors(company_id: str, include_archived: bool = False):
     return vendors
 
 @router.post("/companies/{company_id}/vendors")
-async def create_vendor(company_id: str, data: VendorCreate):
+async def create_vendor(
+    company_id: str, 
+    data: VendorCreate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Create a new vendor"""
+    await require_permission(x_admin_id, "muhasebe_add_transaction")
     vendor = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -187,8 +197,12 @@ async def create_vendor(company_id: str, data: VendorCreate):
     return {"message": "Cari oluşturuldu", "id": vendor["id"]}
 
 @router.put("/vendors/{vendor_id}/archive")
-async def archive_vendor(vendor_id: str):
+async def archive_vendor(
+    vendor_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Archive a vendor"""
+    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.vendors.update_one(
         {"id": vendor_id},
         {"$set": {"is_archived": True}}
@@ -198,8 +212,12 @@ async def archive_vendor(vendor_id: str):
     return {"message": "Cari arşivlendi"}
 
 @router.put("/vendors/{vendor_id}/unarchive")
-async def unarchive_vendor(vendor_id: str):
+async def unarchive_vendor(
+    vendor_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Unarchive a vendor"""
+    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.vendors.update_one(
         {"id": vendor_id},
         {"$set": {"is_archived": False}}
@@ -209,8 +227,12 @@ async def unarchive_vendor(vendor_id: str):
     return {"message": "Cari arşivden çıkarıldı"}
 
 @router.delete("/vendors/{vendor_id}")
-async def delete_vendor(vendor_id: str):
+async def delete_vendor(
+    vendor_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete a vendor"""
+    await require_permission(x_admin_id, "muhasebe_delete_transaction")
     result = await db.vendors.delete_one({"id": vendor_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Cari bulunamadı")
