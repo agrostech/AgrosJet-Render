@@ -84,13 +84,7 @@ async def create_admin(data: AdminCreate):
         "username": data.username,
         "password": hash_password(data.password),
         "role": "admin",
-        "permissions": {
-            "vardiya": True,
-            "muhasebe": True,
-            "zimmet": True,
-            "kuryeler": True,
-            "yoneticiler": False
-        },
+        "permissions": get_default_admin_permissions(),
         "company_id": data.company_id,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -114,13 +108,7 @@ async def create_superadmin(data: SuperAdminCreate):
         "username": data.username,
         "password": hash_password(data.password),
         "role": "superadmin",
-        "permissions": {
-            "vardiya": True,
-            "muhasebe": True,
-            "zimmet": True,
-            "kuryeler": True,
-            "yoneticiler": True
-        },
+        "permissions": get_superadmin_permissions(),
         "company_id": data.company_id,
         "email": data.email,
         "created_at": datetime.now(timezone.utc).isoformat()
