@@ -73,8 +73,12 @@ async def get_categories():
 
 
 @router.post("/categories")
-async def create_category(data: JetPuanCategoryCreate):
+async def create_category(
+    data: JetPuanCategoryCreate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Create a new category"""
+    await require_permission(x_admin_id, "market_add_product")
     existing = await db.jetpuan_categories.find_one({"name": data.name})
     if existing:
         raise HTTPException(status_code=400, detail="Bu kategori zaten mevcut")
@@ -89,8 +93,13 @@ async def create_category(data: JetPuanCategoryCreate):
 
 
 @router.put("/categories/{category_id}")
-async def update_category(category_id: str, data: JetPuanCategoryUpdate):
+async def update_category(
+    category_id: str, 
+    data: JetPuanCategoryUpdate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Update a category"""
+    await require_permission(x_admin_id, "market_edit_product")
     category = await db.jetpuan_categories.find_one({"id": category_id})
     if not category:
         raise HTTPException(status_code=404, detail="Kategori bulunamadı")
@@ -105,8 +114,12 @@ async def update_category(category_id: str, data: JetPuanCategoryUpdate):
 
 
 @router.delete("/categories/{category_id}")
-async def delete_category(category_id: str):
+async def delete_category(
+    category_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete a category"""
+    await require_permission(x_admin_id, "market_delete_product")
     product_count = await db.jetpuan_products.count_documents({"category_id": category_id})
     if product_count > 0:
         raise HTTPException(status_code=400, detail=f"Bu kategoride {product_count} ürün var. Önce ürünleri silin veya taşıyın.")
