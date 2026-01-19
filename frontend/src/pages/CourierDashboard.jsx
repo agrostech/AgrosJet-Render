@@ -177,7 +177,7 @@ export default function CourierDashboard() {
               <Route path="muhasebe" element={<CourierMuhasebePage courierId={user.id} courierName={user.name} companyId={user.company_id} />} />
               <Route path="zimmet" element={<CourierZimmetPage courierId={user.id} />} />
               <Route path="jetpuan" element={<CourierJetPuanPage courierId={user.id} />} />
-              <Route path="akademi" element={<CourierAkademiPage companyName={companyName} />} />
+              <Route path="akademi" element={<CourierAkademiPage companyId={user.company_id} />} />
               <Route path="evraklar" element={
                 <CourierEvraklarPage 
                   courierId={user.id} 
