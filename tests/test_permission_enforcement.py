@@ -10,7 +10,10 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://courier-mgmt-2.previ
 
 # Test credentials from review request
 SUPERADMIN_ID = "0211f951-210a-465a-9937-672ebb16950b"
-ADMIN_WITHOUT_PERMISSIONS_ID = "b3eb21e3-e40e-4d60-9c15-983aa7d77358"
+# Admin with NO permissions (created for testing)
+ADMIN_WITHOUT_PERMISSIONS_ID = "64b44a19-1323-482a-9ba3-184d4afde1d1"
+# Admin with SOME permissions (atakansari - has vardiya, zimmet, akademi, market perms)
+ADMIN_WITH_SOME_PERMISSIONS_ID = "b3eb21e3-e40e-4d60-9c15-983aa7d77358"
 COMPANY_ID = "e1c50cea-307e-4889-b33b-4b22e467b0b4"
 
 
