@@ -435,31 +435,31 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
               {parseResult.unmatched.length > 0 && (
                 <div className="border rounded-lg overflow-hidden">
                   <div className="p-2 bg-slate-50 border-b flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-semibold text-sm text-muted-foreground">Eşleşmeyen Kuryeler ({parseResult.unmatched.length})</span>
+                    <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+                    <span className="font-semibold text-xs sm:text-sm text-muted-foreground">Eşleşmeyen ({parseResult.unmatched.length})</span>
                   </div>
-                  <div className="max-h-[150px] overflow-y-auto">
-                    <table className="w-full text-sm">
+                  <div className="max-h-[120px] sm:max-h-[150px] overflow-auto">
+                    <table className="w-full text-xs sm:text-sm">
                       <thead className="bg-slate-50 sticky top-0">
                         <tr>
-                          <th className="text-left p-2 font-semibold">Excel'deki İsim</th>
-                          <th className="text-right p-2 font-semibold">Paket</th>
-                          <th className="text-right p-2 font-semibold">Hakediş</th>
+                          <th className="text-left p-1.5 sm:p-2 font-semibold">İsim</th>
+                          <th className="text-right p-1.5 sm:p-2 font-semibold hidden sm:table-cell">Paket</th>
+                          <th className="text-right p-1.5 sm:p-2 font-semibold">Hakediş</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
                         {parseResult.unmatched.map((u, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
-                            <td className="p-2 text-muted-foreground">{u.excel_name}</td>
-                            <td className="p-2 text-right font-mono">{u.packet_count}</td>
-                            <td className="p-2 text-right font-mono">{formatMoney(u.hakedis_amount)}</td>
+                            <td className="p-1.5 sm:p-2 text-muted-foreground truncate max-w-[120px] sm:max-w-none">{u.excel_name}</td>
+                            <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{u.packet_count}</td>
+                            <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(u.hakedis_amount)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  <div className="p-2 bg-slate-50 text-xs text-muted-foreground">
-                    Bu kuryeler sistemde bulunamadı. Lütfen isimleri kontrol edin.
+                  <div className="p-1.5 sm:p-2 bg-slate-50 text-[10px] sm:text-xs text-muted-foreground">
+                    Bu kuryeler sistemde bulunamadı.
                   </div>
                 </div>
               )}
@@ -467,12 +467,14 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
           )}
 
           {/* Footer */}
-          <div className="pt-4 border-t flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowModal(false)}>
+          <div className="pt-3 sm:pt-4 border-t flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowModal(false)} className="text-xs sm:text-sm">
               İptal
             </Button>
             <Button 
               onClick={handleApplyBulkHakedis}
+              size="sm"
+              className="text-xs sm:text-sm"
               disabled={applying || !parseResult?.matched?.length}
               data-testid="apply-bulk-hakedis"
             >
