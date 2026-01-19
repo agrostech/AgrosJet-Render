@@ -475,7 +475,10 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                       <tbody className="divide-y">
                         {parseResult.unmatched.map((u, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
-                            <td className="p-1.5 sm:p-2 text-muted-foreground truncate max-w-[120px] sm:max-w-none">{u.excel_name}</td>
+                            <td className="p-1.5 sm:p-2 text-muted-foreground truncate max-w-[120px] sm:max-w-none">
+                              <span className="sm:hidden">{formatShortName(u.excel_name)}</span>
+                              <span className="hidden sm:inline">{u.excel_name}</span>
+                            </td>
                             <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{u.packet_count}</td>
                             <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(u.hakedis_amount)}</td>
                           </tr>
