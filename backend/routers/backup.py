@@ -24,7 +24,7 @@ class BackupSchedule(BaseModel):
     email: str
 
 
-# Collections to backup
+# Collections to backup - comprehensive list
 BACKUP_COLLECTIONS = [
     "companies",
     "admins", 
@@ -32,22 +32,29 @@ BACKUP_COLLECTIONS = [
     "company_couriers",
     "shifts",
     "shift_assignments",
+    "shift_leaves",
     "accounting_transactions",
     "activity_logs",
     "invoices",
     "products",
     "product_types",
     "zimmet_assignments",
+    "zimmet_logs",
     "jetpuan_products",
     "jetpuan_categories",
     "jetpuan_orders",
     "jetpuan_transactions",
     "notifications",
+    "dismissed_notifications",
     "documents",
     "academy_trainings",
     "bonus_settings",
     "email_settings",
-    "company_settings"
+    "company_settings",
+    "backup_settings",
+    "installment_products",
+    "businesses",
+    "vendors"
 ]
 
 
