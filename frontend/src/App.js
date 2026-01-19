@@ -8,6 +8,8 @@ import CourierDashboard from "@/pages/CourierDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import SystemDashboard from "@/pages/SystemDashboard";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+// Initialize axios interceptors for permission headers
+import "@/utils/axiosConfig";
 
 function App() {
   // Register service worker
