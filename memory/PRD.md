@@ -27,6 +27,18 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ### December 19, 2025 - Session Updates
 
+#### ✅ Completed: PWA (Progressive Web App) Desteği
+- Manifest.json ve service worker eklendi
+- Ana ekrana ekle özelliği
+- İlk girişte yükleme prompt'u
+- Özel app ikonları (192x192 ve 512x512)
+
+#### ✅ Completed: UI/UX Düzeltmeleri (Session Update)
+- Sistem sayfası yedekleme kartı tasarımı diğer kartlarla tutarlı hale getirildi
+- Akademi sıralaması düzeltildi (eski eğitimler üstte)
+- Mobil menüde Profil butonu eklendi
+- Yedekleme koleksiyonları genişletildi (transactions dahil edildi)
+
 #### ✅ Completed: Detaylı Yetkiler (Granular Permissions)
 - **44 adet granüler izin** 8 gruba ayrılarak implement edildi
 - Gruplar: Sayfa Erişimi, Muhasebe, Kuryeler, Zimmet, Market, Akademi, Vardiya, Sistem
