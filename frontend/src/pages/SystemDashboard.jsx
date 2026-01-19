@@ -43,6 +43,10 @@ function SirketlerPage() {
   const [newSuperAdmin, setNewSuperAdmin] = useState({ name: "", username: "", password: "" });
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
   const [editAdminData, setEditAdminData] = useState({ name: "", password: "" });
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
 
   const fetchCompanies = async () => {
     try {
@@ -100,14 +104,21 @@ function SirketlerPage() {
   };
 
   const handleDeleteCompany = async (id) => {
-    if (!window.confirm("Bu şirketi ve tüm verilerini silmek istediğinize emin misiniz?")) return;
-    try {
-      await axios.delete(`${API}/companies/${id}`);
-      toast.success("Şirket silindi");
-      fetchCompanies();
-    } catch (err) {
-      toast.error("Silme başarısız");
-    }
+    setConfirmConfig({
+      title: "Şirket Silme",
+      description: "Bu şirketi ve tüm verilerini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+      onConfirm: async () => {
+        try {
+          await axios.delete(`${API}/companies/${id}`);
+          toast.success("Şirket silindi");
+          fetchCompanies();
+        } catch (err) {
+          toast.error("Silme başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const handleAddSuperAdmin = async (e) => {
@@ -143,14 +154,21 @@ function SirketlerPage() {
   };
 
   const handleDeleteAdmin = async (adminId) => {
-    if (!window.confirm("Bu yöneticiyi silmek istediğinize emin misiniz?")) return;
-    try {
-      await axios.delete(`${API}/admins/${adminId}`);
-      toast.success("Yönetici silindi");
-      fetchCompanyAdmins(selectedCompany.id);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Silme başarısız");
-    }
+    setConfirmConfig({
+      title: "Yönetici Silme",
+      description: "Bu yöneticiyi silmek istediğinize emin misiniz?",
+      onConfirm: async () => {
+        try {
+          await axios.delete(`${API}/admins/${adminId}`);
+          toast.success("Yönetici silindi");
+          fetchCompanyAdmins(selectedCompany.id);
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "Silme başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
   };
 
   const handleEditAdmin = async (e) => {
