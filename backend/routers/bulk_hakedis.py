@@ -219,14 +219,14 @@ async def apply_bulk_hakedis(company_id: str, data: BulkHakedisCreate):
     for item in data.items:
         total_amount = item.hakedis_amount + item.bonus_amount
         
-        # Build description
+        # Build description - only include bonus if earned
         desc_parts = []
         if item.packet_count > 0:
             desc_parts.append(f"{item.packet_count} Paket")
-        if item.bonus_amount > 0:
-            desc_parts.append(f"{item.bonus_amount:.2f} TL Bonus")
         if item.hakedis_amount > 0:
             desc_parts.append(f"{item.hakedis_amount:.2f} TL Hakediş")
+        if item.bonus_amount > 0:
+            desc_parts.append(f"{item.bonus_amount:.2f} TL Bonus")
         
         description = ", ".join(desc_parts) if desc_parts else "Toplu Hakediş"
         
