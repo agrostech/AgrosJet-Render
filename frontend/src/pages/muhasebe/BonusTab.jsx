@@ -16,6 +16,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { 
   Gift, 
   Plus, 

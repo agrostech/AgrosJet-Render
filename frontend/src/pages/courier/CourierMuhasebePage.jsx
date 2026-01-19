@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { 
   InstallmentSection, 
   TransactionTable, 

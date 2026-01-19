@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 

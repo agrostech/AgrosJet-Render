@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Search, UserPlus, UserCheck, UserX } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 

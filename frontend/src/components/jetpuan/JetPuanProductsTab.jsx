@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Plus, Pencil, Trash2, ImageIcon } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
