@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 from services import courier_service
+from utils.permissions import require_permission
 
 router = APIRouter(prefix="/api", tags=["Couriers"])
 
