@@ -273,6 +273,73 @@ async def update_admin_permissions(admin_id: str, data: PermissionUpdate):
     return {"message": "Yetkiler güncellendi"}
 
 
+@router.post("/admins/migrate-permissions")
+async def migrate_admin_permissions():
+    """Migrate all admins to the new granular permission system"""
+    admins = await db.admins.find({}).to_list(1000)
+    migrated = 0
+    
+    for admin in admins:
+        old_perms = admin.get("permissions", {})
+        
+        # Check if already migrated (has new permission keys)
+        if "page_vardiya" in old_perms:
+            continue
+        
+        # Determine base permissions based on role
+        if admin.get("role") == "superadmin" or admin.get("role") == "systemadmin":
+            new_perms = get_superadmin_permissions()
+        else:
+            new_perms = get_default_admin_permissions()
+            
+            # Apply old page-level permissions to both page access and module permissions
+            if old_perms.get("vardiya") == False:
+                new_perms["page_vardiya"] = False
+                new_perms["vardiya_view"] = False
+                new_perms["vardiya_add"] = False
+                new_perms["vardiya_delete"] = False
+                new_perms["vardiya_assign"] = False
+            
+            if old_perms.get("muhasebe") == False:
+                new_perms["page_muhasebe"] = False
+                new_perms["muhasebe_view"] = False
+                new_perms["muhasebe_add_transaction"] = False
+                new_perms["muhasebe_edit_transaction"] = False
+                new_perms["muhasebe_delete_transaction"] = False
+                new_perms["muhasebe_archive"] = False
+                new_perms["muhasebe_export_pdf"] = False
+                new_perms["muhasebe_bulk_hakedis"] = False
+            
+            if old_perms.get("zimmet") == False:
+                new_perms["page_zimmet"] = False
+                new_perms["zimmet_view"] = False
+                new_perms["zimmet_add_product"] = False
+                new_perms["zimmet_edit_product"] = False
+                new_perms["zimmet_delete_product"] = False
+                new_perms["zimmet_assign"] = False
+                new_perms["zimmet_return"] = False
+            
+            if old_perms.get("kuryeler") == False:
+                new_perms["page_kuryeler"] = False
+                new_perms["kurye_add"] = False
+                new_perms["kurye_edit"] = False
+                new_perms["kurye_remove"] = False
+                new_perms["kurye_deactivate"] = False
+                new_perms["kurye_start_termination"] = False
+                new_perms["kurye_cancel_termination"] = False
+            
+            if old_perms.get("yoneticiler") == True:
+                new_perms["page_yoneticiler"] = True
+        
+        await db.admins.update_one(
+            {"id": admin["id"]},
+            {"$set": {"permissions": new_perms}}
+        )
+        migrated += 1
+    
+    return {"message": f"{migrated} yönetici izinleri yeni sisteme aktarıldı"}
+
+
 @router.delete("/admins/{admin_id}")
 async def delete_admin(admin_id: str):
     admin = await db.admins.find_one({"id": admin_id})
