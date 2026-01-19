@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User } from "lucide-react";
 import { useSessionCheck } from "@/hooks/useSessionCheck";
 
 // Page components
