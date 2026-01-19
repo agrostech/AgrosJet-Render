@@ -19,6 +19,10 @@ export function OrdersTab() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingCancelOrderId, setPendingCancelOrderId] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -51,14 +55,22 @@ export function OrdersTab() {
   };
 
   const handleCancel = async (orderId) => {
-    if (!window.confirm("Bu siparişi iptal etmek istediğinize emin misiniz? Puanlar iade edilecek.")) return;
+    setPendingCancelOrderId(orderId);
+    setConfirmOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!pendingCancelOrderId) return;
     try {
-      await axios.delete(`${API}/jetpuan/orders/${orderId}`);
+      await axios.delete(`${API}/jetpuan/orders/${pendingCancelOrderId}`);
       toast.success("Sipariş iptal edildi");
       fetchOrders();
       refreshBadges();
     } catch (err) {
       toast.error(err.response?.data?.detail || "İptal başarısız");
+    } finally {
+      setConfirmOpen(false);
+      setPendingCancelOrderId(null);
     }
   };
 
