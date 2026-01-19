@@ -128,6 +128,9 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
               <p className="text-sm text-orange-700">
                 Kalan süre: <span className="font-bold">{terminationInfo.remaining_days} gün</span>
               </p>
+              <p className="text-xs text-orange-600 mt-1">
+                Bu süreçte eski performansınızı göstermemek veya diğer kuryelerle dedikodu yapmak yasal yaptırımlara sebep olabilir.
+              </p>
             </div>
           </div>
         </div>
