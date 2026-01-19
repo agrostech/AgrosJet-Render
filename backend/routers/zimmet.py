@@ -165,8 +165,14 @@ async def delete_product_type(
 
 # --- Ürünler Endpoint'leri ---
 @router.get("/companies/{company_id}/products")
-async def get_products(company_id: str, skip: int = 0, limit: int = 50):
+async def get_products(
+    company_id: str, 
+    skip: int = 0, 
+    limit: int = 50,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Şirketin ürünlerini getir (pagination)"""
+    await require_permission(x_admin_id, "zimmet_view")
     total = await db.products.count_documents({"company_id": company_id})
     
     products = await db.products.find(
@@ -189,8 +195,15 @@ async def get_product(product_id: str):
     return product
 
 @router.post("/companies/{company_id}/products")
-async def create_product(company_id: str, data: ProductCreate, admin_id: str = "", admin_name: str = ""):
+async def create_product(
+    company_id: str, 
+    data: ProductCreate, 
+    admin_id: str = "", 
+    admin_name: str = "",
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Yeni ürün oluştur"""
+    await require_permission(x_admin_id, "zimmet_add_product")
     product_type = await db.product_types.find_one({"id": data.product_type_id})
     if not product_type:
         raise HTTPException(status_code=400, detail="Geçersiz ürün tipi")
@@ -226,8 +239,15 @@ async def create_product(company_id: str, data: ProductCreate, admin_id: str = "
     return product
 
 @router.put("/products/{product_id}")
-async def update_product(product_id: str, data: ProductUpdate, admin_id: str = "", admin_name: str = ""):
+async def update_product(
+    product_id: str, 
+    data: ProductUpdate, 
+    admin_id: str = "", 
+    admin_name: str = "",
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Ürünü güncelle"""
+    await require_permission(x_admin_id, "zimmet_edit_product")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -290,8 +310,14 @@ async def update_product(product_id: str, data: ProductUpdate, admin_id: str = "
     return {"message": "Güncellendi"}
 
 @router.delete("/products/{product_id}")
-async def delete_product(product_id: str, admin_id: str = "", admin_name: str = ""):
+async def delete_product(
+    product_id: str, 
+    admin_id: str = "", 
+    admin_name: str = "",
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Ürünü sil (zimmetli değilse)"""
+    await require_permission(x_admin_id, "zimmet_delete_product")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
