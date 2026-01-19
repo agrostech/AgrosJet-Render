@@ -263,6 +263,7 @@ export function useVardiyaData(companyId) {
     // Actions
     handleAddShift,
     handleDeleteShift,
+    confirmDeleteShift,
     handleAssignCourier,
     handleRemoveAssignment,
     handleAddLeave,
