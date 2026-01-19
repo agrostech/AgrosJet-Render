@@ -147,8 +147,12 @@ async def import_company_data(
 
 # --- Scheduled Backup Settings ---
 @router.get("/company/{company_id}/schedule")
-async def get_backup_schedule(company_id: str):
+async def get_backup_schedule(
+    company_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Get backup schedule settings"""
+    await require_permission(x_admin_id, "sistem_backup")
     settings = await db.backup_settings.find_one({"company_id": company_id}, {"_id": 0})
     if not settings:
         return {"enabled": False, "hour": 3, "email": "", "last_backup": None}
@@ -156,8 +160,13 @@ async def get_backup_schedule(company_id: str):
 
 
 @router.post("/company/{company_id}/schedule")
-async def set_backup_schedule(company_id: str, data: BackupSchedule):
+async def set_backup_schedule(
+    company_id: str, 
+    data: BackupSchedule,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Set backup schedule settings"""
+    await require_permission(x_admin_id, "sistem_backup")
     if data.hour < 0 or data.hour > 23:
         raise HTTPException(status_code=400, detail="Saat 0-23 arasında olmalı")
     
