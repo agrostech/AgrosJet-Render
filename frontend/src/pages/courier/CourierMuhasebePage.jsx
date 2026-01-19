@@ -33,6 +33,10 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   const [showInvoiceMessageModal, setShowInvoiceMessageModal] = useState(false);
   const [selectedHakedisAmount, setSelectedHakedisAmount] = useState(0);
   const fileInputRef = useRef(null);
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteInvoiceId, setPendingDeleteInvoiceId] = useState(null);
 
   const fetchTransactions = async (append = false) => {
     try {
@@ -141,14 +145,21 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   };
 
   const handleDeleteInvoice = async (invoiceId) => {
-    if (!confirm("Faturayı silmek istediğinizden emin misiniz?")) return;
+    setPendingDeleteInvoiceId(invoiceId);
+    setConfirmOpen(true);
+  };
 
+  const confirmDeleteInvoice = async () => {
+    if (!pendingDeleteInvoiceId) return;
     try {
-      await axios.delete(`${API}/invoices/${invoiceId}?courier_id=${courierId}`);
+      await axios.delete(`${API}/invoices/${pendingDeleteInvoiceId}?courier_id=${courierId}`);
       toast.success("Fatura silindi");
       fetchInvoices();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Fatura silinemedi");
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteInvoiceId(null);
     }
   };
 
