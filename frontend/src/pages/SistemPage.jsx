@@ -67,6 +67,7 @@ export default function SistemPage({ companyId }) {
   useEffect(() => {
     fetchCompanyInfo();
     fetchEmailSettings();
+    fetchBackupSettings();
   }, [companyId]);
 
   const fetchCompanyInfo = async () => {
