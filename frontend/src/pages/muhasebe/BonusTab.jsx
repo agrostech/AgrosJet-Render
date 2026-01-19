@@ -478,8 +478,8 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
               disabled={applying || !parseResult?.matched?.length}
               data-testid="apply-bulk-hakedis"
             >
-              <Users className="w-4 h-4 mr-2" />
-              {applying ? "Ekleniyor..." : `${parseResult?.matched?.length || 0} Kuryeye Hakediş Ekle`}
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              {applying ? "Ekleniyor..." : `${parseResult?.matched?.length || 0} Kurye Ekle`}
             </Button>
           </div>
         </DialogContent>
