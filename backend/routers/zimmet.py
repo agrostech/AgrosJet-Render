@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
+from utils.permissions import require_permission
 from routers.notifications import create_notification
 
 router = APIRouter(prefix="/api", tags=["Zimmet"])
