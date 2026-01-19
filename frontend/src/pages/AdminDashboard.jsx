@@ -109,34 +109,47 @@ export default function AdminDashboard() {
         </Button>
       </header>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation - Grid Layout */}
       {mobileMenuOpen && (
-        <nav className="lg:hidden bg-primary text-white border-t border-white/20">
-          {NAV_ITEMS.map((item) => (
-            <Link key={item.path} to={item.path} onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold ${location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"}`}>
-              <item.icon className="w-5 h-5" />
-              {item.label}
-              {badges[item.key] > 0 && (
-                <span className="bg-orange-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center ml-auto">
-                  {badges[item.key] > 99 ? '99+' : badges[item.key]}
-                </span>
-              )}
-            </Link>
-          ))}
-          <div className="border-t border-white/20 mt-1 pt-1">
+        <nav className="lg:hidden bg-primary text-white border-t border-white/20 p-3">
+          <div className="grid grid-cols-4 gap-2">
+            {NAV_ITEMS.map((item) => (
+              <Link 
+                key={item.path} 
+                to={item.path} 
+                onClick={() => setMobileMenuOpen(false)} 
+                className={`flex flex-col items-center justify-center p-2 rounded-lg text-center relative ${
+                  location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
+                }`}
+              >
+                <item.icon className="w-5 h-5 mb-1" />
+                <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+                {badges[item.key] > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center">
+                    {badges[item.key] > 99 ? '99+' : badges[item.key]}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+          <div className="flex gap-2 mt-3 pt-3 border-t border-white/20">
             <button 
               onClick={() => {
                 setMobileMenuOpen(false);
                 setShowProfileModal(true);
               }} 
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
               data-testid="admin-mobile-profile-btn"
             >
-              <User className="w-5 h-5" />
+              <User className="w-4 h-4" />
               Profil
             </button>
-            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left" data-testid="admin-mobile-logout-btn">
-              <LogOut className="w-5 h-5" />
+            <button 
+              onClick={handleLogout} 
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors" 
+              data-testid="admin-mobile-logout-btn"
+            >
+              <LogOut className="w-4 h-4" />
               Çıkış
             </button>
           </div>
