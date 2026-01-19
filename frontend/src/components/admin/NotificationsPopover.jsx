@@ -85,6 +85,9 @@ export default function NotificationsPopover({ companyId }) {
   const [open, setOpen] = useState(false);
   const prevUnreadCount = useRef(0);
   const isFirstLoad = useRef(true);
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!companyId) return;
@@ -186,7 +189,10 @@ export default function NotificationsPopover({ companyId }) {
   };
 
   const handleDeleteAll = async () => {
-    if (!window.confirm("Tüm bildirimleri silmek istediğinize emin misiniz?")) return;
+    setConfirmOpen(true);
+  };
+
+  const confirmDeleteAll = async () => {
     try {
       await axios.delete(`${API}/notifications/company/${companyId}/all`);
       setNotifications([]);
@@ -194,6 +200,8 @@ export default function NotificationsPopover({ companyId }) {
       toast.success("Tüm bildirimler silindi");
     } catch (err) {
       toast.error("Silme başarısız");
+    } finally {
+      setConfirmOpen(false);
     }
   };
 
