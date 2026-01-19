@@ -306,11 +306,11 @@ export default function GuncelDurumPage({ companyId }) {
                         : 'bg-slate-50 border-slate-200'
                     }`}
                   >
-                    {/* Compact Header - Always visible */}
+                    {/* Compact Header - Always visible, clickable to expand */}
                     <div 
-                      className={`flex items-center justify-between p-2 sm:p-3 ${courierCount > 0 ? 'cursor-pointer sm:cursor-default' : ''}`}
+                      className={`flex items-center justify-between p-2 sm:p-3 ${courierCount > 0 ? 'cursor-pointer hover:bg-white/50' : ''}`}
                       onClick={() => {
-                        if (courierCount > 0 && window.innerWidth < 640) {
+                        if (courierCount > 0) {
                           setExpandedShift(isExpanded ? null : shift.id);
                         }
                       }}
@@ -335,33 +335,11 @@ export default function GuncelDurumPage({ companyId }) {
                         </div>
                       </div>
                       
-                      {/* Desktop: Show names inline, Mobile: Show expand button */}
+                      {/* Expand button for all views */}
                       <div className="flex items-center gap-2">
-                        {/* Desktop view - inline names */}
-                        <div className="hidden sm:flex flex-wrap-reverse gap-1 justify-end max-w-[200px] lg:max-w-[250px]">
-                          {shiftAssignments.length === 0 ? (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          ) : (
-                            shiftAssignments.slice().reverse().map(a => (
-                              <span 
-                                key={a.id} 
-                                className={`text-[10px] px-1.5 py-0.5 rounded font-medium truncate max-w-[80px] ${
-                                  isActive 
-                                    ? 'bg-green-200 text-green-800' 
-                                    : 'bg-blue-100 text-blue-800'
-                                }`}
-                                title={a.courier_name}
-                              >
-                                {a.courier_name}
-                              </span>
-                            ))
-                          )}
-                        </div>
-                        
-                        {/* Mobile view - expand button */}
                         {courierCount > 0 && (
                           <button 
-                            className="sm:hidden p-1 rounded hover:bg-white/50"
+                            className="p-1 rounded hover:bg-white/50"
                             onClick={(e) => {
                               e.stopPropagation();
                               setExpandedShift(isExpanded ? null : shift.id);
@@ -374,10 +352,13 @@ export default function GuncelDurumPage({ companyId }) {
                             )}
                           </button>
                         )}
+                        {courierCount === 0 && (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </div>
                     </div>
                     
-                    {/* Mobile Expanded Content */}
+                    {/* Expanded Content - Both mobile and desktop */}
                     {isExpanded && courierCount > 0 && (
                       <div className="sm:hidden px-2 pb-2 border-t border-slate-200/50">
                         <div className="flex flex-wrap gap-1 pt-2">
