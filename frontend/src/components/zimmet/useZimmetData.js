@@ -127,8 +127,20 @@ export function useZimmetData(companyId, adminId, adminName) {
     }
   }, [fetchProductTypes]);
 
-  const handleDeleteProductType = useCallback(async (typeId) => {
-    if (!window.confirm("Bu ürün tipini silmek istediğinize emin misiniz?")) return;
+  const handleDeleteProductType = useCallback(async (typeId, skipConfirm = false) => {
+    if (!skipConfirm) {
+      return { needsConfirm: true, typeId };
+    }
+    try {
+      await axios.delete(`${API}/product-types/${typeId}`);
+      toast.success("Silindi");
+      fetchProductTypes();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Silinemedi");
+    }
+  }, [fetchProductTypes]);
+
+  const confirmDeleteProductType = useCallback(async (typeId) => {
     try {
       await axios.delete(`${API}/product-types/${typeId}`);
       toast.success("Silindi");
@@ -179,8 +191,22 @@ export function useZimmetData(companyId, adminId, adminName) {
     }
   }, [adminId, adminName, fetchProducts, fetchLogs, selectedProduct?.id]);
 
-  const handleDeleteProduct = useCallback(async (productId) => {
-    if (!window.confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+  const handleDeleteProduct = useCallback(async (productId, skipConfirm = false) => {
+    if (!skipConfirm) {
+      return { needsConfirm: true, productId };
+    }
+    try {
+      await axios.delete(`${API}/products/${productId}?admin_id=${adminId}&admin_name=${encodeURIComponent(adminName)}`);
+      toast.success("Ürün silindi");
+      if (selectedProduct?.id === productId) setSelectedProduct(null);
+      fetchProducts();
+      fetchLogs();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Silinemedi");
+    }
+  }, [adminId, adminName, selectedProduct?.id, fetchProducts, fetchLogs]);
+
+  const confirmDeleteProduct = useCallback(async (productId) => {
     try {
       await axios.delete(`${API}/products/${productId}?admin_id=${adminId}&admin_name=${encodeURIComponent(adminName)}`);
       toast.success("Ürün silindi");
