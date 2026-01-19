@@ -60,8 +60,10 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ### P0 - Critical (Next Up)
 1. **Detaylı Yetkiler (Granular Permissions)**
-   - Status: WAITING FOR USER APPROVAL
-   - Action: İzin listesi önerildi, kullanıcı onayı bekleniyor
+   - Status: ✅ COMPLETED (December 19, 2025)
+   - 8 izin grubu implement edildi
+   - Migration endpoint oluşturuldu ve mevcut adminler güncellendi
+   - Test: %100 başarı oranı
 
 ### P1 - High Priority
 2. **Import/Restore Functionality**
