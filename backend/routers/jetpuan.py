@@ -254,8 +254,14 @@ async def credit_points(courier_id: str, amount: float, description: str = "Hake
 
 
 @router.post("/manual-credit/{courier_id}")
-async def manual_credit(courier_id: str, amount: float, description: str = "Manuel puan ekleme"):
+async def manual_credit(
+    courier_id: str, 
+    amount: float, 
+    description: str = "Manuel puan ekleme",
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Manually add points to courier's balance (admin)"""
+    await require_permission(x_admin_id, "market_add_jetpuan")
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Puan miktarı pozitif olmalı")
     
@@ -264,8 +270,14 @@ async def manual_credit(courier_id: str, amount: float, description: str = "Manu
 
 
 @router.post("/manual-debit/{courier_id}")
-async def manual_debit(courier_id: str, amount: float, description: str = "Manuel puan silme"):
+async def manual_debit(
+    courier_id: str, 
+    amount: float, 
+    description: str = "Manuel puan silme",
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Manually remove points from courier's balance (admin)"""
+    await require_permission(x_admin_id, "market_add_jetpuan")
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Puan miktarı pozitif olmalı")
     
