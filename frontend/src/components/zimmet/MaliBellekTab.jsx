@@ -25,12 +25,12 @@ export function MaliBellekTab({
     <div className="flex flex-col lg:flex-row gap-4">
       {/* Left Panel - POS List */}
       <div className="w-full lg:w-1/2 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
-        <div className="p-3 border-b-2 border-border bg-slate-50 shrink-0 space-y-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+        <div className="p-2 sm:p-3 border-b-2 border-border bg-slate-50 shrink-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
               <Select value={selectedYearMonth} onValueChange={setSelectedYearMonth}>
-                <SelectTrigger className="w-full sm:w-40 h-9 text-sm">
+                <SelectTrigger className="w-28 sm:w-40 h-8 sm:h-9 text-xs sm:text-sm">
                   <SelectValue placeholder="Ay Seçin" />
                 </SelectTrigger>
                 <SelectContent>
@@ -40,38 +40,38 @@ export function MaliBellekTab({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs ml-auto">
+              <div className="flex items-center gap-1">
                 <Checkbox 
                   id="maliBellekFilterCollected" 
                   checked={maliBellekFilterCollected} 
                   onCheckedChange={setMaliBellekFilterCollected}
-                  className="h-4 w-4"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                 />
-                <Label htmlFor="maliBellekFilterCollected" className="text-green-600 font-medium cursor-pointer text-xs sm:text-sm">
+                <Label htmlFor="maliBellekFilterCollected" className="text-green-600 font-medium cursor-pointer">
                   <span className="hidden sm:inline">{collectedCount} </span>Alındı
                 </Label>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <Checkbox 
                   id="maliBellekFilterNotCollected" 
                   checked={maliBellekFilterNotCollected} 
                   onCheckedChange={setMaliBellekFilterNotCollected}
-                  className="h-4 w-4"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                 />
-                <Label htmlFor="maliBellekFilterNotCollected" className="text-orange-600 font-medium cursor-pointer text-xs sm:text-sm">
+                <Label htmlFor="maliBellekFilterNotCollected" className="text-orange-600 font-medium cursor-pointer">
                   <span className="hidden sm:inline">{notCollectedCount} </span>Alınmadı
                 </Label>
               </div>
             </div>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
             <Input 
-              placeholder="POS ara..." 
+              placeholder="Ara..." 
               value={maliBellekSearch}
               onChange={(e) => setMaliBellekSearch(e.target.value)}
-              className="pl-10 h-10 border-2"
+              className="pl-8 sm:pl-10 h-8 sm:h-10 text-xs sm:text-sm border-2"
             />
           </div>
         </div>
