@@ -14,7 +14,7 @@ import KuryelerPage from "./admin/KuryelerPage";
 import YoneticilerPage from "./admin/YoneticilerPage";
 import SistemPage from "./SistemPage";
 import JetPuanMarketPage from "./JetPuanMarketPage";
-import AkademiPage from "./AkademiPage";
+import AkademiPage from "./admin/AkademiPage";
 
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
