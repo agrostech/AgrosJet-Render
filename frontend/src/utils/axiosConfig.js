@@ -3,6 +3,7 @@
  * Automatically adds X-Admin-Id header to all requests
  */
 import axios from 'axios';
+import { toast } from 'sonner';
 
 // Create axios instance
 const axiosInstance = axios.create({
@@ -30,20 +31,29 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle 403 errors
+// Add response interceptor to handle permission errors
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 403) {
-      const message = error.response.data?.detail || 'Bu işlem için yetkiniz yok';
-      // You can dispatch a toast here if needed
-      console.warn('Permission denied:', message);
+    if (error.response) {
+      const status = error.response.status;
+      const detail = error.response.data?.detail;
+      
+      if (status === 403) {
+        // Yetki hatası
+        const message = detail || 'Bu işlem için yetkiniz yok';
+        toast.error(message);
+      } else if (status === 401) {
+        // Yetkilendirme hatası
+        const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
+        toast.error(message);
+      }
     }
     return Promise.reject(error);
   }
 );
 
-// Also configure default axios to add the header
+// Also configure default axios to add the header and handle errors
 axios.interceptors.request.use(
   (config) => {
     try {
@@ -61,6 +71,26 @@ axios.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for default axios
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const status = error.response.status;
+      const detail = error.response.data?.detail;
+      
+      if (status === 403) {
+        const message = detail || 'Bu işlem için yetkiniz yok';
+        toast.error(message);
+      } else if (status === 401) {
+        const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
+        toast.error(message);
+      }
+    }
     return Promise.reject(error);
   }
 );
