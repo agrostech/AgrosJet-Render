@@ -360,12 +360,12 @@ export default function GuncelDurumPage({ companyId }) {
                     
                     {/* Expanded Content - Both mobile and desktop */}
                     {isExpanded && courierCount > 0 && (
-                      <div className="sm:hidden px-2 pb-2 border-t border-slate-200/50">
+                      <div className="px-2 pb-2 border-t border-slate-200/50">
                         <div className="flex flex-wrap gap-1 pt-2">
                           {shiftAssignments.map(a => (
                             <span 
                               key={a.id} 
-                              className={`text-[10px] px-2 py-1 rounded font-medium ${
+                              className={`text-[10px] sm:text-xs px-2 py-1 rounded font-medium ${
                                 isActive 
                                   ? 'bg-green-200 text-green-800' 
                                   : 'bg-blue-100 text-blue-800'
