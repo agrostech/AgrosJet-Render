@@ -431,7 +431,10 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                       <tbody className="divide-y">
                         {parseResult.matched.map((m, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
-                            <td className="p-1.5 sm:p-2 truncate max-w-[80px] sm:max-w-none">{m.courier_name}</td>
+                            <td className="p-1.5 sm:p-2 truncate max-w-[80px] sm:max-w-none">
+                              <span className="sm:hidden">{formatShortName(m.courier_name)}</span>
+                              <span className="hidden sm:inline">{m.courier_name}</span>
+                            </td>
                             <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{m.packet_count}</td>
                             <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(m.hakedis_amount)}</td>
                             <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm text-purple-600">{m.bonus_amount > 0 ? formatMoney(m.bonus_amount) : '-'}</td>
