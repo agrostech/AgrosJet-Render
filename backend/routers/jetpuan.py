@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
+from typing import Optional
 from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
+from utils.permissions import require_permission
 from models.schemas import (
     JetPuanCategoryCreate,
     JetPuanCategoryUpdate,
