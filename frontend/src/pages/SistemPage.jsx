@@ -544,60 +544,55 @@ export default function SistemPage({ companyId }) {
         )}
       </div>
 
-      {/* Yedekleme (Backup) Card */}
-      <Collapsible open={backupExpanded} onOpenChange={setBackupExpanded}>
-        <div className="border-2 border-border bg-white">
-          <CollapsibleTrigger asChild>
-            <button className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg flex items-center justify-center bg-slate-100">
-                    <HardDrive className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-heading font-bold text-sm md:text-base">Yedekleme</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {backupSettings.enabled 
-                        ? `Her gün saat ${String(backupSettings.hour).padStart(2, '0')}:00'de otomatik` 
-                        : "Manuel veya otomatik yedekleme"}
-                    </p>
-                  </div>
+      {/* Yedekleme (Backup) Card - Same style as other cards */}
+      <div className="border-2 border-border bg-white">
+        <button 
+          type="button"
+          onClick={() => setBackupExpanded(!backupExpanded)}
+          className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <HardDrive className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+            <h3 className="font-semibold text-sm md:text-base">Yedekleme</h3>
+            {backupSettings.enabled && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
+                Otomatik
+              </span>
+            )}
+          </div>
+          {backupExpanded ? (
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+          )}
+        </button>
+        
+        {backupExpanded && (
+          <div className="p-3 md:p-4 space-y-4">
+            {/* Manual Backup */}
+            <div className="p-3 bg-slate-50 rounded-lg border">
+              <h4 className="font-semibold text-sm mb-2">Manuel Yedekleme</h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                Tüm şirket verilerini (kuryeler, muhasebe, faturalar, zimmet vb.) ZIP olarak indirin.
+              </p>
+              <Button 
+                onClick={handleDownloadBackup} 
+                disabled={downloading}
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {downloading ? "İndiriliyor..." : "Yedeği İndir"}
+              </Button>
+            </div>
+
+            {/* Automatic Backup */}
+            <div className="p-3 bg-slate-50 rounded-lg border">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="font-semibold text-sm">Otomatik Yedekleme</h4>
+                  <p className="text-xs text-muted-foreground">Her gün belirlenen saatte e-posta ile gönderilir</p>
                 </div>
-                {backupExpanded ? (
-                  <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                )}
-              </div>
-            </button>
-          </CollapsibleTrigger>
-
-          <CollapsibleContent>
-            <div className="p-3 md:p-4 space-y-4">
-              {/* Manual Backup */}
-              <div className="p-3 bg-slate-50 rounded-lg border">
-                <h4 className="font-semibold text-sm mb-2">Manuel Yedekleme</h4>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Tüm şirket verilerini (kuryeler, muhasebe, faturalar, zimmet vb.) ZIP olarak indirin.
-                </p>
-                <Button 
-                  onClick={handleDownloadBackup} 
-                  disabled={downloading}
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  {downloading ? "İndiriliyor..." : "Yedeği İndir"}
-                </Button>
-              </div>
-
-              {/* Automatic Backup */}
-              <div className="p-3 bg-slate-50 rounded-lg border">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-sm">Otomatik Yedekleme</h4>
-                    <p className="text-xs text-muted-foreground">Her gün belirlenen saatte e-posta ile gönderilir</p>
-                  </div>
                   <Switch 
                     checked={backupSettings.enabled}
                     onCheckedChange={(checked) => setBackupSettings({...backupSettings, enabled: checked})}
