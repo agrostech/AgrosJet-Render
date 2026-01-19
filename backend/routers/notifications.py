@@ -162,7 +162,6 @@ async def check_missing_invoice_notifications(company_id: str):
     """Check and create notifications for hakediş transactions older than 1 day without invoice"""
     now = datetime.now(timezone.utc)
     one_day_ago = now - timedelta(days=1)
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Find hakediş transactions older than 1 day without invoice
     transactions = await db.transactions.find(
@@ -183,15 +182,25 @@ async def check_missing_invoice_notifications(company_id: str):
     notifications_created = 0
     
     for tx in transactions:
-        # Check if notification already exists for this transaction today
+        # Check if notification already exists for this transaction (not just today - ever)
+        # Also check dismissed_notifications collection
         existing = await db.notifications.find_one({
             "company_id": company_id,
             "entity_id": tx["id"],
-            "type": "fatura_eksik",
-            "created_at": {"$gte": today_start.isoformat()}
+            "type": "fatura_eksik"
         })
         
         if existing:
+            continue
+        
+        # Check if this notification was dismissed
+        dismissed = await db.dismissed_notifications.find_one({
+            "company_id": company_id,
+            "entity_id": tx["id"],
+            "type": "fatura_eksik"
+        })
+        
+        if dismissed:
             continue
         
         # Get courier name
@@ -200,7 +209,7 @@ async def check_missing_invoice_notifications(company_id: str):
             courier = await db.couriers.find_one({"id": tx["entity_id"]}, {"_id": 0, "name": 1})
             courier_name = courier["name"] if courier else "Bilinmeyen Kurye"
         
-        # Create notification
+        # Create notification with title
         tx_date = datetime.fromisoformat(tx["created_at"].replace("Z", "+00:00"))
         date_str = tx_date.strftime("%d.%m.%Y")
         amount = tx.get("amount", 0)
@@ -209,6 +218,7 @@ async def check_missing_invoice_notifications(company_id: str):
             "id": str(uuid.uuid4()),
             "company_id": company_id,
             "type": "fatura_eksik",
+            "title": "Eksik Fatura",
             "message": f"{courier_name} - {date_str} tarihli {amount:.2f} TL hakediş faturası yüklenmedi",
             "entity_type": "transaction",
             "entity_id": tx["id"],
