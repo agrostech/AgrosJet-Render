@@ -309,6 +309,15 @@ export default function YoneticilerPage({ companyId }) {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Yönetici Silme"
+        description="Bu yöneticiyi silmek istediğinize emin misiniz? Aktif oturumu kapatılacaktır."
+        onConfirm={confirmDeleteAdmin}
+        variant="danger"
+      />
     </div>
   );
 }
