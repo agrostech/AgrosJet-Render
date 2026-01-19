@@ -158,8 +158,12 @@ async def assign_courier_to_shift(
     return {"message": "Kurye vardiyaya atandı", "id": assignment["id"]}
 
 @router.delete("/shift-assignments/{assignment_id}")
-async def remove_shift_assignment(assignment_id: str):
+async def remove_shift_assignment(
+    assignment_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Remove a courier from a shift"""
+    await require_permission(x_admin_id, "vardiya_assign")
     result = await db.shift_assignments.delete_one({"id": assignment_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Atama bulunamadı")
@@ -168,14 +172,23 @@ async def remove_shift_assignment(assignment_id: str):
 
 # Leave (İzin) Management
 @router.get("/companies/{company_id}/leaves")
-async def get_company_leaves(company_id: str):
+async def get_company_leaves(
+    company_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Get all leaves for a company"""
+    await require_permission(x_admin_id, "vardiya_view")
     leaves = await db.leaves.find({"company_id": company_id}, {"_id": 0}).to_list(1000)
     return leaves
 
 @router.post("/companies/{company_id}/leaves")
-async def add_leave(company_id: str, data: LeaveAssignment):
+async def add_leave(
+    company_id: str, 
+    data: LeaveAssignment,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Add a courier to leave for a specific day"""
+    await require_permission(x_admin_id, "vardiya_assign")
     courier = await db.couriers.find_one({"id": data.courier_id})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
