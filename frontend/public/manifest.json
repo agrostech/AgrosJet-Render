@@ -1,0 +1,28 @@
+{
+  "short_name": "ShiftJet",
+  "name": "ShiftJet Kurye Yönetim Sistemi",
+  "description": "Kurye yönetim, muhasebe, vardiya planlama ve zimmet takibi için kapsamlı yönetim sistemi",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1e3a5f",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "lang": "tr",
+  "categories": ["business", "productivity"],
+  "scope": "/",
+  "prefer_related_applications": false
+}
