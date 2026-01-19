@@ -654,9 +654,8 @@ export default function SistemPage({ companyId }) {
                 </div>
               </div>
             </div>
-          </CollapsibleContent>
+          )}
         </div>
-      </Collapsible>
     </div>
   );
 }
