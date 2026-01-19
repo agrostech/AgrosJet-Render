@@ -223,8 +223,12 @@ async def add_leave(
     return {"message": "İzin eklendi", "id": leave["id"]}
 
 @router.delete("/leaves/{leave_id}")
-async def remove_leave(leave_id: str):
+async def remove_leave(
+    leave_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Remove a leave"""
+    await require_permission(x_admin_id, "vardiya_assign")
     result = await db.leaves.delete_one({"id": leave_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="İzin bulunamadı")
