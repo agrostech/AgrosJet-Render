@@ -188,6 +188,15 @@ export function OrdersTab() {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Sipariş İptali"
+        description="Bu siparişi iptal etmek istediğinize emin misiniz? Puanlar iade edilecek."
+        onConfirm={confirmCancel}
+        variant="warning"
+      />
     </div>
   );
 }
