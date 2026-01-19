@@ -5,12 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Table,
   TableBody,
@@ -20,10 +26,114 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Trash2, Settings, Pencil } from "lucide-react";
+import { Trash2, Settings, Pencil, ChevronDown, ChevronRight, Layout, Calculator, Package, Users, ShoppingBag, GraduationCap, Calendar, Cog } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Granüler izin grupları tanımı
+const PERMISSION_GROUPS = [
+  {
+    id: "pages",
+    label: "Sayfa Erişimi",
+    icon: Layout,
+    permissions: [
+      { key: "page_vardiya", label: "Vardiya" },
+      { key: "page_muhasebe", label: "Muhasebe" },
+      { key: "page_zimmet", label: "Zimmet" },
+      { key: "page_kuryeler", label: "Kuryeler" },
+      { key: "page_market", label: "Market" },
+      { key: "page_akademi", label: "Akademi" },
+      { key: "page_sistem", label: "Sistem Ayarları" },
+      { key: "page_yoneticiler", label: "Yöneticiler", disabled: true },
+    ]
+  },
+  {
+    id: "muhasebe",
+    label: "Muhasebe İşlemleri",
+    icon: Calculator,
+    permissions: [
+      { key: "muhasebe_view", label: "Görüntüleme" },
+      { key: "muhasebe_add_transaction", label: "İşlem Ekleme" },
+      { key: "muhasebe_edit_transaction", label: "İşlem Düzenleme" },
+      { key: "muhasebe_delete_transaction", label: "İşlem Silme" },
+      { key: "muhasebe_archive", label: "Arşivleme" },
+      { key: "muhasebe_export_pdf", label: "PDF Dışa Aktarma" },
+      { key: "muhasebe_bulk_hakedis", label: "Toplu Hakediş" },
+    ]
+  },
+  {
+    id: "kuryeler",
+    label: "Kurye İşlemleri",
+    icon: Users,
+    permissions: [
+      { key: "kurye_add", label: "Kurye Ekleme" },
+      { key: "kurye_edit", label: "Bilgi Düzenleme" },
+      { key: "kurye_remove", label: "Şirketten Çıkarma" },
+      { key: "kurye_deactivate", label: "Pasife Alma" },
+      { key: "kurye_start_termination", label: "Fesih Başlatma" },
+      { key: "kurye_cancel_termination", label: "Fesih İptali" },
+    ]
+  },
+  {
+    id: "zimmet",
+    label: "Zimmet İşlemleri",
+    icon: Package,
+    permissions: [
+      { key: "zimmet_view", label: "Görüntüleme" },
+      { key: "zimmet_add_product", label: "Ürün Ekleme" },
+      { key: "zimmet_edit_product", label: "Ürün Düzenleme" },
+      { key: "zimmet_delete_product", label: "Ürün Silme" },
+      { key: "zimmet_assign", label: "Zimmet Atama" },
+      { key: "zimmet_return", label: "Zimmet İade" },
+    ]
+  },
+  {
+    id: "market",
+    label: "Market İşlemleri",
+    icon: ShoppingBag,
+    permissions: [
+      { key: "market_view", label: "Görüntüleme" },
+      { key: "market_add_product", label: "Ürün Ekleme" },
+      { key: "market_edit_product", label: "Ürün Düzenleme" },
+      { key: "market_delete_product", label: "Ürün Silme" },
+      { key: "market_manage_orders", label: "Sipariş Yönetimi" },
+      { key: "market_add_jetpuan", label: "JetPuan Ekleme" },
+    ]
+  },
+  {
+    id: "akademi",
+    label: "Akademi İşlemleri",
+    icon: GraduationCap,
+    permissions: [
+      { key: "akademi_view", label: "Görüntüleme" },
+      { key: "akademi_add", label: "Eğitim Ekleme" },
+      { key: "akademi_edit", label: "Eğitim Düzenleme" },
+      { key: "akademi_delete", label: "Eğitim Silme" },
+    ]
+  },
+  {
+    id: "vardiya",
+    label: "Vardiya İşlemleri",
+    icon: Calendar,
+    permissions: [
+      { key: "vardiya_view", label: "Görüntüleme" },
+      { key: "vardiya_add", label: "Vardiya Ekleme" },
+      { key: "vardiya_delete", label: "Vardiya Silme" },
+      { key: "vardiya_assign", label: "Atama Yapma" },
+    ]
+  },
+  {
+    id: "sistem",
+    label: "Sistem Ayarları",
+    icon: Cog,
+    permissions: [
+      { key: "sistem_company_info", label: "Şirket Bilgileri" },
+      { key: "sistem_email_settings", label: "E-posta Ayarları" },
+      { key: "sistem_backup", label: "Yedekleme İşlemleri" },
+    ]
+  }
+];
 
 export default function YoneticilerPage({ companyId }) {
   const [admins, setAdmins] = useState([]);
