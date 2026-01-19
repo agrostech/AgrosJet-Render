@@ -154,8 +154,12 @@ async def get_product(product_id: str):
 
 
 @router.post("/products")
-async def create_product(data: JetPuanProductCreate):
+async def create_product(
+    data: JetPuanProductCreate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Create a new product"""
+    await require_permission(x_admin_id, "market_add_product")
     category = await db.jetpuan_categories.find_one({"id": data.category_id})
     if not category:
         raise HTTPException(status_code=404, detail="Kategori bulunamadı")
@@ -175,8 +179,13 @@ async def create_product(data: JetPuanProductCreate):
 
 
 @router.put("/products/{product_id}")
-async def update_product(product_id: str, data: JetPuanProductUpdate):
+async def update_product(
+    product_id: str, 
+    data: JetPuanProductUpdate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Update a product"""
+    await require_permission(x_admin_id, "market_edit_product")
     product = await db.jetpuan_products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -204,8 +213,12 @@ async def update_product(product_id: str, data: JetPuanProductUpdate):
 
 
 @router.delete("/products/{product_id}")
-async def delete_product(product_id: str):
+async def delete_product(
+    product_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete a product"""
+    await require_permission(x_admin_id, "market_delete_product")
     result = await db.jetpuan_products.delete_one({"id": product_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
