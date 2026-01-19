@@ -241,8 +241,12 @@ async def delete_vendor(
 
 # --- İşlemler (Transactions) ---
 @router.post("/transactions")
-async def create_transaction(data: TransactionCreate):
+async def create_transaction(
+    data: TransactionCreate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Create a new transaction"""
+    await require_permission(x_admin_id, "muhasebe_add_transaction")
     created_at = parse_custom_date(data.custom_date)
     
     transaction = {
