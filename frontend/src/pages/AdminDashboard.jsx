@@ -123,10 +123,23 @@ export default function AdminDashboard() {
               )}
             </Link>
           ))}
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left" data-testid="admin-mobile-logout-btn">
-            <LogOut className="w-5 h-5" />
-            Çıkış
-          </button>
+          <div className="border-t border-white/20 mt-1 pt-1">
+            <button 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setShowProfileModal(true);
+              }} 
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left"
+              data-testid="admin-mobile-profile-btn"
+            >
+              <User className="w-5 h-5" />
+              Profil
+            </button>
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left" data-testid="admin-mobile-logout-btn">
+              <LogOut className="w-5 h-5" />
+              Çıkış
+            </button>
+          </div>
         </nav>
       )}
 
