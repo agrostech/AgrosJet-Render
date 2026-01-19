@@ -292,8 +292,12 @@ async def manual_debit(
 # ============ ORDERS ============
 
 @router.get("/orders/admin")
-async def get_all_orders(status: str = None):
+async def get_all_orders(
+    status: str = None,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Get all orders (admin)"""
+    await require_permission(x_admin_id, "market_manage_orders")
     query = {}
     if status:
         query["status"] = status
