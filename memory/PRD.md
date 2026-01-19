@@ -25,39 +25,43 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 20, 2026 - Session Updates
+### January 20, 2026 - Bug Fixes (Latest Session)
+
+#### ✅ Fixed: Yetki Sistemi Sorunları
+1. **Sayfa Erişim Yetkisi Düzeltildi**
+   - `AdminDashboard.jsx` - NAV_ITEMS'da `permKey` ile doğru yetki kontrolü
+   - `page_market: false` olan admin artık Market menüsünü görmüyor
+   - `page_akademi: false` olan admin artık Akademi menüsünü görmüyor
+   - `page_sistem: false` olan admin artık Sistem menüsünü görmüyor
+   
+2. **İşlem Silme Yetkisi Bypass Bug'ı Düzeltildi**
+   - `/api/transactions/{id}/with-installment-restore` endpoint'ine yetki kontrolü eklendi
+   - `muhasebe_delete_transaction: false` olan admin artık işlem silemiyor
+   - 403 hatası "Bu işlem için yetkiniz yok: İşlem silme" mesajı gösteriyor
+
+3. **Hata Mesajları İyileştirildi**
+   - `axiosConfig.js` - 403 hataları için toast notification eklendi
+   - "İşlem başarısız" yerine "Bu işlem için yetkiniz yok" mesajı gösteriliyor
+
+#### ✅ Fixed: Hakediş Checkbox Mantık Hatası
+- **Önceki:** Yeşil buton (Verilen/payment_out) ile hakediş çalışıyordu
+- **Şimdi:** Kırmızı buton (Alınan/payment_in) ile hakediş çalışıyor
+- `useAccountingTab.js` satır 244: `type === "in"` olarak düzeltildi
+
+#### ✅ Fixed: Bildirim Mantığı
+- `notifications.py` - `actor_id` ve `actor_role` parametreleri eklendi
+- Superadmin kendi işlemlerinde bildirim almıyor
+- Admin işlemleri superadmin'e bildiriliyor
+
+### January 20, 2026 - Backend Permission Enforcement
 
 #### ✅ Completed: Backend Permission Enforcement (P1 - Critical)
 - **X-Admin-Id header** ile tüm korumalı API endpoint'leri güvence altına alındı
 - Header olmadan 401 "Yetkilendirme gerekli" hatası döner
 - Yetkisi olmayan admin'ler 403 "Bu işlem için yetkiniz yok" hatası alır
 - Superadmin/systemadmin rolleri tüm izinlere sahip
-- **Korunan Router'lar:**
-  - `/app/backend/routers/accounting.py` - Muhasebe (işlem, işletme, cari)
-  - `/app/backend/routers/couriers.py` - Kurye yönetimi
-  - `/app/backend/routers/zimmet.py` - Zimmet takibi
-  - `/app/backend/routers/shifts.py` - Vardiya planlama
-  - `/app/backend/routers/jetpuan.py` - JetPuan market
-  - `/app/backend/routers/academy.py` - Akademi eğitimleri
-  - `/app/backend/routers/backup.py` - Yedekleme
-- **Yeni Dosyalar:**
-  - `/app/backend/utils/permissions.py` - İzin kontrol fonksiyonları
-  - `/app/frontend/src/utils/axiosConfig.js` - Axios interceptor (otomatik header ekleme)
-- **Test durumu:** %100 başarı oranı (35/35 test geçti)
-- **Test raporu:** `/app/test_reports/iteration_18.json`
-
-### December 19, 2025 - Previous Session
-
-#### ✅ Completed: PWA (Progressive Web App) Desteği
-- Manifest.json ve service worker eklendi
-- Ana ekrana ekle özelliği
-- İlk girişte yükleme prompt'u
-- Özel app ikonları (192x192 ve 512x512)
-
-#### ✅ Completed: UI/UX Düzeltmeleri (Session Update)
-- Sistem sayfası yedekleme kartı tasarımı diğer kartlarla tutarlı hale getirildi
-- Akademi sıralaması düzeltildi (eski eğitimler üstte)
-- Mobil menüde Profil butonu eklendi
+- **Test durumu:** %100 başarı oranı
+- **Test raporu:** `/app/test_reports/iteration_18.json`, `/app/test_reports/iteration_19.json`
 - Yedekleme koleksiyonları genişletildi (transactions dahil edildi)
 
 #### ✅ Completed: Detaylı Yetkiler (Granular Permissions) - Frontend
