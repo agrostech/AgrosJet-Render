@@ -33,11 +33,11 @@ class TrainingUpdate(BaseModel):
 # --- Training CRUD ---
 @router.get("/company/{company_id}/trainings")
 async def get_trainings(company_id: str):
-    """Get all trainings for a company"""
+    """Get all trainings for a company - oldest first"""
     trainings = await db.academy_trainings.find(
         {"company_id": company_id},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+    ).sort("created_at", 1).to_list(100)
     return trainings
 
 
