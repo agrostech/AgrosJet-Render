@@ -330,6 +330,15 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           setShowInstallmentModal(true);
         }}
       />
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={confirmConfig.onConfirm}
+        variant="danger"
+      />
     </div>
   );
 }
