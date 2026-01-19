@@ -372,8 +372,13 @@ async def delete_transaction(
 
 
 @router.put("/transactions/{transaction_id}")
-async def update_transaction(transaction_id: str, data: TransactionUpdateRequest):
+async def update_transaction(
+    transaction_id: str, 
+    data: TransactionUpdateRequest,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Update a transaction"""
+    await require_permission(x_admin_id, "muhasebe_edit_transaction")
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
