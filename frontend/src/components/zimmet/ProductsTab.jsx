@@ -40,41 +40,41 @@ export function ProductsTab({
     <div className="flex flex-col lg:flex-row gap-4 h-full">
       {/* Left Panel - List */}
       <div className="w-full lg:w-1/2 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
-        <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
+        <div className="p-2 sm:p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-heading font-bold text-sm flex items-center gap-2">
-              <Package className="w-4 h-4" />
+            <span className="font-heading font-bold text-xs sm:text-sm flex items-center gap-1.5">
+              <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Ürünler ({filteredProducts.length})
             </span>
-            <span className="text-xs text-muted-foreground">{totalProducts} toplam</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground">{totalProducts} toplam</span>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
             <Input 
-              placeholder="Ürün, tip, kurye veya seri no ara..." 
+              placeholder="Ara..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-10 border-2"
+              className="pl-8 sm:pl-10 h-8 sm:h-10 text-xs sm:text-sm border-2"
               data-testid="search-products"
             />
           </div>
           {/* Filter checkboxes */}
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 mt-2 text-xs">
-            <div className="flex items-center gap-1.5">
-              <Checkbox id="filterAssigned" checked={filterAssigned} onCheckedChange={setFilterAssigned} className="h-4 w-4" />
-              <Label htmlFor="filterAssigned" className="text-xs sm:text-sm text-blue-600 cursor-pointer">Zimmetliler</Label>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] sm:text-xs">
+            <div className="flex items-center gap-1">
+              <Checkbox id="filterAssigned" checked={filterAssigned} onCheckedChange={setFilterAssigned} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Label htmlFor="filterAssigned" className="text-blue-600 cursor-pointer">Zimmetli</Label>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Checkbox id="filterAvailable" checked={filterAvailable} onCheckedChange={setFilterAvailable} className="h-4 w-4" />
-              <Label htmlFor="filterAvailable" className="text-xs sm:text-sm text-green-600 cursor-pointer">Boştakiler</Label>
+            <div className="flex items-center gap-1">
+              <Checkbox id="filterAvailable" checked={filterAvailable} onCheckedChange={setFilterAvailable} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Label htmlFor="filterAvailable" className="text-green-600 cursor-pointer">Boşta</Label>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Checkbox id="filterDefective" checked={filterDefective} onCheckedChange={setFilterDefective} className="h-4 w-4" />
-              <Label htmlFor="filterDefective" className="text-xs sm:text-sm text-yellow-600 cursor-pointer">Arızalı</Label>
+            <div className="flex items-center gap-1">
+              <Checkbox id="filterDefective" checked={filterDefective} onCheckedChange={setFilterDefective} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Label htmlFor="filterDefective" className="text-yellow-600 cursor-pointer">Arızalı</Label>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Checkbox id="filterLost" checked={filterLost} onCheckedChange={setFilterLost} className="h-4 w-4" />
-              <Label htmlFor="filterLost" className="text-xs sm:text-sm text-red-600 cursor-pointer">Kayıp</Label>
+            <div className="flex items-center gap-1">
+              <Checkbox id="filterLost" checked={filterLost} onCheckedChange={setFilterLost} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Label htmlFor="filterLost" className="text-red-600 cursor-pointer">Kayıp</Label>
             </div>
           </div>
         </div>
