@@ -95,8 +95,12 @@ async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, act
 
 # --- Ürün Tipleri Endpoint'leri ---
 @router.get("/companies/{company_id}/product-types")
-async def get_product_types(company_id: str):
+async def get_product_types(
+    company_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Şirketin ürün tiplerini getir"""
+    await require_permission(x_admin_id, "zimmet_view")
     types = await db.product_types.find(
         {"company_id": company_id},
         {"_id": 0}
@@ -104,8 +108,13 @@ async def get_product_types(company_id: str):
     return types
 
 @router.post("/companies/{company_id}/product-types")
-async def create_product_type(company_id: str, data: ProductTypeCreate):
+async def create_product_type(
+    company_id: str, 
+    data: ProductTypeCreate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Yeni ürün tipi oluştur"""
+    await require_permission(x_admin_id, "zimmet_add_product")
     product_type = {
         "id": str(uuid.uuid4()),
         "company_id": company_id,
@@ -118,8 +127,13 @@ async def create_product_type(company_id: str, data: ProductTypeCreate):
     return product_type
 
 @router.put("/product-types/{type_id}")
-async def update_product_type(type_id: str, data: ProductTypeUpdate):
+async def update_product_type(
+    type_id: str, 
+    data: ProductTypeUpdate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Ürün tipini güncelle"""
+    await require_permission(x_admin_id, "zimmet_edit_product")
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
@@ -133,8 +147,12 @@ async def update_product_type(type_id: str, data: ProductTypeUpdate):
     return {"message": "Güncellendi"}
 
 @router.delete("/product-types/{type_id}")
-async def delete_product_type(type_id: str):
+async def delete_product_type(
+    type_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Ürün tipini sil (ürün yoksa)"""
+    await require_permission(x_admin_id, "zimmet_delete_product")
     product_count = await db.products.count_documents({"product_type_id": type_id})
     if product_count > 0:
         raise HTTPException(status_code=400, detail=f"Bu tipte {product_count} ürün var, önce ürünleri silin")
