@@ -173,6 +173,15 @@ export function CategoriesTab() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Kategori Silme"
+        description="Bu kategoriyi silmek istediğinize emin misiniz?"
+        onConfirm={confirmDelete}
+        variant="danger"
+      />
     </div>
   );
 }
