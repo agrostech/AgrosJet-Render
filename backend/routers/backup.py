@@ -33,7 +33,7 @@ BACKUP_COLLECTIONS = [
     "shifts",
     "shift_assignments",
     "shift_leaves",
-    "accounting_transactions",
+    "transactions",  # accounting transactions
     "activity_logs",
     "invoices",
     "products",
