@@ -46,8 +46,12 @@ async def get_settings():
 
 
 @router.put("/settings")
-async def update_settings(data: JetPuanSettingsUpdate):
+async def update_settings(
+    data: JetPuanSettingsUpdate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Update JetPuan settings (admin only)"""
+    await require_permission(x_admin_id, "sistem_company_info")
     await db.jetpuan_settings.update_one(
         {"id": "puan_ratio"},
         {"$set": {
