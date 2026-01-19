@@ -414,17 +414,17 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                           <th className="text-left p-1.5 sm:p-2 font-semibold">Kurye</th>
                           <th className="text-right p-1.5 sm:p-2 font-semibold hidden sm:table-cell">Paket</th>
                           <th className="text-right p-1.5 sm:p-2 font-semibold">Hakediş</th>
-                          <th className="text-right p-1.5 sm:p-2 font-semibold hidden sm:table-cell">Bonus</th>
+                          <th className="text-right p-1.5 sm:p-2 font-semibold">Bonus</th>
                           <th className="text-right p-1.5 sm:p-2 font-semibold">Toplam</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
                         {parseResult.matched.map((m, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
-                            <td className="p-1.5 sm:p-2 truncate max-w-[100px] sm:max-w-none">{m.courier_name}</td>
+                            <td className="p-1.5 sm:p-2 truncate max-w-[80px] sm:max-w-none">{m.courier_name}</td>
                             <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{m.packet_count}</td>
                             <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(m.hakedis_amount)}</td>
-                            <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{m.bonus_amount > 0 ? formatMoney(m.bonus_amount) : '-'}</td>
+                            <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm text-purple-600">{m.bonus_amount > 0 ? formatMoney(m.bonus_amount) : '-'}</td>
                             <td className="p-1.5 sm:p-2 text-right font-mono font-semibold text-[11px] sm:text-sm">{formatMoney(m.total_amount)}</td>
                           </tr>
                         ))}
@@ -434,7 +434,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
                           <td className="p-1.5 sm:p-2 text-xs sm:text-sm">Toplam</td>
                           <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{parseResult.matched.reduce((s, m) => s + m.packet_count, 0)}</td>
                           <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(totalHakedis)}</td>
-                          <td className="p-1.5 sm:p-2 text-right font-mono hidden sm:table-cell">{formatMoney(totalBonus)}</td>
+                          <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm text-purple-600">{formatMoney(totalBonus)}</td>
                           <td className="p-1.5 sm:p-2 text-right font-mono text-[11px] sm:text-sm">{formatMoney(grandTotal)}</td>
                         </tr>
                       </tfoot>
