@@ -71,10 +71,31 @@ async def mark_all_as_read(company_id: str):
 
 @router.delete("/{notification_id}")
 async def delete_notification(notification_id: str):
-    """Delete a notification"""
-    result = await db.notifications.delete_one({"id": notification_id})
-    if result.deleted_count == 0:
+    """Delete a notification and track it to prevent recreation"""
+    # First get the notification to track its entity_id and type
+    notification = await db.notifications.find_one({"id": notification_id}, {"_id": 0})
+    
+    if not notification:
         raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
+    
+    # Track dismissed notification to prevent recreation (especially for fatura_eksik)
+    if notification.get("type") == "fatura_eksik" and notification.get("entity_id"):
+        await db.dismissed_notifications.update_one(
+            {
+                "company_id": notification["company_id"],
+                "entity_id": notification["entity_id"],
+                "type": notification["type"]
+            },
+            {
+                "$set": {
+                    "dismissed_at": datetime.now(timezone.utc).isoformat()
+                }
+            },
+            upsert=True
+        )
+    
+    # Delete the notification
+    await db.notifications.delete_one({"id": notification_id})
     return {"message": "Bildirim silindi"}
 
 
