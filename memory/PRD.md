@@ -228,6 +228,27 @@ Multi-tenant kurye yönetim sistemi.
   - `get_courier_balance()`, `validate_order_stock()`, `deduct_product_stock()`, `restore_product_stock()`
   - `enrich_orders_with_courier_info()`, `enrich_products_with_category_names()`
 - [x] **Pydantic modelleri** `/app/backend/models/schemas.py`'ye taşındı
+
+### Kuryeler ve Faturalar Refactoring (19 Ocak 2026 - YENİ)
+- [x] **KuryelerPage.jsx:** 558 → 203 satır (%64 azalma)
+  - `/app/frontend/src/components/kuryeler/` klasörü:
+    - `CourierTable.jsx` (104 satır) - Masaüstü tablo
+    - `CourierCards.jsx` (97 satır) - Mobil kartlar
+    - `CourierEditModal.jsx` (111 satır) - Düzenleme modalı
+    - `CourierAddModal.jsx` (92 satır) - Ekleme modalı
+    - `CourierDetailModal.jsx` (72 satır) - Detay modalı
+  - `/app/frontend/src/hooks/useKuryeler.js` (128 satır) - Data hook
+- [x] **FaturalarTab.jsx:** 516 → 142 satır (%72 azalma)
+  - `/app/frontend/src/components/faturalar/` klasörü:
+    - `MonthSelector.jsx` (24 satır) - Ay seçici
+    - `MonthInvoicesCard.jsx` (113 satır) - Ay faturaları kartı
+    - `MissingInvoicesCard.jsx` (50 satır) - Eksik faturalar
+    - `CouriersListCard.jsx` (47 satır) - Kurye listesi
+    - `CourierInvoicesCard.jsx` (71 satır) - Kurye faturaları
+  - `/app/frontend/src/hooks/useFaturalar.js` (129 satır) - Data hook
+- [x] **Backend couriers.py:** 474 → 137 satır (%71 azalma)
+  - `/app/backend/services/courier_service.py` (313 satır) - Business logic
+- [x] **%100 test başarısı** (18/18 backend test + tüm frontend testleri)
 - [x] **%100 test başarısı** (24/24 backend test geçti)
 - [x] Tüm API endpoint'leri korundu ve çalışıyor
 
