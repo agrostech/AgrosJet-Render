@@ -484,8 +484,14 @@ async def get_accounting_summary(company_id: str):
 # --- Taksitli Ürün (Installment Products) ---
 
 @router.post("/couriers/{courier_id}/installment-products")
-async def create_installment_product(courier_id: str, data: InstallmentProductCreate):
+async def create_installment_product(
+    courier_id: str, 
+    data: InstallmentProductCreate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Create a new installment product for a courier"""
+    await require_permission(x_admin_id, "muhasebe_add_transaction")
+    
     # Verify courier exists
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
     if not courier:
@@ -545,8 +551,15 @@ async def get_installment_products(courier_id: str, include_completed: bool = Fa
 
 
 @router.delete("/installment-products/{product_id}")
-async def delete_installment_product(product_id: str, admin_id: str, admin_name: str):
+async def delete_installment_product(
+    product_id: str, 
+    admin_id: str, 
+    admin_name: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete an installment product"""
+    await require_permission(x_admin_id, "muhasebe_delete_transaction")
+    
     product = await db.installment_products.find_one({"id": product_id}, {"_id": 0})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -578,8 +591,14 @@ async def delete_installment_product(product_id: str, admin_id: str, admin_name:
 
 
 @router.post("/installment-products/{product_id}/pay")
-async def pay_installment(product_id: str, data: InstallmentPayRequest):
+async def pay_installment(
+    product_id: str, 
+    data: InstallmentPayRequest,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Pay one installment for a product"""
+    await require_permission(x_admin_id, "muhasebe_add_transaction")
+    
     product = await db.installment_products.find_one({"id": product_id}, {"_id": 0})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
