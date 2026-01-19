@@ -80,13 +80,21 @@ export default function YoneticilerPage({ companyId }) {
   };
 
   const handleDeleteAdmin = async (id) => {
-    if (!window.confirm("Bu yöneticiyi silmek istediğinize emin misiniz?")) return;
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const confirmDeleteAdmin = async () => {
+    if (!pendingDeleteId) return;
     try {
-      await axios.delete(`${API}/admins/${id}`);
+      await axios.delete(`${API}/admins/${pendingDeleteId}`);
       toast.success("Yönetici silindi (oturumu kapatıldı)");
       fetchAdmins();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
