@@ -231,6 +231,15 @@ export default function KuryelerPage({ companyId }) {
         courier={selectedCourier}
         companyName={companyName}
       />
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={confirmConfig.onConfirm}
+        variant="warning"
+      />
     </div>
   );
 }
