@@ -88,8 +88,22 @@ export function useVardiyaData(companyId) {
     }
   };
 
-  const handleDeleteShift = async (shiftId) => {
-    if (!window.confirm("Bu vardiyayı silmek istediğinize emin misiniz?")) return;
+  const handleDeleteShift = async (shiftId, skipConfirm = false) => {
+    if (!skipConfirm) {
+      // Return a pending delete info for the component to handle confirmation
+      return { needsConfirm: true, shiftId };
+    }
+    try {
+      await axios.delete(`${API}/shifts/${shiftId}`);
+      toast.success("Vardiya silindi");
+      fetchData();
+    } catch (err) {
+      toast.error("Vardiya silinemedi");
+    }
+  };
+
+  // Direct delete function for use after confirmation
+  const confirmDeleteShift = async (shiftId) => {
     try {
       await axios.delete(`${API}/shifts/${shiftId}`);
       toast.success("Vardiya silindi");
