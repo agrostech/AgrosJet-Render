@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Header
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -14,6 +14,7 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils.database import db
+from utils.permissions import require_permission
 
 router = APIRouter(prefix="/api/backup", tags=["Backup"])
 
