@@ -62,8 +62,13 @@ async def get_inactive_company_couriers(company_id: str):
 
 
 @router.post("/companies/{company_id}/couriers")
-async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
+async def add_courier_to_company(
+    company_id: str, 
+    data: AddCourierToCompany,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Add a courier to company by phone number"""
+    await require_permission(x_admin_id, "kurye_add")
     result, error = await courier_service.add_courier_to_company(company_id, data.phone)
     if error:
         raise HTTPException(status_code=400 if "ekli" in error or "bulunamadı" not in error else 404, detail=error)
@@ -71,8 +76,13 @@ async def add_courier_to_company(company_id: str, data: AddCourierToCompany):
 
 
 @router.put("/couriers/{courier_id}")
-async def update_courier(courier_id: str, data: CourierUpdate):
+async def update_courier(
+    courier_id: str, 
+    data: CourierUpdate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Update courier info (by Super Admin)"""
+    await require_permission(x_admin_id, "kurye_edit")
     result, error = await courier_service.update_courier(
         courier_id, 
         name=data.name, 
@@ -87,8 +97,13 @@ async def update_courier(courier_id: str, data: CourierUpdate):
 
 
 @router.put("/companies/{company_id}/couriers/{courier_id}/deactivate")
-async def deactivate_company_courier(company_id: str, courier_id: str):
+async def deactivate_company_courier(
+    company_id: str, 
+    courier_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Deactivate a courier (set to passive)"""
+    await require_permission(x_admin_id, "kurye_deactivate")
     result, error = await courier_service.deactivate_courier(company_id, courier_id)
     if error:
         raise HTTPException(status_code=400 if "bulunamadı" not in error else 404, detail=error)
@@ -96,8 +111,13 @@ async def deactivate_company_courier(company_id: str, courier_id: str):
 
 
 @router.put("/companies/{company_id}/couriers/{courier_id}/activate")
-async def activate_company_courier(company_id: str, courier_id: str):
+async def activate_company_courier(
+    company_id: str, 
+    courier_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Activate a courier (set to active)"""
+    await require_permission(x_admin_id, "kurye_deactivate")
     result, error = await courier_service.activate_courier(company_id, courier_id)
     if error:
         raise HTTPException(status_code=404, detail=error)
@@ -105,8 +125,13 @@ async def activate_company_courier(company_id: str, courier_id: str):
 
 
 @router.delete("/companies/{company_id}/couriers/{courier_id}")
-async def remove_courier_from_company(company_id: str, courier_id: str):
+async def remove_courier_from_company(
+    company_id: str, 
+    courier_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Remove courier from company"""
+    await require_permission(x_admin_id, "kurye_remove")
     result, error = await courier_service.remove_courier_from_company(company_id, courier_id)
     if error:
         raise HTTPException(status_code=400 if "zimmetli" in error else 404, detail=error)
@@ -115,8 +140,13 @@ async def remove_courier_from_company(company_id: str, courier_id: str):
 
 # --- Fesih (Termination) Endpoints ---
 @router.post("/companies/{company_id}/couriers/{courier_id}/start-termination")
-async def start_termination(company_id: str, courier_id: str):
+async def start_termination(
+    company_id: str, 
+    courier_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Start 15-day termination period for a courier"""
+    await require_permission(x_admin_id, "kurye_start_termination")
     result, error = await courier_service.start_termination(company_id, courier_id)
     if error:
         raise HTTPException(status_code=400 if "başlatılmış" in error else 404, detail=error)
@@ -124,8 +154,13 @@ async def start_termination(company_id: str, courier_id: str):
 
 
 @router.post("/companies/{company_id}/couriers/{courier_id}/cancel-termination")
-async def cancel_termination(company_id: str, courier_id: str):
+async def cancel_termination(
+    company_id: str, 
+    courier_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Cancel termination process"""
+    await require_permission(x_admin_id, "kurye_cancel_termination")
     result, error = await courier_service.cancel_termination(company_id, courier_id)
     if error:
         raise HTTPException(status_code=400 if "bulunmuyor" in error else 404, detail=error)
