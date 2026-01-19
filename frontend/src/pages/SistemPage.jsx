@@ -52,6 +52,18 @@ export default function SistemPage({ companyId }) {
   const [testingEmail, setTestingEmail] = useState(false);
   const [showSmtpPassword, setShowSmtpPassword] = useState(false);
 
+  // Backup Settings States
+  const [backupExpanded, setBackupExpanded] = useState(false);
+  const [backupSettings, setBackupSettings] = useState({
+    enabled: false,
+    hour: 3,
+    email: ""
+  });
+  const [backupLoading, setBackupLoading] = useState(true);
+  const [backupSaving, setBackupSaving] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [sendingBackup, setSendingBackup] = useState(false);
+
   useEffect(() => {
     fetchCompanyInfo();
     fetchEmailSettings();
