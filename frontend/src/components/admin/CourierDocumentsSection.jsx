@@ -313,6 +313,15 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Evrak Silme"
+        description="Bu evrakı silmek istediğinize emin misiniz?"
+        onConfirm={confirmDelete}
+        variant="danger"
+      />
     </div>
   );
 }
