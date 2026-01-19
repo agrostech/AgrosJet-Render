@@ -327,8 +327,13 @@ async def get_vendor_transactions(vendor_id: str, skip: int = 0, limit: int = 10
     return await get_entity_transactions("vendor", vendor_id, skip, limit)
 
 @router.delete("/transactions/{transaction_id}")
-async def delete_transaction(transaction_id: str, data: TransactionDeleteRequest = None):
+async def delete_transaction(
+    transaction_id: str, 
+    data: TransactionDeleteRequest = None,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete a transaction"""
+    await require_permission(x_admin_id, "muhasebe_delete_transaction")
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
