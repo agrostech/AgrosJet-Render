@@ -146,6 +146,9 @@ export default function YoneticilerPage({ companyId }) {
   const [editData, setEditData] = useState({ name: "", username: "", password: "" });
   const [editLoading, setEditLoading] = useState(false);
   
+  // Permission groups expanded state
+  const [expandedGroups, setExpandedGroups] = useState(["pages"]);
+  
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
