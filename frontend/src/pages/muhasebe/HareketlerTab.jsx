@@ -125,6 +125,14 @@ export default function HareketlerTab({ companyId }) {
         </span>
       );
     }
+    if (action === 'bulk_hakedis') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <FileSpreadsheet className="w-3 h-3 text-blue-600" />
+          <span className="text-blue-700 font-medium">Toplu Hakediş</span>
+        </span>
+      );
+    }
     return action;
   };
 
