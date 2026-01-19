@@ -110,11 +110,12 @@ export default function AdminDashboard() {
         </Button>
       </header>
 
-      {/* Mobile Navigation - Grid Layout */}
+      {/* Mobile Navigation - Grid Layout with More Menu */}
       {mobileMenuOpen && (
         <nav className="lg:hidden bg-primary text-white border-t border-white/20 p-3">
+          {/* First 7 items + More button */}
           <div className="grid grid-cols-4 gap-2">
-            {NAV_ITEMS.map((item) => (
+            {NAV_ITEMS.slice(0, 7).map((item) => (
               <Link 
                 key={item.path} 
                 to={item.path} 
@@ -132,7 +133,50 @@ export default function AdminDashboard() {
                 )}
               </Link>
             ))}
+            
+            {/* More button if there are more than 7 items */}
+            {NAV_ITEMS.length > 7 && (
+              <button 
+                onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
+                className={`flex flex-col items-center justify-center p-2 rounded-lg text-center ${
+                  mobileMoreOpen ? "bg-white/20" : "hover:bg-white/10"
+                }`}
+              >
+                <MoreHorizontal className="w-5 h-5 mb-1" />
+                <span className="text-[10px] font-medium leading-tight">Diğer</span>
+              </button>
+            )}
           </div>
+          
+          {/* Expanded More Menu */}
+          {mobileMoreOpen && NAV_ITEMS.length > 7 && (
+            <div className="mt-2 p-2 bg-white/10 rounded-lg">
+              <div className="grid grid-cols-4 gap-2">
+                {NAV_ITEMS.slice(7).map((item) => (
+                  <Link 
+                    key={item.path} 
+                    to={item.path} 
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setMobileMoreOpen(false);
+                    }} 
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg text-center relative ${
+                      location.pathname === item.path ? "bg-white/30" : "hover:bg-white/10"
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5 mb-1" />
+                    <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+                    {badges[item.key] > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center">
+                        {badges[item.key] > 99 ? '99+' : badges[item.key]}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="flex gap-2 mt-3 pt-3 border-t border-white/20">
             <button 
               onClick={() => {
