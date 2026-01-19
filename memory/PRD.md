@@ -1,322 +1,175 @@
-# ShiftJet Kurye Yönetim Sistemi PRD
+# ShiftJet Kurye Yönetim Sistemi - Product Requirements Document
 
-## Problem Statement
-Multi-tenant kurye yönetim sistemi.
+## Original Problem Statement
+Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
+- Kurye yönetimi (ekleme, düzenleme, fesih, arşivleme)
+- Vardiya planlama
+- Muhasebe (gelir/gider, taksitler, faturalar)
+- Zimmet takibi
+- JetPuan market sistemi
+- Akademi (eğitim içerikleri)
+- Bildirim sistemi
+- E-posta bildirimleri
+
+## User Personas
+1. **Süper Admin**: Tüm şirketleri yönetir
+2. **Şirket Yöneticisi**: Kendi şirketinin kuryelerini ve operasyonlarını yönetir
+3. **Kurye**: Kendi verilerini görüntüler, eğitimleri izler
+
+## Tech Stack
+- Frontend: React + Tailwind CSS + Shadcn UI
+- Backend: FastAPI (Python)
+- Database: MongoDB
+
+---
 
 ## What's Been Implemented
 
-### Kurye Dashboard (17 Ocak 2026 - YENİ)
-- [x] **CourierDashboard.jsx** - Ana layout (sidebar, routing)
-- [x] **CourierVardiyalarPage.jsx** - Kuryenin haftalık vardiya programı (read-only)
-- [x] **CourierMuhasebePage.jsx** - İşlem geçmişi, bakiye, taksitli ürünler (read-only)
-- [x] **CourierZimmetPage.jsx** - Zimmetli ürünler listesi (read-only)
-- [x] **Backend API** - `/api/zimmet/courier/{id}/assignments`
-- [x] Admin dashboard tasarım dili korundu
-- [x] Modüler yapı (courier/ klasörü altında)
+### December 19, 2025 - Session Updates
 
-### Taksitli Ürün Özelliği (17 Ocak 2026)
-- [x] Ürün ekleme, taksit alma, ilerleme takibi
-- [x] İşlem silinirse taksit geri eklenir
+#### ✅ Completed: Onay Popupları (Confirmation Modals)
+- **22 adet window.confirm()** çağrısı `ConfirmModal` bileşeni ile değiştirildi
+- AlertDialog shadcn UI kullanılarak tutarlı modal deneyimi sağlandı
+- 3 variant: `default`, `danger` (kırmızı), `warning` (amber)
+- Test durumu: %100 başarı oranı (testing agent tarafından doğrulandı)
 
-### Sistem Sekmesi (17 Ocak 2026)
-- [x] Sidebar'a eklendi (SlidersHorizontal ikonu)
-- [x] Placeholder sayfa
+#### ✅ Completed: Akademi Modülü
+- Admin: Video/metin eğitim materyali yükleme ve yönetim
+- Kurye: Eğitimleri görüntüleme
+- Video streaming desteği
+- Backend: `/app/backend/routers/academy.py`
+- Frontend: `/app/frontend/src/pages/admin/AkademiPage.jsx`, `/app/frontend/src/pages/courier/CourierAkademiPage.jsx`
 
-### Muhasebe İşlem Düzenleme (17 Ocak 2026)
-- [x] Tüm sekmelerde düzenleme modalı
+#### ✅ Completed: Yedekleme (Backup) Modülü
+- Manuel veritabanı export (ZIP formatında)
+- Otomatik günlük yedekleme ayarları
+- E-posta ile yedekleme gönderimi
+- Backend: `/app/backend/routers/backup.py`
+- Frontend: `SistemPage.jsx` içinde collapsible kart
 
-### Backend/Frontend Refactoring (Tamamlandı)
-- [x] Modüler yapı
+#### 📋 Previous Session Completions
+- Refactoring: `KuryelerPage.jsx`, `FaturalarTab.jsx`, `couriers.py` 
+- Toplu Hakediş Excel parsing ve mobil uyumluluk
+- Bildirim sistemi iyileştirmeleri
+- JetPuan siparişler listesi yeni tasarım
+- Shift kartları collapsible yapıldı
 
-## Test Credentials
-- **Süper Admin**: `onurertas` / `Delivery32..`
-- **Kurye**: `05551234567` / `123456`
-
-## Kurye Dashboard Test Durumu (17 Ocak 2026)
-- [x] Vardiyalarım - Çalışıyor (haftalık program görüntüleniyor)
-- [x] Muhasebe - Çalışıyor (bakiye renkleri ters çevrilmiş, taksitli ürünler gösteriliyor)
-- [x] Zimmetlerim - Çalışıyor (sadece ürün listesi, özet kartlar kaldırıldı)
-- [x] Sidebar - Admin ile aynı tasarım (collapse özelliği mevcut)
-
-### Vardiya Görüntüleme İyileştirmeleri (17 Ocak 2026)
-- [x] Ardışık vardiyalar birleştiriliyor (10:00-11:00, 11:00-12:00 → 10:00-12:00)
-- [x] Vardiya yoksa veya izinliyse "İzinli" gösteriliyor
-- [x] 06:00 gün başlangıcı kuralı ile sıralama
-- [x] POS cihazı zimmetinde "Pos SN:" gösterimi
-
-### Fatura Yönetimi Sistemi (17 Ocak 2026)
-- [x] **Backend**: `/api/invoices/` endpoint'leri (upload, delete, download, bulk download)
-- [x] **Kurye Paneli**: Hakediş işlemlerinde "Fatura Yükle" butonu
-- [x] **Kurye Paneli**: Yüklenen faturaları görme, indirme, silme (24 saat içinde)
-- [x] **Admin Paneli**: Muhasebe → Faturalar alt sekmesi
-- [x] **Admin Paneli**: 2x2 grid layout (Kuryeler, Kurye Faturaları, Ay Faturaları, Eksik Faturalar)
-- [x] **Admin Paneli**: Ay bazında filtreleme, tekli/toplu indirme (ZIP)
-- [x] Dosya isimlendirme: KuryeAdSoyad_HaftaninSalisi.pdf
-
-### Fesih (Termination) Özelliği (17 Ocak 2026)
-- [x] Admin kuryeler için 15 günlük fesih süreci başlatabilir
-- [x] Kurye panelinde fesih uyarısı ve geri sayım gösterimi
-- [x] Admin fesih sürecini iptal edebilir
-
-### Evraklar (Documents) Sistemi (18 Ocak 2026)
-- [x] **Backend**: `/api/documents/` endpoint'leri (upload, view, delete, download-all ZIP)
-- [x] **Kurye Paneli**: Yeni "Evraklar" sekmesi (evraklar eksikse görünür)
-- [x] **8 Evrak Türü:**
-  - Şirket Sözleşmesi (14 fotoğraf)
-  - Kimlik Ön Yüz (1 fotoğraf)
-  - Kimlik Arka Yüz (1 fotoğraf)
-  - Ehliyet Ön Yüz (1 fotoğraf)
-  - Ehliyet Arka Yüz (1 fotoğraf)
-  - Araç Ruhsatı (1 fotoğraf)
-  - Adli Sicil Kaydı (1 PDF)
-  - İkametgah Belgesi (1 PDF)
-- [x] İlerleme çubuğu ve yüzde gösterimi (0/21 → 100%)
-- [x] Tüm evraklar yüklenince sekme otomatik gizlenir
-- [x] **Admin Paneli**: Kurye detaylarında Bilgiler/Evraklar sekmeleri
-- [x] Admin evrakları görüntüleyebilir, silebilir, toplu ZIP indirebilir
-- [x] Admin evrak silerse kurye tarafında sekme tekrar görünür
-- [x] Dosya isimlendirme: KuryeAdi_EvrakTuru_Index.uzanti
-
-### JetPuan Market Sistemi (18 Ocak 2026)
-- [x] **Backend**: `/api/jetpuan/` endpoint'leri (categories, products, orders, settings, balance, transactions)
-- [x] **Otomatik Puan Yükleme**: Hakediş girişinde otomatik JetPuan yükleme (100 TL = 1.17 JP, oran ayarlanabilir)
-- [x] **Hakediş Silinirse**: JetPuan da otomatik silinir
-- [x] **Admin Paneli - JetPuan Market sekmesi:**
-  - Siparişler: Bekleyen/Teslim Edilmiş, Teslim Et, İptal Et (ilk sekme)
-  - Kategoriler: CRUD işlemleri (sadece isim)
-  - Ürünler: CRUD işlemleri (isim, açıklama, fiyat, stok, kategori, görsel URL)
-  - Ayarlar: Puan oranı ayarı, Manuel JetPuan Ekle/Sil
-- [x] **Kurye Paneli - JetPuan Market sekmesi:**
-  - Market → Siparişlerim → Puan Geçmişi (sekme sıralaması)
-  - Bakiye gösterimi, Sepet, Sipariş oluşturma
-
-### Bildirim Sistemi (18 Ocak 2026 - YENİ)
-- [x] **Backend**: `/api/notifications/` endpoint'leri
-- [x] **Güncel Durum sayfasında**: "Bildirimler" butonu (Yenile yanında)
-- [x] **Bildirim Kaynakları:**
-  - Muhasebe hareketler logları (yeni işlem, silme, güncelleme)
-  - Zimmet hareketleri (atama, alma, ürün ekleme/silme)
-  - JetPuan Market yeni sipariş
-  - Evrak yüklendi
-  - Kurye fesih süresi 3 gün kaldı
-  - Kurye fesih süresi yarın doluyor
-- [x] Okundu işaretleme, toplu okundu, silme özellikleri
-- [x] Badge ile okunmamış bildirim sayısı
-
-### Vardiya Sayfası Mobil Uyumluluk (18 Ocak 2026)
-- [x] **Responsive tasarım** - Mobil ve masaüstü görünüm ayrı optimizasyon
-- [x] **Mobil görünüm:**
-  - Gün başlıkları kısa: Pt, Sa, Ça, Pe, Cu, Ct, Pa
-  - Vardiya sütunu "V" olarak kısaltıldı
-  - Vardiya saatleri iki satıra ayrıldı (06:00 / 14:00)
-  - Kurye sayısı sadece rakam (1, 12)
-  - Küçültülmüş padding ve font boyutları
-  - İzinliler satırı "İzin" olarak kısaltıldı
-- [x] **Masaüstü görünüm korundu:**
-  - Tam gün isimleri: Pzt, Sal, Çar, Per, Cum, Cmt, Paz
-  - "Vardiya" sütun başlığı
-  - Vardiya saatleri tek satırda: 06:00-14:00
-  - "X kişi" badge formatı
-  - "İzinliler" tam yazı
-
-### Güncel Durum - Vardiya Takibi Mobil İyileştirmesi (18 Ocak 2026)
-- [x] **Collapse/Expand sistemi** - Mobilde kurye listesi varsayılan kapalı
-- [x] **Mobil görünüm:**
-  - Her vardiya kartı kompakt (sadece sayı ve saat görünür)
-  - Aşağı ok (chevron) ile kurye listesi açılır
-  - Açılan liste badge'ler halinde kurye isimlerini gösterir
-  - Sayfa uzamaz, sadece seçilen vardiya genişler
-- [x] **Masaüstü görünüm korundu:**
-  - Kurye isimleri inline badge olarak görünür
-  - Expand butonu gizli (sm:hidden)
-  - 2 sütunlu grid layout
-
-### Google Entegrasyonu (18 Ocak 2026 - YENİ)
-- [x] **Backend**: `/api/google/` router'ı eklendi
-  - `/api/google/settings/{company_id}` - GET/POST/DELETE ayarlar
-  - `/api/google/oauth/connect/{company_id}/{service}` - OAuth akışı başlatma
-  - `/api/google/oauth/callback` - OAuth callback
-  - `/api/google/oauth/disconnect/{company_id}/{service}` - Bağlantı kesme
-  - `/api/google/drive/upload/{company_id}` - Drive'a dosya yükleme
-  - `/api/google/gmail/send/{company_id}` - Gmail ile e-posta gönderme
-  - `/api/google/test/drive/{company_id}` - Drive bağlantı testi
-  - `/api/google/test/gmail/{company_id}` - Gmail bağlantı testi
-- [x] **Frontend - Sistem Sayfası**: Google Entegrasyonu kartı
-  - Google Cloud Console kurulum talimatları
-  - Client ID, Client Secret, Drive Klasör ID form alanları
-  - Google Drive servisi - Bağlan/Bağlantıyı Kes/Test Et butonları
-  - Gmail servisi - Bağlan/Bağlantıyı Kes/Test Et butonları
-  - Aktif/Pasif toggle switch'leri
-- [x] **Dinamik Domain Desteği**: OAuth redirect URI'leri request'ten otomatik alınır
-  - Deploy sonrası domain değişse bile sistem otomatik uyum sağlar
-  - Her şirket kendi Google hesabını bağlayabilir (multi-tenant)
-- [x] **Mobil Uyumluluk**: Sistem sayfası tamamen responsive
-  - Collapsible kartlar (Şirket Bilgileri varsayılan kapalı)
-  - Mobil için optimize edilmiş form ve butonlar
-- [x] **Yardımcı Fonksiyonlar**: `upload_file_to_drive_if_enabled()`, `send_notification_email_if_enabled()`
-- [x] **MongoDB Koleksiyonları**: `google_settings`, `google_credentials`
-
-### Toplu Hakediş (Bulk Payroll) Özelliği (19 Ocak 2026 - YENİ)
-- [x] **Backend API:**
-  - `POST /api/bulk-hakedis/parse-excel/{company_id}` - Excel dosyası parse etme
-  - `POST /api/bulk-hakedis/apply/{company_id}` - Toplu hakediş uygulama
-  - `GET/POST/DELETE /api/bonus/settings/{company_id}` - Bonus kuralları CRUD
-- [x] **Excel Format:** "Kurye" (isim) ve "Total" (hakediş tutarı) sütunları
-- [x] **Kurye Eşleştirme:** Case-insensitive isim eşleştirme
-- [x] **Bonus Hesaplama:** Paket sayısına göre otomatik bonus hesaplama
-- [x] **Frontend:**
-  - Muhasebe → "Toplu Hakediş" sekmesi
-  - Excel dosyası yükleme UI
-  - Eşleşen/Eşleşmeyen kuryeler önizleme modalı
-  - Toplu hakediş uygulama butonu
-- [x] **Entegrasyonlar:**
-  - JetPuan otomatik yükleme
-  - Aktivite log kaydı
-  - Bildirim sistemi
-- [x] **Test Durumu:** %100 (13/13 backend test, tüm frontend testleri)
+---
 
 ## Prioritized Backlog
-- [x] ~~Toplu Hakediş Girişi~~ (TAMAMLANDI - 19 Ocak 2026)
-- [ ] Dosya depolama çözümü belirleme (Google Drive yerine alternatif)
-- [ ] Backend organizasyonu (utils klasörü oluşturma)
 
-### Refactoring ve Sistem Sağlığı (18 Ocak 2026)
-- [x] **Health Check Endpoint**: `/api/health` - Veritabanı ve sistem durumu kontrolü
-- [x] **Pydantic Modeller**: `/app/backend/models/schemas.py` dosyasına taşındı
-- [x] **Kurye Aktif/Pasif Sistemi**: Kuryeler artık silinmek yerine pasife alınabiliyor
-  - Zimmet ve bakiye kontrolü (pasife almadan önce)
-  - Aktif/Pasif sekmeleri
-- [x] **Loading Spinner**: Tüm sayfalarda ShiftJet logosu ile merkezi spinner
-- [x] **Akademi Modülü**: Placeholder sayfalar (admin + kurye paneli)
-- [x] **İsim Değişiklikleri**: 
-  - "Güncel Durum" → "Anasayfa"
-  - "JetPuan Market" → "Market"
-- [x] **Alfabetik Sıralama**: Muhasebe listeleri ve kurye listesi
+### P0 - Critical (Next Up)
+1. **Detaylı Yetkiler (Granular Permissions)**
+   - Status: WAITING FOR USER APPROVAL
+   - Action: İzin listesi önerildi, kullanıcı onayı bekleniyor
 
-### ZimmetPage.jsx Refactoring (18 Ocak 2026 - YENİ)
-- [x] **1466 satır → 310 satır** ana dosya
-- [x] **11 yeni bileşen dosyası** oluşturuldu:
-  - `ProductsTab.jsx` (310 satır) - Ürünler sekmesi
-  - `MaliBellekTab.jsx` (179 satır) - Mali Bellek sekmesi
-  - `LogsTab.jsx` (134 satır) - Loglar sekmesi
-  - `ProductTypesModal.jsx` (123 satır) - Ürün tipleri modalı
-  - `ProductModals.jsx` (233 satır) - Ürün ekleme/düzenleme modalları
-  - `AssignmentModals.jsx` (127 satır) - Zimmet atama/alma modalları
-  - `useZimmetData.js` (324 satır) - Veri yönetimi hook'u
-  - `useMaliBellek.js` (128 satır) - Mali bellek hook'u
-  - `zimmetHelpers.js` (34 satır) - Yardımcı fonksiyonlar
-  - `index.js` (10 satır) - Export'lar
-- [x] **%100 test başarısı** (38/38 test geçti)
-- [x] Tüm işlevsellik korundu
-- [x] Custom hooks ile veri yönetimi ayrıldı
+### P1 - High Priority
+2. **Import/Restore Functionality**
+   - Yedekleme modülünde geri yükleme özelliği eksik
+   - Backend TODO olarak işaretli
 
-### JetPuanMarketPage.jsx Refactoring (18 Ocak 2026 - YENİ)
-- [x] **933 satır → 114 satır** ana dosya
-- [x] **5 yeni bileşen dosyası** oluşturuldu (`/app/frontend/src/components/jetpuan/`):
-  - `OrdersTab.jsx` (145 satır) - Siparişler sekmesi
-  - `CategoriesTab.jsx` (165 satır) - Kategoriler sekmesi
-  - `JetPuanProductsTab.jsx` (269 satır) - Ürünler sekmesi
-  - `SettingsTab.jsx` (269 satır) - Ayarlar sekmesi
-  - `index.js` (5 satır) - Export'lar
-- [x] Tüm tab'lar çalışıyor
-- [x] Sipariş teslim/iptal, Kategori CRUD, Ürün CRUD, Puan ayarları korundu
+3. **Dosya Depolama Çözümü**
+   - Video ve belge yüklemeleri için kalıcı depolama gerekli
+   - Mevcut: Geçici `/app/uploads` dizini
 
-### Backend jetpuan.py Refactoring (18 Ocak 2026 - YENİ)
-- [x] **608 satır → 395 satır** ana router dosyası (%35 azalma)
-- [x] **Helper fonksiyonlar** `/app/backend/services/jetpuan_service.py`'ye taşındı (157 satır):
-  - `send_jetpuan_notification()`, `get_puan_ratio()`, `credit_points_to_courier()`, `debit_points_from_courier()`
-  - `get_courier_balance()`, `validate_order_stock()`, `deduct_product_stock()`, `restore_product_stock()`
-  - `enrich_orders_with_courier_info()`, `enrich_products_with_category_names()`
-- [x] **Pydantic modelleri** `/app/backend/models/schemas.py`'ye taşındı
+### P2 - Medium Priority
+4. **Kalan Büyük Dosyaların Refactoring'i**
+   - `GuncelDurumPage.jsx` (497 satır)
+   - `SistemPage.jsx` (455 satır)
+   - `invoices.py` (468 satır)
+   - `zimmet.py` (454 satır)
 
-### Kuryeler ve Faturalar Refactoring (19 Ocak 2026 - YENİ)
-- [x] **KuryelerPage.jsx:** 558 → 203 satır (%64 azalma)
-  - `/app/frontend/src/components/kuryeler/` klasörü:
-    - `CourierTable.jsx` (104 satır) - Masaüstü tablo
-    - `CourierCards.jsx` (97 satır) - Mobil kartlar
-    - `CourierEditModal.jsx` (111 satır) - Düzenleme modalı
-    - `CourierAddModal.jsx` (92 satır) - Ekleme modalı
-    - `CourierDetailModal.jsx` (72 satır) - Detay modalı
-  - `/app/frontend/src/hooks/useKuryeler.js` (128 satır) - Data hook
-- [x] **FaturalarTab.jsx:** 516 → 142 satır (%72 azalma)
-  - `/app/frontend/src/components/faturalar/` klasörü:
-    - `MonthSelector.jsx` (24 satır) - Ay seçici
-    - `MonthInvoicesCard.jsx` (113 satır) - Ay faturaları kartı
-    - `MissingInvoicesCard.jsx` (50 satır) - Eksik faturalar
-    - `CouriersListCard.jsx` (47 satır) - Kurye listesi
-    - `CourierInvoicesCard.jsx` (71 satır) - Kurye faturaları
-  - `/app/frontend/src/hooks/useFaturalar.js` (129 satır) - Data hook
-- [x] **Backend couriers.py:** 474 → 137 satır (%71 azalma)
-  - `/app/backend/services/courier_service.py` (313 satır) - Business logic
-- [x] **%100 test başarısı** (18/18 backend test + tüm frontend testleri)
-- [x] **%100 test başarısı** (24/24 backend test geçti)
-- [x] Tüm API endpoint'leri korundu ve çalışıyor
+5. **Otomatik Yedekleme Scheduler**
+   - Background task olarak günlük yedekleme çalıştırma
+   - APScheduler veya Celery entegrasyonu gerekebilir
 
-### Frontend CourierJetPuanPage.jsx Refactoring (18 Ocak 2026 - YENİ)
-- [x] **600 satır → 180 satır** ana dosya (%70 azalma)
-- [x] **4 yeni bileşen** `/app/frontend/src/components/courier/jetpuan/` klasörüne taşındı:
-  - `MarketTab.jsx` (147 satır) - Ürün listesi ve filtreleme
-  - `HistoryTab.jsx` (67 satır) - Puan geçmişi
-  - `OrdersTab.jsx` (85 satır) - Sipariş geçmişi
-  - `CartModal.jsx` (132 satır) - Sepet modalı
-- [x] Tüm işlevsellik korundu
+---
 
-### Frontend CourierMuhasebePage.jsx Refactoring (18 Ocak 2026 - YENİ)
-- [x] **590 satır → 200 satır** ana dosya (%66 azalma)
-- [x] **3 yeni bileşen** `/app/frontend/src/components/courier/muhasebe/` klasörüne taşındı:
-  - `InstallmentSection.jsx` (72 satır) - Taksitli ürünler bölümü
-  - `TransactionList.jsx` (257 satır) - İşlem tablosu (desktop/mobile)
-  - `InvoiceMessageModal.jsx` (99 satır) - Fatura talep modalı
-- [x] Tüm işlevsellik korundu
+## Key API Endpoints
 
-### Backend accounting.py Refactoring (18 Ocak 2026 - YENİ)
-- [x] **786 satır → 650 satır** ana router dosyası (%17 azalma)
-- [x] **Helper fonksiyonlar** `/app/backend/services/accounting_service.py`'ye taşındı (82 satır):
-  - `get_entity_name()` - Entity adı getirme
-  - `get_entity_transactions()` - İşlem listeleme
-  - `calculate_total_balance()` - Bakiye hesaplama
-  - `parse_custom_date()` - Tarih parse etme
-- [x] **Pydantic modelleri** `/app/backend/models/schemas.py`'ye taşındı:
-  - TransactionCreate, TransactionUpdateRequest, TransactionDeleteRequest
-  - BusinessCreate, VendorCreate
-  - InstallmentProductCreate, InstallmentPayRequest
-  - ActivityLogCreate
-- [x] **%100 test başarısı** (38/38 backend test geçti)
-- [x] Tüm API endpoint'leri korundu ve çalışıyor
+### Academy
+- `GET /api/academy/company/{company_id}/trainings`
+- `POST /api/academy/company/{company_id}/trainings`
+- `PUT /api/academy/training/{training_id}`
+- `DELETE /api/academy/training/{training_id}`
+- `GET /api/academy/video/{training_id}`
 
-### VardiyaPage.jsx Refactoring (18 Ocak 2026 - YENİ)
-- [x] **698 satır → 140 satır** ana dosya (%80 azalma)
-- [x] **5 yeni bileşen dosyası** oluşturuldu (`/app/frontend/src/components/vardiya/`):
-  - `VardiyaPage.jsx` (140 satır) - Ana sayfa bileşeni
-  - `useVardiyaData.js` (270 satır) - Veri yönetimi hook'u
-  - `ShiftGrid.jsx` (270 satır) - Vardiya grid bileşeni
-  - `ShiftModals.jsx` (210 satır) - AddShiftModal, AssignCourierModal, AddLeaveModal, BulkAssignModal
-  - `index.js` (9 satır) - Export'lar
-- [x] **%100 test başarısı** (26/26 test geçti)
-- [x] Tüm işlevsellik korundu (vardiya CRUD, kurye atama, izin, toplu atama)
+### Backup
+- `GET /api/backup/company/{company_id}/export`
+- `POST /api/backup/company/{company_id}/import` (TODO)
+- `GET /api/backup/company/{company_id}/schedule`
+- `POST /api/backup/company/{company_id}/schedule`
+- `POST /api/backup/company/{company_id}/send-now`
 
-### KuryelerTab.jsx Refactoring (18 Ocak 2026 - YENİ)
-- [x] **775 satır → 200 satır** ana dosya (%74 azalma)
-- [x] **5 yeni bileşen dosyası** oluşturuldu (`/app/frontend/src/components/muhasebe/`):
-  - `KuryelerTab.jsx` (200 satır) - Ana sekme bileşeni
-  - `CourierList.jsx` (92 satır) - Kurye listesi bileşeni
-  - `CourierTransactions.jsx` (317 satır) - İşlem paneli bileşeni
-  - `InstallmentModals.jsx` (301 satır) - EditTransactionModal, AddInstallmentModal, InstallmentListModal
-  - `index.js` (8 satır) - Export'lar
-- [x] **%100 test başarısı** (26/26 test geçti)
-- [x] Tüm işlevsellik korundu (ödeme CRUD, taksitli ürün, arşiv)
+---
 
-### Google Drive & SMTP Entegrasyonu (18 Ocak 2026)
-**~~Google Drive Entegrasyonu~~ - KALDIRILDI (kullanıcı talebi)**
+## Test Reports
+- `/app/test_reports/iteration_16.json` - ConfirmModal tests (100% pass)
 
-**SMTP E-posta Entegrasyonu:**
-- [x] SMTP ayarları UI (Sistem sayfası)
-- [x] Test e-postası gönderme
-- [x] Tüm bildirimler süper admin'e e-posta olarak gönderilir
-- [x] Süper admin email alanı (Profil'de düzenlenebilir)
-- [x] E-posta aktif/pasif toggle
+## Credentials
+- **Super Admin:** username: onurertas, password: Delivery32..
+- **Courier:** phone: 05551234567, password: 123456
 
-**Dosyalar:**
-- `/app/backend/services/email_service.py` - SMTP servisi
-- `/app/backend/routers/email_settings.py` - E-posta ayarları API
+---
 
+## Proposed Granular Permissions (Awaiting User Approval)
+
+### Sayfa Erişimi (Mevcut)
+- `page_vardiya`: Vardiya sayfasına erişim
+- `page_muhasebe`: Muhasebe sayfasına erişim
+- `page_zimmet`: Zimmet sayfasına erişim
+- `page_kuryeler`: Kuryeler sayfasına erişim
+- `page_market`: JetPuan Market sayfasına erişim
+- `page_akademi`: Akademi sayfasına erişim
+- `page_sistem`: Sistem ayarlarına erişim
+- `page_yoneticiler`: Yöneticiler sayfasına erişim
+
+### Muhasebe Modülü
+- `muhasebe_view`: İşlemleri görüntüleme
+- `muhasebe_add_transaction`: İşlem ekleme
+- `muhasebe_edit_transaction`: İşlem düzenleme
+- `muhasebe_delete_transaction`: İşlem silme
+- `muhasebe_archive`: Kurye/işletme arşivleme
+- `muhasebe_export_pdf`: PDF dışa aktarma
+- `muhasebe_bulk_hakedis`: Toplu hakediş işlemi
+
+### Kuryeler Modülü
+- `kurye_add`: Kurye ekleme
+- `kurye_edit`: Kurye bilgilerini düzenleme
+- `kurye_remove`: Kuryeyi şirketten çıkarma
+- `kurye_deactivate`: Kuryeyi pasife alma
+- `kurye_start_termination`: Fesih başlatma
+- `kurye_cancel_termination`: Fesih iptal
+
+### Zimmet Modülü
+- `zimmet_view`: Zimmetleri görüntüleme
+- `zimmet_add_product`: Ürün ekleme
+- `zimmet_edit_product`: Ürün düzenleme
+- `zimmet_delete_product`: Ürün silme
+- `zimmet_assign`: Zimmet atama
+- `zimmet_return`: Zimmet iade
+
+### Market (JetPuan) Modülü
+- `market_view`: Market görüntüleme
+- `market_add_product`: Ürün ekleme
+- `market_edit_product`: Ürün düzenleme
+- `market_delete_product`: Ürün silme
+- `market_manage_orders`: Sipariş yönetimi
+- `market_add_jetpuan`: JetPuan ekleme
+
+### Akademi Modülü
+- `akademi_view`: Eğitimleri görüntüleme
+- `akademi_add`: Eğitim ekleme
+- `akademi_edit`: Eğitim düzenleme
+- `akademi_delete`: Eğitim silme
+
+### Vardiya Modülü
+- `vardiya_view`: Vardiyaları görüntüleme
+- `vardiya_add`: Vardiya ekleme
+- `vardiya_delete`: Vardiya silme
+- `vardiya_assign`: Atama yapma
+
+### Sistem Ayarları
+- `sistem_company_info`: Şirket bilgileri düzenleme
+- `sistem_email_settings`: E-posta ayarları
+- `sistem_backup`: Yedekleme işlemleri
