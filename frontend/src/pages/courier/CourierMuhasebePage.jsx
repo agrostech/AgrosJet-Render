@@ -298,6 +298,15 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         selectedAmount={selectedHakedisAmount}
         companyInfo={companyInfo}
       />
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Fatura Silme"
+        description="Bu faturayı silmek istediğinize emin misiniz?"
+        onConfirm={confirmDeleteInvoice}
+        variant="danger"
+      />
     </div>
   );
 }
