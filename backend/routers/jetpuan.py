@@ -372,8 +372,12 @@ async def create_order(courier_id: str, data: JetPuanOrderCreate):
 
 
 @router.put("/orders/{order_id}/deliver")
-async def deliver_order(order_id: str):
+async def deliver_order(
+    order_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Mark order as delivered (admin)"""
+    await require_permission(x_admin_id, "market_manage_orders")
     order = await db.jetpuan_orders.find_one({"id": order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
@@ -389,8 +393,12 @@ async def deliver_order(order_id: str):
 
 
 @router.delete("/orders/{order_id}")
-async def cancel_order(order_id: str):
+async def cancel_order(
+    order_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Cancel a pending order (refund points and restore stock)"""
+    await require_permission(x_admin_id, "market_manage_orders")
     order = await db.jetpuan_orders.find_one({"id": order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
