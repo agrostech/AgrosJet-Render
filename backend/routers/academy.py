@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Header
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
@@ -7,6 +7,7 @@ import os
 import shutil
 
 from utils.database import db
+from utils.permissions import require_permission
 
 router = APIRouter(prefix="/api/academy", tags=["Academy"])
 
