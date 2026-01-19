@@ -337,6 +337,15 @@ export default function NotificationsPopover({ companyId }) {
           )}
         </div>
       </PopoverContent>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Tüm Bildirimleri Sil"
+        description="Tüm bildirimleri silmek istediğinize emin misiniz?"
+        onConfirm={confirmDeleteAll}
+        variant="danger"
+      />
     </Popover>
   );
 }
