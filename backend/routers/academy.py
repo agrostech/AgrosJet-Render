@@ -94,7 +94,7 @@ async def create_training(
         try:
             with open(video_path, "wb") as buffer:
                 shutil.copyfileobj(video.file, buffer)
-        except Exception as e:
+        except Exception:
             raise HTTPException(status_code=500, detail="Video yüklenemedi")
     
     training = {
