@@ -140,14 +140,16 @@ export default function HareketlerTab({ companyId }) {
 
   return (
     <div className="border-2 border-border bg-white h-[calc(100vh-220px)] min-h-[500px] flex flex-col">
-      <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center gap-3 shrink-0">
-        <History className="w-4 h-4 text-slate-600" />
-        <h3 className="font-semibold text-sm">İşlem Hareketleri</h3>
-        <div className="flex-1 max-w-xs ml-auto">
+      <div className="p-3 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2">
+          <History className="w-4 h-4 text-slate-600" />
+          <h3 className="font-semibold text-sm">İşlem Hareketleri</h3>
+        </div>
+        <div className="flex-1 min-w-[150px] max-w-xs ml-auto">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
-              placeholder="Admin, isim veya açıklama ara..." 
+              placeholder="Ara..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8 h-8 text-sm"
@@ -155,7 +157,7 @@ export default function HareketlerTab({ companyId }) {
           </div>
         </div>
         <span className="text-xs text-muted-foreground shrink-0">
-          {logs.length} / {totalCount} kayıt
+          {logs.length} / {totalCount}
         </span>
       </div>
 
@@ -166,7 +168,8 @@ export default function HareketlerTab({ companyId }) {
           </p>
         ) : (
           <>
-            <table className="w-full text-sm">
+            {/* Desktop Table View */}
+            <table className="w-full text-sm hidden md:table">
               <thead className="bg-slate-50 sticky top-0">
                 <tr>
                   <th className="text-left p-3 font-semibold">Tarih</th>
@@ -231,6 +234,63 @@ export default function HareketlerTab({ companyId }) {
                 ))}
               </tbody>
             </table>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredLogs.map((log) => (
+                <div key={log.id} className="p-3 hover:bg-slate-50">
+                  {/* Top Row: Date & Amount */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatDate(log.created_at)}
+                    </span>
+                    <span className={`font-bold text-base ${
+                      log.action === 'installment_paid' ? 'text-purple-600' :
+                      log.details?.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {(log.details?.type === 'payment_out' || log.action === 'installment_paid') && '-'}{formatCurrency(log.details?.amount || 0)}
+                    </span>
+                  </div>
+                  
+                  {/* Entity Info */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                      log.entity_type === 'courier' ? 'bg-slate-200 text-slate-600' :
+                      log.entity_type === 'business' ? 'bg-blue-100 text-blue-600' :
+                      'bg-purple-100 text-purple-600'
+                    }`}>
+                      {getEntityIcon(log.entity_type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm truncate">{log.entity_name}</p>
+                      <p className="text-[10px] text-muted-foreground">{getEntityTypeLabel(log.entity_type)}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Action & Description */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    {getActionLabel(log.action, log.details)}
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-muted-foreground">{log.admin_name}</span>
+                  </div>
+                  
+                  {/* Description if exists */}
+                  {log.action === 'installment_paid' && log.details?.product_name ? (
+                    <p className="mt-1 text-xs text-purple-700">
+                      {log.details.product_name} ({log.details.installment_number}/{log.details.total_installments}. taksit)
+                    </p>
+                  ) : log.details?.description && (
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                      {log.details.description}
+                      {log.details?.is_hakedis && (
+                        <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">Hakediş</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
             {hasMore && !searchQuery && (
               <div className="text-center py-3 border-t border-slate-100">
                 <Button size="sm" variant="outline" onClick={loadMore} disabled={loadingMore} className="h-8 text-xs">
