@@ -59,6 +59,10 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
   const [deleting, setDeleting] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
+  
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const fetchData = useCallback(async () => {
     if (!courierId) return;
@@ -81,17 +85,23 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
   }, [fetchData]);
 
   const handleDelete = async (documentId) => {
-    if (!window.confirm("Bu evrakı silmek istediğinize emin misiniz?")) return;
-    
-    setDeleting(documentId);
+    setPendingDeleteId(documentId);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+    setDeleting(pendingDeleteId);
     try {
-      await axios.delete(`${API}/documents/${documentId}`);
+      await axios.delete(`${API}/documents/${pendingDeleteId}`);
       toast.success("Evrak silindi");
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
     } finally {
       setDeleting(null);
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
