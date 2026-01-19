@@ -116,6 +116,7 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## Test Reports
 - `/app/test_reports/iteration_16.json` - ConfirmModal tests (100% pass)
+- `/app/test_reports/iteration_17.json` - Granular Permissions tests (100% pass)
 
 ## Credentials
 - **Super Admin:** username: onurertas, password: Delivery32..
