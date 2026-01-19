@@ -295,9 +295,21 @@ async def create_notification(
     message: str,
     entity_type: str = None,
     entity_id: str = None,
-    send_email: bool = True
+    send_email: bool = True,
+    actor_id: str = None,  # İşlemi yapan kişinin ID'si
+    actor_role: str = None  # İşlemi yapan kişinin rolü (admin, superadmin, courier)
 ):
-    """Create a new notification (called from other routers)"""
+    """Create a new notification (called from other routers)
+    
+    actor_id ve actor_role parametreleri ile bildirim mantığı:
+    - Superadmin kendi işlemlerinde bildirim almaz
+    - Admin işlem yaptığında sadece superadmin bildirim alır
+    - Kurye işlem yaptığında hem admin hem superadmin bildirim alır
+    """
+    # Superadmin kendi işlemlerinde bildirim oluşturma
+    if actor_role == "superadmin":
+        return None
+    
     notification = {
         "id": str(uuid.uuid4()),
         "company_id": company_id,
@@ -307,7 +319,9 @@ async def create_notification(
         "entity_type": entity_type,
         "entity_id": entity_id,
         "is_read": False,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "actor_id": actor_id,
+        "actor_role": actor_role
     }
     await db.notifications.insert_one(notification)
     
