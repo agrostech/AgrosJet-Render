@@ -345,8 +345,13 @@ async def delete_product(
 
 # --- Zimmet İşlemleri ---
 @router.post("/products/{product_id}/assign")
-async def assign_product(product_id: str, data: ZimmetAction):
+async def assign_product(
+    product_id: str, 
+    data: ZimmetAction,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Ürünü kuryeye zimmetle"""
+    await require_permission(x_admin_id, "zimmet_assign")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
