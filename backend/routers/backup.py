@@ -238,8 +238,13 @@ async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesI
 
 
 @router.post("/company/{company_id}/send-now")
-async def send_backup_now(company_id: str, background_tasks: BackgroundTasks):
+async def send_backup_now(
+    company_id: str, 
+    background_tasks: BackgroundTasks,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Manually trigger backup email"""
+    await require_permission(x_admin_id, "sistem_backup")
     company = await db.companies.find_one({"id": company_id})
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
