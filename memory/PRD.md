@@ -27,6 +27,15 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ### December 19, 2025 - Session Updates
 
+#### ✅ Completed: Detaylı Yetkiler (Granular Permissions)
+- **44 adet granüler izin** 8 gruba ayrılarak implement edildi
+- Gruplar: Sayfa Erişimi, Muhasebe, Kuryeler, Zimmet, Market, Akademi, Vardiya, Sistem
+- Collapsible gruplar ve Switch ile toplu kontrol
+- Migration endpoint ile mevcut adminler otomatik güncellendi
+- Backend: `/app/backend/routers/admins.py`
+- Frontend: `/app/frontend/src/pages/admin/YoneticilerPage.jsx`
+- Test durumu: %100 başarı oranı
+
 #### ✅ Completed: Onay Popupları (Confirmation Modals)
 - **22 adet window.confirm()** çağrısı `ConfirmModal` bileşeni ile değiştirildi
 - AlertDialog shadcn UI kullanılarak tutarlı modal deneyimi sağlandı
