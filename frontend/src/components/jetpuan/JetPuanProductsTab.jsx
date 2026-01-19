@@ -277,6 +277,15 @@ export function JetPuanProductsTab() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Ürün Silme"
+        description="Bu ürünü silmek istediğinize emin misiniz?"
+        onConfirm={confirmDelete}
+        variant="danger"
+      />
     </div>
   );
 }
