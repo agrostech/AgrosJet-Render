@@ -340,7 +340,10 @@ class TestCourierEndpointsPermissions:
             },
             json={"phone": "05551234567"}
         )
+        # Should return 403 for permission denied
         assert response.status_code == 403
+        data = response.json()
+        assert "yetkiniz yok" in data["detail"].lower()
 
 
 class TestTransactionEndpointsPermissions:
