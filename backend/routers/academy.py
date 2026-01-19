@@ -33,8 +33,12 @@ class TrainingUpdate(BaseModel):
 
 # --- Training CRUD ---
 @router.get("/company/{company_id}/trainings")
-async def get_trainings(company_id: str):
+async def get_trainings(
+    company_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Get all trainings for a company - oldest first"""
+    await require_permission(x_admin_id, "akademi_view")
     trainings = await db.academy_trainings.find(
         {"company_id": company_id},
         {"_id": 0}
@@ -60,9 +64,11 @@ async def create_training(
     title: str = Form(...),
     content: Optional[str] = Form(None),
     training_type: str = Form("video"),
-    video: Optional[UploadFile] = File(None)
+    video: Optional[UploadFile] = File(None),
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
 ):
     """Create a new training (video or text)"""
+    await require_permission(x_admin_id, "akademi_add")
     
     training_id = str(uuid.uuid4())
     video_path = None
@@ -109,8 +115,13 @@ async def create_training(
 
 
 @router.put("/training/{training_id}")
-async def update_training(training_id: str, data: TrainingUpdate):
+async def update_training(
+    training_id: str, 
+    data: TrainingUpdate,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Update training title or content"""
+    await require_permission(x_admin_id, "akademi_edit")
     training = await db.academy_trainings.find_one({"id": training_id})
     if not training:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
@@ -130,8 +141,12 @@ async def update_training(training_id: str, data: TrainingUpdate):
 
 
 @router.delete("/training/{training_id}")
-async def delete_training(training_id: str):
+async def delete_training(
+    training_id: str,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Delete a training and its video file"""
+    await require_permission(x_admin_id, "akademi_delete")
     training = await db.academy_trainings.find_one({"id": training_id})
     if not training:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
