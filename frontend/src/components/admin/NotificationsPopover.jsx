@@ -263,7 +263,11 @@ export default function NotificationsPopover({ companyId }) {
         <div className="max-h-[400px] overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
+              <img 
+                src="https://customer-assets.emergentagent.com/job_kurye-yonetim-2/artifacts/27ukt5rk_shiftjetlogo.png" 
+                alt="Yükleniyor" 
+                className="w-8 h-8 animate-spin"
+              />
             </div>
           ) : notifications.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
