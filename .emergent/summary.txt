@@ -1,84 +1,76 @@
 <analysis>**original_problem_statement:**
-The user wants to build a comprehensive courier management system from scratch called SHIFTJET KURYE YÖNETİM SİSTEMİ.
+The user wants to build a comprehensive courier management system called SHIFTJET KURYE YÖNETİM SİSTEMİ. The full initial product requirements are detailed in the previous handoff summary.
 
-**PRODUCT REQUIREMENTS:**
-
-*   **Roles & Dashboards:** System Manager, Super Admin, Admin, Courier.
-*   **Core Functionality:**
-    *   **Courier & Company Management:** Full CRUD operations for companies, admins, and couriers with role-based restrictions. Includes an active/passive status for couriers.
-    *   **Profile Management:** Users can manage their own credentials.
-    *   **Shift Management (Vardiya Yönetimi):** A grid-based system for assigning couriers to shifts.
-    *   **Homepage (Anasayfa):** A dashboard overview of the daily shift report (formerly Güncel Durum).
-    *   **Accounting (Muhasebe):** A multi-tab module for tracking financial transactions, including PDF export and search functionality. A bulk payroll entry feature is on hold. Lists (Couriers, Businesses, Vendors) are alphabetically sorted.
-    *   **Activity Logs (Hareketler):** A log of all major financial and system operations.
-    *   **Assigned Items (Zimmet):** A system to track items assigned to couriers.
-    *   **Installment Products (Taksitli Ürün):** A system within accounting to track and pay for products in installments for couriers.
-    *   **System Page (Sistem):** A section for system-wide settings, including company information and integration settings.
-    *   **Courier Dashboard:** A read-only dashboard for couriers to view their own shifts, accounting, and assigned items.
-    *   **Invoice Management:** A system for couriers to upload invoices and for admins to manage them. Includes a Request Invoice feature.
-    *   **Termination Process (Fesih):** A feature for admins to initiate a formal termination period for couriers.
-    *   **Document Management (Evraklar):** A section for couriers to upload required documents and for admins to manage them.
-    *   **Market (Market):** A points-based e-commerce system (formerly JetPuan Market).
-    *   **Academy (Akademi):** A new placeholder section for training materials.
-    *   **Notification System (Bildirimler):** A real-time notification system with email integration.
-    *   **File Storage:** A solution for storing uploaded documents and invoices is required, but the user has rejected Google Drive. An alternative needs to be decided.
+Recently, the user has requested four new major features:
+1.  **Akademi (Academy):** A module where admins can upload video and text-based training materials. Couriers can view these trainings. The user specified direct video uploads (not YouTube links) and that no categorization is needed for now.
+2.  **Yedekleme (Backup/Restore):** A system to export the entire database into a single file (ZIP) and import it to restore the system. This should include a feature for the Super Admin to schedule automatic daily backups to be sent via email. This functionality should be in a new collapsible card on the Sistem page.
+3.  **Onay Popupları (Confirmation Modals):** Replace all native browser  dialogs with a custom, consistent modal component throughout the application, as browser popups can be blocked.
+4.  **Detaylı Yetkiler (Granular Permissions):** Enhance the existing admin permission system. First, ensure all pages are listed. Second, add detailed, action-level permissions for each module (e.g., Can add transaction in Accounting, Can delete product in Inventory, Can add JetPuan in Market). The agent is to propose a list of these granular permissions for user review before implementation.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A full-stack courier management system with a FastAPI backend and React frontend. In this session, the agent completed major refactoring of two large frontend components,  and , breaking them into smaller, manageable pieces.
+A full-stack courier management system with a FastAPI backend and a React frontend. In this session, the Toplu Hakediş (Bulk Payroll) feature was implemented and its bugs (related to Excel parsing, UI, and mobile compatibility) were fixed. Several other user-requested fixes and UI enhancements were completed, including a persistent notification system, redesign of the JetPuan orders list, and making more components collapsible.
 
-A full SMTP-based email notification system was implemented. The user can enable/disable emails and granularly select which notification types (e.g., accounting, market orders, document uploads) should trigger an email to the super admin. The agent also resolved a critical performance issue by moving the blocking email-sending process to a background thread, preventing UI lag.
+A major refactoring effort was also completed. , , and the backend  router were broken down into smaller, more maintainable modules. The refactoring was validated with a 100% success rate from the testing agent.
 
-A user-requested feature to display a notification badge on the Market sidebar item for pending orders was added. This badge now updates in real-time without a page refresh when an order is processed, using a custom browser event for component-to-component communication.
-
-Finally, a previously planned Google Drive integration was completely removed from the codebase at the user's request.
+The agent has just begun scaffolding the four new major features requested by the user, creating placeholder files and components for the Academy and Backup features, and a reusable confirmation modal.
 
 **Last working item**:
-- Last item agent was working: The user reported that the new pending orders badge on the Market sidebar tab did not update immediately after an order was processed. The agent implemented a fix using a custom browser event (). This event is dispatched from the  component upon successful delivery/cancellation of an order. The main  component listens for this event and triggers a data re-fetch for the badge count, ensuring the UI updates instantly.
-- Status: USER VERIFICATION PENDING
-- Agent Testing Done: Y
-- Which testing method agent to use? Frontend testing agent. This ensures the communication between  and  via custom events works correctly and that the badge count updates in real-time after an order status changes.
+- Last item agent was working: The agent was laying the groundwork for the four new features requested by the user. It created the backend routers (, ), frontend pages (, ), a reusable confirmation modal (), and integrated the new UI sections into the existing application structure (e.g., adding the Backup card to  and linking the Academy pages in the dashboards).
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? Both. The backend testing agent will be needed to verify the video/text upload, data export/import logic, and the scheduled email job. The frontend testing agent will be needed to test the UI for the Academy, Backup settings, and the new confirmation modals across the application.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - **Issue 1: Search filter on Kuryeler page throws error (P0)**
-     - **Attempted fixes:** A check for  values was added in a previous session.
-     - **Next debug checklist:** The user has not confirmed if the fix worked. The next agent must ask the user to test the search/filter functionality on the  page and report if any errors still occur.
-     - **Why fix this issue and what will be achieved with the fix?** This is a core functionality for admins to manage couriers. Fixing it is critical for usability.
-     - **Status:** USER VERIFICATION PENDING
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** Frontend
-     - **Blocked on other issue:** None
+- None.
 
 **In progress Task List**:
-  - None.
+- Task 1: **Implement the four new features requested by the user (P0)**
+    - **Where to resume:** The foundational files are in place. The immediate next step is to begin implementing the first feature: **Replace all  calls** across the frontend with the newly created . After that, proceed with the Academy feature implementation.
+    - **What will be achieved with this?** This will deliver the user's latest set of major feature requests, starting with improving UI consistency and reliability.
+    - **Status:** IN PROGRESS
+    - **Should Test frontend/backend/both after fix?** Both
+    - **Blocked on something:** No
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **P1: Refactor large frontend components:** Following the successful refactoring of  and , the next targets are  (~775 lines) and  (~698 lines).
+    - **P0: Replace all  calls:** Search the entire frontend codebase for  and replace it with the new  component.
+    - **P0: Implement Academy Feature:**
+        - Backend (): Implement CRUD endpoints for trainings (supporting both video files and text content) and handle file uploads.
+        - Frontend (): Build the UI for admins to upload, view, and manage training materials.
+        - Frontend (): Build the UI for couriers to view the list of trainings and their content.
+    - **P1: Implement Backup/Restore Feature:**
+        - Backend (): Implement logic to export all MongoDB collections to a ZIP archive, import from a ZIP, and create a scheduled job for daily email backups.
+        - Frontend (): Implement the UI to manage automatic backup settings (time selection) and trigger manual export/import.
+    - **P1: Implement Detailed Admin Permissions:**
+        - **Action:** First, propose a detailed, hierarchical list of granular permissions (e.g., , ) to the user for approval.
+        - Backend: Modify the permission models and logic to support these new granular actions.
+        - Frontend: Update the permissions modal in  to display and manage these detailed permissions.
 - **Future Tasks:**
-    - **P2: Bulk Payroll Entry (Toplu hakediş girme):** This feature for the Accounting module remains on hold, pending a decision from the user.
-    - **P2: Decide on a File Storage Solution:** Since Google Drive was rejected, a new solution for storing courier documents and invoices needs to be planned and implemented.
-    - **P2: Backend Organization:** Move helper functions from router files (e.g., ) into a dedicated  directory.
+    - **P2: Decide on a File Storage Solution:** With the addition of video uploads for the Academy, a persistent file storage solution (e.g., a mounted volume, S3-compatible service) is critical. The current temporary storage is not viable for production.
+    - **P2: Refactor remaining large files:**  (497 lines),  (455 lines),  (468 lines),  (454 lines).
 
 **Completed work in this session**
-- **Refactoring:**
-  -  (1466 lines) was successfully broken down into 9 smaller components in .
-  -  (933 lines) was successfully broken down into 4 tab components in .
-- **Email Notification System:**
-  - Implemented a full SMTP email notification system.
-  - Created a UI in  to configure SMTP settings and granularly enable/disable emails for different notification categories (Accounting, Assigned Items, Documents, Market, Terminations).
-  - Optimized email sending to be non-blocking using a background thread (), fixing UI lag reported by the user.
-  - Improved SMTP error handling to provide clearer messages to the user (e.g., for Gmail App Password issues).
-- **Sidebar Badge Feature:**
-  - Added a backend endpoint () to get the count of pending market orders.
-  - Added a notification badge to the Market link in the admin sidebar to display this count.
-  - Implemented a real-time update for the badge using custom browser events, so it changes instantly when an order is processed.
-- **Code Removal:**
-  - Completely removed the Google Drive integration from the backend and frontend as requested by the user. This included deleting API endpoints, services, and UI components.
-- **UI/UX:**
-  - Removed emojis from notification type descriptions on the  to maintain a more professional design language.
+- **Major Refactoring (Validated by Testing Agent):**
+    - Refactored ,  (frontend), and  (backend) into smaller, modular components and services. All functionality was preserved, confirmed by 100% pass rate on tests.
+- **Feature Implementation & Bug Fixes ():**
+    - Fixed complex Excel parsing issues related to Turkish currency/number formats and variable header rows.
+    - Made the results modal mobile-responsive and improved its design.
+    - Made the Bonus Settings card collapsible to save space.
+    - Fixed the mobile file input to correctly show the Browse Files option.
+- **Notifications System Enhancement:**
+    - Implemented a dismissed notifications mechanism to prevent deleted alerts from reappearing.
+    - Added descriptive titles to all notification types (e.g., Eksik Fatura).
+    - Replaced the default loading icon with the ShiftJet logo.
+- **UI/UX Improvements:**
+    - Redesigned the Siparişler (Orders) tab in the JetPuan market with a cleaner, modern list-based design.
+    - Made shift cards in  collapsible on desktop view.
+    - Added a legal warning to the courier's termination notice view.
+    - Disabled the Google Translate popup sitewide by setting the HTML  attribute to .
+- **New Feature Scaffolding:**
+    - Created all necessary initial files and components for the upcoming Academy, Backup, and Confirmation Modal features.
 
 **Earlier issues found/mentioned but not fixed**
 - None.
@@ -90,77 +82,87 @@ Finally, a previously planned Google Drive integration was completely removed fr
 
 
 **Key Technical Concepts**
-- **Component Refactoring:** Breaking down large, monolithic React components (, ) into smaller, single-responsibility components and custom hooks to improve maintainability and readability.
-- **Background Tasks in FastAPI:** Using  with a  to execute blocking I/O operations (like sending an SMTP email) in a separate thread, preventing the main application's event loop from being blocked and thus eliminating UI lag.
-- **Custom Browser Events:** Leveraging  and  to create a decoupled communication channel between React components. This was used to allow  to notify  to update the pending order badge in real-time.
-- **Dynamic API-Driven UI:** The settings page for email notifications dynamically renders toggles based on a configuration object, making it easy to add or remove notification types in the future.
+- **Component-Driven Refactoring:** The established pattern of breaking large pages (, ) into smaller, single-responsibility components and custom hooks (, ).
+- **Service Layer Abstraction:** Moving backend business logic from FastAPI routers () into a dedicated service layer () for better separation of concerns.
+- **File Handling:** The project now needs to handle direct video uploads (for the Academy) in addition to Excel files.
+- **Data Backup/Restore:** The new feature requires serializing the entire MongoDB database to a portable format (JSON in a ZIP) and being able to restore from it.
+- **Scheduled Tasks:** The automatic backup feature will require implementing a background scheduler in the FastAPI application.
 
 **key DB schema**
-- ****: A nested object  was added to the company document to store SMTP credentials and notification preferences (e.g., , , , ).
-- ****: An  field (string) was added to the admin document schema to store the super admin's email address for receiving notifications.
+- ****: . Prevents re-creation of notifications that the user has explicitly dismissed.
+- **** (New/Planned): A new collection will be needed, likely with fields like .
 
 **All files of reference**
-- : Contains the logic for fetching the badge count and listening for the update event.
-- : Dispatches the custom event after an order is processed.
-- : Contains the background task implementation for sending emails.
-- : Contains the core SMTP logic and handles checking company notification preferences.
-- : The UI for configuring all SMTP and notification settings.
-- : The API for managing SMTP settings.
--  & : The directories containing the newly refactored components.
+- **New Task Files:**
+    - : The reusable modal for confirmations.
+    - : Backend router for the Academy feature.
+    - : Frontend page for admin management of trainings.
+    - : Backend router for the Backup/Restore feature.
+    - : Contains the new UI for the Backup feature.
+- **Recently Refactored:**
+    - 
+    - 
+    - 
+    - 
 
 **Areas that need refactoring**:
--  (775 lines)
--  (698 lines)
--  (Backend router with logic that could be moved to services/utils)
+-  (497 lines)
+-  (455 lines)
+-  (468 lines)
+-  (454 lines)
 
 **key api endpoints**
-- ** (New):** Returns the number of market orders with pending status.
-- ** (New):** Saves SMTP and notification preference settings for a company.
-- ** (New):** Retrieves the current SMTP and notification settings.
-- ** (New):** Sends a test email to the super admin to verify SMTP configuration.
-- ** (New):** Updates the email address of the super admin.
+- ****: (New/Planned) CRUD endpoints for managing training materials.
+- ****: (New/Planned) Endpoint to trigger a database export.
+- ****: (New/Planned) Endpoint to upload and import a backup file.
+- ****: (New/Planned) CRUD for managing automatic backup settings.
 
 **Critical Info for New Agent**
-- **Performance is Key:** The user is sensitive to UI lag. Any future I/O-bound operations (database, network calls) on the backend should be implemented asynchronously or in background tasks to avoid blocking the main thread.
-- **Real-time Updates are Expected:** The user wants the UI to reflect changes immediately without requiring a manual page refresh. The custom event pattern implemented for the market badge is a good precedent to follow for similar future requirements.
-- **User can change mind on major features:** The user requested and then canceled the Google Drive integration. Be flexible and confirm large features before deep implementation. The application now lacks a persistent file storage solution for documents and invoices, which will need to be addressed.
+- **Prioritized Task List:** The user has provided four clear tasks. The agreed-upon order of implementation is: 1. Confirmation Modals, 2. Academy, 3. Backup, 4. Granular Permissions. Start by replacing all  calls.
+- **User Approval for Permissions:** Before implementing the granular permissions feature, you MUST first analyze the application and propose a detailed list of all possible permissions (e.g., view, create, edit, delete for each module) to the user for their review and approval.
+- **File Storage is a Critical Upcoming Decision:** The app now requires storage for documents, invoices, and videos. The current temporary storage is not a long-term solution. This needs to be addressed soon.
+- **Code Quality:** Continue the established refactoring patterns. Create small, reusable components and abstract backend logic into services. The user values a clean, maintainable codebase and has approved dedicated time for this.
 
 **documents and test reports created in this job**
--  (Test report for  refactoring)
--  (Updated with completed tasks and new requirements)
+- 
+- 
+- 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:**  (The badge doesn't disappear without a refresh after delivering an order). **Status: In Progress/Just Completed.** The fix was implemented but awaits user verification.
-2.  **User:**  (Add a badge to the sidebar market tab for the admin panel...). **Status: Completed.**
-3.  **User:**  (OK, this is good for now). **Status: Completed.** User approved the email templates.
-4.  **User:**  (User corrected the agent's hypothetical email templates, asking for the real ones). **Status: Completed.**
-5.  **User:**  (OK, email is arriving, can you tell me the templates for all notifications?). **Status: Completed.**
-6.  **User:**  (It's faster, but the email isn't arriving). **Status: Completed.** This was a bug report during the performance fix, which was resolved.
-7.  **User:**  (There is still a delay). **Status: Completed.** This was part of the email performance debugging.
-8.  **User:**  (The email notification system is slowing things down). **Status: Completed.** Initial report of the performance issue.
-9.  **User:**  (Remove the emojis, maintain seriousness and the design language). **Status: Completed.**
-10. **User:**  (Email Notifications... write down one by one for which actions we are sending emails). **Status: Completed.**
+1.  **User:** Requests to make the Market Orders page design more minimal and modern. **Status: Completed.**
+2.  **User:** Asks if there is any refactoring left to do. **Status: Acknowledged.**
+3.  **User:** Approves the plan to refactor all remaining large files. Instructs the agent to be very careful. **Status: Completed.**
+4.  **User:** Provides requirements for 4 new major features: Academy, Backup/Restore system, custom Confirmation Modals, and Granular Admin Permissions. **Status: In Progress.**
+5.  **Agent:** Asks clarifying questions about the 4 new features. **Status: Responded.**
+6.  **User:** Provides answers to the agent's questions, clarifying Academy (direct video/text upload), Backup (daily scheduled ZIP via email), and approves the proposed plan for granular permissions. **Status: Acknowledged.**
+7.  **User:** Reports that the file upload button on the Toplu Hakediş tab only shows Camera and Photos on mobile, not Files. **Status: Completed.**
+8.  **User:** Requests several fixes: change the notification loading icon to the ShiftJet logo, prevent the word Bonus from appearing in transaction descriptions if the bonus is zero, and make the Toplu Hakediş preview modal mobile-responsive. **Status: Completed.**
+9.  **User:** Reports that deleted Eksik Fatura notifications keep reappearing and that notifications lack titles, making them look ugly. **Status: Completed.**
+10. **User:** Requests several UI changes: add a legal warning to the courier termination notice, prevent the Google Translate popup sitewide, and make the shift cards on the Güncel Durum page collapsible on desktop. **Status: Completed.**
 
 **Project Health Check:**
-- **Broken:** The search filter on  is potentially still broken, pending user verification.
+- **Broken:** None
 - **Mocked:**
-    - The Toplu hakediş girme (Bulk Payroll Entry) feature is on hold.
-    - The Akademi pages are placeholders with no functionality.
+    - Academy feature (placeholder files exist)
+    - Backup/Restore feature (placeholder files exist)
+    - Granular Permissions (concept approved, not implemented)
 
 **3rd Party Integrations**
 -   : Used for generating PDF reports.
 -   : Used for icons.
--    (Python Standard Library): Used for sending email notifications via SMTP.
+-    (Python Standard Library): Used for sending email notifications. Will be used for the backup feature.
+-   : Used for parsing  files.
 
 **Testing status**
-- Testing agent used after significant changes: YES (for  refactor).
+- Testing agent used after significant changes: YES. A full test suite was run after the major refactoring and all 18 backend and all frontend tests passed.
 - Troubleshoot agent used after agent stuck in loop: NO
-- Test files created: []
+- Test files created: None persistent.
 - Known regressions: None.
 
 **Credentials to test flow:**
 -   **Super Admin:** , 
 -   **Courier:** , 
+-   **AgrosJet Admin:**  (password unknown, but this user is associated with the sample data).
 
 **What agent forgot to execute**
-- The agent effectively followed all user requests and did not forget to execute any mentioned tasks. The prioritization was driven by the user's immediate feedback and requests.</analysis>
+- The agent has correctly identified the user's new requirements and started scaffolding them. Nothing was forgotten; the work is at the very beginning of a new, large set of tasks.</analysis>
