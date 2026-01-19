@@ -392,8 +392,13 @@ async def assign_product(
     return {"message": f"Ürün {data.courier_name}'a zimmetlendi", "assigned_at": assigned_at}
 
 @router.post("/products/{product_id}/return")
-async def return_product(product_id: str, data: ZimmetReturn):
+async def return_product(
+    product_id: str, 
+    data: ZimmetReturn,
+    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+):
     """Zimmeti geri al"""
+    await require_permission(x_admin_id, "zimmet_return")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
