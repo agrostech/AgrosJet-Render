@@ -154,6 +154,81 @@ export default function SistemPage({ companyId }) {
     }
   };
 
+  // Backup functions
+  const fetchBackupSettings = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/backup/company/${companyId}/schedule`);
+      setBackupSettings({
+        enabled: res.data.enabled || false,
+        hour: res.data.hour ?? 3,
+        email: res.data.email || ""
+      });
+    } catch (err) {
+      console.error("Backup settings fetch error:", err);
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
+  const handleBackupSave = async () => {
+    if (backupSettings.enabled && !backupSettings.email) {
+      toast.error("Otomatik yedekleme için e-posta adresi gerekli");
+      return;
+    }
+    
+    setBackupSaving(true);
+    try {
+      await axios.post(`${API}/backup/company/${companyId}/schedule`, backupSettings);
+      toast.success("Yedekleme ayarları kaydedildi");
+    } catch (err) {
+      toast.error("Kaydetme başarısız");
+    } finally {
+      setBackupSaving(false);
+    }
+  };
+
+  const handleDownloadBackup = async () => {
+    setDownloading(true);
+    try {
+      const response = await axios.get(`${API}/backup/company/${companyId}/export`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `yedek_${new Date().toISOString().split('T')[0]}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Yedek indirildi");
+    } catch (err) {
+      toast.error("İndirme başarısız");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleSendBackupNow = async () => {
+    if (!backupSettings.email) {
+      toast.error("Önce e-posta adresi kaydedin");
+      return;
+    }
+    
+    setSendingBackup(true);
+    try {
+      await axios.post(`${API}/backup/company/${companyId}/send-now`);
+      toast.success("Yedek e-postası gönderiliyor");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Gönderme başarısız");
+    } finally {
+      setSendingBackup(false);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
