@@ -415,6 +415,21 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                 data-testid="new-business-address"
               />
             </div>
+            <div>
+              <Label className="text-sm font-semibold">Vergi Dilimi (Kredi Kartı)</Label>
+              <select
+                value={newBusiness.tax_bracket || ""}
+                onChange={(e) => setNewBusiness({ ...newBusiness, tax_bracket: e.target.value ? parseInt(e.target.value) : null })}
+                className="mt-1 h-11 w-full border-2 rounded-md px-3 bg-white"
+                data-testid="new-business-tax-bracket"
+              >
+                <option value="">Seçiniz (Opsiyonel)</option>
+                <option value="1">%1</option>
+                <option value="10">%10</option>
+                <option value="20">%20</option>
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">Excel karşılaştırma için kullanılır</p>
+            </div>
             <Button type="submit" className="w-full h-11 font-semibold" data-testid="submit-new-business">Ekle</Button>
           </form>
         </DialogContent>
