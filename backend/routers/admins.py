@@ -163,9 +163,13 @@ async def update_admin_permissions(admin_id: str, data: PermissionsUpdate):
     valid_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
     filtered_permissions = {k: v for k, v in data.permissions.items() if k in valid_keys}
     
+    # İzin güncellendiğinde timestamp kaydet (otomatik çıkış için)
     await db.admins.update_one(
         {"id": admin_id},
-        {"$set": {"permissions": filtered_permissions}}
+        {"$set": {
+            "permissions": filtered_permissions,
+            "permissions_updated_at": datetime.now(timezone.utc).isoformat()
+        }}
     )
     return {"message": "İzinler güncellendi"}
 
