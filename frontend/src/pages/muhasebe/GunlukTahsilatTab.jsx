@@ -3,14 +3,14 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { 
   Calendar, 
   Check,
   Save,
   Banknote,
-  CreditCard
+  CreditCard,
+  Search
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -20,6 +20,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
   const [submitting, setSubmitting] = useState(null); // courier id being submitted
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [couriers, setCouriers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Form data for each courier
   const [formData, setFormData] = useState({});
