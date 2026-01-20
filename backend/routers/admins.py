@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, timezone
 import uuid
 
@@ -8,6 +8,33 @@ from utils.database import db
 from utils.helpers import hash_password, format_name
 
 router = APIRouter(prefix="/api", tags=["Admins"])
+
+
+# --- Default Permissions ---
+def get_default_permissions() -> Dict[str, bool]:
+    """Yeni admin için varsayılan izinler"""
+    return {
+        "vardiya": True,
+        "muhasebe": True,
+        "zimmet": True,
+        "kuryeler": True,
+        "market": True,
+        "akademi": True,
+        "sistem": False,  # Varsayılan kapalı
+    }
+
+
+def get_full_permissions() -> Dict[str, bool]:
+    """Superadmin için tüm izinler"""
+    return {
+        "vardiya": True,
+        "muhasebe": True,
+        "zimmet": True,
+        "kuryeler": True,
+        "market": True,
+        "akademi": True,
+        "sistem": True,
+    }
 
 
 # --- Pydantic Models ---
@@ -32,12 +59,17 @@ class AdminUpdate(BaseModel):
     email: Optional[str] = None
 
 
+class PermissionsUpdate(BaseModel):
+    permissions: Dict[str, bool]
+
+
 class AdminResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     name: str
     username: str
     role: str
+    permissions: Optional[Dict[str, bool]] = None
     company_id: Optional[str] = None
     email: Optional[str] = None
     created_at: str
@@ -51,6 +83,15 @@ async def get_admins(company_id: Optional[str] = None):
     else:
         query = {"role": {"$ne": "systemadmin"}}
     admins = await db.admins.find(query, {"_id": 0, "password": 0}).to_list(100)
+    
+    # Permissions yoksa default ekle
+    for admin in admins:
+        if "permissions" not in admin:
+            if admin.get("role") == "superadmin":
+                admin["permissions"] = get_full_permissions()
+            else:
+                admin["permissions"] = get_default_permissions()
+    
     return admins
 
 
@@ -66,6 +107,7 @@ async def create_admin(data: AdminCreate):
         "username": data.username,
         "password": hash_password(data.password),
         "role": "admin",
+        "permissions": get_default_permissions(),
         "company_id": data.company_id,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -89,12 +131,33 @@ async def create_superadmin(data: SuperAdminCreate):
         "username": data.username,
         "password": hash_password(data.password),
         "role": "superadmin",
+        "permissions": get_full_permissions(),
         "company_id": data.company_id,
         "email": data.email,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.admins.insert_one(admin)
     return {"message": "Süper admin oluşturuldu", "id": admin["id"]}
+
+
+@router.put("/admins/{admin_id}/permissions")
+async def update_admin_permissions(admin_id: str, data: PermissionsUpdate):
+    """Admin izinlerini güncelle"""
+    admin = await db.admins.find_one({"id": admin_id})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
+    if admin["role"] != "admin":
+        raise HTTPException(status_code=400, detail="Sadece admin izinleri güncellenebilir")
+    
+    # Sadece geçerli izin anahtarlarını kabul et
+    valid_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    filtered_permissions = {k: v for k, v in data.permissions.items() if k in valid_keys}
+    
+    await db.admins.update_one(
+        {"id": admin_id},
+        {"$set": {"permissions": filtered_permissions}}
+    )
+    return {"message": "İzinler güncellendi"}
 
 
 @router.delete("/admins/{admin_id}")
@@ -104,6 +167,8 @@ async def delete_admin(admin_id: str):
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
     if admin["role"] == "systemadmin":
         raise HTTPException(status_code=403, detail="Sistem yöneticisi silinemez")
+    if admin["role"] == "superadmin":
+        raise HTTPException(status_code=403, detail="Süper admin silinemez")
     await db.admins.delete_one({"id": admin_id})
     return {"message": "Yönetici silindi"}
 
