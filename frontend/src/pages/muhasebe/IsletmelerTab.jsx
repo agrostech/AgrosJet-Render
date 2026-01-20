@@ -528,6 +528,63 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           )}
         </DialogContent>
       </Dialog>
+
+      {/* İşletme Düzenleme Modal */}
+      <Dialog open={!!editingBusiness} onOpenChange={(open) => !open && setEditingBusiness(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              İşletme Düzenle
+            </DialogTitle>
+          </DialogHeader>
+          {editingBusiness && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-semibold">İşletme Adı</Label>
+                <Input
+                  value={editBusinessForm.name}
+                  onChange={(e) => setEditBusinessForm({ ...editBusinessForm, name: e.target.value })}
+                  className="mt-1 h-11 border-2"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Telefon</Label>
+                <Input
+                  value={editBusinessForm.phone}
+                  onChange={(e) => setEditBusinessForm({ ...editBusinessForm, phone: e.target.value })}
+                  className="mt-1 h-11 border-2 font-mono"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Adres</Label>
+                <Input
+                  value={editBusinessForm.address}
+                  onChange={(e) => setEditBusinessForm({ ...editBusinessForm, address: e.target.value })}
+                  className="mt-1 h-11 border-2"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Vergi Dilimi (Kredi Kartı)</Label>
+                <select
+                  value={editBusinessForm.tax_bracket || ""}
+                  onChange={(e) => setEditBusinessForm({ ...editBusinessForm, tax_bracket: e.target.value ? parseInt(e.target.value) : null })}
+                  className="mt-1 h-11 w-full border-2 rounded-md px-3 bg-white"
+                >
+                  <option value="">Seçiniz (Opsiyonel)</option>
+                  <option value="1">%1</option>
+                  <option value="10">%10</option>
+                  <option value="20">%20</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">Excel karşılaştırma için kullanılır</p>
+              </div>
+              <Button onClick={handleEditBusinessSubmit} className="w-full h-11 font-semibold" disabled={editBusinessLoading}>
+                {editBusinessLoading ? "Güncelleniyor..." : "Kaydet"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
