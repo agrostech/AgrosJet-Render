@@ -167,7 +167,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       setInstallmentDate("");
       setUseInstallmentCustomDate(false);
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Taksit alınamadı");
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Taksit alınamadı");
+      }
     } finally {
       setPayingInstallment(null);
     }
@@ -184,7 +186,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           toast.success("Ürün silindi");
           fetchInstallmentProducts(selectedEntity.id);
         } catch (err) {
-          toast.error(err.response?.data?.detail || "Ürün silinemedi");
+          if (!err.handled) {
+            toast.error(err.response?.data?.detail || "Ürün silinemedi");
+          }
         }
         setConfirmOpen(false);
       }
@@ -210,7 +214,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
             fetchInstallmentProducts(selectedEntity.id);
           }
         } catch (err) {
-          toast.error("İşlem silinemedi");
+          if (!err.handled) {
+            toast.error("İşlem silinemedi");
+          }
         }
         setConfirmOpen(false);
       }
