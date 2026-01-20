@@ -76,13 +76,6 @@ export default function LoginPage() {
       const res = await axios.post(`${API}/auth/admin/login`, adminData);
       saveSession(res.data, rememberAdmin);
       
-      // Önceki invalidation kaydını temizle
-      try {
-        await axios.delete(`${API}/auth/clear-invalidation/${res.data.id}`);
-      } catch (e) {
-        // Hata olsa da devam et
-      }
-      
       if (res.data.role === "systemadmin") {
         navigate("/system");
       } else {
