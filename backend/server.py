@@ -80,6 +80,8 @@ from routers.bonus import router as bonus_router
 from routers.bulk_hakedis import router as bulk_hakedis_router
 from routers.academy import router as academy_router
 from routers.backup import router as backup_router
+from routers.daily_collections import router as daily_collections_router
+from routers.daily_reports import router as daily_reports_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
@@ -99,6 +101,8 @@ app.include_router(bonus_router)
 app.include_router(bulk_hakedis_router)
 app.include_router(academy_router)
 app.include_router(backup_router)
+app.include_router(daily_collections_router)
+app.include_router(daily_reports_router)
 
 # Health check
 @api_router.get("/")
