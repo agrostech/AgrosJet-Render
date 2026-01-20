@@ -32,7 +32,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       setTotalProducts(res.data.total_count);
       setHasMoreProducts(res.data.has_more);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Ürünler yüklenemedi");
+      }
     }
   }, [companyId, products.length]);
 
@@ -106,7 +108,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProductTypes();
       return true;
     } catch (err) {
+      if (!err.handled) {
       toast.error("Eklenemedi");
+      }
       return false;
     }
   }, [companyId, fetchProductTypes]);
@@ -122,7 +126,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProductTypes();
       return true;
     } catch (err) {
+      if (!err.handled) {
       toast.error("Güncellenemedi");
+      }
       return false;
     }
   }, [fetchProductTypes]);
@@ -136,7 +142,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       toast.success("Silindi");
       fetchProductTypes();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Silinemedi");
+      }
     }
   }, [fetchProductTypes]);
 
@@ -146,7 +154,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       toast.success("Silindi");
       fetchProductTypes();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Silinemedi");
+      }
     }
   }, [fetchProductTypes]);
 
@@ -163,7 +173,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchLogs();
       return true;
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Eklenemedi");
+      }
       return false;
     }
   }, [companyId, adminId, adminName, fetchProducts, fetchLogs]);
@@ -186,7 +198,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       }
       return true;
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Güncellenemedi");
+      }
       return false;
     }
   }, [adminId, adminName, fetchProducts, fetchLogs, selectedProduct?.id]);
@@ -202,7 +216,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProducts();
       fetchLogs();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Silinemedi");
+      }
     }
   }, [adminId, adminName, selectedProduct?.id, fetchProducts, fetchLogs]);
 
@@ -214,7 +230,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProducts();
       fetchLogs();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Silinemedi");
+      }
     }
   }, [adminId, adminName, selectedProduct?.id, fetchProducts, fetchLogs]);
 
@@ -242,7 +260,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProductHistory(product.id);
       return true;
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Zimmetlenemedi");
+      }
       return false;
     }
   }, [couriers, adminId, adminName, fetchProducts, fetchLogs, fetchProductHistory]);
@@ -265,7 +285,9 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProductHistory(product.id);
       return true;
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Geri alınamadı");
+      }
       return false;
     }
   }, [adminId, adminName, fetchProducts, fetchLogs, fetchProductHistory]);
@@ -283,7 +305,9 @@ export function useZimmetData(companyId, adminId, adminName) {
         setSelectedProduct({ ...selectedProduct, is_defective: !product.is_defective });
       }
     } catch (err) {
+      if (!err.handled) {
       toast.error("Güncellenemedi");
+      }
     }
   }, [adminId, adminName, fetchProducts, fetchLogs, selectedProduct]);
 
@@ -299,7 +323,9 @@ export function useZimmetData(companyId, adminId, adminName) {
         setSelectedProduct({ ...selectedProduct, is_lost: !product.is_lost });
       }
     } catch (err) {
+      if (!err.handled) {
       toast.error("Güncellenemedi");
+      }
     }
   }, [adminId, adminName, fetchProducts, fetchLogs, selectedProduct]);
 
