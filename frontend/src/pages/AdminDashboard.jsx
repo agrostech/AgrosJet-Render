@@ -61,7 +61,11 @@ export default function AdminDashboard() {
       
       try {
         const savedTimestamp = parsed.permissions_updated_at;
-        const res = await axios.get(`${API}/auth/check-permissions/${parsed.id}?timestamp=${savedTimestamp || ''}`);
+        // Timestamp yoksa kontrol yapma (henüz izin güncellenmemiş)
+        if (!savedTimestamp) return;
+        
+        const encodedTimestamp = encodeURIComponent(savedTimestamp);
+        const res = await axios.get(`${API}/auth/check-permissions/${parsed.id}?timestamp=${encodedTimestamp}`);
         
         if (res.data.updated) {
           toast.warning("İzinleriniz güncellendi. Yeniden giriş yapmanız gerekiyor.");
