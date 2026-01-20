@@ -166,3 +166,36 @@ Masaüstüne eklendiğinde görünen PWA ikonu, ShiftJet logosu ile değiştiril
 **İkon Tasarımı:**
 - Koyu mavi (#1e3a5f) arka plan
 - Ortalanmış ShiftJet logosu (takvim + onay + jet simgesi)
+
+---
+
+## January 20, 2026 - Günlük Tahsilat ve Excel Karşılaştırma Sistemi
+
+### ✅ COMPLETED: Kurye Tahsilat Takip Sistemi
+
+Admin kuryelerden günlük nakit ve Z raporu (kredi kartı) tahsilatlarını kaydedebilir. Excel raporları yüklenip karşılaştırılabilir.
+
+**Yeni Dosyalar:**
+- `/app/backend/routers/daily_collections.py`: Günlük tahsilat API
+- `/app/backend/routers/daily_reports.py`: Excel yükleme ve karşılaştırma API
+- `/app/frontend/src/pages/muhasebe/GunlukTahsilatTab.jsx`: Tahsilat girişi UI
+- `/app/frontend/src/pages/muhasebe/ExcelKarsilastirmaTab.jsx`: Excel karşılaştırma UI
+
+**İşletme Vergi Dilimi:**
+- İşletme ekleme/düzenleme: %1, %10, %20 vergi dilimi seçimi
+- `/app/backend/routers/accounting.py`: `update_business` endpoint eklendi
+- `/app/frontend/src/pages/muhasebe/IsletmelerTab.jsx`: Vergi dilimi form alanı ve düzenleme butonu
+
+**Muhasebe Yeni Sekmeler:**
+1. **Günlük Tahsilat**: Kurye listesi, nakit ve Z raporu girişi
+2. **Excel Karşılaştırma**: Nakit/Kredi Kartı Excel yükle, karşılaştır, farkları işle
+
+**Akış:**
+1. Admin → Günlük Tahsilat → Kurye seç → Nakit + %1/%10/%20 kart gir → Kaydet
+2. Admin → Excel Karşılaştırma → Nakit Excel + Kart Excel yükle → Karşılaştır
+3. Farklar varsa → "İşle" butonu → Kuryeye yeşil (verilen) işlem otomatik eklenir
+4. Yanlış vergi dilimi → %34 ceza hesaplanır ve kuryeye eklenir
+
+**DB Collections:**
+- `daily_collections`: Günlük tahsilat kayıtları
+- `daily_excel_reports`: Yüklenen Excel raporları
