@@ -200,7 +200,10 @@ async def apply_bulk_hakedis(company_id: str, data: BulkHakedisCreate):
     """Apply bulk hakediş to matched couriers"""
     from routers.jetpuan import calculate_and_credit_points
     from routers.notifications import create_notification
-    from routers.accounting import create_activity_log
+    from routers.accounting import create_activity_log, get_admin_role
+    
+    # Admin rolünü al
+    admin_role = await get_admin_role(data.admin_id)
     
     # Parse custom date
     if data.custom_date:
