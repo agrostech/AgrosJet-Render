@@ -36,6 +36,11 @@ async def create_activity_log(log_data: dict):
     await db.activity_logs.insert_one(log)
     
     # Create notification for activity log
+    # Superadmin kendi işlemlerinde bildirim almaz
+    admin_role = log_data.get("admin_role", "admin")
+    if admin_role == "superadmin":
+        return log
+    
     try:
         action = log_data.get("action", "")
         entity_name = log_data.get("entity_name", "")
