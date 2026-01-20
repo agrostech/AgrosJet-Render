@@ -152,23 +152,30 @@ async def get_couriers_with_collections(company_id: str, date: str):
     """
     Belirli bir tarih için kurye listesi ve tahsilat durumları
     """
-    # Get company's couriers (deduplicate by courier_id)
-    company_couriers = await db.company_couriers.find(
-        {"company_id": company_id},
-        {"_id": 0, "courier_id": 1}
-    ).to_list(1000)
+    # Get company's couriers from company_couriers relation table
+    query = {"company_id": company_id, "is_archived": {"$ne": True}, "is_active": {"$ne": False}}
+    relations = await db.company_couriers.find(query, {"_id": 0, "courier_id": 1}).to_list(1000)
     
     # Deduplicate courier IDs
-    courier_ids = list(set([cc["courier_id"] for cc in company_couriers]))
+    courier_ids = list(set([rel["courier_id"] for rel in relations]))
     
     if not courier_ids:
         return []
     
-    # Get active couriers
+    # Get courier details
     couriers = await db.couriers.find(
-        {"id": {"$in": courier_ids}, "is_archived": {"$ne": True}},
+        {"id": {"$in": courier_ids}},
         {"_id": 0, "id": 1, "name": 1, "phone": 1}
     ).to_list(1000)
+    
+    # Deduplicate couriers by ID (in case of data issues)
+    seen_ids = set()
+    unique_couriers = []
+    for c in couriers:
+        if c["id"] not in seen_ids:
+            seen_ids.add(c["id"])
+            unique_couriers.append(c)
+    couriers = unique_couriers
     
     # Get collections for this date
     collections = await db.daily_collections.find(
