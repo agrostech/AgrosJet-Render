@@ -103,12 +103,9 @@ async def delete_shift(
     return {"message": "Vardiya silindi"}
 
 @router.get("/companies/{company_id}/shift-assignments")
-async def get_shift_assignments(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_shift_assignments(company_id: str):
     """Get all shift assignments for a company"""
-    await require_permission(x_admin_id, "vardiya_view")
+    # GET işlemi - kurye panelinden de erişilebilir
     assignments = await db.shift_assignments.find({"company_id": company_id}, {"_id": 0}).to_list(1000)
     return assignments
 
