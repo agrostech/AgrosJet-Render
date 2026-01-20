@@ -26,35 +26,50 @@ class BackupSchedule(BaseModel):
 
 # Collections to backup - comprehensive list
 BACKUP_COLLECTIONS = [
+    # Temel veriler
     "companies",
     "admins", 
     "couriers",
     "company_couriers",
+    # Vardiya
     "shifts",
     "shift_assignments",
     "shift_leaves",
-    "transactions",  # accounting transactions
+    "leaves",
+    # Muhasebe
+    "transactions",
     "activity_logs",
     "invoices",
+    "businesses",
+    "vendors",
+    "installment_products",
+    "mali_bellek",
+    "mali_bellek_logs",
+    # Zimmet
     "products",
     "product_types",
     "zimmet_assignments",
     "zimmet_logs",
+    # JetPuan
     "jetpuan_products",
     "jetpuan_categories",
     "jetpuan_orders",
     "jetpuan_transactions",
+    "jetpuan_settings",
+    "jetpuan_balances",
+    # Bildirimler
     "notifications",
     "dismissed_notifications",
+    # Evraklar
     "documents",
+    "courier_documents",
+    # Akademi
     "academy_trainings",
+    # Ayarlar
     "bonus_settings",
     "email_settings",
     "company_settings",
-    "backup_settings",
-    "installment_products",
-    "businesses",
-    "vendors"
+    "backup_settings"
 ]
 
 
