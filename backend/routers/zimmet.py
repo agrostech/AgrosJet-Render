@@ -52,13 +52,14 @@ class ZimmetReturn(BaseModel):
 
 
 # --- Helper Function ---
-async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, action: str, product_id: str, product_name: str, courier_id: Optional[str], courier_name: Optional[str], details: dict = None):
+async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, action: str, product_id: str, product_name: str, courier_id: Optional[str], courier_name: Optional[str], details: dict = None, admin_role: str = "admin"):
     """Zimmet log kaydı oluştur"""
     log = {
         "id": str(uuid.uuid4()),
         "company_id": company_id,
         "admin_id": admin_id,
         "admin_name": admin_name,
+        "admin_role": admin_role,
         "action": action,
         "product_id": product_id,
         "product_name": product_name,
@@ -70,6 +71,10 @@ async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, act
     await db.zimmet_logs.insert_one(log)
     
     # Create notification for zimmet log
+    # Superadmin kendi işlemlerinde bildirim almaz
+    if admin_role == "superadmin":
+        return
+    
     try:
         notification_map = {
             "assigned": ("zimmet_hareket", "Zimmet Atandı", f"{admin_name}: {product_name} → {courier_name}"),
