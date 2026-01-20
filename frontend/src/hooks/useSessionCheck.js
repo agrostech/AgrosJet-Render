@@ -60,8 +60,8 @@ export function useSessionCheck() {
     // İlk kontrol
     checkSession();
 
-    // Her 10 saniyede kontrol et (yetki değişikliklerini hızlı yakala)
-    const interval = setInterval(checkSession, 10000);
+    // Her 60 saniyede kontrol et (yetki değişikliklerini yakala)
+    const interval = setInterval(checkSession, 60000);
 
     return () => clearInterval(interval);
   }, [checkSession]);
