@@ -1,45 +1,22 @@
 /**
  * API Helper for ShiftJet Kurye Yönetim Sistemi
- * Handles API calls with permission headers
+ * Simple API call helpers without permission headers
  */
 
 const API_BASE = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /**
- * Get the current admin ID from localStorage
- */
-const getAdminId = () => {
-  try {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      return user.id || null;
-    }
-  } catch (e) {
-    console.error('Error getting admin ID:', e);
-  }
-  return null;
-};
-
-/**
- * Create headers with X-Admin-Id for permission checking
+ * Create headers for API calls
  */
 export const createHeaders = (additionalHeaders = {}) => {
-  const headers = {
+  return {
     'Content-Type': 'application/json',
     ...additionalHeaders,
   };
-
-  const adminId = getAdminId();
-  if (adminId) {
-    headers['X-Admin-Id'] = adminId;
-  }
-
-  return headers;
 };
 
 /**
- * Wrapper around fetch that adds permission headers
+ * Wrapper around fetch
  */
 export const apiFetch = async (endpoint, options = {}) => {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
@@ -56,16 +33,11 @@ export const apiFetch = async (endpoint, options = {}) => {
     headers,
   });
 
-  if (response.status === 403) {
-    const data = await response.json();
-    throw new Error(data.detail || 'Bu işlem için yetkiniz yok');
-  }
-
   return response;
 };
 
 /**
- * GET request with permission headers
+ * GET request
  */
 export const apiGet = async (endpoint) => {
   const response = await apiFetch(endpoint);
@@ -77,7 +49,7 @@ export const apiGet = async (endpoint) => {
 };
 
 /**
- * POST request with permission headers
+ * POST request
  */
 export const apiPost = async (endpoint, data) => {
   const response = await apiFetch(endpoint, {
@@ -92,7 +64,7 @@ export const apiPost = async (endpoint, data) => {
 };
 
 /**
- * PUT request with permission headers
+ * PUT request
  */
 export const apiPut = async (endpoint, data) => {
   const response = await apiFetch(endpoint, {
@@ -107,7 +79,7 @@ export const apiPut = async (endpoint, data) => {
 };
 
 /**
- * DELETE request with permission headers
+ * DELETE request
  */
 export const apiDelete = async (endpoint, data = null) => {
   const options = {
