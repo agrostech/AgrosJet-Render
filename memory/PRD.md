@@ -133,3 +133,19 @@ Mobil görünümde dosya (PDF) + fotoğraf yükleme eklendi.
 └── memory/
     └── PRD.md
 ```
+
+---
+
+## January 20, 2026 - PWA "Tekrar Gösterme" Checkbox
+
+### ✅ COMPLETED: PWA Bildiriminde "Bunu tekrar gösterme" Checkbox
+
+PWA "Ana ekrana ekle" bildirimine checkbox eklendi. Kullanıcı işaretlerse bildirim bir daha gösterilmiyor.
+
+**Değişiklikler:**
+- `/app/frontend/src/hooks/usePWAInstall.js`: `pwa-install-never-show` localStorage key eklendi
+- `/app/frontend/src/components/PWAInstallPrompt.jsx`: Checkbox bileşeni ve state eklendi
+
+**Davranış:**
+- Checkbox işaretlenmeden "Daha Sonra" → 7 gün sonra tekrar göster
+- Checkbox işaretlenip "Daha Sonra" veya X → Bir daha gösterme
