@@ -121,6 +121,7 @@ async def upload_invoice(
         "id": str(uuid.uuid4()),
         "company_id": company_id,
         "type": "invoice_uploaded",
+        "title": "Hakediş Faturası Yüklendi",
         "message": f"{courier_name} hakediş faturası yükledi",
         "is_read": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
