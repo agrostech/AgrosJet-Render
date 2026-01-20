@@ -25,63 +25,42 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 20, 2026 - Basit Sayfa Bazlı İzin Sistemi (Latest)
+### January 20, 2026 - İzin Güncelleme Otomatik Çıkış (Latest)
+
+#### ✅ COMPLETED: İzin Güncellendiğinde Otomatik Çıkış
+Admin izinleri güncellendiğinde 10 saniye içinde otomatik çıkış yapılıyor.
+
+**Akış:**
+1. Superadmin izinleri günceller
+2. Backend `permissions_updated_at` timestamp'i kaydeder
+3. Frontend her 10 saniyede `/api/auth/check-permissions` endpoint'ini kontrol eder
+4. Timestamp değişmişse warning toast gösterir ve login'e yönlendirir
+
+**Önemli:**
+- ✅ İzin güncellemesi şifreyi ETKİLEMİYOR
+- ✅ Superadmin bu kontrolden muaf
+- ✅ Warning toast: "İzinleriniz güncellendi. Yeniden giriş yapmanız gerekiyor."
+
+**Test Sonuçları (iteration_22.json):** Tüm kritik testler geçti
+
+---
+
+### January 20, 2026 - Basit Sayfa Bazlı İzin Sistemi
 
 #### ✅ COMPLETED: Basit Sayfa Bazlı İzin Sistemi
-Kullanıcı talebi üzerine basit ve temiz bir izin sistemi uygulandı.
-
-**İzin Yapısı (7 sayfa için boolean):**
-```json
-{
-  "vardiya": true/false,
-  "muhasebe": true/false,
-  "zimmet": true/false,
-  "kuryeler": true/false,
-  "market": true/false,
-  "akademi": true/false,
-  "sistem": true/false
-}
-```
+7 sayfa için boolean izinler: vardiya, muhasebe, zimmet, kuryeler, market, akademi, sistem
 
 **Özellikler:**
-- ✅ Sayfa erişim kontrolü (menüde görünme + route koruması)
-- ✅ Yöneticiler sayfasında izin modalı (Shield ikonu, 7 switch)
-- ✅ Varsayılan izinler: Yeni admin tüm sayfalara erişebilir (sistem hariç)
-- ✅ Superadmin tüm izinlere sahip
-- ✅ Yöneticiler sayfası SADECE superadmin için
-- ❌ İşlem bazlı kontrol YOK
-- ❌ Session invalidation YOK (izin değişikliği sonrası manuel çıkış gerekir)
-
-**Dosyalar:**
-- Backend: `admins.py` (get_default_permissions, get_full_permissions, /permissions endpoint)
-- Backend: `auth.py` (login response'da permissions field)
-- Frontend: `AdminDashboard.jsx` (menü filtreleme, route koruması)
-- Frontend: `YoneticilerPage.jsx` (izin modalı, PERMISSION_ITEMS)
-
-**Test Sonuçları (iteration_21.json):**
-- ✅ 9/9 backend testi geçti
-- ✅ Tüm frontend testleri geçti
+- Yöneticiler sayfasında Shield (kalkan) butonu ile izin modalı
+- Menü filtreleme + route koruması
+- Varsayılan: Yeni admin tüm sayfalara erişebilir (sistem hariç)
 
 ---
 
 ### January 20, 2026 - Fatura Yükleme Düzeltmesi
 
 #### ✅ COMPLETED: Kurye Hakediş Fatura Yükleme
-Mobil görünümde sadece fotoğraf seçeneği çıkıyordu, dosya (PDF) seçeneği eklendi.
-
-**Değişiklikler:**
-- Frontend: `CourierMuhasebePage.jsx` - accept attribute güncellendi
-- Backend: `invoices.py` - PDF yanında resim dosyaları da kabul ediliyor (JPG, PNG, HEIC)
-
----
-
-### Previous Sessions (January 20, 2026)
-
-#### Completed Features
-- Hakediş Checkbox Mantık Hatası düzeltildi
-- Bildirim mantığı düzeltildi
-- Akademi Modülü tamamlandı
-- Yedekleme (Backup) Modülü tamamlandı
+Mobil görünümde dosya (PDF) + fotoğraf yükleme eklendi.
 
 ---
 
@@ -96,17 +75,15 @@ Mobil görünümde sadece fotoğraf seçeneği çıkıyordu, dosya (PDF) seçene
 - ✅ E-posta bildirimleri
 - ✅ PDF export
 - ✅ Sayfa bazlı izin sistemi
+- ✅ İzin güncelleme otomatik çıkış
 
 ---
 
 ## Prioritized Backlog
 
-### P1 - High Priority
-- [ ] Kurye deaktivasyonu kontrolü son doğrulama
-
 ### P2 - Medium Priority
 - [ ] Kod refactoring (büyük dosyaları parçalama)
-- [ ] err.handled temizliği (artık kullanılmıyor)
+- [ ] err.handled temizliği
 
 ### P3 - Low Priority
 - [ ] Akademi için kalıcı dosya depolama
@@ -119,10 +96,10 @@ Mobil görünümde sadece fotoğraf seçeneği çıkıyordu, dosya (PDF) seçene
 - Username: `onurertas`
 - Password: `Delivery32..`
 
-### Test Admin (Restricted)
+### Test Admin
 - Username: `testpermadmin`
 - Password: `test123`
-- Permissions: vardiya ✓, muhasebe ✓, zimmet ✓, kuryeler ✓, market ✗, akademi ✗, sistem ✗
+
 
 ---
 
