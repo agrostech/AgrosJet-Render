@@ -9,6 +9,23 @@ from utils.helpers import hash_password, format_name
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
+# --- Session Check ---
+@router.get("/check-session/{user_id}")
+async def check_session(user_id: str):
+    """Check if user's session is still valid"""
+    invalidated = await db.invalidated_sessions.find_one({"user_id": user_id})
+    if invalidated:
+        return {"valid": False, "reason": "Yetkilerin güncellendi, lütfen tekrar giriş yap"}
+    return {"valid": True}
+
+
+@router.delete("/clear-invalidation/{user_id}")
+async def clear_invalidation(user_id: str):
+    """Clear session invalidation after user logs out"""
+    await db.invalidated_sessions.delete_one({"user_id": user_id})
+    return {"message": "Cleared"}
+
+
 # --- Pydantic Models ---
 class CourierRegister(BaseModel):
     name: str
