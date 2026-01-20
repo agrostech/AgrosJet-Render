@@ -123,3 +123,20 @@ async def login_admin(data: AdminLogin):
         "company": company,
         "email": admin.get("email")
     }
+
+
+
+@router.get("/auth/check-permissions/{admin_id}")
+async def check_permissions_update(admin_id: str, timestamp: str = None):
+    """Admin izinlerinin güncellenip güncellenmediğini kontrol et"""
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0, "permissions_updated_at": 1})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin bulunamadı")
+    
+    current_timestamp = admin.get("permissions_updated_at")
+    
+    # Eğer timestamp verilmişse ve farklıysa, izinler güncellenmiş demektir
+    if timestamp and current_timestamp and timestamp != current_timestamp:
+        return {"updated": True, "new_timestamp": current_timestamp}
+    
+    return {"updated": False, "current_timestamp": current_timestamp}
