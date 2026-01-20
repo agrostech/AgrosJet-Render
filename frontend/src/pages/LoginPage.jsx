@@ -62,7 +62,7 @@ export default function LoginPage() {
       navigate("/courier");
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Giriş başarısız");
+        toast.error(err.response?.data?.detail || "Giriş başarısız");
       }
     } finally {
       setLoading(false);
@@ -78,8 +78,8 @@ export default function LoginPage() {
       
       // Önceki invalidation kaydını temizle
       try {
-        await axios.delete(`${API}/session/invalidation/${res.data.id}`);
-      } catch (err) {
+        await axios.delete(`${API}/auth/clear-invalidation/${res.data.id}`);
+      } catch (e) {
         // Hata olsa da devam et
       }
       
@@ -90,7 +90,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Giriş başarısız");
+        toast.error(err.response?.data?.detail || "Giriş başarısız");
       }
     } finally {
       setLoading(false);
