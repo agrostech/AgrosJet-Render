@@ -137,7 +137,9 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
       setShowInstallmentModal(false);
       fetchInstallmentProducts(selectedEntity.id);
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Ürün eklenemedi");
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Ürün eklenemedi");
+      }
     } finally {
       setAddingProduct(false);
     }
