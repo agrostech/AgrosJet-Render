@@ -357,13 +357,23 @@ async def get_couriers_invoice_summary(company_id: str, year: int = None, month:
         {"_id": 0}
     ).to_list(500)
     
-    courier_ids = [r["courier_id"] for r in relations]
+    # Deduplicate courier IDs
+    courier_ids = list(set([r["courier_id"] for r in relations]))
     
     # Get couriers info
     couriers = await db.couriers.find(
         {"id": {"$in": courier_ids}},
         {"_id": 0, "id": 1, "name": 1, "phone": 1}
     ).to_list(500)
+    
+    # Deduplicate couriers by ID
+    seen_ids = set()
+    unique_couriers = []
+    for c in couriers:
+        if c["id"] not in seen_ids:
+            seen_ids.add(c["id"])
+            unique_couriers.append(c)
+    couriers = unique_couriers
     
     # Build query for invoices
     invoice_query = {"company_id": company_id}
