@@ -122,12 +122,38 @@ async def create_business(
         "name": data.name,
         "phone": data.phone,
         "address": data.address,
+        "tax_bracket": data.tax_bracket if hasattr(data, 'tax_bracket') and data.tax_bracket else None,
         "company_id": company_id,
         "is_archived": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.businesses.insert_one(business)
     return {"message": "İşletme oluşturuldu", "id": business["id"]}
+
+
+@router.put("/businesses/{business_id}")
+async def update_business(business_id: str, data: dict):
+    """Update a business"""
+    update_fields = {}
+    if "name" in data:
+        update_fields["name"] = data["name"]
+    if "phone" in data:
+        update_fields["phone"] = data["phone"]
+    if "address" in data:
+        update_fields["address"] = data["address"]
+    if "tax_bracket" in data:
+        update_fields["tax_bracket"] = data["tax_bracket"]
+    
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="Güncellenecek alan belirtilmedi")
+    
+    result = await db.businesses.update_one(
+        {"id": business_id},
+        {"$set": update_fields}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="İşletme bulunamadı")
+    return {"message": "İşletme güncellendi"}
 
 @router.put("/businesses/{business_id}/archive")
 async def archive_business(
