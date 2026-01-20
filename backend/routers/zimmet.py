@@ -52,8 +52,19 @@ class ZimmetReturn(BaseModel):
 
 
 # --- Helper Function ---
-async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, action: str, product_id: str, product_name: str, courier_id: Optional[str], courier_name: Optional[str], details: dict = None, admin_role: str = "admin"):
+async def get_admin_role(admin_id: str) -> str:
+    """Admin ID'den rol bilgisini al"""
+    if not admin_id:
+        return "admin"
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0, "role": 1})
+    return admin.get("role", "admin") if admin else "admin"
+
+
+async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, action: str, product_id: str, product_name: str, courier_id: Optional[str], courier_name: Optional[str], details: dict = None):
     """Zimmet log kaydı oluştur"""
+    # Admin rolünü al
+    admin_role = await get_admin_role(admin_id)
+    
     log = {
         "id": str(uuid.uuid4()),
         "company_id": company_id,
