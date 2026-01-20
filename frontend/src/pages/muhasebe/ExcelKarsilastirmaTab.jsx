@@ -129,8 +129,8 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
   };
 
   const formatMoney = (val) => {
-    if (!val && val !== 0) return "₺0";
-    return `₺${val.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`;
+    if (!val && val !== 0) return "0 TL";
+    return `${val.toLocaleString('tr-TR', { minimumFractionDigits: 0 })} TL`;
   };
 
   return (
