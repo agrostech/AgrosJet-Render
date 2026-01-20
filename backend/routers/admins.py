@@ -258,10 +258,7 @@ async def update_admin_permissions(admin_id: str, data: PermissionUpdate):
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı veya güncellenemedi")
     
-    # Yetkileri değişen adminin oturumunu geçersiz kıl
-    await invalidate_user_session(admin_id)
-    
-    return {"message": "Yetkiler güncellendi", "session_invalidated": True}
+    return {"message": "Yetkiler güncellendi"}
 
 
 @router.post("/admins/migrate-permissions")
