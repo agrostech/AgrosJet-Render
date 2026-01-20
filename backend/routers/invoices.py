@@ -79,9 +79,9 @@ async def upload_invoice(
     tuesday = get_week_tuesday()
     tuesday_str = tuesday.strftime("%d.%m.%Y")
     
-    # Format file name: KuryeAdSoyad_DD.MM.YYYY.pdf
+    # Format file name: KuryeAdSoyad_DD.MM.YYYY.ext
     formatted_name = format_courier_name_for_file(courier_name)
-    file_name = f"{formatted_name}_{tuesday_str}.pdf"
+    file_name = f"{formatted_name}_{tuesday_str}{file_ext}"
     
     # Create unique file path to avoid conflicts
     unique_id = str(uuid.uuid4())[:8]
