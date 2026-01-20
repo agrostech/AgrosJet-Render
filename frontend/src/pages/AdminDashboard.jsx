@@ -76,21 +76,29 @@ export default function AdminDashboard() {
   if (!user) return null;
 
   const isSuperAdmin = user.role === "superadmin";
+  const permissions = user.permissions || {};
   const company = user.company;
 
-  // Tüm menü öğeleri - yetki kontrolü kaldırıldı
-  // Sadece Yöneticiler sayfası superadmin için
-  const NAV_ITEMS = [
-    { path: "/admin", label: "Anasayfa", icon: LayoutDashboard, key: "guncel" },
-    { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya" },
-    { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
-    { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet" },
-    { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan" },
-    { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi" },
-    { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler" },
-    ...(isSuperAdmin ? [{ path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler" }] : []),
-    { path: "/admin/sistem", label: "Sistem", icon: SlidersHorizontal, key: "sistem" },
+  // Menü öğeleri - sayfa bazlı izin kontrolü
+  const allNavItems = [
+    { path: "/admin", label: "Anasayfa", icon: LayoutDashboard, key: "guncel", permKey: null },
+    { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya", permKey: "vardiya" },
+    { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
+    { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
+    { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan", permKey: "market" },
+    { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi", permKey: "akademi" },
+    { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler", permKey: "kuryeler" },
+    { path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler", permKey: "yoneticiler" },
+    { path: "/admin/sistem", label: "Sistem", icon: SlidersHorizontal, key: "sistem", permKey: "sistem" },
   ];
+
+  // İzin kontrolü ile filtreleme
+  const NAV_ITEMS = allNavItems.filter((item) => {
+    if (!item.permKey) return true; // Anasayfa herkese açık
+    if (isSuperAdmin) return true; // Superadmin her şeyi görür
+    if (item.permKey === "yoneticiler") return false; // Yöneticiler sadece superadmin
+    return permissions[item.permKey] === true;
+  });
 
   return (
     <div className="min-h-screen bg-slate-50" data-testid="admin-dashboard">
