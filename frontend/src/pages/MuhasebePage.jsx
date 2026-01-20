@@ -121,6 +121,8 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
         {activeTab === "cariler" && <CarilerTab companyId={companyId} adminId={adminId} adminName={adminName} companyLogo={companyLogo} companyName={companyName} transactionRef={transactionRef} onSelect={scrollToTransactions} />}
         {activeTab === "faturalar" && <FaturalarTab companyId={companyId} />}
         {activeTab === "toplu-hakedis" && <TopluHakedisTab companyId={companyId} adminId={adminId} adminName={adminName} />}
+        {activeTab === "gunluk-tahsilat" && <GunlukTahsilatTab companyId={companyId} adminId={adminId} adminName={adminName} />}
+        {activeTab === "excel-karsilastirma" && <ExcelKarsilastirmaTab companyId={companyId} adminId={adminId} adminName={adminName} />}
         {activeTab === "hareketler" && <HareketlerTab companyId={companyId} />}
       </div>
     </div>
