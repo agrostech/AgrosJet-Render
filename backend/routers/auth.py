@@ -118,6 +118,7 @@ async def login_admin(data: AdminLogin):
         "username": admin["username"],
         "role": admin["role"],
         "permissions": permissions,
+        "permissions_updated_at": admin.get("permissions_updated_at"),
         "company_id": admin["company_id"],
         "company": company,
         "email": admin.get("email")
