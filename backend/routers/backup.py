@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Header
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Header, UploadFile, File
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -22,6 +22,10 @@ class BackupSchedule(BaseModel):
     enabled: bool
     hour: int  # 0-23
     email: str
+
+
+class RestoreOptions(BaseModel):
+    replace_existing: bool = False  # True: mevcut verileri sil, False: sadece eksikleri ekle
 
 
 # Collections to backup - comprehensive list
