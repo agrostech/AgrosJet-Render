@@ -5,19 +5,33 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
-// Track shown toasts to prevent duplicates
-let lastErrorMessage = '';
-let lastErrorTime = 0;
+// Track active error toasts to prevent duplicates
+const activeToasts = new Set();
 
 const showErrorToast = (message) => {
-  const now = Date.now();
-  // Aynı mesajı 2 saniye içinde tekrar gösterme
-  if (message === lastErrorMessage && now - lastErrorTime < 2000) {
+  // Aynı mesaj zaten gösteriliyorsa tekrar gösterme
+  if (activeToasts.has(message)) {
     return;
   }
-  lastErrorMessage = message;
-  lastErrorTime = now;
-  toast.error(message);
+  
+  activeToasts.add(message);
+  
+  // Toast'ı göster ve kapandığında set'ten kaldır
+  toast.error(message, {
+    id: message, // Aynı ID ile toast tekrar oluşturulamaz
+    onDismiss: () => {
+      activeToasts.delete(message);
+    },
+    onAutoClose: () => {
+      activeToasts.delete(message);
+    },
+    duration: 4000,
+  });
+  
+  // 5 saniye sonra set'ten kaldır (güvenlik için)
+  setTimeout(() => {
+    activeToasts.delete(message);
+  }, 5000);
 };
 
 // Create axios instance
@@ -55,15 +69,15 @@ axiosInstance.interceptors.response.use(
       const detail = error.response.data?.detail;
       
       if (status === 403) {
-        // Yetki hatası - sadece tek bir mesaj göster
         const message = detail || 'Bu işlem için yetkiniz yok';
         showErrorToast(message);
-        // Error'a flag ekle - component'te tekrar toast göstermesin
         error.permissionError = true;
+        error.handled = true;
       } else if (status === 401) {
         const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
         showErrorToast(message);
         error.authError = true;
+        error.handled = true;
       }
     }
     return Promise.reject(error);
@@ -104,10 +118,12 @@ axios.interceptors.response.use(
         const message = detail || 'Bu işlem için yetkiniz yok';
         showErrorToast(message);
         error.permissionError = true;
+        error.handled = true;
       } else if (status === 401) {
         const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
         showErrorToast(message);
         error.authError = true;
+        error.handled = true;
       }
     }
     return Promise.reject(error);
