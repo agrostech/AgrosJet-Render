@@ -230,11 +230,46 @@ export default function SistemPage({ companyId }) {
       await axios.post(`${API}/backup/company/${companyId}/send-now`);
       toast.success("Yedek e-postası gönderiliyor");
     } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Gönderme başarısız");
-      }
+      toast.error(err.response?.data?.detail || "Gönderme başarısız");
     } finally {
       setSendingBackup(false);
+    }
+  };
+
+  const handleUploadBackup = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.zip')) {
+      toast.error("Sadece ZIP dosyası yüklenebilir");
+      return;
+    }
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(
+        `${API}/backup/company/${companyId}/import?replace_existing=${replaceExisting}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      
+      const result = response.data;
+      const restoredCount = Object.keys(result.restored_collections || {}).length;
+      
+      toast.success(`Yedek yüklendi! ${restoredCount} koleksiyon geri yüklendi.`);
+      
+      // Sayfayı yenile
+      window.location.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Yükleme başarısız");
+    } finally {
+      setUploading(false);
+      if (backupFileRef.current) {
+        backupFileRef.current.value = '';
+      }
     }
   };
 
