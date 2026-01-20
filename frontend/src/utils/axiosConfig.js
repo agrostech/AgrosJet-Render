@@ -1,37 +1,46 @@
 /**
  * Axios Configuration with Permission Headers
- * Automatically adds X-Admin-Id header to all requests
+ * Global toast deduplication to prevent multiple error messages
  */
 import axios from 'axios';
 import { toast } from 'sonner';
 
-// Track active error toasts to prevent duplicates
-const activeToasts = new Set();
+// Global deduplication using window object
+if (typeof window !== 'undefined') {
+  window.__toastState = window.__toastState || {
+    lastMessage: '',
+    lastTime: 0,
+    activeMessages: new Set()
+  };
+}
 
 const showErrorToast = (message) => {
-  // Aynı mesaj zaten gösteriliyorsa tekrar gösterme
-  if (activeToasts.has(message)) {
+  if (typeof window === 'undefined') return;
+  
+  const state = window.__toastState;
+  const now = Date.now();
+  
+  // Aynı mesaj 3 saniye içinde tekrar gösterilmesin
+  if (state.activeMessages.has(message)) {
     return;
   }
   
-  activeToasts.add(message);
+  // Son mesaj aynıysa ve 3 saniye geçmediyse gösterme
+  if (message === state.lastMessage && now - state.lastTime < 3000) {
+    return;
+  }
   
-  // Toast'ı göster ve kapandığında set'ten kaldır
-  toast.error(message, {
-    id: message, // Aynı ID ile toast tekrar oluşturulamaz
-    onDismiss: () => {
-      activeToasts.delete(message);
-    },
-    onAutoClose: () => {
-      activeToasts.delete(message);
-    },
-    duration: 4000,
-  });
+  state.lastMessage = message;
+  state.lastTime = now;
+  state.activeMessages.add(message);
   
-  // 5 saniye sonra set'ten kaldır (güvenlik için)
+  // Toast göster
+  toast.error(message, { duration: 4000 });
+  
+  // 3 saniye sonra mesajı aktif listeden kaldır
   setTimeout(() => {
-    activeToasts.delete(message);
-  }, 5000);
+    state.activeMessages.delete(message);
+  }, 3000);
 };
 
 // Create axios instance
@@ -39,7 +48,7 @@ const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
 });
 
-// Add request interceptor to include X-Admin-Id header
+// Request interceptor - add X-Admin-Id header
 axiosInstance.interceptors.request.use(
   (config) => {
     try {
@@ -55,12 +64,10 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Add response interceptor to handle permission errors
+// Response interceptor - handle 401/403 errors with single toast
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -68,23 +75,19 @@ axiosInstance.interceptors.response.use(
       const status = error.response.status;
       const detail = error.response.data?.detail;
       
-      if (status === 403) {
-        const message = detail || 'Bu işlem için yetkiniz yok';
+      if (status === 403 || status === 401) {
+        const message = detail || (status === 403 ? 'Bu işlem için yetkiniz yok' : 'Oturum hatası');
         showErrorToast(message);
-        error.permissionError = true;
         error.handled = true;
-      } else if (status === 401) {
-        const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
-        showErrorToast(message);
-        error.authError = true;
-        error.handled = true;
+        error.permissionError = status === 403;
+        error.authError = status === 401;
       }
     }
     return Promise.reject(error);
   }
 );
 
-// Also configure default axios to add the header and handle errors
+// Configure default axios instance too
 axios.interceptors.request.use(
   (config) => {
     try {
@@ -101,12 +104,9 @@ axios.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for default axios
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -114,16 +114,12 @@ axios.interceptors.response.use(
       const status = error.response.status;
       const detail = error.response.data?.detail;
       
-      if (status === 403) {
-        const message = detail || 'Bu işlem için yetkiniz yok';
+      if (status === 403 || status === 401) {
+        const message = detail || (status === 403 ? 'Bu işlem için yetkiniz yok' : 'Oturum hatası');
         showErrorToast(message);
-        error.permissionError = true;
         error.handled = true;
-      } else if (status === 401) {
-        const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
-        showErrorToast(message);
-        error.authError = true;
-        error.handled = true;
+        error.permissionError = status === 403;
+        error.authError = status === 401;
       }
     }
     return Promise.reject(error);
