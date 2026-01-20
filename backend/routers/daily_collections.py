@@ -152,12 +152,14 @@ async def get_couriers_with_collections(company_id: str, date: str):
     """
     Belirli bir tarih için kurye listesi ve tahsilat durumları
     """
-    # Get company's couriers
+    # Get company's couriers (deduplicate by courier_id)
     company_couriers = await db.company_couriers.find(
         {"company_id": company_id},
         {"_id": 0, "courier_id": 1}
     ).to_list(1000)
-    courier_ids = [cc["courier_id"] for cc in company_couriers]
+    
+    # Deduplicate courier IDs
+    courier_ids = list(set([cc["courier_id"] for cc in company_couriers]))
     
     if not courier_ids:
         return []
