@@ -21,7 +21,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function IsletmelerTab({ companyId, adminId, adminName, companyLogo, companyName, transactionRef, onSelect }) {
   const listRef = useRef(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newBusiness, setNewBusiness] = useState({ name: "", phone: "", address: "" });
+  const [newBusiness, setNewBusiness] = useState({ name: "", phone: "", address: "", tax_bracket: null });
   
   const {
     displayList,
