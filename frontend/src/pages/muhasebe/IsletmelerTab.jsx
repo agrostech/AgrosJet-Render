@@ -175,7 +175,14 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                   data-testid={`business-item-${b.id}`}
                 >
                   <div className="flex items-center justify-between">
-                    <p className="font-semibold text-sm truncate">{b.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate">{b.name}</p>
+                      {b.tax_bracket && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">
+                          %{b.tax_bracket}
+                        </span>
+                      )}
+                    </div>
                     {balLabel && (
                       <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${balLabel.color}`}>
                         {balLabel.text}
