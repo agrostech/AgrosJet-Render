@@ -220,30 +220,16 @@ export default function AdminDashboard() {
           <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
             <Routes>
               <Route index element={<GuncelDurumPage companyId={user.company_id} />} />
-              {(isSuperAdmin || permissions.page_vardiya) && (
-                <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
-              )}
-              {(isSuperAdmin || permissions.page_muhasebe) && (
-                <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} />} />
-              )}
-              {(isSuperAdmin || permissions.page_zimmet) && (
-                <Route path="zimmet" element={<ZimmetPage />} />
-              )}
-              {(isSuperAdmin || permissions.page_market) && (
-                <Route path="jetpuan" element={<JetPuanMarketPage companyId={user.company_id} />} />
-              )}
-              {(isSuperAdmin || permissions.page_akademi) && (
-                <Route path="akademi" element={<AkademiPage companyId={user.company_id} companyName={company?.name} />} />
-              )}
-              {(isSuperAdmin || permissions.page_kuryeler) && (
-                <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
-              )}
+              <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
+              <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} />} />
+              <Route path="zimmet" element={<ZimmetPage />} />
+              <Route path="jetpuan" element={<JetPuanMarketPage companyId={user.company_id} />} />
+              <Route path="akademi" element={<AkademiPage companyId={user.company_id} companyName={company?.name} />} />
+              <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
               {isSuperAdmin && (
                 <Route path="yoneticiler" element={<YoneticilerPage companyId={user.company_id} />} />
               )}
-              {(isSuperAdmin || permissions.page_sistem) && (
-                <Route path="sistem" element={<SistemPage companyId={user.company_id} />} />
-              )}
+              <Route path="sistem" element={<SistemPage companyId={user.company_id} />} />
             </Routes>
           </div>
           
