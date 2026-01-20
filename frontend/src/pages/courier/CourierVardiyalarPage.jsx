@@ -78,7 +78,10 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
         setAssignments(assignmentsRes.data);
         setLeaves(leavesRes.data);
       } catch (err) {
-        toast.error("Veriler yüklenemedi");
+        // Eğer hata axiosConfig'de handle edilmediyse göster
+        if (!err.handled) {
+          toast.error("Veriler yüklenemedi");
+        }
       } finally {
         setLoading(false);
       }
