@@ -84,9 +84,19 @@ async def get_admins(company_id: Optional[str] = None):
         query = {"role": {"$ne": "systemadmin"}}
     admins = await db.admins.find(query, {"_id": 0, "password": 0}).to_list(100)
     
-    # Permissions yoksa default ekle
+    # Simple permission keys
+    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    
+    # Normalize permissions to simple format
     for admin in admins:
-        if "permissions" not in admin:
+        db_permissions = admin.get("permissions", {})
+        has_simple_format = any(key in db_permissions for key in simple_keys)
+        
+        if has_simple_format:
+            # Extract only simple keys
+            admin["permissions"] = {k: db_permissions.get(k, False) for k in simple_keys}
+        else:
+            # No simple format, assign defaults
             if admin.get("role") == "superadmin":
                 admin["permissions"] = get_full_permissions()
             else:
