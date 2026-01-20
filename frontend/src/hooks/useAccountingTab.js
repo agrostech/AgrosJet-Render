@@ -298,7 +298,10 @@ export function useAccountingTab({
       fetchTransactions(selectedEntity.id);
       fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
     } catch (err) {
-      toast.error("İşlem silinemedi");
+      // Yetki hatası zaten axiosConfig'de gösterildi
+      if (!err.permissionError) {
+        toast.error("İşlem silinemedi");
+      }
     }
   }, [selectedEntity, adminId, adminName, fetchTransactions, fetchEntityBalance]);
 
@@ -317,7 +320,9 @@ export function useAccountingTab({
       fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
       return true;
     } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem güncellenemedi");
+      if (!err.permissionError) {
+        toast.error(err.response?.data?.detail || "İşlem güncellenemedi");
+      }
       return false;
     }
   }, [selectedEntity, adminId, adminName, fetchTransactions, fetchEntityBalance]);
@@ -334,7 +339,9 @@ export function useAccountingTab({
       fetchEntities();
       fetchArchivedEntities();
     } catch (err) {
-      toast.error("Arşivleme başarısız");
+      if (!err.permissionError) {
+        toast.error("Arşivleme başarısız");
+      }
     }
   }, [endpoint, selectedEntity, fetchEntities, fetchArchivedEntities]);
 
@@ -346,7 +353,9 @@ export function useAccountingTab({
       fetchEntities();
       fetchArchivedEntities();
     } catch (err) {
-      toast.error("Arşivleme başarısız");
+      if (!err.permissionError) {
+        toast.error("Arşivleme başarısız");
+      }
     }
   }, [endpoint, selectedEntity, fetchEntities, fetchArchivedEntities]);
 
@@ -358,7 +367,9 @@ export function useAccountingTab({
       fetchEntities();
       fetchArchivedEntities();
     } catch (err) {
-      toast.error("İşlem başarısız");
+      if (!err.permissionError) {
+        toast.error("İşlem başarısız");
+      }
     }
   }, [endpoint, fetchEntities, fetchArchivedEntities]);
 
@@ -375,7 +386,9 @@ export function useAccountingTab({
       fetchEntities();
       fetchArchivedEntities();
     } catch (err) {
-      toast.error("Silinemedi");
+      if (!err.permissionError) {
+        toast.error("Silinemedi");
+      }
     }
   }, [endpoint, selectedEntity, fetchEntities, fetchArchivedEntities]);
 
