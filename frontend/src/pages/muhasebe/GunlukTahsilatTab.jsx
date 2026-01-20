@@ -169,7 +169,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
               </tr>
             </thead>
             <tbody>
-              {couriers.map((courier) => (
+              {filteredCouriers.map((courier) => (
                 <tr 
                   key={courier.id} 
                   className={`border-b border-border hover:bg-slate-50 ${courier.has_collection ? 'bg-green-50/30' : ''}`}
