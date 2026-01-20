@@ -76,29 +76,21 @@ export default function AdminDashboard() {
   if (!user) return null;
 
   const isSuperAdmin = user.role === "superadmin";
-  const permissions = user.permissions || {};
   const company = user.company;
 
+  // Tüm menü öğeleri - yetki kontrolü kaldırıldı
+  // Sadece Yöneticiler sayfası superadmin için
   const NAV_ITEMS = [
-    { path: "/admin", label: "Anasayfa", icon: LayoutDashboard, key: "guncel", permKey: null },
-    { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya", permKey: "page_vardiya" },
-    { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "page_muhasebe" },
-    { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "page_zimmet" },
-    { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan", permKey: "page_market" },
-    { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi", permKey: "page_akademi" },
-    { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler", permKey: "page_kuryeler" },
-    { path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler", permKey: "page_yoneticiler" },
-    { path: "/admin/sistem", label: "Sistem", icon: SlidersHorizontal, key: "sistem", permKey: "page_sistem" },
-  ].filter((item) => {
-    // Anasayfa herkese açık
-    if (!item.permKey) return true;
-    // Superadmin her şeye erişebilir
-    if (isSuperAdmin) return true;
-    // Yöneticiler sayfası sadece superadmin için
-    if (item.permKey === "page_yoneticiler") return false;
-    // Diğer sayfalar için yetki kontrolü
-    return permissions[item.permKey] === true;
-  });
+    { path: "/admin", label: "Anasayfa", icon: LayoutDashboard, key: "guncel" },
+    { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya" },
+    { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
+    { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet" },
+    { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan" },
+    { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi" },
+    { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler" },
+    ...(isSuperAdmin ? [{ path: "/admin/yoneticiler", label: "Yöneticiler", icon: UserCog, key: "yoneticiler" }] : []),
+    { path: "/admin/sistem", label: "Sistem", icon: SlidersHorizontal, key: "sistem" },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50" data-testid="admin-dashboard">
