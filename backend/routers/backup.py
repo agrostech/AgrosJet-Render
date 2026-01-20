@@ -152,11 +152,155 @@ async def export_company_data(
 
 @router.post("/company/{company_id}/import")
 async def import_company_data(
-    company_id: str
+    company_id: str,
+    file: UploadFile = File(...),
+    replace_existing: bool = False
 ):
-    """Import company data from a backup file"""
-    # TODO: Implement import functionality
-    raise HTTPException(status_code=501, detail="Import özelliği yakında eklenecek")
+    """Import company data from a backup ZIP file
+    
+    Args:
+        company_id: Hedef şirket ID
+        file: Yedek ZIP dosyası
+        replace_existing: True ise mevcut verileri siler ve yedeği yükler
+    """
+    # Şirket kontrolü
+    company = await db.companies.find_one({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    
+    # Dosya tipi kontrolü
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Sadece ZIP dosyası yüklenebilir")
+    
+    try:
+        # ZIP dosyasını oku
+        content = await file.read()
+        zip_buffer = io.BytesIO(content)
+        
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
+            # Manifest kontrolü
+            if 'manifest.json' not in zip_file.namelist():
+                raise HTTPException(status_code=400, detail="Geçersiz yedek dosyası: manifest.json bulunamadı")
+            
+            manifest = json.loads(zip_file.read('manifest.json'))
+            backup_info = manifest.get('backup_info', {})
+            
+            # Yedek bilgilerini logla
+            backup_company_id = backup_info.get('company_id')
+            backup_date = backup_info.get('backup_date')
+            
+            restored_counts = {}
+            skipped_collections = []
+            
+            # Her koleksiyonu işle
+            for filename in zip_file.namelist():
+                if filename == 'manifest.json':
+                    continue
+                
+                if not filename.endswith('.json'):
+                    continue
+                
+                collection_name = filename.replace('.json', '')
+                
+                # Güvenlik: Sadece bilinen koleksiyonları yükle
+                if collection_name not in BACKUP_COLLECTIONS:
+                    skipped_collections.append(collection_name)
+                    continue
+                
+                try:
+                    data = json.loads(zip_file.read(filename))
+                    
+                    if not isinstance(data, list):
+                        continue
+                    
+                    if len(data) == 0:
+                        continue
+                    
+                    collection = db[collection_name]
+                    
+                    # company_id filtrelemesi gereken koleksiyonlar
+                    company_filtered = [
+                        "couriers", "company_couriers", "shifts", "shift_assignments",
+                        "shift_leaves", "leaves", "transactions", "activity_logs",
+                        "invoices", "businesses", "vendors", "installment_products",
+                        "mali_bellek", "mali_bellek_logs", "products", "product_types",
+                        "zimmet_assignments", "zimmet_logs", "jetpuan_products",
+                        "jetpuan_categories", "jetpuan_orders", "jetpuan_transactions",
+                        "notifications", "dismissed_notifications", "academy_trainings",
+                        "bonus_settings", "email_settings", "company_settings", "backup_settings"
+                    ]
+                    
+                    # Mevcut verileri sil (replace_existing ise)
+                    if replace_existing and collection_name in company_filtered:
+                        await collection.delete_many({"company_id": company_id})
+                    
+                    # Verileri yükle
+                    inserted_count = 0
+                    for doc in data:
+                        # _id varsa kaldır
+                        if '_id' in doc:
+                            del doc['_id']
+                        
+                        # company_id'yi hedef şirkete güncelle
+                        if collection_name in company_filtered:
+                            doc['company_id'] = company_id
+                        
+                        # admins için özel kontrol - sadece şirketin adminlerini yükle
+                        if collection_name == "admins":
+                            if doc.get('company_id') != backup_company_id:
+                                continue
+                            doc['company_id'] = company_id
+                            # Mevcut admin varsa atla
+                            existing = await collection.find_one({"username": doc.get('username')})
+                            if existing:
+                                continue
+                        
+                        # companies koleksiyonu - güncelleme yap
+                        if collection_name == "companies":
+                            if doc.get('id') == backup_company_id:
+                                # Şirket bilgilerini güncelle (id hariç)
+                                update_data = {k: v for k, v in doc.items() if k not in ['id', '_id']}
+                                if update_data:
+                                    await collection.update_one(
+                                        {"id": company_id},
+                                        {"$set": update_data}
+                                    )
+                                    inserted_count = 1
+                            continue
+                        
+                        # Duplikasyon kontrolü (id bazlı)
+                        if not replace_existing and 'id' in doc:
+                            existing = await collection.find_one({"id": doc['id']})
+                            if existing:
+                                continue
+                        
+                        await collection.insert_one(doc)
+                        inserted_count += 1
+                    
+                    if inserted_count > 0:
+                        restored_counts[collection_name] = inserted_count
+                        
+                except Exception as e:
+                    print(f"Error restoring {collection_name}: {e}")
+                    continue
+            
+            return {
+                "message": "Yedek başarıyla yüklendi",
+                "backup_info": {
+                    "original_company_id": backup_company_id,
+                    "backup_date": backup_date
+                },
+                "restored_collections": restored_counts,
+                "skipped_collections": skipped_collections,
+                "replace_mode": replace_existing
+            }
+            
+    except zipfile.BadZipFile:
+        raise HTTPException(status_code=400, detail="Geçersiz ZIP dosyası")
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"JSON parse hatası: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Yedek yükleme hatası: {str(e)}")
 
 
 # --- Scheduled Backup Settings ---
