@@ -89,11 +89,26 @@ async def login_admin(data: AdminLogin):
     if admin["company_id"]:
         company = await db.companies.find_one({"id": admin["company_id"]}, {"_id": 0})
     
+    # Permissions yoksa default ata
+    permissions = admin.get("permissions")
+    if not permissions:
+        if admin["role"] == "superadmin":
+            permissions = {
+                "vardiya": True, "muhasebe": True, "zimmet": True,
+                "kuryeler": True, "market": True, "akademi": True, "sistem": True
+            }
+        else:
+            permissions = {
+                "vardiya": True, "muhasebe": True, "zimmet": True,
+                "kuryeler": True, "market": True, "akademi": True, "sistem": False
+            }
+    
     return {
         "id": admin["id"],
         "name": admin["name"],
         "username": admin["username"],
         "role": admin["role"],
+        "permissions": permissions,
         "company_id": admin["company_id"],
         "company": company,
         "email": admin.get("email")
