@@ -55,16 +55,39 @@ export default function AdminDashboard() {
     }
     setUser(parsed);
     
+    // İzin güncelleme kontrolü (sadece admin için, superadmin hariç)
+    const checkPermissionUpdate = async () => {
+      if (parsed.role === "superadmin") return;
+      
+      try {
+        const savedTimestamp = parsed.permissions_updated_at;
+        const res = await axios.get(`${API}/auth/check-permissions/${parsed.id}?timestamp=${savedTimestamp || ''}`);
+        
+        if (res.data.updated) {
+          toast.warning("İzinleriniz güncellendi. Yeniden giriş yapmanız gerekiyor.");
+          localStorage.removeItem("user");
+          setTimeout(() => navigate("/login"), 1500);
+        }
+      } catch (err) {
+        console.error("Permission check error:", err);
+      }
+    };
+    
+    // İlk kontrol ve her 10 saniyede bir kontrol
+    checkPermissionUpdate();
+    const permInterval = setInterval(checkPermissionUpdate, 10000);
+    
     // Fetch badges initially and every 30 seconds
     fetchBadges();
-    const interval = setInterval(fetchBadges, 30000);
+    const badgeInterval = setInterval(fetchBadges, 30000);
     
     // Listen for badge refresh events
     const handleBadgeRefresh = () => fetchBadges();
     window.addEventListener('refreshBadges', handleBadgeRefresh);
     
     return () => {
-      clearInterval(interval);
+      clearInterval(permInterval);
+      clearInterval(badgeInterval);
       window.removeEventListener('refreshBadges', handleBadgeRefresh);
     };
   }, [navigate, fetchBadges]);
