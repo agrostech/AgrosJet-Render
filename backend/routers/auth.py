@@ -126,7 +126,7 @@ async def login_admin(data: AdminLogin):
 
 
 
-@router.get("/auth/check-permissions/{admin_id}")
+@router.get("/check-permissions/{admin_id}")
 async def check_permissions_update(admin_id: str, timestamp: str = None):
     """Admin izinlerinin güncellenip güncellenmediğini kontrol et"""
     admin = await db.admins.find_one({"id": admin_id}, {"_id": 0, "permissions_updated_at": 1})
