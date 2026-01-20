@@ -3,7 +3,6 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap } from "lucide-react";
-import { useSessionCheck } from "@/hooks/useSessionCheck";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 
 // Page components
