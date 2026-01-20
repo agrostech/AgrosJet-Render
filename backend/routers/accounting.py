@@ -159,13 +159,9 @@ async def delete_business(
 
 # --- Cariler (Vendors) ---
 @router.get("/companies/{company_id}/vendors")
-async def get_vendors(
-    company_id: str, 
-    include_archived: bool = False,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_vendors(company_id: str, include_archived: bool = False):
     """Get all vendors for a company"""
-    await require_permission(x_admin_id, "muhasebe_view")
+    # GET işlemi - yetki kontrolü yok
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
