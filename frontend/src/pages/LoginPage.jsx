@@ -80,9 +80,7 @@ export default function LoginPage() {
         navigate("/admin");
       }
     } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Giriş başarısız");
-      }
+      toast.error(err.response?.data?.detail || "Giriş başarısız");
     } finally {
       setLoading(false);
     }
