@@ -1,0 +1,538 @@
+"""
+Excel Karşılaştırma ve Rapor Router
+Nakit ve Kredi Kartı Excel dosyalarını yükleyip tahsilatlarla karşılaştırır
+"""
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from pydantic import BaseModel
+from typing import Optional, List, Dict
+from datetime import datetime, timezone
+import uuid
+import io
+
+from utils.database import db
+
+router = APIRouter(prefix="/api/daily-reports", tags=["Günlük Raporlar"])
+
+
+# ============ HELPERS ============
+
+def parse_turkish_number(value: str) -> float:
+    """Parse Turkish formatted number (1.234,56 -> 1234.56)"""
+    if not value or value == "":
+        return 0.0
+    # Remove currency symbol and whitespace
+    value = str(value).replace("₺", "").replace(" ", "").strip()
+    if not value:
+        return 0.0
+    # Turkish format: 1.234,56 -> 1234.56
+    value = value.replace(".", "").replace(",", ".")
+    try:
+        return float(value)
+    except:
+        return 0.0
+
+
+async def parse_excel_file(file_content: bytes) -> List[Dict]:
+    """Parse Excel file and return list of courier totals by restaurant"""
+    import openpyxl
+    
+    wb = openpyxl.load_workbook(io.BytesIO(file_content), data_only=True)
+    ws = wb.active
+    
+    rows = list(ws.iter_rows(values_only=True))
+    if len(rows) < 2:
+        return []
+    
+    # First row is headers
+    headers = [str(h).strip() if h else "" for h in rows[0]]
+    
+    # Find column indices
+    courier_col = 0  # First column is courier name
+    total_col = len(headers) - 1  # Last column is total
+    
+    # Find restaurant columns (between courier and total)
+    restaurant_cols = {}
+    for i, header in enumerate(headers):
+        if i > 0 and i < total_col and header:
+            # Clean restaurant name
+            restaurant_name = header.strip()
+            restaurant_cols[i] = restaurant_name
+    
+    results = []
+    for row in rows[1:]:
+        if not row or not row[0]:
+            continue
+        
+        courier_name = str(row[0]).strip()
+        if not courier_name or courier_name.lower() in ["toplam", "total", ""]:
+            continue
+        
+        # Skip internal/support rows
+        if "destek" in courier_name.lower() or "agros" in courier_name.lower():
+            continue
+        
+        # Get total
+        total_value = row[total_col] if total_col < len(row) else 0
+        total = parse_turkish_number(str(total_value)) if total_value else 0
+        
+        if total == 0:
+            continue
+        
+        # Get restaurant breakdown
+        restaurants = {}
+        for col_idx, restaurant_name in restaurant_cols.items():
+            if col_idx < len(row) and row[col_idx]:
+                amount = parse_turkish_number(str(row[col_idx]))
+                if amount > 0:
+                    restaurants[restaurant_name] = amount
+        
+        results.append({
+            "courier_name": courier_name,
+            "total": total,
+            "restaurants": restaurants
+        })
+    
+    return results
+
+
+# ============ MODELS ============
+
+class ComparisonResult(BaseModel):
+    courier_id: str
+    courier_name: str
+    # Excel values
+    excel_cash: float
+    excel_card: float
+    excel_card_restaurants: Dict[str, float]
+    # Entered values (from daily collections)
+    entered_cash: float
+    entered_card_1: float
+    entered_card_10: float
+    entered_card_20: float
+    entered_card_total: float
+    # Differences
+    cash_difference: float
+    card_difference: float
+    # Tax bracket issues
+    tax_bracket_issues: List[Dict]
+    # Total penalty
+    total_penalty: float
+
+
+class ProcessReportRequest(BaseModel):
+    company_id: str
+    date: str
+    admin_id: str
+    admin_name: str
+
+
+# ============ ENDPOINTS ============
+
+@router.post("/upload-excel/{company_id}")
+async def upload_excel(
+    company_id: str,
+    date: str = Form(...),
+    report_type: str = Form(...),  # "cash" or "card"
+    file: UploadFile = File(...)
+):
+    """
+    Excel dosyası yükle ve parse et
+    """
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Sadece Excel dosyası yüklenebilir (.xlsx, .xls)")
+    
+    content = await file.read()
+    
+    try:
+        parsed_data = await parse_excel_file(content)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Excel parse hatası: {str(e)}")
+    
+    if not parsed_data:
+        raise HTTPException(status_code=400, detail="Excel dosyasında veri bulunamadı")
+    
+    # Save to database for later comparison
+    report = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "date": date,
+        "report_type": report_type,
+        "filename": file.filename,
+        "data": parsed_data,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Upsert: Replace if exists for same company/date/type
+    await db.daily_excel_reports.delete_many({
+        "company_id": company_id,
+        "date": date,
+        "report_type": report_type
+    })
+    await db.daily_excel_reports.insert_one(report)
+    
+    return {
+        "message": f"{'Nakit' if report_type == 'cash' else 'Kredi Kartı'} raporu yüklendi",
+        "courier_count": len(parsed_data),
+        "data": parsed_data
+    }
+
+
+@router.get("/excel-reports/{company_id}/{date}")
+async def get_excel_reports(company_id: str, date: str):
+    """
+    Yüklenen Excel raporlarını getir
+    """
+    reports = await db.daily_excel_reports.find(
+        {"company_id": company_id, "date": date},
+        {"_id": 0}
+    ).to_list(10)
+    
+    result = {
+        "cash": None,
+        "card": None
+    }
+    
+    for report in reports:
+        if report["report_type"] == "cash":
+            result["cash"] = report
+        elif report["report_type"] == "card":
+            result["card"] = report
+    
+    return result
+
+
+@router.post("/compare/{company_id}/{date}")
+async def compare_reports(company_id: str, date: str):
+    """
+    Excel raporlarını günlük tahsilatlarla karşılaştır
+    """
+    # Get excel reports
+    excel_reports = await db.daily_excel_reports.find(
+        {"company_id": company_id, "date": date},
+        {"_id": 0}
+    ).to_list(10)
+    
+    cash_report = None
+    card_report = None
+    for report in excel_reports:
+        if report["report_type"] == "cash":
+            cash_report = report
+        elif report["report_type"] == "card":
+            card_report = report
+    
+    if not cash_report and not card_report:
+        raise HTTPException(status_code=400, detail="En az bir Excel raporu yüklenmiş olmalı")
+    
+    # Get daily collections
+    collections = await db.daily_collections.find(
+        {"company_id": company_id, "date": date},
+        {"_id": 0}
+    ).to_list(500)
+    
+    # Aggregate collections by courier
+    collection_map = {}
+    for col in collections:
+        cid = col["courier_id"]
+        if cid not in collection_map:
+            collection_map[cid] = {
+                "courier_name": col["courier_name"],
+                "cash_total": 0,
+                "card_1": 0,
+                "card_10": 0,
+                "card_20": 0,
+                "card_total": 0
+            }
+        collection_map[cid]["cash_total"] += col["cash_amount"]
+        collection_map[cid]["card_1"] += col["card_percent_1"]
+        collection_map[cid]["card_10"] += col["card_percent_10"]
+        collection_map[cid]["card_20"] += col["card_percent_20"]
+        collection_map[cid]["card_total"] += col["card_total"]
+    
+    # Get all businesses with tax brackets
+    businesses = await db.businesses.find(
+        {"company_id": company_id},
+        {"_id": 0, "name": 1, "tax_bracket": 1}
+    ).to_list(500)
+    
+    business_tax_map = {}
+    for b in businesses:
+        # Normalize business name for matching
+        name_normalized = b["name"].lower().strip()
+        business_tax_map[name_normalized] = b.get("tax_bracket")
+    
+    # Get all couriers for name -> id mapping
+    company_couriers = await db.company_couriers.find(
+        {"company_id": company_id},
+        {"_id": 0, "courier_id": 1}
+    ).to_list(1000)
+    courier_ids = [cc["courier_id"] for cc in company_couriers]
+    
+    couriers = await db.couriers.find(
+        {"id": {"$in": courier_ids}},
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(1000)
+    
+    courier_name_to_id = {}
+    for c in couriers:
+        courier_name_to_id[c["name"].lower().strip()] = c["id"]
+    
+    # Build comparison results
+    results = []
+    all_courier_names = set()
+    
+    # Collect all courier names from both excel reports
+    if cash_report:
+        for item in cash_report["data"]:
+            all_courier_names.add(item["courier_name"])
+    if card_report:
+        for item in card_report["data"]:
+            all_courier_names.add(item["courier_name"])
+    
+    # Process each courier
+    for courier_name in all_courier_names:
+        # Find courier ID
+        courier_name_lower = courier_name.lower().strip()
+        courier_id = courier_name_to_id.get(courier_name_lower)
+        
+        if not courier_id:
+            # Try partial match
+            for name, cid in courier_name_to_id.items():
+                if name in courier_name_lower or courier_name_lower in name:
+                    courier_id = cid
+                    break
+        
+        # Get excel values
+        excel_cash = 0
+        excel_card = 0
+        excel_card_restaurants = {}
+        
+        if cash_report:
+            for item in cash_report["data"]:
+                if item["courier_name"].lower().strip() == courier_name_lower:
+                    excel_cash = item["total"]
+                    break
+        
+        if card_report:
+            for item in card_report["data"]:
+                if item["courier_name"].lower().strip() == courier_name_lower:
+                    excel_card = item["total"]
+                    excel_card_restaurants = item.get("restaurants", {})
+                    break
+        
+        # Get entered values
+        entered = collection_map.get(courier_id, {
+            "cash_total": 0,
+            "card_1": 0,
+            "card_10": 0,
+            "card_20": 0,
+            "card_total": 0
+        })
+        
+        # Calculate differences
+        cash_diff = excel_cash - entered["cash_total"]
+        card_diff = excel_card - entered["card_total"]
+        
+        # Check tax bracket issues for card transactions
+        tax_issues = []
+        total_penalty = 0
+        
+        for restaurant_name, restaurant_amount in excel_card_restaurants.items():
+            if restaurant_amount <= 0:
+                continue
+            
+            # Find business tax bracket
+            restaurant_name_lower = restaurant_name.lower().strip()
+            expected_bracket = None
+            
+            for bname, bracket in business_tax_map.items():
+                if bname in restaurant_name_lower or restaurant_name_lower in bname:
+                    expected_bracket = bracket
+                    break
+            
+            if expected_bracket:
+                # Check which bracket the amount was likely entered in
+                # This is a simplified check - in reality we'd need more data
+                # For now, we flag if there's a mismatch potential
+                
+                # Determine which bracket this restaurant's amount should be in
+                # based on system settings
+                if expected_bracket == 1 and entered["card_1"] < restaurant_amount:
+                    # Amount might be in wrong bracket
+                    actual_bracket = None
+                    if entered["card_10"] >= restaurant_amount:
+                        actual_bracket = 10
+                    elif entered["card_20"] >= restaurant_amount:
+                        actual_bracket = 20
+                    
+                    if actual_bracket and actual_bracket != expected_bracket:
+                        # Calculate penalty: 34% of the amount
+                        penalty = restaurant_amount * 0.34
+                        total_penalty += penalty
+                        tax_issues.append({
+                            "restaurant": restaurant_name,
+                            "amount": restaurant_amount,
+                            "expected_bracket": expected_bracket,
+                            "actual_bracket": actual_bracket,
+                            "penalty": penalty
+                        })
+        
+        results.append({
+            "courier_id": courier_id,
+            "courier_name": courier_name,
+            "excel_cash": excel_cash,
+            "excel_card": excel_card,
+            "excel_card_restaurants": excel_card_restaurants,
+            "entered_cash": entered["cash_total"],
+            "entered_card_1": entered["card_1"],
+            "entered_card_10": entered["card_10"],
+            "entered_card_20": entered["card_20"],
+            "entered_card_total": entered["card_total"],
+            "cash_difference": cash_diff,
+            "card_difference": card_diff,
+            "tax_bracket_issues": tax_issues,
+            "total_penalty": total_penalty,
+            "has_issues": cash_diff != 0 or card_diff != 0 or len(tax_issues) > 0
+        })
+    
+    # Sort: those with issues first
+    results.sort(key=lambda x: (not x["has_issues"], x["courier_name"]))
+    
+    return {
+        "date": date,
+        "results": results,
+        "summary": {
+            "total_couriers": len(results),
+            "couriers_with_issues": len([r for r in results if r["has_issues"]]),
+            "total_cash_difference": sum(r["cash_difference"] for r in results),
+            "total_card_difference": sum(r["card_difference"] for r in results),
+            "total_penalty": sum(r["total_penalty"] for r in results)
+        }
+    }
+
+
+@router.post("/process/{company_id}/{date}")
+async def process_differences(
+    company_id: str,
+    date: str,
+    admin_id: str = Form(...),
+    admin_name: str = Form(...)
+):
+    """
+    Farkları işle ve kurye muhasebesine otomatik işlem ekle
+    """
+    # First get comparison results
+    comparison = await compare_reports(company_id, date)
+    
+    if not comparison["results"]:
+        raise HTTPException(status_code=400, detail="Karşılaştırılacak veri bulunamadı")
+    
+    transactions_created = []
+    
+    for result in comparison["results"]:
+        courier_id = result["courier_id"]
+        if not courier_id:
+            continue
+        
+        # Process cash difference
+        if result["cash_difference"] > 0:
+            # Eksik nakit - yeşil işlem (payment_out = verilen)
+            tx = {
+                "id": str(uuid.uuid4()),
+                "entity_type": "courier",
+                "entity_id": courier_id,
+                "company_id": company_id,
+                "type": "payment_out",  # Yeşil = verilen
+                "amount": result["cash_difference"],
+                "description": f"{date} tarihli eksik nakit",
+                "is_hakedis": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "auto_generated": True,
+                "source": "daily_report"
+            }
+            await db.transactions.insert_one(tx)
+            transactions_created.append({
+                "courier_name": result["courier_name"],
+                "type": "cash",
+                "amount": result["cash_difference"]
+            })
+        
+        # Process card difference
+        if result["card_difference"] > 0:
+            tx = {
+                "id": str(uuid.uuid4()),
+                "entity_type": "courier",
+                "entity_id": courier_id,
+                "company_id": company_id,
+                "type": "payment_out",  # Yeşil = verilen
+                "amount": result["card_difference"],
+                "description": f"{date} tarihli eksik kart",
+                "is_hakedis": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "auto_generated": True,
+                "source": "daily_report"
+            }
+            await db.transactions.insert_one(tx)
+            transactions_created.append({
+                "courier_name": result["courier_name"],
+                "type": "card",
+                "amount": result["card_difference"]
+            })
+        
+        # Process tax bracket penalties
+        if result["total_penalty"] > 0:
+            issues_desc = ", ".join([
+                f"{i['restaurant']} (%{i['expected_bracket']}→%{i['actual_bracket']})"
+                for i in result["tax_bracket_issues"]
+            ])
+            tx = {
+                "id": str(uuid.uuid4()),
+                "entity_type": "courier",
+                "entity_id": courier_id,
+                "company_id": company_id,
+                "type": "payment_out",  # Yeşil = verilen
+                "amount": result["total_penalty"],
+                "description": f"{date} tarihli yanlış vergi dilimi - {issues_desc}",
+                "is_hakedis": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "auto_generated": True,
+                "source": "daily_report_penalty"
+            }
+            await db.transactions.insert_one(tx)
+            transactions_created.append({
+                "courier_name": result["courier_name"],
+                "type": "penalty",
+                "amount": result["total_penalty"]
+            })
+    
+    # Mark reports as processed
+    await db.daily_excel_reports.update_many(
+        {"company_id": company_id, "date": date},
+        {"$set": {
+            "processed": True,
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_by": admin_name
+        }}
+    )
+    
+    return {
+        "message": "İşlemler oluşturuldu",
+        "transactions_created": len(transactions_created),
+        "details": transactions_created
+    }
+
+
+@router.delete("/excel-reports/{company_id}/{date}/{report_type}")
+async def delete_excel_report(company_id: str, date: str, report_type: str):
+    """
+    Yüklenen Excel raporunu sil
+    """
+    result = await db.daily_excel_reports.delete_one({
+        "company_id": company_id,
+        "date": date,
+        "report_type": report_type
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Rapor bulunamadı")
+    
+    return {"message": "Rapor silindi"}
