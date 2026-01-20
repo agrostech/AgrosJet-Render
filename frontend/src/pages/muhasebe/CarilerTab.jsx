@@ -97,7 +97,9 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
       setNewVendor({ name: "", phone: "", address: "" });
       fetchEntities();
     } catch (err) {
-      toast.error("Ekleme başarısız");
+      if (!err.handled) {
+        toast.error("Ekleme başarısız");
+      }
     }
   };
 
