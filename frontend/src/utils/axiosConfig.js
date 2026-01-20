@@ -5,6 +5,21 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
+// Track shown toasts to prevent duplicates
+let lastErrorMessage = '';
+let lastErrorTime = 0;
+
+const showErrorToast = (message) => {
+  const now = Date.now();
+  // Aynı mesajı 2 saniye içinde tekrar gösterme
+  if (message === lastErrorMessage && now - lastErrorTime < 2000) {
+    return;
+  }
+  lastErrorMessage = message;
+  lastErrorTime = now;
+  toast.error(message);
+};
+
 // Create axios instance
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -40,13 +55,15 @@ axiosInstance.interceptors.response.use(
       const detail = error.response.data?.detail;
       
       if (status === 403) {
-        // Yetki hatası
+        // Yetki hatası - sadece tek bir mesaj göster
         const message = detail || 'Bu işlem için yetkiniz yok';
-        toast.error(message);
+        showErrorToast(message);
+        // Error'a flag ekle - component'te tekrar toast göstermesin
+        error.permissionError = true;
       } else if (status === 401) {
-        // Yetkilendirme hatası
         const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
-        toast.error(message);
+        showErrorToast(message);
+        error.authError = true;
       }
     }
     return Promise.reject(error);
@@ -85,10 +102,12 @@ axios.interceptors.response.use(
       
       if (status === 403) {
         const message = detail || 'Bu işlem için yetkiniz yok';
-        toast.error(message);
+        showErrorToast(message);
+        error.permissionError = true;
       } else if (status === 401) {
         const message = detail || 'Oturum süreniz dolmuş, lütfen tekrar giriş yapın';
-        toast.error(message);
+        showErrorToast(message);
+        error.authError = true;
       }
     }
     return Promise.reject(error);
