@@ -58,6 +58,9 @@ export default function SistemPage({ companyId }) {
   const [backupSaving, setBackupSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sendingBackup, setSendingBackup] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [replaceExisting, setReplaceExisting] = useState(false);
+  const backupFileRef = useRef(null);
 
   useEffect(() => {
     fetchCompanyInfo();
