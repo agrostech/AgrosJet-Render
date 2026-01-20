@@ -23,7 +23,9 @@ export function CourierAddModal({ open, onOpenChange, onSearch, onAdd }) {
       const result = await onSearch(searchPhone);
       setSearchResult(result);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Kurye bulunamadı");
+      }
     } finally {
       setSearching(false);
     }
@@ -36,7 +38,9 @@ export function CourierAddModal({ open, onOpenChange, onSearch, onAdd }) {
       setSearchResult(null);
       onOpenChange(false);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Ekleme başarısız");
+      }
     }
   };
 

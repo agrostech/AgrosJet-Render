@@ -71,7 +71,9 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
       setDocuments(docsRes.data);
       setStatus(statusRes.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Veriler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
@@ -116,7 +118,9 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
       toast.success("Evrak başarıyla yüklendi");
       fetchData();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Yükleme başarısız");
+      }
     } finally {
       setUploading(prev => ({ ...prev, [documentType]: false }));
       // Reset file input

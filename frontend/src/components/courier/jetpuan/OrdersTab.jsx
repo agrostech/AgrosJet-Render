@@ -15,7 +15,9 @@ export default function OrdersTab({ courierId }) {
       const res = await axios.get(`${API}/jetpuan/orders/courier/${courierId}`);
       setOrders(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Siparişler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }

@@ -53,7 +53,9 @@ function SirketlerPage() {
       const res = await axios.get(`${API}/companies`);
       setCompanies(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Şirketler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
@@ -69,7 +71,9 @@ function SirketlerPage() {
       const res = await axios.get(`${API}/admins?company_id=${companyId}`);
       setCompanyAdmins(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Yöneticiler yüklenemedi");
+      }
     } finally {
       setAdminsLoading(false);
     }
@@ -84,7 +88,9 @@ function SirketlerPage() {
       setNewCompany({ name: "", logo_url: "" });
       fetchCompanies();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Oluşturma başarısız");
+      }
     }
   };
 
@@ -99,7 +105,9 @@ function SirketlerPage() {
       setShowEditModal(false);
       fetchCompanies();
     } catch (err) {
+      if (!err.handled) {
       toast.error("Güncelleme başarısız");
+      }
     }
   };
 
@@ -113,7 +121,9 @@ function SirketlerPage() {
           toast.success("Şirket silindi");
           fetchCompanies();
         } catch (err) {
+          if (!err.handled) {
           toast.error("Silme başarısız");
+          }
         }
         setConfirmOpen(false);
       }
@@ -133,7 +143,9 @@ function SirketlerPage() {
       setNewSuperAdmin({ name: "", username: "", password: "" });
       fetchCompanyAdmins(selectedCompany.id);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Oluşturma başarısız");
+      }
     }
   };
 
@@ -149,7 +161,9 @@ function SirketlerPage() {
       setNewAdmin({ name: "", username: "", password: "" });
       fetchCompanyAdmins(selectedCompany.id);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Ekleme başarısız");
+      }
     }
   };
 
@@ -163,7 +177,9 @@ function SirketlerPage() {
           toast.success("Yönetici silindi");
           fetchCompanyAdmins(selectedCompany.id);
         } catch (err) {
+          if (!err.handled) {
           toast.error(err.response?.data?.detail || "Silme başarısız");
+          }
         }
         setConfirmOpen(false);
       }
@@ -184,7 +200,9 @@ function SirketlerPage() {
       setEditAdminData({ name: "", password: "" });
       fetchCompanyAdmins(selectedCompany.id);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+      }
     }
   };
 

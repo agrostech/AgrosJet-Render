@@ -61,7 +61,9 @@ export default function LoginPage() {
       saveSession(userData, rememberCourier);
       navigate("/courier");
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Giriş başarısız");
+      }
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,9 @@ export default function LoginPage() {
         navigate("/admin");
       }
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Giriş başarısız");
+      }
     } finally {
       setLoading(false);
     }

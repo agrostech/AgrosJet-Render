@@ -15,7 +15,9 @@ export default function HistoryTab({ courierId }) {
       const res = await axios.get(`${API}/jetpuan/transactions/${courierId}`);
       setTransactions(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Puan geçmişi yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }

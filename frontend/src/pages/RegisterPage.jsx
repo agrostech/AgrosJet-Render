@@ -32,7 +32,9 @@ export default function RegisterPage() {
       toast.success("Kayıt başarılı! Giriş yapabilirsiniz.");
       navigate("/login");
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Kayıt başarısız");
+      }
     } finally {
       setLoading(false);
     }

@@ -29,7 +29,9 @@ export function OrdersTab() {
       const res = await axios.get(`${API}/jetpuan/orders/admin`);
       setOrders(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Siparişler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
@@ -50,7 +52,9 @@ export function OrdersTab() {
       fetchOrders();
       refreshBadges();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
+      }
     }
   };
 
@@ -67,7 +71,9 @@ export function OrdersTab() {
       fetchOrders();
       refreshBadges();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "İptal başarısız");
+      }
     } finally {
       setConfirmOpen(false);
       setPendingCancelOrderId(null);

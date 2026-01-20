@@ -46,7 +46,9 @@ export function useMaliBellek(companyId, adminId, adminName, activeTab) {
       const logsRes = await axios.get(`${API}/companies/${companyId}/mali-bellek-logs?year_month=${selectedYearMonth}`);
       setMaliBellekAllLogs(logsRes.data || []);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Mali bellek verileri yüklenemedi");
+      }
     } finally {
       setMaliBellekLoading(false);
     }
@@ -60,7 +62,9 @@ export function useMaliBellek(companyId, adminId, adminName, activeTab) {
       });
       fetchMaliBellek();
     } catch (err) {
+      if (!err.handled) {
       toast.error("İşlem başarısız");
+      }
     }
   }, [selectedYearMonth, adminId, adminName, fetchMaliBellek]);
 

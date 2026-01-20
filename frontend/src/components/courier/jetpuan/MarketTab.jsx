@@ -22,7 +22,9 @@ export default function MarketTab({ courierId, onAddToCart, cart }) {
       setCategories(catRes.data);
       setProducts(prodRes.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Ürünler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }

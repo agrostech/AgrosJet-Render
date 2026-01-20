@@ -158,7 +158,9 @@ export default function YoneticilerPage({ companyId }) {
       const res = await axios.get(`${API}/admins?company_id=${companyId}`);
       setAdmins(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Yöneticiler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
@@ -177,7 +179,9 @@ export default function YoneticilerPage({ companyId }) {
       setNewAdmin({ name: "", username: "", password: "" });
       fetchAdmins();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Ekleme başarısız");
+      }
     }
   };
 
@@ -188,7 +192,9 @@ export default function YoneticilerPage({ companyId }) {
       setShowPermModal(false);
       fetchAdmins();
     } catch (err) {
+      if (!err.handled) {
       toast.error("Güncelleme başarısız");
+      }
     }
   };
 
@@ -204,7 +210,9 @@ export default function YoneticilerPage({ companyId }) {
       toast.success("Yönetici silindi (oturumu kapatıldı)");
       fetchAdmins();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
+      }
     } finally {
       setConfirmOpen(false);
       setPendingDeleteId(null);
@@ -251,7 +259,9 @@ export default function YoneticilerPage({ companyId }) {
       setShowEditModal(false);
       fetchAdmins();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+      }
     } finally {
       setEditLoading(false);
     }

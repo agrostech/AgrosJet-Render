@@ -40,7 +40,9 @@ export function CategoriesTab() {
       const res = await axios.get(`${API}/jetpuan/categories`);
       setCategories(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Kategoriler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
@@ -80,7 +82,9 @@ export function CategoriesTab() {
       setShowModal(false);
       fetchCategories();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
+      }
     }
   };
 
@@ -96,7 +100,9 @@ export function CategoriesTab() {
       toast.success("Kategori silindi");
       fetchCategories();
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
+      }
     } finally {
       setConfirmOpen(false);
       setPendingDeleteId(null);

@@ -131,7 +131,9 @@ export default function SistemPage({ companyId }) {
       toast.success("E-posta ayarları kaydedildi");
       fetchEmailSettings();
     } catch (err) {
+      if (!err.handled) {
       toast.error("Kaydetme başarısız");
+      }
     } finally {
       setEmailSaving(false);
     }
@@ -143,7 +145,9 @@ export default function SistemPage({ companyId }) {
       const res = await axios.post(`${API}/email/test/${companyId}`);
       toast.success(res.data.message);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Test başarısız");
+      }
     } finally {
       setTestingEmail(false);
     }
@@ -177,7 +181,9 @@ export default function SistemPage({ companyId }) {
       await axios.post(`${API}/backup/company/${companyId}/schedule`, backupSettings);
       toast.success("Yedekleme ayarları kaydedildi");
     } catch (err) {
+      if (!err.handled) {
       toast.error("Kaydetme başarısız");
+      }
     } finally {
       setBackupSaving(false);
     }
@@ -201,7 +207,9 @@ export default function SistemPage({ companyId }) {
       
       toast.success("Yedek indirildi");
     } catch (err) {
+      if (!err.handled) {
       toast.error("İndirme başarısız");
+      }
     } finally {
       setDownloading(false);
     }
@@ -218,7 +226,9 @@ export default function SistemPage({ companyId }) {
       await axios.post(`${API}/backup/company/${companyId}/send-now`);
       toast.success("Yedek e-postası gönderiliyor");
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Gönderme başarısız");
+      }
     } finally {
       setSendingBackup(false);
     }
@@ -231,7 +241,9 @@ export default function SistemPage({ companyId }) {
       await axios.put(`${API}/companies/${companyId}`, companyInfo);
       toast.success("Şirket bilgileri güncellendi");
     } catch (err) {
+      if (!err.handled) {
       toast.error("Kayıt başarısız");
+      }
     } finally {
       setSaving(false);
     }

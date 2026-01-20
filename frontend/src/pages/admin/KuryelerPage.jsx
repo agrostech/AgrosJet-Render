@@ -58,7 +58,9 @@ export default function KuryelerPage({ companyId }) {
         try {
           await removeCourier(courierId);
         } catch (err) {
+          if (!err.handled) {
           toast.error(err.response?.data?.detail || "İşlem başarısız");
+          }
         }
         setConfirmOpen(false);
       }
@@ -74,7 +76,9 @@ export default function KuryelerPage({ companyId }) {
         try {
           await startTermination(courierId);
         } catch (err) {
+          if (!err.handled) {
           toast.error(err.response?.data?.detail || "İşlem başarısız");
+          }
         }
         setConfirmOpen(false);
       }
@@ -90,7 +94,9 @@ export default function KuryelerPage({ companyId }) {
         try {
           await cancelTermination(courierId);
         } catch (err) {
+          if (!err.handled) {
           toast.error(err.response?.data?.detail || "İşlem başarısız");
+          }
         }
         setConfirmOpen(false);
       }
@@ -106,7 +112,9 @@ export default function KuryelerPage({ companyId }) {
         try {
           await deactivateCourier(courierId);
         } catch (err) {
+          if (!err.handled) {
           toast.error(err.response?.data?.detail || "İşlem başarısız");
+          }
         }
         setConfirmOpen(false);
       }
@@ -118,7 +126,9 @@ export default function KuryelerPage({ companyId }) {
     try {
       await activateCourier(courierId);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
+      }
     }
   };
 
@@ -126,7 +136,9 @@ export default function KuryelerPage({ companyId }) {
     try {
       await updateCourier(courierId, data);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+      }
       throw err;
     }
   };

@@ -85,7 +85,9 @@ export default function FaturalarTab({ companyId }) {
       await downloadBulk(selectedInvoices, `Faturalar_${selectedMonth}.${selectedYear}.zip`);
       setSelectedInvoices([]);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Faturalar indirilemedi");
+      }
     }
   };
 
@@ -102,7 +104,9 @@ export default function FaturalarTab({ companyId }) {
         fetchCourierInvoices(selectedCourier.courier_id).then(setCourierInvoices);
       }
     } catch (err) {
+      if (!err.handled) {
       toast.error("Fatura silinemedi");
+      }
     } finally {
       setConfirmOpen(false);
       setPendingDeleteId(null);

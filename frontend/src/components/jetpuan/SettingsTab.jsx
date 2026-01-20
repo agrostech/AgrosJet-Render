@@ -27,7 +27,9 @@ export function SettingsTab({ companyId }) {
       const res = await axios.get(`${API}/jetpuan/settings`);
       setSettings(res.data);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Ayarlar yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,9 @@ export function SettingsTab({ companyId }) {
       await axios.put(`${API}/jetpuan/settings`, settings);
       toast.success("Ayarlar kaydedildi");
     } catch (err) {
+      if (!err.handled) {
       toast.error("Kayıt başarısız");
+      }
     } finally {
       setSaving(false);
     }
@@ -95,7 +99,9 @@ export function SettingsTab({ companyId }) {
       setManualDescription("");
       setSelectedCourier(null);
     } catch (err) {
+      if (!err.handled) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
+      }
     } finally {
       setManualLoading(false);
     }

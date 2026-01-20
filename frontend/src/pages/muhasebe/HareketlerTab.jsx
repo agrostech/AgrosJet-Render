@@ -40,7 +40,9 @@ export default function HareketlerTab({ companyId }) {
       setTotalCount(res.data.total_count);
       setHasMore(res.data.has_more);
     } catch (err) {
+      if (!err.handled) {
       toast.error("Hareketler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
