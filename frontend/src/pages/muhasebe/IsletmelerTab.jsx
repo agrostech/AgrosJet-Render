@@ -207,7 +207,14 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                 {/* Üst satır: İsim ve Bakiye */}
                 <div className="flex items-center justify-between sm:justify-start sm:gap-4">
                   <div className="min-w-0">
-                    <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
+                      {selectedEntity.tax_bracket && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">
+                          %{selectedEntity.tax_bracket}
+                        </span>
+                      )}
+                    </div>
                     {selectedEntity.phone && <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>}
                   </div>
                   <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
@@ -221,6 +228,10 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                 {/* Alt satır (mobilde) / Sağ taraf (masaüstünde): Butonlar */}
                 {!showArchived && (
                   <div className="flex items-center gap-2 justify-end">
+                    <Button variant="outline" size="sm" onClick={() => setEditingBusiness(selectedEntity)} className="h-9 border-2" data-testid="edit-business-btn">
+                      <Pencil className="w-4 h-4" />
+                      <span className="ml-1.5 text-xs sm:hidden">Düzenle</span>
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => handleArchive(selectedEntity.id)} className="h-9 border-2" data-testid="archive-business-btn">
                       <Archive className="w-4 h-4" />
                       <span className="ml-1.5 text-xs sm:hidden">Arşiv</span>
