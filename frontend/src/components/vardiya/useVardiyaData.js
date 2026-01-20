@@ -131,7 +131,9 @@ export function useVardiyaData(companyId) {
       onSuccess?.();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Atama başarısız");
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Atama başarısız");
+      }
     }
   };
 
@@ -141,7 +143,9 @@ export function useVardiyaData(companyId) {
       toast.success("Kurye çıkarıldı");
       fetchData();
     } catch (err) {
-      toast.error("İşlem başarısız");
+      if (!err.handled) {
+        toast.error("İşlem başarısız");
+      }
     }
   };
 
@@ -155,7 +159,9 @@ export function useVardiyaData(companyId) {
       onSuccess?.();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "İzin eklenemedi");
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "İzin eklenemedi");
+      }
     }
   };
 
@@ -165,7 +171,9 @@ export function useVardiyaData(companyId) {
       toast.success("İzin kaldırıldı");
       fetchData();
     } catch (err) {
-      toast.error("İşlem başarısız");
+      if (!err.handled) {
+        toast.error("İşlem başarısız");
+      }
     }
   };
 
