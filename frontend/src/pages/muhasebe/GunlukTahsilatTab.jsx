@@ -103,6 +103,17 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
     return `${val.toLocaleString('tr-TR', { minimumFractionDigits: 0 })} TL`;
   };
 
+  // Filter and sort couriers: search filter + saved ones at bottom
+  const filteredCouriers = couriers
+    .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      // Saved couriers go to bottom
+      if (a.has_collection && !b.has_collection) return 1;
+      if (!a.has_collection && b.has_collection) return -1;
+      // Then sort by name
+      return a.name.localeCompare(b.name, 'tr');
+    });
+
   if (loading) return <PageLoading />;
 
   return (
@@ -119,9 +130,22 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
             data-testid="date-picker"
           />
         </div>
-        <div className="flex gap-4 text-sm">
-          <span className="text-muted-foreground">Kurye: <b>{couriers.length}</b></span>
-          <span className="text-green-600">Kayıtlı: <b>{couriers.filter(c => c.has_collection).length}</b></span>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Kurye ara..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 pl-9 border-2 w-44"
+              data-testid="search-courier"
+            />
+          </div>
+          <div className="flex gap-3 text-sm">
+            <span className="text-muted-foreground">Kurye: <b>{filteredCouriers.length}</b></span>
+            <span className="text-green-600">Kayıtlı: <b>{filteredCouriers.filter(c => c.has_collection).length}</b></span>
+          </div>
         </div>
       </div>
 
