@@ -73,6 +73,11 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
   const [editForm, setEditForm] = useState({ amount: "", description: "" });
   const [editLoading, setEditLoading] = useState(false);
 
+  // İşletme düzenleme state'leri
+  const [editingBusiness, setEditingBusiness] = useState(null);
+  const [editBusinessForm, setEditBusinessForm] = useState({ name: "", phone: "", address: "", tax_bracket: null });
+  const [editBusinessLoading, setEditBusinessLoading] = useState(false);
+
   const openEditModal = (tx) => {
     setEditingTx(tx);
     setEditForm({ amount: tx.amount.toString(), description: tx.description || "" });
@@ -87,6 +92,35 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     });
     setEditLoading(false);
     if (success) setEditingTx(null);
+  };
+
+  // İşletme düzenleme işlevi
+  const handleEditBusinessSubmit = async () => {
+    if (!editingBusiness) return;
+    setEditBusinessLoading(true);
+    try {
+      await axios.put(`${API}/businesses/${editingBusiness.id}`, editBusinessForm);
+      toast.success("İşletme güncellendi");
+      setEditingBusiness(null);
+      fetchEntities();
+    } catch (err) {
+      if (!err.handled) {
+        toast.error("Güncelleme başarısız");
+      }
+    } finally {
+      setEditBusinessLoading(false);
+    }
+  };
+
+  // editingBusiness değiştiğinde formu doldur
+  const openEditBusinessModal = (business) => {
+    setEditingBusiness(business);
+    setEditBusinessForm({
+      name: business.name || "",
+      phone: business.phone || "",
+      address: business.address || "",
+      tax_bracket: business.tax_bracket || null
+    });
   };
 
   const handleAddBusiness = async (e) => {
