@@ -256,11 +256,11 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
       <div className="flex gap-4 text-sm justify-end">
         <div className="px-3 py-1.5 bg-green-50 rounded border border-green-200">
           <span className="text-green-700">Nakit: </span>
-          <span className="font-bold font-mono">{formatMoney(couriers.reduce((sum, c) => sum + (c.collection?.cash_total || 0), 0))}</span>
+          <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.cash_total || 0), 0))}</span>
         </div>
         <div className="px-3 py-1.5 bg-blue-50 rounded border border-blue-200">
           <span className="text-blue-700">Kart: </span>
-          <span className="font-bold font-mono">{formatMoney(couriers.reduce((sum, c) => sum + (c.collection?.card_total || 0), 0))}</span>
+          <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.card_total || 0), 0))}</span>
         </div>
       </div>
     </div>
