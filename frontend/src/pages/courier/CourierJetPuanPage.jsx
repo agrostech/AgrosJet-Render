@@ -140,7 +140,7 @@ export default function CourierJetPuanPage({ courierId }) {
       setActiveTab("orders");
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Sipariş oluşturulamadı");
+        toast.error(err.response?.data?.detail || "Sipariş oluşturulamadı");
       }
     }
   };

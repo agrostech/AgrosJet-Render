@@ -16,7 +16,7 @@ export default function HistoryTab({ courierId }) {
       setTransactions(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Puan geçmişi yüklenemedi");
+        toast.error("Puan geçmişi yüklenemedi");
       }
     } finally {
       setLoading(false);

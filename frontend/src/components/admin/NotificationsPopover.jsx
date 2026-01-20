@@ -164,7 +164,7 @@ export default function NotificationsPopover({ companyId }) {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
       if (!err.handled) {
-      toast.error("İşlem başarısız");
+        toast.error("İşlem başarısız");
       }
     }
   };
@@ -177,7 +177,7 @@ export default function NotificationsPopover({ companyId }) {
       toast.success("Tüm bildirimler okundu");
     } catch (err) {
       if (!err.handled) {
-      toast.error("İşlem başarısız");
+        toast.error("İşlem başarısız");
       }
     }
   };
@@ -189,7 +189,7 @@ export default function NotificationsPopover({ companyId }) {
       toast.success("Bildirim silindi");
     } catch (err) {
       if (!err.handled) {
-      toast.error("Silme başarısız");
+        toast.error("Silme başarısız");
       }
     }
   };
@@ -206,7 +206,7 @@ export default function NotificationsPopover({ companyId }) {
       toast.success("Tüm bildirimler silindi");
     } catch (err) {
       if (!err.handled) {
-      toast.error("Silme başarısız");
+        toast.error("Silme başarısız");
       }
     } finally {
       setConfirmOpen(false);

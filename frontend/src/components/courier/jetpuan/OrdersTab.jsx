@@ -16,7 +16,7 @@ export default function OrdersTab({ courierId }) {
       setOrders(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Siparişler yüklenemedi");
+        toast.error("Siparişler yüklenemedi");
       }
     } finally {
       setLoading(false);

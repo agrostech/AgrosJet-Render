@@ -33,7 +33,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       setHasMoreProducts(res.data.has_more);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Ürünler yüklenemedi");
+        toast.error("Ürünler yüklenemedi");
       }
     }
   }, [companyId, products.length]);
@@ -109,7 +109,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       return true;
     } catch (err) {
       if (!err.handled) {
-      toast.error("Eklenemedi");
+        toast.error("Eklenemedi");
       }
       return false;
     }
@@ -127,7 +127,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       return true;
     } catch (err) {
       if (!err.handled) {
-      toast.error("Güncellenemedi");
+        toast.error("Güncellenemedi");
       }
       return false;
     }
@@ -143,7 +143,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProductTypes();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silinemedi");
+        toast.error(err.response?.data?.detail || "Silinemedi");
       }
     }
   }, [fetchProductTypes]);
@@ -155,7 +155,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchProductTypes();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silinemedi");
+        toast.error(err.response?.data?.detail || "Silinemedi");
       }
     }
   }, [fetchProductTypes]);
@@ -174,7 +174,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       return true;
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Eklenemedi");
+        toast.error(err.response?.data?.detail || "Eklenemedi");
       }
       return false;
     }
@@ -199,7 +199,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       return true;
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Güncellenemedi");
+        toast.error(err.response?.data?.detail || "Güncellenemedi");
       }
       return false;
     }
@@ -217,7 +217,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchLogs();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silinemedi");
+        toast.error(err.response?.data?.detail || "Silinemedi");
       }
     }
   }, [adminId, adminName, selectedProduct?.id, fetchProducts, fetchLogs]);
@@ -231,7 +231,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       fetchLogs();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silinemedi");
+        toast.error(err.response?.data?.detail || "Silinemedi");
       }
     }
   }, [adminId, adminName, selectedProduct?.id, fetchProducts, fetchLogs]);
@@ -261,7 +261,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       return true;
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Zimmetlenemedi");
+        toast.error(err.response?.data?.detail || "Zimmetlenemedi");
       }
       return false;
     }
@@ -286,7 +286,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       return true;
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Geri alınamadı");
+        toast.error(err.response?.data?.detail || "Geri alınamadı");
       }
       return false;
     }
@@ -306,7 +306,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       }
     } catch (err) {
       if (!err.handled) {
-      toast.error("Güncellenemedi");
+        toast.error("Güncellenemedi");
       }
     }
   }, [adminId, adminName, fetchProducts, fetchLogs, selectedProduct]);
@@ -324,7 +324,7 @@ export function useZimmetData(companyId, adminId, adminName) {
       }
     } catch (err) {
       if (!err.handled) {
-      toast.error("Güncellenemedi");
+        toast.error("Güncellenemedi");
       }
     }
   }, [adminId, adminName, fetchProducts, fetchLogs, selectedProduct]);

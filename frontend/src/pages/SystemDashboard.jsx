@@ -54,7 +54,7 @@ function SirketlerPage() {
       setCompanies(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Şirketler yüklenemedi");
+        toast.error("Şirketler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -72,7 +72,7 @@ function SirketlerPage() {
       setCompanyAdmins(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Yöneticiler yüklenemedi");
+        toast.error("Yöneticiler yüklenemedi");
       }
     } finally {
       setAdminsLoading(false);
@@ -89,7 +89,7 @@ function SirketlerPage() {
       fetchCompanies();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Oluşturma başarısız");
+        toast.error(err.response?.data?.detail || "Oluşturma başarısız");
       }
     }
   };
@@ -106,7 +106,7 @@ function SirketlerPage() {
       fetchCompanies();
     } catch (err) {
       if (!err.handled) {
-      toast.error("Güncelleme başarısız");
+        toast.error("Güncelleme başarısız");
       }
     }
   };
@@ -122,7 +122,7 @@ function SirketlerPage() {
           fetchCompanies();
         } catch (err) {
           if (!err.handled) {
-          toast.error("Silme başarısız");
+            toast.error("Silme başarısız");
           }
         }
         setConfirmOpen(false);
@@ -144,7 +144,7 @@ function SirketlerPage() {
       fetchCompanyAdmins(selectedCompany.id);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Oluşturma başarısız");
+        toast.error(err.response?.data?.detail || "Oluşturma başarısız");
       }
     }
   };
@@ -162,7 +162,7 @@ function SirketlerPage() {
       fetchCompanyAdmins(selectedCompany.id);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Ekleme başarısız");
+        toast.error(err.response?.data?.detail || "Ekleme başarısız");
       }
     }
   };
@@ -178,7 +178,7 @@ function SirketlerPage() {
           fetchCompanyAdmins(selectedCompany.id);
         } catch (err) {
           if (!err.handled) {
-          toast.error(err.response?.data?.detail || "Silme başarısız");
+            toast.error(err.response?.data?.detail || "Silme başarısız");
           }
         }
         setConfirmOpen(false);
@@ -201,7 +201,7 @@ function SirketlerPage() {
       fetchCompanyAdmins(selectedCompany.id);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+        toast.error(err.response?.data?.detail || "Güncelleme başarısız");
       }
     }
   };

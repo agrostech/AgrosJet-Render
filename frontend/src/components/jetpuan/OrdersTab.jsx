@@ -30,7 +30,7 @@ export function OrdersTab() {
       setOrders(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Siparişler yüklenemedi");
+        toast.error("Siparişler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -53,7 +53,7 @@ export function OrdersTab() {
       refreshBadges();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
+        toast.error(err.response?.data?.detail || "İşlem başarısız");
       }
     }
   };
@@ -72,7 +72,7 @@ export function OrdersTab() {
       refreshBadges();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "İptal başarısız");
+        toast.error(err.response?.data?.detail || "İptal başarısız");
       }
     } finally {
       setConfirmOpen(false);

@@ -41,7 +41,7 @@ export default function HareketlerTab({ companyId }) {
       setHasMore(res.data.has_more);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Hareketler yüklenemedi");
+        toast.error("Hareketler yüklenemedi");
       }
     } finally {
       setLoading(false);

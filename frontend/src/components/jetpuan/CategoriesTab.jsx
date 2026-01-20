@@ -41,7 +41,7 @@ export function CategoriesTab() {
       setCategories(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Kategoriler yüklenemedi");
+        toast.error("Kategoriler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -83,7 +83,7 @@ export function CategoriesTab() {
       fetchCategories();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
+        toast.error(err.response?.data?.detail || "İşlem başarısız");
       }
     }
   };
@@ -101,7 +101,7 @@ export function CategoriesTab() {
       fetchCategories();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silme başarısız");
+        toast.error(err.response?.data?.detail || "Silme başarısız");
       }
     } finally {
       setConfirmOpen(false);

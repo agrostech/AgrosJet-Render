@@ -159,7 +159,7 @@ export default function YoneticilerPage({ companyId }) {
       setAdmins(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Yöneticiler yüklenemedi");
+        toast.error("Yöneticiler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -180,7 +180,7 @@ export default function YoneticilerPage({ companyId }) {
       fetchAdmins();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Ekleme başarısız");
+        toast.error(err.response?.data?.detail || "Ekleme başarısız");
       }
     }
   };
@@ -193,7 +193,7 @@ export default function YoneticilerPage({ companyId }) {
       fetchAdmins();
     } catch (err) {
       if (!err.handled) {
-      toast.error("Güncelleme başarısız");
+        toast.error("Güncelleme başarısız");
       }
     }
   };
@@ -211,7 +211,7 @@ export default function YoneticilerPage({ companyId }) {
       fetchAdmins();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silme başarısız");
+        toast.error(err.response?.data?.detail || "Silme başarısız");
       }
     } finally {
       setConfirmOpen(false);
@@ -260,7 +260,7 @@ export default function YoneticilerPage({ companyId }) {
       fetchAdmins();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+        toast.error(err.response?.data?.detail || "Güncelleme başarısız");
       }
     } finally {
       setEditLoading(false);

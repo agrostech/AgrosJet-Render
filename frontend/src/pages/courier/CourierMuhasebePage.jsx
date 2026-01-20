@@ -53,7 +53,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       setHasMore(res.data.has_more);
     } catch (err) {
       if (!err.handled) {
-      toast.error("İşlemler yüklenemedi");
+        toast.error("İşlemler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -140,7 +140,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       fetchInvoices();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
+        toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
       }
     } finally {
       setUploadingFor(null);
@@ -161,7 +161,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       fetchInvoices();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Fatura silinemedi");
+        toast.error(err.response?.data?.detail || "Fatura silinemedi");
       }
     } finally {
       setConfirmOpen(false);

@@ -86,7 +86,7 @@ export default function FaturalarTab({ companyId }) {
       setSelectedInvoices([]);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Faturalar indirilemedi");
+        toast.error("Faturalar indirilemedi");
       }
     }
   };
@@ -105,7 +105,7 @@ export default function FaturalarTab({ companyId }) {
       }
     } catch (err) {
       if (!err.handled) {
-      toast.error("Fatura silinemedi");
+        toast.error("Fatura silinemedi");
       }
     } finally {
       setConfirmOpen(false);

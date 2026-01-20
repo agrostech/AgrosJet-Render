@@ -59,7 +59,7 @@ export default function KuryelerPage({ companyId }) {
           await removeCourier(courierId);
         } catch (err) {
           if (!err.handled) {
-          toast.error(err.response?.data?.detail || "İşlem başarısız");
+            toast.error(err.response?.data?.detail || "İşlem başarısız");
           }
         }
         setConfirmOpen(false);
@@ -77,7 +77,7 @@ export default function KuryelerPage({ companyId }) {
           await startTermination(courierId);
         } catch (err) {
           if (!err.handled) {
-          toast.error(err.response?.data?.detail || "İşlem başarısız");
+            toast.error(err.response?.data?.detail || "İşlem başarısız");
           }
         }
         setConfirmOpen(false);
@@ -95,7 +95,7 @@ export default function KuryelerPage({ companyId }) {
           await cancelTermination(courierId);
         } catch (err) {
           if (!err.handled) {
-          toast.error(err.response?.data?.detail || "İşlem başarısız");
+            toast.error(err.response?.data?.detail || "İşlem başarısız");
           }
         }
         setConfirmOpen(false);
@@ -113,7 +113,7 @@ export default function KuryelerPage({ companyId }) {
           await deactivateCourier(courierId);
         } catch (err) {
           if (!err.handled) {
-          toast.error(err.response?.data?.detail || "İşlem başarısız");
+            toast.error(err.response?.data?.detail || "İşlem başarısız");
           }
         }
         setConfirmOpen(false);
@@ -127,7 +127,7 @@ export default function KuryelerPage({ companyId }) {
       await activateCourier(courierId);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
+        toast.error(err.response?.data?.detail || "İşlem başarısız");
       }
     }
   };
@@ -137,7 +137,7 @@ export default function KuryelerPage({ companyId }) {
       await updateCourier(courierId, data);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+        toast.error(err.response?.data?.detail || "Güncelleme başarısız");
       }
       throw err;
     }

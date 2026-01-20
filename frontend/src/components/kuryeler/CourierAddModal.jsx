@@ -24,7 +24,7 @@ export function CourierAddModal({ open, onOpenChange, onSearch, onAdd }) {
       setSearchResult(result);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Kurye bulunamadı");
+        toast.error(err.response?.data?.detail || "Kurye bulunamadı");
       }
     } finally {
       setSearching(false);
@@ -39,7 +39,7 @@ export function CourierAddModal({ open, onOpenChange, onSearch, onAdd }) {
       onOpenChange(false);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Ekleme başarısız");
+        toast.error(err.response?.data?.detail || "Ekleme başarısız");
       }
     }
   };

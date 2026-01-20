@@ -132,7 +132,7 @@ export default function SistemPage({ companyId }) {
       fetchEmailSettings();
     } catch (err) {
       if (!err.handled) {
-      toast.error("Kaydetme başarısız");
+        toast.error("Kaydetme başarısız");
       }
     } finally {
       setEmailSaving(false);
@@ -146,7 +146,7 @@ export default function SistemPage({ companyId }) {
       toast.success(res.data.message);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Test başarısız");
+        toast.error(err.response?.data?.detail || "Test başarısız");
       }
     } finally {
       setTestingEmail(false);
@@ -182,7 +182,7 @@ export default function SistemPage({ companyId }) {
       toast.success("Yedekleme ayarları kaydedildi");
     } catch (err) {
       if (!err.handled) {
-      toast.error("Kaydetme başarısız");
+        toast.error("Kaydetme başarısız");
       }
     } finally {
       setBackupSaving(false);
@@ -208,7 +208,7 @@ export default function SistemPage({ companyId }) {
       toast.success("Yedek indirildi");
     } catch (err) {
       if (!err.handled) {
-      toast.error("İndirme başarısız");
+        toast.error("İndirme başarısız");
       }
     } finally {
       setDownloading(false);
@@ -227,7 +227,7 @@ export default function SistemPage({ companyId }) {
       toast.success("Yedek e-postası gönderiliyor");
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Gönderme başarısız");
+        toast.error(err.response?.data?.detail || "Gönderme başarısız");
       }
     } finally {
       setSendingBackup(false);
@@ -242,7 +242,7 @@ export default function SistemPage({ companyId }) {
       toast.success("Şirket bilgileri güncellendi");
     } catch (err) {
       if (!err.handled) {
-      toast.error("Kayıt başarısız");
+        toast.error("Kayıt başarısız");
       }
     } finally {
       setSaving(false);

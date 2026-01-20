@@ -83,7 +83,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
       setRules(res.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Bonus kuralları yüklenemedi");
+        toast.error("Bonus kuralları yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -120,7 +120,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
       fetchRules();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Kural eklenemedi");
+        toast.error(err.response?.data?.detail || "Kural eklenemedi");
       }
     } finally {
       setAdding(false);
@@ -140,7 +140,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
       fetchRules();
     } catch (err) {
       if (!err.handled) {
-      toast.error("Kural silinemedi");
+        toast.error("Kural silinemedi");
       }
     } finally {
       setConfirmOpen(false);
@@ -173,7 +173,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
       setShowModal(true);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Excel dosyası işlenemedi");
+        toast.error(err.response?.data?.detail || "Excel dosyası işlenemedi");
       }
     } finally {
       setUploading(false);
@@ -209,7 +209,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
       setParseResult(null);
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Hakedişler eklenemedi");
+        toast.error(err.response?.data?.detail || "Hakedişler eklenemedi");
       }
     } finally {
       setApplying(false);

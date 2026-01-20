@@ -164,7 +164,7 @@ export function useAccountingTab({
       sortedData.forEach(e => fetchEntityBalance(e.id, false));
     } catch (err) {
       if (!err.handled) {
-      toast.error("Veriler yüklenemedi");
+        toast.error("Veriler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -205,7 +205,7 @@ export function useAccountingTab({
       setHasMore(res.data.has_more);
     } catch (err) {
       if (!err.handled) {
-      toast.error("İşlemler yüklenemedi");
+        toast.error("İşlemler yüklenemedi");
       }
     }
   }, [endpoint]);
@@ -268,7 +268,7 @@ export function useAccountingTab({
       fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
     } catch (err) {
       if (!err.handled) {
-      toast.error("İşlem başarısız");
+        toast.error("İşlem başarısız");
       }
     } finally {
       setSubmitting(false);
@@ -291,7 +291,7 @@ export function useAccountingTab({
       fetchEntityBalance(selectedEntity.id, selectedEntity.is_archived);
     } catch (err) {
       if (!err.handled) {
-      toast.error("İşlem silinemedi");
+        toast.error("İşlem silinemedi");
       }
     }
   }, [selectedEntity, adminId, adminName, fetchTransactions, fetchEntityBalance]);
@@ -309,7 +309,7 @@ export function useAccountingTab({
       // Yetki hatası zaten axiosConfig'de gösterildi
       if (!err.permissionError) {
         if (!err.handled) {
-        toast.error("İşlem silinemedi");
+          toast.error("İşlem silinemedi");
         }
       }
     }
@@ -332,7 +332,7 @@ export function useAccountingTab({
     } catch (err) {
       if (!err.permissionError) {
         if (!err.handled) {
-        toast.error(err.response?.data?.detail || "İşlem güncellenemedi");
+          toast.error(err.response?.data?.detail || "İşlem güncellenemedi");
         }
       }
       return false;
@@ -353,7 +353,7 @@ export function useAccountingTab({
     } catch (err) {
       if (!err.permissionError) {
         if (!err.handled) {
-        toast.error("Arşivleme başarısız");
+          toast.error("Arşivleme başarısız");
         }
       }
     }
@@ -369,7 +369,7 @@ export function useAccountingTab({
     } catch (err) {
       if (!err.permissionError) {
         if (!err.handled) {
-        toast.error("Arşivleme başarısız");
+          toast.error("Arşivleme başarısız");
         }
       }
     }
@@ -385,7 +385,7 @@ export function useAccountingTab({
     } catch (err) {
       if (!err.permissionError) {
         if (!err.handled) {
-        toast.error("İşlem başarısız");
+          toast.error("İşlem başarısız");
         }
       }
     }
@@ -406,7 +406,7 @@ export function useAccountingTab({
     } catch (err) {
       if (!err.permissionError) {
         if (!err.handled) {
-        toast.error("Silinemedi");
+          toast.error("Silinemedi");
         }
       }
     }
@@ -422,7 +422,7 @@ export function useAccountingTab({
       fetchArchivedEntities();
     } catch (err) {
       if (!err.handled) {
-      toast.error("Silinemedi");
+        toast.error("Silinemedi");
       }
     }
   }, [endpoint, selectedEntity, fetchEntities, fetchArchivedEntities]);

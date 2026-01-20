@@ -33,7 +33,7 @@ export default function RegisterPage() {
       navigate("/login");
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Kayıt başarısız");
+        toast.error(err.response?.data?.detail || "Kayıt başarısız");
       }
     } finally {
       setLoading(false);

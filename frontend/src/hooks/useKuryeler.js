@@ -22,7 +22,7 @@ export function useKuryeler(companyId) {
       setInactiveCouriers(inactiveRes.data.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr')));
     } catch (err) {
       if (!err.handled) {
-      toast.error("Kuryeler yüklenemedi");
+        toast.error("Kuryeler yüklenemedi");
       }
     } finally {
       setLoading(false);

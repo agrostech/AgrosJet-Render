@@ -98,7 +98,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       fetchData();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silme başarısız");
+        toast.error(err.response?.data?.detail || "Silme başarısız");
       }
     } finally {
       setDeleting(null);
@@ -137,7 +137,7 @@ export default function CourierDocumentsSection({ courierId, courierName, compan
       toast.success("İndirme başladı");
     } catch (err) {
       if (!err.handled) {
-      toast.error("İndirme başarısız");
+        toast.error("İndirme başarısız");
       }
     } finally {
       setDownloading(false);

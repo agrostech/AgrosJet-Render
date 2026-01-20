@@ -47,7 +47,7 @@ export function useMaliBellek(companyId, adminId, adminName, activeTab) {
       setMaliBellekAllLogs(logsRes.data || []);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Mali bellek verileri yüklenemedi");
+        toast.error("Mali bellek verileri yüklenemedi");
       }
     } finally {
       setMaliBellekLoading(false);
@@ -63,7 +63,7 @@ export function useMaliBellek(companyId, adminId, adminName, activeTab) {
       fetchMaliBellek();
     } catch (err) {
       if (!err.handled) {
-      toast.error("İşlem başarısız");
+        toast.error("İşlem başarısız");
       }
     }
   }, [selectedYearMonth, adminId, adminName, fetchMaliBellek]);

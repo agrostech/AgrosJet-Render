@@ -79,7 +79,7 @@ export default function ProfileModal({ user, open, onOpenChange }) {
       }
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+        toast.error(err.response?.data?.detail || "Güncelleme başarısız");
       }
     } finally {
       setProfileLoading(false);

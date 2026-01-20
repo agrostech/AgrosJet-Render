@@ -49,7 +49,7 @@ export function JetPuanProductsTab() {
       setCategories(categoriesRes.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Veriler yüklenemedi");
+        toast.error("Veriler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export function JetPuanProductsTab() {
       fetchData();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
+        toast.error(err.response?.data?.detail || "İşlem başarısız");
       }
     }
   };
@@ -122,7 +122,7 @@ export function JetPuanProductsTab() {
       fetchData();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Silme başarısız");
+        toast.error(err.response?.data?.detail || "Silme başarısız");
       }
     } finally {
       setConfirmOpen(false);

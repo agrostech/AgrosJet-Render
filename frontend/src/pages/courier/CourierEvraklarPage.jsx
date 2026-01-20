@@ -72,7 +72,7 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
       setStatus(statusRes.data);
     } catch (err) {
       if (!err.handled) {
-      toast.error("Veriler yüklenemedi");
+        toast.error("Veriler yüklenemedi");
       }
     } finally {
       setLoading(false);
@@ -119,7 +119,7 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
       fetchData();
     } catch (err) {
       if (!err.handled) {
-      toast.error(err.response?.data?.detail || "Yükleme başarısız");
+        toast.error(err.response?.data?.detail || "Yükleme başarısız");
       }
     } finally {
       setUploading(prev => ({ ...prev, [documentType]: false }));
