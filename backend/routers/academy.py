@@ -33,12 +33,9 @@ class TrainingUpdate(BaseModel):
 
 # --- Training CRUD ---
 @router.get("/company/{company_id}/trainings")
-async def get_trainings(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_trainings(company_id: str):
     """Get all trainings for a company - oldest first"""
-    await require_permission(x_admin_id, "akademi_view")
+    # GET işlemi - kurye panelinden de erişilebilir
     trainings = await db.academy_trainings.find(
         {"company_id": company_id},
         {"_id": 0}
