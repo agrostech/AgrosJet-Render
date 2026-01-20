@@ -55,7 +55,9 @@ export default function AkademiPage({ companyId }) {
       const res = await axios.get(`${API}/academy/company/${companyId}/trainings`);
       setTrainings(res.data);
     } catch (err) {
-      toast.error("Eğitimler yüklenemedi");
+      if (!err.handled) {
+        toast.error("Eğitimler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
