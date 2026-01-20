@@ -129,7 +129,9 @@ export default function GuncelDurumPage({ companyId }) {
       setCouriers(couriersRes.data);
       setAccountingSummary(accountingRes.data);
     } catch (err) {
-      toast.error("Veriler yüklenemedi");
+      if (!err.handled) {
+        toast.error("Veriler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
