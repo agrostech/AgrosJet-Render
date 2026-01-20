@@ -25,182 +25,125 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 20, 2026 - Session 2 Bug Fixes (Latest)
+### January 20, 2026 - İzin Sistemi Kaldırıldı (Latest)
 
-#### ✅ Fixed: Yetki Güncellendiğinde Otomatik Logout
-- Admin'in yetkileri değiştiğinde otomatik session invalidation
-- `/api/auth/check-session/{user_id}` endpoint'i eklendi
-- Frontend 10 saniyede bir session kontrolü yapıyor
-- Yetki değişikliğinde "Yetkilerin güncellendi, lütfen tekrar giriş yap" mesajı
+#### ✅ COMPLETED: İzin (Permission) Sistemi Tamamen Kaldırıldı
+Kullanıcı talebi üzerine granüler izin sistemi tamamen kaldırıldı.
 
-#### ✅ Fixed: Çoklu Hata Mesajları
-- `axiosConfig.js` - Aynı hatayı 2 saniye içinde tekrar göstermeme
-- Component catch bloklarında `err.permissionError` flag kontrolü
-- Artık sadece TEK bir "Bu işlem için yetkiniz yok" mesajı gösteriliyor
+**Kaldırılan Bileşenler:**
+1. **Backend:**
+   - `admins.py` - Tüm permission fonksiyonları (get_default_admin_permissions, get_superadmin_permissions, migrate-permissions endpoint)
+   - `profile.py` - Session invalidation kodları (invalidate_user_session, check_session_valid, clear_session_invalidation)
+   - `auth.py` - Login response'da permissions field'ı döndürülmüyor
 
-#### ✅ Fixed: Kurye Pasife Alma Kontrolleri
-- `courier_service.py` - Zimmet kontrolü düzeltildi (`products` koleksiyonu)
-- Bakiye kontrolü düzeltildi (`transactions` koleksiyonu)
-- Zimmetli ürünü olan kurye pasife alınamaz: "Bu kuryenin üzerinde zimmetli ürün bulunuyor"
-- Bakiyesi olan kurye pasife alınamaz: "Bu kuryenin X TL alacağı/borcu bulunuyor"
+2. **Frontend:**
+   - `useSessionCheck.js` - Hook silindi
+   - `axiosConfig.js` - X-Admin-Id header ve karmaşık error handling kaldırıldı
+   - `api.js` - X-Admin-Id header kaldırıldı
+   - `AdminDashboard.jsx` - Permission bazlı menü filtreleme kaldırıldı
+   - `YoneticilerPage.jsx` - İzin modalı ve ilgili tüm kodlar kaldırıldı
+   - `LoginPage.jsx` - Session invalidation temizleme kodu kaldırıldı
 
-### January 20, 2026 - Session 1 Bug Fixes
+**Mevcut Durum:**
+- Tüm adminler (superadmin hariç) tüm sayfalara erişebilir
+- Yöneticiler sayfası SADECE superadmin için görünür
+- Yöneticiler sayfasında sadece "Düzenle" ve "Sil" butonları var
+- "Yetkiler" butonu YOK
 
-#### ✅ Fixed: Yetki Sistemi Sorunları
-1. **Sayfa Erişim Yetkisi Düzeltildi**
-   - `AdminDashboard.jsx` - NAV_ITEMS'da `permKey` ile doğru yetki kontrolü
-   - `page_market: false` olan admin artık Market menüsünü görmüyor
-   
-2. **İşlem Silme Yetkisi Bypass Bug'ı Düzeltildi**
-   - `/api/transactions/{id}/with-installment-restore` endpoint'ine yetki kontrolü eklendi
-   - `muhasebe_delete_transaction: false` olan admin artık işlem silemiyor
+**Test Sonuçları (iteration_20.json):**
+- ✅ Admin login çalışıyor (permissions field YOK)
+- ✅ Yanlış şifre için tek toast gösteriliyor (3 değil 1)
+- ✅ Tüm menü öğeleri görünüyor
+- ✅ Yöneticiler sayfasında "Yetkiler" butonu YOK
+- ✅ Vardiyalar, Muhasebe, Zimmet sayfaları çalışıyor
+- ✅ Kurye dashboard çalışıyor
 
-#### ✅ Fixed: Hakediş Checkbox Mantık Hatası
-- **Önceki:** Yeşil buton (Verilen/payment_out) ile hakediş çalışıyordu
-- **Şimdi:** Kırmızı buton (Alınan/payment_in) ile hakediş çalışıyor
+---
 
-#### ✅ Fixed: Bildirim Mantığı
-- Superadmin kendi işlemlerinde bildirim almıyor
-- `actor_id` ve `actor_role` parametreleri eklendi
+### Previous Sessions
 
-#### ✅ Completed: Akademi Modülü
-- Admin: Video/metin eğitim materyali yükleme ve yönetim
-- Kurye: Eğitimleri görüntüleme
-- Video streaming desteği
-- Backend: `/app/backend/routers/academy.py`
-- Frontend: `/app/frontend/src/pages/admin/AkademiPage.jsx`, `/app/frontend/src/pages/courier/CourierAkademiPage.jsx`
+#### January 20, 2026 - Session 1 Bug Fixes
+- ✅ Hakediş Checkbox Mantık Hatası düzeltildi
+- ✅ Bildirim mantığı düzeltildi (superadmin kendi işlemlerinde bildirim almıyor)
+- ✅ Akademi Modülü tamamlandı
+- ✅ Yedekleme (Backup) Modülü tamamlandı
 
-#### ✅ Completed: Yedekleme (Backup) Modülü
-- Manuel veritabanı export (ZIP formatında)
-- Otomatik günlük yedekleme ayarları
-- E-posta ile yedekleme gönderimi
-- Backend: `/app/backend/routers/backup.py`
-- Frontend: `SistemPage.jsx` içinde collapsible kart
-
-#### 📋 Previous Session Completions
-- Refactoring: `KuryelerPage.jsx`, `FaturalarTab.jsx`, `couriers.py` 
-- Toplu Hakediş Excel parsing ve mobil uyumluluk
-- Bildirim sistemi iyileştirmeleri
-- JetPuan siparişler listesi yeni tasarım
-- Shift kartları collapsible yapıldı
+#### Core Features (Completed)
+- Kurye yönetimi (CRUD, fesih, arşivleme)
+- Vardiya sistemi
+- Muhasebe (gelir/gider, taksitler, faturalar, cariler, işletmeler)
+- Zimmet takibi
+- JetPuan market sistemi
+- Akademi (video/metin eğitim)
+- Bildirim sistemi
+- E-posta bildirimleri
+- PDF export (muhasebe özeti)
 
 ---
 
 ## Prioritized Backlog
 
-### P1 - High Priority
-1. **Import/Restore Functionality**
-   - Yedekleme modülünde geri yükleme özelliği eksik
-   - Backend TODO olarak işaretli
+### P0 - Critical (Next)
+- [ ] **Yeni İzin Sistemi Planı**: Basit ve sağlam bir izin sistemi tasarla ve kullanıcı onayı al
 
-2. **Otomatik Yedekleme Scheduler**
-   - APScheduler ile günlük otomatik yedekleme çalıştırma
-   - Background task olarak çalışacak
+### P1 - High Priority
+- [ ] **Kurye Deaktivasyonu Kontrolü Doğrulama**: Bakiye/zimmet kontrolü mantığını doğrula
+- [ ] **Dosya Yükleme İyileştirmesi**: Akademi için kalıcı dosya depolama çözümü
 
 ### P2 - Medium Priority
-3. **Kalıcı Dosya Depolama Çözümü**
-   - Akademi video yüklemeleri için S3 veya kalıcı volume
-   - Production için kritik
+- [ ] **Kod Refactoring**: Büyük dosyaları parçala (GuncelDurumPage.jsx, SistemPage.jsx)
+- [ ] **Test Kapsamını Artır**: Backend için pytest testleri ekle
 
-4. **Kalan Büyük Dosyaların Refactoring'i**
-   - `GuncelDurumPage.jsx` (497 satır)
-   - `SistemPage.jsx` (455 satır)
-   - `invoices.py` (468 satır)
-   - `zimmet.py` (454 satır)
+### P3 - Low Priority
+- [ ] **err.handled Temizliği**: Artık kullanılmayan err.handled kontrollerini kaldır
 
 ---
 
-## Key API Endpoints
+## Test Credentials
 
-### Permission-Protected Endpoints (X-Admin-Id Header Required)
-All endpoints below require `X-Admin-Id` header for authorization.
+### Super Admin
+- Username: `onurertas`
+- Password: `Delivery32..`
 
-### Academy
-- `GET /api/academy/company/{company_id}/trainings` - akademi_view
-- `POST /api/academy/company/{company_id}/trainings` - akademi_add
-- `PUT /api/academy/training/{training_id}` - akademi_edit
-- `DELETE /api/academy/training/{training_id}` - akademi_delete
-- `GET /api/academy/video/{training_id}` - public (video streaming)
+### Test Admin
+- Username: `testdeleteadmin`
+- Password: `test123`
 
-### Backup
-- `GET /api/backup/company/{company_id}/export` - sistem_backup
-- `POST /api/backup/company/{company_id}/import` - sistem_backup (TODO)
-- `GET /api/backup/company/{company_id}/schedule` - sistem_backup
-- `POST /api/backup/company/{company_id}/schedule` - sistem_backup
-- `POST /api/backup/company/{company_id}/send-now` - sistem_backup
+### Test Courier
+- Phone: `05559999999`
+- Password: `test123`
 
 ---
 
-## Test Reports
-- `/app/test_reports/iteration_16.json` - ConfirmModal tests (100% pass)
-- `/app/test_reports/iteration_17.json` - Granular Permissions tests (100% pass)
-- `/app/test_reports/iteration_18.json` - Backend Permission Enforcement tests (100% pass - 35/35)
+## Architecture
 
-## Credentials
-- **Super Admin:** username: onurertas, password: Delivery32..
-- **Courier:** phone: 05551234567, password: 123456
-- **Test Admin (no perms):** ID: 64b44a19-1323-482a-9ba3-184d4afde1d1
-
----
-
-## Granular Permissions (✅ FULLY IMPLEMENTED - Frontend + Backend)
-
-### Sayfa Erişimi (8 izin)
-- `page_vardiya`: Vardiya sayfasına erişim
-- `page_muhasebe`: Muhasebe sayfasına erişim
-- `page_zimmet`: Zimmet sayfasına erişim
-- `page_kuryeler`: Kuryeler sayfasına erişim
-- `page_market`: JetPuan Market sayfasına erişim
-- `page_akademi`: Akademi sayfasına erişim
-- `page_sistem`: Sistem ayarlarına erişim
-- `page_yoneticiler`: Yöneticiler sayfasına erişim (disabled - sadece superadmin)
-
-### Muhasebe Modülü (7 izin)
-- `muhasebe_view`: İşlemleri görüntüleme
-- `muhasebe_add_transaction`: İşlem ekleme
-- `muhasebe_edit_transaction`: İşlem düzenleme
-- `muhasebe_delete_transaction`: İşlem silme
-- `muhasebe_archive`: Kurye/işletme arşivleme
-- `muhasebe_export_pdf`: PDF dışa aktarma
-- `muhasebe_bulk_hakedis`: Toplu hakediş işlemi
-
-### Kuryeler Modülü (6 izin)
-- `kurye_add`: Kurye ekleme
-- `kurye_edit`: Kurye bilgilerini düzenleme
-- `kurye_remove`: Kuryeyi şirketten çıkarma
-- `kurye_deactivate`: Kuryeyi pasife alma
-- `kurye_start_termination`: Fesih başlatma
-- `kurye_cancel_termination`: Fesih iptal
-
-### Zimmet Modülü (6 izin)
-- `zimmet_view`: Zimmetleri görüntüleme
-- `zimmet_add_product`: Ürün ekleme
-- `zimmet_edit_product`: Ürün düzenleme
-- `zimmet_delete_product`: Ürün silme
-- `zimmet_assign`: Zimmet atama
-- `zimmet_return`: Zimmet iade
-
-### Market (JetPuan) Modülü (6 izin)
-- `market_view`: Market görüntüleme
-- `market_add_product`: Ürün ekleme
-- `market_edit_product`: Ürün düzenleme
-- `market_delete_product`: Ürün silme
-- `market_manage_orders`: Sipariş yönetimi
-- `market_add_jetpuan`: JetPuan ekleme
-
-### Akademi Modülü (4 izin)
-- `akademi_view`: Eğitimleri görüntüleme
-- `akademi_add`: Eğitim ekleme
-- `akademi_edit`: Eğitim düzenleme
-- `akademi_delete`: Eğitim silme
-
-### Vardiya Modülü (4 izin)
-- `vardiya_view`: Vardiyaları görüntüleme
-- `vardiya_add`: Vardiya ekleme
-- `vardiya_delete`: Vardiya silme
-- `vardiya_assign`: Atama yapma
-
-### Sistem Ayarları (3 izin)
-- `sistem_company_info`: Şirket bilgileri düzenleme
-- `sistem_email_settings`: E-posta ayarları
-- `sistem_backup`: Yedekleme işlemleri
+```
+/app/
+├── backend/
+│   ├── routers/
+│   │   ├── auth.py         # Login (permissions kaldırıldı)
+│   │   ├── admins.py       # Admin CRUD (permissions kaldırıldı)
+│   │   ├── profile.py      # Profil güncelleme (session invalidation kaldırıldı)
+│   │   ├── accounting.py   # Muhasebe
+│   │   ├── shifts.py       # Vardiya
+│   │   ├── zimmet.py       # Zimmet
+│   │   ├── academy.py      # Akademi
+│   │   └── ...
+│   └── services/
+│       └── courier_service.py  # Kurye deaktivasyon kontrolleri
+├── frontend/
+│   └── src/
+│       ├── pages/
+│       │   ├── AdminDashboard.jsx      # Ana dashboard
+│       │   ├── admin/
+│       │   │   ├── YoneticilerPage.jsx # Yöneticiler (izin modalı kaldırıldı)
+│       │   │   └── ...
+│       │   └── ...
+│       ├── utils/
+│       │   ├── axiosConfig.js  # Basitleştirildi
+│       │   └── api.js          # X-Admin-Id kaldırıldı
+│       └── hooks/
+│           └── useSessionCheck.js  # SİLİNDİ
+└── memory/
+    └── PRD.md
+```
