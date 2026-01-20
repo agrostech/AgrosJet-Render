@@ -98,8 +98,8 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
   };
 
   const formatMoney = (val) => {
-    if (!val && val !== 0) return "₺0";
-    return `₺${val.toLocaleString('tr-TR', { minimumFractionDigits: 0 })}`;
+    if (!val && val !== 0) return "0 TL";
+    return `${val.toLocaleString('tr-TR', { minimumFractionDigits: 0 })} TL`;
   };
 
   if (loading) return <PageLoading />;
