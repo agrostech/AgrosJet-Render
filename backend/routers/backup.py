@@ -14,7 +14,6 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils.database import db
-from utils.permissions import require_permission
 
 router = APIRouter(prefix="/api/backup", tags=["Backup"])
 
@@ -113,11 +112,9 @@ async def create_backup_zip(company_id: str) -> io.BytesIO:
 
 @router.get("/company/{company_id}/export")
 async def export_company_data(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    company_id: str
 ):
     """Export all company data as a ZIP file"""
-    await require_permission(x_admin_id, "sistem_backup")
     # Verify company exists
     company = await db.companies.find_one({"id": company_id})
     if not company:
@@ -136,11 +133,9 @@ async def export_company_data(
 
 @router.post("/company/{company_id}/import")
 async def import_company_data(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    company_id: str
 ):
     """Import company data from a backup file"""
-    await require_permission(x_admin_id, "sistem_backup")
     # TODO: Implement import functionality
     raise HTTPException(status_code=501, detail="Import özelliği yakında eklenecek")
 
@@ -148,11 +143,9 @@ async def import_company_data(
 # --- Scheduled Backup Settings ---
 @router.get("/company/{company_id}/schedule")
 async def get_backup_schedule(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    company_id: str
 ):
     """Get backup schedule settings"""
-    await require_permission(x_admin_id, "sistem_backup")
     settings = await db.backup_settings.find_one({"company_id": company_id}, {"_id": 0})
     if not settings:
         return {"enabled": False, "hour": 3, "email": "", "last_backup": None}
@@ -162,11 +155,9 @@ async def get_backup_schedule(
 @router.post("/company/{company_id}/schedule")
 async def set_backup_schedule(
     company_id: str, 
-    data: BackupSchedule,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: BackupSchedule
 ):
     """Set backup schedule settings"""
-    await require_permission(x_admin_id, "sistem_backup")
     if data.hour < 0 or data.hour > 23:
         raise HTTPException(status_code=400, detail="Saat 0-23 arasında olmalı")
     
@@ -240,11 +231,9 @@ async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesI
 @router.post("/company/{company_id}/send-now")
 async def send_backup_now(
     company_id: str, 
-    background_tasks: BackgroundTasks,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    background_tasks: BackgroundTasks
 ):
     """Manually trigger backup email"""
-    await require_permission(x_admin_id, "sistem_backup")
     company = await db.companies.find_one({"id": company_id})
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")

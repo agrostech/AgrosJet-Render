@@ -7,7 +7,6 @@ import os
 import shutil
 
 from utils.database import db
-from utils.permissions import require_permission
 
 router = APIRouter(prefix="/api/academy", tags=["Academy"])
 
@@ -61,12 +60,9 @@ async def create_training(
     title: str = Form(...),
     content: Optional[str] = Form(None),
     training_type: str = Form("video"),
-    video: Optional[UploadFile] = File(None),
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    video: Optional[UploadFile] = File(None)
 ):
     """Create a new training (video or text)"""
-    await require_permission(x_admin_id, "akademi_add")
-    
     training_id = str(uuid.uuid4())
     video_path = None
     video_filename = None
@@ -114,11 +110,9 @@ async def create_training(
 @router.put("/training/{training_id}")
 async def update_training(
     training_id: str, 
-    data: TrainingUpdate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: TrainingUpdate
 ):
     """Update training title or content"""
-    await require_permission(x_admin_id, "akademi_edit")
     training = await db.academy_trainings.find_one({"id": training_id})
     if not training:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
@@ -139,11 +133,9 @@ async def update_training(
 
 @router.delete("/training/{training_id}")
 async def delete_training(
-    training_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    training_id: str
 ):
     """Delete a training and its video file"""
-    await require_permission(x_admin_id, "akademi_delete")
     training = await db.academy_trainings.find_one({"id": training_id})
     if not training:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")

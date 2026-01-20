@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
-from utils.permissions import require_permission
 
 router = APIRouter(prefix="/api", tags=["Shifts"])
 
@@ -49,11 +48,9 @@ async def get_company_shifts(company_id: str):
 @router.post("/companies/{company_id}/shifts")
 async def create_shift(
     company_id: str, 
-    data: ShiftCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: ShiftCreate
 ):
     """Create a new shift for a company"""
-    await require_permission(x_admin_id, "vardiya_add")
     shift = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -68,11 +65,9 @@ async def create_shift(
 @router.put("/shifts/{shift_id}")
 async def update_shift(
     shift_id: str, 
-    data: ShiftUpdate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: ShiftUpdate
 ):
     """Update a shift"""
-    await require_permission(x_admin_id, "vardiya_add")
     update_data = {}
     if data.name is not None:
         update_data["name"] = data.name
@@ -91,11 +86,9 @@ async def update_shift(
 
 @router.delete("/shifts/{shift_id}")
 async def delete_shift(
-    shift_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    shift_id: str
 ):
     """Delete a shift and all its assignments"""
-    await require_permission(x_admin_id, "vardiya_delete")
     result = await db.shifts.delete_one({"id": shift_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Vardiya bulunamadı")
@@ -112,11 +105,9 @@ async def get_shift_assignments(company_id: str):
 @router.post("/shifts/{shift_id}/assign")
 async def assign_courier_to_shift(
     shift_id: str, 
-    data: ShiftAssignment,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: ShiftAssignment
 ):
     """Assign a courier to a shift for a specific day"""
-    await require_permission(x_admin_id, "vardiya_assign")
     shift = await db.shifts.find_one({"id": shift_id})
     if not shift:
         raise HTTPException(status_code=404, detail="Vardiya bulunamadı")
@@ -153,11 +144,9 @@ async def assign_courier_to_shift(
 
 @router.delete("/shift-assignments/{assignment_id}")
 async def remove_shift_assignment(
-    assignment_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    assignment_id: str
 ):
     """Remove a courier from a shift"""
-    await require_permission(x_admin_id, "vardiya_assign")
     result = await db.shift_assignments.delete_one({"id": assignment_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Atama bulunamadı")
@@ -175,11 +164,9 @@ async def get_company_leaves(company_id: str):
 @router.post("/companies/{company_id}/leaves")
 async def add_leave(
     company_id: str, 
-    data: LeaveAssignment,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: LeaveAssignment
 ):
     """Add a courier to leave for a specific day"""
-    await require_permission(x_admin_id, "vardiya_assign")
     courier = await db.couriers.find_one({"id": data.courier_id})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
@@ -215,11 +202,9 @@ async def add_leave(
 
 @router.delete("/leaves/{leave_id}")
 async def remove_leave(
-    leave_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    leave_id: str
 ):
     """Remove a leave"""
-    await require_permission(x_admin_id, "vardiya_assign")
     result = await db.leaves.delete_one({"id": leave_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="İzin bulunamadı")

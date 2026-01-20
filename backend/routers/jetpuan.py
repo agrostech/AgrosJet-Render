@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
-from utils.permissions import require_permission
 from models.schemas import (
     JetPuanCategoryCreate,
     JetPuanCategoryUpdate,
@@ -47,11 +46,9 @@ async def get_settings():
 
 @router.put("/settings")
 async def update_settings(
-    data: JetPuanSettingsUpdate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: JetPuanSettingsUpdate
 ):
     """Update JetPuan settings (admin only)"""
-    await require_permission(x_admin_id, "sistem_company_info")
     await db.jetpuan_settings.update_one(
         {"id": "puan_ratio"},
         {"$set": {
@@ -74,11 +71,9 @@ async def get_categories():
 
 @router.post("/categories")
 async def create_category(
-    data: JetPuanCategoryCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: JetPuanCategoryCreate
 ):
     """Create a new category"""
-    await require_permission(x_admin_id, "market_add_product")
     existing = await db.jetpuan_categories.find_one({"name": data.name})
     if existing:
         raise HTTPException(status_code=400, detail="Bu kategori zaten mevcut")
@@ -95,11 +90,9 @@ async def create_category(
 @router.put("/categories/{category_id}")
 async def update_category(
     category_id: str, 
-    data: JetPuanCategoryUpdate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: JetPuanCategoryUpdate
 ):
     """Update a category"""
-    await require_permission(x_admin_id, "market_edit_product")
     category = await db.jetpuan_categories.find_one({"id": category_id})
     if not category:
         raise HTTPException(status_code=404, detail="Kategori bulunamadı")
@@ -115,11 +108,9 @@ async def update_category(
 
 @router.delete("/categories/{category_id}")
 async def delete_category(
-    category_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    category_id: str
 ):
     """Delete a category"""
-    await require_permission(x_admin_id, "market_delete_product")
     product_count = await db.jetpuan_products.count_documents({"category_id": category_id})
     if product_count > 0:
         raise HTTPException(status_code=400, detail=f"Bu kategoride {product_count} ürün var. Önce ürünleri silin veya taşıyın.")
@@ -155,11 +146,9 @@ async def get_product(product_id: str):
 
 @router.post("/products")
 async def create_product(
-    data: JetPuanProductCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: JetPuanProductCreate
 ):
     """Create a new product"""
-    await require_permission(x_admin_id, "market_add_product")
     category = await db.jetpuan_categories.find_one({"id": data.category_id})
     if not category:
         raise HTTPException(status_code=404, detail="Kategori bulunamadı")
@@ -181,11 +170,9 @@ async def create_product(
 @router.put("/products/{product_id}")
 async def update_product(
     product_id: str, 
-    data: JetPuanProductUpdate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: JetPuanProductUpdate
 ):
     """Update a product"""
-    await require_permission(x_admin_id, "market_edit_product")
     product = await db.jetpuan_products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -214,11 +201,9 @@ async def update_product(
 
 @router.delete("/products/{product_id}")
 async def delete_product(
-    product_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    product_id: str
 ):
     """Delete a product"""
-    await require_permission(x_admin_id, "market_delete_product")
     result = await db.jetpuan_products.delete_one({"id": product_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -257,11 +242,9 @@ async def credit_points(courier_id: str, amount: float, description: str = "Hake
 async def manual_credit(
     courier_id: str, 
     amount: float, 
-    description: str = "Manuel puan ekleme",
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    description: str = "Manuel puan ekleme"
 ):
     """Manually add points to courier's balance (admin)"""
-    await require_permission(x_admin_id, "market_add_jetpuan")
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Puan miktarı pozitif olmalı")
     
@@ -273,11 +256,9 @@ async def manual_credit(
 async def manual_debit(
     courier_id: str, 
     amount: float, 
-    description: str = "Manuel puan silme",
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    description: str = "Manuel puan silme"
 ):
     """Manually remove points from courier's balance (admin)"""
-    await require_permission(x_admin_id, "market_add_jetpuan")
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Puan miktarı pozitif olmalı")
     
@@ -293,11 +274,9 @@ async def manual_debit(
 
 @router.get("/orders/admin")
 async def get_all_orders(
-    status: str = None,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    status: str = None
 ):
     """Get all orders (admin)"""
-    await require_permission(x_admin_id, "market_manage_orders")
     query = {}
     if status:
         query["status"] = status
@@ -373,11 +352,9 @@ async def create_order(courier_id: str, data: JetPuanOrderCreate):
 
 @router.put("/orders/{order_id}/deliver")
 async def deliver_order(
-    order_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    order_id: str
 ):
     """Mark order as delivered (admin)"""
-    await require_permission(x_admin_id, "market_manage_orders")
     order = await db.jetpuan_orders.find_one({"id": order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
@@ -394,11 +371,9 @@ async def deliver_order(
 
 @router.delete("/orders/{order_id}")
 async def cancel_order(
-    order_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    order_id: str
 ):
     """Cancel a pending order (refund points and restore stock)"""
-    await require_permission(x_admin_id, "market_manage_orders")
     order = await db.jetpuan_orders.find_one({"id": order_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")

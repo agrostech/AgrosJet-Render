@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
-from utils.permissions import require_permission, check_permission
 from routers.jetpuan import calculate_and_credit_points, calculate_and_debit_points
 from routers.notifications import create_notification
 from models.schemas import (
@@ -97,11 +96,9 @@ async def get_businesses(company_id: str, include_archived: bool = False):
 @router.post("/companies/{company_id}/businesses")
 async def create_business(
     company_id: str, 
-    data: BusinessCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: BusinessCreate
 ):
     """Create a new business"""
-    await require_permission(x_admin_id, "muhasebe_add_transaction")
     business = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -116,11 +113,9 @@ async def create_business(
 
 @router.put("/businesses/{business_id}/archive")
 async def archive_business(
-    business_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    business_id: str
 ):
     """Archive a business"""
-    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.businesses.update_one(
         {"id": business_id},
         {"$set": {"is_archived": True}}
@@ -131,11 +126,9 @@ async def archive_business(
 
 @router.put("/businesses/{business_id}/unarchive")
 async def unarchive_business(
-    business_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    business_id: str
 ):
     """Unarchive a business"""
-    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.businesses.update_one(
         {"id": business_id},
         {"$set": {"is_archived": False}}
@@ -146,11 +139,9 @@ async def unarchive_business(
 
 @router.delete("/businesses/{business_id}")
 async def delete_business(
-    business_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    business_id: str
 ):
     """Delete a business"""
-    await require_permission(x_admin_id, "muhasebe_delete_transaction")
     result = await db.businesses.delete_one({"id": business_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="İşletme bulunamadı")
@@ -171,11 +162,9 @@ async def get_vendors(company_id: str, include_archived: bool = False):
 @router.post("/companies/{company_id}/vendors")
 async def create_vendor(
     company_id: str, 
-    data: VendorCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: VendorCreate
 ):
     """Create a new vendor"""
-    await require_permission(x_admin_id, "muhasebe_add_transaction")
     vendor = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -190,11 +179,9 @@ async def create_vendor(
 
 @router.put("/vendors/{vendor_id}/archive")
 async def archive_vendor(
-    vendor_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    vendor_id: str
 ):
     """Archive a vendor"""
-    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.vendors.update_one(
         {"id": vendor_id},
         {"$set": {"is_archived": True}}
@@ -205,11 +192,9 @@ async def archive_vendor(
 
 @router.put("/vendors/{vendor_id}/unarchive")
 async def unarchive_vendor(
-    vendor_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    vendor_id: str
 ):
     """Unarchive a vendor"""
-    await require_permission(x_admin_id, "muhasebe_archive")
     result = await db.vendors.update_one(
         {"id": vendor_id},
         {"$set": {"is_archived": False}}
@@ -220,11 +205,9 @@ async def unarchive_vendor(
 
 @router.delete("/vendors/{vendor_id}")
 async def delete_vendor(
-    vendor_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    vendor_id: str
 ):
     """Delete a vendor"""
-    await require_permission(x_admin_id, "muhasebe_delete_transaction")
     result = await db.vendors.delete_one({"id": vendor_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Cari bulunamadı")
@@ -234,11 +217,9 @@ async def delete_vendor(
 # --- İşlemler (Transactions) ---
 @router.post("/transactions")
 async def create_transaction(
-    data: TransactionCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: TransactionCreate
 ):
     """Create a new transaction"""
-    await require_permission(x_admin_id, "muhasebe_add_transaction")
     created_at = parse_custom_date(data.custom_date)
     
     transaction = {
@@ -321,11 +302,9 @@ async def get_vendor_transactions(vendor_id: str, skip: int = 0, limit: int = 10
 @router.delete("/transactions/{transaction_id}")
 async def delete_transaction(
     transaction_id: str, 
-    data: TransactionDeleteRequest = None,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: TransactionDeleteRequest = None
 ):
     """Delete a transaction"""
-    await require_permission(x_admin_id, "muhasebe_delete_transaction")
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
@@ -366,11 +345,9 @@ async def delete_transaction(
 @router.put("/transactions/{transaction_id}")
 async def update_transaction(
     transaction_id: str, 
-    data: TransactionUpdateRequest,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: TransactionUpdateRequest
 ):
     """Update a transaction"""
-    await require_permission(x_admin_id, "muhasebe_edit_transaction")
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
@@ -478,12 +455,9 @@ async def get_accounting_summary(company_id: str):
 @router.post("/couriers/{courier_id}/installment-products")
 async def create_installment_product(
     courier_id: str, 
-    data: InstallmentProductCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: InstallmentProductCreate
 ):
     """Create a new installment product for a courier"""
-    await require_permission(x_admin_id, "muhasebe_add_transaction")
-    
     # Verify courier exists
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
     if not courier:
@@ -546,12 +520,9 @@ async def get_installment_products(courier_id: str, include_completed: bool = Fa
 async def delete_installment_product(
     product_id: str, 
     admin_id: str, 
-    admin_name: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    admin_name: str
 ):
     """Delete an installment product"""
-    await require_permission(x_admin_id, "muhasebe_delete_transaction")
-    
     product = await db.installment_products.find_one({"id": product_id}, {"_id": 0})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -585,12 +556,9 @@ async def delete_installment_product(
 @router.post("/installment-products/{product_id}/pay")
 async def pay_installment(
     product_id: str, 
-    data: InstallmentPayRequest,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: InstallmentPayRequest
 ):
     """Pay one installment for a product"""
-    await require_permission(x_admin_id, "muhasebe_add_transaction")
-    
     product = await db.installment_products.find_one({"id": product_id}, {"_id": 0})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -674,12 +642,9 @@ async def pay_installment(
 @router.delete("/transactions/{transaction_id}/with-installment-restore")
 async def delete_transaction_with_installment(
     transaction_id: str, 
-    data: TransactionDeleteRequest = None,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: TransactionDeleteRequest = None
 ):
     """Delete a transaction and restore installment count if applicable"""
-    await require_permission(x_admin_id, "muhasebe_delete_transaction")
-    
     transaction = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
     if not transaction:
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")

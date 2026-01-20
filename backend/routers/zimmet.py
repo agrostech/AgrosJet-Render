@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
-from utils.permissions import require_permission
 from routers.notifications import create_notification
 
 router = APIRouter(prefix="/api", tags=["Zimmet"])
@@ -107,11 +106,9 @@ async def get_product_types(company_id: str):
 @router.post("/companies/{company_id}/product-types")
 async def create_product_type(
     company_id: str, 
-    data: ProductTypeCreate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: ProductTypeCreate
 ):
     """Yeni ürün tipi oluştur"""
-    await require_permission(x_admin_id, "zimmet_add_product")
     product_type = {
         "id": str(uuid.uuid4()),
         "company_id": company_id,
@@ -126,11 +123,9 @@ async def create_product_type(
 @router.put("/product-types/{type_id}")
 async def update_product_type(
     type_id: str, 
-    data: ProductTypeUpdate,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: ProductTypeUpdate
 ):
     """Ürün tipini güncelle"""
-    await require_permission(x_admin_id, "zimmet_edit_product")
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
@@ -145,11 +140,9 @@ async def update_product_type(
 
 @router.delete("/product-types/{type_id}")
 async def delete_product_type(
-    type_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    type_id: str
 ):
     """Ürün tipini sil (ürün yoksa)"""
-    await require_permission(x_admin_id, "zimmet_delete_product")
     product_count = await db.products.count_documents({"product_type_id": type_id})
     if product_count > 0:
         raise HTTPException(status_code=400, detail=f"Bu tipte {product_count} ürün var, önce ürünleri silin")
@@ -191,11 +184,9 @@ async def create_product(
     company_id: str, 
     data: ProductCreate, 
     admin_id: str = "", 
-    admin_name: str = "",
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    admin_name: str = ""
 ):
     """Yeni ürün oluştur"""
-    await require_permission(x_admin_id, "zimmet_add_product")
     product_type = await db.product_types.find_one({"id": data.product_type_id})
     if not product_type:
         raise HTTPException(status_code=400, detail="Geçersiz ürün tipi")
@@ -235,11 +226,9 @@ async def update_product(
     product_id: str, 
     data: ProductUpdate, 
     admin_id: str = "", 
-    admin_name: str = "",
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    admin_name: str = ""
 ):
     """Ürünü güncelle"""
-    await require_permission(x_admin_id, "zimmet_edit_product")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -305,11 +294,9 @@ async def update_product(
 async def delete_product(
     product_id: str, 
     admin_id: str = "", 
-    admin_name: str = "",
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    admin_name: str = ""
 ):
     """Ürünü sil (zimmetli değilse)"""
-    await require_permission(x_admin_id, "zimmet_delete_product")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -339,11 +326,9 @@ async def delete_product(
 @router.post("/products/{product_id}/assign")
 async def assign_product(
     product_id: str, 
-    data: ZimmetAction,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: ZimmetAction
 ):
     """Ürünü kuryeye zimmetle"""
-    await require_permission(x_admin_id, "zimmet_assign")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
@@ -386,11 +371,9 @@ async def assign_product(
 @router.post("/products/{product_id}/return")
 async def return_product(
     product_id: str, 
-    data: ZimmetReturn,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
+    data: ZimmetReturn
 ):
     """Zimmeti geri al"""
-    await require_permission(x_admin_id, "zimmet_return")
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
