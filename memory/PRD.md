@@ -25,59 +25,43 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 20, 2026 - Bug Fixes (Latest Session)
+### January 20, 2026 - Session 2 Bug Fixes (Latest)
+
+#### ✅ Fixed: Yetki Güncellendiğinde Otomatik Logout
+- Admin'in yetkileri değiştiğinde otomatik session invalidation
+- `/api/auth/check-session/{user_id}` endpoint'i eklendi
+- Frontend 10 saniyede bir session kontrolü yapıyor
+- Yetki değişikliğinde "Yetkilerin güncellendi, lütfen tekrar giriş yap" mesajı
+
+#### ✅ Fixed: Çoklu Hata Mesajları
+- `axiosConfig.js` - Aynı hatayı 2 saniye içinde tekrar göstermeme
+- Component catch bloklarında `err.permissionError` flag kontrolü
+- Artık sadece TEK bir "Bu işlem için yetkiniz yok" mesajı gösteriliyor
+
+#### ✅ Fixed: Kurye Pasife Alma Kontrolleri
+- `courier_service.py` - Zimmet kontrolü düzeltildi (`products` koleksiyonu)
+- Bakiye kontrolü düzeltildi (`transactions` koleksiyonu)
+- Zimmetli ürünü olan kurye pasife alınamaz: "Bu kuryenin üzerinde zimmetli ürün bulunuyor"
+- Bakiyesi olan kurye pasife alınamaz: "Bu kuryenin X TL alacağı/borcu bulunuyor"
+
+### January 20, 2026 - Session 1 Bug Fixes
 
 #### ✅ Fixed: Yetki Sistemi Sorunları
 1. **Sayfa Erişim Yetkisi Düzeltildi**
    - `AdminDashboard.jsx` - NAV_ITEMS'da `permKey` ile doğru yetki kontrolü
    - `page_market: false` olan admin artık Market menüsünü görmüyor
-   - `page_akademi: false` olan admin artık Akademi menüsünü görmüyor
-   - `page_sistem: false` olan admin artık Sistem menüsünü görmüyor
    
 2. **İşlem Silme Yetkisi Bypass Bug'ı Düzeltildi**
    - `/api/transactions/{id}/with-installment-restore` endpoint'ine yetki kontrolü eklendi
    - `muhasebe_delete_transaction: false` olan admin artık işlem silemiyor
-   - 403 hatası "Bu işlem için yetkiniz yok: İşlem silme" mesajı gösteriyor
-
-3. **Hata Mesajları İyileştirildi**
-   - `axiosConfig.js` - 403 hataları için toast notification eklendi
-   - "İşlem başarısız" yerine "Bu işlem için yetkiniz yok" mesajı gösteriliyor
 
 #### ✅ Fixed: Hakediş Checkbox Mantık Hatası
 - **Önceki:** Yeşil buton (Verilen/payment_out) ile hakediş çalışıyordu
 - **Şimdi:** Kırmızı buton (Alınan/payment_in) ile hakediş çalışıyor
-- `useAccountingTab.js` satır 244: `type === "in"` olarak düzeltildi
 
 #### ✅ Fixed: Bildirim Mantığı
-- `notifications.py` - `actor_id` ve `actor_role` parametreleri eklendi
 - Superadmin kendi işlemlerinde bildirim almıyor
-- Admin işlemleri superadmin'e bildiriliyor
-
-### January 20, 2026 - Backend Permission Enforcement
-
-#### ✅ Completed: Backend Permission Enforcement (P1 - Critical)
-- **X-Admin-Id header** ile tüm korumalı API endpoint'leri güvence altına alındı
-- Header olmadan 401 "Yetkilendirme gerekli" hatası döner
-- Yetkisi olmayan admin'ler 403 "Bu işlem için yetkiniz yok" hatası alır
-- Superadmin/systemadmin rolleri tüm izinlere sahip
-- **Test durumu:** %100 başarı oranı
-- **Test raporu:** `/app/test_reports/iteration_18.json`, `/app/test_reports/iteration_19.json`
-- Yedekleme koleksiyonları genişletildi (transactions dahil edildi)
-
-#### ✅ Completed: Detaylı Yetkiler (Granular Permissions) - Frontend
-- **44 adet granüler izin** 8 gruba ayrılarak implement edildi
-- Gruplar: Sayfa Erişimi, Muhasebe, Kuryeler, Zimmet, Market, Akademi, Vardiya, Sistem
-- Collapsible gruplar ve Switch ile toplu kontrol
-- Migration endpoint ile mevcut adminler otomatik güncellendi
-- Backend: `/app/backend/routers/admins.py`
-- Frontend: `/app/frontend/src/pages/admin/YoneticilerPage.jsx`
-- Test durumu: %100 başarı oranı
-
-#### ✅ Completed: Onay Popupları (Confirmation Modals)
-- **22 adet window.confirm()** çağrısı `ConfirmModal` bileşeni ile değiştirildi
-- AlertDialog shadcn UI kullanılarak tutarlı modal deneyimi sağlandı
-- 3 variant: `default`, `danger` (kırmızı), `warning` (amber)
-- Test durumu: %100 başarı oranı (testing agent tarafından doğrulandı)
+- `actor_id` ve `actor_role` parametreleri eklendi
 
 #### ✅ Completed: Akademi Modülü
 - Admin: Video/metin eğitim materyali yükleme ve yönetim
