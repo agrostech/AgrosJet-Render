@@ -193,19 +193,6 @@ class AdminResponse(BaseModel):
     created_at: str
 
 
-# --- Helper ---
-async def invalidate_user_session(user_id: str):
-    """Kullanıcının oturumunu geçersiz kıl"""
-    await db.invalidated_sessions.update_one(
-        {"user_id": user_id},
-        {"$set": {
-            "user_id": user_id,
-            "invalidated_at": datetime.now(timezone.utc).isoformat()
-        }},
-        upsert=True
-    )
-
-
 # --- Admin Management ---
 @router.get("/admins", response_model=List[AdminResponse])
 async def get_admins(company_id: Optional[str] = None):
