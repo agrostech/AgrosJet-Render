@@ -89,9 +89,18 @@ async def login_admin(data: AdminLogin):
     if admin["company_id"]:
         company = await db.companies.find_one({"id": admin["company_id"]}, {"_id": 0})
     
-    # Permissions yoksa default ata
-    permissions = admin.get("permissions")
-    if not permissions:
+    # Simple permission keys
+    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    
+    # Get permissions and check if they use the new simple format
+    db_permissions = admin.get("permissions", {})
+    has_simple_format = any(key in db_permissions for key in simple_keys)
+    
+    if has_simple_format:
+        # Extract only simple keys from permissions
+        permissions = {k: db_permissions.get(k, False) for k in simple_keys}
+    else:
+        # No simple format found, assign defaults
         if admin["role"] == "superadmin":
             permissions = {
                 "vardiya": True, "muhasebe": True, "zimmet": True,
