@@ -94,7 +94,6 @@ async def login_admin(data: AdminLogin):
         "name": admin["name"],
         "username": admin["username"],
         "role": admin["role"],
-        "permissions": admin["permissions"],
         "company_id": admin["company_id"],
         "company": company,
         "email": admin.get("email")
