@@ -285,18 +285,19 @@ async def apply_bulk_hakedis(company_id: str, data: BulkHakedisCreate):
             "transaction_id": transaction["id"]
         })
     
-    # Send notification
-    try:
-        await create_notification(
-            company_id=company_id,
-            notification_type="bulk_hakedis",
-            title="Toplu Hakediş Eklendi",
-            message=f"{len(results)} kuryeye toplu hakediş eklendi.",
-            entity_type="bulk_hakedis",
-            entity_id=str(uuid.uuid4())
-        )
-    except Exception as e:
-        print(f"Notification failed: {e}")
+    # Send notification (superadmin hariç)
+    if admin_role != "superadmin":
+        try:
+            await create_notification(
+                company_id=company_id,
+                notification_type="bulk_hakedis",
+                title="Toplu Hakediş Eklendi",
+                message=f"{len(results)} kuryeye toplu hakediş eklendi.",
+                entity_type="bulk_hakedis",
+                entity_id=str(uuid.uuid4())
+            )
+        except Exception as e:
+            print(f"Notification failed: {e}")
     
     return {
         "message": f"{len(results)} kuryeye hakediş eklendi",
