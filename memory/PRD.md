@@ -25,77 +25,91 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 20, 2026 - İzin Sistemi Kaldırıldı (Latest)
+### January 20, 2026 - Basit Sayfa Bazlı İzin Sistemi (Latest)
 
-#### ✅ COMPLETED: İzin (Permission) Sistemi Tamamen Kaldırıldı
-Kullanıcı talebi üzerine granüler izin sistemi tamamen kaldırıldı.
+#### ✅ COMPLETED: Basit Sayfa Bazlı İzin Sistemi
+Kullanıcı talebi üzerine basit ve temiz bir izin sistemi uygulandı.
 
-**Kaldırılan Bileşenler:**
-1. **Backend:**
-   - `admins.py` - Tüm permission fonksiyonları (get_default_admin_permissions, get_superadmin_permissions, migrate-permissions endpoint)
-   - `profile.py` - Session invalidation kodları (invalidate_user_session, check_session_valid, clear_session_invalidation)
-   - `auth.py` - Login response'da permissions field'ı döndürülmüyor
+**İzin Yapısı (7 sayfa için boolean):**
+```json
+{
+  "vardiya": true/false,
+  "muhasebe": true/false,
+  "zimmet": true/false,
+  "kuryeler": true/false,
+  "market": true/false,
+  "akademi": true/false,
+  "sistem": true/false
+}
+```
 
-2. **Frontend:**
-   - `useSessionCheck.js` - Hook silindi
-   - `axiosConfig.js` - X-Admin-Id header ve karmaşık error handling kaldırıldı
-   - `api.js` - X-Admin-Id header kaldırıldı
-   - `AdminDashboard.jsx` - Permission bazlı menü filtreleme kaldırıldı
-   - `YoneticilerPage.jsx` - İzin modalı ve ilgili tüm kodlar kaldırıldı
-   - `LoginPage.jsx` - Session invalidation temizleme kodu kaldırıldı
+**Özellikler:**
+- ✅ Sayfa erişim kontrolü (menüde görünme + route koruması)
+- ✅ Yöneticiler sayfasında izin modalı (Shield ikonu, 7 switch)
+- ✅ Varsayılan izinler: Yeni admin tüm sayfalara erişebilir (sistem hariç)
+- ✅ Superadmin tüm izinlere sahip
+- ✅ Yöneticiler sayfası SADECE superadmin için
+- ❌ İşlem bazlı kontrol YOK
+- ❌ Session invalidation YOK (izin değişikliği sonrası manuel çıkış gerekir)
 
-**Mevcut Durum:**
-- Tüm adminler (superadmin hariç) tüm sayfalara erişebilir
-- Yöneticiler sayfası SADECE superadmin için görünür
-- Yöneticiler sayfasında sadece "Düzenle" ve "Sil" butonları var
-- "Yetkiler" butonu YOK
+**Dosyalar:**
+- Backend: `admins.py` (get_default_permissions, get_full_permissions, /permissions endpoint)
+- Backend: `auth.py` (login response'da permissions field)
+- Frontend: `AdminDashboard.jsx` (menü filtreleme, route koruması)
+- Frontend: `YoneticilerPage.jsx` (izin modalı, PERMISSION_ITEMS)
 
-**Test Sonuçları (iteration_20.json):**
-- ✅ Admin login çalışıyor (permissions field YOK)
-- ✅ Yanlış şifre için tek toast gösteriliyor (3 değil 1)
-- ✅ Tüm menü öğeleri görünüyor
-- ✅ Yöneticiler sayfasında "Yetkiler" butonu YOK
-- ✅ Vardiyalar, Muhasebe, Zimmet sayfaları çalışıyor
-- ✅ Kurye dashboard çalışıyor
+**Test Sonuçları (iteration_21.json):**
+- ✅ 9/9 backend testi geçti
+- ✅ Tüm frontend testleri geçti
 
 ---
 
-### Previous Sessions
+### January 20, 2026 - Fatura Yükleme Düzeltmesi
 
-#### January 20, 2026 - Session 1 Bug Fixes
-- ✅ Hakediş Checkbox Mantık Hatası düzeltildi
-- ✅ Bildirim mantığı düzeltildi (superadmin kendi işlemlerinde bildirim almıyor)
-- ✅ Akademi Modülü tamamlandı
-- ✅ Yedekleme (Backup) Modülü tamamlandı
+#### ✅ COMPLETED: Kurye Hakediş Fatura Yükleme
+Mobil görünümde sadece fotoğraf seçeneği çıkıyordu, dosya (PDF) seçeneği eklendi.
 
-#### Core Features (Completed)
-- Kurye yönetimi (CRUD, fesih, arşivleme)
-- Vardiya sistemi
-- Muhasebe (gelir/gider, taksitler, faturalar, cariler, işletmeler)
-- Zimmet takibi
-- JetPuan market sistemi
-- Akademi (video/metin eğitim)
-- Bildirim sistemi
-- E-posta bildirimleri
-- PDF export (muhasebe özeti)
+**Değişiklikler:**
+- Frontend: `CourierMuhasebePage.jsx` - accept attribute güncellendi
+- Backend: `invoices.py` - PDF yanında resim dosyaları da kabul ediliyor (JPG, PNG, HEIC)
+
+---
+
+### Previous Sessions (January 20, 2026)
+
+#### Completed Features
+- Hakediş Checkbox Mantık Hatası düzeltildi
+- Bildirim mantığı düzeltildi
+- Akademi Modülü tamamlandı
+- Yedekleme (Backup) Modülü tamamlandı
+
+---
+
+## Core Features (All Completed)
+- ✅ Kurye yönetimi (CRUD, fesih, arşivleme)
+- ✅ Vardiya sistemi
+- ✅ Muhasebe (gelir/gider, taksitler, faturalar, cariler, işletmeler)
+- ✅ Zimmet takibi
+- ✅ JetPuan market sistemi
+- ✅ Akademi (video/metin eğitim)
+- ✅ Bildirim sistemi
+- ✅ E-posta bildirimleri
+- ✅ PDF export
+- ✅ Sayfa bazlı izin sistemi
 
 ---
 
 ## Prioritized Backlog
 
-### P0 - Critical (Next)
-- [ ] **Yeni İzin Sistemi Planı**: Basit ve sağlam bir izin sistemi tasarla ve kullanıcı onayı al
-
 ### P1 - High Priority
-- [ ] **Kurye Deaktivasyonu Kontrolü Doğrulama**: Bakiye/zimmet kontrolü mantığını doğrula
-- [ ] **Dosya Yükleme İyileştirmesi**: Akademi için kalıcı dosya depolama çözümü
+- [ ] Kurye deaktivasyonu kontrolü son doğrulama
 
 ### P2 - Medium Priority
-- [ ] **Kod Refactoring**: Büyük dosyaları parçala (GuncelDurumPage.jsx, SistemPage.jsx)
-- [ ] **Test Kapsamını Artır**: Backend için pytest testleri ekle
+- [ ] Kod refactoring (büyük dosyaları parçalama)
+- [ ] err.handled temizliği (artık kullanılmıyor)
 
 ### P3 - Low Priority
-- [ ] **err.handled Temizliği**: Artık kullanılmayan err.handled kontrollerini kaldır
+- [ ] Akademi için kalıcı dosya depolama
 
 ---
 
@@ -105,13 +119,10 @@ Kullanıcı talebi üzerine granüler izin sistemi tamamen kaldırıldı.
 - Username: `onurertas`
 - Password: `Delivery32..`
 
-### Test Admin
-- Username: `testdeleteadmin`
+### Test Admin (Restricted)
+- Username: `testpermadmin`
 - Password: `test123`
-
-### Test Courier
-- Phone: `05559999999`
-- Password: `test123`
+- Permissions: vardiya ✓, muhasebe ✓, zimmet ✓, kuryeler ✓, market ✗, akademi ✗, sistem ✗
 
 ---
 
@@ -121,29 +132,27 @@ Kullanıcı talebi üzerine granüler izin sistemi tamamen kaldırıldı.
 /app/
 ├── backend/
 │   ├── routers/
-│   │   ├── auth.py         # Login (permissions kaldırıldı)
-│   │   ├── admins.py       # Admin CRUD (permissions kaldırıldı)
-│   │   ├── profile.py      # Profil güncelleme (session invalidation kaldırıldı)
+│   │   ├── auth.py         # Login (permissions field döner)
+│   │   ├── admins.py       # Admin CRUD + permissions endpoint
+│   │   ├── profile.py      # Profil güncelleme
 │   │   ├── accounting.py   # Muhasebe
 │   │   ├── shifts.py       # Vardiya
 │   │   ├── zimmet.py       # Zimmet
 │   │   ├── academy.py      # Akademi
+│   │   ├── invoices.py     # Fatura (PDF + resim)
 │   │   └── ...
 │   └── services/
-│       └── courier_service.py  # Kurye deaktivasyon kontrolleri
+│       └── courier_service.py
 ├── frontend/
 │   └── src/
 │       ├── pages/
-│       │   ├── AdminDashboard.jsx      # Ana dashboard
+│       │   ├── AdminDashboard.jsx      # İzin bazlı menü + route koruması
 │       │   ├── admin/
-│       │   │   ├── YoneticilerPage.jsx # Yöneticiler (izin modalı kaldırıldı)
+│       │   │   ├── YoneticilerPage.jsx # İzin modalı (Shield butonu)
 │       │   │   └── ...
-│       │   └── ...
-│       ├── utils/
-│       │   ├── axiosConfig.js  # Basitleştirildi
-│       │   └── api.js          # X-Admin-Id kaldırıldı
-│       └── hooks/
-│           └── useSessionCheck.js  # SİLİNDİ
+│       │   └── courier/
+│       │       └── CourierMuhasebePage.jsx  # Fatura yükleme
+│       └── ...
 └── memory/
     └── PRD.md
 ```
