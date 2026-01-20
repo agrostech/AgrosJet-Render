@@ -98,7 +98,9 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
       setNewBusiness({ name: "", phone: "", address: "" });
       fetchEntities();
     } catch (err) {
-      toast.error("Ekleme başarısız");
+      if (!err.handled) {
+        toast.error("Ekleme başarısız");
+      }
     }
   };
 
