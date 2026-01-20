@@ -19,13 +19,15 @@ export function useSessionCheck() {
       
       // Backend'den oturum geçerliliğini kontrol et
       try {
-        const res = await axios.get(`${API}/session/check/${user.id}`);
+        const res = await axios.get(`${API}/auth/check-session/${user.id}`);
         if (!res.data.valid) {
           localStorage.removeItem("user");
-          if (res.data.reason === "user_deleted") {
-            toast.error("Hesabınız silindi. Çıkış yapılıyor...");
-          } else if (res.data.reason === "session_invalidated") {
-            toast.error("Oturum bilgileriniz değişti. Lütfen tekrar giriş yapın.");
+          toast.info(res.data.reason || "Oturum bilgileriniz değişti. Lütfen tekrar giriş yapın.");
+          // Session invalidation'ı temizle
+          try {
+            await axios.delete(`${API}/auth/clear-invalidation/${user.id}`);
+          } catch (e) {
+            // ignore
           }
           navigate("/login");
           return false;
@@ -58,8 +60,8 @@ export function useSessionCheck() {
     // İlk kontrol
     checkSession();
 
-    // Her 30 saniyede kontrol et (daha sık kontrol)
-    const interval = setInterval(checkSession, 30000);
+    // Her 10 saniyede kontrol et (yetki değişikliklerini hızlı yakala)
+    const interval = setInterval(checkSession, 10000);
 
     return () => clearInterval(interval);
   }, [checkSession]);
