@@ -1,13 +1,20 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { X, Download, Smartphone } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 export function PWAInstallPrompt() {
   const { showPrompt, install, dismiss, canInstall, isInstalled } = usePWAInstall();
+  const [neverShowAgain, setNeverShowAgain] = useState(false);
 
   if (isInstalled || !canInstall || !showPrompt) {
     return null;
   }
+
+  const handleDismiss = () => {
+    dismiss(neverShowAgain);
+  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black/80 to-transparent animate-in slide-in-from-bottom duration-300">
@@ -26,25 +33,43 @@ export function PWAInstallPrompt() {
               </p>
             </div>
             <button 
-              onClick={dismiss}
+              onClick={handleDismiss}
               className="p-1 hover:bg-slate-100 rounded-full transition-colors"
               aria-label="Kapat"
+              data-testid="pwa-prompt-close-btn"
             >
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
           
-          <div className="flex gap-2 mt-4">
+          <div className="flex items-center gap-2 mt-4">
+            <Checkbox 
+              id="never-show-pwa"
+              checked={neverShowAgain}
+              onCheckedChange={setNeverShowAgain}
+              data-testid="pwa-never-show-checkbox"
+            />
+            <label 
+              htmlFor="never-show-pwa" 
+              className="text-sm text-slate-500 cursor-pointer select-none"
+            >
+              Bunu tekrar gösterme
+            </label>
+          </div>
+          
+          <div className="flex gap-2 mt-3">
             <Button
-              onClick={dismiss}
+              onClick={handleDismiss}
               variant="ghost"
               className="flex-1 h-11 text-slate-600"
+              data-testid="pwa-later-btn"
             >
               Daha Sonra
             </Button>
             <Button
               onClick={install}
               className="flex-1 h-11 bg-primary hover:bg-primary/90"
+              data-testid="pwa-install-btn"
             >
               <Download className="w-4 h-4 mr-2" />
               Yükle
