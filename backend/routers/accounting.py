@@ -85,13 +85,9 @@ async def get_activity_logs(company_id: str, skip: int = 0, limit: int = 10):
 
 # --- İşletmeler (Businesses) ---
 @router.get("/companies/{company_id}/businesses")
-async def get_businesses(
-    company_id: str, 
-    include_archived: bool = False,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_businesses(company_id: str, include_archived: bool = False):
     """Get all businesses for a company"""
-    await require_permission(x_admin_id, "muhasebe_view")
+    # GET işlemi - yetki kontrolü yok
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
