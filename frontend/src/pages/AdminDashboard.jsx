@@ -3,7 +3,6 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown } from "lucide-react";
-import { useSessionCheck } from "@/hooks/useSessionCheck";
 
 // Page components
 import VardiyaPage from "./VardiyaPage";
@@ -31,8 +30,6 @@ export default function AdminDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [badges, setBadges] = useState({});
-
-  useSessionCheck();
 
   // Fetch pending orders count for badge
   const fetchBadges = useCallback(async () => {
