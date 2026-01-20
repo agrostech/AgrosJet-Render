@@ -166,12 +166,9 @@ async def remove_shift_assignment(
 
 # Leave (İzin) Management
 @router.get("/companies/{company_id}/leaves")
-async def get_company_leaves(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_company_leaves(company_id: str):
     """Get all leaves for a company"""
-    await require_permission(x_admin_id, "vardiya_view")
+    # GET işlemi - kurye panelinden de erişilebilir
     leaves = await db.leaves.find({"company_id": company_id}, {"_id": 0}).to_list(1000)
     return leaves
 
