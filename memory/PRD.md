@@ -149,3 +149,20 @@ PWA "Ana ekrana ekle" bildirimine checkbox eklendi. Kullanıcı işaretlerse bil
 **Davranış:**
 - Checkbox işaretlenmeden "Daha Sonra" → 7 gün sonra tekrar göster
 - Checkbox işaretlenip "Daha Sonra" veya X → Bir daha gösterme
+
+---
+
+## January 20, 2026 - PWA İkon Güncellemesi
+
+### ✅ COMPLETED: PWA İkonları Güncellendi
+
+Masaüstüne eklendiğinde görünen PWA ikonu, ShiftJet logosu ile değiştirildi.
+
+**Değişiklikler:**
+- `/app/frontend/public/icon-192.png`: ShiftJet logosu ile yeniden oluşturuldu
+- `/app/frontend/public/icon-512.png`: ShiftJet logosu ile yeniden oluşturuldu
+- `/app/frontend/public/index.html`: Favicon linkleri yerel dosyalara güncellendi
+
+**İkon Tasarımı:**
+- Koyu mavi (#1e3a5f) arka plan
+- Ortalanmış ShiftJet logosu (takvim + onay + jet simgesi)
