@@ -262,7 +262,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                 {/* Alt satır (mobilde) / Sağ taraf (masaüstünde): Butonlar */}
                 {!showArchived && (
                   <div className="flex items-center gap-2 justify-end">
-                    <Button variant="outline" size="sm" onClick={() => setEditingBusiness(selectedEntity)} className="h-9 border-2" data-testid="edit-business-btn">
+                    <Button variant="outline" size="sm" onClick={() => openEditBusinessModal(selectedEntity)} className="h-9 border-2" data-testid="edit-business-btn">
                       <Pencil className="w-4 h-4" />
                       <span className="ml-1.5 text-xs sm:hidden">Düzenle</span>
                     </Button>
