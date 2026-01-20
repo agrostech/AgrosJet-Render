@@ -36,8 +36,6 @@ export default function CourierDashboard() {
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
 
-  useSessionCheck();
-
   // Fetch document status
   const checkDocumentStatus = useCallback(async (courierId) => {
     try {
