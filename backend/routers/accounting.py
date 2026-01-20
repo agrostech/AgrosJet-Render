@@ -25,19 +25,32 @@ from services.accounting_service import (
 router = APIRouter(prefix="/api", tags=["Muhasebe"])
 
 
+# --- Helper Function ---
+async def get_admin_role(admin_id: str) -> str:
+    """Admin ID'den rol bilgisini al"""
+    if not admin_id:
+        return "admin"
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0, "role": 1})
+    return admin.get("role", "admin") if admin else "admin"
+
+
 # --- Activity Logs Helper ---
 async def create_activity_log(log_data: dict):
     """Helper to create activity log"""
+    # Admin rolünü al
+    admin_id = log_data.get("admin_id", "")
+    admin_role = await get_admin_role(admin_id)
+    
     log = {
         "id": str(uuid.uuid4()),
         **log_data,
+        "admin_role": admin_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.activity_logs.insert_one(log)
     
     # Create notification for activity log
     # Superadmin kendi işlemlerinde bildirim almaz
-    admin_role = log_data.get("admin_role", "admin")
     if admin_role == "superadmin":
         return log
     
