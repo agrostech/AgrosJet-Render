@@ -426,23 +426,6 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
           )}
         </div>
       )}
-
-      {/* Yardım */}
-      {!cashReport && !cardReport && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-800 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            Nasıl Kullanılır?
-          </h4>
-          <ol className="mt-2 text-sm text-blue-700 space-y-1 list-decimal list-inside">
-            <li>Önce "Günlük Tahsilat" sekmesinden kurye tahsilatlarını girin</li>
-            <li>Nakit ve Kredi Kartı Excel raporlarını yükleyin</li>
-            <li>"Karşılaştır" butonuna tıklayın</li>
-            <li>Farkları inceleyip "İşle" butonuna tıklayın</li>
-            <li>Eksikler otomatik olarak kurye muhasebesine eklenecek</li>
-          </ol>
-        </div>
-      )}
     </div>
   );
 }
