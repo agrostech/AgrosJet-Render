@@ -12,7 +12,13 @@ export function usePWAInstall() {
       return;
     }
 
-    // Check if user has dismissed the prompt before
+    // Check if user has permanently dismissed the prompt
+    const permanentlyDismissed = localStorage.getItem('pwa-install-never-show') === 'true';
+    if (permanentlyDismissed) {
+      return;
+    }
+
+    // Check if user has dismissed the prompt before (temporary)
     const dismissed = localStorage.getItem('pwa-install-dismissed');
     const dismissedAt = dismissed ? new Date(dismissed) : null;
     const daysSinceDismissed = dismissedAt 
@@ -58,8 +64,12 @@ export function usePWAInstall() {
     return false;
   };
 
-  const dismiss = () => {
-    localStorage.setItem('pwa-install-dismissed', new Date().toISOString());
+  const dismiss = (neverShowAgain = false) => {
+    if (neverShowAgain) {
+      localStorage.setItem('pwa-install-never-show', 'true');
+    } else {
+      localStorage.setItem('pwa-install-dismissed', new Date().toISOString());
+    }
     setShowPrompt(false);
   };
 
