@@ -56,9 +56,11 @@ async def upload_invoice(
 ):
     """Upload invoice for a hakediş transaction"""
     
-    # Validate file type
-    if not file.filename.lower().endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Sadece PDF dosyası yüklenebilir")
+    # Validate file type - PDF ve resim dosyaları kabul edilir
+    allowed_extensions = ('.pdf', '.jpg', '.jpeg', '.png', '.heic', '.heif')
+    file_ext = os.path.splitext(file.filename.lower())[1]
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Sadece PDF veya resim dosyası (JPG, PNG, HEIC) yüklenebilir")
     
     # Check transaction exists and is hakediş
     transaction = await db.transactions.find_one({"id": transaction_id})
