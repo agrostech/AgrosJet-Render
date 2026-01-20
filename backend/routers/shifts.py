@@ -30,12 +30,9 @@ class LeaveAssignment(BaseModel):
 
 
 @router.get("/companies/{company_id}/shifts")
-async def get_company_shifts(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_company_shifts(company_id: str):
     """Get all shifts for a company"""
-    await require_permission(x_admin_id, "vardiya_view")
+    # GET işlemi - kurye panelinden de erişilebilir, yetki kontrolü yok
     shifts = await db.shifts.find({"company_id": company_id}, {"_id": 0}).to_list(100)
     
     def shift_sort_key(shift):
