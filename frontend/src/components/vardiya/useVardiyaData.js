@@ -57,7 +57,9 @@ export function useVardiyaData(companyId) {
       setLeaves(leavesRes.data);
       setCouriers(couriersRes.data);
     } catch (err) {
-      toast.error("Veriler yüklenemedi");
+      if (!err.handled) {
+        toast.error("Veriler yüklenemedi");
+      }
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,9 @@ export function useVardiyaData(companyId) {
       onSuccess?.();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Vardiya eklenemedi");
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Vardiya eklenemedi");
+      }
     }
   };
 
@@ -98,7 +102,9 @@ export function useVardiyaData(companyId) {
       toast.success("Vardiya silindi");
       fetchData();
     } catch (err) {
-      toast.error("Vardiya silinemedi");
+      if (!err.handled) {
+        toast.error("Vardiya silinemedi");
+      }
     }
   };
 
@@ -109,7 +115,9 @@ export function useVardiyaData(companyId) {
       toast.success("Vardiya silindi");
       fetchData();
     } catch (err) {
-      toast.error("Vardiya silinemedi");
+      if (!err.handled) {
+        toast.error("Vardiya silinemedi");
+      }
     }
   };
 
