@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -19,17 +20,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, Shield, Clock, Calculator, Package, Users, ShoppingBag, GraduationCap, SlidersHorizontal } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// İzin tanımları
+const PERMISSION_ITEMS = [
+  { key: "vardiya", label: "Vardiyalar", icon: Clock },
+  { key: "muhasebe", label: "Muhasebe", icon: Calculator },
+  { key: "zimmet", label: "Zimmet", icon: Package },
+  { key: "kuryeler", label: "Kuryeler", icon: Users },
+  { key: "market", label: "Market", icon: ShoppingBag },
+  { key: "akademi", label: "Akademi", icon: GraduationCap },
+  { key: "sistem", label: "Sistem Ayarları", icon: SlidersHorizontal },
+];
 
 export default function YoneticilerPage({ companyId }) {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPermModal, setShowPermModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [permissionsData, setPermissionsData] = useState({});
+  const [permLoading, setPermLoading] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
   const [editData, setEditData] = useState({ name: "", username: "", password: "" });
   const [editLoading, setEditLoading] = useState(false);
@@ -91,6 +106,15 @@ export default function YoneticilerPage({ companyId }) {
     setShowEditModal(true);
   };
 
+  const openPermModal = (admin) => {
+    setSelectedAdmin(admin);
+    setPermissionsData(admin.permissions || {
+      vardiya: true, muhasebe: true, zimmet: true,
+      kuryeler: true, market: true, akademi: true, sistem: false
+    });
+    setShowPermModal(true);
+  };
+
   const handleEditAdmin = async (e) => {
     e.preventDefault();
     setEditLoading(true);
@@ -126,6 +150,31 @@ export default function YoneticilerPage({ companyId }) {
     }
   };
 
+  const handleSavePermissions = async () => {
+    setPermLoading(true);
+    try {
+      await axios.put(`${API}/admins/${selectedAdmin.id}/permissions`, {
+        permissions: permissionsData
+      });
+      toast.success("İzinler güncellendi");
+      setShowPermModal(false);
+      fetchAdmins();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İzin güncelleme başarısız");
+    } finally {
+      setPermLoading(false);
+    }
+  };
+
+  const togglePermission = (key) => {
+    setPermissionsData(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const enabledCount = PERMISSION_ITEMS.filter(p => permissionsData[p.key]).length;
+
   if (loading) return <PageLoading />;
 
   return (
@@ -135,6 +184,7 @@ export default function YoneticilerPage({ companyId }) {
         <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-admin-btn">Yönetici Ekle</Button>
       </div>
 
+      {/* Desktop Table */}
       <div className="hidden md:block border-2 border-border bg-white overflow-x-auto">
         <Table>
           <TableHeader>
@@ -158,8 +208,15 @@ export default function YoneticilerPage({ companyId }) {
                 <TableCell className="text-right">
                   {a.role !== "superadmin" && (
                     <div className="flex gap-2 justify-end">
-                      <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-admin-${a.id}`}><Pencil className="w-4 h-4" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`}><Trash2 className="w-4 h-4" /></Button>
+                      <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="h-8 px-3 border-2 hover:bg-amber-50 hover:text-amber-600" data-testid={`perm-admin-${a.id}`}>
+                        <Shield className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-admin-${a.id}`}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   )}
                 </TableCell>
@@ -169,6 +226,7 @@ export default function YoneticilerPage({ companyId }) {
         </Table>
       </div>
 
+      {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {admins.map((a) => (
           <div key={a.id} className="border-2 border-border p-4 bg-white">
@@ -183,6 +241,9 @@ export default function YoneticilerPage({ companyId }) {
             </div>
             {a.role !== "superadmin" && (
               <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="flex-1 border-2">
+                  <Shield className="w-4 h-4 mr-1" /> İzinler
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="flex-1 border-2">Düzenle</Button>
                 <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="border-2">Sil</Button>
               </div>
@@ -190,6 +251,68 @@ export default function YoneticilerPage({ companyId }) {
           </div>
         ))}
       </div>
+
+      {/* İzin Modalı */}
+      <Dialog open={showPermModal} onOpenChange={setShowPermModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Shield className="w-5 h-5 text-amber-500" />
+              Sayfa İzinleri
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAdmin && (
+            <div className="space-y-4">
+              <div className="p-3 bg-slate-50 rounded-lg border">
+                <p className="text-xs text-muted-foreground">Düzenlenen Yönetici</p>
+                <p className="font-semibold">{selectedAdmin.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {enabledCount}/{PERMISSION_ITEMS.length} sayfa erişimi aktif
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                {PERMISSION_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div 
+                      key={item.key} 
+                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-md flex items-center justify-center ${permissionsData[item.key] ? 'bg-primary/10' : 'bg-slate-100'}`}>
+                          <Icon className={`w-4 h-4 ${permissionsData[item.key] ? 'text-primary' : 'text-slate-400'}`} />
+                        </div>
+                        <span className={`font-medium ${!permissionsData[item.key] && 'text-muted-foreground'}`}>
+                          {item.label}
+                        </span>
+                      </div>
+                      <Switch
+                        checked={permissionsData[item.key] || false}
+                        onCheckedChange={() => togglePermission(item.key)}
+                        data-testid={`perm-switch-${item.key}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700">
+                <strong>Not:</strong> İzin değişikliklerinin etkili olması için yöneticinin yeniden giriş yapması gerekir.
+              </div>
+              
+              <Button 
+                onClick={handleSavePermissions} 
+                className="w-full h-11 font-semibold" 
+                disabled={permLoading}
+                data-testid="save-permissions-btn"
+              >
+                {permLoading ? "Kaydediliyor..." : "İzinleri Kaydet"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Yönetici Düzenleme Modal */}
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
@@ -226,6 +349,7 @@ export default function YoneticilerPage({ companyId }) {
         </DialogContent>
       </Dialog>
 
+      {/* Yönetici Ekleme Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -249,6 +373,7 @@ export default function YoneticilerPage({ companyId }) {
         </DialogContent>
       </Dialog>
 
+      {/* Silme Onay Modalı */}
       <ConfirmModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
