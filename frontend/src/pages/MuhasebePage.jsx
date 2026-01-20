@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Banknote, FileBarChart } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
 import HareketlerTab from "./muhasebe/HareketlerTab";
 import FaturalarTab from "./muhasebe/FaturalarTab";
 import TopluHakedisTab from "./muhasebe/BonusTab";
+import GunlukTahsilatTab from "./muhasebe/GunlukTahsilatTab";
+import ExcelKarsilastirmaTab from "./muhasebe/ExcelKarsilastirmaTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
@@ -13,6 +15,8 @@ const TABS = [
   { key: "cariler", label: "Cariler", icon: Wallet },
   { key: "faturalar", label: "Faturalar", icon: FileText },
   { key: "toplu-hakedis", label: "Toplu Hakediş", icon: FileSpreadsheet },
+  { key: "gunluk-tahsilat", label: "Günlük Tahsilat", icon: Banknote },
+  { key: "excel-karsilastirma", label: "Excel Karşılaştırma", icon: FileBarChart },
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
