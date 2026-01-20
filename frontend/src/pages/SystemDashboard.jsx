@@ -516,8 +516,6 @@ export default function SystemDashboard() {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useSessionCheck();
-
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) {
