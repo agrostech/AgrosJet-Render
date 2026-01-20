@@ -106,6 +106,7 @@ class BusinessCreate(BaseModel):
     name: str
     phone: Optional[str] = None
     address: Optional[str] = None
+    tax_bracket: Optional[int] = None  # 1, 10, or 20 (percent)
 
 
 class VendorCreate(BaseModel):
