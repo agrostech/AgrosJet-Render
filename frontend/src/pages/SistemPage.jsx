@@ -632,6 +632,48 @@ export default function SistemPage({ companyId }) {
               </Button>
             </div>
 
+            {/* Restore Backup */}
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <h4 className="font-semibold text-sm mb-2 text-amber-800">Yedek Yükle</h4>
+              <p className="text-xs text-amber-700 mb-3">
+                Daha önce indirdiğiniz yedek dosyasını sisteme geri yükleyin.
+              </p>
+              
+              <div className="flex items-center gap-2 mb-3">
+                <Switch
+                  checked={replaceExisting}
+                  onCheckedChange={setReplaceExisting}
+                  id="replace-mode"
+                />
+                <Label htmlFor="replace-mode" className="text-xs text-amber-800">
+                  Mevcut verileri değiştir (dikkatli kullanın!)
+                </Label>
+              </div>
+              
+              <input
+                type="file"
+                ref={backupFileRef}
+                onChange={handleUploadBackup}
+                accept=".zip"
+                className="hidden"
+              />
+              <Button 
+                onClick={() => backupFileRef.current?.click()}
+                disabled={uploading}
+                variant="outline"
+                className="w-full sm:w-auto border-amber-300 hover:bg-amber-100"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? "Yükleniyor..." : "Yedek Dosyası Seç"}
+              </Button>
+              
+              {replaceExisting && (
+                <p className="text-xs text-red-600 mt-2">
+                  ⚠️ Bu mod mevcut verileri siler ve yedekteki verilerle değiştirir!
+                </p>
+              )}
+            </div>
+
             {/* Automatic Backup */}
             <div className="p-3 bg-slate-50 rounded-lg border">
               <div className="flex items-center justify-between mb-3">
