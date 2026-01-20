@@ -145,27 +145,26 @@ async def update_courier(courier_id: str, name: str = None, phone: str = None, p
 
 
 async def check_courier_balance(courier_id: str):
-    """Check courier's balance"""
-    transactions = await db.accounting_transactions.find({
+    """Check courier's balance from transactions"""
+    transactions = await db.transactions.find({
         "entity_type": "courier",
         "entity_id": courier_id
     }).to_list(10000)
     
     balance = 0
     for t in transactions:
-        if t["type"] == "credit":
+        if t["type"] == "payment_in":  # Kuryeden alınan
             balance += t["amount"]
-        else:
+        else:  # payment_out - Kuryeye verilen
             balance -= t["amount"]
     
     return balance
 
 
 async def check_courier_zimmet(courier_id: str):
-    """Check if courier has any assigned zimmet"""
-    return await db.zimmet_assignments.find_one({
-        "courier_id": courier_id,
-        "status": "assigned"
+    """Check if courier has any assigned zimmet products"""
+    return await db.products.find_one({
+        "assigned_to_courier_id": courier_id
     })
 
 
