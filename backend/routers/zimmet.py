@@ -95,12 +95,9 @@ async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, act
 
 # --- Ürün Tipleri Endpoint'leri ---
 @router.get("/companies/{company_id}/product-types")
-async def get_product_types(
-    company_id: str,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_product_types(company_id: str):
     """Şirketin ürün tiplerini getir"""
-    await require_permission(x_admin_id, "zimmet_view")
+    # GET işlemi - yetki kontrolü yok
     types = await db.product_types.find(
         {"company_id": company_id},
         {"_id": 0}
