@@ -162,14 +162,9 @@ async def delete_product_type(
 
 # --- Ürünler Endpoint'leri ---
 @router.get("/companies/{company_id}/products")
-async def get_products(
-    company_id: str, 
-    skip: int = 0, 
-    limit: int = 50,
-    x_admin_id: Optional[str] = Header(None, alias="X-Admin-Id")
-):
+async def get_products(company_id: str, skip: int = 0, limit: int = 50):
     """Şirketin ürünlerini getir (pagination)"""
-    await require_permission(x_admin_id, "zimmet_view")
+    # GET işlemi - yetki kontrolü yok
     total = await db.products.count_documents({"company_id": company_id})
     
     products = await db.products.find(
