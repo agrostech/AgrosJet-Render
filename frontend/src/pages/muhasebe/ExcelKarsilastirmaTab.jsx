@@ -259,7 +259,7 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
                 <input
                   ref={cardInputRef}
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                   className="hidden"
                   onChange={(e) => {
                     handleFileUpload(e.target.files[0], 'card');
