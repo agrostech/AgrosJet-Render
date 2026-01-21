@@ -218,11 +218,27 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                 {/* Alt satır (mobilde) / Sağ taraf (masaüstünde): Butonlar */}
                 {!showArchived && (
                   <div className="flex items-center gap-2 justify-end">
-                    <Button variant="outline" size="sm" onClick={() => handleArchive(selectedEntity.id)} className="h-9 border-2" data-testid="archive-vendor-btn">
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setConfirmConfig({
+                        title: "Arşivle",
+                        description: `"${selectedEntity.name}" carisini arşivlemek istediğinize emin misiniz?`,
+                        variant: "default",
+                        onConfirm: () => handleArchive(selectedEntity.id, true)
+                      });
+                      setConfirmOpen(true);
+                    }} className="h-9 border-2" data-testid="archive-vendor-btn">
                       <Archive className="w-4 h-4" />
                       <span className="ml-1.5 text-xs sm:hidden">Arşiv</span>
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(selectedEntity.id)} className="h-9 border-2 hover:bg-red-50 hover:text-red-600" data-testid="delete-vendor-btn">
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setConfirmConfig({
+                        title: "Sil",
+                        description: `"${selectedEntity.name}" carisini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+                        variant: "danger",
+                        onConfirm: () => handleDelete(selectedEntity.id, true)
+                      });
+                      setConfirmOpen(true);
+                    }} className="h-9 border-2 hover:bg-red-50 hover:text-red-600" data-testid="delete-vendor-btn">
                       <Trash2 className="w-4 h-4" />
                       <span className="ml-1.5 text-xs sm:hidden">Sil</span>
                     </Button>
