@@ -399,14 +399,57 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
       </div>
 
       {/* Summary */}
-      <div className="flex gap-3 text-sm justify-end flex-wrap">
-        <div className="px-3 py-1.5 bg-green-50 rounded border border-green-200">
-          <span className="text-green-700">Nakit: </span>
-          <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.cash_total || 0), 0))}</span>
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+        {/* Cash Summary */}
+        <div className={`flex items-center gap-2 px-3 py-2 rounded border ${collectionStatus.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
+          <div className="flex-1">
+            <span className="text-green-700 text-sm">Nakit: </span>
+            <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.cash_total || 0), 0))}</span>
+          </div>
+          {isSuperAdmin && (
+            collectionStatus.cash_collected ? (
+              <div className="flex items-center gap-1 text-green-600 text-xs">
+                <CheckCircle className="w-4 h-4" />
+                <span>Alındı</span>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleMarkCollected('cash')}
+                disabled={savingCollection === 'cash'}
+                className="h-7 text-xs border-green-400 text-green-700 hover:bg-green-100"
+              >
+                {savingCollection === 'cash' ? '...' : 'Alındı'}
+              </Button>
+            )
+          )}
         </div>
-        <div className="px-3 py-1.5 bg-blue-50 rounded border border-blue-200">
-          <span className="text-blue-700">Kart: </span>
-          <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.card_total || 0), 0))}</span>
+        
+        {/* Card Summary */}
+        <div className={`flex items-center gap-2 px-3 py-2 rounded border ${collectionStatus.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
+          <div className="flex-1">
+            <span className="text-blue-700 text-sm">Kart: </span>
+            <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.card_total || 0), 0))}</span>
+          </div>
+          {isSuperAdmin && (
+            collectionStatus.card_collected ? (
+              <div className="flex items-center gap-1 text-blue-600 text-xs">
+                <CheckCircle className="w-4 h-4" />
+                <span>Alındı</span>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleMarkCollected('card')}
+                disabled={savingCollection === 'card'}
+                className="h-7 text-xs border-blue-400 text-blue-700 hover:bg-blue-100"
+              >
+                {savingCollection === 'card' ? '...' : 'Alındı'}
+              </Button>
+            )
+          )}
         </div>
       </div>
     </div>
