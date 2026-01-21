@@ -568,7 +568,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                 type="file"
                 ref={excelFileRef}
                 onChange={handleExcelUpload}
-                accept=".xlsx,.xls"
+                accept="*/*"
                 className="hidden"
               />
               <Button
