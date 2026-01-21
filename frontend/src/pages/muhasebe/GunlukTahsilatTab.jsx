@@ -125,9 +125,9 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
 
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('tr-TR', {
-      style: 'currency',
-      currency: 'TRY',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount) + ' ₺';
     }).format(amount);
   };
 
