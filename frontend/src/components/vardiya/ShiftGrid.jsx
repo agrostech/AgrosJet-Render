@@ -184,7 +184,7 @@ function ShiftCell({
           </div>
         )}
         {courierCount === 0 ? (
-          editMode && !isSelected && !ctrlPressed && (
+          editMode && !isSelected && !ctrlPressed && !courierFilter && (
             <button
               onClick={(e) => { e.stopPropagation(); onOpenAssignModal(shift, day.key); }}
               className="w-full text-[8px] sm:text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
@@ -196,25 +196,28 @@ function ShiftCell({
         ) : (
           <div className="space-y-0.5">
             <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
-              <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded ${courierCount > 0 ? 'bg-blue-200 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
+              <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded ${hasFilteredResults ? 'bg-yellow-300 text-yellow-900' : courierCount > 0 ? 'bg-blue-200 text-blue-800' : 'bg-slate-200 text-slate-600'}`}>
                 <span className="hidden sm:inline">{courierCount} kişi</span>
                 <span className="sm:hidden">{courierCount}</span>
               </span>
             </div>
             <div className="max-h-[40px] sm:max-h-[60px] overflow-y-auto space-y-0.5 scrollbar-thin">
-              {assignments.map(a => (
-                <div key={a.id} className="flex items-center justify-between bg-blue-50/80 px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-[9px] group">
-                  <span className="font-medium truncate max-w-[30px] sm:max-w-none" title={a.courier_name}>{a.courier_name}</span>
-                  {editMode && !ctrlPressed && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onRemoveAssignment(a.id); }}
-                      className="text-red-500 hover:text-red-700 ml-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100"
-                    >
-                      <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
+              {filteredAssignments.map(a => {
+                const isHighlighted = courierFilter && a.courier_name?.toLowerCase().includes(courierFilter.toLowerCase());
+                return (
+                  <div key={a.id} className={`flex items-center justify-between px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-[9px] group ${isHighlighted ? 'bg-yellow-200' : 'bg-blue-50/80'}`}>
+                    <span className="font-medium truncate max-w-[30px] sm:max-w-none" title={a.courier_name}>{a.courier_name}</span>
+                    {editMode && !ctrlPressed && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onRemoveAssignment(a.id); }}
+                        className="text-red-500 hover:text-red-700 ml-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100"
+                      >
+                        <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             {editMode && !isSelected && !ctrlPressed && (
               <button
