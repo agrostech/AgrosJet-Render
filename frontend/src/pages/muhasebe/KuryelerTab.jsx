@@ -50,6 +50,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     handlePayment,
     handleUpdateTransaction,
     handleArchive,
+    handleUnarchive,
     loadMore,
     exportPDF,
     fetchTransactions,
