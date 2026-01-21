@@ -104,6 +104,7 @@ app.include_router(academy_router)
 app.include_router(backup_router)
 app.include_router(daily_collections_router)
 app.include_router(daily_reports_router)
+app.include_router(business_invoices_router)
 
 # Health check
 @api_router.get("/")
