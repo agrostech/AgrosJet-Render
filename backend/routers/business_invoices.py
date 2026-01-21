@@ -54,7 +54,7 @@ async def import_excel(
 ):
     """
     Import business invoice amounts from Restoran Raporu.xlsx
-    Reads 'Restoran Adı' and 'Banka/Kredi Kartı' columns
+    Reads 'Restoran Raporu' (or 'Restoran Adı') and 'Banka/Kredi Kartı' columns
     """
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Sadece Excel dosyası (.xlsx, .xls) yüklenebilir")
@@ -64,7 +64,7 @@ async def import_excel(
         wb = openpyxl.load_workbook(BytesIO(content), data_only=True)
         ws = wb.active
         
-        # Find header row - look for "Restoran Adı" in first 10 rows
+        # Find header row - look for "Restoran Raporu" or "Restoran Adı" in first 10 rows
         header_row = None
         restoran_col = None
         banka_col = None
@@ -74,10 +74,12 @@ async def import_excel(
                 cell_value = ws.cell(row=row_idx, column=col_idx).value
                 if cell_value and isinstance(cell_value, str):
                     cell_lower = cell_value.strip().lower()
-                    if "restoran" in cell_lower and "ad" in cell_lower:
+                    # Match "Restoran Raporu" or "Restoran Adı"
+                    if "restoran" in cell_lower and ("rapor" in cell_lower or "ad" in cell_lower):
                         header_row = row_idx
                         restoran_col = col_idx
-                    elif "banka" in cell_lower or "kredi" in cell_lower:
+                    # Match "Banka/Kredi Kartı"
+                    elif "banka" in cell_lower and "kredi" in cell_lower:
                         banka_col = col_idx
             
             if header_row and restoran_col and banka_col:
@@ -86,7 +88,7 @@ async def import_excel(
         if not header_row or not restoran_col or not banka_col:
             raise HTTPException(
                 status_code=400, 
-                detail="Excel dosyasında 'Restoran Adı' ve 'Banka/Kredi Kartı' sütunları bulunamadı"
+                detail="Excel dosyasında 'Restoran Raporu' ve 'Banka/Kredi Kartı' sütunları bulunamadı"
             )
         
         # Get all businesses for matching
@@ -125,7 +127,7 @@ async def import_excel(
                 not_found.append(restoran_name_clean)
                 continue
             
-            # Parse amount
+            # Parse amount - handle Turkish number format (₺1.234,56)
             amount = 0.0
             if banka_value is not None:
                 try:
