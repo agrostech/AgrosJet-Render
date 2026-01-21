@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Banknote, Scale } from "lucide-react";
+import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Banknote, Scale, Receipt } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
 import HareketlerTab from "./muhasebe/HareketlerTab";
 import FaturalarTab from "./muhasebe/FaturalarTab";
+import IsletmeFaturalariTab from "./muhasebe/IsletmeFaturalariTab";
 import TopluHakedisTab from "./muhasebe/BonusTab";
 import GunlukTahsilatTab from "./muhasebe/GunlukTahsilatTab";
 import MutabakatTab from "./muhasebe/ExcelKarsilastirmaTab";
