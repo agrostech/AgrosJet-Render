@@ -32,6 +32,7 @@ export default function CourierTransactions({
   getLocalDateTimeString,
   handlePayment,
   handleArchive,
+  handleUnarchive,
   loadMore,
   exportPDF,
   onOpenEditModal,
