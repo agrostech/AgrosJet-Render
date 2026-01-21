@@ -58,6 +58,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     handleUpdateTransaction,
     handleArchive,
     handleDelete,
+    handleUnarchive,
     loadMore,
     exportPDF,
     fetchEntities,
