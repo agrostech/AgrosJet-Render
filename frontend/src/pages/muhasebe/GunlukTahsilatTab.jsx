@@ -127,7 +127,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     return new Intl.NumberFormat('tr-TR', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount) + ' ₺';
+    }).format(amount) + ' TL';
   };
 
   const filteredCouriers = couriers
