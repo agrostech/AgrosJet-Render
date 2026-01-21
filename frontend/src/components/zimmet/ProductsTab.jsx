@@ -322,6 +322,16 @@ export function ProductsTab({
           </div>
         )}
       </div>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={!!confirmDelete}
+        onOpenChange={() => setConfirmDelete(null)}
+        title="Ürün Sil"
+        description="Bu ürün bir kuryeye atanmış. Yine de silmek istediğinize emin misiniz?"
+        onConfirm={onConfirmDelete}
+        variant="danger"
+      />
     </div>
   );
 }
