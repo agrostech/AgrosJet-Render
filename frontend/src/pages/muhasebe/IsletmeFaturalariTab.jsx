@@ -64,24 +64,33 @@ export default function IsletmeFaturalariTab({ companyId }) {
     return targetDate >= minDate && targetDate <= now;
   };
 
+  // Fetch businesses and company details once
   useEffect(() => {
-    fetchData();
-  }, [companyId, selectedYear, selectedMonth]);
+    fetchBusinesses();
+  }, [companyId]);
 
-  const fetchData = async () => {
+  // Fetch month-specific data when month changes
+  useEffect(() => {
+    if (businesses.length > 0) {
+      fetchMonthData();
+    }
+  }, [companyId, selectedYear, selectedMonth, businesses]);
+
+  // Fetch issued records separately (independent of month)
+  useEffect(() => {
+    fetchIssuedRecords();
+  }, [companyId]);
+
+  const fetchBusinesses = async () => {
     if (!companyId) return;
     setLoading(true);
     try {
-      const [businessesRes, invoicesRes, issuedRes, companyRes] = await Promise.all([
+      const [businessesRes, companyRes] = await Promise.all([
         axios.get(`${API}/companies/${companyId}/businesses`),
-        axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`),
-        axios.get(`${API}/business-invoices/get-issued/${companyId}/${selectedYear}/${selectedMonth}`),
         axios.get(`${API}/business-invoices/company-details/${companyId}`)
       ]);
       
       setBusinesses(businessesRes.data || []);
-      setInvoiceRecords(invoicesRes.data || []);
-      setIssuedRecords(issuedRes.data || []);
       setCompanyDetails(companyRes.data || null);
     } catch (err) {
       console.error("Data fetch error:", err);
@@ -89,6 +98,33 @@ export default function IsletmeFaturalariTab({ companyId }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchMonthData = async () => {
+    if (!companyId) return;
+    try {
+      const invoicesRes = await axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`);
+      setInvoiceRecords(invoicesRes.data || []);
+    } catch (err) {
+      console.error("Invoice fetch error:", err);
+    }
+  };
+
+  const fetchIssuedRecords = async () => {
+    if (!companyId) return;
+    try {
+      // Get all issued records (not filtered by month)
+      const issuedRes = await axios.get(`${API}/business-invoices/get-all-issued/${companyId}`);
+      setIssuedRecords(issuedRes.data || []);
+    } catch (err) {
+      console.error("Issued fetch error:", err);
+      // Fallback to empty array
+      setIssuedRecords([]);
+    }
+  };
+
+  const fetchData = async () => {
+    await Promise.all([fetchMonthData(), fetchIssuedRecords()]);
   };
 
   const handlePrevMonth = () => {
@@ -141,7 +177,7 @@ export default function IsletmeFaturalariTab({ companyId }) {
         toast.warning(`${res.data.not_found_count} işletme eşleştirilemedi`);
       }
       
-      fetchData();
+      fetchMonthData();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Excel yüklenemedi");
     } finally {
@@ -167,7 +203,7 @@ export default function IsletmeFaturalariTab({ companyId }) {
       );
       
       toast.success("Fatura yüklendi");
-      fetchData();
+      fetchMonthData();
       
       // Update modal if open
       if (selectedBusinessInvoices?.business_id === businessId) {
@@ -290,7 +326,7 @@ export default function IsletmeFaturalariTab({ companyId }) {
         `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/${confirmDelete.businessId}/invoice/${confirmDelete.invoiceId}`
       );
       toast.success("Fatura silindi");
-      fetchData();
+      fetchMonthData();
       
       if (selectedBusinessInvoices?.business_id === confirmDelete.businessId) {
         const updatedRecords = await axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`);
@@ -308,15 +344,15 @@ export default function IsletmeFaturalariTab({ companyId }) {
     }
   };
 
-  // Mark invoice as issued
+  // Mark invoice as issued (independent of month)
   const handleMarkIssued = async (businessId) => {
     setMarkingIssued(businessId);
     try {
       const res = await axios.post(
-        `${API}/business-invoices/mark-issued/${companyId}/${selectedYear}/${selectedMonth}/${businessId}`
+        `${API}/business-invoices/mark-issued/${companyId}/${businessId}`
       );
       toast.success(`Fatura kesildi: ${res.data.issued_until_date}`);
-      fetchData();
+      fetchIssuedRecords();
     } catch (err) {
       toast.error("İşaretlenemedi");
     } finally {
@@ -388,13 +424,23 @@ ${email ? `E-posta: ${email}` : ""}`;
     return [];
   };
 
-  // Merge businesses with records
-  const getMergedData = () => {
+  // Merge businesses with records for Alınan Faturalar
+  const getMergedDataAlinan = () => {
     const invoiceMap = {};
     invoiceRecords.forEach(r => {
       invoiceMap[r.business_id] = r;
     });
     
+    return businesses
+      .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      .map(b => ({
+        ...b,
+        invoiceRecord: invoiceMap[b.id] || null
+      }));
+  };
+
+  // Merge businesses with issued records for Kesilen Faturalar
+  const getMergedDataKesilen = () => {
     const issuedMap = {};
     issuedRecords.forEach(r => {
       issuedMap[r.business_id] = r;
@@ -404,12 +450,12 @@ ${email ? `E-posta: ${email}` : ""}`;
       .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
       .map(b => ({
         ...b,
-        invoiceRecord: invoiceMap[b.id] || null,
         issuedRecord: issuedMap[b.id] || null
       }));
   };
 
-  const mergedData = getMergedData();
+  const mergedDataAlinan = getMergedDataAlinan();
+  const mergedDataKesilen = getMergedDataKesilen();
 
   // Stats
   const totalBusinesses = businesses.length;
@@ -428,28 +474,30 @@ ${email ? `E-posta: ${email}` : ""}`;
           İşletme Faturaları
         </h3>
         
-        {/* Month Selector */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrevMonth}
-            disabled={!isMonthInRange(selectedMonth === 1 ? selectedYear - 1 : selectedYear, selectedMonth === 1 ? 12 : selectedMonth - 1)}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-sm font-medium min-w-[120px] text-center">
-            {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNextMonth}
-            disabled={!isMonthInRange(selectedMonth === 12 ? selectedYear + 1 : selectedYear, selectedMonth === 12 ? 1 : selectedMonth + 1)}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
+        {/* Month Selector - Only show for Alınan Faturalar */}
+        {activeCard === "alinan" && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevMonth}
+              disabled={!isMonthInRange(selectedMonth === 1 ? selectedYear - 1 : selectedYear, selectedMonth === 1 ? 12 : selectedMonth - 1)}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-medium min-w-[120px] text-center">
+              {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextMonth}
+              disabled={!isMonthInRange(selectedMonth === 12 ? selectedYear + 1 : selectedYear, selectedMonth === 12 ? 1 : selectedMonth + 1)}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Card Selector */}
@@ -491,18 +539,18 @@ ${email ? `E-posta: ${email}` : ""}`;
       {activeCard === "alinan" && (
         <>
           {/* Stats & Actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-slate-50 rounded-lg border">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <div className="flex flex-wrap gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">Toplam:</span>{" "}
+                <span className="text-slate-600">Toplam:</span>{" "}
                 <span className="font-semibold">{totalBusinesses}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Tutar Girilmiş:</span>{" "}
+                <span className="text-slate-600">Tutar Girilmiş:</span>{" "}
                 <span className="font-semibold text-blue-600">{businessesWithAmount}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Fatura Yüklü:</span>{" "}
+                <span className="text-slate-600">Fatura Yüklü:</span>{" "}
                 <span className="font-semibold text-green-600">{businessesWithInvoice}</span>
               </div>
             </div>
@@ -520,6 +568,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                 size="sm"
                 onClick={() => excelFileRef.current?.click()}
                 disabled={uploading}
+                className="bg-white"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {uploading ? "Yükleniyor..." : "Excel Yükle"}
@@ -529,6 +578,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                 size="sm"
                 onClick={handleDownloadAll}
                 disabled={downloadingAll || businessesWithInvoice === 0}
+                className="bg-white"
               >
                 <Download className="w-4 h-4 mr-2" />
                 {downloadingAll ? "İndiriliyor..." : "Toplu İndir"}
@@ -537,40 +587,40 @@ ${email ? `E-posta: ${email}` : ""}`;
           </div>
 
           {/* Business List - Alınan */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b">
+                <thead className="bg-slate-100 border-b">
                   <tr>
-                    <th className="text-left p-3 font-semibold">İşletme</th>
-                    <th className="text-right p-3 font-semibold">Fatura Tutarı</th>
-                    <th className="text-center p-3 font-semibold">Faturalar</th>
-                    <th className="text-center p-3 font-semibold">İşlemler</th>
+                    <th className="text-left p-3 font-semibold text-slate-700">İşletme</th>
+                    <th className="text-right p-3 font-semibold text-slate-700">Fatura Tutarı</th>
+                    <th className="text-center p-3 font-semibold text-slate-700">Faturalar</th>
+                    <th className="text-center p-3 font-semibold text-slate-700">İşlemler</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
-                  {mergedData.length === 0 ? (
+                <tbody className="divide-y divide-slate-200">
+                  {mergedDataAlinan.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={4} className="p-8 text-center text-slate-500">
                         {searchQuery ? "Eşleşen işletme bulunamadı" : "Henüz işletme yok"}
                       </td>
                     </tr>
                   ) : (
-                    mergedData.map((item) => {
+                    mergedDataAlinan.map((item) => {
                       const record = item.invoiceRecord;
                       const hasAmount = record?.required_amount > 0;
                       const invoices = getInvoicesList(record);
                       const invoiceCount = invoices.length;
                       
                       return (
-                        <tr key={item.id} className="hover:bg-slate-50">
+                        <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-3">
-                            <div className="font-medium">{item.name}</div>
+                            <div className="font-medium text-slate-800">{item.name}</div>
                             {item.phone && (
-                              <div className="text-xs text-muted-foreground">{item.phone}</div>
+                              <div className="text-xs text-slate-500">{item.phone}</div>
                             )}
                             {item.tax_bracket && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mt-1 inline-block">
                                 %{item.tax_bracket}
                               </span>
                             )}
@@ -581,7 +631,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                                 {record.required_amount.toLocaleString("tr-TR")} ₺
                               </span>
                             ) : (
-                              <span className="text-muted-foreground">-</span>
+                              <span className="text-slate-400">-</span>
                             )}
                           </td>
                           <td className="p-3 text-center">
@@ -590,13 +640,13 @@ ${email ? `E-posta: ${email}` : ""}`;
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setSelectedBusinessInvoices(record)}
-                                className="text-green-600 hover:text-green-700"
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
                               >
                                 <FileText className="w-4 h-4 mr-1" />
                                 {invoiceCount} fatura
                               </Button>
                             ) : (
-                              <span className="text-xs text-muted-foreground">Yüklenmemiş</span>
+                              <span className="text-xs text-slate-400">Yüklenmemiş</span>
                             )}
                           </td>
                           <td className="p-3 text-center">
@@ -626,11 +676,12 @@ ${email ? `E-posta: ${email}` : ""}`;
                                 onClick={() => document.getElementById(`invoice-upload-${item.id}`)?.click()}
                                 disabled={uploadingInvoice === item.id}
                                 title="Fatura Yükle"
+                                className="text-primary hover:bg-primary/10"
                               >
                                 {uploadingInvoice === item.id ? (
                                   <LoadingSpinner size="sm" />
                                 ) : (
-                                  <Plus className="w-4 h-4 text-primary" />
+                                  <Plus className="w-4 h-4" />
                                 )}
                               </Button>
                             </div>
@@ -650,60 +701,60 @@ ${email ? `E-posta: ${email}` : ""}`;
       {activeCard === "kesilen" && (
         <>
           {/* Stats */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-slate-50 rounded-lg border">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
             <div className="flex flex-wrap gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">Toplam İşletme:</span>{" "}
+                <span className="text-slate-600">Toplam İşletme:</span>{" "}
                 <span className="font-semibold">{totalBusinesses}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Fatura Kesilmiş:</span>{" "}
-                <span className="font-semibold text-green-600">{businessesWithIssued}</span>
+                <span className="text-slate-600">Fatura Kesilmiş:</span>{" "}
+                <span className="font-semibold text-emerald-600">{businessesWithIssued}</span>
               </div>
             </div>
           </div>
 
           {/* Business List - Kesilen */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 border-b">
+                <thead className="bg-slate-100 border-b">
                   <tr>
-                    <th className="text-left p-3 font-semibold">İşletme</th>
-                    <th className="text-center p-3 font-semibold">Son Fatura Tarihi</th>
-                    <th className="text-center p-3 font-semibold">İşlem</th>
+                    <th className="text-left p-3 font-semibold text-slate-700">İşletme</th>
+                    <th className="text-center p-3 font-semibold text-slate-700">Son Fatura Tarihi</th>
+                    <th className="text-center p-3 font-semibold text-slate-700">İşlem</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
-                  {mergedData.length === 0 ? (
+                <tbody className="divide-y divide-slate-200">
+                  {mergedDataKesilen.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={3} className="p-8 text-center text-slate-500">
                         {searchQuery ? "Eşleşen işletme bulunamadı" : "Henüz işletme yok"}
                       </td>
                     </tr>
                   ) : (
-                    mergedData.map((item) => {
+                    mergedDataKesilen.map((item) => {
                       const issuedRecord = item.issuedRecord;
                       const issuedDate = issuedRecord?.issued_until_date;
                       
                       return (
-                        <tr key={item.id} className="hover:bg-slate-50">
+                        <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-3">
-                            <div className="font-medium">{item.name}</div>
+                            <div className="font-medium text-slate-800">{item.name}</div>
                             {item.phone && (
-                              <div className="text-xs text-muted-foreground">{item.phone}</div>
+                              <div className="text-xs text-slate-500">{item.phone}</div>
                             )}
                           </td>
                           <td className="p-3 text-center">
                             {issuedDate ? (
                               <div className="flex items-center justify-center gap-1">
-                                <Calendar className="w-4 h-4 text-green-600" />
-                                <span className="font-medium text-green-600">
+                                <Calendar className="w-4 h-4 text-emerald-600" />
+                                <span className="font-medium text-emerald-600">
                                   {new Date(issuedDate).toLocaleDateString("tr-TR")}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground">-</span>
+                              <span className="text-xs text-slate-400">-</span>
                             )}
                           </td>
                           <td className="p-3 text-center">
@@ -712,7 +763,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                               size="sm"
                               onClick={() => handleMarkIssued(item.id)}
                               disabled={markingIssued === item.id}
-                              className={issuedDate ? "border-green-500 text-green-600 hover:bg-green-50" : ""}
+                              className={issuedDate ? "border-emerald-500 text-emerald-600 hover:bg-emerald-50" : ""}
                             >
                               {markingIssued === item.id ? (
                                 <LoadingSpinner size="sm" />
@@ -738,11 +789,11 @@ ${email ? `E-posta: ${email}` : ""}`;
       {/* Invoices List Modal */}
       {selectedBusinessInvoices && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-hidden">
-            <div className="p-4 border-b flex items-center justify-between">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-hidden shadow-xl">
+            <div className="p-4 border-b flex items-center justify-between bg-slate-50">
               <div>
-                <h3 className="font-semibold">{selectedBusinessInvoices.business_name}</h3>
-                <p className="text-sm text-muted-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Faturaları</p>
+                <h3 className="font-semibold text-slate-800">{selectedBusinessInvoices.business_name}</h3>
+                <p className="text-sm text-slate-500">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Faturaları</p>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setSelectedBusinessInvoices(null)}>
                 <X className="w-4 h-4" />
@@ -779,9 +830,9 @@ ${email ? `E-posta: ${email}` : ""}`;
                     <div className="flex items-center gap-2 min-w-0">
                       <FileText className="w-4 h-4 text-slate-500 flex-shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{invoice.filename}</p>
+                        <p className="text-sm font-medium truncate text-slate-700">{invoice.filename}</p>
                         {invoice.uploaded_at && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-slate-500">
                             {new Date(invoice.uploaded_at).toLocaleDateString("tr-TR")}
                           </p>
                         )}
@@ -820,7 +871,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                 ))}
                 
                 {getInvoicesList(selectedBusinessInvoices).length === 0 && (
-                  <p className="text-center text-muted-foreground py-4">Henüz fatura yüklenmemiş</p>
+                  <p className="text-center text-slate-500 py-4">Henüz fatura yüklenmemiş</p>
                 )}
               </div>
             </div>
@@ -831,9 +882,9 @@ ${email ? `E-posta: ${email}` : ""}`;
       {/* Preview Modal */}
       {previewData && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="p-3 border-b flex items-center justify-between">
-              <span className="font-medium text-sm">{previewData.filename}</span>
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-xl">
+            <div className="p-3 border-b flex items-center justify-between bg-slate-50">
+              <span className="font-medium text-sm text-slate-700">{previewData.filename}</span>
               <Button variant="ghost" size="sm" onClick={() => setPreviewData(null)}>
                 <X className="w-4 h-4" />
               </Button>
