@@ -287,10 +287,19 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
                 <input
                   ref={cardInputRef}
                   type="file"
-                  accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                  accept="*/*"
                   className="hidden"
                   onChange={(e) => {
-                    handleFileUpload(e.target.files[0], 'card');
+                    const file = e.target.files[0];
+                    if (file) {
+                      const ext = file.name.split('.').pop().toLowerCase();
+                      if (ext !== 'xlsx' && ext !== 'xls') {
+                        toast.error('Lütfen Excel dosyası (.xlsx veya .xls) seçin');
+                        e.target.value = '';
+                        return;
+                      }
+                      handleFileUpload(file, 'card');
+                    }
                     e.target.value = '';
                   }}
                 />
