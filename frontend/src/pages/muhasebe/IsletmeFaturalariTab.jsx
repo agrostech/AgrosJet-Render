@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Building2, ChevronLeft, ChevronRight, Upload, FileText, Download, Trash2, MessageCircle, Search, Eye, X, AlertCircle, Plus } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, Upload, FileText, Download, Trash2, MessageCircle, Search, Eye, X, Plus, Check, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import JSZip from "jszip";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -26,9 +27,13 @@ export default function IsletmeFaturalariTab({ companyId }) {
   
   const [businesses, setBusinesses] = useState([]);
   const [invoiceRecords, setInvoiceRecords] = useState([]);
+  const [issuedRecords, setIssuedRecords] = useState([]);
   const [companyDetails, setCompanyDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Active card view
+  const [activeCard, setActiveCard] = useState("alinan"); // "alinan" or "kesilen"
   
   // Excel upload
   const [uploading, setUploading] = useState(false);
@@ -36,6 +41,9 @@ export default function IsletmeFaturalariTab({ companyId }) {
   
   // Invoice upload
   const [uploadingInvoice, setUploadingInvoice] = useState(null);
+  
+  // Bulk download
+  const [downloadingAll, setDownloadingAll] = useState(false);
   
   // Preview modal
   const [previewData, setPreviewData] = useState(null);
@@ -45,6 +53,9 @@ export default function IsletmeFaturalariTab({ companyId }) {
   
   // Invoices modal
   const [selectedBusinessInvoices, setSelectedBusinessInvoices] = useState(null);
+  
+  // Marking issued
+  const [markingIssued, setMarkingIssued] = useState(null);
 
   // Son 12 ay kontrolü
   const isMonthInRange = (year, month) => {
@@ -61,14 +72,16 @@ export default function IsletmeFaturalariTab({ companyId }) {
     if (!companyId) return;
     setLoading(true);
     try {
-      const [businessesRes, invoicesRes, companyRes] = await Promise.all([
+      const [businessesRes, invoicesRes, issuedRes, companyRes] = await Promise.all([
         axios.get(`${API}/companies/${companyId}/businesses`),
         axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`),
+        axios.get(`${API}/business-invoices/issued/${companyId}/${selectedYear}/${selectedMonth}`),
         axios.get(`${API}/business-invoices/company-details/${companyId}`)
       ]);
       
       setBusinesses(businessesRes.data || []);
       setInvoiceRecords(invoicesRes.data || []);
+      setIssuedRecords(issuedRes.data || []);
       setCompanyDetails(companyRes.data || null);
     } catch (err) {
       console.error("Data fetch error:", err);
@@ -168,8 +181,55 @@ export default function IsletmeFaturalariTab({ companyId }) {
       toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
     } finally {
       setUploadingInvoice(null);
-      // Reset file input
       e.target.value = "";
+    }
+  };
+
+  // Download all invoices for the month
+  const handleDownloadAll = async () => {
+    setDownloadingAll(true);
+    try {
+      const res = await axios.get(
+        `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/download-all`
+      );
+      
+      const { invoices, count } = res.data;
+      
+      if (count === 0) {
+        toast.warning("İndirilecek fatura bulunamadı");
+        return;
+      }
+      
+      // Create ZIP file
+      const zip = new JSZip();
+      
+      invoices.forEach((inv, idx) => {
+        const fileName = `${inv.business_name}_${idx + 1}.${inv.extension}`;
+        const byteCharacters = atob(inv.file_data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        zip.file(fileName, byteArray);
+      });
+      
+      const content = await zip.generateAsync({ type: "blob" });
+      
+      const url = window.URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Faturalar_${MONTH_NAMES[selectedMonth - 1]}_${selectedYear}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${count} fatura indirildi`);
+    } catch (err) {
+      toast.error("Faturalar indirilemedi");
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -232,7 +292,6 @@ export default function IsletmeFaturalariTab({ companyId }) {
       toast.success("Fatura silindi");
       fetchData();
       
-      // Update modal if open
       if (selectedBusinessInvoices?.business_id === confirmDelete.businessId) {
         const updatedRecords = await axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`);
         const record = updatedRecords.data.find(r => r.business_id === confirmDelete.businessId);
@@ -249,20 +308,33 @@ export default function IsletmeFaturalariTab({ companyId }) {
     }
   };
 
+  // Mark invoice as issued
+  const handleMarkIssued = async (businessId) => {
+    setMarkingIssued(businessId);
+    try {
+      const res = await axios.post(
+        `${API}/business-invoices/issued/${companyId}/${selectedYear}/${selectedMonth}/${businessId}/mark`
+      );
+      toast.success(`Fatura kesildi: ${res.data.issued_until_date}`);
+      fetchData();
+    } catch (err) {
+      toast.error("İşaretlenemedi");
+    } finally {
+      setMarkingIssued(null);
+    }
+  };
+
   // WhatsApp message
   const generateWhatsAppMessage = (business, record) => {
     const monthName = MONTH_NAMES[selectedMonth - 1];
     const amount = record?.required_amount || 0;
     
-    // Ay başı ve sonu
     const startDate = `1 ${monthName}`;
     const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
     const endDate = `${lastDay} ${monthName}`;
     
-    // İşletme vergi dilimi
     const taxBracket = business.tax_bracket ? `%${business.tax_bracket}` : "";
     
-    // Şirket bilgileri
     const companyName = companyDetails?.name || "";
     const vkn = companyDetails?.tckn_vkn || "";
     const taxOffice = companyDetails?.tax_office || "";
@@ -296,16 +368,14 @@ ${email ? `E-posta: ${email}` : ""}`;
     window.open(`https://wa.me/${formattedPhone}?text=${message}`, "_blank");
   };
 
-  // Get invoices list from record (handles both old and new format)
+  // Get invoices list from record
   const getInvoicesList = (record) => {
     if (!record) return [];
     
-    // New format with invoices array
     if (record.invoices && record.invoices.length > 0) {
       return record.invoices;
     }
     
-    // Old format with single invoice
     if (record.invoice_file) {
       return [{
         invoice_id: "legacy",
@@ -318,18 +388,24 @@ ${email ? `E-posta: ${email}` : ""}`;
     return [];
   };
 
-  // Merge businesses with invoice records
+  // Merge businesses with records
   const getMergedData = () => {
-    const recordMap = {};
+    const invoiceMap = {};
     invoiceRecords.forEach(r => {
-      recordMap[r.business_id] = r;
+      invoiceMap[r.business_id] = r;
+    });
+    
+    const issuedMap = {};
+    issuedRecords.forEach(r => {
+      issuedMap[r.business_id] = r;
     });
     
     return businesses
       .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
       .map(b => ({
         ...b,
-        invoiceRecord: recordMap[b.id] || null
+        invoiceRecord: invoiceMap[b.id] || null,
+        issuedRecord: issuedMap[b.id] || null
       }));
   };
 
@@ -339,6 +415,7 @@ ${email ? `E-posta: ${email}` : ""}`;
   const totalBusinesses = businesses.length;
   const businessesWithAmount = invoiceRecords.filter(r => r.required_amount > 0).length;
   const businessesWithInvoice = invoiceRecords.filter(r => r.invoice_uploaded).length;
+  const businessesWithIssued = issuedRecords.length;
 
   if (loading) return <PageLoading />;
 
@@ -348,7 +425,7 @@ ${email ? `E-posta: ${email}` : ""}`;
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h3 className="font-semibold text-base flex items-center gap-2">
           <Building2 className="w-5 h-5 text-primary" />
-          İşletme Faturaları (Alınan)
+          İşletme Faturaları
         </h3>
         
         {/* Month Selector */}
@@ -375,54 +452,28 @@ ${email ? `E-posta: ${email}` : ""}`;
         </div>
       </div>
 
-      {/* Stats & Excel Upload */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-slate-50 rounded-lg border">
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Toplam:</span>{" "}
-            <span className="font-semibold">{totalBusinesses}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Tutar Girilmiş:</span>{" "}
-            <span className="font-semibold text-blue-600">{businessesWithAmount}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Fatura Yüklü:</span>{" "}
-            <span className="font-semibold text-green-600">{businessesWithInvoice}</span>
-          </div>
-        </div>
-        
-        <div>
-          <input
-            type="file"
-            ref={excelFileRef}
-            onChange={handleExcelUpload}
-            accept=".xlsx,.xls"
-            className="hidden"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => excelFileRef.current?.click()}
-            disabled={uploading}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {uploading ? "Yükleniyor..." : "Excel Yükle"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2">
-        <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-800">
-          <p className="font-medium">Nasıl Kullanılır?</p>
-          <p className="mt-1">
-            1. "Restoran Raporu.xlsx" dosyasını yükleyin → Fatura tutarları otomatik aktarılır.<br/>
-            2. Tutarı olan işletmeler için WhatsApp butonu görünür.<br/>
-            3. İşletme faturayı gönderdikten sonra PDF/resim olarak yükleyin. <strong>Birden fazla fatura yükleyebilirsiniz.</strong>
-          </p>
-        </div>
+      {/* Card Selector */}
+      <div className="flex gap-2 border-b pb-2">
+        <button
+          onClick={() => setActiveCard("alinan")}
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+            activeCard === "alinan" 
+              ? "bg-primary text-white" 
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          Alınan Faturalar
+        </button>
+        <button
+          onClick={() => setActiveCard("kesilen")}
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+            activeCard === "kesilen" 
+              ? "bg-primary text-white" 
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          Kesilen Faturalar
+        </button>
       </div>
 
       {/* Search */}
@@ -436,115 +487,253 @@ ${email ? `E-posta: ${email}` : ""}`;
         />
       </div>
 
-      {/* Business List */}
-      <div className="border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b">
-              <tr>
-                <th className="text-left p-3 font-semibold">İşletme</th>
-                <th className="text-right p-3 font-semibold">Fatura Tutarı</th>
-                <th className="text-center p-3 font-semibold">Faturalar</th>
-                <th className="text-center p-3 font-semibold">İşlemler</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {mergedData.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
-                    {searchQuery ? "Eşleşen işletme bulunamadı" : "Henüz işletme yok"}
-                  </td>
-                </tr>
-              ) : (
-                mergedData.map((item) => {
-                  const record = item.invoiceRecord;
-                  const hasAmount = record?.required_amount > 0;
-                  const invoices = getInvoicesList(record);
-                  const invoiceCount = invoices.length;
-                  
-                  return (
-                    <tr key={item.id} className="hover:bg-slate-50">
-                      <td className="p-3">
-                        <div className="font-medium">{item.name}</div>
-                        {item.phone && (
-                          <div className="text-xs text-muted-foreground">{item.phone}</div>
-                        )}
-                        {item.tax_bracket && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                            %{item.tax_bracket}
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3 text-right">
-                        {hasAmount ? (
-                          <span className="font-semibold text-green-600">
-                            {record.required_amount.toLocaleString("tr-TR")} ₺
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="p-3 text-center">
-                        {invoiceCount > 0 ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedBusinessInvoices(record)}
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            <FileText className="w-4 h-4 mr-1" />
-                            {invoiceCount} fatura
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Yüklenmemiş</span>
-                        )}
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {/* WhatsApp - only if has amount */}
-                          {hasAmount && item.phone && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openWhatsApp(item, record)}
-                              title="WhatsApp Hatırlatma"
-                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            >
-                              <MessageCircle className="w-4 h-4" />
-                            </Button>
-                          )}
-                          
-                          {/* Upload Invoice */}
-                          <input
-                            type="file"
-                            onChange={(e) => handleInvoiceUpload(e, item.id)}
-                            accept="*/*"
-                            className="hidden"
-                            id={`invoice-upload-${item.id}`}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => document.getElementById(`invoice-upload-${item.id}`)?.click()}
-                            disabled={uploadingInvoice === item.id}
-                            title="Fatura Yükle"
-                          >
-                            {uploadingInvoice === item.id ? (
-                              <LoadingSpinner size="sm" />
-                            ) : (
-                              <Plus className="w-4 h-4 text-primary" />
-                            )}
-                          </Button>
-                        </div>
+      {/* ALINAN FATURALAR CARD */}
+      {activeCard === "alinan" && (
+        <>
+          {/* Stats & Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-slate-50 rounded-lg border">
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Toplam:</span>{" "}
+                <span className="font-semibold">{totalBusinesses}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Tutar Girilmiş:</span>{" "}
+                <span className="font-semibold text-blue-600">{businessesWithAmount}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Fatura Yüklü:</span>{" "}
+                <span className="font-semibold text-green-600">{businessesWithInvoice}</span>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <input
+                type="file"
+                ref={excelFileRef}
+                onChange={handleExcelUpload}
+                accept=".xlsx,.xls"
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => excelFileRef.current?.click()}
+                disabled={uploading}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? "Yükleniyor..." : "Excel Yükle"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadAll}
+                disabled={downloadingAll || businessesWithInvoice === 0}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {downloadingAll ? "İndiriliyor..." : "Toplu İndir"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Business List - Alınan */}
+          <div className="border rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="text-left p-3 font-semibold">İşletme</th>
+                    <th className="text-right p-3 font-semibold">Fatura Tutarı</th>
+                    <th className="text-center p-3 font-semibold">Faturalar</th>
+                    <th className="text-center p-3 font-semibold">İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {mergedData.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                        {searchQuery ? "Eşleşen işletme bulunamadı" : "Henüz işletme yok"}
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  ) : (
+                    mergedData.map((item) => {
+                      const record = item.invoiceRecord;
+                      const hasAmount = record?.required_amount > 0;
+                      const invoices = getInvoicesList(record);
+                      const invoiceCount = invoices.length;
+                      
+                      return (
+                        <tr key={item.id} className="hover:bg-slate-50">
+                          <td className="p-3">
+                            <div className="font-medium">{item.name}</div>
+                            {item.phone && (
+                              <div className="text-xs text-muted-foreground">{item.phone}</div>
+                            )}
+                            {item.tax_bracket && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                                %{item.tax_bracket}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right">
+                            {hasAmount ? (
+                              <span className="font-semibold text-green-600">
+                                {record.required_amount.toLocaleString("tr-TR")} ₺
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-center">
+                            {invoiceCount > 0 ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedBusinessInvoices(record)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <FileText className="w-4 h-4 mr-1" />
+                                {invoiceCount} fatura
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Yüklenmemiş</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {hasAmount && item.phone && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openWhatsApp(item, record)}
+                                  title="WhatsApp Hatırlatma"
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              )}
+                              
+                              <input
+                                type="file"
+                                onChange={(e) => handleInvoiceUpload(e, item.id)}
+                                accept="*/*"
+                                className="hidden"
+                                id={`invoice-upload-${item.id}`}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => document.getElementById(`invoice-upload-${item.id}`)?.click()}
+                                disabled={uploadingInvoice === item.id}
+                                title="Fatura Yükle"
+                              >
+                                {uploadingInvoice === item.id ? (
+                                  <LoadingSpinner size="sm" />
+                                ) : (
+                                  <Plus className="w-4 h-4 text-primary" />
+                                )}
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* KESİLEN FATURALAR CARD */}
+      {activeCard === "kesilen" && (
+        <>
+          {/* Stats */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-slate-50 rounded-lg border">
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Toplam İşletme:</span>{" "}
+                <span className="font-semibold">{totalBusinesses}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Fatura Kesilmiş:</span>{" "}
+                <span className="font-semibold text-green-600">{businessesWithIssued}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Business List - Kesilen */}
+          <div className="border rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b">
+                  <tr>
+                    <th className="text-left p-3 font-semibold">İşletme</th>
+                    <th className="text-center p-3 font-semibold">Son Fatura Tarihi</th>
+                    <th className="text-center p-3 font-semibold">İşlem</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {mergedData.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="p-8 text-center text-muted-foreground">
+                        {searchQuery ? "Eşleşen işletme bulunamadı" : "Henüz işletme yok"}
+                      </td>
+                    </tr>
+                  ) : (
+                    mergedData.map((item) => {
+                      const issuedRecord = item.issuedRecord;
+                      const issuedDate = issuedRecord?.issued_until_date;
+                      
+                      return (
+                        <tr key={item.id} className="hover:bg-slate-50">
+                          <td className="p-3">
+                            <div className="font-medium">{item.name}</div>
+                            {item.phone && (
+                              <div className="text-xs text-muted-foreground">{item.phone}</div>
+                            )}
+                          </td>
+                          <td className="p-3 text-center">
+                            {issuedDate ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <Calendar className="w-4 h-4 text-green-600" />
+                                <span className="font-medium text-green-600">
+                                  {new Date(issuedDate).toLocaleDateString("tr-TR")}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-center">
+                            <Button
+                              variant={issuedDate ? "outline" : "default"}
+                              size="sm"
+                              onClick={() => handleMarkIssued(item.id)}
+                              disabled={markingIssued === item.id}
+                              className={issuedDate ? "border-green-500 text-green-600 hover:bg-green-50" : ""}
+                            >
+                              {markingIssued === item.id ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <>
+                                  <Check className="w-4 h-4 mr-1" />
+                                  {issuedDate ? "Güncelle" : "Fatura Kesildi"}
+                                </>
+                              )}
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Invoices List Modal */}
       {selectedBusinessInvoices && (
@@ -560,7 +749,6 @@ ${email ? `E-posta: ${email}` : ""}`;
               </Button>
             </div>
             <div className="p-4 overflow-auto max-h-[60vh]">
-              {/* Add New Invoice Button */}
               <div className="mb-4">
                 <input
                   type="file"
@@ -585,7 +773,6 @@ ${email ? `E-posta: ${email}` : ""}`;
                 </Button>
               </div>
               
-              {/* Invoices List */}
               <div className="space-y-2">
                 {getInvoicesList(selectedBusinessInvoices).map((invoice, idx) => (
                   <div key={invoice.invoice_id || idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
