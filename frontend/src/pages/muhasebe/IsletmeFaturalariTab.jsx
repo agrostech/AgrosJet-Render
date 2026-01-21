@@ -594,8 +594,87 @@ ${email ? `E-posta: ${email}` : ""}`;
             </div>
           </div>
 
-          {/* Business List - Alınan */}
-          <div className="border rounded-lg overflow-hidden shadow-sm">
+          {/* Business List - Alınan (Mobile Cards) */}
+          <div className="md:hidden space-y-3">
+            {mergedDataAlinan.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 border rounded-lg">
+                {searchQuery ? "Eşleşen işletme bulunamadı" : "Henüz işletme yok"}
+              </div>
+            ) : (
+              mergedDataAlinan.map((item) => {
+                const record = item.invoiceRecord;
+                const hasAmount = record?.required_amount > 0;
+                const invoices = getInvoicesList(record);
+                const invoiceCount = invoices.length;
+                
+                return (
+                  <div key={item.id} className="border rounded-lg p-3 bg-white">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="font-medium text-slate-800">{item.name}</div>
+                      {hasAmount && (
+                        <span className="font-semibold text-green-600 text-sm">
+                          {record.required_amount.toLocaleString("tr-TR")} ₺
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-2">
+                      {invoiceCount > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedBusinessInvoices(record)}
+                          className="text-green-600 border-green-200 hover:bg-green-50 h-8"
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          {invoiceCount} fatura
+                        </Button>
+                      )}
+                      
+                      {hasAmount && item.phone && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWhatsApp(item, record)}
+                          className="text-green-600 border-green-200 hover:bg-green-50 h-8"
+                        >
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          WhatsApp
+                        </Button>
+                      )}
+                      
+                      <input
+                        type="file"
+                        onChange={(e) => handleInvoiceUpload(e, item.id)}
+                        accept="*/*"
+                        className="hidden"
+                        id={`invoice-upload-mobile-${item.id}`}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById(`invoice-upload-mobile-${item.id}`)?.click()}
+                        disabled={uploadingInvoice === item.id}
+                        className="text-primary border-primary/30 hover:bg-primary/10 h-8"
+                      >
+                        {uploadingInvoice === item.id ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <Plus className="w-3 h-3 mr-1" />
+                            Fatura Yükle
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Business List - Alınan (Desktop Table) */}
+          <div className="hidden md:block border rounded-lg overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 border-b">
