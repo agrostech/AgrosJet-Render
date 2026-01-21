@@ -471,7 +471,7 @@ async def download_all_invoices(company_id: str, year: int, month: int):
 # =====================================================
 
 # --- Get all issued invoice records for a month ---
-@router.get("/issued/{company_id}/{year}/{month}")
+@router.get("/get-issued/{company_id}/{year}/{month}")
 async def get_issued_invoices(company_id: str, year: int, month: int):
     """Get all issued invoice records for a specific month"""
     records = await db.issued_invoices.find(
@@ -483,7 +483,7 @@ async def get_issued_invoices(company_id: str, year: int, month: int):
 
 
 # --- Mark invoice as issued for a business ---
-@router.post("/issued/{company_id}/{year}/{month}/{business_id}/mark")
+@router.post("/mark-issued/{company_id}/{year}/{month}/{business_id}")
 async def mark_invoice_issued(company_id: str, year: int, month: int, business_id: str):
     """Mark invoice as issued - saves Monday of current week as date"""
     # Get business name
@@ -533,7 +533,7 @@ async def mark_invoice_issued(company_id: str, year: int, month: int, business_i
 
 
 # --- Clear issued status for a business ---
-@router.delete("/issued/{company_id}/{year}/{month}/{business_id}")
+@router.delete("/clear-issued/{company_id}/{year}/{month}/{business_id}")
 async def clear_issued_invoice(company_id: str, year: int, month: int, business_id: str):
     """Clear the issued status for a business"""
     result = await db.issued_invoices.delete_one({
