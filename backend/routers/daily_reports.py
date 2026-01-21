@@ -485,7 +485,7 @@ async def compare_reports(company_id: str, date: str):
     # Sort: those with issues first
     results.sort(key=lambda x: (not x["has_issues"], x["courier_name"]))
     
-    return {
+    comparison_result = {
         "date": date,
         "results": results,
         "summary": {
@@ -496,6 +496,22 @@ async def compare_reports(company_id: str, date: str):
             "total_penalty": sum(r["total_penalty"] for r in results)
         }
     }
+    
+    # Save comparison result to database
+    await db.daily_comparisons.delete_many({"company_id": company_id, "date": date})
+    await db.daily_comparisons.insert_one({
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "date": date,
+        "results": results,
+        "summary": comparison_result["summary"],
+        "processed": False,
+        "processed_by": None,
+        "processed_at": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return comparison_result
 
 
 @router.post("/process/{company_id}/{date}")
