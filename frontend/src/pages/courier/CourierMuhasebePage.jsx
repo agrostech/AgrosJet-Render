@@ -192,12 +192,12 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
 
   return (
     <div className="space-y-4" data-testid="courier-muhasebe-page">
-      {/* Hidden file input - PDF ve resim dosyaları kabul edilir */}
+      {/* Hidden file input - tüm dosya türleri kabul edilir, doğrulama JS'te yapılır */}
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,application/pdf,image/*"
+        accept="*/*"
         className="hidden"
       />
 

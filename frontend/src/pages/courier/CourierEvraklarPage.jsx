@@ -229,7 +229,7 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
                     <label className="cursor-pointer">
                       <input
                         type="file"
-                        accept={isPdf ? ".pdf" : "image/*"}
+                        accept="*/*"
                         onChange={(e) => handleFileSelect(docType, e)}
                         className="hidden"
                         disabled={isUploading}
