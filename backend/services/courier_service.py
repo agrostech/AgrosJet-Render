@@ -169,20 +169,19 @@ async def update_courier(courier_id: str, name: str = None, phone: str = None, p
 
 
 async def check_courier_balance(courier_id: str):
-    """Check courier's balance from transactions"""
-    transactions = await db.transactions.find({
-        "entity_type": "courier",
-        "entity_id": courier_id
-    }).to_list(10000)
-    
-    balance = 0
-    for t in transactions:
-        if t["type"] == "payment_in":  # Kuryeden alınan
-            balance += t["amount"]
-        else:  # payment_out - Kuryeye verilen
-            balance -= t["amount"]
-    
-    return balance
+    """Check courier's balance from transactions using aggregation"""
+    pipeline = [
+        {"$match": {"entity_type": "courier", "entity_id": courier_id}},
+        {"$group": {
+            "_id": None,
+            "total_in": {"$sum": {"$cond": [{"$eq": ["$type", "payment_in"]}, "$amount", 0]}},
+            "total_out": {"$sum": {"$cond": [{"$eq": ["$type", "payment_out"]}, "$amount", 0]}}
+        }}
+    ]
+    result = await db.transactions.aggregate(pipeline).to_list(1)
+    if result:
+        return result[0]["total_in"] - result[0]["total_out"]
+    return 0
 
 
 async def check_courier_zimmet(courier_id: str):
