@@ -10,18 +10,21 @@ import {
   Save,
   Banknote,
   CreditCard,
-  Search
+  Search,
+  CheckCircle
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
+export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSuperAdmin }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [couriers, setCouriers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({});
+  const [collectionStatus, setCollectionStatus] = useState({ cash_collected: false, card_collected: false });
+  const [savingCollection, setSavingCollection] = useState(null);
 
   useEffect(() => {
     fetchCouriersForDate();
