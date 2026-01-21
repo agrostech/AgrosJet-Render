@@ -512,7 +512,7 @@ async def process_differences(
         if not courier_id:
             continue
         
-        # Process cash difference
+        # Process cash difference (only shortages)
         if result["cash_difference"] > 0:
             # Eksik nakit - yeşil işlem (payment_out = verilen/borç)
             tx = {
@@ -534,29 +534,9 @@ async def process_differences(
                 "type": "eksik_nakit",
                 "amount": result["cash_difference"]
             })
-        elif result["cash_difference"] < 0:
-            # Fazla nakit - kırmızı işlem (payment_in = alınan/kurye lehine)
-            tx = {
-                "id": str(uuid.uuid4()),
-                "entity_type": "courier",
-                "entity_id": courier_id,
-                "company_id": company_id,
-                "type": "payment_in",  # Kırmızı = alınan (kurye lehine)
-                "amount": abs(result["cash_difference"]),
-                "description": f"{date} tarihli fazla nakit",
-                "is_hakedis": False,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "auto_generated": True,
-                "source": "daily_report"
-            }
-            await db.transactions.insert_one(tx)
-            transactions_created.append({
-                "courier_name": result["courier_name"],
-                "type": "fazla_nakit",
-                "amount": abs(result["cash_difference"])
-            })
+        # Fazla nakit şirkete kalır, işlem yapılmaz
         
-        # Process card difference
+        # Process card difference (only shortages)
         if result["card_difference"] > 0:
             # Eksik kart - yeşil işlem
             tx = {
@@ -578,27 +558,7 @@ async def process_differences(
                 "type": "eksik_kart",
                 "amount": result["card_difference"]
             })
-        elif result["card_difference"] < 0:
-            # Fazla kart - kırmızı işlem (kurye lehine)
-            tx = {
-                "id": str(uuid.uuid4()),
-                "entity_type": "courier",
-                "entity_id": courier_id,
-                "company_id": company_id,
-                "type": "payment_in",  # Kırmızı = alınan (kurye lehine)
-                "amount": abs(result["card_difference"]),
-                "description": f"{date} tarihli fazla kart",
-                "is_hakedis": False,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "auto_generated": True,
-                "source": "daily_report"
-            }
-            await db.transactions.insert_one(tx)
-            transactions_created.append({
-                "courier_name": result["courier_name"],
-                "type": "fazla_kart",
-                "amount": abs(result["card_difference"])
-            })
+        # Fazla kart şirkete kalır, işlem yapılmaz
         
         # Process tax bracket penalties
         if result["total_penalty"] > 0:
