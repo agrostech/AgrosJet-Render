@@ -110,8 +110,11 @@ Mobil görünümde dosya (PDF) + fotoğraf yükleme eklendi.
 
 ## Prioritized Backlog
 
+### P1 - High Priority
+- [ ] İşletme Kesilen Faturalar (kullanıcı sonra istedi)
+
 ### P2 - Medium Priority
-- [ ] Kod refactoring (büyük dosyaları parçalama)
+- [ ] Kod refactoring (büyük dosyaları parçalama) - Kullanıcı de-prioritize etti
 - [ ] err.handled temizliği
 
 ### P3 - Low Priority
