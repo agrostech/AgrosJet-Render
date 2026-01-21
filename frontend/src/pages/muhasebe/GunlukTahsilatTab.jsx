@@ -17,12 +17,10 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(null); // courier id being submitted
+  const [submitting, setSubmitting] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [couriers, setCouriers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // Form data for each courier
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
@@ -34,7 +32,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
     try {
       const res = await axios.get(`${API}/daily-collections/${companyId}/couriers-for-date/${selectedDate}`);
       setCouriers(res.data);
-      // Initialize form data
       const initialData = {};
       res.data.forEach(c => {
         initialData[c.id] = { cash: "", c1: "", c10: "", c20: "" };
@@ -84,10 +81,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
       });
       
       toast.success(`${courier.name} kaydedildi`);
-      setFormData(prev => ({
-        ...prev,
-        [courier.id]: { cash: "", c1: "", c10: "", c20: "" }
-      }));
       fetchCouriersForDate();
     } catch (err) {
       if (!err.handled) {
@@ -103,14 +96,11 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
     return `${val.toLocaleString('tr-TR', { minimumFractionDigits: 0 })} TL`;
   };
 
-  // Filter and sort couriers: search filter + saved ones at bottom
   const filteredCouriers = couriers
     .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
-      // Saved couriers go to bottom
       if (a.has_collection && !b.has_collection) return 1;
       if (!a.has_collection && b.has_collection) return -1;
-      // Then sort by name
       return a.name.localeCompare(b.name, 'tr');
     });
 
@@ -165,7 +155,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                 <th className="text-left p-2 font-semibold w-20">%10</th>
                 <th className="text-left p-2 font-semibold w-20">%20</th>
                 <th className="text-center p-2 font-semibold w-16"></th>
-                <th className="text-right p-2 pr-3 font-semibold w-32">Mevcut</th>
               </tr>
             </thead>
             <tbody>
@@ -181,7 +170,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                     </div>
                   </td>
                   {courier.has_collection ? (
-                    // Kaydedilmiş - sabit değerler göster
                     <>
                       <td className="p-1">
                         <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
@@ -203,12 +191,9 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                           {courier.collection.card_percent_20 > 0 ? courier.collection.card_percent_20 : '-'}
                         </div>
                       </td>
-                      <td className="p-1 text-center">
-                        {/* Kaydet butonu yok */}
-                      </td>
+                      <td className="p-1 text-center"></td>
                     </>
                   ) : (
-                    // Kaydedilmemiş - input alanları göster
                     <>
                       <td className="p-1">
                         <Input
@@ -265,33 +250,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                         </Button>
                       </td>
                     </>
-                  )}}
-                      onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
-                      onWheel={(e) => e.target.blur()}
-                      className="h-8 w-20 border font-mono text-xs px-2"
-                    />
-                  </td>
-                  <td className="p-1 text-center">
-                    <Button 
-                      size="sm"
-                      onClick={() => handleSubmit(courier)}
-                      disabled={submitting === courier.id}
-                      className="h-8 w-8 p-0 bg-primary hover:bg-primary/90"
-                    >
-                      <Save className="w-4 h-4" />
-                    </Button>
-                  </td>
-                  <td className="p-2 pr-3 text-right">
-                    {courier.has_collection ? (
-                      <div className="text-xs font-mono">
-                        <span className="text-green-600">{formatMoney(courier.collection.cash_total)}</span>
-                        <span className="text-muted-foreground mx-1">|</span>
-                        <span className="text-blue-600">{formatMoney(courier.collection.card_total)}</span>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">-</span>
-                    )}
-                  </td>
+                  )}
                 </tr>
               ))}
             </tbody>
