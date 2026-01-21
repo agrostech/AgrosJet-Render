@@ -616,14 +616,6 @@ ${email ? `E-posta: ${email}` : ""}`;
                         <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-3">
                             <div className="font-medium text-slate-800">{item.name}</div>
-                            {item.phone && (
-                              <div className="text-xs text-slate-500">{item.phone}</div>
-                            )}
-                            {item.tax_bracket && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mt-1 inline-block">
-                                %{item.tax_bracket}
-                              </span>
-                            )}
                           </td>
                           <td className="p-3 text-right">
                             {hasAmount ? (
