@@ -153,6 +153,25 @@ export default function VardiyaPage({ companyId }) {
         </div>
       )}
 
+      {/* Kurye Filtresi */}
+      <div className="mb-3">
+        <div className="relative max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Kurye adı ile filtrele..."
+            value={courierFilter}
+            onChange={(e) => setCourierFilter(e.target.value)}
+            className="pl-9 h-9 border-2 text-sm"
+            data-testid="courier-filter-input"
+          />
+        </div>
+        {courierFilter && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            Filtrelenen: "{courierFilter}" içeren kuryeler gösteriliyor
+          </div>
+        )}
+      </div>
+
       {/* Grid veya Boş State */}
       {shifts.length === 0 ? (
         <div className="border-2 border-border p-8 bg-white text-center">
