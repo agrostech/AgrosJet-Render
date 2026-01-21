@@ -28,6 +28,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
 
   useEffect(() => {
     fetchCouriersForDate();
+    fetchCollectionStatus();
   }, [companyId, selectedDate]);
 
   const fetchCouriersForDate = async () => {
@@ -46,6 +47,35 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCollectionStatus = async () => {
+    try {
+      const res = await axios.get(`${API}/daily-collections/${companyId}/collection-status/${selectedDate}`);
+      setCollectionStatus(res.data);
+    } catch (err) {
+      setCollectionStatus({ cash_collected: false, card_collected: false });
+    }
+  };
+
+  const handleMarkCollected = async (type) => {
+    setSavingCollection(type);
+    try {
+      await axios.post(`${API}/daily-collections/${companyId}/mark-collected`, {
+        date: selectedDate,
+        type: type,
+        admin_id: adminId,
+        admin_name: adminName
+      });
+      toast.success(`${type === 'cash' ? 'Nakit' : 'Kart'} alındı olarak işaretlendi`);
+      fetchCollectionStatus();
+    } catch (err) {
+      if (!err.handled) {
+        toast.error("İşlem başarısız");
+      }
+    } finally {
+      setSavingCollection(null);
     }
   };
 
