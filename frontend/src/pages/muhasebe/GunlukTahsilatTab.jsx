@@ -180,45 +180,92 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                       <span className="font-medium truncate">{courier.name}</span>
                     </div>
                   </td>
-                  <td className="p-1">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData[courier.id]?.cash || ""}
-                      onChange={(e) => handleInputChange(courier.id, "cash", e.target.value)}
-                      onWheel={(e) => e.target.blur()}
-                      className="h-8 w-20 border font-mono text-xs px-2"
-                    />
-                  </td>
-                  <td className="p-1">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData[courier.id]?.c1 || ""}
-                      onChange={(e) => handleInputChange(courier.id, "c1", e.target.value)}
-                      onWheel={(e) => e.target.blur()}
-                      className="h-8 w-20 border font-mono text-xs px-2"
-                    />
-                  </td>
-                  <td className="p-1">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData[courier.id]?.c10 || ""}
-                      onChange={(e) => handleInputChange(courier.id, "c10", e.target.value)}
-                      onWheel={(e) => e.target.blur()}
-                      className="h-8 w-20 border font-mono text-xs px-2"
-                    />
-                  </td>
-                  <td className="p-1">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0"
-                      value={formData[courier.id]?.c20 || ""}
+                  {courier.has_collection ? (
+                    // Kaydedilmiş - sabit değerler göster
+                    <>
+                      <td className="p-1">
+                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                          {courier.collection.cash_total > 0 ? courier.collection.cash_total : '-'}
+                        </div>
+                      </td>
+                      <td className="p-1">
+                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                          {courier.collection.card_percent_1 > 0 ? courier.collection.card_percent_1 : '-'}
+                        </div>
+                      </td>
+                      <td className="p-1">
+                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                          {courier.collection.card_percent_10 > 0 ? courier.collection.card_percent_10 : '-'}
+                        </div>
+                      </td>
+                      <td className="p-1">
+                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                          {courier.collection.card_percent_20 > 0 ? courier.collection.card_percent_20 : '-'}
+                        </div>
+                      </td>
+                      <td className="p-1 text-center">
+                        {/* Kaydet butonu yok */}
+                      </td>
+                    </>
+                  ) : (
+                    // Kaydedilmemiş - input alanları göster
+                    <>
+                      <td className="p-1">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0"
+                          value={formData[courier.id]?.cash || ""}
+                          onChange={(e) => handleInputChange(courier.id, "cash", e.target.value)}
+                          onWheel={(e) => e.target.blur()}
+                          className="h-8 w-20 border font-mono text-xs px-2"
+                        />
+                      </td>
+                      <td className="p-1">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0"
+                          value={formData[courier.id]?.c1 || ""}
+                          onChange={(e) => handleInputChange(courier.id, "c1", e.target.value)}
+                          onWheel={(e) => e.target.blur()}
+                          className="h-8 w-20 border font-mono text-xs px-2"
+                        />
+                      </td>
+                      <td className="p-1">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0"
+                          value={formData[courier.id]?.c10 || ""}
+                          onChange={(e) => handleInputChange(courier.id, "c10", e.target.value)}
+                          onWheel={(e) => e.target.blur()}
+                          className="h-8 w-20 border font-mono text-xs px-2"
+                        />
+                      </td>
+                      <td className="p-1">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0"
+                          value={formData[courier.id]?.c20 || ""}
+                          onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
+                          onWheel={(e) => e.target.blur()}
+                          className="h-8 w-20 border font-mono text-xs px-2"
+                        />
+                      </td>
+                      <td className="p-1 text-center">
+                        <Button 
+                          size="sm"
+                          onClick={() => handleSubmit(courier)}
+                          disabled={submitting === courier.id}
+                          className="h-8 w-8 p-0 bg-primary hover:bg-primary/90"
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </>
+                  )}}
                       onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
                       onWheel={(e) => e.target.blur()}
                       className="h-8 w-20 border font-mono text-xs px-2"
