@@ -707,7 +707,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                           <td className="p-3 text-right">
                             {hasAmount ? (
                               <span className="font-semibold text-green-600">
-                                {record.required_amount.toLocaleString("tr-TR")} ₺
+                                {record.required_amount.toLocaleString("tr-TR")} TL
                               </span>
                             ) : (
                               <span className="text-slate-400">-</span>
