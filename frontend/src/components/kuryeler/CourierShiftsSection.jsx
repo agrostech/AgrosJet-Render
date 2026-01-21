@@ -97,7 +97,7 @@ export default function CourierShiftsSection({ courierId, courierName, companyId
       
       // Delete each assignment
       for (const assignment of dayAssignments) {
-        await axios.delete(`${API}/companies/${companyId}/shift-assignments/${assignment.id}`);
+        await axios.delete(`${API}/shift-assignments/${assignment.id}`);
       }
       
       const dayLabel = DAYS.find(d => d.key === dayKey)?.label || dayKey;
