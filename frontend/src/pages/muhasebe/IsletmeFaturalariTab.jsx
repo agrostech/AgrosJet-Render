@@ -313,7 +313,7 @@ export default function IsletmeFaturalariTab({ companyId }) {
     setMarkingIssued(businessId);
     try {
       const res = await axios.post(
-        `${API}/business-invoices/issued/${companyId}/${selectedYear}/${selectedMonth}/${businessId}/mark`
+        `${API}/business-invoices/mark-issued/${companyId}/${selectedYear}/${selectedMonth}/${businessId}`
       );
       toast.success(`Fatura kesildi: ${res.data.issued_until_date}`);
       fetchData();
