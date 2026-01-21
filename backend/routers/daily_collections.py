@@ -225,3 +225,74 @@ async def get_couriers_with_collections(company_id: str, date: str):
     result.sort(key=lambda x: (not x["has_collection"], x["name"]))
     
     return result
+
+
+# ============ COLLECTION STATUS (SuperAdmin için Alındı takibi) ============
+
+class MarkCollectedRequest(BaseModel):
+    date: str
+    type: str  # 'cash' or 'card'
+    admin_id: str
+    admin_name: str
+
+
+@router.get("/{company_id}/collection-status/{date}")
+async def get_collection_status(company_id: str, date: str):
+    """
+    Belirli bir tarih için nakit/kart alındı durumunu getir
+    """
+    status = await db.collection_status.find_one(
+        {"company_id": company_id, "date": date},
+        {"_id": 0}
+    )
+    
+    if not status:
+        return {"cash_collected": False, "card_collected": False}
+    
+    return {
+        "cash_collected": status.get("cash_collected", False),
+        "card_collected": status.get("card_collected", False),
+        "cash_collected_by": status.get("cash_collected_by"),
+        "cash_collected_at": status.get("cash_collected_at"),
+        "card_collected_by": status.get("card_collected_by"),
+        "card_collected_at": status.get("card_collected_at")
+    }
+
+
+@router.post("/{company_id}/mark-collected")
+async def mark_collection_collected(company_id: str, data: MarkCollectedRequest):
+    """
+    Nakit veya kart toplam tutarını alındı olarak işaretle (SuperAdmin için)
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    
+    update_data = {}
+    if data.type == "cash":
+        update_data = {
+            "cash_collected": True,
+            "cash_collected_by": data.admin_name,
+            "cash_collected_at": now
+        }
+    elif data.type == "card":
+        update_data = {
+            "card_collected": True,
+            "card_collected_by": data.admin_name,
+            "card_collected_at": now
+        }
+    else:
+        raise HTTPException(status_code=400, detail="Geçersiz tip. 'cash' veya 'card' olmalı.")
+    
+    await db.collection_status.update_one(
+        {"company_id": company_id, "date": data.date},
+        {
+            "$set": update_data,
+            "$setOnInsert": {
+                "company_id": company_id,
+                "date": data.date
+            }
+        },
+        upsert=True
+    )
+    
+    return {"message": f"{data.type.capitalize()} alındı olarak işaretlendi"}
+
