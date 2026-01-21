@@ -46,20 +46,28 @@ def hash_password(password: str) -> str:
 # Initialize system admin on startup
 @app.on_event("startup")
 async def startup_event():
-    existing = await db.admins.find_one({"username": "systemadmin", "role": "systemadmin"})
+    existing = await db.admins.find_one({"role": "systemadmin"})
     if not existing:
         system_admin = {
             "id": str(uuid.uuid4()),
             "name": "Sistem Yöneticisi",
-            "username": "systemadmin",
-            "password": hash_password("System123!"),
+            "username": "ShiftJet",
+            "password": hash_password("Delivery32.."),
             "role": "systemadmin",
             "permissions": {},
             "company_id": None,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.admins.insert_one(system_admin)
-        logging.info("System admin created: systemadmin / System123!")
+        logging.info("System admin created: ShiftJet / Delivery32..")
+    else:
+        # Update existing systemadmin credentials if different
+        if existing.get("username") != "ShiftJet":
+            await db.admins.update_one(
+                {"role": "systemadmin"},
+                {"$set": {"username": "ShiftJet", "password": hash_password("Delivery32..")}}
+            )
+            logging.info("System admin updated: ShiftJet / Delivery32..")
 
 # Include all routers
 from routers.auth import router as auth_router
