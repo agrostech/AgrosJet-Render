@@ -241,6 +241,7 @@ function LeaveRow({
   getLeavesForDay,
   onRemoveLeave,
   onOpenLeaveModal,
+  courierFilter = "",
 }) {
   return (
     <TableRow className="border-t-2 border-orange-300 bg-orange-50/50">
@@ -249,28 +250,35 @@ function LeaveRow({
         <span className="sm:hidden">İzin</span>
       </TableCell>
       {DAYS.map((day, dayIndex) => {
-        const dayLeaves = getLeavesForDay(day.key);
+        const allDayLeaves = getLeavesForDay(day.key);
+        const dayLeaves = courierFilter 
+          ? allDayLeaves.filter(l => l.courier_name?.toLowerCase().includes(courierFilter.toLowerCase()))
+          : allDayLeaves;
         const isEvenColumn = dayIndex % 2 === 0;
+        const hasFilteredResults = courierFilter && dayLeaves.length > 0;
         return (
           <TableCell 
             key={day.key} 
-            className={`p-0.5 sm:p-1 align-top border-r border-orange-200 ${isEvenColumn ? 'bg-orange-100/60' : 'bg-orange-50/60'}`}
+            className={`p-0.5 sm:p-1 align-top border-r border-orange-200 ${hasFilteredResults ? 'bg-yellow-100' : isEvenColumn ? 'bg-orange-100/60' : 'bg-orange-50/60'}`}
           >
             <div className="min-h-[24px] sm:min-h-[32px] space-y-0.5">
-              {dayLeaves.map(l => (
-                <div key={l.id} className="flex items-center justify-between bg-orange-200 px-0.5 sm:px-1.5 py-0.5 rounded text-[7px] sm:text-[10px] group">
-                  <span className="font-medium truncate max-w-[30px] sm:max-w-none">{l.courier_name}</span>
-                  {editMode && !ctrlPressed && (
-                    <button
-                      onClick={() => onRemoveLeave(l.id)}
-                      className="text-red-500 hover:text-red-700 ml-0.5 sm:ml-1"
-                    >
-                      <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {editMode && !ctrlPressed && (
+              {dayLeaves.map(l => {
+                const isHighlighted = courierFilter && l.courier_name?.toLowerCase().includes(courierFilter.toLowerCase());
+                return (
+                  <div key={l.id} className={`flex items-center justify-between px-0.5 sm:px-1.5 py-0.5 rounded text-[7px] sm:text-[10px] group ${isHighlighted ? 'bg-yellow-200' : 'bg-orange-200'}`}>
+                    <span className="font-medium truncate max-w-[30px] sm:max-w-none">{l.courier_name}</span>
+                    {editMode && !ctrlPressed && (
+                      <button
+                        onClick={() => onRemoveLeave(l.id)}
+                        className="text-red-500 hover:text-red-700 ml-0.5 sm:ml-1"
+                      >
+                        <X className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {editMode && !ctrlPressed && !courierFilter && (
                 <button
                   onClick={() => onOpenLeaveModal(day.key)}
                   className="w-full text-[8px] sm:text-[9px] text-orange-600 hover:bg-orange-100 py-0.5 rounded border border-dashed border-orange-300"
