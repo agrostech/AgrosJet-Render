@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Building2, ChevronLeft, ChevronRight, Upload, FileText, Download, Trash2, MessageCircle, Search, Eye, X, AlertCircle } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, Upload, FileText, Download, Trash2, MessageCircle, Search, Eye, X, AlertCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -36,13 +36,15 @@ export default function IsletmeFaturalariTab({ companyId }) {
   
   // Invoice upload
   const [uploadingInvoice, setUploadingInvoice] = useState(null);
-  const invoiceFileRef = useRef(null);
   
   // Preview modal
   const [previewData, setPreviewData] = useState(null);
   
   // Delete confirm
   const [confirmDelete, setConfirmDelete] = useState(null);
+  
+  // Invoices modal
+  const [selectedBusinessInvoices, setSelectedBusinessInvoices] = useState(null);
 
   // Son 12 ay kontrolü
   const isMonthInRange = (year, month) => {
@@ -153,36 +155,46 @@ export default function IsletmeFaturalariTab({ companyId }) {
       
       toast.success("Fatura yüklendi");
       fetchData();
+      
+      // Update modal if open
+      if (selectedBusinessInvoices?.business_id === businessId) {
+        const updatedRecords = await axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`);
+        const record = updatedRecords.data.find(r => r.business_id === businessId);
+        if (record) {
+          setSelectedBusinessInvoices(record);
+        }
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
     } finally {
       setUploadingInvoice(null);
-      if (invoiceFileRef.current) invoiceFileRef.current.value = "";
+      // Reset file input
+      e.target.value = "";
     }
   };
 
   // View invoice
-  const handleViewInvoice = async (record) => {
+  const handleViewInvoice = async (invoice, businessId) => {
     try {
       const res = await axios.get(
-        `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/${record.business_id}/download`
+        `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/${businessId}/download/${invoice.invoice_id}`
       );
       
-      const { file_data, extension } = res.data;
+      const { file_data, extension, filename } = res.data;
       const mimeType = extension === "pdf" ? "application/pdf" : `image/${extension}`;
       const dataUrl = `data:${mimeType};base64,${file_data}`;
       
-      setPreviewData({ url: dataUrl, type: mimeType, filename: record.invoice_filename });
+      setPreviewData({ url: dataUrl, type: mimeType, filename });
     } catch (err) {
       toast.error("Fatura görüntülenemedi");
     }
   };
 
   // Download invoice
-  const handleDownloadInvoice = async (record) => {
+  const handleDownloadInvoice = async (invoice, businessId) => {
     try {
       const res = await axios.get(
-        `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/${record.business_id}/download`
+        `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/${businessId}/download/${invoice.invoice_id}`
       );
       
       const { file_data, filename, extension } = res.data;
@@ -215,10 +227,21 @@ export default function IsletmeFaturalariTab({ companyId }) {
     
     try {
       await axios.delete(
-        `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/${confirmDelete.business_id}/invoice`
+        `${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}/${confirmDelete.businessId}/invoice/${confirmDelete.invoiceId}`
       );
       toast.success("Fatura silindi");
       fetchData();
+      
+      // Update modal if open
+      if (selectedBusinessInvoices?.business_id === confirmDelete.businessId) {
+        const updatedRecords = await axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`);
+        const record = updatedRecords.data.find(r => r.business_id === confirmDelete.businessId);
+        if (record) {
+          setSelectedBusinessInvoices(record);
+        } else {
+          setSelectedBusinessInvoices(null);
+        }
+      }
     } catch (err) {
       toast.error("Fatura silinemedi");
     } finally {
@@ -271,6 +294,28 @@ ${email ? `E-posta: ${email}` : ""}`;
     const formattedPhone = phone.startsWith("90") ? phone : `90${phone}`;
     const message = generateWhatsAppMessage(business, record);
     window.open(`https://wa.me/${formattedPhone}?text=${message}`, "_blank");
+  };
+
+  // Get invoices list from record (handles both old and new format)
+  const getInvoicesList = (record) => {
+    if (!record) return [];
+    
+    // New format with invoices array
+    if (record.invoices && record.invoices.length > 0) {
+      return record.invoices;
+    }
+    
+    // Old format with single invoice
+    if (record.invoice_file) {
+      return [{
+        invoice_id: "legacy",
+        filename: record.invoice_filename || "fatura.pdf",
+        extension: record.invoice_extension || "pdf",
+        uploaded_at: record.uploaded_at
+      }];
+    }
+    
+    return [];
   };
 
   // Merge businesses with invoice records
@@ -375,7 +420,7 @@ ${email ? `E-posta: ${email}` : ""}`;
           <p className="mt-1">
             1. "Restoran Raporu.xlsx" dosyasını yükleyin → Fatura tutarları otomatik aktarılır.<br/>
             2. Tutarı olan işletmeler için WhatsApp butonu görünür.<br/>
-            3. İşletme faturayı gönderdikten sonra PDF/resim olarak yükleyin.
+            3. İşletme faturayı gönderdikten sonra PDF/resim olarak yükleyin. <strong>Birden fazla fatura yükleyebilirsiniz.</strong>
           </p>
         </div>
       </div>
@@ -399,7 +444,7 @@ ${email ? `E-posta: ${email}` : ""}`;
               <tr>
                 <th className="text-left p-3 font-semibold">İşletme</th>
                 <th className="text-right p-3 font-semibold">Fatura Tutarı</th>
-                <th className="text-center p-3 font-semibold">Fatura</th>
+                <th className="text-center p-3 font-semibold">Faturalar</th>
                 <th className="text-center p-3 font-semibold">İşlemler</th>
               </tr>
             </thead>
@@ -414,7 +459,8 @@ ${email ? `E-posta: ${email}` : ""}`;
                 mergedData.map((item) => {
                   const record = item.invoiceRecord;
                   const hasAmount = record?.required_amount > 0;
-                  const hasInvoice = record?.invoice_uploaded;
+                  const invoices = getInvoicesList(record);
+                  const invoiceCount = invoices.length;
                   
                   return (
                     <tr key={item.id} className="hover:bg-slate-50">
@@ -439,33 +485,16 @@ ${email ? `E-posta: ${email}` : ""}`;
                         )}
                       </td>
                       <td className="p-3 text-center">
-                        {hasInvoice ? (
-                          <div className="flex items-center justify-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewInvoice(record)}
-                              title="Görüntüle"
-                            >
-                              <Eye className="w-4 h-4 text-blue-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownloadInvoice(record)}
-                              title="İndir"
-                            >
-                              <Download className="w-4 h-4 text-green-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setConfirmDelete(record)}
-                              title="Sil"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </div>
+                        {invoiceCount > 0 ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedBusinessInvoices(record)}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <FileText className="w-4 h-4 mr-1" />
+                            {invoiceCount} fatura
+                          </Button>
                         ) : (
                           <span className="text-xs text-muted-foreground">Yüklenmemiş</span>
                         )}
@@ -488,7 +517,6 @@ ${email ? `E-posta: ${email}` : ""}`;
                           {/* Upload Invoice */}
                           <input
                             type="file"
-                            ref={uploadingInvoice === item.id ? invoiceFileRef : null}
                             onChange={(e) => handleInvoiceUpload(e, item.id)}
                             accept="*/*"
                             className="hidden"
@@ -504,7 +532,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                             {uploadingInvoice === item.id ? (
                               <LoadingSpinner size="sm" />
                             ) : (
-                              <FileText className="w-4 h-4 text-primary" />
+                              <Plus className="w-4 h-4 text-primary" />
                             )}
                           </Button>
                         </div>
@@ -518,9 +546,104 @@ ${email ? `E-posta: ${email}` : ""}`;
         </div>
       </div>
 
+      {/* Invoices List Modal */}
+      {selectedBusinessInvoices && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold">{selectedBusinessInvoices.business_name}</h3>
+                <p className="text-sm text-muted-foreground">{MONTH_NAMES[selectedMonth - 1]} {selectedYear} Faturaları</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedBusinessInvoices(null)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-auto max-h-[60vh]">
+              {/* Add New Invoice Button */}
+              <div className="mb-4">
+                <input
+                  type="file"
+                  onChange={(e) => handleInvoiceUpload(e, selectedBusinessInvoices.business_id)}
+                  accept="*/*"
+                  className="hidden"
+                  id="modal-invoice-upload"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById("modal-invoice-upload")?.click()}
+                  disabled={uploadingInvoice === selectedBusinessInvoices.business_id}
+                  className="w-full"
+                >
+                  {uploadingInvoice === selectedBusinessInvoices.business_id ? (
+                    <LoadingSpinner size="sm" className="mr-2" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  Yeni Fatura Yükle
+                </Button>
+              </div>
+              
+              {/* Invoices List */}
+              <div className="space-y-2">
+                {getInvoicesList(selectedBusinessInvoices).map((invoice, idx) => (
+                  <div key={invoice.invoice_id || idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{invoice.filename}</p>
+                        {invoice.uploaded_at && (
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(invoice.uploaded_at).toLocaleDateString("tr-TR")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewInvoice(invoice, selectedBusinessInvoices.business_id)}
+                        title="Görüntüle"
+                      >
+                        <Eye className="w-4 h-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadInvoice(invoice, selectedBusinessInvoices.business_id)}
+                        title="İndir"
+                      >
+                        <Download className="w-4 h-4 text-green-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setConfirmDelete({ 
+                          businessId: selectedBusinessInvoices.business_id, 
+                          invoiceId: invoice.invoice_id 
+                        })}
+                        title="Sil"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                
+                {getInvoicesList(selectedBusinessInvoices).length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">Henüz fatura yüklenmemiş</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Preview Modal */}
       {previewData && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="p-3 border-b flex items-center justify-between">
               <span className="font-medium text-sm">{previewData.filename}</span>
