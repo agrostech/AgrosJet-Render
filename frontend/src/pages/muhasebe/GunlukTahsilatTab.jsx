@@ -79,21 +79,23 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
         admin_id: adminId,
         admin_name: adminName
       });
-      
-      toast.success(`${courier.name} kaydedildi`);
+      toast.success(`${courier.name} için tahsilat kaydedildi`);
       fetchCouriersForDate();
     } catch (err) {
       if (!err.handled) {
-        toast.error("Kayıt başarısız");
+        toast.error(err.response?.data?.detail || "Kayıt başarısız");
       }
     } finally {
       setSubmitting(null);
     }
   };
 
-  const formatMoney = (val) => {
-    if (!val && val !== 0) return "0 TL";
-    return `${val.toLocaleString('tr-TR', { minimumFractionDigits: 0 })} TL`;
+  const formatMoney = (amount) => {
+    return new Intl.NumberFormat('tr-TR', {
+      style: 'currency',
+      currency: 'TRY',
+      minimumFractionDigits: 0
+    }).format(amount);
   };
 
   const filteredCouriers = couriers
@@ -109,51 +111,157 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
   return (
     <div className="space-y-4" data-testid="gunluk-tahsilat-tab">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <Calendar className="w-5 h-5 text-primary" />
           <Input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="h-9 border-2 font-mono w-40"
+            className="h-9 border-2 font-mono flex-1 max-w-[180px]"
             data-testid="date-picker"
           />
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Kurye ara..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 pl-9 border-2 w-44"
+              className="h-9 pl-9 border-2 w-full"
               data-testid="search-courier"
             />
           </div>
-          <div className="flex gap-3 text-sm">
+          <div className="flex gap-3 text-sm justify-end">
             <span className="text-muted-foreground">Kurye: <b>{filteredCouriers.length}</b></span>
             <span className="text-green-600">Kayıtlı: <b>{filteredCouriers.filter(c => c.has_collection).length}</b></span>
           </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border-2 border-border rounded-lg overflow-hidden">
+      {/* Mobile Cards View */}
+      <div className="space-y-3 md:hidden">
+        {filteredCouriers.map((courier) => (
+          <div 
+            key={courier.id}
+            className={`border-2 rounded-lg p-3 ${courier.has_collection ? 'bg-green-50/50 border-green-200' : 'bg-white border-border'}`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {courier.has_collection && <Check className="w-4 h-4 text-green-500" />}
+                <span className="font-semibold">{courier.name}</span>
+              </div>
+              {!courier.has_collection && (
+                <Button 
+                  size="sm"
+                  onClick={() => handleSubmit(courier)}
+                  disabled={submitting === courier.id}
+                  className="h-8 px-3 bg-primary hover:bg-primary/90"
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Kaydet
+                </Button>
+              )}
+            </div>
+            
+            {courier.has_collection ? (
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-green-100 rounded">
+                  <Banknote className="w-3 h-3 text-green-700" />
+                  <span className="text-green-700">Nakit:</span>
+                  <span className="font-mono font-semibold">{courier.collection.cash_total || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 rounded">
+                  <CreditCard className="w-3 h-3 text-blue-700" />
+                  <span className="text-blue-700">%1:</span>
+                  <span className="font-mono font-semibold">{courier.collection.card_percent_1 || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 rounded">
+                  <span className="text-blue-700">%10:</span>
+                  <span className="font-mono font-semibold">{courier.collection.card_percent_10 || '-'}</span>
+                </div>
+                <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 rounded">
+                  <span className="text-blue-700">%20:</span>
+                  <span className="font-mono font-semibold">{courier.collection.card_percent_20 || '-'}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
+                    <Banknote className="w-3 h-3" /> Nakit
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={formData[courier.id]?.cash || ""}
+                    onChange={(e) => handleInputChange(courier.id, "cash", e.target.value)}
+                    className="h-9 border font-mono text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
+                    <CreditCard className="w-3 h-3" /> %1
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={formData[courier.id]?.c1 || ""}
+                    onChange={(e) => handleInputChange(courier.id, "c1", e.target.value)}
+                    className="h-9 border font-mono text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">%10</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={formData[courier.id]?.c10 || ""}
+                    onChange={(e) => handleInputChange(courier.id, "c10", e.target.value)}
+                    className="h-9 border font-mono text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">%20</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={formData[courier.id]?.c20 || ""}
+                    onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
+                    className="h-9 border font-mono text-sm"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white border-2 border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-100 border-b-2 border-border">
               <tr>
                 <th className="text-left p-2 pl-3 font-semibold w-48">Kurye</th>
-                <th className="text-left p-2 font-semibold w-20">
+                <th className="text-left p-2 font-semibold w-24">
                   <span className="flex items-center gap-1"><Banknote className="w-3 h-3" />Nakit</span>
                 </th>
-                <th className="text-left p-2 font-semibold w-20">
+                <th className="text-left p-2 font-semibold w-24">
                   <span className="flex items-center gap-1"><CreditCard className="w-3 h-3" />%1</span>
                 </th>
-                <th className="text-left p-2 font-semibold w-20">%10</th>
-                <th className="text-left p-2 font-semibold w-20">%20</th>
+                <th className="text-left p-2 font-semibold w-24">%10</th>
+                <th className="text-left p-2 font-semibold w-24">%20</th>
                 <th className="text-center p-2 font-semibold w-16"></th>
               </tr>
             </thead>
@@ -172,22 +280,22 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                   {courier.has_collection ? (
                     <>
                       <td className="p-1">
-                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
                           {courier.collection.cash_total > 0 ? courier.collection.cash_total : '-'}
                         </div>
                       </td>
                       <td className="p-1">
-                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
                           {courier.collection.card_percent_1 > 0 ? courier.collection.card_percent_1 : '-'}
                         </div>
                       </td>
                       <td className="p-1">
-                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
                           {courier.collection.card_percent_10 > 0 ? courier.collection.card_percent_10 : '-'}
                         </div>
                       </td>
                       <td className="p-1">
-                        <div className="h-8 w-20 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
+                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
                           {courier.collection.card_percent_20 > 0 ? courier.collection.card_percent_20 : '-'}
                         </div>
                       </td>
@@ -203,7 +311,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                           value={formData[courier.id]?.cash || ""}
                           onChange={(e) => handleInputChange(courier.id, "cash", e.target.value)}
                           onWheel={(e) => e.target.blur()}
-                          className="h-8 w-20 border font-mono text-xs px-2"
+                          className="h-8 w-24 border font-mono text-xs px-2"
                         />
                       </td>
                       <td className="p-1">
@@ -214,7 +322,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                           value={formData[courier.id]?.c1 || ""}
                           onChange={(e) => handleInputChange(courier.id, "c1", e.target.value)}
                           onWheel={(e) => e.target.blur()}
-                          className="h-8 w-20 border font-mono text-xs px-2"
+                          className="h-8 w-24 border font-mono text-xs px-2"
                         />
                       </td>
                       <td className="p-1">
@@ -225,7 +333,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                           value={formData[courier.id]?.c10 || ""}
                           onChange={(e) => handleInputChange(courier.id, "c10", e.target.value)}
                           onWheel={(e) => e.target.blur()}
-                          className="h-8 w-20 border font-mono text-xs px-2"
+                          className="h-8 w-24 border font-mono text-xs px-2"
                         />
                       </td>
                       <td className="p-1">
@@ -236,7 +344,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
                           value={formData[courier.id]?.c20 || ""}
                           onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
                           onWheel={(e) => e.target.blur()}
-                          className="h-8 w-20 border font-mono text-xs px-2"
+                          className="h-8 w-24 border font-mono text-xs px-2"
                         />
                       </td>
                       <td className="p-1 text-center">
@@ -259,7 +367,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName }) {
       </div>
 
       {/* Summary */}
-      <div className="flex gap-4 text-sm justify-end">
+      <div className="flex gap-3 text-sm justify-end flex-wrap">
         <div className="px-3 py-1.5 bg-green-50 rounded border border-green-200">
           <span className="text-green-700">Nakit: </span>
           <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.cash_total || 0), 0))}</span>
