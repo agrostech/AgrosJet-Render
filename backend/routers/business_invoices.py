@@ -134,8 +134,15 @@ async def import_excel(
                     if isinstance(banka_value, (int, float)):
                         amount = float(banka_value)
                     else:
-                        # Clean string and parse
-                        amount_str = str(banka_value).replace(',', '.').replace(' ', '').replace('₺', '').replace('TL', '')
+                        # Clean string - Turkish format: ₺1.234,56 -> 1234.56
+                        amount_str = str(banka_value).strip()
+                        # Remove currency symbols and spaces
+                        amount_str = amount_str.replace('₺', '').replace('TL', '').replace(' ', '')
+                        # Handle Turkish number format: remove thousand separator (.) then replace decimal (,) with (.)
+                        if ',' in amount_str:
+                            # Turkish format: 1.234,56 -> remove dots, replace comma with dot
+                            amount_str = amount_str.replace('.', '').replace(',', '.')
+                        # Handle negative values like -₺55.021,09
                         amount = float(amount_str)
                 except (ValueError, TypeError):
                     amount = 0.0
