@@ -128,7 +128,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount) + ' ₺';
-    }).format(amount);
   };
 
   const filteredCouriers = couriers
