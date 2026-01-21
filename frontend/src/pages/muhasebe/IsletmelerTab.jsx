@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil } from "lucide-react";
 import { 
   useAccountingTab, 
@@ -23,6 +24,10 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
   const [showAddModal, setShowAddModal] = useState(false);
   const [newBusiness, setNewBusiness] = useState({ name: "", phone: "", address: "", tax_bracket: null });
   
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {}, variant: "default" });
+
   const {
     displayList,
     showArchived,
