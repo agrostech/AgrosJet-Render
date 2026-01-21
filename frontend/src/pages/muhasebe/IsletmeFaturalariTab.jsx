@@ -793,8 +793,54 @@ ${email ? `E-posta: ${email}` : ""}`;
             </div>
           </div>
 
-          {/* Business List - Kesilen */}
-          <div className="border rounded-lg overflow-hidden shadow-sm">
+          {/* Business List - Kesilen (Mobile Cards) */}
+          <div className="md:hidden space-y-3">
+            {mergedDataKesilen.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 border rounded-lg">
+                {searchQuery ? "Eşleşen işletme bulunamadı" : "Henüz işletme yok"}
+              </div>
+            ) : (
+              mergedDataKesilen.map((item) => {
+                const issuedRecord = item.issuedRecord;
+                const issuedDate = issuedRecord?.issued_until_date;
+                
+                return (
+                  <div key={item.id} className="border rounded-lg p-3 bg-white">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="font-medium text-slate-800">{item.name}</div>
+                      {issuedDate && (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Calendar className="w-3 h-3 text-emerald-600" />
+                          <span className="font-medium text-emerald-600">
+                            {new Date(issuedDate).toLocaleDateString("tr-TR")}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant={issuedDate ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => handleMarkIssued(item.id)}
+                      disabled={markingIssued === item.id}
+                      className={`w-full ${issuedDate ? "border-emerald-500 text-emerald-600 hover:bg-emerald-50" : ""}`}
+                    >
+                      {markingIssued === item.id ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 mr-1" />
+                          {issuedDate ? "Güncelle" : "Fatura Kesildi"}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Business List - Kesilen (Desktop Table) */}
+          <div className="hidden md:block border rounded-lg overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 border-b">
