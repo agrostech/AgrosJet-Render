@@ -5,26 +5,31 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, FileText } from "lucide-react";
+import { User, FileText, Clock } from "lucide-react";
 import CourierDocumentsSection from "@/components/admin/CourierDocumentsSection";
+import CourierShiftsSection from "@/components/kuryeler/CourierShiftsSection";
 
-export function CourierDetailModal({ open, onOpenChange, courier, companyName }) {
+export function CourierDetailModal({ open, onOpenChange, courier, companyId, companyName }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading">Kurye Detayları</DialogTitle>
         </DialogHeader>
         {courier && (
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="info" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="info" className="flex items-center gap-1 text-xs sm:text-sm">
                 <User className="w-4 h-4" />
-                Bilgiler
+                <span className="hidden sm:inline">Bilgiler</span>
               </TabsTrigger>
-              <TabsTrigger value="documents" className="flex items-center gap-2">
+              <TabsTrigger value="shifts" className="flex items-center gap-1 text-xs sm:text-sm">
+                <Clock className="w-4 h-4" />
+                <span className="hidden sm:inline">Vardiyalar</span>
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-1 text-xs sm:text-sm">
                 <FileText className="w-4 h-4" />
-                Evraklar
+                <span className="hidden sm:inline">Evraklar</span>
               </TabsTrigger>
             </TabsList>
             
@@ -55,6 +60,14 @@ export function CourierDetailModal({ open, onOpenChange, courier, companyName })
                 <p className="text-xs text-muted-foreground">İban</p>
                 <p className="font-mono text-sm break-all">{courier.iban || "-"}</p>
               </div>
+            </TabsContent>
+            
+            <TabsContent value="shifts">
+              <CourierShiftsSection 
+                courierId={courier.id}
+                courierName={courier.name}
+                companyId={companyId}
+              />
             </TabsContent>
             
             <TabsContent value="documents">
