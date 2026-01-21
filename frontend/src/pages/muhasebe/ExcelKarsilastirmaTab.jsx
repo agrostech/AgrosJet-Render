@@ -385,8 +385,76 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
             </div>
           </div>
 
-          {/* Detaylı Liste */}
-          <div className="max-h-96 overflow-y-auto">
+          {/* Detaylı Liste - Mobile Cards */}
+          <div className="md:hidden p-3 space-y-3 max-h-96 overflow-y-auto">
+            {comparisonResult.results.map((result, idx) => (
+              <div 
+                key={idx}
+                className={`p-3 rounded-lg border ${result.has_issues ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {result.has_issues ? (
+                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                  ) : (
+                    <Check className="w-4 h-4 text-green-500" />
+                  )}
+                  <span className="font-semibold">{result.courier_name}</span>
+                </div>
+                
+                {result.tax_bracket_issues.length > 0 && (
+                  <div className="mb-2">
+                    {result.tax_bracket_issues.map((issue, i) => (
+                      <p key={i} className="text-xs text-orange-600">
+                        ⚠️ {issue.restaurant}: %{issue.expected_bracket} → %{issue.actual_bracket}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2 bg-white/50 rounded">
+                    <span className="text-muted-foreground">Excel Nakit:</span>
+                    <span className="font-mono ml-1">{formatMoney(result.excel_cash)}</span>
+                  </div>
+                  <div className="p-2 bg-white/50 rounded">
+                    <span className="text-muted-foreground">Girilen:</span>
+                    <span className="font-mono ml-1">{formatMoney(result.entered_cash)}</span>
+                  </div>
+                  <div className="p-2 bg-white/50 rounded">
+                    <span className="text-muted-foreground">Excel Kart:</span>
+                    <span className="font-mono ml-1">{formatMoney(result.excel_card)}</span>
+                  </div>
+                  <div className="p-2 bg-white/50 rounded">
+                    <span className="text-muted-foreground">Girilen:</span>
+                    <span className="font-mono ml-1">{formatMoney(result.entered_card_total)}</span>
+                  </div>
+                </div>
+                
+                {(result.cash_difference !== 0 || result.card_difference !== 0 || result.total_penalty > 0) && (
+                  <div className="mt-2 pt-2 border-t border-border/50 flex flex-wrap gap-2 text-xs">
+                    {result.cash_difference !== 0 && (
+                      <span className={`font-mono font-semibold ${result.cash_difference > 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                        Nakit: {formatMoney(result.cash_difference)}
+                      </span>
+                    )}
+                    {result.card_difference !== 0 && (
+                      <span className={`font-mono font-semibold ${result.card_difference > 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                        Kart: {formatMoney(result.card_difference)}
+                      </span>
+                    )}
+                    {result.total_penalty > 0 && (
+                      <span className="font-mono font-semibold text-orange-600">
+                        Ceza: {formatMoney(result.total_penalty)}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Detaylı Liste - Desktop Table */}
+          <div className="hidden md:block max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-100 sticky top-0">
                 <tr>
