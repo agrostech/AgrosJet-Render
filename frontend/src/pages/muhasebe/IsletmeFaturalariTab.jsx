@@ -158,6 +158,14 @@ export default function IsletmeFaturalariTab({ companyId }) {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    // Validate file extension
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext !== 'xlsx' && ext !== 'xls') {
+      toast.error('Lütfen Excel dosyası (.xlsx veya .xls) seçin');
+      if (excelFileRef.current) excelFileRef.current.value = "";
+      return;
+    }
+    
     setUploading(true);
     try {
       const formData = new FormData();
