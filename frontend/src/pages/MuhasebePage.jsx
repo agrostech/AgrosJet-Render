@@ -22,7 +22,7 @@ const TABS = [
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
-export default function MuhasebePage({ companyId, adminId, adminName, companyLogo, companyName }) {
+export default function MuhasebePage({ companyId, adminId, adminName, companyLogo, companyName, isSuperAdmin }) {
   const [activeTab, setActiveTab] = useState("kuryeler");
   const transactionRef = useRef(null);
   const tabsContainerRef = useRef(null);
