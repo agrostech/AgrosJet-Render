@@ -375,8 +375,14 @@ async def compare_reports(company_id: str, date: str):
         card_diff = excel_card - entered["card_total"]
         
         # Check tax bracket issues for card transactions
+        # New approach: Calculate expected totals per bracket from Excel restaurants
+        # Then compare with what was actually entered
         tax_issues = []
         total_penalty = 0
+        
+        # Calculate expected amounts per bracket based on Excel restaurant data
+        expected_by_bracket = {1: 0, 10: 0, 20: 0, "unknown": 0}
+        restaurant_bracket_map = {}  # Track which bracket each restaurant should be in
         
         for restaurant_name, restaurant_amount in excel_card_restaurants.items():
             if restaurant_amount <= 0:
@@ -385,61 +391,67 @@ async def compare_reports(company_id: str, date: str):
             # Find business tax bracket
             restaurant_name_lower = restaurant_name.lower().strip()
             expected_bracket = None
-            matched_business_name = None
             
             for bname, bracket in business_tax_map.items():
                 if bname in restaurant_name_lower or restaurant_name_lower in bname:
                     expected_bracket = bracket
-                    matched_business_name = bname
                     break
             
-            # Skip if no tax bracket defined for this business
-            if not expected_bracket:
-                continue
-            
-            # Determine which bracket this amount was actually entered in
-            # by checking where the amount could fit
-            actual_bracket = None
-            
-            # Check each bracket - the amount should be in the expected bracket
-            # If it's not there but exists in another bracket, that's wrong
-            if expected_bracket == 1:
-                # Should be in %1, check if it's there
-                if entered["card_1"] >= restaurant_amount:
-                    actual_bracket = 1  # Correct!
-                elif entered["card_10"] >= restaurant_amount:
-                    actual_bracket = 10  # Wrong - entered in %10
-                elif entered["card_20"] >= restaurant_amount:
-                    actual_bracket = 20  # Wrong - entered in %20
-            elif expected_bracket == 10:
-                # Should be in %10, check if it's there
-                if entered["card_10"] >= restaurant_amount:
-                    actual_bracket = 10  # Correct!
-                elif entered["card_1"] >= restaurant_amount:
-                    actual_bracket = 1  # Wrong - entered in %1
-                elif entered["card_20"] >= restaurant_amount:
-                    actual_bracket = 20  # Wrong - entered in %20
-            elif expected_bracket == 20:
-                # Should be in %20, check if it's there
-                if entered["card_20"] >= restaurant_amount:
-                    actual_bracket = 20  # Correct!
-                elif entered["card_1"] >= restaurant_amount:
-                    actual_bracket = 1  # Wrong - entered in %1
-                elif entered["card_10"] >= restaurant_amount:
-                    actual_bracket = 10  # Wrong - entered in %10
-            
-            # If actual bracket is different from expected, calculate penalty
-            if actual_bracket and actual_bracket != expected_bracket:
-                # Calculate penalty: 34% of the amount
-                penalty = restaurant_amount * 0.34
-                total_penalty += penalty
-                tax_issues.append({
-                    "restaurant": restaurant_name,
+            if expected_bracket and expected_bracket in [1, 10, 20]:
+                expected_by_bracket[expected_bracket] += restaurant_amount
+                restaurant_bracket_map[restaurant_name] = {
                     "amount": restaurant_amount,
-                    "expected_bracket": expected_bracket,
-                    "actual_bracket": actual_bracket,
-                    "penalty": round(penalty, 2)
-                })
+                    "expected_bracket": expected_bracket
+                }
+            else:
+                expected_by_bracket["unknown"] += restaurant_amount
+        
+        # Now check if amounts were entered in wrong brackets
+        # Compare expected vs entered for each bracket
+        entered_by_bracket = {
+            1: entered.get("card_1", 0),
+            10: entered.get("card_10", 0),
+            20: entered.get("card_20", 0)
+        }
+        
+        # Detect wrong bracket entries
+        # If expected %1 > 0 but entered %1 < expected, check if it went to wrong bracket
+        for restaurant_name, info in restaurant_bracket_map.items():
+            expected_bracket = info["expected_bracket"]
+            amount = info["amount"]
+            
+            # Check if this amount is in the wrong bracket
+            # Logic: If expected bracket doesn't have enough, but another bracket does, it's wrong
+            
+            expected_in_bracket = expected_by_bracket[expected_bracket]
+            entered_in_bracket = entered_by_bracket[expected_bracket]
+            
+            # If there's a shortfall in expected bracket
+            if entered_in_bracket < amount:
+                # Check which other bracket might have this amount
+                actual_bracket = None
+                for bracket in [1, 10, 20]:
+                    if bracket != expected_bracket:
+                        # Check if this bracket has at least the amount
+                        # and more than what was expected there
+                        entered_other = entered_by_bracket[bracket]
+                        expected_other = expected_by_bracket[bracket]
+                        if entered_other >= amount and entered_other > expected_other:
+                            actual_bracket = bracket
+                            break
+                
+                if actual_bracket and actual_bracket != expected_bracket:
+                    # Wrong bracket detected!
+                    # Calculate penalty: 34% of the amount
+                    penalty = round(amount * 0.34, 2)
+                    total_penalty += penalty
+                    tax_issues.append({
+                        "restaurant": restaurant_name,
+                        "amount": amount,
+                        "expected_bracket": expected_bracket,
+                        "actual_bracket": actual_bracket,
+                        "penalty": penalty
+                    })
         
         results.append({
             "courier_id": courier_id,
