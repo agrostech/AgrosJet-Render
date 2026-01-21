@@ -103,7 +103,11 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
     setLoading(true);
     try {
       const res = await axios.post(`${API}/daily-reports/compare/${companyId}/${selectedDate}`);
-      setComparisonResult(res.data);
+      setComparisonResult({
+        ...res.data,
+        processed: false,
+        processed_by: null
+      });
     } catch (err) {
       if (!err.handled) {
         toast.error(err.response?.data?.detail || "Karşılaştırma başarısız");
@@ -114,7 +118,7 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
   };
 
   const handleProcess = async () => {
-    if (!comparisonResult) return;
+    if (!comparisonResult || comparisonResult.processed) return;
     
     setProcessing(true);
     try {
@@ -128,8 +132,12 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
       );
       
       toast.success(`${res.data.transactions_created} işlem oluşturuldu`);
-      setComparisonResult(null);
-      fetchExistingReports();
+      // Update comparison result to show processed state
+      setComparisonResult(prev => ({
+        ...prev,
+        processed: true,
+        processed_by: res.data.processed_by || adminName
+      }));
     } catch (err) {
       if (!err.handled) {
         toast.error("İşlem oluşturulamadı");
