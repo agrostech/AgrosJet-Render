@@ -196,7 +196,7 @@ async def import_excel(
         raise HTTPException(status_code=500, detail=f"Excel işleme hatası: {str(e)}")
 
 
-# --- Upload invoice PDF for a business ---
+# --- Upload invoice PDF for a business (supports multiple invoices) ---
 @router.post("/{company_id}/{year}/{month}/{business_id}/upload")
 async def upload_invoice(
     company_id: str,
@@ -205,7 +205,7 @@ async def upload_invoice(
     business_id: str,
     file: UploadFile = File(...)
 ):
-    """Upload the received invoice PDF from a business"""
+    """Upload the received invoice PDF from a business - supports multiple invoices"""
     if not file.filename.lower().endswith(('.pdf', '.jpg', '.jpeg', '.png')):
         raise HTTPException(status_code=400, detail="Sadece PDF veya resim dosyası yüklenebilir")
     
@@ -218,7 +218,16 @@ async def upload_invoice(
     file_base64 = base64.b64encode(content).decode('utf-8')
     file_extension = file.filename.split('.')[-1].lower()
     
-    # Find or create record
+    # Create invoice object
+    invoice_obj = {
+        "invoice_id": str(uuid.uuid4()),
+        "file_data": file_base64,
+        "filename": file.filename,
+        "extension": file_extension,
+        "uploaded_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Find existing record
     existing = await db.business_invoices.find_one({
         "company_id": company_id,
         "year": year,
@@ -227,13 +236,32 @@ async def upload_invoice(
     })
     
     if existing:
+        # Get existing invoices list or migrate from old format
+        invoices = existing.get("invoices", [])
+        
+        # Migrate old single invoice to list format if needed
+        if not invoices and existing.get("invoice_file"):
+            old_invoice = {
+                "invoice_id": str(uuid.uuid4()),
+                "file_data": existing["invoice_file"],
+                "filename": existing.get("invoice_filename", "fatura.pdf"),
+                "extension": existing.get("invoice_extension", "pdf"),
+                "uploaded_at": existing.get("uploaded_at", datetime.now(timezone.utc).isoformat())
+            }
+            invoices.append(old_invoice)
+        
+        # Add new invoice
+        invoices.append(invoice_obj)
+        
         await db.business_invoices.update_one(
             {"id": existing["id"]},
             {"$set": {
                 "invoice_uploaded": True,
-                "invoice_file": file_base64,
-                "invoice_filename": file.filename,
-                "invoice_extension": file_extension,
+                "invoices": invoices,
+                # Keep old fields for backward compatibility but clear them
+                "invoice_file": None,
+                "invoice_filename": None,
+                "invoice_extension": None,
                 "uploaded_at": datetime.now(timezone.utc).isoformat()
             }}
         )
@@ -251,9 +279,7 @@ async def upload_invoice(
             "business_name": business_name,
             "required_amount": 0,
             "invoice_uploaded": True,
-            "invoice_file": file_base64,
-            "invoice_filename": file.filename,
-            "invoice_extension": file_extension,
+            "invoices": [invoice_obj],
             "uploaded_at": datetime.now(timezone.utc).isoformat(),
             "created_at": datetime.now(timezone.utc).isoformat()
         }
@@ -263,11 +289,72 @@ async def upload_invoice(
 
 
 # --- Download invoice file ---
-@router.get("/{company_id}/{year}/{month}/{business_id}/download")
-async def download_invoice(company_id: str, year: int, month: int, business_id: str):
-    """Download the uploaded invoice file"""
+@router.get("/{company_id}/{year}/{month}/{business_id}/download/{invoice_id}")
+async def download_invoice(company_id: str, year: int, month: int, business_id: str, invoice_id: str):
+    """Download a specific invoice file"""
     record = await db.business_invoices.find_one({
         "company_id": company_id,
+        "year": year,
+        "month": month,
+        "business_id": business_id
+    })
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    
+    invoices = record.get("invoices", [])
+    
+    # Handle old single invoice format
+    if not invoices and record.get("invoice_file"):
+        return {
+            "file_data": record["invoice_file"],
+            "filename": record.get("invoice_filename", "fatura.pdf"),
+            "extension": record.get("invoice_extension", "pdf")
+        }
+    
+    # Find specific invoice
+    for inv in invoices:
+        if inv.get("invoice_id") == invoice_id:
+            return {
+                "file_data": inv["file_data"],
+                "filename": inv.get("filename", "fatura.pdf"),
+                "extension": inv.get("extension", "pdf")
+            }
+    
+    raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+
+
+# --- Delete a specific invoice ---
+@router.delete("/{company_id}/{year}/{month}/{business_id}/invoice/{invoice_id}")
+async def delete_invoice(company_id: str, year: int, month: int, business_id: str, invoice_id: str):
+    """Delete a specific invoice file"""
+    record = await db.business_invoices.find_one({
+        "company_id": company_id,
+        "year": year,
+        "month": month,
+        "business_id": business_id
+    })
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    
+    invoices = record.get("invoices", [])
+    
+    # Filter out the invoice to delete
+    updated_invoices = [inv for inv in invoices if inv.get("invoice_id") != invoice_id]
+    
+    if len(updated_invoices) == len(invoices):
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    await db.business_invoices.update_one(
+        {"id": record["id"]},
+        {"$set": {
+            "invoices": updated_invoices,
+            "invoice_uploaded": len(updated_invoices) > 0
+        }}
+    )
+    
+    return {"message": "Fatura silindi"}
         "year": year,
         "month": month,
         "business_id": business_id
