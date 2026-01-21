@@ -195,6 +195,7 @@ export default function VardiyaPage({ companyId }) {
           onRemoveLeave={handleRemoveLeave}
           onOpenAssignModal={openAssignModal}
           onOpenLeaveModal={openLeaveModal}
+          courierFilter={courierFilter}
         />
       )}
 
