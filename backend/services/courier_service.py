@@ -310,3 +310,43 @@ async def get_termination_status(company_id: str, courier_id: str):
         "end_date": relation["termination_end_date"],
         "remaining_days": remaining_days
     }
+
+
+async def archive_courier(company_id: str, courier_id: str):
+    """Archive a courier - move to archived list"""
+    # Check zimmet
+    active_zimmet = await check_courier_zimmet(courier_id)
+    if active_zimmet:
+        return None, "Bu kuryenin üzerinde zimmetli ürün bulunuyor. Önce zimmeti alın."
+    
+    # Check balance
+    balance = await check_courier_balance(courier_id)
+    if balance != 0:
+        balance_text = f"{abs(balance):.2f} TL"
+        if balance > 0:
+            return None, f"Bu kuryenin {balance_text} alacağı bulunuyor. Önce bakiyeyi sıfırlayın."
+        return None, f"Bu kuryenin {balance_text} borcu bulunuyor. Önce bakiyeyi sıfırlayın."
+    
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id},
+        {"$set": {
+            "is_archived": True,
+            "archived_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        return None, "Kurye bulunamadı"
+    return {"message": "Kurye arşivlendi"}, None
+
+
+async def unarchive_courier(company_id: str, courier_id: str):
+    """Unarchive a courier - restore from archive"""
+    result = await db.company_couriers.update_one(
+        {"company_id": company_id, "courier_id": courier_id, "is_archived": True},
+        {"$set": {"is_archived": False, "archived_at": None}}
+    )
+    
+    if result.matched_count == 0:
+        return None, "Arşivlenmiş kurye bulunamadı"
+    return {"message": "Kurye arşivden çıkarıldı"}, None

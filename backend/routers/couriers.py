@@ -127,6 +127,30 @@ async def remove_courier_from_company(
     return result
 
 
+@router.put("/companies/{company_id}/couriers/{courier_id}/archive")
+async def archive_company_courier(
+    company_id: str, 
+    courier_id: str
+):
+    """Archive a courier (move to archive list)"""
+    result, error = await courier_service.archive_courier(company_id, courier_id)
+    if error:
+        raise HTTPException(status_code=400 if "bulunamadı" not in error else 404, detail=error)
+    return result
+
+
+@router.put("/companies/{company_id}/couriers/{courier_id}/unarchive")
+async def unarchive_company_courier(
+    company_id: str, 
+    courier_id: str
+):
+    """Unarchive a courier (restore from archive)"""
+    result, error = await courier_service.unarchive_courier(company_id, courier_id)
+    if error:
+        raise HTTPException(status_code=404, detail=error)
+    return result
+
+
 # --- Fesih (Termination) Endpoints ---
 @router.post("/companies/{company_id}/couriers/{courier_id}/start-termination")
 async def start_termination(
