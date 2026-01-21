@@ -146,11 +146,21 @@ function ShiftCell({
   onCellClick,
   onRemoveAssignment,
   onOpenAssignModal,
+  courierFilter = "",
 }) {
   const isEvenColumn = dayIndex % 2 === 0;
-  const courierCount = assignments.length;
   
-  const cellBg = isSelected 
+  // Filter assignments based on courier name
+  const filteredAssignments = courierFilter 
+    ? assignments.filter(a => a.courier_name?.toLowerCase().includes(courierFilter.toLowerCase()))
+    : assignments;
+  
+  const courierCount = filteredAssignments.length;
+  const hasFilteredResults = courierFilter && filteredAssignments.length > 0;
+  
+  const cellBg = hasFilteredResults
+    ? 'bg-yellow-100'
+    : isSelected 
     ? 'bg-green-100' 
     : isEvenColumn 
       ? (isEvenRow ? 'bg-blue-100/80' : 'bg-blue-50/60')
