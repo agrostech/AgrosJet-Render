@@ -606,6 +606,19 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={() => {
+          confirmConfig.onConfirm();
+          setConfirmOpen(false);
+        }}
+        variant={confirmConfig.variant}
+      />
     </div>
   );
 }
