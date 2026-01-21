@@ -301,8 +301,8 @@ async def create_transaction(
             }
         })
     
-    # Auto-credit JetPuan for hakediş transactions (payment_out to courier)
-    if data.entity_type == "courier" and data.is_hakedis and data.type == "payment_out":
+    # Auto-credit JetPuan for hakediş transactions (payment_in to courier - kırmızı buton)
+    if data.entity_type == "courier" and data.is_hakedis and data.type == "payment_in":
         try:
             jetpuan_amount = await calculate_and_credit_points(data.entity_id, data.amount)
             if jetpuan_amount > 0:
@@ -357,7 +357,7 @@ async def delete_transaction(
     entity_name = await get_entity_name(transaction["entity_type"], transaction["entity_id"])
     
     # If this was a hakediş transaction for a courier, debit JetPuan
-    if transaction["entity_type"] == "courier" and transaction.get("is_hakedis") and transaction["type"] == "payment_out":
+    if transaction["entity_type"] == "courier" and transaction.get("is_hakedis") and transaction["type"] == "payment_in":
         try:
             await calculate_and_debit_points(transaction["entity_id"], transaction["amount"])
         except Exception as e:

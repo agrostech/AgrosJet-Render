@@ -245,9 +245,8 @@ export function useAccountingTab({
         type: type === "in" ? "payment_in" : "payment_out",
         amount: parseFloat(amount),
         description: description || (type === "in" ? "Alınan" : "Verilen"),
-        // Hakediş sadece kuryeler için ve sadece "Verilen" (payment_out) ile çalışır
-        // Hakediş = Kuryeye yapılan ödeme = JetPuan kazanır
-        is_hakedis: type === "out" && entityType === "courier" ? isHakedis : false,
+        // Hakediş sadece kuryeler için ve sadece "Alınan" (payment_in/kırmızı buton) ile çalışır
+        is_hakedis: type === "in" && entityType === "courier" ? isHakedis : false,
         admin_id: adminId,
         admin_name: adminName
       };
