@@ -23,7 +23,7 @@ export function MonthInvoicesCard({
   return (
     <div className="border-2 border-border bg-white">
       <div className="p-3 border-b-2 border-border bg-slate-50">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2">
             <Archive className="w-4 h-4 text-primary" />
             <h3 className="font-semibold text-sm">Ay Faturaları</h3>
@@ -31,11 +31,11 @@ export function MonthInvoicesCard({
           </div>
           {invoices.length > 0 && (
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="ghost" onClick={onSelectAll} className="h-7 text-xs">
+              <Button size="sm" variant="ghost" onClick={onSelectAll} className="h-8 text-xs flex-1 sm:flex-none">
                 {selectedInvoices.length === invoices.length ? 'Seçimi Kaldır' : 'Tümünü Seç'}
               </Button>
               {selectedInvoices.length > 0 && (
-                <Button size="sm" onClick={onDownloadBulk} className="h-7 text-xs gap-1">
+                <Button size="sm" onClick={onDownloadBulk} className="h-8 text-xs gap-1 flex-1 sm:flex-none">
                   <Download className="w-3 h-3" />
                   İndir ({selectedInvoices.length})
                 </Button>
@@ -59,7 +59,53 @@ export function MonthInvoicesCard({
                   selectedInvoices.includes(invoice.id) ? 'bg-primary/5' : ''
                 } ${invoice.verified ? 'bg-green-50/50' : ''}`}
               >
-                <div className="flex items-center justify-between gap-2">
+                {/* Mobile Layout */}
+                <div className="sm:hidden">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div 
+                      className="flex items-start gap-2 flex-1 cursor-pointer min-w-0"
+                      onClick={() => onToggleSelection(invoice.id)}
+                    >
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                        selectedInvoices.includes(invoice.id) 
+                          ? 'bg-primary border-primary text-white' 
+                          : 'border-slate-300'
+                      }`}>
+                        {selectedInvoices.includes(invoice.id) && <Check className="w-3 h-3" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm">{invoice.courier_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {formatDate(invoice.uploaded_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="font-semibold text-sm font-mono text-red-600 flex-shrink-0">
+                      {invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onView(invoice.id); }} className="h-7 text-xs gap-1 px-2">
+                      <Eye className="w-3 h-3" />
+                      Görüntüle
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onDownload(invoice.id); }} className="h-7 text-xs gap-1 px-2">
+                      <Download className="w-3 h-3" />
+                      İndir
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); onVerify(invoice.id, invoice.verified); }}
+                      className={`h-7 px-2 ${invoice.verified ? 'text-green-600 border-green-300 bg-green-50' : ''}`}
+                    >
+                      {invoice.verified ? <CheckCircle className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden sm:flex items-center justify-between gap-2">
                   <div 
                     className="flex items-center gap-2 flex-1 cursor-pointer"
                     onClick={() => onToggleSelection(invoice.id)}
