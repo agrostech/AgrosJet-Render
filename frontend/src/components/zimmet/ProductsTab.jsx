@@ -1,9 +1,10 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Search, Package, User, History, Pencil, Trash2, AlertTriangle, XCircle, ArrowLeftRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { formatDate, getActionLabel, getActionColor } from "./zimmetHelpers";
 
 export function ProductsTab({
@@ -29,12 +30,28 @@ export function ProductsTab({
   loadMoreProducts,
   openEditProduct,
   handleDeleteProduct,
+  confirmDeleteProduct,
   handleToggleDefective,
   handleToggleLost,
   setShowAssignModal,
   setShowReturnModal,
 }) {
   const listRef = useRef(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const onDeleteClick = async (productId) => {
+    const result = await handleDeleteProduct(productId);
+    if (result?.needsConfirm) {
+      setConfirmDelete(result.productId);
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    if (confirmDelete) {
+      await confirmDeleteProduct(confirmDelete);
+      setConfirmDelete(null);
+    }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full">
