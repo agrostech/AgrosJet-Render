@@ -38,15 +38,26 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
 
   const fetchExistingReports = async () => {
     setLoading(true);
-    setComparisonResult(null);
     try {
       const res = await axios.get(`${API}/daily-reports/excel-reports/${companyId}/${selectedDate}`);
       setCashReport(res.data.cash);
       setCardReport(res.data.card);
+      // Load saved comparison result
+      if (res.data.comparison) {
+        setComparisonResult({
+          date: res.data.comparison.date,
+          results: res.data.comparison.results,
+          summary: res.data.comparison.summary,
+          processed: res.data.comparison.processed,
+          processed_by: res.data.comparison.processed_by
+        });
+      } else {
+        setComparisonResult(null);
+      }
     } catch (err) {
-      // Silent fail - no reports uploaded yet
       setCashReport(null);
       setCardReport(null);
+      setComparisonResult(null);
     } finally {
       setLoading(false);
     }
