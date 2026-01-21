@@ -82,6 +82,7 @@ from routers.academy import router as academy_router
 from routers.backup import router as backup_router
 from routers.daily_collections import router as daily_collections_router
 from routers.daily_reports import router as daily_reports_router
+from routers.business_invoices import router as business_invoices_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
