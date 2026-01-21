@@ -75,7 +75,7 @@ export default function IsletmeFaturalariTab({ companyId }) {
       const [businessesRes, invoicesRes, issuedRes, companyRes] = await Promise.all([
         axios.get(`${API}/companies/${companyId}/businesses`),
         axios.get(`${API}/business-invoices/${companyId}/${selectedYear}/${selectedMonth}`),
-        axios.get(`${API}/business-invoices/issued/${companyId}/${selectedYear}/${selectedMonth}`),
+        axios.get(`${API}/business-invoices/get-issued/${companyId}/${selectedYear}/${selectedMonth}`),
         axios.get(`${API}/business-invoices/company-details/${companyId}`)
       ]);
       
