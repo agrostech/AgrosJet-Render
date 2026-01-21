@@ -391,7 +391,15 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                               <Button variant="ghost" size="sm" onClick={() => openEditModal(tx)} className="h-6 w-6 p-0 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-tx-${tx.id}`}>
                                 <Pencil className="w-3 h-3" />
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteTransaction(tx.id)} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                setConfirmConfig({
+                                  title: "İşlemi Sil",
+                                  description: "Bu işlemi silmek istediğinize emin misiniz?",
+                                  variant: "danger",
+                                  onConfirm: () => handleDeleteTransaction(tx.id, true)
+                                });
+                                setConfirmOpen(true);
+                              }} className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600" data-testid={`delete-tx-${tx.id}`}>
                                 <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
