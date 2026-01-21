@@ -260,7 +260,7 @@ export default function AdminDashboard() {
                 <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
               )}
               {(isSuperAdmin || permissions.muhasebe) && (
-                <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} />} />
+                <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
               )}
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />
