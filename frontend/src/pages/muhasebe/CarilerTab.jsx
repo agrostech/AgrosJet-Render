@@ -481,6 +481,19 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={() => {
+          confirmConfig.onConfirm();
+          setConfirmOpen(false);
+        }}
+        variant={confirmConfig.variant}
+      />
     </div>
   );
 }
