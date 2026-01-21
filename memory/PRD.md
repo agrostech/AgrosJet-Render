@@ -25,7 +25,36 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 20, 2026 - İzin Güncelleme Otomatik Çıkış (Latest)
+### January 21, 2026 - İşletme Faturaları (Alınan Faturalar) (Latest)
+
+#### ✅ COMPLETED: İşletme Faturaları Özelliği
+İşletmelerden alınan faturaları takip etmek için yeni modül.
+
+**Yeni Dosyalar:**
+- `/app/backend/routers/business_invoices.py`: İşletme faturaları API
+- `/app/frontend/src/pages/muhasebe/IsletmeFaturalariTab.jsx`: Yeni tab bileşeni
+
+**Özellikler:**
+- "Faturalar" tab'ı "Kurye Faturaları" olarak yeniden adlandırıldı
+- Yeni "İşletme Faturaları" tab'ı eklendi
+- Ay seçici (varsayılan: önceki ay, son 12 ay limiti)
+- Excel import: "Restoran Raporu.xlsx" dosyasından fatura tutarlarını otomatik aktarma
+- WhatsApp hatırlatma: Tutarı girilen işletmeler için mesaj şablonu ile hatırlatma
+- PDF/resim fatura yükleme: İşletmeden alınan faturayı sisteme yükleme
+- Fatura görüntüleme, indirme, silme işlemleri
+
+**API Endpoints:**
+- `GET /api/business-invoices/{company_id}/{year}/{month}`: Ay bazlı fatura listesi
+- `GET /api/business-invoices/company-details/{company_id}`: Şirket fatura bilgileri
+- `POST /api/business-invoices/{company_id}/import-excel`: Excel import
+- `POST /api/business-invoices/{company_id}/{year}/{month}/{business_id}/upload`: Fatura yükleme
+- `POST /api/business-invoices/{company_id}/{year}/{month}/{business_id}/set-amount`: Manuel tutar girişi
+
+**Test Sonuçları (iteration_23.json):** Tüm testler geçti (8/8 backend, UI %100)
+
+---
+
+### January 20, 2026 - İzin Güncelleme Otomatik Çıkış
 
 #### ✅ COMPLETED: İzin Güncellendiğinde Otomatik Çıkış
 Admin izinleri güncellendiğinde 10 saniye içinde otomatik çıkış yapılıyor.
