@@ -733,9 +733,6 @@ ${email ? `E-posta: ${email}` : ""}`;
                         <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-3">
                             <div className="font-medium text-slate-800">{item.name}</div>
-                            {item.phone && (
-                              <div className="text-xs text-slate-500">{item.phone}</div>
-                            )}
                           </td>
                           <td className="p-3 text-center">
                             {issuedDate ? (
