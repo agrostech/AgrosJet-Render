@@ -19,21 +19,21 @@ router = APIRouter(prefix="/api/business-invoices", tags=["İşletme Faturaları
 # KESİLEN FATURALAR (ISSUED INVOICES) API - Must be before dynamic routes
 # =====================================================
 
-# --- Get all issued invoice records for a month ---
-@router.get("/get-issued/{company_id}/{year}/{month}")
-async def get_issued_invoices(company_id: str, year: int, month: int):
-    """Get all issued invoice records for a specific month"""
+# --- Get all issued invoice records for a company (independent of month) ---
+@router.get("/get-all-issued/{company_id}")
+async def get_all_issued_invoices(company_id: str):
+    """Get all issued invoice records for a company (not filtered by month)"""
     records = await db.issued_invoices.find(
-        {"company_id": company_id, "year": year, "month": month},
+        {"company_id": company_id},
         {"_id": 0}
     ).to_list(500)
     
     return records
 
 
-# --- Mark invoice as issued for a business ---
-@router.post("/mark-issued/{company_id}/{year}/{month}/{business_id}")
-async def mark_invoice_issued(company_id: str, year: int, month: int, business_id: str):
+# --- Mark invoice as issued for a business (independent of month) ---
+@router.post("/mark-issued/{company_id}/{business_id}")
+async def mark_invoice_issued(company_id: str, business_id: str):
     """Mark invoice as issued - saves Monday of current week as date"""
     # Get business name
     business = await db.businesses.find_one({"id": business_id}, {"_id": 0, "name": 1})
@@ -49,10 +49,9 @@ async def mark_invoice_issued(company_id: str, year: int, month: int, business_i
     
     monday_str = monday.strftime("%Y-%m-%d")
     
+    # Check if business already has issued record
     existing = await db.issued_invoices.find_one({
         "company_id": company_id,
-        "year": year,
-        "month": month,
         "business_id": business_id
     })
     
@@ -68,8 +67,6 @@ async def mark_invoice_issued(company_id: str, year: int, month: int, business_i
         record = {
             "id": str(uuid.uuid4()),
             "company_id": company_id,
-            "year": year,
-            "month": month,
             "business_id": business_id,
             "business_name": business["name"],
             "issued_until_date": monday_str,
@@ -81,13 +78,11 @@ async def mark_invoice_issued(company_id: str, year: int, month: int, business_i
 
 
 # --- Clear issued status for a business ---
-@router.delete("/clear-issued/{company_id}/{year}/{month}/{business_id}")
-async def clear_issued_invoice(company_id: str, year: int, month: int, business_id: str):
+@router.delete("/clear-issued/{company_id}/{business_id}")
+async def clear_issued_invoice(company_id: str, business_id: str):
     """Clear the issued status for a business"""
     result = await db.issued_invoices.delete_one({
         "company_id": company_id,
-        "year": year,
-        "month": month,
         "business_id": business_id
     })
     
