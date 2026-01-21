@@ -84,30 +84,32 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
         
         {/* Courier Filter */}
         {couriersWithMissing.length > 0 && (
-          <div className="mt-2 flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-red-400" />
-            <select
-              value={selectedCourier}
-              onChange={(e) => setSelectedCourier(e.target.value)}
-              className="flex-1 h-8 text-xs border border-red-200 rounded px-2 bg-white"
-              data-testid="missing-invoices-courier-filter"
-            >
-              <option value="">Tüm Kuryeler</option>
-              {couriersWithMissing.map(courier => (
-                <option key={courier.courier_id} value={courier.courier_id}>
-                  {courier.courier_name} ({courier.count} eksik - {formatMoney(courier.total_amount)})
-                </option>
-              ))}
-            </select>
+          <div className="mt-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+              <select
+                value={selectedCourier}
+                onChange={(e) => setSelectedCourier(e.target.value)}
+                className="flex-1 h-9 text-sm border border-red-200 rounded px-2 bg-white min-w-0"
+                data-testid="missing-invoices-courier-filter"
+              >
+                <option value="">Tüm Kuryeler</option>
+                {couriersWithMissing.map(courier => (
+                  <option key={courier.courier_id} value={courier.courier_id}>
+                    {courier.courier_name} ({courier.count} eksik)
+                  </option>
+                ))}
+              </select>
+            </div>
             {selectedCourier && selectedCourierData?.phone && (
               <Button
                 size="sm"
                 onClick={handleWhatsAppReminder}
-                className="h-8 bg-green-600 hover:bg-green-700 text-xs px-2"
+                className="w-full h-9 bg-green-600 hover:bg-green-700 text-sm"
                 data-testid="whatsapp-reminder-btn"
               >
-                <MessageCircle className="w-3.5 h-3.5 mr-1" />
-                Hatırlat
+                <MessageCircle className="w-4 h-4 mr-2" />
+                WhatsApp ile Hatırlat
               </Button>
             )}
           </div>
