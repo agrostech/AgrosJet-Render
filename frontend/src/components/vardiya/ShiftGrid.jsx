@@ -89,6 +89,7 @@ function ShiftRow({
   onDeleteShift,
   onRemoveAssignment,
   onOpenAssignModal,
+  courierFilter = "",
 }) {
   const isEvenRow = shiftIndex % 2 === 0;
   const rowBgClass = isEvenRow ? 'bg-slate-50' : 'bg-white';
@@ -126,6 +127,7 @@ function ShiftRow({
           onCellClick={onCellClick}
           onRemoveAssignment={onRemoveAssignment}
           onOpenAssignModal={onOpenAssignModal}
+          courierFilter={courierFilter}
         />
       ))}
     </TableRow>
