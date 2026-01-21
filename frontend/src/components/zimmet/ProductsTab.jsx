@@ -263,7 +263,7 @@ export function ProductsTab({
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  onClick={() => handleDeleteProduct(selectedProduct.id)}
+                  onClick={() => onDeleteClick(selectedProduct.id)}
                   className="h-9 sm:h-10 border-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-xs sm:text-sm"
                 >
                   <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Sil
