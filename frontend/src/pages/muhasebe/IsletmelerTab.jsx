@@ -217,11 +217,6 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-sm truncate">{b.name}</p>
-                      {b.tax_bracket && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">
-                          %{b.tax_bracket}
-                        </span>
-                      )}
                     </div>
                     {balLabel && (
                       <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${balLabel.color}`}>
@@ -247,14 +242,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                 {/* Üst satır: İsim ve Bakiye */}
                 <div className="flex items-center justify-between sm:justify-start sm:gap-4">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
-                      {selectedEntity.tax_bracket && (
-                        <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-semibold">
-                          %{selectedEntity.tax_bracket}
-                        </span>
-                      )}
-                    </div>
+                    <h3 className="font-heading font-bold truncate">{selectedEntity.name}</h3>
                     {selectedEntity.phone && <p className="text-xs text-muted-foreground font-mono">{selectedEntity.phone}</p>}
                   </div>
                   <div className={`text-right px-3 py-1.5 rounded shrink-0 ${balance > 0 ? 'bg-green-50' : balance < 0 ? 'bg-red-50' : 'bg-slate-100'}`}>
