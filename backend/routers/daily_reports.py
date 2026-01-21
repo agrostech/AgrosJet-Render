@@ -222,7 +222,7 @@ async def upload_excel(
 @router.get("/excel-reports/{company_id}/{date}")
 async def get_excel_reports(company_id: str, date: str):
     """
-    Yüklenen Excel raporlarını getir
+    Yüklenen Excel raporlarını ve karşılaştırma sonucunu getir
     """
     reports = await db.daily_excel_reports.find(
         {"company_id": company_id, "date": date},
@@ -231,7 +231,8 @@ async def get_excel_reports(company_id: str, date: str):
     
     result = {
         "cash": None,
-        "card": None
+        "card": None,
+        "comparison": None
     }
     
     for report in reports:
@@ -239,6 +240,14 @@ async def get_excel_reports(company_id: str, date: str):
             result["cash"] = report
         elif report["report_type"] == "card":
             result["card"] = report
+    
+    # Get saved comparison result if exists
+    comparison = await db.daily_comparisons.find_one(
+        {"company_id": company_id, "date": date},
+        {"_id": 0}
+    )
+    if comparison:
+        result["comparison"] = comparison
     
     return result
 
