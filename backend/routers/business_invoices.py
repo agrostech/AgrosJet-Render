@@ -108,6 +108,48 @@ async def get_business_invoices(company_id: str, year: int, month: int):
     return records
 
 
+# --- Download all invoices for a month (bulk) - Must be before /{business_id} ---
+@router.get("/{company_id}/{year}/{month}/download-all")
+async def download_all_invoices(company_id: str, year: int, month: int):
+    """Get all invoice files for the month as a list"""
+    records = await db.business_invoices.find(
+        {
+            "company_id": company_id,
+            "year": year,
+            "month": month,
+            "invoice_uploaded": True
+        },
+        {"_id": 0}
+    ).to_list(500)
+    
+    all_invoices = []
+    
+    for record in records:
+        business_name = record.get("business_name", "Bilinmeyen")
+        invoices = record.get("invoices", [])
+        
+        # Handle old format
+        if not invoices and record.get("invoice_file"):
+            invoices = [{
+                "invoice_id": "legacy",
+                "file_data": record["invoice_file"],
+                "filename": record.get("invoice_filename", "fatura.pdf"),
+                "extension": record.get("invoice_extension", "pdf")
+            }]
+        
+        for inv in invoices:
+            all_invoices.append({
+                "business_name": business_name,
+                "business_id": record.get("business_id"),
+                "invoice_id": inv.get("invoice_id"),
+                "file_data": inv.get("file_data"),
+                "filename": inv.get("filename"),
+                "extension": inv.get("extension")
+            })
+    
+    return {"invoices": all_invoices, "count": len(all_invoices)}
+
+
 # --- Get single business invoice record ---
 @router.get("/{company_id}/{year}/{month}/{business_id}")
 async def get_business_invoice(company_id: str, year: int, month: int, business_id: str):
