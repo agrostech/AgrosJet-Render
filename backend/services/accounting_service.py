@@ -29,18 +29,19 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
         {"_id": 0}
     ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
-    # Calculate balance from ALL transactions
-    all_transactions = await db.transactions.find(
-        {"entity_type": entity_type, "entity_id": entity_id},
-        {"_id": 0, "type": 1, "amount": 1}
-    ).to_list(10000)
-    
+    # Calculate balance using aggregation (optimized)
+    pipeline = [
+        {"$match": {"entity_type": entity_type, "entity_id": entity_id}},
+        {"$group": {
+            "_id": None,
+            "total_out": {"$sum": {"$cond": [{"$eq": ["$type", "payment_out"]}, "$amount", 0]}},
+            "total_in": {"$sum": {"$cond": [{"$eq": ["$type", "payment_in"]}, "$amount", 0]}}
+        }}
+    ]
+    balance_result = await db.transactions.aggregate(pipeline).to_list(1)
     balance = 0
-    for tx in all_transactions:
-        if tx["type"] == "payment_out":
-            balance += tx["amount"]
-        else:
-            balance -= tx["amount"]
+    if balance_result:
+        balance = balance_result[0]["total_out"] - balance_result[0]["total_in"]
     
     return {
         "transactions": transactions, 
