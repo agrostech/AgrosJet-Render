@@ -36,10 +36,22 @@ async def get_company_couriers(company_id: str, include_inactive: bool = False, 
     
     relations = await db.company_couriers.find(query, {"_id": 0}).to_list(1000)
     
+    if not relations:
+        return []
+    
+    # Batch query - tüm kuryeleri tek sorguda al (N+1 problemi çözümü)
+    courier_ids = [rel["courier_id"] for rel in relations]
+    couriers_cursor = await db.couriers.find(
+        {"id": {"$in": courier_ids}}, 
+        {"_id": 0, "password": 0}
+    ).to_list(1000)
+    couriers_dict = {c["id"]: c for c in couriers_cursor}
+    
     couriers = []
     for rel in relations:
-        courier = await db.couriers.find_one({"id": rel["courier_id"]}, {"_id": 0, "password": 0})
+        courier = couriers_dict.get(rel["courier_id"])
         if courier:
+            courier = courier.copy()  # Orijinali değiştirme
             courier["company_status"] = rel["status"]
             courier["is_archived"] = rel.get("is_archived", False)
             courier["is_active"] = rel.get("is_active", True)
@@ -62,10 +74,22 @@ async def get_inactive_company_couriers(company_id: str):
     query = {"company_id": company_id, "is_active": False, "is_archived": {"$ne": True}}
     relations = await db.company_couriers.find(query, {"_id": 0}).to_list(1000)
     
+    if not relations:
+        return []
+    
+    # Batch query - tüm kuryeleri tek sorguda al
+    courier_ids = [rel["courier_id"] for rel in relations]
+    couriers_cursor = await db.couriers.find(
+        {"id": {"$in": courier_ids}}, 
+        {"_id": 0, "password": 0}
+    ).to_list(1000)
+    couriers_dict = {c["id"]: c for c in couriers_cursor}
+    
     couriers = []
     for rel in relations:
-        courier = await db.couriers.find_one({"id": rel["courier_id"]}, {"_id": 0, "password": 0})
+        courier = couriers_dict.get(rel["courier_id"])
         if courier:
+            courier = courier.copy()
             courier["company_status"] = rel["status"]
             courier["is_archived"] = rel.get("is_archived", False)
             courier["is_active"] = rel.get("is_active", True)
