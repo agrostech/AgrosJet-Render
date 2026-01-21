@@ -107,6 +107,7 @@ export default function JetPuanMarketPage({ companyId }) {
       {/* Tab Content */}
       <div>
         {activeTab === "orders" && <OrdersTab />}
+        {activeTab === "couriers" && <CourierPointsTab companyId={companyId} />}
         {activeTab === "categories" && <CategoriesTab />}
         {activeTab === "products" && <JetPuanProductsTab />}
         {activeTab === "settings" && <SettingsTab companyId={companyId} />}
