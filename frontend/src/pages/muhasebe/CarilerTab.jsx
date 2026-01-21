@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Plus, Minus, Wallet, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil } from "lucide-react";
 import { 
   useAccountingTab, 
@@ -22,6 +23,10 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
   const [showAddModal, setShowAddModal] = useState(false);
   const [newVendor, setNewVendor] = useState({ name: "", phone: "", address: "" });
   
+  // Confirm Modal State
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {}, variant: "default" });
+
   const {
     displayList,
     showArchived,
