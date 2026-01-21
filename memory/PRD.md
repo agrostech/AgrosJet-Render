@@ -25,16 +25,16 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 21, 2026 - İşletme Faturaları (Alınan Faturalar) (Latest)
+### January 21, 2026 - İşletme Faturaları (Alınan + Kesilen) (Latest)
 
 #### ✅ COMPLETED: İşletme Faturaları Özelliği
-İşletmelerden alınan faturaları takip etmek için yeni modül.
+İşletmelerden alınan ve kesilen faturaları takip etmek için yeni modül.
 
 **Yeni Dosyalar:**
 - `/app/backend/routers/business_invoices.py`: İşletme faturaları API
 - `/app/frontend/src/pages/muhasebe/IsletmeFaturalariTab.jsx`: Yeni tab bileşeni
 
-**Özellikler:**
+**Alınan Faturalar Özellikleri:**
 - "Faturalar" tab'ı "Kurye Faturaları" olarak yeniden adlandırıldı
 - Yeni "İşletme Faturaları" tab'ı eklendi
 - Ay seçici (varsayılan: önceki ay, son 12 ay limiti)
@@ -43,19 +43,25 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
   - Türkçe para formatı (₺1.234,56) desteklenir
 - WhatsApp hatırlatma: Tutarı girilen işletmeler için mesaj şablonu ile hatırlatma
 - **Birden fazla fatura yükleme desteği** - Aynı işletme için aynı ay birden fazla PDF/resim yüklenebilir
+- **Toplu İndir** - Ayın tüm faturalarını ZIP olarak indir
 - Fatura görüntüleme, indirme, silme işlemleri
-- Fatura listesi modal'ı ile tüm faturaları yönetme
+
+**Kesilen Faturalar Özellikleri:**
+- İşletmelere fatura kesildi işareti koyma
+- Her tıklamada haftanın Pazartesi günü tarihi kaydedilir
+- Birden fazla tıklanabilir (tarih güncellenir)
+- Hangi işletmeye en son hangi tarihe kadar fatura kesildiğinin takibi
 
 **API Endpoints:**
 - `GET /api/business-invoices/{company_id}/{year}/{month}`: Ay bazlı fatura listesi
 - `GET /api/business-invoices/company-details/{company_id}`: Şirket fatura bilgileri
 - `POST /api/business-invoices/{company_id}/import-excel`: Excel import
 - `POST /api/business-invoices/{company_id}/{year}/{month}/{business_id}/upload`: Fatura yükleme (çoklu)
-- `GET /api/business-invoices/{company_id}/{year}/{month}/{business_id}/download/{invoice_id}`: Fatura indirme
-- `DELETE /api/business-invoices/{company_id}/{year}/{month}/{business_id}/invoice/{invoice_id}`: Fatura silme
-- `POST /api/business-invoices/{company_id}/{year}/{month}/{business_id}/set-amount`: Manuel tutar girişi
+- `GET /api/business-invoices/{company_id}/{year}/{month}/download-all`: Toplu indirme
+- `GET /api/business-invoices/get-issued/{company_id}/{year}/{month}`: Kesilen fatura listesi
+- `POST /api/business-invoices/mark-issued/{company_id}/{year}/{month}/{business_id}`: Fatura kesildi işaretle
 
-**Test Sonuçları:** Excel parsing, API ve UI test edildi. Tüm özellikler çalışıyor.
+**Test Sonuçları:** Tüm özellikler frontend ve backend'de test edildi ve çalışıyor.
 
 ---
 
