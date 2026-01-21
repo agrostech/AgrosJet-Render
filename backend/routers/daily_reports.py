@@ -40,35 +40,77 @@ async def parse_excel_file(file_content: bytes) -> List[Dict]:
     ws = wb.active
     
     rows = list(ws.iter_rows(values_only=True))
-    if len(rows) < 2:
+    if len(rows) < 3:
         return []
     
-    # First row is headers
-    headers = [str(h).strip() if h else "" for h in rows[0]]
+    # Find the header row (row with restaurant names)
+    # The Excel has 2 header rows - we need the second one with restaurant names
+    # Check if second row contains restaurant-like names
+    header_row_idx = 0
+    for idx, row in enumerate(rows[:3]):
+        if row and row[0]:
+            first_cell = str(row[0]).lower().strip()
+            # Skip title rows
+            if "rapor" in first_cell or "hesap" in first_cell or "kurye/restoran" in first_cell:
+                continue
+            # Skip if it's a courier name (has actual data values in later columns)
+            # Restaurant header row will have text in multiple columns
+            non_empty_count = sum(1 for cell in row if cell and str(cell).strip())
+            if non_empty_count > 5:  # Likely a header row with multiple restaurant names
+                header_row_idx = idx
+                break
+    
+    # Use second row as header if first row looks like a title
+    if header_row_idx == 0:
+        first_cell = str(rows[0][0]).lower().strip() if rows[0] and rows[0][0] else ""
+        if "rapor" in first_cell or "hesap" in first_cell or "kurye" in first_cell:
+            header_row_idx = 1
+    
+    headers = [str(h).strip() if h else "" for h in rows[header_row_idx]]
     
     # Find column indices
     courier_col = 0  # First column is courier name
-    total_col = len(headers) - 1  # Last column is total
+    
+    # Find the "Toplam" (Total) column
+    total_col = len(headers) - 1
+    for i, header in enumerate(headers):
+        if header.lower() in ["toplam", "total", "genel toplam"]:
+            total_col = i
+            break
     
     # Find restaurant columns (between courier and total)
     restaurant_cols = {}
     for i, header in enumerate(headers):
         if i > 0 and i < total_col and header:
-            # Clean restaurant name
-            restaurant_name = header.strip()
-            restaurant_cols[i] = restaurant_name
+            # Skip empty or non-restaurant headers
+            header_clean = header.strip()
+            if header_clean and header_clean.lower() not in ["kurye adı", "kurye", "ad", "toplam", "total"]:
+                restaurant_cols[i] = header_clean
     
     results = []
-    for row in rows[1:]:
+    # Start from row after header
+    for row in rows[header_row_idx + 1:]:
         if not row or not row[0]:
             continue
         
         courier_name = str(row[0]).strip()
-        if not courier_name or courier_name.lower() in ["toplam", "total", ""]:
+        if not courier_name or courier_name.lower() in ["toplam", "total", "genel toplam", ""]:
             continue
         
         # Skip internal/support rows
         if "destek" in courier_name.lower() or "agros" in courier_name.lower():
+            continue
+        
+        # Skip if this looks like another header row (no numeric values)
+        has_numeric = False
+        for i in range(1, min(len(row), total_col + 1)):
+            if row[i]:
+                val = parse_turkish_number(str(row[i]))
+                if val > 0:
+                    has_numeric = True
+                    break
+        
+        if not has_numeric:
             continue
         
         # Get total
