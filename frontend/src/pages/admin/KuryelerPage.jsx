@@ -241,6 +241,7 @@ export default function KuryelerPage({ companyId }) {
         open={showDetailModal}
         onOpenChange={setShowDetailModal}
         courier={selectedCourier}
+        companyId={companyId}
         companyName={companyName}
       />
 
