@@ -621,10 +621,21 @@ async def process_differences(
         }}
     )
     
+    # Mark comparison as processed
+    await db.daily_comparisons.update_one(
+        {"company_id": company_id, "date": date},
+        {"$set": {
+            "processed": True,
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_by": admin_name
+        }}
+    )
+    
     return {
         "message": "İşlemler oluşturuldu",
         "transactions_created": len(transactions_created),
-        "details": transactions_created
+        "details": transactions_created,
+        "processed_by": admin_name
     }
 
 
