@@ -323,6 +323,7 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           getLocalDateTimeString={getLocalDateTimeString}
           handlePayment={handlePayment}
           handleArchive={handleArchiveWithConfirm}
+          handleUnarchive={handleUnarchiveWithConfirm}
           loadMore={loadMore}
           exportPDF={exportPDF}
           onOpenEditModal={openEditModal}
