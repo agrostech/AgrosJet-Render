@@ -52,22 +52,22 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
 
 
 async def calculate_total_balance(entity_type: str, entity_ids: list) -> float:
-    """Calculate total balance for a list of entities"""
+    """Calculate total balance for a list of entities using aggregation"""
     if not entity_ids:
         return 0
     
-    all_transactions = await db.transactions.find(
-        {"entity_type": entity_type, "entity_id": {"$in": entity_ids}},
-        {"_id": 0, "type": 1, "amount": 1}
-    ).to_list(100000)
-    
-    balance = 0
-    for tx in all_transactions:
-        if tx["type"] == "payment_out":
-            balance += tx["amount"]
-        else:
-            balance -= tx["amount"]
-    return balance
+    pipeline = [
+        {"$match": {"entity_type": entity_type, "entity_id": {"$in": entity_ids}}},
+        {"$group": {
+            "_id": None,
+            "total_out": {"$sum": {"$cond": [{"$eq": ["$type", "payment_out"]}, "$amount", 0]}},
+            "total_in": {"$sum": {"$cond": [{"$eq": ["$type", "payment_in"]}, "$amount", 0]}}
+        }}
+    ]
+    result = await db.transactions.aggregate(pipeline).to_list(1)
+    if result:
+        return result[0]["total_out"] - result[0]["total_in"]
+    return 0
 
 
 def parse_custom_date(custom_date: str = None) -> str:
