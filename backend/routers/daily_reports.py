@@ -442,14 +442,16 @@ async def compare_reports(company_id: str, date: str):
                 
                 if actual_bracket and actual_bracket != expected_bracket:
                     # Wrong bracket detected!
-                    # Calculate penalty: 34% of the amount
-                    penalty = round(amount * 0.34, 2)
+                    # Calculate penalty: difference between brackets
+                    bracket_diff = abs(actual_bracket - expected_bracket) / 100  # e.g., 20-1 = 19%
+                    penalty = round(amount * bracket_diff, 2)
                     total_penalty += penalty
                     tax_issues.append({
                         "restaurant": restaurant_name,
                         "amount": amount,
                         "expected_bracket": expected_bracket,
                         "actual_bracket": actual_bracket,
+                        "bracket_diff": abs(actual_bracket - expected_bracket),
                         "penalty": penalty
                     })
         
