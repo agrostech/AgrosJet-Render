@@ -298,6 +298,24 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
                     </Button>
                   </div>
                 )}
+                
+                {/* Arşivden Çıkar butonu - sadece arşiv görünümünde */}
+                {showArchived && (
+                  <div className="flex items-center gap-2 justify-end">
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setConfirmConfig({
+                        title: "Arşivden Çıkar",
+                        description: `"${selectedEntity.name}" işletmesini arşivden çıkarmak istediğinize emin misiniz?`,
+                        variant: "default",
+                        onConfirm: () => handleUnarchive(selectedEntity.id)
+                      });
+                      setConfirmOpen(true);
+                    }} className="h-9 border-2 text-green-600 hover:bg-green-50" data-testid="unarchive-business-btn">
+                      <ArchiveRestore className="w-4 h-4" />
+                      <span className="ml-1.5 text-xs sm:hidden">Çıkar</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 
