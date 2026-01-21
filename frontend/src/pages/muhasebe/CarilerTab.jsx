@@ -97,7 +97,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
   const handleAddVendor = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/vendors`, { ...newVendor, company_id: companyId });
+      await axios.post(`${API}/companies/${companyId}/vendors`, newVendor);
       toast.success("Cari eklendi");
       setShowAddModal(false);
       setNewVendor({ name: "", phone: "", address: "" });
