@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Clock, Pencil, Check, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { X, Clock, Pencil, Check, Users, Search } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import {
   useVardiyaData,
@@ -19,6 +20,7 @@ export default function VardiyaPage({ companyId }) {
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [bulkAssigning, setBulkAssigning] = useState(false);
+  const [courierFilter, setCourierFilter] = useState("");
 
   const {
     shifts,
