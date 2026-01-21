@@ -355,44 +355,6 @@ async def delete_invoice(company_id: str, year: int, month: int, business_id: st
     )
     
     return {"message": "Fatura silindi"}
-        "year": year,
-        "month": month,
-        "business_id": business_id
-    })
-    
-    if not record or not record.get("invoice_file"):
-        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
-    
-    return {
-        "file_data": record["invoice_file"],
-        "filename": record.get("invoice_filename", "fatura.pdf"),
-        "extension": record.get("invoice_extension", "pdf")
-    }
-
-
-# --- Delete invoice file ---
-@router.delete("/{company_id}/{year}/{month}/{business_id}/invoice")
-async def delete_invoice(company_id: str, year: int, month: int, business_id: str):
-    """Delete the uploaded invoice file"""
-    result = await db.business_invoices.update_one(
-        {
-            "company_id": company_id,
-            "year": year,
-            "month": month,
-            "business_id": business_id
-        },
-        {"$set": {
-            "invoice_uploaded": False,
-            "invoice_file": None,
-            "invoice_filename": None,
-            "uploaded_at": None
-        }}
-    )
-    
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
-    
-    return {"message": "Fatura silindi"}
 
 
 # --- Get company invoice details from system settings ---
