@@ -224,6 +224,20 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     setConfirmOpen(true);
   };
 
+  // Handle Archive with confirm modal
+  const handleArchiveWithConfirm = (entityId) => {
+    const entity = displayList.find(e => e.id === entityId);
+    setConfirmConfig({
+      title: "Kurye Arşivle",
+      description: `"${entity?.name || 'Bu kurye'}" kuryesini arşivlemek istediğinize emin misiniz?`,
+      onConfirm: async () => {
+        await handleArchive(entityId, true);
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
+  };
+
   // Edit modal
   const openEditModal = (tx) => {
     setEditingTx(tx);
