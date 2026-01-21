@@ -22,6 +22,7 @@ export default function ShiftGrid({
   onRemoveLeave,
   onOpenAssignModal,
   onOpenLeaveModal,
+  courierFilter = "",
 }) {
   return (
     <div className="border-2 border-border bg-white overflow-x-auto">
@@ -58,6 +59,7 @@ export default function ShiftGrid({
               onDeleteShift={onDeleteShift}
               onRemoveAssignment={onRemoveAssignment}
               onOpenAssignModal={onOpenAssignModal}
+              courierFilter={courierFilter}
             />
           ))}
           
