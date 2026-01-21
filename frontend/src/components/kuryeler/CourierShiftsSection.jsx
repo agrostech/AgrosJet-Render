@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Calendar, Clock, Trash2, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import { Clock, Trash2, AlertTriangle } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -22,7 +22,7 @@ const mergeConsecutiveShifts = (dayAssignments, shifts) => {
   
   const shiftTimes = dayAssignments.map(a => {
     const shift = shifts.find(s => s.id === a.shift_id);
-    return shift ? { start: shift.start_time, end: shift.end_time } : null;
+    return shift ? { start: shift.start_time, end: shift.end_time, assignmentId: a.id } : null;
   }).filter(Boolean);
   
   if (shiftTimes.length === 0) return [];
@@ -30,15 +30,16 @@ const mergeConsecutiveShifts = (dayAssignments, shifts) => {
   shiftTimes.sort((a, b) => timeToMinutesSince0600(a.start) - timeToMinutesSince0600(b.start));
   
   const merged = [];
-  let current = { ...shiftTimes[0] };
+  let current = { start: shiftTimes[0].start, end: shiftTimes[0].end, ids: [shiftTimes[0].assignmentId] };
   
   for (let i = 1; i < shiftTimes.length; i++) {
     const next = shiftTimes[i];
     if (current.end === next.start) {
       current.end = next.end;
+      current.ids.push(next.assignmentId);
     } else {
       merged.push(current);
-      current = { ...next };
+      current = { start: next.start, end: next.end, ids: [next.assignmentId] };
     }
   }
   merged.push(current);
@@ -46,34 +47,24 @@ const mergeConsecutiveShifts = (dayAssignments, shifts) => {
   return merged;
 };
 
-// Get week dates starting from Monday
-const getWeekDates = (weekOffset = 0) => {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) + (weekOffset * 7));
-  
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-    dates.push(date.toISOString().split('T')[0]);
-  }
-  return dates;
-};
-
-const dayNames = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+// Day configuration
+const DAYS = [
+  { key: "pazartesi", label: "Pazartesi", shortLabel: "Pzt" },
+  { key: "sali", label: "Salı", shortLabel: "Sal" },
+  { key: "carsamba", label: "Çarşamba", shortLabel: "Çar" },
+  { key: "persembe", label: "Perşembe", shortLabel: "Per" },
+  { key: "cuma", label: "Cuma", shortLabel: "Cum" },
+  { key: "cumartesi", label: "Cumartesi", shortLabel: "Cmt" },
+  { key: "pazar", label: "Pazar", shortLabel: "Paz" },
+];
 
 export default function CourierShiftsSection({ courierId, courierName, companyId }) {
   const [loading, setLoading] = useState(true);
   const [shifts, setShifts] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [leaves, setLeaves] = useState([]);
-  const [weekOffset, setWeekOffset] = useState(0);
   const [deleting, setDeleting] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-
-  const weekDates = getWeekDates(weekOffset);
 
   useEffect(() => {
     fetchData();
@@ -98,18 +89,19 @@ export default function CourierShiftsSection({ courierId, courierName, companyId
     }
   };
 
-  const handleDeleteDayShifts = async (date) => {
-    setDeleting(date);
+  const handleDeleteDayShifts = async (dayKey) => {
+    setDeleting(dayKey);
     try {
-      // Get all assignments for this date and courier
-      const dayAssignments = assignments.filter(a => a.date === date);
+      // Get all assignments for this day and courier
+      const dayAssignments = assignments.filter(a => a.day === dayKey);
       
       // Delete each assignment
       for (const assignment of dayAssignments) {
         await axios.delete(`${API}/companies/${companyId}/shift-assignments/${assignment.id}`);
       }
       
-      toast.success(`${formatDate(date)} vardiyaları silindi`);
+      const dayLabel = DAYS.find(d => d.key === dayKey)?.label || dayKey;
+      toast.success(`${dayLabel} vardiyaları silindi`);
       fetchData();
     } catch (err) {
       toast.error("Vardiyalar silinemedi");
@@ -119,17 +111,9 @@ export default function CourierShiftsSection({ courierId, courierName, companyId
     }
   };
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
-  };
-
-  const isToday = (dateStr) => {
-    return dateStr === new Date().toISOString().split('T')[0];
-  };
-
-  const isPast = (dateStr) => {
-    return dateStr < new Date().toISOString().split('T')[0];
+  // Get leave for a specific day
+  const getLeaveForDay = (dayKey) => {
+    return leaves.find(l => l.day === dayKey);
   };
 
   if (loading) {
@@ -140,56 +124,41 @@ export default function CourierShiftsSection({ courierId, courierName, companyId
     );
   }
 
+  // Count total assignments
+  const totalAssignments = assignments.length;
+
   return (
-    <div className="space-y-4" data-testid="courier-shifts-section">
-      {/* Week Navigation */}
-      <div className="flex items-center justify-between">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setWeekOffset(w => w - 1)}
-          className="h-8"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        <div className="text-sm font-medium text-center">
-          {formatDate(weekDates[0])} - {formatDate(weekDates[6])}
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setWeekOffset(w => w + 1)}
-          className="h-8"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
+    <div className="space-y-3" data-testid="courier-shifts-section">
+      {/* Header */}
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Haftalık Vardiyalar</span>
+        <span className="font-medium">{totalAssignments} vardiya</span>
       </div>
 
-      {/* Week Grid */}
+      {/* Day List */}
       <div className="space-y-2">
-        {weekDates.map((date, idx) => {
-          const dayAssignments = assignments.filter(a => a.date === date);
-          const dayLeave = leaves.find(l => l.date === date);
+        {DAYS.map((day) => {
+          const dayAssignments = assignments.filter(a => a.day === day.key);
+          const dayLeave = getLeaveForDay(day.key);
           const mergedShifts = mergeConsecutiveShifts(dayAssignments, shifts);
           const hasShifts = dayAssignments.length > 0;
-          const past = isPast(date);
-          const today = isToday(date);
 
           return (
             <div 
-              key={date}
+              key={day.key}
               className={`flex items-center gap-2 p-2 rounded-lg border ${
-                today ? 'border-primary bg-primary/5' : 
-                past ? 'border-border bg-slate-50/50' : 'border-border bg-white'
+                hasShifts ? 'border-green-200 bg-green-50/50' : 
+                dayLeave ? 'border-amber-200 bg-amber-50/50' : 
+                'border-border bg-slate-50/50'
               }`}
             >
               {/* Day Label */}
-              <div className={`w-12 text-center flex-shrink-0 ${past ? 'opacity-50' : ''}`}>
-                <div className={`text-xs font-semibold ${today ? 'text-primary' : 'text-muted-foreground'}`}>
-                  {dayNames[idx]}
+              <div className="w-16 flex-shrink-0">
+                <div className="text-xs font-semibold text-muted-foreground hidden sm:block">
+                  {day.label}
                 </div>
-                <div className={`text-sm font-bold ${today ? 'text-primary' : ''}`}>
-                  {new Date(date).getDate()}
+                <div className="text-xs font-semibold text-muted-foreground sm:hidden">
+                  {day.shortLabel}
                 </div>
               </div>
 
@@ -217,16 +186,16 @@ export default function CourierShiftsSection({ courierId, courierName, companyId
                 )}
               </div>
 
-              {/* Delete Button - Only for days with shifts and not past */}
-              {hasShifts && !past && (
+              {/* Delete Button - Only for days with shifts */}
+              {hasShifts && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setConfirmDelete(date)}
-                  disabled={deleting === date}
+                  onClick={() => setConfirmDelete(day.key)}
+                  disabled={deleting === day.key}
                   className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
                 >
-                  {deleting === date ? (
+                  {deleting === day.key ? (
                     <LoadingSpinner size="sm" />
                   ) : (
                     <Trash2 className="w-4 h-4" />
@@ -238,17 +207,19 @@ export default function CourierShiftsSection({ courierId, courierName, companyId
         })}
       </div>
 
-      {/* Summary */}
-      <div className="text-xs text-muted-foreground text-center pt-2 border-t">
-        Bu hafta: {assignments.filter(a => weekDates.includes(a.date)).length} vardiya
-      </div>
+      {/* Empty State */}
+      {totalAssignments === 0 && leaves.length === 0 && (
+        <div className="text-center text-sm text-muted-foreground py-4 border-t">
+          Bu kuryeye henüz vardiya atanmamış
+        </div>
+      )}
 
       {/* Confirm Delete Modal */}
       <ConfirmModal
         open={!!confirmDelete}
         onOpenChange={() => setConfirmDelete(null)}
         title="Vardiyaları Sil"
-        description={`${confirmDelete ? formatDate(confirmDelete) : ''} tarihindeki tüm vardiyaları silmek istediğinize emin misiniz?`}
+        description={`${confirmDelete ? DAYS.find(d => d.key === confirmDelete)?.label : ''} günündeki tüm vardiyaları silmek istediğinize emin misiniz?`}
         onConfirm={() => handleDeleteDayShifts(confirmDelete)}
         variant="danger"
       />
