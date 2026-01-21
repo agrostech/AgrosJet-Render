@@ -259,6 +259,7 @@ export default function ZimmetPage() {
           loadMoreProducts={zimmetData.loadMoreProducts}
           openEditProduct={openEditProduct}
           handleDeleteProduct={zimmetData.handleDeleteProduct}
+          confirmDeleteProduct={zimmetData.confirmDeleteProduct}
           handleToggleDefective={zimmetData.handleToggleDefective}
           handleToggleLost={zimmetData.handleToggleLost}
           setShowAssignModal={setShowAssignModal}
