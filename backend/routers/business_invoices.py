@@ -422,3 +422,128 @@ async def set_amount(
         await db.business_invoices.insert_one(record)
     
     return {"message": "Tutar kaydedildi"}
+
+
+# --- Download all invoices for a month (bulk) ---
+@router.get("/{company_id}/{year}/{month}/download-all")
+async def download_all_invoices(company_id: str, year: int, month: int):
+    """Get all invoice files for the month as a list"""
+    records = await db.business_invoices.find(
+        {
+            "company_id": company_id,
+            "year": year,
+            "month": month,
+            "invoice_uploaded": True
+        },
+        {"_id": 0}
+    ).to_list(500)
+    
+    all_invoices = []
+    
+    for record in records:
+        business_name = record.get("business_name", "Bilinmeyen")
+        invoices = record.get("invoices", [])
+        
+        # Handle old format
+        if not invoices and record.get("invoice_file"):
+            invoices = [{
+                "invoice_id": "legacy",
+                "file_data": record["invoice_file"],
+                "filename": record.get("invoice_filename", "fatura.pdf"),
+                "extension": record.get("invoice_extension", "pdf")
+            }]
+        
+        for inv in invoices:
+            all_invoices.append({
+                "business_name": business_name,
+                "business_id": record.get("business_id"),
+                "invoice_id": inv.get("invoice_id"),
+                "file_data": inv.get("file_data"),
+                "filename": inv.get("filename"),
+                "extension": inv.get("extension")
+            })
+    
+    return {"invoices": all_invoices, "count": len(all_invoices)}
+
+
+# =====================================================
+# KESİLEN FATURALAR (ISSUED INVOICES) API
+# =====================================================
+
+# --- Get all issued invoice records for a month ---
+@router.get("/issued/{company_id}/{year}/{month}")
+async def get_issued_invoices(company_id: str, year: int, month: int):
+    """Get all issued invoice records for a specific month"""
+    records = await db.issued_invoices.find(
+        {"company_id": company_id, "year": year, "month": month},
+        {"_id": 0}
+    ).to_list(500)
+    
+    return records
+
+
+# --- Mark invoice as issued for a business ---
+@router.post("/issued/{company_id}/{year}/{month}/{business_id}/mark")
+async def mark_invoice_issued(company_id: str, year: int, month: int, business_id: str):
+    """Mark invoice as issued - saves Monday of current week as date"""
+    # Get business name
+    business = await db.businesses.find_one({"id": business_id}, {"_id": 0, "name": 1})
+    if not business:
+        raise HTTPException(status_code=404, detail="İşletme bulunamadı")
+    
+    # Calculate Monday of current week
+    today = datetime.now(timezone.utc)
+    days_since_monday = today.weekday()  # Monday = 0, Sunday = 6
+    monday = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    if days_since_monday > 0:
+        from datetime import timedelta
+        monday = monday - timedelta(days=days_since_monday)
+    
+    monday_str = monday.strftime("%Y-%m-%d")
+    
+    existing = await db.issued_invoices.find_one({
+        "company_id": company_id,
+        "year": year,
+        "month": month,
+        "business_id": business_id
+    })
+    
+    if existing:
+        await db.issued_invoices.update_one(
+            {"id": existing["id"]},
+            {"$set": {
+                "issued_until_date": monday_str,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    else:
+        record = {
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
+            "year": year,
+            "month": month,
+            "business_id": business_id,
+            "business_name": business["name"],
+            "issued_until_date": monday_str,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.issued_invoices.insert_one(record)
+    
+    return {"message": "Fatura kesildi olarak işaretlendi", "issued_until_date": monday_str}
+
+
+# --- Clear issued status for a business ---
+@router.delete("/issued/{company_id}/{year}/{month}/{business_id}")
+async def clear_issued_invoice(company_id: str, year: int, month: int, business_id: str):
+    """Clear the issued status for a business"""
+    result = await db.issued_invoices.delete_one({
+        "company_id": company_id,
+        "year": year,
+        "month": month,
+        "business_id": business_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    
+    return {"message": "İşaret kaldırıldı"}
