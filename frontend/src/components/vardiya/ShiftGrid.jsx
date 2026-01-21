@@ -70,6 +70,7 @@ export default function ShiftGrid({
             getLeavesForDay={getLeavesForDay}
             onRemoveLeave={onRemoveLeave}
             onOpenLeaveModal={onOpenLeaveModal}
+            courierFilter={courierFilter}
           />
         </TableBody>
       </Table>
