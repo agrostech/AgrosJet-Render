@@ -320,29 +320,30 @@ async def get_missing_invoices(company_id: str):
         {"_id": 0}
     ).sort("created_at", -1).to_list(500)
     
-    # Enrich with courier names if missing
+    # Enrich with courier names and phone if missing
     # Use courier_id or entity_id (for older transactions)
     courier_ids = []
     for tx in transactions:
-        if not tx.get("courier_name"):
-            cid = tx.get("courier_id") or tx.get("entity_id")
-            if cid:
-                courier_ids.append(cid)
+        cid = tx.get("courier_id") or tx.get("entity_id")
+        if cid:
+            courier_ids.append(cid)
     
     courier_ids = list(set(courier_ids))
     
     if courier_ids:
         couriers = await db.couriers.find(
             {"id": {"$in": courier_ids}},
-            {"_id": 0, "id": 1, "name": 1}
+            {"_id": 0, "id": 1, "name": 1, "phone": 1}
         ).to_list(500)
-        courier_map = {c["id"]: c["name"] for c in couriers}
+        courier_map = {c["id"]: {"name": c["name"], "phone": c.get("phone", "")} for c in couriers}
         
         for tx in transactions:
-            if not tx.get("courier_name"):
-                cid = tx.get("courier_id") or tx.get("entity_id")
-                if cid:
-                    tx["courier_name"] = courier_map.get(cid, "Bilinmeyen Kurye")
+            cid = tx.get("courier_id") or tx.get("entity_id")
+            if cid and cid in courier_map:
+                if not tx.get("courier_name"):
+                    tx["courier_name"] = courier_map[cid]["name"]
+                tx["phone"] = courier_map[cid]["phone"]
+                tx["courier_id"] = cid  # Ensure courier_id is set
     
     return transactions
 
