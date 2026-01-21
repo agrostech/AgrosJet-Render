@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, Archive, Clock, Search, Download, Pencil, Trash2, CreditCard } from "lucide-react";
+import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard } from "lucide-react";
 import { formatMoney, formatDate } from "@/hooks/useAccountingTab";
 
 export default function CourierTransactions({
