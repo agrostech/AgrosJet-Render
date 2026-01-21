@@ -61,6 +61,21 @@ const webpackConfig = {
         ],
       };
 
+      // Exclude pako from source-map-loader (missing source maps)
+      webpackConfig.module.rules.forEach((rule) => {
+        if (rule.enforce === 'pre' && rule.use) {
+          const sourceMapLoader = rule.use.find(
+            (use) => use.loader && use.loader.includes('source-map-loader')
+          );
+          if (sourceMapLoader) {
+            rule.exclude = [
+              ...(rule.exclude || []),
+              /node_modules\/pako/,
+            ];
+          }
+        }
+      });
+
       // Add health check plugin to webpack if enabled
       if (config.enableHealthCheck && healthPluginInstance) {
         webpackConfig.plugins.push(healthPluginInstance);
