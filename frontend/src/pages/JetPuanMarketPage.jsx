@@ -7,13 +7,15 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Users,
 } from "lucide-react";
 
 // JetPuan components
-import { OrdersTab, CategoriesTab, JetPuanProductsTab, SettingsTab } from "@/components/jetpuan";
+import { OrdersTab, CategoriesTab, JetPuanProductsTab, SettingsTab, CourierPointsTab } from "@/components/jetpuan";
 
 const TABS = [
   { key: "orders", label: "Siparişler", icon: ClipboardList },
+  { key: "couriers", label: "Kurye Puanları", icon: Users },
   { key: "categories", label: "Kategoriler", icon: Tags },
   { key: "products", label: "Ürünler", icon: Package },
   { key: "settings", label: "Ayarlar", icon: Settings },
