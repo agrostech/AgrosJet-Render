@@ -613,7 +613,7 @@ ${email ? `E-posta: ${email}` : ""}`;
                       <div className="font-medium text-slate-800">{item.name}</div>
                       {hasAmount && (
                         <span className="font-semibold text-green-600 text-sm">
-                          {record.required_amount.toLocaleString("tr-TR")} ₺
+                          {record.required_amount.toLocaleString("tr-TR")} TL
                         </span>
                       )}
                     </div>
