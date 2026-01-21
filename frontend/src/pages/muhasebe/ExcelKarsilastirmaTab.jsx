@@ -426,23 +426,39 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
             </table>
           </div>
 
-          {/* İşlemleri Oluştur Butonu */}
-          {comparisonResult.summary.couriers_with_issues > 0 && (
-            <div className="p-4 border-t border-border bg-slate-50">
-              <Button
-                onClick={handleProcess}
-                disabled={processing}
-                className="w-full h-12 bg-green-600 hover:bg-green-700"
-                data-testid="process-btn"
-              >
-                <Check className="w-5 h-5 mr-2" />
-                {processing ? "İşleniyor..." : "Farkları İşle ve Muhasebe Kayıtlarını Oluştur"}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Eksik nakit ve kart tutarları, vergi dilimi cezaları kuryeye yeşil (verilen) işlem olarak eklenecek.
-              </p>
-            </div>
-          )}
+          {/* İşlemleri Oluştur Butonu veya İşlendi Bilgisi */}
+          <div className="p-4 border-t border-border bg-slate-50">
+            {comparisonResult.processed ? (
+              <div className="flex items-center justify-center gap-2 py-3 bg-green-100 rounded-lg border border-green-200">
+                <Check className="w-5 h-5 text-green-600" />
+                <span className="text-green-700 font-semibold">
+                  {comparisonResult.processed_by} Tarafından İşlendi
+                </span>
+              </div>
+            ) : comparisonResult.summary.couriers_with_issues > 0 ? (
+              <>
+                <Button
+                  onClick={handleProcess}
+                  disabled={processing}
+                  className="w-full h-12 bg-green-600 hover:bg-green-700"
+                  data-testid="process-btn"
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  {processing ? "İşleniyor..." : "Farkları İşle ve Muhasebe Kayıtlarını Oluştur"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Eksik nakit ve kart tutarları, vergi dilimi cezaları kuryeye yeşil (verilen) işlem olarak eklenecek.
+                </p>
+              </>
+            ) : (
+              <div className="flex items-center justify-center gap-2 py-3 bg-green-100 rounded-lg border border-green-200">
+                <Check className="w-5 h-5 text-green-600" />
+                <span className="text-green-700 font-semibold">
+                  Tüm kayıtlar tutarlı, işlem yapılacak fark yok
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
