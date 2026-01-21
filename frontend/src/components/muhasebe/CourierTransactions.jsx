@@ -88,6 +88,16 @@ export default function CourierTransactions({
               </Button>
             </div>
           )}
+          
+          {/* Arşivden Çıkar butonu - sadece arşiv görünümünde */}
+          {showArchived && (
+            <div className="flex items-center gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => handleUnarchive(selectedEntity.id)} className="h-9 border-2 text-green-600 hover:bg-green-50" data-testid="unarchive-courier-btn">
+                <ArchiveRestore className="w-4 h-4" />
+                <span className="ml-1.5 text-xs sm:hidden">Çıkar</span>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
