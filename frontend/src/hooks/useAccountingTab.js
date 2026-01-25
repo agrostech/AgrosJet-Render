@@ -85,6 +85,7 @@ export function useAccountingTab({
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [isHakedis, setIsHakedis] = useState(false);
+  const [addJetpuan, setAddJetpuan] = useState(true); // JetPuan eklensin mi?
   const [submitting, setSubmitting] = useState(false);
   const [useCustomDate, setUseCustomDate] = useState(false);
   const [txDate, setTxDate] = useState("");
