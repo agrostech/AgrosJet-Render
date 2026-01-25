@@ -786,7 +786,7 @@ export default function AkademiPage({ companyId }) {
 
       {/* View Training Modal */}
       <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedTraining?.title}</DialogTitle>
           </DialogHeader>
@@ -801,11 +801,31 @@ export default function AkademiPage({ companyId }) {
                   Tarayıcınız video oynatmayı desteklemiyor.
                 </video>
               )}
-              {selectedTraining.content && (
+              
+              {/* Render content blocks for text type */}
+              {selectedTraining.training_type === "text" && selectedTraining.content_blocks && selectedTraining.content_blocks.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedTraining.content_blocks.map((block, index) => (
+                    <div key={index}>
+                      {block.type === "text" ? (
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed">{block.value}</p>
+                      ) : block.type === "image" && block.value ? (
+                        <img 
+                          src={block.value.startsWith('data:') ? block.value : `${process.env.REACT_APP_BACKEND_URL}${block.value}`}
+                          alt={`İçerik ${index + 1}`}
+                          className="w-full rounded-lg"
+                        />
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : selectedTraining.content ? (
                 <div className="prose prose-sm max-w-none">
                   <p className="whitespace-pre-wrap text-sm">{selectedTraining.content}</p>
                 </div>
-              )}
+              ) : null}
+            </div>
+          )}
             </div>
           )}
         </DialogContent>
