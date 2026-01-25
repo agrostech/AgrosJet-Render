@@ -521,15 +521,111 @@ export default function AkademiPage({ companyId }) {
 
             <div>
               <Label className="text-sm font-semibold">
-                {addForm.training_type === "text" ? "İçerik" : "Açıklama (Opsiyonel)"}
+                {addForm.training_type === "text" ? "İçerik Blokları" : "Açıklama (Opsiyonel)"}
               </Label>
-              <Textarea
-                value={addForm.content}
-                onChange={(e) => setAddForm({ ...addForm, content: e.target.value })}
-                placeholder={addForm.training_type === "text" ? "Eğitim içeriğini yazın..." : "Video hakkında kısa açıklama"}
-                className="mt-1 border-2 min-h-[120px]"
-                data-testid="training-content-input"
-              />
+              
+              {addForm.training_type === "text" ? (
+                <div className="mt-2 space-y-3">
+                  {/* Content Blocks */}
+                  {addForm.contentBlocks.map((block, index) => (
+                    <div key={index} className="relative group">
+                      <div className="absolute -left-6 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <GripVertical className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      
+                      {block.type === "text" ? (
+                        <div className="relative">
+                          <Textarea
+                            value={block.value}
+                            onChange={(e) => updateContentBlock(index, e.target.value)}
+                            placeholder="Metin içeriği yazın..."
+                            className="border-2 min-h-[80px] pr-8"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeContentBlock(index)}
+                            className="absolute top-2 right-2 text-muted-foreground hover:text-red-500"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="relative border-2 border-border rounded-lg overflow-hidden">
+                          {block.value ? (
+                            <div className="relative">
+                              <img 
+                                src={block.value.startsWith('data:') ? block.value : `${process.env.REACT_APP_BACKEND_URL}${block.value}`}
+                                alt="İçerik görseli" 
+                                className="w-full h-40 object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeContentBlock(index)}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div 
+                              onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = (e) => handleImageUpload(e.target.files[0], index);
+                                input.click();
+                              }}
+                              className="h-32 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors"
+                            >
+                              <Image className="w-8 h-8 text-muted-foreground/50 mb-2" />
+                              <span className="text-sm text-muted-foreground">Görsel seçmek için tıklayın</span>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); removeContentBlock(index); }}
+                                className="absolute top-2 right-2 text-muted-foreground hover:text-red-500"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Add Block Buttons */}
+                  <div className="flex gap-2 pt-2 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addContentBlock("text")}
+                      className="flex-1"
+                    >
+                      <Type className="w-4 h-4 mr-1" />
+                      Metin Ekle
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addContentBlock("image")}
+                      className="flex-1"
+                    >
+                      <Image className="w-4 h-4 mr-1" />
+                      Görsel Ekle
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Textarea
+                  value={addForm.content}
+                  onChange={(e) => setAddForm({ ...addForm, content: e.target.value })}
+                  placeholder="Video hakkında kısa açıklama"
+                  className="mt-1 border-2 min-h-[120px]"
+                  data-testid="training-content-input"
+                />
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={uploading}>
