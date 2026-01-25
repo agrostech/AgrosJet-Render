@@ -202,12 +202,14 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
         items,
         admin_id: adminId,
         admin_name: adminName,
-        custom_date: useCustomDate ? new Date(txDate).toISOString() : null
+        custom_date: useCustomDate ? new Date(txDate).toISOString() : null,
+        add_jetpuan: addJetpuanBulk
       });
 
       toast.success(res.data.message);
       setShowModal(false);
       setParseResult(null);
+      setAddJetpuanBulk(true); // Reset to default
     } catch (err) {
       if (!err.handled) {
         toast.error(err.response?.data?.detail || "Hakedişler eklenemedi");
