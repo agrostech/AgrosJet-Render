@@ -56,6 +56,8 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     fetchTransactions,
     fetchEntityBalance,
     getDateDisplayText,
+    addJetpuan,
+    setAddJetpuan,
   } = useAccountingTab({
     entityType: "courier",
     companyId,
