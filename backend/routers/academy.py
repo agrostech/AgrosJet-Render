@@ -29,11 +29,13 @@ class TrainingCreate(BaseModel):
     title: str
     content: Optional[str] = None  # Written content
     training_type: str = "video"  # "video" or "text"
+    content_blocks: Optional[list] = None  # For rich text content: [{"type": "text", "value": "..."}, {"type": "image", "value": "image_id"}]
 
 
 class TrainingUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
+    content_blocks: Optional[list] = None
 
 
 # --- Training CRUD ---
