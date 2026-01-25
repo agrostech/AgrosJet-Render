@@ -302,7 +302,8 @@ async def create_transaction(
         })
     
     # Auto-credit JetPuan for hakediş transactions (payment_in to courier - kırmızı buton)
-    if data.entity_type == "courier" and data.is_hakedis and data.type == "payment_in":
+    # Sadece add_jetpuan=True ise JetPuan eklenir
+    if data.entity_type == "courier" and data.is_hakedis and data.type == "payment_in" and data.add_jetpuan:
         try:
             jetpuan_amount = await calculate_and_credit_points(data.entity_id, data.amount)
             if jetpuan_amount > 0:
