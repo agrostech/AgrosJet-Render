@@ -55,7 +55,7 @@ export default function ShiftGrid({
               shift={shift}
               shiftIndex={shiftIndex}
               editMode={editMode}
-              ctrlPressed={ctrlPressed}
+              isSelectionMode={isSelectionMode}
               isCellSelected={isCellSelected}
               getAssignmentsForCell={getAssignmentsForCell}
               onCellClick={onCellClick}
@@ -69,7 +69,7 @@ export default function ShiftGrid({
           {/* İzinliler Satırı */}
           <LeaveRow
             editMode={editMode}
-            ctrlPressed={ctrlPressed}
+            isSelectionMode={isSelectionMode}
             getLeavesForDay={getLeavesForDay}
             onRemoveLeave={onRemoveLeave}
             onOpenLeaveModal={onOpenLeaveModal}
