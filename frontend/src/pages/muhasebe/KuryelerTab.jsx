@@ -306,6 +306,8 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
           setDescription={setDescription}
           isHakedis={isHakedis}
           setIsHakedis={setIsHakedis}
+          addJetpuan={addJetpuan}
+          setAddJetpuan={setAddJetpuan}
           submitting={submitting}
           useCustomDate={useCustomDate}
           setUseCustomDate={setUseCustomDate}
