@@ -10,13 +10,19 @@ from utils.database import db
 
 router = APIRouter(prefix="/api/academy", tags=["Academy"])
 
-# Upload directory for videos
+# Upload directories
 UPLOAD_DIR = "/app/uploads/academy"
+IMAGES_DIR = "/app/uploads/academy/images"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(IMAGES_DIR, exist_ok=True)
 
 # Allowed video extensions
 ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".webm", ".mov", ".avi", ".mkv"}
 ALLOWED_VIDEO_SIZE = 500 * 1024 * 1024  # 500MB max
+
+# Allowed image extensions
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+ALLOWED_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB max
 
 
 class TrainingCreate(BaseModel):
