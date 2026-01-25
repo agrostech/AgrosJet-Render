@@ -123,13 +123,20 @@ export default function AkademiPage({ companyId }) {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
-      // If text type, update with content blocks
+      // If text type, upload pending images and update with content blocks
       if (addForm.training_type === "text" && res.data.id) {
+        let finalBlocks = addForm.contentBlocks.filter(b => 
+          (b.type === "text" && b.value.trim()) || 
+          (b.type === "image" && b.value)
+        );
+        
+        // Upload pending images
+        if (addForm.pendingImages && Object.keys(addForm.pendingImages).length > 0) {
+          finalBlocks = await uploadPendingImages(res.data.id, addForm.pendingImages, finalBlocks);
+        }
+        
         await axios.put(`${API}/academy/training/${res.data.id}`, {
-          content_blocks: addForm.contentBlocks.filter(b => 
-            (b.type === "text" && b.value.trim()) || 
-            (b.type === "image" && b.value)
-          )
+          content_blocks: finalBlocks
         });
       }
 
@@ -140,7 +147,8 @@ export default function AkademiPage({ companyId }) {
         content: "", 
         training_type: "video", 
         video: null,
-        contentBlocks: [{ type: "text", value: "" }]
+        contentBlocks: [{ type: "text", value: "" }],
+        pendingImages: {}
       });
       fetchTrainings();
     } catch (err) {
