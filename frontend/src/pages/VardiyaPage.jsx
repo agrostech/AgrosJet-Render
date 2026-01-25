@@ -160,7 +160,7 @@ export default function VardiyaPage({ companyId }) {
       {editMode && selectedCells.length === 0 && !ctrlPressed && !multiSelectMode && (
         <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-[10px] sm:text-xs text-blue-700">
           <strong>İpucu:</strong> <span className="hidden md:inline">Ctrl tuşuna basılı tutarak birden fazla vardiya kutucuğu seçebilir, ardından toplu kurye atayabilirsiniz.</span>
-          <span className="md:hidden">"Çoklu Seçim" butonuna basarak birden fazla vardiya seçebilir, ardından toplu kurye atayabilirsiniz.</span>
+          <span className="md:hidden">&quot;Çoklu Seçim&quot; butonuna basarak birden fazla vardiya seçebilir, ardından toplu kurye atayabilirsiniz.</span>
         </div>
       )}
       {editMode && (ctrlPressed || multiSelectMode) && (
@@ -183,7 +183,7 @@ export default function VardiyaPage({ companyId }) {
         </div>
         {courierFilter && (
           <div className="mt-1 text-xs text-muted-foreground">
-            Filtrelenen: "{courierFilter}" içeren kuryeler gösteriliyor
+            Filtrelenen: &quot;{courierFilter}&quot; içeren kuryeler gösteriliyor
           </div>
         )}
       </div>
