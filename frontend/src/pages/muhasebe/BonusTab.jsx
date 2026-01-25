@@ -75,6 +75,7 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
   const [applying, setApplying] = useState(false);
   const [useCustomDate, setUseCustomDate] = useState(false);
   const [txDate, setTxDate] = useState(getLocalDateTimeString());
+  const [addJetpuanBulk, setAddJetpuanBulk] = useState(true); // JetPuan eklensin mi?
   const fileInputRef = useRef(null);
 
   const fetchRules = useCallback(async () => {
