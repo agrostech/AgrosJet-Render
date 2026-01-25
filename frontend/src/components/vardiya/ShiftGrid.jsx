@@ -13,6 +13,7 @@ export default function ShiftGrid({
   shifts,
   editMode,
   ctrlPressed,
+  multiSelectMode,
   isCellSelected,
   getAssignmentsForCell,
   getLeavesForDay,
@@ -24,6 +25,8 @@ export default function ShiftGrid({
   onOpenLeaveModal,
   courierFilter = "",
 }) {
+  // Seçim modu aktif mi?
+  const isSelectionMode = ctrlPressed || multiSelectMode;
   return (
     <div className="border-2 border-border bg-white overflow-x-auto">
       <Table className="text-xs">
