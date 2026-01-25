@@ -124,8 +124,21 @@ export default function VardiyaPage({ companyId }) {
               </Button>
             </>
           )}
+          {/* Mobilde Çoklu Seçim Modu Butonu */}
+          {editMode && (
+            <Button
+              onClick={toggleMultiSelectMode}
+              size="sm"
+              variant={multiSelectMode ? "default" : "outline"}
+              className={`font-semibold md:hidden ${multiSelectMode ? "bg-purple-600 hover:bg-purple-700" : "border-2"}`}
+              data-testid="multi-select-mode-btn"
+            >
+              <PointerIcon className="w-4 h-4 mr-1" />
+              {multiSelectMode ? "Seçim Aktif" : "Çoklu Seçim"}
+            </Button>
+          )}
           <Button 
-            onClick={() => { setEditMode(!editMode); clearSelection(); }} 
+            onClick={() => { setEditMode(!editMode); clearSelection(); if (multiSelectMode) toggleMultiSelectMode(); }} 
             variant={editMode ? "default" : "outline"}
             size="sm"
             className={`font-semibold ${editMode ? "" : "border-2"}`}
