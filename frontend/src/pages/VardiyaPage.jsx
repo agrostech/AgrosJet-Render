@@ -202,6 +202,7 @@ export default function VardiyaPage({ companyId }) {
           shifts={shifts}
           editMode={editMode}
           ctrlPressed={ctrlPressed}
+          multiSelectMode={multiSelectMode}
           isCellSelected={isCellSelected}
           getAssignmentsForCell={getAssignmentsForCell}
           getLeavesForDay={getLeavesForDay}
