@@ -284,6 +284,7 @@ export function useVardiyaData(companyId) {
     setEditMode,
     selectedCells,
     ctrlPressed,
+    multiSelectMode,
     
     // Actions
     handleAddShift,
@@ -299,6 +300,7 @@ export function useVardiyaData(companyId) {
     isCellSelected,
     toggleCellSelection,
     clearSelection,
+    toggleMultiSelectMode,
     
     // Getters
     getAssignmentsForCell,
