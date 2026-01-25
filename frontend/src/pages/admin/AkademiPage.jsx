@@ -21,7 +21,11 @@ import {
   Pencil,
   Upload,
   Play,
-  Calendar
+  Calendar,
+  Image,
+  Type,
+  GripVertical,
+  X
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
