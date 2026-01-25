@@ -24,6 +24,7 @@ class BulkHakedisCreate(BaseModel):
     admin_id: str
     admin_name: str
     custom_date: Optional[str] = None
+    add_jetpuan: Optional[bool] = True  # JetPuan eklensin mi?
 
 
 def parse_turkish_number(value) -> float:
