@@ -85,7 +85,7 @@ function ShiftRow({
   shift,
   shiftIndex,
   editMode,
-  ctrlPressed,
+  isSelectionMode,
   isCellSelected,
   getAssignmentsForCell,
   onCellClick,
@@ -105,7 +105,7 @@ function ShiftRow({
             <span className="hidden sm:inline">{shift.start_time}-{shift.end_time}</span>
             <span className="sm:hidden">{shift.start_time?.slice(0,5)}<br/>{shift.end_time?.slice(0,5)}</span>
           </span>
-          {editMode && !ctrlPressed && (
+          {editMode && !isSelectionMode && (
             <button
               onClick={() => onDeleteShift(shift.id)}
               className="text-red-500 hover:text-red-700 ml-0.5 sm:ml-1"
@@ -124,7 +124,7 @@ function ShiftRow({
           dayIndex={dayIndex}
           isEvenRow={isEvenRow}
           editMode={editMode}
-          ctrlPressed={ctrlPressed}
+          isSelectionMode={isSelectionMode}
           isSelected={isCellSelected(shift.id, day.key)}
           assignments={getAssignmentsForCell(shift.id, day.key)}
           onCellClick={onCellClick}
