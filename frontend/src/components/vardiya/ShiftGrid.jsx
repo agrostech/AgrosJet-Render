@@ -143,7 +143,7 @@ function ShiftCell({
   dayIndex,
   isEvenRow,
   editMode,
-  ctrlPressed,
+  isSelectionMode,
   isSelected,
   assignments,
   onCellClick,
@@ -175,7 +175,7 @@ function ShiftCell({
         ${cellBg}
         ${isSelected ? 'ring-2 ring-green-500 ring-inset' : ''}
         ${editMode ? 'cursor-pointer hover:bg-blue-200' : ''}
-        ${ctrlPressed && editMode ? 'hover:ring-2 hover:ring-green-400 hover:ring-inset' : ''}
+        ${isSelectionMode && editMode ? 'hover:ring-2 hover:ring-green-400 hover:ring-inset' : ''}
       `}
       onClick={(e) => onCellClick(e, shift.id, day.key)}
     >
@@ -187,7 +187,7 @@ function ShiftCell({
           </div>
         )}
         {courierCount === 0 ? (
-          editMode && !isSelected && !ctrlPressed && !courierFilter && (
+          editMode && !isSelected && !isSelectionMode && !courierFilter && (
             <button
               onClick={(e) => { e.stopPropagation(); onOpenAssignModal(shift, day.key); }}
               className="w-full text-[8px] sm:text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300"
@@ -210,7 +210,7 @@ function ShiftCell({
                 return (
                   <div key={a.id} className={`flex items-center justify-between px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-[9px] group ${isHighlighted ? 'bg-yellow-200' : 'bg-blue-50/80'}`}>
                     <span className="font-medium truncate max-w-[30px] sm:max-w-none" title={a.courier_name}>{a.courier_name}</span>
-                    {editMode && !ctrlPressed && (
+                    {editMode && !isSelectionMode && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onRemoveAssignment(a.id); }}
                         className="text-red-500 hover:text-red-700 ml-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100"
@@ -222,7 +222,7 @@ function ShiftCell({
                 );
               })}
             </div>
-            {editMode && !isSelected && !ctrlPressed && (
+            {editMode && !isSelected && !isSelectionMode && (
               <button
                 onClick={(e) => { e.stopPropagation(); onOpenAssignModal(shift, day.key); }}
                 className="w-full text-[8px] sm:text-[9px] text-muted-foreground hover:text-primary hover:bg-slate-100 py-0.5 rounded border border-dashed border-slate-300 mt-0.5"
