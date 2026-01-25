@@ -181,3 +181,66 @@ async def stream_video(training_id: str):
         media_type="video/mp4",
         filename=training["video_filename"]
     )
+
+
+# --- Image Upload for Text Training ---
+@router.post("/training/{training_id}/upload-image")
+async def upload_training_image(
+    training_id: str,
+    image: UploadFile = File(...)
+):
+    """Upload an image for a text training content block"""
+    # Verify training exists
+    training = await db.academy_trainings.find_one({"id": training_id})
+    if not training:
+        raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
+    
+    # Check extension
+    file_ext = os.path.splitext(image.filename)[1].lower()
+    if file_ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Desteklenmeyen dosya formatı. İzin verilen: {', '.join(ALLOWED_IMAGE_EXTENSIONS)}"
+        )
+    
+    # Generate unique filename
+    image_id = str(uuid.uuid4())
+    image_filename = f"{training_id}_{image_id}{file_ext}"
+    image_path = os.path.join(IMAGES_DIR, image_filename)
+    
+    try:
+        with open(image_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Görsel yüklenemedi")
+    
+    # Return the image URL
+    image_url = f"/api/academy/image/{image_filename}"
+    
+    return {
+        "message": "Görsel yüklendi",
+        "image_id": image_id,
+        "image_url": image_url,
+        "filename": image_filename
+    }
+
+
+@router.get("/image/{filename}")
+async def get_training_image(filename: str):
+    """Serve training image"""
+    image_path = os.path.join(IMAGES_DIR, filename)
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+    
+    # Determine media type
+    ext = os.path.splitext(filename)[1].lower()
+    media_types = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp"
+    }
+    media_type = media_types.get(ext, "image/jpeg")
+    
+    return FileResponse(image_path, media_type=media_type)
