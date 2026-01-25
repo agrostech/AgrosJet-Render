@@ -208,6 +208,114 @@ export default function AkademiPage({ companyId }) {
     });
   };
 
+  // Content Block Management for Add Form
+  const addContentBlock = (type) => {
+    setAddForm(prev => ({
+      ...prev,
+      contentBlocks: [...prev.contentBlocks, { type, value: "" }]
+    }));
+  };
+
+  const updateContentBlock = (index, value) => {
+    setAddForm(prev => ({
+      ...prev,
+      contentBlocks: prev.contentBlocks.map((block, i) => 
+        i === index ? { ...block, value } : block
+      )
+    }));
+  };
+
+  const removeContentBlock = (index) => {
+    setAddForm(prev => ({
+      ...prev,
+      contentBlocks: prev.contentBlocks.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Content Block Management for Edit Form
+  const addEditContentBlock = (type) => {
+    setSelectedTraining(prev => ({
+      ...prev,
+      content_blocks: [...(prev.content_blocks || []), { type, value: "" }]
+    }));
+  };
+
+  const updateEditContentBlock = (index, value) => {
+    setSelectedTraining(prev => ({
+      ...prev,
+      content_blocks: (prev.content_blocks || []).map((block, i) => 
+        i === index ? { ...block, value } : block
+      )
+    }));
+  };
+
+  const removeEditContentBlock = (index) => {
+    setSelectedTraining(prev => ({
+      ...prev,
+      content_blocks: (prev.content_blocks || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  // Image Upload Handler for Add Form
+  const handleImageUpload = async (file, blockIndex, isEdit = false) => {
+    if (!file) return;
+    
+    // For new training, we need a temporary ID - we'll upload after training is created
+    // So we'll use a data URL for preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (isEdit && selectedTraining) {
+        updateEditContentBlock(blockIndex, e.target.result);
+        // Store file for later upload
+        setSelectedTraining(prev => ({
+          ...prev,
+          pendingImages: {
+            ...(prev.pendingImages || {}),
+            [blockIndex]: file
+          }
+        }));
+      } else {
+        updateContentBlock(blockIndex, e.target.result);
+        // Store file reference in form
+        setAddForm(prev => ({
+          ...prev,
+          pendingImages: {
+            ...(prev.pendingImages || {}),
+            [blockIndex]: file
+          }
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Upload pending images after training creation
+  const uploadPendingImages = async (trainingId, pendingImages, contentBlocks) => {
+    if (!pendingImages || Object.keys(pendingImages).length === 0) return contentBlocks;
+    
+    const updatedBlocks = [...contentBlocks];
+    
+    for (const [indexStr, file] of Object.entries(pendingImages)) {
+      const index = parseInt(indexStr);
+      if (updatedBlocks[index]?.type === "image") {
+        try {
+          const formData = new FormData();
+          formData.append("image", file);
+          const res = await axios.post(
+            `${API}/academy/training/${trainingId}/upload-image`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+          updatedBlocks[index].value = res.data.image_url;
+        } catch (err) {
+          console.error("Image upload failed:", err);
+        }
+      }
+    }
+    
+    return updatedBlocks;
+  };
+
   if (loading) return <PageLoading />;
 
   return (
