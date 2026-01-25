@@ -637,7 +637,7 @@ export default function AkademiPage({ companyId }) {
 
       {/* Edit Training Modal */}
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pencil className="w-5 h-5" />
@@ -656,15 +656,129 @@ export default function AkademiPage({ companyId }) {
               </div>
               <div>
                 <Label className="text-sm font-semibold">
-                  {selectedTraining.training_type === "text" ? "İçerik" : "Açıklama"}
+                  {selectedTraining.training_type === "text" ? "İçerik Blokları" : "Açıklama"}
                 </Label>
-                <Textarea
-                  value={selectedTraining.content || ""}
-                  onChange={(e) => setSelectedTraining({ ...selectedTraining, content: e.target.value })}
-                  className="mt-1 border-2 min-h-[120px]"
-                />
+                
+                {selectedTraining.training_type === "text" ? (
+                  <div className="mt-2 space-y-3">
+                    {/* Initialize content_blocks if not present */}
+                    {(!selectedTraining.content_blocks || selectedTraining.content_blocks.length === 0) && (
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {selectedTraining.content && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedTraining({
+                              ...selectedTraining,
+                              content_blocks: [{ type: "text", value: selectedTraining.content }]
+                            })}
+                            className="w-full"
+                          >
+                            Mevcut içeriği blok olarak yükle
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Content Blocks */}
+                    {(selectedTraining.content_blocks || []).map((block, index) => (
+                      <div key={index} className="relative group">
+                        {block.type === "text" ? (
+                          <div className="relative">
+                            <Textarea
+                              value={block.value}
+                              onChange={(e) => updateEditContentBlock(index, e.target.value)}
+                              placeholder="Metin içeriği yazın..."
+                              className="border-2 min-h-[80px] pr-8"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeEditContentBlock(index)}
+                              className="absolute top-2 right-2 text-muted-foreground hover:text-red-500"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="relative border-2 border-border rounded-lg overflow-hidden">
+                            {block.value ? (
+                              <div className="relative">
+                                <img 
+                                  src={block.value.startsWith('data:') ? block.value : `${process.env.REACT_APP_BACKEND_URL}${block.value}`}
+                                  alt="İçerik görseli" 
+                                  className="w-full h-40 object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeEditContentBlock(index)}
+                                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div 
+                                onClick={() => {
+                                  const input = document.createElement('input');
+                                  input.type = 'file';
+                                  input.accept = 'image/*';
+                                  input.onchange = (e) => handleImageUpload(e.target.files[0], index, true);
+                                  input.click();
+                                }}
+                                className="h-32 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors"
+                              >
+                                <Image className="w-8 h-8 text-muted-foreground/50 mb-2" />
+                                <span className="text-sm text-muted-foreground">Görsel seçmek için tıklayın</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); removeEditContentBlock(index); }}
+                                  className="absolute top-2 right-2 text-muted-foreground hover:text-red-500"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {/* Add Block Buttons */}
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addEditContentBlock("text")}
+                        className="flex-1"
+                      >
+                        <Type className="w-4 h-4 mr-1" />
+                        Metin Ekle
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addEditContentBlock("image")}
+                        className="flex-1"
+                      >
+                        <Image className="w-4 h-4 mr-1" />
+                        Görsel Ekle
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Textarea
+                    value={selectedTraining.content || ""}
+                    onChange={(e) => setSelectedTraining({ ...selectedTraining, content: e.target.value })}
+                    className="mt-1 border-2 min-h-[120px]"
+                  />
+                )}
               </div>
-              <Button type="submit" className="w-full">Kaydet</Button>
+              <Button type="submit" className="w-full" disabled={uploading}>
+                {uploading ? "Kaydediliyor..." : "Kaydet"}
+              </Button>
             </form>
           )}
         </DialogContent>
