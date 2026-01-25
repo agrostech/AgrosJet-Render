@@ -82,13 +82,30 @@ export default function CourierAkademiPage({ companyId }) {
               {formatDate(selectedTraining.created_at)}
             </div>
             
-            {selectedTraining.content && (
+            {/* Render content blocks for text type */}
+            {selectedTraining.training_type === "text" && selectedTraining.content_blocks && selectedTraining.content_blocks.length > 0 ? (
+              <div className="mt-4 pt-4 border-t space-y-4">
+                {selectedTraining.content_blocks.map((block, index) => (
+                  <div key={index}>
+                    {block.type === "text" ? (
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{block.value}</p>
+                    ) : block.type === "image" && block.value ? (
+                      <img 
+                        src={`${process.env.REACT_APP_BACKEND_URL}${block.value}`}
+                        alt={`İçerik ${index + 1}`}
+                        className="w-full rounded-lg"
+                      />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : selectedTraining.content ? (
               <div className="mt-4 pt-4 border-t">
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">
                   {selectedTraining.content}
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
