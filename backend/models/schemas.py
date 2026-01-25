@@ -123,6 +123,7 @@ class TransactionCreate(BaseModel):
     amount: float
     description: Optional[str] = None
     is_hakedis: Optional[bool] = False
+    add_jetpuan: Optional[bool] = True  # JetPuan eklensin mi? (hakediş için)
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
     custom_date: Optional[str] = None
