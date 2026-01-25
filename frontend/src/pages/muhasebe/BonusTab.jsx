@@ -508,20 +508,35 @@ export default function TopluHakedisTab({ companyId, adminId, adminName }) {
           )}
 
           {/* Footer */}
-          <div className="pt-3 sm:pt-4 border-t flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowModal(false)} className="text-xs sm:text-sm">
-              İptal
-            </Button>
-            <Button 
-              onClick={handleApplyBulkHakedis}
-              size="sm"
-              className="text-xs sm:text-sm"
-              disabled={applying || !parseResult?.matched?.length}
-              data-testid="apply-bulk-hakedis"
-            >
-              <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              {applying ? "Ekleniyor..." : `${parseResult?.matched?.length || 0} Kurye Ekle`}
-            </Button>
+          <div className="pt-3 sm:pt-4 border-t space-y-3">
+            {/* JetPuan Checkbox */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 rounded border border-purple-200">
+              <Checkbox
+                id="addJetpuanBulk"
+                checked={addJetpuanBulk}
+                onCheckedChange={setAddJetpuanBulk}
+                data-testid="jetpuan-bulk-checkbox"
+              />
+              <Label htmlFor="addJetpuanBulk" className="text-xs sm:text-sm font-medium cursor-pointer text-purple-700">
+                JetPuan Ekle (Hakediş tutarına göre)
+              </Label>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowModal(false)} className="text-xs sm:text-sm">
+                İptal
+              </Button>
+              <Button 
+                onClick={handleApplyBulkHakedis}
+                size="sm"
+                className="text-xs sm:text-sm"
+                disabled={applying || !parseResult?.matched?.length}
+                data-testid="apply-bulk-hakedis"
+              >
+                <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                {applying ? "Ekleniyor..." : `${parseResult?.matched?.length || 0} Kurye Ekle`}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
