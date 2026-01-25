@@ -131,6 +131,8 @@ async def update_training(
         update_data["title"] = data.title
     if data.content is not None:
         update_data["content"] = data.content
+    if data.content_blocks is not None:
+        update_data["content_blocks"] = data.content_blocks
     
     await db.academy_trainings.update_one(
         {"id": training_id},
