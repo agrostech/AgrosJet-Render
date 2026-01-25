@@ -277,7 +277,7 @@ export function useAccountingTab({
     } finally {
       setSubmitting(false);
     }
-  }, [amount, selectedEntity, entityType, companyId, description, isHakedis, adminId, adminName, useCustomDate, txDate, fetchTransactions, fetchEntityBalance]);
+  }, [amount, selectedEntity, entityType, companyId, description, isHakedis, addJetpuan, adminId, adminName, useCustomDate, txDate, fetchTransactions, fetchEntityBalance]);
 
   // Delete transaction
   const handleDeleteTransaction = useCallback(async (txId, skipConfirm = false) => {
