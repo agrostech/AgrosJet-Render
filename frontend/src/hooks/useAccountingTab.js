@@ -263,6 +263,7 @@ export function useAccountingTab({
       setAmount("");
       setDescription("");
       setIsHakedis(false);
+      setAddJetpuan(true);
       setUseCustomDate(false);
       setTxDate("");
       
