@@ -240,7 +240,7 @@ function ShiftCell({
 
 function LeaveRow({
   editMode,
-  ctrlPressed,
+  isSelectionMode,
   getLeavesForDay,
   onRemoveLeave,
   onOpenLeaveModal,
@@ -270,7 +270,7 @@ function LeaveRow({
                 return (
                   <div key={l.id} className={`flex items-center justify-between px-0.5 sm:px-1.5 py-0.5 rounded text-[7px] sm:text-[10px] group ${isHighlighted ? 'bg-yellow-200' : 'bg-orange-200'}`}>
                     <span className="font-medium truncate max-w-[30px] sm:max-w-none">{l.courier_name}</span>
-                    {editMode && !ctrlPressed && (
+                    {editMode && !isSelectionMode && (
                       <button
                         onClick={() => onRemoveLeave(l.id)}
                         className="text-red-500 hover:text-red-700 ml-0.5 sm:ml-1"
@@ -281,7 +281,7 @@ function LeaveRow({
                   </div>
                 );
               })}
-              {editMode && !ctrlPressed && !courierFilter && (
+              {editMode && !isSelectionMode && !courierFilter && (
                 <button
                   onClick={() => onOpenLeaveModal(day.key)}
                   className="w-full text-[8px] sm:text-[9px] text-orange-600 hover:bg-orange-100 py-0.5 rounded border border-dashed border-orange-300"
