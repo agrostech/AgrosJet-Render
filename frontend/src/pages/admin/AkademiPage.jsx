@@ -86,23 +86,62 @@ export default function AkademiPage({ companyId }) {
       return;
     }
 
+    // For text type, validate content blocks
+    if (addForm.training_type === "text") {
+      const hasContent = addForm.contentBlocks.some(block => 
+        (block.type === "text" && block.value.trim()) || 
+        (block.type === "image" && block.value)
+      );
+      if (!hasContent) {
+        toast.error("En az bir içerik bloğu gerekli");
+        return;
+      }
+    }
+
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append("title", addForm.title);
-      formData.append("content", addForm.content || "");
+      
+      // For text type, combine text blocks for legacy content field
+      if (addForm.training_type === "text") {
+        const textContent = addForm.contentBlocks
+          .filter(b => b.type === "text")
+          .map(b => b.value)
+          .join("\n\n");
+        formData.append("content", textContent);
+      } else {
+        formData.append("content", addForm.content || "");
+      }
+      
       formData.append("training_type", addForm.training_type);
       if (addForm.video) {
         formData.append("video", addForm.video);
       }
 
-      await axios.post(`${API}/academy/company/${companyId}/trainings`, formData, {
+      const res = await axios.post(`${API}/academy/company/${companyId}/trainings`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
+      // If text type, update with content blocks
+      if (addForm.training_type === "text" && res.data.id) {
+        await axios.put(`${API}/academy/training/${res.data.id}`, {
+          content_blocks: addForm.contentBlocks.filter(b => 
+            (b.type === "text" && b.value.trim()) || 
+            (b.type === "image" && b.value)
+          )
+        });
+      }
+
       toast.success("Eğitim eklendi");
       setShowAddModal(false);
-      setAddForm({ title: "", content: "", training_type: "video", video: null });
+      setAddForm({ 
+        title: "", 
+        content: "", 
+        training_type: "video", 
+        video: null,
+        contentBlocks: [{ type: "text", value: "" }]
+      });
       fetchTrainings();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Eğitim eklenemedi");
