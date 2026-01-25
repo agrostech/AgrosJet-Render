@@ -103,6 +103,7 @@ async def create_training(
         "company_id": company_id,
         "title": title,
         "content": content,
+        "content_blocks": [],  # Will be updated later if text type
         "training_type": training_type,
         "video_filename": video_filename,
         "video_path": f"/api/academy/video/{training_id}" if video_filename else None,
