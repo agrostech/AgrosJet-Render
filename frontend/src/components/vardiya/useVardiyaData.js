@@ -228,6 +228,14 @@ export function useVardiyaData(companyId) {
     setSelectedCells([]);
   };
 
+  const toggleMultiSelectMode = () => {
+    setMultiSelectMode(prev => !prev);
+    if (multiSelectMode) {
+      // Mod kapanırken seçimleri temizle
+      setSelectedCells([]);
+    }
+  };
+
   // Data getters
   const getAssignmentsForCell = (shiftId, day) => {
     return assignments.filter(a => a.shift_id === shiftId && a.day === day);
