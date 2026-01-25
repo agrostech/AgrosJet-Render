@@ -826,8 +826,6 @@ export default function AkademiPage({ companyId }) {
               ) : null}
             </div>
           )}
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 
