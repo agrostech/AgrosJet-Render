@@ -602,6 +602,8 @@ export function useAccountingTab({
     setDescription,
     isHakedis,
     setIsHakedis,
+    addJetpuan,
+    setAddJetpuan,
     submitting,
     useCustomDate,
     setUseCustomDate,
