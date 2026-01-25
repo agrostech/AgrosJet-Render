@@ -44,10 +44,13 @@ export default function AkademiPage({ companyId }) {
     title: "",
     content: "",
     training_type: "video",
-    video: null
+    video: null,
+    contentBlocks: [{ type: "text", value: "" }] // For rich text content
   });
   const [uploading, setUploading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
 
   const fetchTrainings = useCallback(async () => {
     if (!companyId) return;
