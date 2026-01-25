@@ -148,6 +148,8 @@ function PaymentForm({
   setDescription,
   isHakedis,
   setIsHakedis,
+  addJetpuan,
+  setAddJetpuan,
   submitting,
   useCustomDate,
   setUseCustomDate,
@@ -186,7 +188,7 @@ function PaymentForm({
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 rounded h-10">
             <Checkbox
               id="hakedis"
@@ -196,6 +198,20 @@ function PaymentForm({
             />
             <Label htmlFor="hakedis" className="text-xs font-medium cursor-pointer">Hakediş</Label>
           </div>
+          
+          {/* JetPuan checkbox - only visible when Hakediş is checked */}
+          {isHakedis && (
+            <div className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 rounded h-10 border border-purple-200">
+              <Checkbox
+                id="addJetpuan"
+                checked={addJetpuan}
+                onCheckedChange={setAddJetpuan}
+                data-testid="jetpuan-checkbox"
+              />
+              <Label htmlFor="addJetpuan" className="text-xs font-medium cursor-pointer text-purple-700">JetPuan Ekle</Label>
+            </div>
+          )}
+          
           <Button
             variant="outline"
             size="sm"
