@@ -155,10 +155,25 @@ export default function AkademiPage({ companyId }) {
     if (!selectedTraining) return;
 
     try {
-      await axios.put(`${API}/academy/training/${selectedTraining.id}`, {
+      const updateData = {
         title: selectedTraining.title,
         content: selectedTraining.content
-      });
+      };
+      
+      // Include content_blocks for text type
+      if (selectedTraining.training_type === "text" && selectedTraining.content_blocks) {
+        updateData.content_blocks = selectedTraining.content_blocks.filter(b => 
+          (b.type === "text" && b.value.trim()) || 
+          (b.type === "image" && b.value)
+        );
+        // Update legacy content field
+        updateData.content = selectedTraining.content_blocks
+          .filter(b => b.type === "text")
+          .map(b => b.value)
+          .join("\n\n");
+      }
+      
+      await axios.put(`${API}/academy/training/${selectedTraining.id}`, updateData);
       toast.success("Eğitim güncellendi");
       setShowEditModal(false);
       fetchTrainings();
