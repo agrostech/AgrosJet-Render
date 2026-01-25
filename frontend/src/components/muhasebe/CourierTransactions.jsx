@@ -112,6 +112,8 @@ export default function CourierTransactions({
           setDescription={setDescription}
           isHakedis={isHakedis}
           setIsHakedis={setIsHakedis}
+          addJetpuan={addJetpuan}
+          setAddJetpuan={setAddJetpuan}
           submitting={submitting}
           useCustomDate={useCustomDate}
           setUseCustomDate={setUseCustomDate}
