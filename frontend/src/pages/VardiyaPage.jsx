@@ -63,7 +63,8 @@ export default function VardiyaPage({ companyId }) {
   const handleCellClick = (e, shiftId, day) => {
     if (!editMode) return;
     
-    if (e.ctrlKey || e.metaKey) {
+    // Çoklu seçim modu aktifse veya CTRL tuşu basılıysa
+    if (multiSelectMode || e.ctrlKey || e.metaKey) {
       e.preventDefault();
       toggleCellSelection(shiftId, day);
     } else {
