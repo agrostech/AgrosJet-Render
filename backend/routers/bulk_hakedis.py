@@ -250,11 +250,12 @@ async def apply_bulk_hakedis(company_id: str, data: BulkHakedisCreate):
         }
         await db.transactions.insert_one(transaction)
         
-        # Credit JetPuan for hakediş
-        try:
-            await calculate_and_credit_points(item.courier_id, total_amount)
-        except Exception as e:
-            print(f"JetPuan credit failed: {e}")
+        # Credit JetPuan for hakediş (only if add_jetpuan is True)
+        if data.add_jetpuan:
+            try:
+                await calculate_and_credit_points(item.courier_id, total_amount)
+            except Exception as e:
+                print(f"JetPuan credit failed: {e}")
         
         # Create activity log
         try:
