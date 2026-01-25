@@ -162,20 +162,32 @@ export default function AkademiPage({ companyId }) {
     e.preventDefault();
     if (!selectedTraining) return;
 
+    setUploading(true);
     try {
+      let finalBlocks = selectedTraining.content_blocks || [];
+      
+      // Upload any pending images first
+      if (selectedTraining.training_type === "text" && selectedTraining.pendingImages) {
+        finalBlocks = await uploadPendingImages(
+          selectedTraining.id, 
+          selectedTraining.pendingImages, 
+          finalBlocks
+        );
+      }
+      
       const updateData = {
         title: selectedTraining.title,
         content: selectedTraining.content
       };
       
       // Include content_blocks for text type
-      if (selectedTraining.training_type === "text" && selectedTraining.content_blocks) {
-        updateData.content_blocks = selectedTraining.content_blocks.filter(b => 
+      if (selectedTraining.training_type === "text") {
+        updateData.content_blocks = finalBlocks.filter(b => 
           (b.type === "text" && b.value.trim()) || 
           (b.type === "image" && b.value)
         );
         // Update legacy content field
-        updateData.content = selectedTraining.content_blocks
+        updateData.content = finalBlocks
           .filter(b => b.type === "text")
           .map(b => b.value)
           .join("\n\n");
@@ -187,6 +199,8 @@ export default function AkademiPage({ companyId }) {
       fetchTrainings();
     } catch (err) {
       toast.error("Güncelleme başarısız");
+    } finally {
+      setUploading(false);
     }
   };
 
