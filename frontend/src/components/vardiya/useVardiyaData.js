@@ -23,6 +23,7 @@ export function useVardiyaData(companyId) {
   const [editMode, setEditMode] = useState(false);
   const [selectedCells, setSelectedCells] = useState([]);
   const [ctrlPressed, setCtrlPressed] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
 
   // Ctrl tuşu takibi
   useEffect(() => {
