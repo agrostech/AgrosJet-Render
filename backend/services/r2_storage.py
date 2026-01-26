@@ -1,6 +1,7 @@
 """
 Cloudflare R2 Storage Service
 Handles file upload, download, and presigned URL generation for invoices and documents.
+Settings are loaded from database first, then falls back to environment variables.
 """
 import os
 import boto3
@@ -11,12 +12,72 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# R2 Configuration
-ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
-ACCESS_KEY_ID = os.getenv("CLOUDFLARE_ACCESS_KEY_ID")
-SECRET_ACCESS_KEY = os.getenv("CLOUDFLARE_SECRET_ACCESS_KEY")
-BUCKET_NAME = os.getenv("CLOUDFLARE_BUCKET_NAME", "shiftjet")
-R2_ENDPOINT = f"https://{ACCOUNT_ID}.r2.cloudflarestorage.com"
+# Cache for R2 settings
+_r2_settings_cache = None
+_r2_settings_cache_time = None
+
+# Fallback to environment variables
+ENV_ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+ENV_ACCESS_KEY_ID = os.getenv("CLOUDFLARE_ACCESS_KEY_ID")
+ENV_SECRET_ACCESS_KEY = os.getenv("CLOUDFLARE_SECRET_ACCESS_KEY")
+ENV_BUCKET_NAME = os.getenv("CLOUDFLARE_BUCKET_NAME", "shiftjet")
+
+
+async def get_r2_settings():
+    """
+    Get R2 settings from database, with fallback to environment variables.
+    Settings are cached for 60 seconds to avoid repeated DB calls.
+    """
+    global _r2_settings_cache, _r2_settings_cache_time
+    import time
+    from utils.database import db
+    
+    current_time = time.time()
+    
+    # Check cache (valid for 60 seconds)
+    if _r2_settings_cache and _r2_settings_cache_time and (current_time - _r2_settings_cache_time) < 60:
+        return _r2_settings_cache
+    
+    # Try to get from database
+    settings = await db.system_settings.find_one(
+        {"type": "cloudflare_r2"},
+        {"_id": 0}
+    )
+    
+    if settings and settings.get("account_id") and settings.get("access_key_id"):
+        _r2_settings_cache = {
+            "account_id": settings["account_id"],
+            "access_key_id": settings["access_key_id"],
+            "secret_access_key": settings["secret_access_key"],
+            "bucket_name": settings.get("bucket_name", "shiftjet")
+        }
+    else:
+        # Fallback to environment variables
+        _r2_settings_cache = {
+            "account_id": ENV_ACCOUNT_ID,
+            "access_key_id": ENV_ACCESS_KEY_ID,
+            "secret_access_key": ENV_SECRET_ACCESS_KEY,
+            "bucket_name": ENV_BUCKET_NAME
+        }
+    
+    _r2_settings_cache_time = current_time
+    return _r2_settings_cache
+
+
+def get_r2_settings_sync():
+    """
+    Synchronous version - uses cached settings or env variables.
+    For use in non-async contexts.
+    """
+    if _r2_settings_cache:
+        return _r2_settings_cache
+    
+    return {
+        "account_id": ENV_ACCOUNT_ID,
+        "access_key_id": ENV_ACCESS_KEY_ID,
+        "secret_access_key": ENV_SECRET_ACCESS_KEY,
+        "bucket_name": ENV_BUCKET_NAME
+    }
 
 
 def get_r2_client():
@@ -24,14 +85,30 @@ def get_r2_client():
     Create and return a configured boto3 S3 client for Cloudflare R2.
     Uses signature_version='s3v4' for proper presigned URL generation.
     """
+    settings = get_r2_settings_sync()
+    
+    if not settings.get("account_id") or not settings.get("access_key_id"):
+        logger.warning("R2 settings not configured")
+        return None
+    
+    endpoint = f"https://{settings['account_id']}.r2.cloudflarestorage.com"
+    
     return boto3.client(
         's3',
-        endpoint_url=R2_ENDPOINT,
-        aws_access_key_id=ACCESS_KEY_ID,
-        aws_secret_access_key=SECRET_ACCESS_KEY,
+        endpoint_url=endpoint,
+        aws_access_key_id=settings['access_key_id'],
+        aws_secret_access_key=settings['secret_access_key'],
         region_name='auto',
         config=Config(signature_version='s3v4')
     )
+
+
+# Legacy exports for backward compatibility
+ACCOUNT_ID = ENV_ACCOUNT_ID
+ACCESS_KEY_ID = ENV_ACCESS_KEY_ID  
+SECRET_ACCESS_KEY = ENV_SECRET_ACCESS_KEY
+BUCKET_NAME = ENV_BUCKET_NAME
+R2_ENDPOINT = f"https://{ENV_ACCOUNT_ID}.r2.cloudflarestorage.com" if ENV_ACCOUNT_ID else None
 
 
 async def upload_file_to_r2(
