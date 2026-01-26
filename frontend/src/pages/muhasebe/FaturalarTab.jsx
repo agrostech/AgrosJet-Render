@@ -166,6 +166,7 @@ export default function FaturalarTab({ companyId }) {
         <CourierInvoicesCard
           selectedCourier={selectedCourier}
           invoices={courierInvoices}
+          loading={courierLoading}
           onView={viewInvoice}
           onDownload={downloadSingle}
           onDelete={handleDeleteInvoice}
