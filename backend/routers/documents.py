@@ -20,8 +20,24 @@ router = APIRouter(prefix="/api/documents", tags=["Documents"])
 UPLOAD_DIR = "/app/uploads/documents"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# R2 folder prefix for documents
-R2_DOCUMENTS_PREFIX = "documents"
+# R2 folder prefix for documents (Turkish)
+R2_DOCUMENTS_PREFIX = "EVRAKLAR"
+
+# Turkish document type labels for folder names
+TURKISH_DOC_FOLDERS = {
+    "company_contract": "Sozlesmeler",
+    "id_front": "Kimlik",
+    "id_back": "Kimlik",
+    "driver_license_front": "Ehliyet",
+    "driver_license_back": "Ehliyet",
+    "criminal_record": "SabıkaKaydi",
+    "src_certificate": "SRCBelgesi",
+    "psychotechnical": "Psikoteknik",
+    "health_report": "SaglikRaporu",
+    "vehicle_registration": "Ruhsat",
+    "traffic_insurance": "Sigorta",
+    "vehicle_inspection": "Muayene"
+}
 
 # Forward declaration for notification
 async def send_document_notification(company_id: str, courier_name: str, doc_label: str):
