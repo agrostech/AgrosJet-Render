@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, Response
 from datetime import datetime, timezone, timedelta
 import uuid
 import os
@@ -8,11 +8,22 @@ import zipfile
 import re
 
 from utils.database import db
+from services.r2_storage import (
+    upload_file_to_r2, 
+    download_file_from_r2, 
+    generate_presigned_url,
+    delete_file_from_r2,
+    check_file_exists
+)
 
 router = APIRouter(prefix="/api/invoices", tags=["Invoices"])
 
+# Legacy local upload dir (for backward compatibility)
 UPLOAD_DIR = "/app/uploads/invoices"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# R2 folder prefix for invoices
+R2_INVOICE_PREFIX = "invoices"
 
 
 def get_week_tuesday(date: datetime = None) -> datetime:
