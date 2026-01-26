@@ -292,27 +292,6 @@ def generate_presigned_url(
         return None
 
 
-async def delete_file_from_r2(file_key: str) -> bool:
-    """
-    Delete a file from Cloudflare R2 bucket.
-    
-    Args:
-        file_key: The key (path) of the file to delete
-    
-    Returns:
-        True if deletion was successful, False otherwise
-    """
-    client = get_r2_client()
-    
-    try:
-        client.delete_object(Bucket=BUCKET_NAME, Key=file_key)
-        logger.info(f'Successfully deleted {file_key} from R2')
-        return True
-    except ClientError as e:
-        logger.error(f'Error deleting {file_key} from R2: {str(e)}')
-        return False
-
-
 def check_file_exists(file_key: str) -> bool:
     """
     Check if a file exists in R2 bucket.
@@ -323,10 +302,23 @@ def check_file_exists(file_key: str) -> bool:
     Returns:
         True if file exists, False otherwise
     """
-    client = get_r2_client()
+    settings = get_r2_settings_sync()
+    
+    if not settings.get("account_id") or not settings.get("access_key_id"):
+        return False
     
     try:
-        client.head_object(Bucket=BUCKET_NAME, Key=file_key)
+        endpoint = f"https://{settings['account_id']}.r2.cloudflarestorage.com"
+        client = boto3.client(
+            's3',
+            endpoint_url=endpoint,
+            aws_access_key_id=settings['access_key_id'],
+            aws_secret_access_key=settings['secret_access_key'],
+            region_name='auto',
+            config=Config(signature_version='s3v4')
+        )
+        
+        client.head_object(Bucket=settings['bucket_name'], Key=file_key)
         return True
     except ClientError:
         return False
