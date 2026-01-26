@@ -104,15 +104,18 @@ async def upload_invoice(
     tuesday = get_week_tuesday()
     tuesday_str = tuesday.strftime("%d.%m.%Y")
     
+    # Get Turkish month folder name
+    month_folder = get_turkish_month_folder(tuesday)
+    
     # Format file name: KuryeAdSoyad_DD.MM.YYYY.ext
     formatted_name = format_courier_name_for_file(courier_name)
     file_name = f"{formatted_name}_{tuesday_str}{file_ext}"
     
-    # Create unique R2 key
+    # Create unique R2 key with Turkish folder structure: FATURALAR/Ocak 2025/filename
     invoice_id = str(uuid.uuid4())
     unique_id = invoice_id[:8]
     stored_file_name = f"{unique_id}_{file_name}"
-    r2_key = f"{R2_INVOICE_PREFIX}/{company_id}/{stored_file_name}"
+    r2_key = f"{R2_INVOICE_PREFIX}/{month_folder}/{stored_file_name}"
     
     # Read file content
     content = await file.read()
