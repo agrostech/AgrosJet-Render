@@ -444,36 +444,88 @@ async def get_couriers_invoice_summary(company_id: str, year: int = None, month:
 
 @router.get("/download/{invoice_id}")
 async def download_invoice(invoice_id: str):
-    """Download a single invoice"""
+    """Download a single invoice - supports both R2 and local storage"""
     invoice = await db.invoices.find_one({"id": invoice_id})
     if not invoice:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
-    if not os.path.exists(invoice["file_path"]):
-        raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
-    
-    return FileResponse(
-        invoice["file_path"],
-        filename=invoice["file_name"],
-        media_type="application/pdf"
-    )
+    # Check if stored in R2
+    if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+        # Download from R2
+        file_content = await download_file_from_r2(invoice["r2_key"])
+        if file_content is None:
+            raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
+        
+        # Determine content type
+        file_ext = os.path.splitext(invoice["file_name"].lower())[1]
+        content_types = {
+            '.pdf': 'application/pdf',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.heic': 'image/heic',
+            '.heif': 'image/heif'
+        }
+        content_type = content_types.get(file_ext, 'application/octet-stream')
+        
+        return Response(
+            content=file_content,
+            media_type=content_type,
+            headers={"Content-Disposition": f'attachment; filename="{invoice["file_name"]}"'}
+        )
+    else:
+        # Legacy local file storage
+        if not invoice.get("file_path") or not os.path.exists(invoice["file_path"]):
+            raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
+        
+        return FileResponse(
+            invoice["file_path"],
+            filename=invoice["file_name"],
+            media_type="application/pdf"
+        )
 
 
 @router.get("/view/{invoice_id}")
 async def view_invoice(invoice_id: str):
-    """View invoice in browser (inline)"""
+    """View invoice in browser (inline) - supports both R2 and local storage"""
     invoice = await db.invoices.find_one({"id": invoice_id})
     if not invoice:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
-    if not os.path.exists(invoice["file_path"]):
-        raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
-    
-    return FileResponse(
-        invoice["file_path"],
-        media_type="application/pdf",
-        headers={"Content-Disposition": "inline"}
-    )
+    # Check if stored in R2
+    if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+        # Download from R2
+        file_content = await download_file_from_r2(invoice["r2_key"])
+        if file_content is None:
+            raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
+        
+        # Determine content type
+        file_ext = os.path.splitext(invoice["file_name"].lower())[1]
+        content_types = {
+            '.pdf': 'application/pdf',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.heic': 'image/heic',
+            '.heif': 'image/heif'
+        }
+        content_type = content_types.get(file_ext, 'application/octet-stream')
+        
+        return Response(
+            content=file_content,
+            media_type=content_type,
+            headers={"Content-Disposition": "inline"}
+        )
+    else:
+        # Legacy local file storage
+        if not invoice.get("file_path") or not os.path.exists(invoice["file_path"]):
+            raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
+        
+        return FileResponse(
+            invoice["file_path"],
+            media_type="application/pdf",
+            headers={"Content-Disposition": "inline"}
+        )
 
 
 @router.post("/download-bulk")
