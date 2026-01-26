@@ -7,14 +7,22 @@ import os
 import shutil
 
 from utils.database import db
+from services.r2_storage import (
+    upload_file_to_r2,
+    download_file_from_r2,
+    delete_file_from_r2
+)
 
 router = APIRouter(prefix="/api/academy", tags=["Academy"])
 
-# Upload directories
+# Legacy upload directories (for backward compatibility)
 UPLOAD_DIR = "/app/uploads/academy"
 IMAGES_DIR = "/app/uploads/academy/images"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(IMAGES_DIR, exist_ok=True)
+
+# R2 folder prefix for academy (Turkish)
+R2_ACADEMY_PREFIX = "AKADEMI"
 
 # Allowed video extensions
 ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".webm", ".mov", ".avi", ".mkv"}
