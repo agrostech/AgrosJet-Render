@@ -153,10 +153,6 @@ async def upload_document(
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    # Create directory for courier
-    courier_dir = os.path.join(UPLOAD_DIR, courier_id)
-    os.makedirs(courier_dir, exist_ok=True)
-    
     # Generate file name
     formatted_courier_name = format_name_for_file(courier["name"])
     formatted_company_name = format_name_for_file(company_name)
