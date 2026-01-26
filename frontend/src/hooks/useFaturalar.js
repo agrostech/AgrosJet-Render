@@ -78,9 +78,15 @@ export function useFaturalar(companyId, year, month) {
   };
 
   const deleteInvoice = async (invoiceId) => {
-    await axios.delete(`${API}/invoices/admin/${invoiceId}`);
-    toast.success("Fatura silindi");
-    refetch();
+    try {
+      await axios.delete(`${API}/invoices/admin/${invoiceId}`);
+      toast.success("Fatura silindi");
+      refetch();
+    } catch (err) {
+      console.error("Delete invoice error:", err);
+      toast.error(err.response?.data?.detail || "Fatura silinemedi");
+      throw err;
+    }
   };
 
   const downloadBulk = async (invoiceIds, filename) => {
