@@ -65,7 +65,7 @@ async def upload_invoice(
     company_id: str = Form(...),
     file: UploadFile = File(...)
 ):
-    """Upload invoice for a hakediş transaction"""
+    """Upload invoice for a hakediş transaction - stores in Cloudflare R2"""
     
     # Validate file type - PDF ve resim dosyaları kabul edilir
     allowed_extensions = ('.pdf', '.jpg', '.jpeg', '.png', '.heic', '.heif')
@@ -94,26 +94,43 @@ async def upload_invoice(
     formatted_name = format_courier_name_for_file(courier_name)
     file_name = f"{formatted_name}_{tuesday_str}{file_ext}"
     
-    # Create unique file path to avoid conflicts
-    unique_id = str(uuid.uuid4())[:8]
+    # Create unique R2 key
+    invoice_id = str(uuid.uuid4())
+    unique_id = invoice_id[:8]
     stored_file_name = f"{unique_id}_{file_name}"
-    file_path = os.path.join(UPLOAD_DIR, stored_file_name)
+    r2_key = f"{R2_INVOICE_PREFIX}/{company_id}/{stored_file_name}"
     
-    # Save file
+    # Read file content
     content = await file.read()
-    with open(file_path, "wb") as f:
-        f.write(content)
     
-    # Create invoice record
+    # Determine content type
+    content_types = {
+        '.pdf': 'application/pdf',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.heic': 'image/heic',
+        '.heif': 'image/heif'
+    }
+    content_type = content_types.get(file_ext, 'application/octet-stream')
+    
+    # Upload to R2
+    upload_result = await upload_file_to_r2(content, r2_key, content_type)
+    if not upload_result['success']:
+        raise HTTPException(status_code=500, detail="Dosya yüklenemedi: " + upload_result.get('error', 'Bilinmeyen hata'))
+    
+    # Create invoice record with R2 reference
     invoice = {
-        "id": str(uuid.uuid4()),
+        "id": invoice_id,
         "transaction_id": transaction_id,
         "courier_id": courier_id,
         "courier_name": courier_name,
         "company_id": company_id,
         "file_name": file_name,
         "stored_file_name": stored_file_name,
-        "file_path": file_path,
+        "r2_key": r2_key,  # R2 storage key
+        "storage_type": "r2",  # Indicate R2 storage
+        "file_path": None,  # No local path for R2 files
         "week_tuesday": tuesday.isoformat(),
         "week_tuesday_display": tuesday_str,
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
