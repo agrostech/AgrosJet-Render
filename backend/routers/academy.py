@@ -197,7 +197,9 @@ async def upload_training_image(
     training_id: str,
     image: UploadFile = File(...)
 ):
-    """Upload an image for a text training content block"""
+    """Upload an image for a text training content block - stores in R2"""
+    from fastapi.responses import Response
+    
     # Verify training exists
     training = await db.academy_trainings.find_one({"id": training_id})
     if not training:
@@ -214,16 +216,40 @@ async def upload_training_image(
     # Generate unique filename
     image_id = str(uuid.uuid4())
     image_filename = f"{training_id}_{image_id}{file_ext}"
-    image_path = os.path.join(IMAGES_DIR, image_filename)
     
-    try:
-        with open(image_path, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-    except Exception:
+    # R2 key: AKADEMI/Gorseller/filename
+    r2_key = f"{R2_ACADEMY_PREFIX}/Gorseller/{image_filename}"
+    
+    # Read content
+    content = await image.read()
+    
+    # Determine content type
+    content_types = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp'
+    }
+    content_type = content_types.get(file_ext, 'image/jpeg')
+    
+    # Upload to R2
+    upload_result = await upload_file_to_r2(content, r2_key, content_type)
+    if not upload_result['success']:
         raise HTTPException(status_code=500, detail="Görsel yüklenemedi")
     
-    # Return the image URL
+    # Return the image URL (using r2_key in path)
     image_url = f"/api/academy/image/{image_filename}"
+    
+    # Store R2 key in database for this image
+    await db.academy_images.insert_one({
+        "id": image_id,
+        "training_id": training_id,
+        "filename": image_filename,
+        "r2_key": r2_key,
+        "storage_type": "r2",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     return {
         "message": "Görsel yüklendi",
@@ -235,19 +261,48 @@ async def upload_training_image(
 
 @router.get("/image/{filename}")
 async def get_training_image(filename: str):
-    """Serve training image"""
-    image_path = os.path.join(IMAGES_DIR, filename)
-    if not os.path.exists(image_path):
-        raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+    """Serve training image - supports both R2 and local storage"""
+    from fastapi.responses import FileResponse, Response
     
-    # Determine media type
-    ext = os.path.splitext(filename)[1].lower()
-    media_types = {
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".png": "image/png",
-        ".gif": "image/gif",
-        ".webp": "image/webp"
+    # Check if image record exists in database (R2 storage)
+    image_record = await db.academy_images.find_one({"filename": filename})
+    
+    if image_record and image_record.get("storage_type") == "r2":
+        # Download from R2
+        file_content = await download_file_from_r2(image_record["r2_key"])
+        if file_content is None:
+            raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+        
+        # Determine media type
+        ext = os.path.splitext(filename)[1].lower()
+        media_types = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp"
+        }
+        media_type = media_types.get(ext, "image/jpeg")
+        
+        return Response(content=file_content, media_type=media_type)
+    else:
+        # Legacy local storage
+        image_path = os.path.join(IMAGES_DIR, filename)
+        if not os.path.exists(image_path):
+            raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+        
+        # Determine media type
+        ext = os.path.splitext(filename)[1].lower()
+        media_types = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp"
+        }
+        media_type = media_types.get(ext, "image/jpeg")
+        
+        return FileResponse(image_path, media_type=media_type)
     }
     media_type = media_types.get(ext, "image/jpeg")
     
