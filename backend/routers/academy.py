@@ -303,7 +303,3 @@ async def get_training_image(filename: str):
         media_type = media_types.get(ext, "image/jpeg")
         
         return FileResponse(image_path, media_type=media_type)
-    }
-    media_type = media_types.get(ext, "image/jpeg")
-    
-    return FileResponse(image_path, media_type=media_type)
