@@ -191,8 +191,9 @@ async def upload_document(
     doc_id = str(uuid.uuid4())
     stored_file_name = f"{unique_id}_{file_name}"
     
-    # Create R2 key
-    r2_key = f"{R2_DOCUMENTS_PREFIX}/{courier_id}/{stored_file_name}"
+    # Create R2 key with Turkish folder structure: EVRAKLAR/KuryeAdi/DosyaTuru/filename
+    doc_folder = TURKISH_DOC_FOLDERS.get(document_type, "Diger")
+    r2_key = f"{R2_DOCUMENTS_PREFIX}/{formatted_courier_name}/{doc_folder}/{stored_file_name}"
     
     # Read file content
     content = await file.read()
