@@ -176,23 +176,43 @@ async def upload_document(
     
     # Unique stored name
     unique_id = str(uuid.uuid4())[:8]
+    doc_id = str(uuid.uuid4())
     stored_file_name = f"{unique_id}_{file_name}"
-    file_path = os.path.join(courier_dir, stored_file_name)
     
-    # Save file
+    # Create R2 key
+    r2_key = f"{R2_DOCUMENTS_PREFIX}/{courier_id}/{stored_file_name}"
+    
+    # Read file content
     content = await file.read()
-    with open(file_path, "wb") as f:
-        f.write(content)
     
-    # Create document record
+    # Determine content type
+    content_type_map = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp',
+        '.heic': 'image/heic',
+        '.heif': 'image/heif',
+        '.pdf': 'application/pdf'
+    }
+    content_type = content_type_map.get(file_ext, 'application/octet-stream')
+    
+    # Upload to R2
+    upload_result = await upload_file_to_r2(content, r2_key, content_type)
+    if not upload_result['success']:
+        raise HTTPException(status_code=500, detail="Dosya yüklenemedi: " + upload_result.get('error', 'Bilinmeyen hata'))
+    
+    # Create document record with R2 reference
     document = {
-        "id": str(uuid.uuid4()),
+        "id": doc_id,
         "courier_id": courier_id,
         "document_type": document_type,
         "document_label": doc_config["label"] if document_type != "company_contract" else f"{company_name} Sözleşme",
         "file_name": file_name,
         "stored_file_name": stored_file_name,
-        "file_path": file_path,
+        "r2_key": r2_key,  # R2 storage key
+        "storage_type": "r2",  # Indicate R2 storage
+        "file_path": None,  # No local path for R2 files
         "file_extension": file_ext,
         "company_name": company_name,
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
