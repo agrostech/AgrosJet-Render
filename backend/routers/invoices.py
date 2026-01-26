@@ -205,8 +205,10 @@ async def delete_invoice(invoice_id: str, courier_id: str):
     if hours_passed > 24:
         raise HTTPException(status_code=400, detail="Fatura yüklendikten 24 saat sonra silinemez")
     
-    # Delete file
-    if os.path.exists(invoice["file_path"]):
+    # Delete file from R2 or local storage
+    if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+        await delete_file_from_r2(invoice["r2_key"])
+    elif invoice.get("file_path") and os.path.exists(invoice["file_path"]):
         os.remove(invoice["file_path"])
     
     # Remove invoice_id from transaction
@@ -229,8 +231,10 @@ async def admin_delete_invoice(invoice_id: str):
     if not invoice:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
-    # Delete file
-    if os.path.exists(invoice["file_path"]):
+    # Delete file from R2 or local storage
+    if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+        await delete_file_from_r2(invoice["r2_key"])
+    elif invoice.get("file_path") and os.path.exists(invoice["file_path"]):
         os.remove(invoice["file_path"])
     
     # Remove invoice_id from transaction
