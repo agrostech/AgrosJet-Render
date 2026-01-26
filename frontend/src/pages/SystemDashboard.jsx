@@ -25,6 +25,246 @@ import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// ============ SİSTEM AYARLARI PAGE ============
+function SistemAyarlariPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [showSecret, setShowSecret] = useState(false);
+  
+  const [settings, setSettings] = useState({
+    account_id: "",
+    access_key_id: "",
+    secret_access_key: "",
+    bucket_name: "shiftjet",
+    configured: false
+  });
+  
+  const [formData, setFormData] = useState({
+    account_id: "",
+    access_key_id: "",
+    secret_access_key: "",
+    bucket_name: "shiftjet"
+  });
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/system-settings/cloudflare-r2`);
+      setSettings(res.data);
+      setFormData({
+        account_id: res.data.account_id || "",
+        access_key_id: res.data.access_key_id || "",
+        secret_access_key: "", // Don't populate secret for security
+        bucket_name: res.data.bucket_name || "shiftjet"
+      });
+    } catch (err) {
+      console.error("Failed to fetch settings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.account_id || !formData.access_key_id || !formData.bucket_name) {
+      toast.error("Lütfen tüm alanları doldurun");
+      return;
+    }
+    
+    // If editing existing and secret is empty, don't require it
+    if (!settings.configured && !formData.secret_access_key) {
+      toast.error("Secret Access Key gerekli");
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const payload = {
+        account_id: formData.account_id,
+        access_key_id: formData.access_key_id,
+        bucket_name: formData.bucket_name
+      };
+      
+      // Only include secret if provided
+      if (formData.secret_access_key) {
+        payload.secret_access_key = formData.secret_access_key;
+      }
+      
+      if (settings.configured) {
+        await axios.put(`${API}/system-settings/cloudflare-r2`, payload);
+      } else {
+        payload.secret_access_key = formData.secret_access_key; // Required for new
+        await axios.post(`${API}/system-settings/cloudflare-r2`, payload);
+      }
+      
+      toast.success("Ayarlar kaydedildi");
+      setFormData(prev => ({ ...prev, secret_access_key: "" }));
+      fetchSettings();
+      setTestResult(null);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await axios.post(`${API}/system-settings/cloudflare-r2/test`);
+      setTestResult(res.data);
+    } catch (err) {
+      setTestResult({
+        success: false,
+        message: err.response?.data?.detail || "Bağlantı testi başarısız"
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  if (loading) return <PageLoading />;
+
+  return (
+    <div className="space-y-6" data-testid="sistem-ayarlari-page">
+      <div className="flex items-center gap-3 pb-4 border-b">
+        <Settings className="w-8 h-8 text-primary" />
+        <div>
+          <h1 className="text-2xl font-heading font-bold">Sistem Ayarları</h1>
+          <p className="text-muted-foreground text-sm">Cloudflare R2 ve diğer entegrasyonlar</p>
+        </div>
+      </div>
+
+      {/* Cloudflare R2 Settings */}
+      <div className="bg-white border-2 border-border rounded-lg overflow-hidden">
+        <div className="bg-orange-50 px-6 py-4 border-b-2 border-border flex items-center gap-3">
+          <Cloud className="w-6 h-6 text-orange-600" />
+          <div>
+            <h2 className="font-heading font-bold text-lg">Cloudflare R2 Depolama</h2>
+            <p className="text-sm text-muted-foreground">Fatura ve evrak dosyalarının saklanacağı bulut depolama</p>
+          </div>
+          {settings.configured && (
+            <span className="ml-auto px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" />
+              Yapılandırıldı
+            </span>
+          )}
+        </div>
+        
+        <form onSubmit={handleSave} className="p-6 space-y-5">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-semibold">Account ID</Label>
+              <Input
+                value={formData.account_id}
+                onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
+                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                className="mt-1 border-2 font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Cloudflare Dashboard URL'sinde bulunur</p>
+            </div>
+            
+            <div>
+              <Label className="text-sm font-semibold">Bucket Name</Label>
+              <Input
+                value={formData.bucket_name}
+                onChange={(e) => setFormData({ ...formData, bucket_name: e.target.value })}
+                placeholder="shiftjet"
+                className="mt-1 border-2 font-mono text-sm"
+              />
+            </div>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-semibold">Access Key ID</Label>
+              <Input
+                value={formData.access_key_id}
+                onChange={(e) => setFormData({ ...formData, access_key_id: e.target.value })}
+                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                className="mt-1 border-2 font-mono text-sm"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-sm font-semibold">
+                Secret Access Key
+                {settings.configured && <span className="text-muted-foreground font-normal ml-1">(değiştirmek için doldurun)</span>}
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  type={showSecret ? "text" : "password"}
+                  value={formData.secret_access_key}
+                  onChange={(e) => setFormData({ ...formData, secret_access_key: e.target.value })}
+                  placeholder={settings.configured ? settings.secret_access_key_masked : "Yeni secret key girin"}
+                  className="border-2 font-mono text-sm pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecret(!showSecret)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Test Result */}
+          {testResult && (
+            <div className={`p-4 rounded-lg border-2 ${testResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+              <div className="flex items-center gap-2">
+                {testResult.success ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-600" />
+                )}
+                <span className={`font-semibold ${testResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                  {testResult.message}
+                </span>
+              </div>
+              {testResult.success && testResult.bucket && (
+                <p className="text-sm text-green-600 mt-1">Bucket: {testResult.bucket}</p>
+              )}
+            </div>
+          )}
+          
+          <div className="flex gap-3 pt-4 border-t">
+            <Button type="submit" disabled={saving} className="font-semibold">
+              {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Kaydediliyor...</> : "Kaydet"}
+            </Button>
+            {settings.configured && (
+              <Button type="button" variant="outline" onClick={handleTest} disabled={testing} className="font-semibold border-2">
+                {testing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Test Ediliyor...</> : "Bağlantıyı Test Et"}
+              </Button>
+            )}
+          </div>
+        </form>
+        
+        {/* Instructions */}
+        <div className="bg-slate-50 px-6 py-4 border-t-2 border-border">
+          <h3 className="font-semibold text-sm mb-2">Nasıl Yapılandırılır?</h3>
+          <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+            <li>Cloudflare Dashboard'a gidin → R2 Object Storage</li>
+            <li>Yeni bucket oluşturun (örn: shiftjet)</li>
+            <li>Manage R2 API Tokens → Create API Token</li>
+            <li>Object Read & Write izni verin</li>
+            <li>Oluşturulan Access Key ve Secret Key'i buraya girin</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ ŞİRKETLER PAGE ============
 function SirketlerPage() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
