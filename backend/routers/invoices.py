@@ -530,7 +530,7 @@ async def view_invoice(invoice_id: str):
 
 @router.post("/download-bulk")
 async def download_bulk_invoices(invoice_ids: list[str]):
-    """Download multiple invoices as ZIP"""
+    """Download multiple invoices as ZIP - supports both R2 and local storage"""
     if not invoice_ids:
         raise HTTPException(status_code=400, detail="En az bir fatura seçilmeli")
     
@@ -546,8 +546,15 @@ async def download_bulk_invoices(invoice_ids: list[str]):
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for invoice in invoices:
-            if os.path.exists(invoice["file_path"]):
-                zip_file.write(invoice["file_path"], invoice["file_name"])
+            # Check if stored in R2
+            if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+                file_content = await download_file_from_r2(invoice["r2_key"])
+                if file_content:
+                    zip_file.writestr(invoice["file_name"], file_content)
+            else:
+                # Legacy local file storage
+                if invoice.get("file_path") and os.path.exists(invoice["file_path"]):
+                    zip_file.write(invoice["file_path"], invoice["file_name"])
     
     zip_buffer.seek(0)
     
