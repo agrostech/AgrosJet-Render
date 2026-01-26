@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from datetime import datetime, timezone
 import uuid
 import os
@@ -8,11 +8,20 @@ import zipfile
 import re
 
 from utils.database import db
+from services.r2_storage import (
+    upload_file_to_r2,
+    download_file_from_r2,
+    delete_file_from_r2
+)
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
+# Legacy local upload dir (for backward compatibility)
 UPLOAD_DIR = "/app/uploads/documents"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# R2 folder prefix for documents
+R2_DOCUMENTS_PREFIX = "documents"
 
 # Forward declaration for notification
 async def send_document_notification(company_id: str, courier_name: str, doc_label: str):
