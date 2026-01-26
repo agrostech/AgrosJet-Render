@@ -34,12 +34,31 @@ export default function FaturalarTab({ companyId }) {
     verifyInvoice
   } = useFaturalar(companyId, selectedYear, selectedMonth);
 
+  const [courierLoading, setCourierLoading] = useState(false);
+
   useEffect(() => {
+    // Cleanup flag to prevent state updates after unmount or courier change
+    let isCancelled = false;
+    
     if (selectedCourier) {
-      fetchCourierInvoices(selectedCourier.courier_id).then(setCourierInvoices);
+      setCourierLoading(true);
+      setCourierInvoices([]); // Clear immediately to prevent flicker
+      
+      fetchCourierInvoices(selectedCourier.courier_id).then((data) => {
+        if (!isCancelled) {
+          setCourierInvoices(data);
+          setCourierLoading(false);
+        }
+      });
     } else {
       setCourierInvoices([]);
+      setCourierLoading(false);
     }
+    
+    // Cleanup function - runs when courier changes or component unmounts
+    return () => {
+      isCancelled = true;
+    };
   }, [selectedCourier, fetchCourierInvoices]);
 
   const handlePrevMonth = () => {
