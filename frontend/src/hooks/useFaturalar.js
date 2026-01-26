@@ -44,7 +44,7 @@ export function useFaturalar(companyId, year, month) {
     }
   }, [companyId]);
 
-  const fetchCourierInvoices = async (courierId) => {
+  const fetchCourierInvoices = useCallback(async (courierId) => {
     try {
       const res = await axios.get(`${API}/invoices/courier/${courierId}`);
       return res.data;
@@ -52,7 +52,7 @@ export function useFaturalar(companyId, year, month) {
       console.error("Kurye faturaları yüklenemedi");
       return [];
     }
-  };
+  }, []);
 
   const refetch = useCallback(async () => {
     setLoading(true);
