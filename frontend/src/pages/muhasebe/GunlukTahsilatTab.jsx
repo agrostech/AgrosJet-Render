@@ -514,6 +514,30 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
           )}
         </div>
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={!!resetConfirm} onOpenChange={(open) => !open && setResetConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tahsilat Sıfırlama</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{resetConfirm?.courier_name}</strong> için <strong>{selectedDate}</strong> tarihli tüm tahsilat kayıtları silinecek.
+              <br /><br />
+              Bu işlem geri alınamaz. Kurye tekrar veri girişi yapabilir hale gelecektir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resetting}>İptal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetCollection}
+              disabled={resetting}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {resetting ? "Sıfırlanıyor..." : "Sıfırla"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
