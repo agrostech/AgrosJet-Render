@@ -178,10 +178,24 @@ async def download_file_from_r2(file_key: str) -> Optional[bytes]:
     Returns:
         The file content as bytes, or None if download fails
     """
-    client = get_r2_client()
+    settings = await get_r2_settings()
+    
+    if not settings.get("account_id") or not settings.get("access_key_id"):
+        logger.error("R2 settings not configured")
+        return None
     
     try:
-        response = client.get_object(Bucket=BUCKET_NAME, Key=file_key)
+        endpoint = f"https://{settings['account_id']}.r2.cloudflarestorage.com"
+        client = boto3.client(
+            's3',
+            endpoint_url=endpoint,
+            aws_access_key_id=settings['access_key_id'],
+            aws_secret_access_key=settings['secret_access_key'],
+            region_name='auto',
+            config=Config(signature_version='s3v4')
+        )
+        
+        response = client.get_object(Bucket=settings['bucket_name'], Key=file_key)
         file_content = response['Body'].read()
         
         logger.info(f'Successfully downloaded {file_key} from R2')
@@ -193,6 +207,41 @@ async def download_file_from_r2(file_key: str) -> Optional[bytes]:
         else:
             logger.error(f'Error downloading {file_key} from R2: {str(e)}')
         return None
+
+
+async def delete_file_from_r2(file_key: str) -> bool:
+    """
+    Delete a file from Cloudflare R2 bucket.
+    
+    Args:
+        file_key: The key (path) of the file to delete
+    
+    Returns:
+        True if deletion was successful, False otherwise
+    """
+    settings = await get_r2_settings()
+    
+    if not settings.get("account_id") or not settings.get("access_key_id"):
+        logger.error("R2 settings not configured")
+        return False
+    
+    try:
+        endpoint = f"https://{settings['account_id']}.r2.cloudflarestorage.com"
+        client = boto3.client(
+            's3',
+            endpoint_url=endpoint,
+            aws_access_key_id=settings['access_key_id'],
+            aws_secret_access_key=settings['secret_access_key'],
+            region_name='auto',
+            config=Config(signature_version='s3v4')
+        )
+        
+        client.delete_object(Bucket=settings['bucket_name'], Key=file_key)
+        logger.info(f'Successfully deleted {file_key} from R2')
+        return True
+    except ClientError as e:
+        logger.error(f'Error deleting {file_key} from R2: {str(e)}')
+        return False
 
 
 def generate_presigned_url(
@@ -211,13 +260,26 @@ def generate_presigned_url(
     Returns:
         The presigned URL as a string, or None if generation fails
     """
-    client = get_r2_client()
+    settings = get_r2_settings_sync()
+    
+    if not settings.get("account_id") or not settings.get("access_key_id"):
+        return None
     
     try:
+        endpoint = f"https://{settings['account_id']}.r2.cloudflarestorage.com"
+        client = boto3.client(
+            's3',
+            endpoint_url=endpoint,
+            aws_access_key_id=settings['access_key_id'],
+            aws_secret_access_key=settings['secret_access_key'],
+            region_name='auto',
+            config=Config(signature_version='s3v4')
+        )
+        
         url = client.generate_presigned_url(
             ClientMethod=operation,
             Params={
-                'Bucket': BUCKET_NAME,
+                'Bucket': settings['bucket_name'],
                 'Key': file_key
             },
             ExpiresIn=expiration
