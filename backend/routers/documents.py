@@ -358,7 +358,7 @@ async def view_document(document_id: str):
 
 @router.get("/courier/{courier_id}/download-all")
 async def download_all_documents(courier_id: str):
-    """Download all documents for a courier as ZIP"""
+    """Download all documents for a courier as ZIP - supports both R2 and local storage"""
     
     # Get courier info
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
@@ -378,7 +378,13 @@ async def download_all_documents(courier_id: str):
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for doc in documents:
-            if os.path.exists(doc["file_path"]):
+            # Check if stored in R2
+            if doc.get("storage_type") == "r2" and doc.get("r2_key"):
+                file_content = await download_file_from_r2(doc["r2_key"])
+                if file_content:
+                    zip_file.writestr(doc["file_name"], file_content)
+            elif doc.get("file_path") and os.path.exists(doc["file_path"]):
+                # Legacy local storage
                 zip_file.write(doc["file_path"], doc["file_name"])
     
     zip_buffer.seek(0)
