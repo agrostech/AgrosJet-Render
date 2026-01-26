@@ -22,8 +22,22 @@ router = APIRouter(prefix="/api/invoices", tags=["Invoices"])
 UPLOAD_DIR = "/app/uploads/invoices"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# R2 folder prefix for invoices
-R2_INVOICE_PREFIX = "invoices"
+# R2 folder prefix for invoices (Turkish)
+R2_INVOICE_PREFIX = "FATURALAR"
+
+# Turkish month names
+TURKISH_MONTHS = {
+    1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan",
+    5: "Mayıs", 6: "Haziran", 7: "Temmuz", 8: "Ağustos",
+    9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
+}
+
+def get_turkish_month_folder(date: datetime = None) -> str:
+    """Get Turkish month folder name like 'Ocak 2025'"""
+    if date is None:
+        date = datetime.now(timezone.utc)
+    month_name = TURKISH_MONTHS[date.month]
+    return f"{month_name} {date.year}"
 
 
 def get_week_tuesday(date: datetime = None) -> datetime:
