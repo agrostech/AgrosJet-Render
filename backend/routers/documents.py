@@ -169,6 +169,14 @@ async def upload_document(
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
+    # Get company info for folder structure
+    courier_relation = await db.company_couriers.find_one({"courier_id": courier_id}, {"_id": 0, "company_id": 1})
+    company_folder = "Genel"
+    if courier_relation:
+        company = await db.companies.find_one({"id": courier_relation["company_id"]}, {"_id": 0, "name": 1})
+        if company:
+            company_folder = format_name_for_file(company["name"])
+    
     # Generate file name
     formatted_courier_name = format_name_for_file(courier["name"])
     formatted_company_name = format_name_for_file(company_name)
@@ -191,9 +199,9 @@ async def upload_document(
     doc_id = str(uuid.uuid4())
     stored_file_name = f"{unique_id}_{file_name}"
     
-    # Create R2 key with Turkish folder structure: EVRAKLAR/KuryeAdi/DosyaTuru/filename
+    # Create R2 key with company folder: EVRAKLAR/SirketAdi/KuryeAdi/DosyaTuru/filename
     doc_folder = TURKISH_DOC_FOLDERS.get(document_type, "Diger")
-    r2_key = f"{R2_DOCUMENTS_PREFIX}/{formatted_courier_name}/{doc_folder}/{stored_file_name}"
+    r2_key = f"{R2_DOCUMENTS_PREFIX}/{company_folder}/{formatted_courier_name}/{doc_folder}/{stored_file_name}"
     
     # Read file content
     content = await file.read()
