@@ -381,7 +381,19 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
                           {courier.collection.card_percent_20 > 0 ? courier.collection.card_percent_20 : '-'}
                         </div>
                       </td>
-                      <td className="p-1 text-center"></td>
+                      <td className="p-1 text-center">
+                        {isSuperAdmin && (
+                          <Button 
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setResetConfirm({ courier_id: courier.id, courier_name: courier.name })}
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            title="Sıfırla"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </td>
                     </>
                   ) : (
                     <>
