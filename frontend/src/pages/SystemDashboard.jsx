@@ -833,6 +833,7 @@ export default function SystemDashboard() {
           <div className="p-4 md:p-8 min-h-[calc(100vh-80px)]">
             <Routes>
               <Route index element={<SirketlerPage />} />
+              <Route path="ayarlar" element={<SistemAyarlariPage />} />
             </Routes>
           </div>
           
