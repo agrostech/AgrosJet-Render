@@ -92,6 +92,29 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     }
   };
 
+  const handleResetCollection = async () => {
+    if (!resetConfirm) return;
+    
+    setResetting(true);
+    try {
+      await axios.delete(`${API}/daily-collections/${companyId}/reset-courier-collection`, {
+        data: {
+          courier_id: resetConfirm.courier_id,
+          date: selectedDate,
+          admin_id: adminId,
+          admin_name: adminName
+        }
+      });
+      toast.success(`${resetConfirm.courier_name} için tahsilat sıfırlandı`);
+      fetchCouriersForDate();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Sıfırlama başarısız");
+    } finally {
+      setResetting(false);
+      setResetConfirm(null);
+    }
+  };
+
   const handleInputChange = (courierId, field, value) => {
     setFormData(prev => ({
       ...prev,
