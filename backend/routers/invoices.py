@@ -100,6 +100,10 @@ async def upload_invoice(
     if existing:
         raise HTTPException(status_code=400, detail="Bu işlem için zaten fatura yüklenmiş")
     
+    # Get company name for folder structure
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1})
+    company_folder = format_courier_name_for_file(company["name"]) if company else company_id
+    
     # Get Tuesday of the week
     tuesday = get_week_tuesday()
     tuesday_str = tuesday.strftime("%d.%m.%Y")
@@ -111,11 +115,11 @@ async def upload_invoice(
     formatted_name = format_courier_name_for_file(courier_name)
     file_name = f"{formatted_name}_{tuesday_str}{file_ext}"
     
-    # Create unique R2 key with Turkish folder structure: FATURALAR/Ocak 2025/filename
+    # Create unique R2 key with company folder: FATURALAR/SirketAdi/Ocak 2025/filename
     invoice_id = str(uuid.uuid4())
     unique_id = invoice_id[:8]
     stored_file_name = f"{unique_id}_{file_name}"
-    r2_key = f"{R2_INVOICE_PREFIX}/{month_folder}/{stored_file_name}"
+    r2_key = f"{R2_INVOICE_PREFIX}/{company_folder}/{month_folder}/{stored_file_name}"
     
     # Read file content
     content = await file.read()
