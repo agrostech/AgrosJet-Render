@@ -292,13 +292,15 @@ async def get_document_status(courier_id: str):
 
 @router.delete("/{document_id}")
 async def delete_document(document_id: str):
-    """Delete a document (admin only)"""
+    """Delete a document (admin only) - supports both R2 and local storage"""
     document = await db.courier_documents.find_one({"id": document_id})
     if not document:
         raise HTTPException(status_code=404, detail="Evrak bulunamadı")
     
-    # Delete file
-    if os.path.exists(document["file_path"]):
+    # Delete file from R2 or local storage
+    if document.get("storage_type") == "r2" and document.get("r2_key"):
+        await delete_file_from_r2(document["r2_key"])
+    elif document.get("file_path") and os.path.exists(document["file_path"]):
         os.remove(document["file_path"])
     
     # Delete record
@@ -309,18 +311,15 @@ async def delete_document(document_id: str):
 
 @router.get("/view/{document_id}")
 async def view_document(document_id: str):
-    """View/download a single document"""
+    """View/download a single document - supports both R2 and local storage"""
     from fastapi.responses import FileResponse
     
     document = await db.courier_documents.find_one({"id": document_id})
     if not document:
         raise HTTPException(status_code=404, detail="Evrak bulunamadı")
     
-    if not os.path.exists(document["file_path"]):
-        raise HTTPException(status_code=404, detail="Dosya bulunamadı")
-    
     # Determine media type
-    ext = document["file_extension"].lower()
+    ext = document.get("file_extension", "").lower()
     if ext == ".pdf":
         media_type = "application/pdf"
     elif ext in [".jpg", ".jpeg"]:
@@ -329,14 +328,32 @@ async def view_document(document_id: str):
         media_type = "image/png"
     elif ext == ".webp":
         media_type = "image/webp"
+    elif ext in [".heic", ".heif"]:
+        media_type = "image/heic"
     else:
         media_type = "application/octet-stream"
     
-    return FileResponse(
-        document["file_path"],
-        media_type=media_type,
-        headers={"Content-Disposition": "inline"}
-    )
+    # Check if stored in R2
+    if document.get("storage_type") == "r2" and document.get("r2_key"):
+        file_content = await download_file_from_r2(document["r2_key"])
+        if file_content is None:
+            raise HTTPException(status_code=404, detail="Dosya bulunamadı")
+        
+        return Response(
+            content=file_content,
+            media_type=media_type,
+            headers={"Content-Disposition": "inline"}
+        )
+    else:
+        # Legacy local file storage
+        if not document.get("file_path") or not os.path.exists(document["file_path"]):
+            raise HTTPException(status_code=404, detail="Dosya bulunamadı")
+        
+        return FileResponse(
+            document["file_path"],
+            media_type=media_type,
+            headers={"Content-Disposition": "inline"}
+        )
 
 
 @router.get("/courier/{courier_id}/download-all")
