@@ -252,11 +252,11 @@ function SistemAyarlariPage() {
         <div className="bg-slate-50 px-6 py-4 border-t-2 border-border">
           <h3 className="font-semibold text-sm mb-2">Nasıl Yapılandırılır?</h3>
           <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-            <li>Cloudflare Dashboard'a gidin → R2 Object Storage</li>
+            <li>Cloudflare Dashboard&apos;a gidin - R2 Object Storage</li>
             <li>Yeni bucket oluşturun (örn: shiftjet)</li>
-            <li>Manage R2 API Tokens → Create API Token</li>
-            <li>Object Read & Write izni verin</li>
-            <li>Oluşturulan Access Key ve Secret Key'i buraya girin</li>
+            <li>Manage R2 API Tokens - Create API Token</li>
+            <li>Object Read ve Write izni verin</li>
+            <li>Oluşturulan Access Key ve Secret Key&apos;i buraya girin</li>
           </ol>
         </div>
       </div>
