@@ -168,7 +168,7 @@ function SistemAyarlariPage() {
                 placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                 className="mt-1 border-2 font-mono text-sm"
               />
-              <p className="text-xs text-muted-foreground mt-1">Cloudflare Dashboard URL'sinde bulunur</p>
+              <p className="text-xs text-muted-foreground mt-1">Cloudflare Dashboard URL&apos;sinde bulunur</p>
             </div>
             
             <div>
