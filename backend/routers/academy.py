@@ -205,6 +205,20 @@ async def upload_training_image(
     if not training:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
     
+    # Get company name for folder structure
+    company_folder = "Genel"
+    if training.get("company_id"):
+        company = await db.companies.find_one({"id": training["company_id"]}, {"_id": 0, "name": 1})
+        if company:
+            # Format company name for folder (remove special chars)
+            import re
+            tr_chars = {'ı': 'i', 'İ': 'I', 'ğ': 'g', 'Ğ': 'G', 'ü': 'u', 'Ü': 'U', 
+                        'ş': 's', 'Ş': 'S', 'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C'}
+            company_name = company["name"]
+            for tr, en in tr_chars.items():
+                company_name = company_name.replace(tr, en)
+            company_folder = re.sub(r'[^a-zA-Z0-9]', '', company_name)
+    
     # Check extension
     file_ext = os.path.splitext(image.filename)[1].lower()
     if file_ext not in ALLOWED_IMAGE_EXTENSIONS:
@@ -217,8 +231,8 @@ async def upload_training_image(
     image_id = str(uuid.uuid4())
     image_filename = f"{training_id}_{image_id}{file_ext}"
     
-    # R2 key: AKADEMI/Gorseller/filename
-    r2_key = f"{R2_ACADEMY_PREFIX}/Gorseller/{image_filename}"
+    # R2 key with company folder: AKADEMI/SirketAdi/Gorseller/filename
+    r2_key = f"{R2_ACADEMY_PREFIX}/{company_folder}/Gorseller/{image_filename}"
     
     # Read content
     content = await image.read()
