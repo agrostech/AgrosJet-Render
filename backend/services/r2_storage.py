@@ -127,11 +127,28 @@ async def upload_file_to_r2(
     Returns:
         Dictionary containing success status and file location
     """
-    client = get_r2_client()
+    # Get fresh settings from database
+    settings = await get_r2_settings()
+    
+    if not settings.get("account_id") or not settings.get("access_key_id"):
+        return {
+            'success': False,
+            'error': 'R2 ayarları yapılandırılmamış. Sistem ayarlarından Cloudflare R2 bağlantısını yapın.'
+        }
     
     try:
+        endpoint = f"https://{settings['account_id']}.r2.cloudflarestorage.com"
+        client = boto3.client(
+            's3',
+            endpoint_url=endpoint,
+            aws_access_key_id=settings['access_key_id'],
+            aws_secret_access_key=settings['secret_access_key'],
+            region_name='auto',
+            config=Config(signature_version='s3v4')
+        )
+        
         client.put_object(
-            Bucket=BUCKET_NAME,
+            Bucket=settings['bucket_name'],
             Key=file_key,
             Body=file_content,
             ContentType=content_type
@@ -141,7 +158,7 @@ async def upload_file_to_r2(
         return {
             'success': True,
             'file_key': file_key,
-            'bucket': BUCKET_NAME
+            'bucket': settings['bucket_name']
         }
     except ClientError as e:
         logger.error(f'Error uploading {file_key} to R2: {str(e)}')
