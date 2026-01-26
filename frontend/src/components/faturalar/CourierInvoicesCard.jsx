@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileText, User, Download, Eye, Trash2 } from "lucide-react";
+import { FileText, User, Download, Eye, Trash2, Loader2 } from "lucide-react";
 
 const formatDateTime = (dateStr) => {
   if (!dateStr) return "-";
@@ -11,7 +11,7 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount)) + ' TL';
 };
 
-export function CourierInvoicesCard({ selectedCourier, invoices, onView, onDownload, onDelete }) {
+export function CourierInvoicesCard({ selectedCourier, invoices, loading, onView, onDownload, onDelete }) {
   return (
     <div className="border-2 border-border bg-white">
       <div className="p-3 border-b-2 border-border bg-slate-50">
@@ -20,6 +20,7 @@ export function CourierInvoicesCard({ selectedCourier, invoices, onView, onDownl
           <h3 className="font-semibold text-sm">
             {selectedCourier ? `${selectedCourier.courier_name} - Faturalar` : 'Kurye Seçin'}
           </h3>
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
         </div>
       </div>
       <div className="max-h-96 overflow-y-auto">
@@ -27,6 +28,11 @@ export function CourierInvoicesCard({ selectedCourier, invoices, onView, onDownl
           <div className="p-8 text-center text-muted-foreground text-sm">
             <User className="w-12 h-12 mx-auto mb-2 opacity-20" />
             Faturalarını görmek için bir kurye seçin
+          </div>
+        ) : loading ? (
+          <div className="p-8 text-center text-muted-foreground text-sm">
+            <Loader2 className="w-12 h-12 mx-auto mb-2 animate-spin opacity-30" />
+            Yükleniyor...
           </div>
         ) : invoices.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-sm">
