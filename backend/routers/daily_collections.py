@@ -296,3 +296,58 @@ async def mark_collection_collected(company_id: str, data: MarkCollectedRequest)
     
     return {"message": f"{data.type.capitalize()} alındı olarak işaretlendi"}
 
+
+# ============ RESET COLLECTION (SuperAdmin için sıfırlama) ============
+
+class ResetCollectionRequest(BaseModel):
+    courier_id: str
+    date: str
+    admin_id: str
+    admin_name: str
+
+
+@router.delete("/{company_id}/reset-courier-collection")
+async def reset_courier_collection(company_id: str, data: ResetCollectionRequest):
+    """
+    Belirli bir kurye ve gün için tahsilat kayıtlarını sıfırla (sadece SuperAdmin)
+    Kayıtlar tamamen silinir, kurye tekrar giriş yapabilir hale gelir.
+    """
+    # Check if there are any collections to delete
+    existing = await db.daily_collections.find_one({
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "date": data.date
+    })
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Bu kurye için bu tarihte kayıt bulunamadı")
+    
+    # Get courier name for logging
+    courier = await db.couriers.find_one({"id": data.courier_id}, {"_id": 0, "name": 1})
+    courier_name = courier["name"] if courier else data.courier_id
+    
+    # Delete all collection records for this courier on this date
+    result = await db.daily_collections.delete_many({
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "date": data.date
+    })
+    
+    # Log the reset action
+    await db.collection_reset_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "courier_name": courier_name,
+        "date": data.date,
+        "deleted_count": result.deleted_count,
+        "reset_by_id": data.admin_id,
+        "reset_by_name": data.admin_name,
+        "reset_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "message": f"{courier_name} için {data.date} tarihli kayıtlar sıfırlandı",
+        "deleted_count": result.deleted_count
+    }
+
