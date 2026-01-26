@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, UserPlus, Users } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, UserPlus, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
