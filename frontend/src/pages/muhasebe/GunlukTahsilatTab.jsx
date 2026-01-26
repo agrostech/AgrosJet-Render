@@ -36,6 +36,8 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
   const [formData, setFormData] = useState({});
   const [collectionStatus, setCollectionStatus] = useState({ cash_collected: false, card_collected: false });
   const [savingCollection, setSavingCollection] = useState(null);
+  const [resetConfirm, setResetConfirm] = useState(null); // { courier_id, courier_name }
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     fetchCouriersForDate();
