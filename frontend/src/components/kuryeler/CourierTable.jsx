@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff } from "lucide-react";
+import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge } from "lucide-react";
 
 export function CourierTable({ 
   couriers, 
@@ -19,7 +19,8 @@ export function CourierTable({
   onStartTermination, 
   onCancelTermination,
   onDeactivate,
-  onActivate 
+  onActivate,
+  onMerge
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
@@ -49,18 +50,27 @@ export function CourierTable({
             couriers.map((c) => (
               <TableRow 
                 key={c.id} 
-                className={`border-b border-border hover:bg-slate-50 ${c.termination_start_date ? 'bg-orange-50' : ''}`}
+                className={`border-b border-border hover:bg-slate-50 ${c.termination_start_date ? 'bg-orange-50' : ''} ${c.is_ghost ? 'bg-purple-50/50' : ''}`}
               >
                 <TableCell className="font-medium">
-                  {c.name}
-                  {c.termination_start_date && (
-                    <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] rounded font-semibold">
-                      Fesih: {c.termination_remaining_days} gün
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {c.is_ghost && (
+                      <Ghost className="w-4 h-4 text-purple-500" title="Hayalet Kurye" />
+                    )}
+                    {c.name}
+                    {c.termination_start_date && (
+                      <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] rounded font-semibold">
+                        Fesih: {c.termination_remaining_days} gün
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
-                <TableCell className="font-mono text-sm">{c.phone}</TableCell>
-                <TableCell className="font-mono text-sm">{c.plate}</TableCell>
+                <TableCell className="font-mono text-sm">
+                  {c.is_ghost ? <span className="text-muted-foreground italic">-</span> : c.phone}
+                </TableCell>
+                <TableCell className="font-mono text-sm">
+                  {c.plate || <span className="text-muted-foreground">-</span>}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex gap-2 justify-end">
                     <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="h-8 px-3 border-2">
@@ -69,6 +79,11 @@ export function CourierTable({
                     <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600">
                       <Pencil className="w-4 h-4" />
                     </Button>
+                    {c.is_ghost && onMerge && (
+                      <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="h-8 px-3 border-2 hover:bg-purple-50 hover:text-purple-600" title="Birleştir">
+                        <Merge className="w-4 h-4" />
+                      </Button>
+                    )}
                     {activeTab === "active" ? (
                       <>
                         {c.termination_start_date ? (
