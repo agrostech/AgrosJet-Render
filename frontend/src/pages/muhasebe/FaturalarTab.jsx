@@ -10,7 +10,7 @@ import { MissingInvoicesCard } from "@/components/faturalar/MissingInvoicesCard"
 import { CouriersListCard } from "@/components/faturalar/CouriersListCard";
 import { CourierInvoicesCard } from "@/components/faturalar/CourierInvoicesCard";
 
-export default function FaturalarTab({ companyId }) {
+export default function FaturalarTab({ companyId, adminId, adminName }) {
   const now = new Date();
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
@@ -31,7 +31,9 @@ export default function FaturalarTab({ companyId }) {
     viewInvoice,
     deleteInvoice,
     downloadBulk,
-    verifyInvoice
+    verifyInvoice,
+    verifyInvoiceWithAmount,
+    uploadInvoiceByAdmin
   } = useFaturalar(companyId, selectedYear, selectedMonth);
 
   const [courierLoading, setCourierLoading] = useState(false);
