@@ -306,11 +306,11 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
                 <div key={shortfall.id} className="p-3 flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-amber-900 truncate">
-                      Eksik tutar bekleniyor
+                      Eksik fatura bekleniyor
                     </p>
                     <p className="text-xs text-amber-700">
-                      Orijinal hakediş: {formatMoney(shortfall.expected_amount)} → 
-                      Kesilen fatura: {formatMoney(shortfall.invoice_amount)}
+                      Hakediş: {formatMoney(shortfall.expected_amount)} → 
+                      Kesilen: {formatMoney(shortfall.total_invoiced || shortfall.invoice_amount || 0)}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -324,7 +324,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
             </div>
             <div className="p-3 bg-amber-100 border-t border-amber-200">
               <p className="text-xs text-amber-700 text-center">
-                Yukarıdaki eksik tutarlar için fatura yükleyebilirsiniz. İşlem geçmişinde &quot;Eksik Fatura&quot; etiketli hakedişleri bulabilirsiniz.
+                Aşağıdaki işlem geçmişinde sarı renkli hakedişlerde &quot;Eksik Yükle&quot; butonuna tıklayarak eksik faturalarınızı yükleyebilirsiniz.
               </p>
             </div>
           </div>
