@@ -12,6 +12,7 @@ import { CourierCards } from "@/components/kuryeler/CourierCards";
 import { CourierEditModal } from "@/components/kuryeler/CourierEditModal";
 import { CourierAddModal } from "@/components/kuryeler/CourierAddModal";
 import { CourierDetailModal } from "@/components/kuryeler/CourierDetailModal";
+import { CourierMergeModal } from "@/components/kuryeler/CourierMergeModal";
 
 export default function KuryelerPage({ companyId }) {
   const {
@@ -37,6 +38,7 @@ export default function KuryelerPage({ companyId }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showMergeModal, setShowMergeModal] = useState(false);
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
