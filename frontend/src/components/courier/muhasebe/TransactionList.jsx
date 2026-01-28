@@ -50,6 +50,7 @@ export function TransactionTable({
               companyInfo={companyInfo}
               uploadingFor={uploadingFor}
               onUploadClick={onUploadClick}
+              onUploadShortfallClick={onUploadShortfallClick}
               onDownloadInvoice={onDownloadInvoice}
               onDeleteInvoice={onDeleteInvoice}
               onOpenInvoiceMessage={onOpenInvoiceMessage}
