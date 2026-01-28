@@ -373,3 +373,155 @@ async def unarchive_courier(company_id: str, courier_id: str):
     if result.matched_count == 0:
         return None, "Arşivlenmiş kurye bulunamadı"
     return {"message": "Kurye arşivden çıkarıldı"}, None
+
+
+async def create_ghost_courier(company_id: str, name: str):
+    """Create a ghost courier for accounting purposes - no login capability"""
+    company = await db.companies.find_one({"id": company_id})
+    if not company:
+        return None, "Şirket bulunamadı"
+    
+    # Create ghost courier with unique placeholder phone
+    ghost_id = str(uuid.uuid4())
+    ghost_phone = f"GHOST_{ghost_id[:8]}"  # Unique placeholder, not a real phone
+    
+    courier = {
+        "id": ghost_id,
+        "name": format_name(name),
+        "phone": ghost_phone,
+        "address": "",
+        "iban": "",
+        "plate": "",
+        "password": "",  # Empty password - can't login
+        "status": "active",
+        "is_ghost": True,  # Mark as ghost courier
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.couriers.insert_one(courier)
+    
+    # Add to company
+    relation = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "courier_id": ghost_id,
+        "status": "approved",
+        "is_archived": False,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.company_couriers.insert_one(relation)
+    
+    return {
+        "message": "Hayalet kurye oluşturuldu",
+        "courier_id": ghost_id,
+        "courier_name": courier["name"]
+    }, None
+
+
+async def merge_couriers(ghost_courier_id: str, real_courier_id: str):
+    """Merge a ghost courier into a real courier - transfer all records"""
+    # Validate ghost courier
+    ghost = await db.couriers.find_one({"id": ghost_courier_id})
+    if not ghost:
+        return None, "Hayalet kurye bulunamadı"
+    if not ghost.get("is_ghost"):
+        return None, "Seçilen kurye bir hayalet kurye değil"
+    
+    # Validate real courier
+    real = await db.couriers.find_one({"id": real_courier_id})
+    if not real:
+        return None, "Hedef kurye bulunamadı"
+    if real.get("is_ghost"):
+        return None, "Hedef kurye bir hayalet kurye olamaz"
+    
+    # Transfer all transactions
+    await db.transactions.update_many(
+        {"entity_type": "courier", "entity_id": ghost_courier_id},
+        {"$set": {"entity_id": real_courier_id}}
+    )
+    
+    # Transfer all invoices
+    await db.invoices.update_many(
+        {"courier_id": ghost_courier_id},
+        {"$set": {"courier_id": real_courier_id}}
+    )
+    
+    # Transfer courier documents
+    await db.courier_documents.update_many(
+        {"courier_id": ghost_courier_id},
+        {"$set": {"courier_id": real_courier_id}}
+    )
+    
+    # Transfer shift assignments
+    await db.shift_assignments.update_many(
+        {"courier_id": ghost_courier_id},
+        {"$set": {"courier_id": real_courier_id}}
+    )
+    
+    # Transfer daily collections
+    await db.daily_collections.update_many(
+        {"courier_id": ghost_courier_id},
+        {"$set": {"courier_id": real_courier_id}}
+    )
+    
+    # Transfer products (zimmet)
+    await db.products.update_many(
+        {"assigned_to_courier_id": ghost_courier_id},
+        {"$set": {"assigned_to_courier_id": real_courier_id}}
+    )
+    
+    # Transfer installment products
+    await db.installment_products.update_many(
+        {"courier_id": ghost_courier_id},
+        {"$set": {"courier_id": real_courier_id}}
+    )
+    
+    # Transfer JetPuan (if exists)
+    ghost_jetpuan = await db.jetpuan_balances.find_one({"courier_id": ghost_courier_id})
+    if ghost_jetpuan:
+        real_jetpuan = await db.jetpuan_balances.find_one({"courier_id": real_courier_id})
+        if real_jetpuan:
+            # Add ghost balance to real courier
+            await db.jetpuan_balances.update_one(
+                {"courier_id": real_courier_id},
+                {"$inc": {"balance": ghost_jetpuan.get("balance", 0)}}
+            )
+        else:
+            # Transfer the balance record
+            await db.jetpuan_balances.update_one(
+                {"courier_id": ghost_courier_id},
+                {"$set": {"courier_id": real_courier_id}}
+            )
+    
+    # Get company relations for ghost and add real courier to those companies
+    ghost_relations = await db.company_couriers.find({"courier_id": ghost_courier_id}).to_list(100)
+    for rel in ghost_relations:
+        # Check if real courier is already in that company
+        existing = await db.company_couriers.find_one({
+            "company_id": rel["company_id"],
+            "courier_id": real_courier_id
+        })
+        if not existing:
+            # Add real courier to company
+            new_rel = {
+                "id": str(uuid.uuid4()),
+                "company_id": rel["company_id"],
+                "courier_id": real_courier_id,
+                "status": "approved",
+                "is_archived": False,
+                "is_active": True,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.company_couriers.insert_one(new_rel)
+    
+    # Delete ghost courier relations
+    await db.company_couriers.delete_many({"courier_id": ghost_courier_id})
+    
+    # Delete ghost courier
+    await db.couriers.delete_one({"id": ghost_courier_id})
+    
+    return {
+        "message": f"'{ghost['name']}' kuryesi '{real['name']}' kuryesiyle birleştirildi",
+        "merged_courier_id": real_courier_id,
+        "merged_courier_name": real["name"]
+    }, None
