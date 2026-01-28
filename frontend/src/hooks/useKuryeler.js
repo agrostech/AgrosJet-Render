@@ -135,6 +135,8 @@ export function useKuryeler(companyId) {
     refetch: fetchCouriers,
     searchCourier,
     addCourier,
+    addGhostCourier,
+    mergeCouriers,
     updateCourier,
     removeCourier,
     startTermination,
