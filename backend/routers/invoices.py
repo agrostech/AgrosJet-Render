@@ -456,7 +456,8 @@ async def verify_invoice_with_amount(
             "has_shortfall": shortfall > 0,
             "shortfall_amount": shortfall if shortfall > 0 else 0,
             "total_invoiced": total_invoiced,
-            "last_verified_at": datetime.now(timezone.utc).isoformat()
+            "last_verified_at": datetime.now(timezone.utc).isoformat(),
+            "pending_shortfall_invoice": False  # Clear pending flag after verification
         }}
     )
     
