@@ -206,10 +206,11 @@ export function TransactionMobileList({
 function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
   const hasInvoice = !!invoice;
   const showUploadButton = tx.is_hakedis && !hasInvoice;
-  const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0;
+  const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0 && !tx.pending_shortfall_invoice;
+  const hasPendingShortfallInvoice = tx.pending_shortfall_invoice;
   
   return (
-    <div className={`p-3 hover:bg-slate-50 ${hasShortfall ? 'bg-amber-50/50' : ''}`}>
+    <div className={`p-3 hover:bg-slate-50 ${hasShortfall ? 'bg-amber-50/50' : ''} ${hasPendingShortfallInvoice ? 'bg-blue-50/50' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -224,6 +225,11 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
             {hasShortfall && (
               <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium">
                 {formatMoney(tx.shortfall_amount)} Eksik
+              </span>
+            )}
+            {hasPendingShortfallInvoice && (
+              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
+                Kontrol Bekliyor
               </span>
             )}
             {tx.installment_product_id && (
