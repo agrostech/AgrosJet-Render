@@ -132,8 +132,10 @@ export function MonthInvoicesCard({
                           </p>
                         </div>
                       </div>
-                      <p className="font-semibold text-sm font-mono text-red-600 flex-shrink-0">
-                        {invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
+                      <p className={`font-semibold text-sm font-mono flex-shrink-0 ${invoice.is_shortfall_invoice ? 'text-amber-600' : 'text-red-600'}`}>
+                        {invoice.is_shortfall_invoice && invoice.shortfall_amount 
+                          ? formatMoney(invoice.shortfall_amount)
+                          : invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
                       </p>
                     </div>
                     <div className="flex items-center justify-end gap-1">
