@@ -168,7 +168,7 @@ export function CourierInvoicesCard({ selectedCourier, invoices, loading, onView
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.jpg,.jpeg,.png,.heic,.heif"
+        accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.heic,.heif"
         onChange={handleFileChange}
         className="hidden"
       />
