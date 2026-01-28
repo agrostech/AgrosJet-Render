@@ -81,6 +81,27 @@ async def add_courier_to_company(
     return result
 
 
+@router.post("/companies/{company_id}/couriers/ghost")
+async def create_ghost_courier(
+    company_id: str,
+    data: GhostCourierCreate
+):
+    """Create a ghost courier (only name, no login capability) for accounting purposes"""
+    result, error = await courier_service.create_ghost_courier(company_id, data.name)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    return result
+
+
+@router.post("/couriers/merge")
+async def merge_couriers(data: MergeCouriersRequest):
+    """Merge a ghost courier into a real courier - transfer all transactions, invoices, etc."""
+    result, error = await courier_service.merge_couriers(data.ghost_courier_id, data.real_courier_id)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    return result
+
+
 @router.put("/couriers/{courier_id}")
 async def update_courier(
     courier_id: str, 
