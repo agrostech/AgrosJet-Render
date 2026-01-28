@@ -203,7 +203,7 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
   const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0;
   
   return (
-    <div className="p-3 hover:bg-slate-50">
+    <div className={`p-3 hover:bg-slate-50 ${hasShortfall ? 'bg-amber-50/50' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -215,9 +215,9 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
                 Hakediş
               </span>
             )}
-            {tx.is_shortfall && (
+            {hasShortfall && (
               <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium">
-                Eksik Fatura
+                {formatMoney(tx.shortfall_amount)} Eksik
               </span>
             )}
             {tx.installment_product_id && (
@@ -234,7 +234,7 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
           }`}>
             {tx.type === 'payment_out' ? '-' : ''}{formatMoney(tx.amount)}
           </p>
-          <div className="mt-1 flex items-center justify-end gap-1">
+          <div className="mt-1 flex items-center justify-end gap-1 flex-wrap">
             {showUploadButton && companyInfo && (
               <Button
                 size="sm"
@@ -259,7 +259,7 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
                 Fatura
               </Button>
             ) : hasInvoice ? (
-              <div className="flex items-center justify-end gap-1">
+              <div className="flex items-center justify-end gap-1 flex-wrap">
                 <Button
                   size="sm"
                   variant="ghost"
@@ -276,6 +276,19 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
                     className="h-6 w-6 p-0 text-red-500"
                   >
                     <Trash2 className="w-3 h-3" />
+                  </Button>
+                )}
+                {/* Shortfall upload button for mobile */}
+                {hasShortfall && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onUploadShortfallClick(tx.id)}
+                    disabled={uploadingFor === `shortfall_${tx.id}`}
+                    className="h-6 text-[10px] gap-1 px-2 border-amber-300 text-amber-700"
+                  >
+                    <AlertTriangle className="w-3 h-3" />
+                    Eksik
                   </Button>
                 )}
               </div>
