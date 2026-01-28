@@ -62,8 +62,10 @@ export function TransactionTable({
   );
 }
 
-function TransactionRow({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
-  const hasInvoice = !!invoice;
+function TransactionRow({ tx, invoices = [], companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
+  // invoices is now an array
+  const hasInvoice = invoices && invoices.length > 0;
+  const firstInvoice = hasInvoice ? invoices[0] : null;
   const showUploadButton = tx.is_hakedis && !hasInvoice;
   const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0 && !tx.pending_shortfall_invoice;
   const hasPendingShortfallInvoice = tx.pending_shortfall_invoice;
