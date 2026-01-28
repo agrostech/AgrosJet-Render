@@ -162,7 +162,16 @@ export function useAccountingTab({
       if (sortedData.length > 0 && !selectedEntity) {
         setSelectedEntity(sortedData[0]);
       }
-      sortedData.forEach(e => fetchEntityBalance(e.id, false));
+      // Tüm bakiyeleri paralel olarak çek
+      const balancePromises = sortedData.map(e => 
+        axios.get(`${API}${endpoint.transactions(e.id)}?limit=1`)
+          .then(res => ({ id: e.id, balance: res.data.balance }))
+          .catch(() => ({ id: e.id, balance: 0 }))
+      );
+      const balances = await Promise.all(balancePromises);
+      const balanceMap = {};
+      balances.forEach(b => { balanceMap[b.id] = b.balance; });
+      setEntityBalances(balanceMap);
     } catch (err) {
       if (!err.handled) {
         toast.error("Veriler yüklenemedi");
@@ -170,7 +179,7 @@ export function useAccountingTab({
     } finally {
       setLoading(false);
     }
-  }, [endpoint, fetchEntityBalance, selectedEntity]);
+  }, [endpoint, selectedEntity]);
 
   // Fetch archived entities
   const fetchArchivedEntities = useCallback(async () => {
