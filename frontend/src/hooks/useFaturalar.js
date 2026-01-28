@@ -119,6 +119,40 @@ export function useFaturalar(companyId, year, month) {
     fetchMonthInvoices();
   };
 
+  const verifyInvoiceWithAmount = async (invoiceId, amount, adminId, adminName) => {
+    const formData = new FormData();
+    formData.append("invoice_amount", amount);
+    formData.append("admin_id", adminId);
+    formData.append("admin_name", adminName);
+    
+    const res = await axios.post(`${API}/invoices/${invoiceId}/verify-with-amount`, formData);
+    
+    if (res.data.has_shortfall) {
+      toast.warning(`${res.data.shortfall.toLocaleString('tr-TR')} TL eksik fatura kaydı oluşturuldu`);
+    } else {
+      toast.success("Fatura kontrol edildi");
+    }
+    
+    await refetch();
+    return res.data;
+  };
+
+  const uploadInvoiceByAdmin = async (transactionId, courierId, courierName, adminId, adminName, file) => {
+    const formData = new FormData();
+    formData.append("transaction_id", transactionId);
+    formData.append("courier_id", courierId);
+    formData.append("courier_name", courierName);
+    formData.append("company_id", companyId);
+    formData.append("admin_id", adminId);
+    formData.append("admin_name", adminName);
+    formData.append("file", file);
+    
+    const res = await axios.post(`${API}/invoices/upload-by-admin`, formData);
+    toast.success("Fatura başarıyla yüklendi");
+    await refetch();
+    return res.data;
+  };
+
   return {
     couriersSummary,
     monthInvoices,
@@ -130,6 +164,8 @@ export function useFaturalar(companyId, year, month) {
     viewInvoice,
     deleteInvoice,
     downloadBulk,
-    verifyInvoice
+    verifyInvoice,
+    verifyInvoiceWithAmount,
+    uploadInvoiceByAdmin
   };
 }
