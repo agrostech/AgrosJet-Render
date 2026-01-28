@@ -158,15 +158,24 @@ async def upload_invoice(
         "week_tuesday": tuesday.isoformat(),
         "week_tuesday_display": tuesday_str,
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "is_shortfall_invoice": is_shortfall_invoice  # Mark if this is for shortfall
     }
     await db.invoices.insert_one(invoice)
     
-    # Update transaction with invoice_id
-    await db.transactions.update_one(
-        {"id": transaction_id},
-        {"$set": {"invoice_id": invoice["id"]}}
-    )
+    # Update transaction - add to invoice_ids array instead of single invoice_id
+    if is_shortfall_invoice:
+        # For shortfall invoices, add to array
+        await db.transactions.update_one(
+            {"id": transaction_id},
+            {"$addToSet": {"invoice_ids": invoice["id"]}}
+        )
+    else:
+        # For first invoice, set invoice_id
+        await db.transactions.update_one(
+            {"id": transaction_id},
+            {"$set": {"invoice_id": invoice["id"]}}
+        )
     
     # Create notification for admin
     notification = {
