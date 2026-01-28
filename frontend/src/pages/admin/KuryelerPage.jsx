@@ -230,6 +230,7 @@ export default function KuryelerPage({ companyId }) {
         onOpenChange={setShowAddModal}
         onSearch={searchCourier}
         onAdd={addCourier}
+        onAddGhost={addGhostCourier}
       />
 
       <CourierEditModal
