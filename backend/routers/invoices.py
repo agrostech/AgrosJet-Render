@@ -356,6 +356,231 @@ async def unverify_invoice(invoice_id: str):
     return {"message": "Fatura kontrol durumu kaldırıldı"}
 
 
+@router.post("/{invoice_id}/verify-with-amount")
+async def verify_invoice_with_amount(
+    invoice_id: str,
+    invoice_amount: float = Form(...),
+    admin_id: str = Form(...),
+    admin_name: str = Form(...)
+):
+    """Verify invoice with amount check - creates shortfall if amount is less than expected"""
+    invoice = await db.invoices.find_one({"id": invoice_id})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # Get the original transaction
+    transaction = await db.transactions.find_one({"id": invoice.get("transaction_id")})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    
+    expected_amount = transaction.get("amount", 0)
+    shortfall = expected_amount - invoice_amount
+    
+    # Update invoice with verified amount
+    await db.invoices.update_one(
+        {"id": invoice_id},
+        {"$set": {
+            "verified": True,
+            "verified_at": datetime.now(timezone.utc).isoformat(),
+            "verified_amount": invoice_amount,
+            "verified_by_id": admin_id,
+            "verified_by_name": admin_name
+        }}
+    )
+    
+    result = {
+        "message": "Fatura kontrol edildi",
+        "expected_amount": expected_amount,
+        "invoice_amount": invoice_amount,
+        "shortfall": shortfall,
+        "has_shortfall": shortfall > 0
+    }
+    
+    # If shortfall exists, create a new transaction for the shortfall amount
+    if shortfall > 0:
+        # Create a new hakediş transaction for the shortfall
+        shortfall_tx_id = str(uuid.uuid4())
+        shortfall_tx = {
+            "id": shortfall_tx_id,
+            "entity_type": "courier",
+            "entity_id": invoice["courier_id"],
+            "company_id": invoice["company_id"],
+            "type": "payment_in",  # Hakediş is payment_in
+            "amount": shortfall,
+            "description": f"Eksik Fatura - {transaction.get('description', '')}",
+            "is_hakedis": True,
+            "is_shortfall": True,  # Mark as shortfall
+            "original_transaction_id": transaction["id"],
+            "original_invoice_id": invoice_id,
+            "admin_id": admin_id,
+            "admin_name": admin_name,
+            "add_jetpuan": False,  # No JetPuan for shortfall
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.transactions.insert_one(shortfall_tx)
+        
+        # Create shortfall record
+        shortfall_record = {
+            "id": str(uuid.uuid4()),
+            "original_invoice_id": invoice_id,
+            "original_transaction_id": transaction["id"],
+            "shortfall_transaction_id": shortfall_tx_id,
+            "courier_id": invoice["courier_id"],
+            "courier_name": invoice.get("courier_name", ""),
+            "company_id": invoice["company_id"],
+            "expected_amount": expected_amount,
+            "invoice_amount": invoice_amount,
+            "shortfall_amount": shortfall,
+            "status": "pending",  # pending -> uploaded -> verified
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by_id": admin_id,
+            "created_by_name": admin_name
+        }
+        await db.invoice_shortfalls.insert_one(shortfall_record)
+        
+        result["shortfall_transaction_id"] = shortfall_tx_id
+        result["shortfall_record_id"] = shortfall_record["id"]
+    
+    return result
+
+
+@router.get("/shortfalls/courier/{courier_id}")
+async def get_courier_shortfalls(courier_id: str):
+    """Get pending invoice shortfalls for a courier"""
+    shortfalls = await db.invoice_shortfalls.find(
+        {"courier_id": courier_id, "status": "pending"},
+        {"_id": 0}
+    ).to_list(100)
+    return shortfalls
+
+
+@router.get("/shortfalls/company/{company_id}")
+async def get_company_shortfalls(company_id: str):
+    """Get all invoice shortfalls for a company"""
+    shortfalls = await db.invoice_shortfalls.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    return shortfalls
+
+
+@router.post("/upload-by-admin")
+async def upload_invoice_by_admin(
+    transaction_id: str = Form(...),
+    courier_id: str = Form(...),
+    courier_name: str = Form(...),
+    company_id: str = Form(...),
+    admin_id: str = Form(...),
+    admin_name: str = Form(...),
+    file: UploadFile = File(...)
+):
+    """Upload invoice by admin (for ghost couriers or on behalf of courier)"""
+    
+    # Validate file type
+    allowed_extensions = ('.pdf', '.jpg', '.jpeg', '.png', '.heic', '.heif')
+    file_ext = os.path.splitext(file.filename.lower())[1]
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Sadece PDF veya resim dosyası yüklenebilir")
+    
+    # Check transaction exists and is hakediş
+    transaction = await db.transactions.find_one({"id": transaction_id})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    
+    if not transaction.get("is_hakedis"):
+        raise HTTPException(status_code=400, detail="Bu işlem hakediş değil")
+    
+    # Check if invoice already exists
+    existing = await db.invoices.find_one({"transaction_id": transaction_id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu işlem için zaten fatura yüklenmiş")
+    
+    # Get company name for folder structure
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1})
+    company_folder = format_courier_name_for_file(company["name"]) if company else company_id
+    
+    # Get Tuesday of the week
+    tuesday = get_week_tuesday()
+    tuesday_str = tuesday.strftime("%d.%m.%Y")
+    
+    # Get Turkish month folder name
+    month_folder = get_turkish_month_folder(tuesday)
+    
+    # Format file name
+    formatted_name = format_courier_name_for_file(courier_name)
+    file_name = f"{formatted_name}_{tuesday_str}{file_ext}"
+    
+    # Create unique R2 key
+    invoice_id = str(uuid.uuid4())
+    unique_id = invoice_id[:8]
+    stored_file_name = f"{unique_id}_{file_name}"
+    r2_key = f"{R2_INVOICE_PREFIX}/{company_folder}/{month_folder}/{stored_file_name}"
+    
+    # Read file content
+    content = await file.read()
+    
+    # Determine content type
+    content_types = {
+        '.pdf': 'application/pdf',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.heic': 'image/heic',
+        '.heif': 'image/heif'
+    }
+    content_type = content_types.get(file_ext, 'application/octet-stream')
+    
+    # Upload to R2
+    upload_result = await upload_file_to_r2(content, r2_key, content_type)
+    if not upload_result['success']:
+        raise HTTPException(status_code=500, detail="Dosya yüklenemedi: " + upload_result.get('error', 'Bilinmeyen hata'))
+    
+    # Create invoice record
+    invoice = {
+        "id": invoice_id,
+        "transaction_id": transaction_id,
+        "courier_id": courier_id,
+        "courier_name": courier_name,
+        "company_id": company_id,
+        "file_name": file_name,
+        "stored_file_name": stored_file_name,
+        "r2_key": r2_key,
+        "storage_type": "r2",
+        "file_path": None,
+        "week_tuesday": tuesday.isoformat(),
+        "week_tuesday_display": tuesday_str,
+        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "uploaded_by_admin": True,
+        "uploaded_by_admin_id": admin_id,
+        "uploaded_by_admin_name": admin_name
+    }
+    await db.invoices.insert_one(invoice)
+    
+    # Update transaction with invoice_id
+    await db.transactions.update_one(
+        {"id": transaction_id},
+        {"$set": {"invoice_id": invoice_id}}
+    )
+    
+    # If this was a shortfall transaction, update shortfall record
+    if transaction.get("is_shortfall"):
+        await db.invoice_shortfalls.update_one(
+            {"shortfall_transaction_id": transaction_id},
+            {"$set": {
+                "status": "uploaded",
+                "shortfall_invoice_id": invoice_id,
+                "uploaded_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    
+    return {
+        "message": "Fatura başarıyla yüklendi",
+        "invoice_id": invoice_id,
+        "file_name": file_name
+    }
+
+
 @router.get("/company/{company_id}/missing")
 async def get_missing_invoices(company_id: str):
     """Get hakediş transactions without invoices"""
