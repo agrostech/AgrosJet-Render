@@ -279,24 +279,30 @@ function TransactionMobileItem({ tx, invoices = [], companyInfo, uploadingFor, o
               </Button>
             ) : hasInvoice ? (
               <div className="flex items-center justify-end gap-1 flex-wrap">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onDownloadInvoice(invoice.id)}
-                  className="h-6 w-6 p-0 text-green-600"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                </Button>
-                {canDeleteInvoice(invoice) && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onDeleteInvoice(invoice.id)}
-                    className="h-6 w-6 p-0 text-red-500"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                )}
+                {/* Show all invoices */}
+                {invoices.map((inv, idx) => (
+                  <div key={inv.id} className="flex items-center gap-0.5">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDownloadInvoice(inv.id)}
+                      className={`h-6 w-6 p-0 ${inv.is_shortfall_invoice ? 'text-amber-600' : 'text-green-600'}`}
+                      title={inv.is_shortfall_invoice ? 'Eksik Fatura' : `Fatura ${idx + 1}`}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                    </Button>
+                    {canDeleteInvoice(inv) && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onDeleteInvoice(inv.id)}
+                        className="h-6 w-6 p-0 text-red-500"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
                 {/* Shortfall upload button for mobile */}
                 {hasShortfall && (
                   <Button
