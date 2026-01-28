@@ -65,10 +65,11 @@ export function TransactionTable({
 function TransactionRow({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
   const hasInvoice = !!invoice;
   const showUploadButton = tx.is_hakedis && !hasInvoice;
-  const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0;
+  const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0 && !tx.pending_shortfall_invoice;
+  const hasPendingShortfallInvoice = tx.pending_shortfall_invoice;
   
   return (
-    <tr className={`hover:bg-slate-50 ${hasShortfall ? 'bg-amber-50/50' : ''}`}>
+    <tr className={`hover:bg-slate-50 ${hasShortfall ? 'bg-amber-50/50' : ''} ${hasPendingShortfallInvoice ? 'bg-blue-50/50' : ''}`}>
       <td className="p-3 font-mono text-xs whitespace-nowrap">{formatDate(tx.created_at)}</td>
       <td className="p-3">
         <div>
@@ -81,6 +82,11 @@ function TransactionRow({ tx, invoice, companyInfo, uploadingFor, onUploadClick,
           {hasShortfall && (
             <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium">
               {formatMoney(tx.shortfall_amount)} Eksik
+            </span>
+          )}
+          {hasPendingShortfallInvoice && (
+            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
+              Kontrol Bekliyor
             </span>
           )}
           {tx.installment_product_id && (
