@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator } from "lucide-react";
+import { Calculator, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -27,6 +27,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
   const [loadingMore, setLoadingMore] = useState(false);
   const [installmentProducts, setInstallmentProducts] = useState([]);
   const [invoices, setInvoices] = useState({});
+  const [shortfalls, setShortfalls] = useState([]);
   const [uploadingFor, setUploadingFor] = useState(null);
   const [installmentsExpanded, setInstallmentsExpanded] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(null);
