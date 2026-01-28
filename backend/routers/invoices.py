@@ -363,7 +363,7 @@ async def verify_invoice_with_amount(
     admin_id: str = Form(...),
     admin_name: str = Form(...)
 ):
-    """Verify invoice with amount check - creates shortfall if amount is less than expected"""
+    """Verify invoice with amount check - tracks shortfall if amount is less than expected"""
     invoice = await db.invoices.find_one({"id": invoice_id})
     if not invoice:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
@@ -374,7 +374,23 @@ async def verify_invoice_with_amount(
         raise HTTPException(status_code=404, detail="İşlem bulunamadı")
     
     expected_amount = transaction.get("amount", 0)
-    shortfall = expected_amount - invoice_amount
+    
+    # Calculate total invoiced amount (including previously uploaded invoices for this transaction)
+    existing_invoices = await db.invoices.find(
+        {"transaction_id": transaction["id"]},
+        {"_id": 0, "verified_amount": 1}
+    ).to_list(100)
+    
+    # Sum up all verified amounts for this transaction
+    total_invoiced = sum(inv.get("verified_amount", 0) for inv in existing_invoices if inv.get("verified_amount"))
+    # Add current invoice amount (if not already counted)
+    if not invoice.get("verified_amount"):
+        total_invoiced += invoice_amount
+    else:
+        # Replace old verified amount with new one
+        total_invoiced = total_invoiced - invoice.get("verified_amount", 0) + invoice_amount
+    
+    shortfall = expected_amount - total_invoiced
     
     # Update invoice with verified amount
     await db.invoices.update_one(
@@ -388,58 +404,70 @@ async def verify_invoice_with_amount(
         }}
     )
     
+    # Update transaction with shortfall info (no new transaction created)
+    await db.transactions.update_one(
+        {"id": transaction["id"]},
+        {"$set": {
+            "has_shortfall": shortfall > 0,
+            "shortfall_amount": shortfall if shortfall > 0 else 0,
+            "total_invoiced": total_invoiced,
+            "last_verified_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
     result = {
         "message": "Fatura kontrol edildi",
         "expected_amount": expected_amount,
         "invoice_amount": invoice_amount,
-        "shortfall": shortfall,
+        "total_invoiced": total_invoiced,
+        "shortfall": shortfall if shortfall > 0 else 0,
         "has_shortfall": shortfall > 0
     }
     
-    # If shortfall exists, create a new transaction for the shortfall amount
+    # If shortfall exists, create/update shortfall record (NO new transaction)
     if shortfall > 0:
-        # Create a new hakediş transaction for the shortfall
-        shortfall_tx_id = str(uuid.uuid4())
-        shortfall_tx = {
-            "id": shortfall_tx_id,
-            "entity_type": "courier",
-            "entity_id": invoice["courier_id"],
-            "company_id": invoice["company_id"],
-            "type": "payment_in",  # Hakediş is payment_in
-            "amount": shortfall,
-            "description": f"Eksik Fatura - {transaction.get('description', '')}",
-            "is_hakedis": True,
-            "is_shortfall": True,  # Mark as shortfall
+        # Check if shortfall record already exists for this transaction
+        existing_shortfall = await db.invoice_shortfalls.find_one({
             "original_transaction_id": transaction["id"],
-            "original_invoice_id": invoice_id,
-            "admin_id": admin_id,
-            "admin_name": admin_name,
-            "add_jetpuan": False,  # No JetPuan for shortfall
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.transactions.insert_one(shortfall_tx)
+            "status": "pending"
+        })
         
-        # Create shortfall record
-        shortfall_record = {
-            "id": str(uuid.uuid4()),
-            "original_invoice_id": invoice_id,
-            "original_transaction_id": transaction["id"],
-            "shortfall_transaction_id": shortfall_tx_id,
-            "courier_id": invoice["courier_id"],
-            "courier_name": invoice.get("courier_name", ""),
-            "company_id": invoice["company_id"],
-            "expected_amount": expected_amount,
-            "invoice_amount": invoice_amount,
-            "shortfall_amount": shortfall,
-            "status": "pending",  # pending -> uploaded -> verified
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "created_by_id": admin_id,
-            "created_by_name": admin_name
-        }
-        await db.invoice_shortfalls.insert_one(shortfall_record)
-        
-        result["shortfall_transaction_id"] = shortfall_tx_id
-        result["shortfall_record_id"] = shortfall_record["id"]
+        if existing_shortfall:
+            # Update existing shortfall record
+            await db.invoice_shortfalls.update_one(
+                {"id": existing_shortfall["id"]},
+                {"$set": {
+                    "shortfall_amount": shortfall,
+                    "total_invoiced": total_invoiced,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            result["shortfall_record_id"] = existing_shortfall["id"]
+        else:
+            # Create new shortfall record
+            shortfall_record = {
+                "id": str(uuid.uuid4()),
+                "original_invoice_id": invoice_id,
+                "original_transaction_id": transaction["id"],
+                "courier_id": invoice["courier_id"],
+                "courier_name": invoice.get("courier_name", ""),
+                "company_id": invoice["company_id"],
+                "expected_amount": expected_amount,
+                "total_invoiced": total_invoiced,
+                "shortfall_amount": shortfall,
+                "status": "pending",  # pending -> completed
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_by_id": admin_id,
+                "created_by_name": admin_name
+            }
+            await db.invoice_shortfalls.insert_one(shortfall_record)
+            result["shortfall_record_id"] = shortfall_record["id"]
+    else:
+        # No shortfall - mark any existing shortfall as completed
+        await db.invoice_shortfalls.update_many(
+            {"original_transaction_id": transaction["id"], "status": "pending"},
+            {"$set": {"status": "completed", "completed_at": datetime.now(timezone.utc).isoformat()}}
+        )
     
     return result
 
