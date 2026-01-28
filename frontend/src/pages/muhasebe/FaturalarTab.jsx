@@ -198,6 +198,8 @@ export default function FaturalarTab({ companyId, adminId, adminName }) {
           onView={viewInvoice}
           onDownload={downloadSingle}
           onDelete={handleDeleteInvoice}
+          onUploadByAdmin={handleUploadByAdmin}
+          missingInvoices={missingInvoices}
         />
       </div>
 
