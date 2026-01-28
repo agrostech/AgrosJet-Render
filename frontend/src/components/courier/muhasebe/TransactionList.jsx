@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, Trash2, Send } from "lucide-react";
+import { Upload, FileText, Trash2, Send, AlertTriangle } from "lucide-react";
 
 const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount)) + ' TL';
@@ -25,6 +25,7 @@ export function TransactionTable({
   companyInfo,
   uploadingFor,
   onUploadClick,
+  onUploadShortfallClick,
   onDownloadInvoice,
   onDeleteInvoice,
   onOpenInvoiceMessage
