@@ -149,6 +149,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       });
       toast.success(res.data.message);
       fetchInvoices();
+      fetchShortfalls(); // Refresh shortfalls after upload
     } catch (err) {
       if (!err.handled) {
         toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
