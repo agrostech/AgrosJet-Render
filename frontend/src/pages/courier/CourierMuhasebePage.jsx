@@ -262,6 +262,14 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         accept="*/*"
         className="hidden"
       />
+      {/* Hidden file input for shortfall invoices */}
+      <input
+        type="file"
+        ref={shortfallFileInputRef}
+        onChange={handleShortfallFileChange}
+        accept="*/*"
+        className="hidden"
+      />
 
       {/* Main Card */}
       <div className="border-2 border-border bg-white">
