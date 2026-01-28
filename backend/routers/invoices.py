@@ -170,6 +170,38 @@ async def upload_invoice(
             {"id": transaction_id},
             {"$addToSet": {"invoice_ids": invoice["id"]}}
         )
+        
+        # Update shortfall record status to "uploaded"
+        await db.invoice_shortfalls.update_one(
+            {"original_transaction_id": transaction_id, "status": "pending"},
+            {"$set": {
+                "status": "uploaded",
+                "shortfall_invoice_id": invoice["id"],
+                "uploaded_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Recalculate total invoiced and update transaction
+        all_tx_invoices = await db.invoices.find(
+            {"transaction_id": transaction_id},
+            {"_id": 0, "verified_amount": 1}
+        ).to_list(100)
+        
+        # For newly uploaded invoice, use transaction amount as estimate until verified
+        total_invoiced = sum(inv.get("verified_amount", 0) for inv in all_tx_invoices if inv.get("verified_amount"))
+        
+        # Check if shortfall is potentially resolved (needs admin verification)
+        expected_amount = transaction.get("amount", 0)
+        remaining_shortfall = expected_amount - total_invoiced
+        
+        # Update transaction - shortfall still exists until admin verifies
+        await db.transactions.update_one(
+            {"id": transaction_id},
+            {"$set": {
+                "total_invoiced": total_invoiced,
+                "pending_shortfall_invoice": True  # Flag that there's an unverified shortfall invoice
+            }}
+        )
     else:
         # For first invoice, set invoice_id
         await db.transactions.update_one(
@@ -182,8 +214,8 @@ async def upload_invoice(
         "id": str(uuid.uuid4()),
         "company_id": company_id,
         "type": "invoice_uploaded",
-        "title": "Hakediş Faturası Yüklendi",
-        "message": f"{courier_name} hakediş faturası yükledi",
+        "title": "Hakediş Faturası Yüklendi" if not is_shortfall_invoice else "Eksik Fatura Yüklendi",
+        "message": f"{courier_name} {'eksik ' if is_shortfall_invoice else ''}fatura yükledi",
         "is_read": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "link": "/admin/muhasebe"
@@ -193,7 +225,8 @@ async def upload_invoice(
     return {
         "message": "Fatura başarıyla yüklendi",
         "invoice_id": invoice["id"],
-        "file_name": file_name
+        "file_name": file_name,
+        "is_shortfall_invoice": is_shortfall_invoice
     }
 
 
