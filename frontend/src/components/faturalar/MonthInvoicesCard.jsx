@@ -187,12 +187,14 @@ export function MonthInvoicesCard({
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      <p className="font-semibold text-sm font-mono text-red-600">
-                        {invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
+                      <p className={`font-semibold text-sm font-mono ${invoice.is_shortfall_invoice ? 'text-amber-600' : 'text-red-600'}`}>
+                        {invoice.is_shortfall_invoice && invoice.shortfall_amount 
+                          ? formatMoney(invoice.shortfall_amount)
+                          : invoice.transaction_amount ? formatMoney(invoice.transaction_amount) : '-'}
                       </p>
-                      {invoice.verified && invoice.verified_amount && invoice.verified_amount !== invoice.transaction_amount && (
-                        <p className="text-xs text-amber-600">
-                          Fatura: {formatMoney(invoice.verified_amount)}
+                      {invoice.verified && invoice.verified_amount && (
+                        <p className="text-xs text-green-600">
+                          Onaylanan: {formatMoney(invoice.verified_amount)}
                         </p>
                       )}
                     </div>
