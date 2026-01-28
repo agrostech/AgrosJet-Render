@@ -130,26 +130,31 @@ function TransactionRow({ tx, invoices = [], companyInfo, uploadingFor, onUpload
             </Button>
           ) : hasInvoice ? (
             <>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onDownloadInvoice(invoice.id)}
-                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                title="İndir"
-              >
-                <FileText className="w-4 h-4" />
-              </Button>
-              {canDeleteInvoice(invoice) && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onDeleteInvoice(invoice.id)}
-                  className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                  title="Sil (24 saat içinde)"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              )}
+              {/* Show all invoices for this transaction */}
+              {invoices.map((inv, idx) => (
+                <div key={inv.id} className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onDownloadInvoice(inv.id)}
+                    className={`h-7 w-7 p-0 ${inv.is_shortfall_invoice ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50' : 'text-green-600 hover:text-green-700 hover:bg-green-50'}`}
+                    title={inv.is_shortfall_invoice ? `Eksik Fatura ${idx + 1}` : `Fatura ${idx + 1}`}
+                  >
+                    <FileText className="w-4 h-4" />
+                  </Button>
+                  {canDeleteInvoice(inv) && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDeleteInvoice(inv.id)}
+                      className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                      title="Sil (24 saat içinde)"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                </div>
+              ))}
               {/* Shortfall invoice upload button */}
               {hasShortfall && (
                 <Button
