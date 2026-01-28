@@ -77,6 +77,7 @@ async def upload_invoice(
     courier_id: str = Form(...),
     courier_name: str = Form(...),
     company_id: str = Form(...),
+    is_shortfall_invoice: bool = Form(False),  # True if this is for shortfall
     file: UploadFile = File(...)
 ):
     """Upload invoice for a hakediş transaction - stores in Cloudflare R2"""
@@ -97,7 +98,9 @@ async def upload_invoice(
     
     # Check if invoice already exists for this transaction
     existing = await db.invoices.find_one({"transaction_id": transaction_id})
-    if existing:
+    
+    # If this is a shortfall invoice, allow uploading even if invoice exists
+    if existing and not is_shortfall_invoice and not transaction.get("has_shortfall"):
         raise HTTPException(status_code=400, detail="Bu işlem için zaten fatura yüklenmiş")
     
     # Get company name for folder structure
