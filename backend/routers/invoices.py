@@ -639,10 +639,10 @@ async def get_couriers_invoice_summary(company_id: str, year: int = None, month:
     # Deduplicate courier IDs
     courier_ids = list(set([r["courier_id"] for r in relations]))
     
-    # Get couriers info
+    # Get couriers info (include is_ghost)
     couriers = await db.couriers.find(
         {"id": {"$in": courier_ids}},
-        {"_id": 0, "id": 1, "name": 1, "phone": 1}
+        {"_id": 0, "id": 1, "name": 1, "phone": 1, "is_ghost": 1}
     ).to_list(500)
     
     # Deduplicate couriers by ID
@@ -683,6 +683,7 @@ async def get_couriers_invoice_summary(company_id: str, year: int = None, month:
             "courier_id": courier["id"],
             "courier_name": courier["name"],
             "phone": courier.get("phone", ""),
+            "is_ghost": courier.get("is_ghost", False),
             "invoice_count": invoice_counts.get(courier["id"], 0)
         })
     
