@@ -193,6 +193,11 @@ function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploa
                 Hakediş
               </span>
             )}
+            {tx.is_shortfall && (
+              <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium">
+                Eksik Fatura
+              </span>
+            )}
             {tx.installment_product_id && (
               <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
                 Taksit
