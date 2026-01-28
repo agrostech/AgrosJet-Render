@@ -12,6 +12,15 @@ class AddCourierToCompany(BaseModel):
     phone: str
 
 
+class GhostCourierCreate(BaseModel):
+    name: str
+
+
+class MergeCouriersRequest(BaseModel):
+    ghost_courier_id: str
+    real_courier_id: str
+
+
 class CourierUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
