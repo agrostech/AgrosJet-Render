@@ -164,11 +164,11 @@ export function CourierInvoicesCard({ selectedCourier, invoices, loading, onView
         )}
       </div>
       
-      {/* Hidden file input */}
+      {/* Hidden file input - accept removed for mobile compatibility */}
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.heic,.heif"
+        accept="*/*"
         onChange={handleFileChange}
         className="hidden"
       />
