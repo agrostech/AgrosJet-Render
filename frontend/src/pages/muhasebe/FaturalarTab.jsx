@@ -180,6 +180,7 @@ export default function FaturalarTab({ companyId, adminId, adminName }) {
           onView={viewInvoice}
           onDownload={downloadSingle}
           onVerify={verifyInvoice}
+          onVerifyWithAmount={handleVerifyWithAmount}
         />
 
         <MissingInvoicesCard missingInvoices={missingInvoices} />
