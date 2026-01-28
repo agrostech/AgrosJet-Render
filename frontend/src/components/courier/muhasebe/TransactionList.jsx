@@ -46,7 +46,7 @@ export function TransactionTable({
             <TransactionRow 
               key={tx.id}
               tx={tx}
-              invoice={invoices[tx.id]}
+              invoices={invoices[tx.id] || []}
               companyInfo={companyInfo}
               uploadingFor={uploadingFor}
               onUploadClick={onUploadClick}
