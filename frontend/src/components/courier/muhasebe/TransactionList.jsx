@@ -172,6 +172,7 @@ export function TransactionMobileList({
   companyInfo,
   uploadingFor,
   onUploadClick,
+  onUploadShortfallClick,
   onDownloadInvoice,
   onDeleteInvoice,
   onOpenInvoiceMessage
@@ -186,6 +187,7 @@ export function TransactionMobileList({
           companyInfo={companyInfo}
           uploadingFor={uploadingFor}
           onUploadClick={onUploadClick}
+          onUploadShortfallClick={onUploadShortfallClick}
           onDownloadInvoice={onDownloadInvoice}
           onDeleteInvoice={onDeleteInvoice}
           onOpenInvoiceMessage={onOpenInvoiceMessage}
@@ -195,9 +197,10 @@ export function TransactionMobileList({
   );
 }
 
-function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
+function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
   const hasInvoice = !!invoice;
   const showUploadButton = tx.is_hakedis && !hasInvoice;
+  const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0;
   
   return (
     <div className="p-3 hover:bg-slate-50">
