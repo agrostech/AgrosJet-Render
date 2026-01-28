@@ -159,7 +159,8 @@ async def upload_invoice(
         "week_tuesday_display": tuesday_str,
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "is_shortfall_invoice": is_shortfall_invoice  # Mark if this is for shortfall
+        "is_shortfall_invoice": is_shortfall_invoice,  # Mark if this is for shortfall
+        "shortfall_amount": transaction.get("shortfall_amount", 0) if is_shortfall_invoice else None  # Store shortfall amount
     }
     await db.invoices.insert_one(invoice)
     
@@ -172,6 +173,17 @@ async def upload_invoice(
         )
         
         # Update shortfall record status to "uploaded"
+        shortfall_record = await db.invoice_shortfalls.find_one(
+            {"original_transaction_id": transaction_id, "status": "pending"}
+        )
+        shortfall_amount_for_invoice = shortfall_record.get("shortfall_amount", 0) if shortfall_record else transaction.get("shortfall_amount", 0)
+        
+        # Update invoice with exact shortfall amount from record
+        await db.invoices.update_one(
+            {"id": invoice["id"]},
+            {"$set": {"shortfall_amount": shortfall_amount_for_invoice}}
+        )
+        
         await db.invoice_shortfalls.update_one(
             {"original_transaction_id": transaction_id, "status": "pending"},
             {"$set": {
