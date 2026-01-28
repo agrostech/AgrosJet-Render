@@ -56,6 +56,21 @@ export function useKuryeler(companyId) {
     fetchCouriers();
   };
 
+  const addGhostCourier = async (name) => {
+    await axios.post(`${API}/companies/${companyId}/couriers/ghost`, { name });
+    toast.success("Hayalet kurye oluşturuldu");
+    fetchCouriers();
+  };
+
+  const mergeCouriers = async (ghostCourierId, realCourierId) => {
+    const res = await axios.post(`${API}/couriers/merge`, {
+      ghost_courier_id: ghostCourierId,
+      real_courier_id: realCourierId
+    });
+    toast.success(res.data.message);
+    fetchCouriers();
+  };
+
   const updateCourier = async (courierId, data) => {
     const res = await axios.put(`${API}/couriers/${courierId}`, data);
     if (res.data.password_changed) {
