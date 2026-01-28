@@ -229,12 +229,48 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
             </div>
             <div className={`text-right px-4 py-2 rounded-lg ${getBalanceBg(balance)}`}>
               <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
-              <p className={`text-xl font-bold font-mono ${getBalanceColor(balance)}`}>
+              <p className="text-xl font-bold font-mono ${getBalanceColor(balance)}">
                 {balance === 0 ? '0 TL' : formatMoney(balance)}
               </p>
             </div>
           </div>
         </div>
+
+        {/* Eksik Fatura Uyarısı */}
+        {shortfalls.length > 0 && (
+          <div className="m-3 sm:m-4 border-2 border-amber-300 bg-amber-50 rounded-lg overflow-hidden">
+            <div className="p-3 border-b border-amber-200 flex items-center gap-2 bg-amber-100">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <span className="font-semibold text-amber-800">Eksik Fatura ({shortfalls.length})</span>
+            </div>
+            <div className="divide-y divide-amber-200">
+              {shortfalls.map((shortfall) => (
+                <div key={shortfall.id} className="p-3 flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-amber-900 truncate">
+                      Eksik tutar bekleniyor
+                    </p>
+                    <p className="text-xs text-amber-700">
+                      Orijinal hakediş: {formatMoney(shortfall.expected_amount)} → 
+                      Kesilen fatura: {formatMoney(shortfall.invoice_amount)}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-lg font-bold font-mono text-amber-700">
+                      {formatMoney(shortfall.shortfall_amount)}
+                    </p>
+                    <p className="text-[10px] text-amber-600">eksik</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 bg-amber-100 border-t border-amber-200">
+              <p className="text-xs text-amber-700 text-center">
+                Yukarıdaki eksik tutarlar için fatura yükleyebilirsiniz. İşlem geçmişinde "Eksik Fatura" etiketli hakedişleri bulabilirsiniz.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Taksitli Ürünler */}
         <InstallmentSection
