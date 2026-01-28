@@ -210,6 +210,7 @@ export default function KuryelerPage({ companyId }) {
         onCancelTermination={handleCancelTermination}
         onDeactivate={handleDeactivate}
         onActivate={handleActivate}
+        onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
       />
 
       {/* Mobile Cards */}
@@ -224,6 +225,7 @@ export default function KuryelerPage({ companyId }) {
         onCancelTermination={handleCancelTermination}
         onDeactivate={handleDeactivate}
         onActivate={handleActivate}
+        onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
       />
 
       {/* Modals */}
@@ -248,6 +250,14 @@ export default function KuryelerPage({ companyId }) {
         courier={selectedCourier}
         companyId={companyId}
         companyName={companyName}
+      />
+
+      <CourierMergeModal
+        open={showMergeModal}
+        onOpenChange={setShowMergeModal}
+        ghostCourier={selectedCourier}
+        onSearch={searchCourier}
+        onMerge={mergeCouriers}
       />
 
       <ConfirmModal
