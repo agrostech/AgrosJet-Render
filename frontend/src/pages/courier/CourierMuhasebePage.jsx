@@ -76,7 +76,11 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       const res = await axios.get(`${API}/invoices/courier/${courierId}`);
       const invoiceMap = {};
       res.data.forEach(inv => {
-        invoiceMap[inv.transaction_id] = inv;
+        // Support multiple invoices per transaction (for shortfall invoices)
+        if (!invoiceMap[inv.transaction_id]) {
+          invoiceMap[inv.transaction_id] = [];
+        }
+        invoiceMap[inv.transaction_id].push(inv);
       });
       setInvoices(invoiceMap);
     } catch (err) {
