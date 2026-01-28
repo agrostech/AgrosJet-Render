@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2, AlertTriangle, XCircle, Power, PowerOff } from "lucide-react";
+import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge } from "lucide-react";
 
 export function CourierCards({ 
   couriers, 
@@ -11,7 +11,8 @@ export function CourierCards({
   onStartTermination, 
   onCancelTermination,
   onDeactivate,
-  onActivate 
+  onActivate,
+  onMerge
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
@@ -32,12 +33,21 @@ export function CourierCards({
       {couriers.map((c) => (
         <div 
           key={c.id} 
-          className={`border-2 border-border p-4 bg-white ${c.termination_start_date ? 'border-orange-300 bg-orange-50' : ''}`}
+          className={`border-2 border-border p-4 bg-white ${c.termination_start_date ? 'border-orange-300 bg-orange-50' : ''} ${c.is_ghost ? 'border-purple-300 bg-purple-50/50' : ''}`}
         >
           <div className="flex justify-between items-start mb-3">
             <div>
-              <p className="font-bold">{c.name}</p>
-              <p className="font-mono text-sm text-muted-foreground">{c.phone}</p>
+              <div className="flex items-center gap-2">
+                {c.is_ghost && (
+                  <Ghost className="w-4 h-4 text-purple-500" />
+                )}
+                <p className="font-bold">{c.name}</p>
+              </div>
+              {c.is_ghost ? (
+                <p className="text-sm text-purple-600 italic">Hayalet Kurye</p>
+              ) : (
+                <p className="font-mono text-sm text-muted-foreground">{c.phone}</p>
+              )}
               {c.termination_start_date && (
                 <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded font-semibold">
                   Fesih: {c.termination_remaining_days} gün kaldı
@@ -45,9 +55,11 @@ export function CourierCards({
               )}
             </div>
           </div>
-          <p className="text-sm mb-3">
-            <span className="text-muted-foreground">Plaka:</span> <span className="font-mono">{c.plate}</span>
-          </p>
+          {!c.is_ghost && (
+            <p className="text-sm mb-3">
+              <span className="text-muted-foreground">Plaka:</span> <span className="font-mono">{c.plate || '-'}</span>
+            </p>
+          )}
           
           {/* Row 1: Details and Edit */}
           <div className="flex gap-2 mb-2">
@@ -59,7 +71,17 @@ export function CourierCards({
             </Button>
           </div>
           
-          {/* Row 2: Action buttons */}
+          {/* Row 2: Merge button for ghost couriers */}
+          {c.is_ghost && onMerge && (
+            <div className="mb-2">
+              <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="w-full border-2 hover:bg-purple-50 hover:text-purple-600">
+                <Merge className="w-4 h-4 mr-1" />
+                <span className="text-xs">Gerçek Kurye ile Birleştir</span>
+              </Button>
+            </div>
+          )}
+          
+          {/* Row 3: Action buttons */}
           <div className="flex gap-2">
             {activeTab === "active" ? (
               <>
