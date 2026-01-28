@@ -210,8 +210,8 @@ export function TransactionMobileList({
   );
 }
 
-function TransactionMobileItem({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
-  const hasInvoice = !!invoice;
+function TransactionMobileItem({ tx, invoices = [], companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
+  const hasInvoice = invoices && invoices.length > 0;
   const showUploadButton = tx.is_hakedis && !hasInvoice;
   const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0 && !tx.pending_shortfall_invoice;
   const hasPendingShortfallInvoice = tx.pending_shortfall_invoice;
