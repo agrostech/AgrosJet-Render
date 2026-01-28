@@ -653,9 +653,10 @@ async def upload_invoice_by_admin(
 
 @router.get("/company/{company_id}/missing")
 async def get_missing_invoices(company_id: str):
-    """Get hakediş transactions without invoices"""
+    """Get hakediş transactions without invoices OR with shortfall"""
+    
     # Find all hakediş transactions without invoice_id
-    transactions = await db.transactions.find(
+    no_invoice_txs = await db.transactions.find(
         {
             "company_id": company_id,
             "is_hakedis": True,
@@ -668,8 +669,36 @@ async def get_missing_invoices(company_id: str):
         {"_id": 0}
     ).sort("created_at", -1).to_list(500)
     
+    # Also find transactions with shortfall (has invoice but amount is less)
+    shortfall_txs = await db.transactions.find(
+        {
+            "company_id": company_id,
+            "is_hakedis": True,
+            "has_shortfall": True,
+            "shortfall_amount": {"$gt": 0}
+        },
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    # Combine and deduplicate
+    tx_ids = set()
+    transactions = []
+    
+    for tx in no_invoice_txs:
+        if tx["id"] not in tx_ids:
+            tx["missing_type"] = "no_invoice"  # No invoice uploaded yet
+            tx["display_amount"] = tx["amount"]  # Show full amount
+            transactions.append(tx)
+            tx_ids.add(tx["id"])
+    
+    for tx in shortfall_txs:
+        if tx["id"] not in tx_ids:
+            tx["missing_type"] = "shortfall"  # Has invoice but shortfall
+            tx["display_amount"] = tx.get("shortfall_amount", 0)  # Show only shortfall
+            transactions.append(tx)
+            tx_ids.add(tx["id"])
+    
     # Enrich with courier names and phone if missing
-    # Use courier_id or entity_id (for older transactions)
     courier_ids = []
     for tx in transactions:
         cid = tx.get("courier_id") or tx.get("entity_id")
@@ -681,9 +710,9 @@ async def get_missing_invoices(company_id: str):
     if courier_ids:
         couriers = await db.couriers.find(
             {"id": {"$in": courier_ids}},
-            {"_id": 0, "id": 1, "name": 1, "phone": 1}
+            {"_id": 0, "id": 1, "name": 1, "phone": 1, "is_ghost": 1}
         ).to_list(500)
-        courier_map = {c["id"]: {"name": c["name"], "phone": c.get("phone", "")} for c in couriers}
+        courier_map = {c["id"]: {"name": c["name"], "phone": c.get("phone", ""), "is_ghost": c.get("is_ghost", False)} for c in couriers}
         
         for tx in transactions:
             cid = tx.get("courier_id") or tx.get("entity_id")
@@ -692,6 +721,10 @@ async def get_missing_invoices(company_id: str):
                     tx["courier_name"] = courier_map[cid]["name"]
                 tx["phone"] = courier_map[cid]["phone"]
                 tx["courier_id"] = cid  # Ensure courier_id is set
+                tx["is_ghost"] = courier_map[cid]["is_ghost"]
+    
+    # Sort by created_at desc
+    transactions.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     
     return transactions
 
