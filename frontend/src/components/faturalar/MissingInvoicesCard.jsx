@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { AlertCircle, Check, Filter, MessageCircle } from "lucide-react";
+import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const formatDate = (dateStr) => {
@@ -27,7 +27,9 @@ export function MissingInvoicesCard({ missingInvoices }) {
           count: 0
         };
       }
-      courierMap[tx.courier_id].total_amount += Math.abs(tx.amount);
+      // Use display_amount for shortfall, amount for no_invoice
+      const displayAmount = tx.display_amount || tx.amount;
+      courierMap[tx.courier_id].total_amount += Math.abs(displayAmount);
       courierMap[tx.courier_id].count += 1;
     });
     return Object.values(courierMap).sort((a, b) => a.courier_name.localeCompare(b.courier_name, 'tr'));
@@ -48,9 +50,11 @@ export function MissingInvoicesCard({ missingInvoices }) {
     if (!selectedCourierData || !selectedCourierData.phone) return;
     
     // Build message
-    const invoicesList = filteredInvoices.map(tx => 
-      `• ${formatDate(tx.created_at)} - ${tx.description}: ${formatMoney(tx.amount)}`
-    ).join('\n');
+    const invoicesList = filteredInvoices.map(tx => {
+      const displayAmount = tx.display_amount || tx.amount;
+      const typeLabel = tx.missing_type === 'shortfall' ? ' (Eksik Fatura)' : '';
+      return `• ${formatDate(tx.created_at)} - ${tx.description}${typeLabel}: ${formatMoney(displayAmount)}`;
+    }).join('\n');
     
     const message = `Merhaba ${selectedCourierData.courier_name},
 
@@ -124,21 +128,39 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {filteredInvoices.map((tx) => (
-              <div key={tx.id} className="p-3 hover:bg-red-50/50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm">{tx.courier_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {tx.description} • {formatDate(tx.created_at)}
-                    </p>
+            {filteredInvoices.map((tx) => {
+              const displayAmount = tx.display_amount || tx.amount;
+              const isShortfall = tx.missing_type === 'shortfall';
+              
+              return (
+                <div key={tx.id} className={`p-3 hover:bg-red-50/50 ${isShortfall ? 'bg-amber-50/30' : ''}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm truncate">{tx.courier_name}</p>
+                        {isShortfall && (
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium flex-shrink-0">
+                            <AlertTriangle className="w-3 h-3" />
+                            Eksik Fatura
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {tx.description} • {formatDate(tx.created_at)}
+                      </p>
+                      {isShortfall && (
+                        <p className="text-[10px] text-amber-600 mt-0.5">
+                          Hakediş: {formatMoney(tx.amount)} → Eksik: {formatMoney(displayAmount)}
+                        </p>
+                      )}
+                    </div>
+                    <span className={`text-sm font-semibold font-mono flex-shrink-0 ${isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
+                      {formatMoney(displayAmount)}
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-red-600">
-                    {formatMoney(tx.amount)}
-                  </span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
