@@ -160,6 +160,56 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     }
   };
 
+  // Eksik fatura yükleme için ayrı bir file input
+  const shortfallFileInputRef = useRef(null);
+  const [pendingShortfallTxId, setPendingShortfallTxId] = useState(null);
+
+  const handleUploadShortfallClick = (transactionId) => {
+    setPendingShortfallTxId(transactionId);
+    shortfallFileInputRef.current?.click();
+  };
+
+  const handleShortfallFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingShortfallTxId) return;
+
+    // File validation
+    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.heic', '.heif'];
+    const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+    if (!allowedExtensions.includes(fileExt)) {
+      toast.error("Sadece PDF veya resim dosyası yüklenebilir");
+      return;
+    }
+
+    setUploadingFor(`shortfall_${pendingShortfallTxId}`);
+
+    const formData = new FormData();
+    formData.append("transaction_id", pendingShortfallTxId);
+    formData.append("courier_id", courierId);
+    formData.append("courier_name", courierName);
+    formData.append("company_id", companyId);
+    formData.append("is_shortfall_invoice", "true");
+    formData.append("file", file);
+
+    try {
+      const res = await axios.post(`${API}/invoices/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success("Eksik fatura yüklendi");
+      fetchInvoices();
+      fetchShortfalls();
+      fetchTransactions(); // Refresh to update shortfall status
+    } catch (err) {
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
+      }
+    } finally {
+      setUploadingFor(null);
+      setPendingShortfallTxId(null);
+      e.target.value = '';
+    }
+  };
+
   const handleDeleteInvoice = async (invoiceId) => {
     setPendingDeleteInvoiceId(invoiceId);
     setConfirmOpen(true);
