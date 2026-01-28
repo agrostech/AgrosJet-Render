@@ -134,6 +134,31 @@ export default function FaturalarTab({ companyId, adminId, adminName }) {
     }
   };
 
+  const handleVerifyWithAmount = async (invoiceId, amount) => {
+    try {
+      return await verifyInvoiceWithAmount(invoiceId, amount, adminId, adminName);
+    } catch (err) {
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Kontrol başarısız");
+      }
+      throw err;
+    }
+  };
+
+  const handleUploadByAdmin = async (transactionId, courierId, courierName, file) => {
+    try {
+      await uploadInvoiceByAdmin(transactionId, courierId, courierName, adminId, adminName, file);
+      if (selectedCourier) {
+        fetchCourierInvoices(selectedCourier.courier_id).then(setCourierInvoices);
+      }
+    } catch (err) {
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Yükleme başarısız");
+      }
+      throw err;
+    }
+  };
+
   if (loading) return <PageLoading />;
 
   return (
