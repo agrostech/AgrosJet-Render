@@ -190,10 +190,6 @@ async def upload_invoice(
         # For newly uploaded invoice, use transaction amount as estimate until verified
         total_invoiced = sum(inv.get("verified_amount", 0) for inv in all_tx_invoices if inv.get("verified_amount"))
         
-        # Check if shortfall is potentially resolved (needs admin verification)
-        expected_amount = transaction.get("amount", 0)
-        remaining_shortfall = expected_amount - total_invoiced
-        
         # Update transaction - shortfall still exists until admin verifies
         await db.transactions.update_one(
             {"id": transaction_id},
