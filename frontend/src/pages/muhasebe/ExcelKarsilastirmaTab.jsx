@@ -21,9 +21,16 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Dünün tarihini al
+const getYesterday = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday.toISOString().split('T')[0];
+};
+
 export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName }) {
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getYesterday());
   const [cashReport, setCashReport] = useState(null);
   const [cardReport, setCardReport] = useState(null);
   const [comparisonResult, setComparisonResult] = useState(null);
