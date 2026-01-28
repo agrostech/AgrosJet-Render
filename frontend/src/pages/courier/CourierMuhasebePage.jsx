@@ -266,7 +266,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
             </div>
             <div className="p-3 bg-amber-100 border-t border-amber-200">
               <p className="text-xs text-amber-700 text-center">
-                Yukarıdaki eksik tutarlar için fatura yükleyebilirsiniz. İşlem geçmişinde "Eksik Fatura" etiketli hakedişleri bulabilirsiniz.
+                Yukarıdaki eksik tutarlar için fatura yükleyebilirsiniz. İşlem geçmişinde &quot;Eksik Fatura&quot; etiketli hakedişleri bulabilirsiniz.
               </p>
             </div>
           </div>
