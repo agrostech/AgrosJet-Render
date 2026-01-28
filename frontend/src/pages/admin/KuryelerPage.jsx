@@ -21,6 +21,8 @@ export default function KuryelerPage({ companyId }) {
     companyName,
     searchCourier,
     addCourier,
+    addGhostCourier,
+    mergeCouriers,
     updateCourier,
     removeCourier,
     startTermination,
