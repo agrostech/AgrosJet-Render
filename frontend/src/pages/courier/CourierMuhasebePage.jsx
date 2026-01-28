@@ -355,6 +355,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
               companyInfo={companyInfo}
               uploadingFor={uploadingFor}
               onUploadClick={handleUploadClick}
+              onUploadShortfallClick={handleUploadShortfallClick}
               onDownloadInvoice={handleDownloadInvoice}
               onDeleteInvoice={handleDeleteInvoice}
               onOpenInvoiceMessage={openInvoiceMessageModal}
@@ -381,6 +382,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
               companyInfo={companyInfo}
               uploadingFor={uploadingFor}
               onUploadClick={handleUploadClick}
+              onUploadShortfallClick={handleUploadShortfallClick}
               onDownloadInvoice={handleDownloadInvoice}
               onDeleteInvoice={handleDeleteInvoice}
               onOpenInvoiceMessage={openInvoiceMessageModal}
