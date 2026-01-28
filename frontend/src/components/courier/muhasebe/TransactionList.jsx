@@ -62,30 +62,33 @@ export function TransactionTable({
   );
 }
 
-function TransactionRow({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
+function TransactionRow({ tx, invoice, companyInfo, uploadingFor, onUploadClick, onUploadShortfallClick, onDownloadInvoice, onDeleteInvoice, onOpenInvoiceMessage }) {
   const hasInvoice = !!invoice;
   const showUploadButton = tx.is_hakedis && !hasInvoice;
+  const hasShortfall = tx.has_shortfall && tx.shortfall_amount > 0;
   
   return (
-    <tr className="hover:bg-slate-50">
+    <tr className={`hover:bg-slate-50 ${hasShortfall ? 'bg-amber-50/50' : ''}`}>
       <td className="p-3 font-mono text-xs whitespace-nowrap">{formatDate(tx.created_at)}</td>
       <td className="p-3">
-        {tx.description}
-        {tx.is_hakedis && (
-          <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
-            Hakediş
-          </span>
-        )}
-        {tx.is_shortfall && (
-          <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium">
-            Eksik Fatura
-          </span>
-        )}
-        {tx.installment_product_id && (
-          <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
-            Taksit
-          </span>
-        )}
+        <div>
+          {tx.description}
+          {tx.is_hakedis && (
+            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-medium">
+              Hakediş
+            </span>
+          )}
+          {hasShortfall && (
+            <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded font-medium">
+              {formatMoney(tx.shortfall_amount)} Eksik
+            </span>
+          )}
+          {tx.installment_product_id && (
+            <span className="ml-2 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded font-medium">
+              Taksit
+            </span>
+          )}
+        </div>
       </td>
       <td className={`p-3 text-right font-mono font-semibold ${
         tx.type === 'payment_in' ? 'text-green-600' : 'text-red-600'
@@ -137,6 +140,20 @@ function TransactionRow({ tx, invoice, companyInfo, uploadingFor, onUploadClick,
                   title="Sil (24 saat içinde)"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              {/* Shortfall invoice upload button */}
+              {hasShortfall && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onUploadShortfallClick(tx.id)}
+                  disabled={uploadingFor === `shortfall_${tx.id}`}
+                  className="h-7 text-xs gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                  title="Eksik fatura yükle"
+                >
+                  <AlertTriangle className="w-3 h-3" />
+                  {uploadingFor === `shortfall_${tx.id}` ? "..." : "Eksik Yükle"}
                 </Button>
               )}
             </>
