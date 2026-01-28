@@ -27,10 +27,17 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Dünün tarihini al
+const getYesterday = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday.toISOString().split('T')[0];
+};
+
 export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSuperAdmin }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getYesterday());
   const [couriers, setCouriers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({});
