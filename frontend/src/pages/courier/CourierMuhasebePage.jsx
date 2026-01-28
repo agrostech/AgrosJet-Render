@@ -84,6 +84,15 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     }
   };
 
+  const fetchShortfalls = async () => {
+    try {
+      const res = await axios.get(`${API}/invoices/shortfalls/courier/${courierId}`);
+      setShortfalls(res.data);
+    } catch (err) {
+      console.error("Eksik faturalar yüklenemedi");
+    }
+  };
+
   const fetchCompanyInfo = async () => {
     if (!companyId) return;
     try {
