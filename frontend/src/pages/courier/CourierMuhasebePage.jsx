@@ -108,6 +108,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       fetchTransactions();
       fetchInstallmentProducts();
       fetchInvoices();
+      fetchShortfalls();
     }
     if (companyId) {
       fetchCompanyInfo();
