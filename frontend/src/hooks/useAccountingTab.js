@@ -191,9 +191,18 @@ export function useAccountingTab({
         (a.name || '').localeCompare(b.name || '', 'tr')
       );
       setArchivedEntities(sortedArchived);
-      sortedArchived.forEach(e => fetchEntityBalance(e.id, true));
+      // Tüm arşiv bakiyelerini paralel olarak çek
+      const balancePromises = sortedArchived.map(e => 
+        axios.get(`${API}${endpoint.transactions(e.id)}?limit=1`)
+          .then(res => ({ id: e.id, balance: res.data.balance }))
+          .catch(() => ({ id: e.id, balance: 0 }))
+      );
+      const balances = await Promise.all(balancePromises);
+      const balanceMap = {};
+      balances.forEach(b => { balanceMap[b.id] = b.balance; });
+      setArchivedBalances(balanceMap);
     } catch (err) { /* ignore */ }
-  }, [endpoint, fetchEntityBalance]);
+  }, [endpoint]);
 
   // Fetch transactions
   const fetchTransactions = useCallback(async (entityId, append = false, currentLength = 0) => {
