@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
+import { useNavigate, Routes, Route, Link, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 
 // Page components
@@ -10,6 +10,7 @@ import CourierVardiyalarPage from "./courier/CourierVardiyalarPage";
 import CourierMuhasebePage from "./courier/CourierMuhasebePage";
 import CourierZimmetPage from "./courier/CourierZimmetPage";
 import CourierEvraklarPage from "./courier/CourierEvraklarPage";
+import CourierMotosikletimPage from "./courier/CourierMotosikletimPage";
 import CourierJetPuanPage from "./courier/CourierJetPuanPage";
 import CourierAkademiPage from "./courier/CourierAkademiPage";
 
