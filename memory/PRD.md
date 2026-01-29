@@ -25,7 +25,38 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 21, 2026 - İşletme Faturaları (Alınan + Kesilen) (Latest)
+### January 29, 2026 - Motosikletim Özelliği (Latest)
+
+#### ✅ COMPLETED: Kurye Motosiklet ve Bakım Takibi
+Kuryeler için motosiklet ve bakım takibi özelliği eklendi.
+
+**Yeni Dosyalar:**
+- `/app/backend/routers/motorcycles.py`: Motosiklet ve bakım API'leri
+- `/app/frontend/src/pages/courier/CourierMotosikletimPage.jsx`: Kurye motosiklet sayfası
+
+**Özellikler:**
+- Kurye panelinde "Motosikletim" sekmesi (Zimmetlerim altında)
+- Birden fazla motosiklet ekleme/düzenleme/silme
+- Marka, model, plaka ve km bilgisi girişi
+- "Bakıma Girdim" butonu ile pratik bakım kaydı
+- Bakım türleri: Yağ, Fren, Kayış/Varyatör
+- Otomatik sonraki bakım km hesaplaması:
+  - Yağ: +2.000 km
+  - Fren: +2.000 km
+  - Varyatör: +5.000 km
+- Bakım bildirimleri (süre aşımı):
+  - Yağ ve Fren: 10 gün
+  - Varyatör: 25 gün
+- Bildirim kapatma (tek seferlik)
+- Sidebar ve mobil menüde badge gösterimi
+- Tam mobil uyumlu tasarım
+
+**DB Collections:**
+- `motorcycles`: Motosiklet bilgileri ve bakım tarihleri
+- `motorcycle_maintenances`: Bakım geçmişi kayıtları
+- `dismissed_maintenance_notifications`: Kapatılan bildirimler
+
+### January 28, 2026 - Muhasebe Tab Persistence + Mobil Dosya Düzeltmesi
 
 #### ✅ COMPLETED: İşletme Faturaları Özelliği
 İşletmelerden alınan ve kesilen faturaları takip etmek için yeni modül.
