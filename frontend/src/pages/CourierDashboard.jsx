@@ -88,8 +88,9 @@ export default function CourierDashboard() {
     }
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
+      checkMaintenanceNotifications(parsed.id);
     }
-  }, [navigate, fetchCompanyInfo, checkDocumentStatus]);
+  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
