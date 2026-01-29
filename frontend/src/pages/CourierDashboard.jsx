@@ -137,11 +137,12 @@ export default function CourierDashboard() {
         </Button>
       </header>
 
-      {/* Mobile Navigation - Grid Layout */}
+      {/* Mobile Navigation - Grid Layout with overflow menu */}
       {mobileMenuOpen && (
         <nav className="lg:hidden bg-primary text-white border-t border-white/20 p-3">
           <div className="grid grid-cols-3 gap-2">
-            {navItems.map((item) => (
+            {/* İlk 5 sekme */}
+            {navItems.slice(0, MOBILE_NAV_LIMIT - 1).map((item) => (
               <Link 
                 key={item.path} 
                 to={item.path} 
@@ -159,6 +160,38 @@ export default function CourierDashboard() {
                 )}
               </Link>
             ))}
+            
+            {/* Diğer sekmeler için dropdown */}
+            {navItems.length > MOBILE_NAV_LIMIT - 1 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className={`relative flex flex-col items-center justify-center p-3 rounded-lg text-center hover:bg-white/10 ${
+                      navItems.slice(MOBILE_NAV_LIMIT - 1).some(item => location.pathname === item.path) ? "bg-white/20" : ""
+                    }`}
+                  >
+                    <MoreHorizontal className="w-5 h-5 mb-1" />
+                    <span className="text-[10px] font-medium leading-tight">Diğer</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {navItems.slice(MOBILE_NAV_LIMIT - 1).map((item) => (
+                    <DropdownMenuItem key={item.path} asChild>
+                      <Link 
+                        to={item.path} 
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-2 ${
+                          location.pathname === item.path ? "bg-accent" : ""
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
           <button 
             onClick={handleLogout} 
