@@ -115,7 +115,10 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
       fetchMotorcycles();
     } catch (err) {
       if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Eklenemedi");
+        const errorMsg = typeof err.response?.data?.detail === 'string' 
+          ? err.response.data.detail 
+          : "Eklenemedi";
+        toast.error(errorMsg);
       }
     } finally {
       setSaving(false);
@@ -142,7 +145,10 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
       fetchMotorcycles();
     } catch (err) {
       if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Güncellenemedi");
+        const errorMsg = typeof err.response?.data?.detail === 'string' 
+          ? err.response.data.detail 
+          : "Güncellenemedi";
+        toast.error(errorMsg);
       }
     } finally {
       setSaving(false);
@@ -161,7 +167,10 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
       fetchMotorcycles();
     } catch (err) {
       if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Silinemedi");
+        const errorMsg = typeof err.response?.data?.detail === 'string' 
+          ? err.response.data.detail 
+          : "Silinemedi";
+        toast.error(errorMsg);
       }
     }
   };
