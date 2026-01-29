@@ -49,6 +49,8 @@ BACKUP_COLLECTIONS = [
     "installment_products",
     "mali_bellek",
     "mali_bellek_logs",
+    "invoice_shortfalls",
+    "business_invoices",
     # Zimmet
     "products",
     "product_types",
@@ -69,6 +71,10 @@ BACKUP_COLLECTIONS = [
     "courier_documents",
     # Akademi
     "academy_trainings",
+    # Motosiklet
+    "motorcycles",
+    "motorcycle_maintenances",
+    "dismissed_maintenance_notifications",
     # Ayarlar
     "bonus_settings",
     "email_settings",
