@@ -470,8 +470,61 @@ async def send_backup_now(
                     "last_r2_backup": r2_url if r2_url else None
                 }}
             )
-            )
     
     background_tasks.add_task(send_task)
     
-    return {"message": "Yedekleme e-postası gönderiliyor"}
+    return {"message": "Yedekleme e-postası gönderiliyor ve R2'ye yükleniyor"}
+
+
+# --- Scheduled Backup Runner ---
+async def run_scheduled_backups():
+    """Run scheduled backups for all companies with enabled backup settings"""
+    try:
+        current_hour = datetime.now().hour
+        print(f"Running scheduled backup check for hour {current_hour}")
+        
+        # Find all companies with backup enabled for this hour
+        settings_list = await db.backup_settings.find({
+            "enabled": True,
+            "hour": current_hour
+        }).to_list(100)
+        
+        for settings in settings_list:
+            company_id = settings.get("company_id")
+            email = settings.get("email")
+            
+            if not company_id or not email:
+                continue
+            
+            company = await db.companies.find_one({"id": company_id})
+            if not company:
+                continue
+            
+            print(f"Running scheduled backup for company: {company.get('name')}")
+            
+            try:
+                # Create backup
+                zip_buffer = await create_backup_zip(company_id)
+                
+                # Upload to R2
+                zip_buffer.seek(0)
+                r2_url = await upload_backup_to_r2(company_id, company["name"], zip_buffer)
+                
+                # Send email
+                zip_buffer.seek(0)
+                success = await send_backup_email(email, company["name"], zip_buffer, r2_url)
+                
+                if success or r2_url:
+                    await db.backup_settings.update_one(
+                        {"company_id": company_id},
+                        {"$set": {
+                            "last_backup": datetime.now(timezone.utc).isoformat(),
+                            "last_r2_backup": r2_url if r2_url else None
+                        }}
+                    )
+                    print(f"Backup completed for {company.get('name')}")
+            except Exception as e:
+                print(f"Backup failed for {company.get('name')}: {e}")
+                
+    except Exception as e:
+        print(f"Scheduled backup error: {e}")
