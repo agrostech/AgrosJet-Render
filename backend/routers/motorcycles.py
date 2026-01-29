@@ -74,10 +74,20 @@ async def get_courier_motorcycles(courier_id: str):
     motorcycles = list(db.motorcycles.find({"courier_id": courier_id}).sort("created_at", -1))
     return [serialize_doc(m) for m in motorcycles]
 
+# Helper to safely convert to ObjectId
+def safe_object_id(id_str):
+    try:
+        return ObjectId(id_str)
+    except Exception:
+        return None
+
 # Get single motorcycle
 @router.get("/{motorcycle_id}")
 async def get_motorcycle(motorcycle_id: str):
-    motorcycle = db.motorcycles.find_one({"_id": ObjectId(motorcycle_id)})
+    oid = safe_object_id(motorcycle_id)
+    if not oid:
+        raise HTTPException(status_code=400, detail="Geçersiz ID")
+    motorcycle = db.motorcycles.find_one({"_id": oid})
     if not motorcycle:
         raise HTTPException(status_code=404, detail="Motosiklet bulunamadı")
     return serialize_doc(motorcycle)
@@ -85,7 +95,10 @@ async def get_motorcycle(motorcycle_id: str):
 # Update motorcycle (brand, model, plate only - not km)
 @router.put("/{motorcycle_id}")
 async def update_motorcycle(motorcycle_id: str, data: MotorcycleUpdate):
-    motorcycle = db.motorcycles.find_one({"_id": ObjectId(motorcycle_id)})
+    oid = safe_object_id(motorcycle_id)
+    if not oid:
+        raise HTTPException(status_code=400, detail="Geçersiz ID")
+    motorcycle = db.motorcycles.find_one({"_id": oid})
     if not motorcycle:
         raise HTTPException(status_code=404, detail="Motosiklet bulunamadı")
     
@@ -97,21 +110,24 @@ async def update_motorcycle(motorcycle_id: str, data: MotorcycleUpdate):
     if data.plate is not None:
         update_data["plate"] = data.plate.upper()
     
-    db.motorcycles.update_one({"_id": ObjectId(motorcycle_id)}, {"$set": update_data})
+    db.motorcycles.update_one({"_id": oid}, {"$set": update_data})
     
-    updated = db.motorcycles.find_one({"_id": ObjectId(motorcycle_id)})
+    updated = db.motorcycles.find_one({"_id": oid})
     return {"message": "Motosiklet güncellendi", "motorcycle": serialize_doc(updated)}
 
 # Delete motorcycle
 @router.delete("/{motorcycle_id}")
 async def delete_motorcycle(motorcycle_id: str):
-    motorcycle = db.motorcycles.find_one({"_id": ObjectId(motorcycle_id)})
+    oid = safe_object_id(motorcycle_id)
+    if not oid:
+        raise HTTPException(status_code=400, detail="Geçersiz ID")
+    motorcycle = db.motorcycles.find_one({"_id": oid})
     if not motorcycle:
         raise HTTPException(status_code=404, detail="Motosiklet bulunamadı")
     
     # Delete motorcycle and its maintenance history
-    db.motorcycles.delete_one({"_id": ObjectId(motorcycle_id)})
-    db.motorcycle_maintenances.delete_many({"motorcycle_id": ObjectId(motorcycle_id)})
+    db.motorcycles.delete_one({"_id": oid})
+    db.motorcycle_maintenances.delete_many({"motorcycle_id": oid})
     
     return {"message": "Motosiklet silindi"}
 
