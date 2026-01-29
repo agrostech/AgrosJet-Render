@@ -21,7 +21,33 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-app = FastAPI()
+# Scheduler instance
+scheduler = AsyncIOScheduler()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle manager for startup and shutdown events"""
+    # Startup
+    from routers.backup import run_scheduled_backups
+    
+    # Add backup job - runs every hour at minute 0
+    scheduler.add_job(
+        run_scheduled_backups,
+        CronTrigger(minute=0),  # Her saatin başında
+        id="scheduled_backup",
+        name="Scheduled Database Backup",
+        replace_existing=True
+    )
+    scheduler.start()
+    print("Backup scheduler started - running hourly")
+    
+    yield
+    
+    # Shutdown
+    scheduler.shutdown()
+    print("Backup scheduler stopped")
+
+app = FastAPI(lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
 
 # Health check endpoint
