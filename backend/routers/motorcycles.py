@@ -288,7 +288,7 @@ async def get_active_notifications(courier_id: str):
     dismissed_map = {}
     for d in dismissed:
         key = f"{d['motorcycle_id']}_{d['notification_type']}"
-        dismissed_map[key] = d["dismissed_at"]
+        dismissed_map[key] = ensure_utc(d["dismissed_at"])
     
     notifications = []
     now = datetime.now(timezone.utc)
@@ -298,12 +298,14 @@ async def get_active_notifications(courier_id: str):
         moto_notifications = []
         
         # Check oil maintenance (10 days)
-        if moto.get("last_oil_date"):
-            days_since_oil = (now - moto["last_oil_date"]).days
+        last_oil = ensure_utc(moto.get("last_oil_date"))
+        if last_oil:
+            days_since_oil = (now - last_oil).days
             if days_since_oil >= 10:
                 key = f"{moto['_id']}_oil"
+                dismissed_at = dismissed_map.get(key)
                 # Check if dismissed after last maintenance
-                if key not in dismissed_map or dismissed_map[key] < moto["last_oil_date"]:
+                if dismissed_at is None or dismissed_at < last_oil:
                     moto_notifications.append({
                         "type": "oil",
                         "label": "Yağ Bakımı",
@@ -311,11 +313,13 @@ async def get_active_notifications(courier_id: str):
                     })
         
         # Check brake maintenance (10 days)
-        if moto.get("last_brake_date"):
-            days_since_brake = (now - moto["last_brake_date"]).days
+        last_brake = ensure_utc(moto.get("last_brake_date"))
+        if last_brake:
+            days_since_brake = (now - last_brake).days
             if days_since_brake >= 10:
                 key = f"{moto['_id']}_brake"
-                if key not in dismissed_map or dismissed_map[key] < moto["last_brake_date"]:
+                dismissed_at = dismissed_map.get(key)
+                if dismissed_at is None or dismissed_at < last_brake:
                     moto_notifications.append({
                         "type": "brake",
                         "label": "Fren Bakımı",
@@ -323,11 +327,13 @@ async def get_active_notifications(courier_id: str):
                     })
         
         # Check variator maintenance (25 days)
-        if moto.get("last_variator_date"):
-            days_since_variator = (now - moto["last_variator_date"]).days
+        last_variator = ensure_utc(moto.get("last_variator_date"))
+        if last_variator:
+            days_since_variator = (now - last_variator).days
             if days_since_variator >= 25:
                 key = f"{moto['_id']}_variator"
-                if key not in dismissed_map or dismissed_map[key] < moto["last_variator_date"]:
+                dismissed_at = dismissed_map.get(key)
+                if dismissed_at is None or dismissed_at < last_variator:
                     moto_notifications.append({
                         "type": "variator",
                         "label": "Kayış/Varyatör Bakımı",
