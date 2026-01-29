@@ -25,7 +25,7 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 29, 2026 - Motosikletim Özelliği (Latest)
+### January 29, 2026 - Motosikletim + Mobil Menü + Yedekleme Güncellemesi (Latest)
 
 #### ✅ COMPLETED: Kurye Motosiklet ve Bakım Takibi
 Kuryeler için motosiklet ve bakım takibi özelliği eklendi.
@@ -55,6 +55,15 @@ Kuryeler için motosiklet ve bakım takibi özelliği eklendi.
 - `motorcycles`: Motosiklet bilgileri ve bakım tarihleri
 - `motorcycle_maintenances`: Bakım geçmişi kayıtları
 - `dismissed_maintenance_notifications`: Kapatılan bildirimler
+
+#### ✅ COMPLETED: Kurye Paneli Sekme Sıralaması ve Mobil Menü
+- Yeni sıralama: Vardiyalarım > Muhasebe > Zimmetlerim > Motosikletim > Akademi > Market > Evraklar
+- Mobil menüde max 6 sekme gösteriliyor, kalanlar "Diğer" dropdown'ında
+
+#### ✅ COMPLETED: Yedekleme Sistemi Güncellemesi
+- APScheduler ile her saat başı otomatik yedekleme kontrolü
+- Cloudflare R2'ye otomatik yedek yükleme
+- Yeni collection'lar eklendi: motorcycles, motorcycle_maintenances, dismissed_maintenance_notifications, invoice_shortfalls, business_invoices
 
 ### January 28, 2026 - Muhasebe Tab Persistence + Mobil Dosya Düzeltmesi
 
