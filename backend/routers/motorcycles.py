@@ -29,7 +29,7 @@ class MotorcycleUpdate(BaseModel):
 class MaintenanceCreate(BaseModel):
     motorcycle_id: str
     courier_id: str
-    company_id: str
+    company_id: Optional[str] = None
     km_at_maintenance: int
     oil_change: bool = False
     brake_maintenance: bool = False
