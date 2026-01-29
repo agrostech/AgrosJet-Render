@@ -40,20 +40,14 @@ def serialize_doc(doc):
     if doc is None:
         return None
     doc["id"] = str(doc.pop("_id"))
-    if "courier_id" in doc and isinstance(doc["courier_id"], ObjectId):
-        doc["courier_id"] = str(doc["courier_id"])
-    if "company_id" in doc and isinstance(doc["company_id"], ObjectId):
-        doc["company_id"] = str(doc["company_id"])
-    if "motorcycle_id" in doc and isinstance(doc["motorcycle_id"], ObjectId):
-        doc["motorcycle_id"] = str(doc["motorcycle_id"])
     return doc
 
 # Create motorcycle
 @router.post("")
 async def create_motorcycle(data: MotorcycleCreate):
     motorcycle = {
-        "courier_id": ObjectId(data.courier_id),
-        "company_id": ObjectId(data.company_id),
+        "courier_id": data.courier_id,
+        "company_id": data.company_id,
         "brand": data.brand,
         "model": data.model,
         "plate": data.plate.upper(),
@@ -77,7 +71,7 @@ async def create_motorcycle(data: MotorcycleCreate):
 # Get motorcycles for courier
 @router.get("/courier/{courier_id}")
 async def get_courier_motorcycles(courier_id: str):
-    motorcycles = list(db.motorcycles.find({"courier_id": ObjectId(courier_id)}).sort("created_at", -1))
+    motorcycles = list(db.motorcycles.find({"courier_id": courier_id}).sort("created_at", -1))
     return [serialize_doc(m) for m in motorcycles]
 
 # Get single motorcycle
@@ -141,8 +135,8 @@ async def add_maintenance(data: MaintenanceCreate):
     # Create maintenance record
     maintenance = {
         "motorcycle_id": ObjectId(data.motorcycle_id),
-        "courier_id": ObjectId(data.courier_id),
-        "company_id": ObjectId(data.company_id),
+        "courier_id": data.courier_id,
+        "company_id": data.company_id,
         "maintenance_date": now,
         "km_at_maintenance": data.km_at_maintenance,
         "oil_change": data.oil_change,
@@ -189,7 +183,7 @@ async def get_maintenance_history(motorcycle_id: str):
 # Check maintenance notifications for courier
 @router.get("/notifications/{courier_id}")
 async def get_maintenance_notifications(courier_id: str):
-    motorcycles = list(db.motorcycles.find({"courier_id": ObjectId(courier_id)}))
+    motorcycles = list(db.motorcycles.find({"courier_id": courier_id}))
     
     notifications = []
     now = datetime.now(timezone.utc)
@@ -254,7 +248,7 @@ async def get_maintenance_notifications(courier_id: str):
 async def dismiss_notification(courier_id: str, motorcycle_id: str, notification_type: str):
     # Store dismissed notification
     dismissed = {
-        "courier_id": ObjectId(courier_id),
+        "courier_id": courier_id,
         "motorcycle_id": ObjectId(motorcycle_id),
         "notification_type": notification_type,
         "dismissed_at": datetime.now(timezone.utc)
@@ -263,7 +257,7 @@ async def dismiss_notification(courier_id: str, motorcycle_id: str, notification
     # Upsert - replace if exists
     db.dismissed_maintenance_notifications.update_one(
         {
-            "courier_id": ObjectId(courier_id),
+            "courier_id": courier_id,
             "motorcycle_id": ObjectId(motorcycle_id),
             "notification_type": notification_type
         },
@@ -276,10 +270,10 @@ async def dismiss_notification(courier_id: str, motorcycle_id: str, notification
 # Get active notifications (excluding dismissed ones that haven't triggered again)
 @router.get("/notifications/{courier_id}/active")
 async def get_active_notifications(courier_id: str):
-    motorcycles = list(db.motorcycles.find({"courier_id": ObjectId(courier_id)}))
+    motorcycles = list(db.motorcycles.find({"courier_id": courier_id}))
     
     # Get dismissed notifications
-    dismissed = list(db.dismissed_maintenance_notifications.find({"courier_id": ObjectId(courier_id)}))
+    dismissed = list(db.dismissed_maintenance_notifications.find({"courier_id": courier_id}))
     dismissed_map = {}
     for d in dismissed:
         key = f"{d['motorcycle_id']}_{d['notification_type']}"
