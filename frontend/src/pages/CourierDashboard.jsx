@@ -20,6 +20,7 @@ const BASE_NAV_ITEMS = [
   { path: "/courier", label: "Vardiyalarım", icon: Clock },
   { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator },
   { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package },
+  { path: "/courier/motosikletim", label: "Motosikletim", icon: Bike },
   { path: "/courier/evraklar", label: "Evraklar", icon: FileText },
   { path: "/courier/jetpuan", label: "Market", icon: ShoppingBag },
   { path: "/courier/akademi", label: "Akademi", icon: GraduationCap },
