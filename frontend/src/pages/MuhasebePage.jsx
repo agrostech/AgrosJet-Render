@@ -37,6 +37,12 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
 
+  // Tab değiştiğinde URL'yi güncelle
+  const handleTabChange = (tabKey) => {
+    setActiveTab(tabKey);
+    setSearchParams({ tab: tabKey });
+  };
+
   // Mobilde seçim yapıldığında işlem geçmişine scroll
   const scrollToTransactions = () => {
     if (window.innerWidth < 768 && transactionRef.current) {
