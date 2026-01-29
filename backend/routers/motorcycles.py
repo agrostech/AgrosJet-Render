@@ -180,6 +180,14 @@ async def get_maintenance_history(motorcycle_id: str):
     
     return [serialize_doc(m) for m in maintenances]
 
+# Helper to make datetime timezone aware
+def ensure_utc(dt):
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
 # Check maintenance notifications for courier
 @router.get("/notifications/{courier_id}")
 async def get_maintenance_notifications(courier_id: str):
@@ -192,40 +200,43 @@ async def get_maintenance_notifications(courier_id: str):
         moto_notifications = []
         
         # Check oil maintenance (10 days)
-        if moto.get("last_oil_date"):
-            days_since_oil = (now - moto["last_oil_date"]).days
+        last_oil = ensure_utc(moto.get("last_oil_date"))
+        if last_oil:
+            days_since_oil = (now - last_oil).days
             if days_since_oil >= 10:
                 moto_notifications.append({
                     "type": "oil",
                     "label": "Yağ Bakımı",
                     "days_overdue": days_since_oil - 10,
-                    "last_date": moto["last_oil_date"].isoformat(),
+                    "last_date": last_oil.isoformat(),
                     "last_km": moto.get("last_oil_km"),
                     "next_km": (moto.get("last_oil_km") or 0) + 2000
                 })
         
         # Check brake maintenance (10 days)
-        if moto.get("last_brake_date"):
-            days_since_brake = (now - moto["last_brake_date"]).days
+        last_brake = ensure_utc(moto.get("last_brake_date"))
+        if last_brake:
+            days_since_brake = (now - last_brake).days
             if days_since_brake >= 10:
                 moto_notifications.append({
                     "type": "brake",
                     "label": "Fren Bakımı",
                     "days_overdue": days_since_brake - 10,
-                    "last_date": moto["last_brake_date"].isoformat(),
+                    "last_date": last_brake.isoformat(),
                     "last_km": moto.get("last_brake_km"),
                     "next_km": (moto.get("last_brake_km") or 0) + 2000
                 })
         
         # Check variator maintenance (25 days)
-        if moto.get("last_variator_date"):
-            days_since_variator = (now - moto["last_variator_date"]).days
+        last_variator = ensure_utc(moto.get("last_variator_date"))
+        if last_variator:
+            days_since_variator = (now - last_variator).days
             if days_since_variator >= 25:
                 moto_notifications.append({
                     "type": "variator",
                     "label": "Kayış/Varyatör Bakımı",
                     "days_overdue": days_since_variator - 25,
-                    "last_date": moto["last_variator_date"].isoformat(),
+                    "last_date": last_variator.isoformat(),
                     "last_km": moto.get("last_variator_km"),
                     "next_km": (moto.get("last_variator_km") or 0) + 5000
                 })
