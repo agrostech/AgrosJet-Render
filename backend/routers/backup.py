@@ -14,6 +14,7 @@ from email.mime.text import MIMEText
 from email import encoders
 
 from utils.database import db
+from services.r2_storage import upload_file_to_r2, get_r2_settings
 
 router = APIRouter(prefix="/api/backup", tags=["Backup"])
 
