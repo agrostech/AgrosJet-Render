@@ -52,6 +52,11 @@ BACKUP_COLLECTIONS = [
     "mali_bellek_logs",
     "invoice_shortfalls",
     "business_invoices",
+    "issued_invoices",
+    # Günlük Tahsilat ve Raporlar
+    "daily_collections",
+    "daily_comparisons",
+    "daily_excel_reports",
     # Zimmet
     "products",
     "product_types",
@@ -80,7 +85,11 @@ BACKUP_COLLECTIONS = [
     "bonus_settings",
     "email_settings",
     "company_settings",
-    "backup_settings"
+    "backup_settings",
+    "google_settings",
+    # Sistem (opsiyonel - genelde yedeklenmez)
+    "collection_reset_logs",
+    "collection_status",
 ]
 
 
