@@ -92,6 +92,7 @@ from routers.daily_collections import router as daily_collections_router
 from routers.daily_reports import router as daily_reports_router
 from routers.business_invoices import router as business_invoices_router
 from routers.system_settings import router as system_settings_router
+from routers.motorcycles import router as motorcycles_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
