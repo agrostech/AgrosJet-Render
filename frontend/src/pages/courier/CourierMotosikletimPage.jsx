@@ -203,7 +203,10 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
       fetchNotifications();
     } catch (err) {
       if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Kaydedilemedi");
+        const errorMsg = typeof err.response?.data?.detail === 'string' 
+          ? err.response.data.detail 
+          : "Kaydedilemedi";
+        toast.error(errorMsg);
       }
     } finally {
       setSaving(false);
