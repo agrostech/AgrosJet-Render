@@ -348,7 +348,38 @@ async def set_backup_schedule(
     return {"message": "Yedekleme ayarları kaydedildi"}
 
 
-async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesIO):
+async def upload_backup_to_r2(company_id: str, company_name: str, zip_buffer: io.BytesIO) -> Optional[str]:
+    """Upload backup file to Cloudflare R2"""
+    try:
+        r2_settings = await get_r2_settings()
+        if not r2_settings.get("account_id"):
+            print("R2 not configured for backup upload")
+            return None
+        
+        filename = f"backups/{company_id}/{datetime.now().strftime('%Y%m%d_%H%M%S')}_backup.zip"
+        
+        # Reset buffer position
+        zip_buffer.seek(0)
+        file_content = zip_buffer.read()
+        
+        result = await upload_file_to_r2(
+            file_content=file_content,
+            file_key=filename,
+            content_type='application/zip'
+        )
+        
+        if result.get("success"):
+            print(f"Backup uploaded to R2: {filename}")
+            return result.get("url") or filename
+        else:
+            print(f"R2 upload failed: {result.get('error')}")
+            return None
+    except Exception as e:
+        print(f"Failed to upload backup to R2: {e}")
+        return None
+
+
+async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesIO, r2_url: str = None):
     """Send backup file via email"""
     try:
         # Get email settings
@@ -362,12 +393,16 @@ async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesI
         msg['To'] = email
         msg['Subject'] = f"ShiftJet Yedekleme - {company_name} - {datetime.now().strftime('%d.%m.%Y')}"
         
+        r2_info = ""
+        if r2_url:
+            r2_info = f"\n        Bulut Yedek: Cloudflare R2'ye de yüklendi."
+        
         body = f"""
         Merhaba,
         
         {company_name} şirketinin günlük otomatik yedeği ekte yer almaktadır.
         
-        Yedek Tarihi: {datetime.now().strftime('%d.%m.%Y %H:%M')}
+        Yedek Tarihi: {datetime.now().strftime('%d.%m.%Y %H:%M')}{r2_info}
         
         Bu yedek dosyasını güvenli bir yerde saklayınız.
         
@@ -377,6 +412,7 @@ async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesI
         msg.attach(MIMEText(body, 'plain', 'utf-8'))
         
         # Attach ZIP file
+        zip_buffer.seek(0)  # Reset buffer position
         filename = f"backup_{company_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.zip"
         attachment = MIMEBase('application', 'zip')
         attachment.set_payload(zip_buffer.read())
@@ -392,6 +428,7 @@ async def send_backup_email(email: str, company_name: str, zip_buffer: io.BytesI
                 server.login(email_settings["smtp_username"], email_settings["smtp_password"])
             server.send_message(msg)
         
+        print(f"Backup email sent to {email}")
         return True
     except Exception as e:
         print(f"Failed to send backup email: {e}")
@@ -403,7 +440,7 @@ async def send_backup_now(
     company_id: str, 
     background_tasks: BackgroundTasks
 ):
-    """Manually trigger backup email"""
+    """Manually trigger backup email and R2 upload"""
     company = await db.companies.find_one({"id": company_id})
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
@@ -417,11 +454,22 @@ async def send_backup_now(
     
     # Send in background
     async def send_task():
-        success = await send_backup_email(settings["email"], company["name"], zip_buffer)
-        if success:
+        # First upload to R2
+        zip_buffer.seek(0)
+        r2_url = await upload_backup_to_r2(company_id, company["name"], zip_buffer)
+        
+        # Then send email
+        zip_buffer.seek(0)
+        success = await send_backup_email(settings["email"], company["name"], zip_buffer, r2_url)
+        
+        if success or r2_url:
             await db.backup_settings.update_one(
                 {"company_id": company_id},
-                {"$set": {"last_backup": datetime.now(timezone.utc).isoformat()}}
+                {"$set": {
+                    "last_backup": datetime.now(timezone.utc).isoformat(),
+                    "last_r2_backup": r2_url if r2_url else None
+                }}
+            )
             )
     
     background_tasks.add_task(send_task)
