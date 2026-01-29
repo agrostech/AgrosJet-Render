@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Banknote, Scale, Receipt } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
@@ -22,8 +23,15 @@ const TABS = [
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
+const TAB_KEYS = TABS.map(t => t.key);
+
 export default function MuhasebePage({ companyId, adminId, adminName, companyLogo, companyName, isSuperAdmin }) {
-  const [activeTab, setActiveTab] = useState("kuryeler");
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // URL'den tab değerini al, geçerli değilse "kuryeler" kullan
+  const tabFromUrl = searchParams.get("tab");
+  const initialTab = TAB_KEYS.includes(tabFromUrl) ? tabFromUrl : "kuryeler";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const transactionRef = useRef(null);
   const tabsContainerRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
