@@ -104,7 +104,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
             {TABS.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => handleTabChange(tab.key)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
                   activeTab === tab.key
                     ? "border-primary text-primary bg-primary/5"
