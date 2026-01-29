@@ -121,6 +121,11 @@ Mobil görünümde dosya (PDF) + fotoğraf yükleme eklendi.
 
 ## Prioritized Backlog
 
+### P0 - Critical (User Verification Required)
+- [ ] **Mobil Dosya Yükleme Hatası** - `accept="*/*"` ile düzeltildi, GERÇEK CİHAZDA TEST GEREKLİ
+- [ ] **Eksik Fatura İş Akışı** - E2E test gerekiyor
+- [ ] **Kurye Birden Fazla Fatura Görünürlüğü** - Test gerekiyor
+
 ### P1 - High Priority
 - [ ] İşletme Kesilen Faturalar (kullanıcı sonra istedi)
 
@@ -130,6 +135,29 @@ Mobil görünümde dosya (PDF) + fotoğraf yükleme eklendi.
 
 ### P3 - Low Priority
 - [ ] Akademi için kalıcı dosya depolama
+
+---
+
+## January 28, 2026 - Mobil Dosya Yükleme Düzeltmesi
+
+### ✅ COMPLETED: P0 Mobil File Upload Fix
+Mobil cihazlarda "Dosyalar" seçeneğinin görünmemesi sorunu için `accept` attribute düzeltildi.
+
+**Düzeltilen Dosyalar:**
+- `/app/frontend/src/components/faturalar/CourierInvoicesCard.jsx`: `accept="*/*"` olarak güncellendi
+
+**Teknik Detay:**
+- Tüm dosya input'ları artık `accept="*/*"` kullanıyor
+- iOS ve Android tarayıcıları bu ayarla tüm dosya kaynaklarını göstermeli
+- Dosya türü validasyonu JavaScript'te yapılıyor (backend'de de doğrulanıyor)
+
+**Test Edilmesi Gereken Sayfalar:**
+1. Mütabakat - Excel yükleme
+2. İşletme Faturaları - Fatura yükleme  
+3. Kurye Hakediş Faturası - PDF yükleme
+4. Kurye Evrak Yükleme - Belge yükleme
+
+**KULLANICI TESTİ ZORUNLU** - Gerçek iOS/Android cihazda doğrulama gerekli.
 
 ---
 
