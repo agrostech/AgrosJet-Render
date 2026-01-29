@@ -159,6 +159,16 @@ Mobil cihazlarda "Dosyalar" seçeneğinin görünmemesi sorunu için `accept` at
 
 **KULLANICI TESTİ ZORUNLU** - Gerçek iOS/Android cihazda doğrulama gerekli.
 
+### ✅ COMPLETED: Muhasebe Tab Persistence
+Muhasebe sayfasında seçili tab artık URL'de saklanıyor. Sayfa yenilendiğinde aynı sekme aktif kalıyor.
+
+**Değişiklikler:**
+- `/app/frontend/src/pages/MuhasebePage.jsx`: `useSearchParams` hook'u ile URL query parameter desteği eklendi
+
+**Örnek URL:**
+- `/admin/muhasebe?tab=kurye-faturalari`
+- `/admin/muhasebe?tab=mutabakat`
+
 ---
 
 ## Test Credentials
