@@ -35,29 +35,28 @@ export default function CourierDashboard() {
   const [companyName, setCompanyName] = useState("");
   const [companyLogo, setCompanyLogo] = useState("");
   const [documentsComplete, setDocumentsComplete] = useState(true);
+  const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
 
   // Fetch document status
   const checkDocumentStatus = useCallback(async (courierId) => {
     try {
       const res = await axios.get(`${API}/documents/courier/${courierId}/status`);
-      const isComplete = res.data.all_complete;
-      setDocumentsComplete(isComplete);
-      
-      // Update nav items based on document status
-      if (!isComplete) {
-        setNavItems([...BASE_NAV_ITEMS, EVRAKLAR_NAV_ITEM]);
-      } else {
-        setNavItems(BASE_NAV_ITEMS);
-        // If user is on evraklar page and documents are complete, redirect
-        if (location.pathname === "/courier/evraklar") {
-          navigate("/courier");
-        }
-      }
+      setDocumentsComplete(res.data.all_complete);
     } catch (err) {
       console.error("Evrak durumu alınamadı", err);
     }
-  }, [location.pathname, navigate]);
+  }, []);
+
+  // Fetch maintenance notifications
+  const checkMaintenanceNotifications = useCallback(async (courierId) => {
+    try {
+      const res = await axios.get(`${API}/motorcycles/notifications/${courierId}/active`);
+      setMaintenanceNotifications(res.data.total_count || 0);
+    } catch (err) {
+      console.error("Bakım bildirimleri alınamadı", err);
+    }
+  }, []);
 
   // Fetch company name and logo
   const fetchCompanyInfo = useCallback(async (companyId) => {
