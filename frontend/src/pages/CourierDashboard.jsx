@@ -170,6 +170,7 @@ export default function CourierDashboard() {
           onLogout={handleLogout}
           companyName={companyName}
           companyLogo={companyLogo}
+          maintenanceNotifications={maintenanceNotifications}
         />
 
         {/* Main Content */}
@@ -181,6 +182,7 @@ export default function CourierDashboard() {
               <Route index element={<CourierVardiyalarPage courierId={user.id} companyId={user.company_id} />} />
               <Route path="muhasebe" element={<CourierMuhasebePage courierId={user.id} courierName={user.name} companyId={user.company_id} />} />
               <Route path="zimmet" element={<CourierZimmetPage courierId={user.id} />} />
+              <Route path="motosikletim" element={<CourierMotosikletimPage courierId={user.id} companyId={user.company_id} />} />
               <Route path="jetpuan" element={<CourierJetPuanPage courierId={user.id} />} />
               <Route path="akademi" element={<CourierAkademiPage companyId={user.company_id} />} />
               <Route path="evraklar" element={
