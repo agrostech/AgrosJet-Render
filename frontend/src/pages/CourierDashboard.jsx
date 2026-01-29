@@ -136,12 +136,17 @@ export default function CourierDashboard() {
                 key={item.path} 
                 to={item.path} 
                 onClick={() => setMobileMenuOpen(false)} 
-                className={`flex flex-col items-center justify-center p-3 rounded-lg text-center ${
+                className={`relative flex flex-col items-center justify-center p-3 rounded-lg text-center ${
                   location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
                 }`}
               >
                 <item.icon className="w-5 h-5 mb-1" />
                 <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+                {item.path === "/courier/motosikletim" && maintenanceNotifications > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-white text-primary text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {maintenanceNotifications}
+                  </span>
+                )}
               </Link>
             ))}
           </div>
