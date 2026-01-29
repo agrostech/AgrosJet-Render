@@ -62,11 +62,12 @@ export default function CourierSidebar({
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 
             (item.path !== "/courier" && location.pathname.startsWith(item.path));
+          const showBadge = item.path === "/courier/motosikletim" && maintenanceNotifications > 0;
           return (
             <Link 
               key={item.path} 
               to={item.path} 
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
+              className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
                 isActive ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"
               } ${sidebarCollapsed ? 'justify-center px-2' : ''}`} 
               data-testid={`courier-nav-${item.label.toLowerCase()}`}
@@ -74,6 +75,11 @@ export default function CourierSidebar({
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
               {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+              {showBadge && (
+                <span className={`${sidebarCollapsed ? 'absolute top-1 right-1' : 'ml-auto'} min-w-[18px] h-[18px] bg-white text-primary text-[10px] font-bold rounded-full flex items-center justify-center px-1`}>
+                  {maintenanceNotifications}
+                </span>
+              )}
             </Link>
           );
         })}
