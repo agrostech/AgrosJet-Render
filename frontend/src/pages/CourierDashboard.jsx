@@ -2,8 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Routes, Route, Link, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Page components
 import CourierVardiyalarPage from "./courier/CourierVardiyalarPage";
@@ -16,15 +22,19 @@ import CourierAkademiPage from "./courier/CourierAkademiPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Yeni sıralama
 const BASE_NAV_ITEMS = [
   { path: "/courier", label: "Vardiyalarım", icon: Clock },
   { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator },
   { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package },
   { path: "/courier/motosikletim", label: "Motosikletim", icon: Bike },
-  { path: "/courier/evraklar", label: "Evraklar", icon: FileText },
-  { path: "/courier/jetpuan", label: "Market", icon: ShoppingBag },
   { path: "/courier/akademi", label: "Akademi", icon: GraduationCap },
+  { path: "/courier/jetpuan", label: "Market", icon: ShoppingBag },
+  { path: "/courier/evraklar", label: "Evraklar", icon: FileText },
 ];
+
+// Mobil menüde gösterilecek maksimum sekme sayısı
+const MOBILE_NAV_LIMIT = 6;
 
 export default function CourierDashboard() {
   const navigate = useNavigate();
