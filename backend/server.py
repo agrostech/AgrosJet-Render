@@ -116,6 +116,7 @@ app.include_router(daily_collections_router)
 app.include_router(daily_reports_router)
 app.include_router(business_invoices_router)
 app.include_router(system_settings_router)
+app.include_router(motorcycles_router)
 
 # Health check
 @api_router.get("/")
