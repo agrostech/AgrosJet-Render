@@ -118,7 +118,12 @@ async def delete_motorcycle(motorcycle_id: str):
 # Add maintenance record
 @router.post("/maintenance")
 async def add_maintenance(data: MaintenanceCreate):
-    motorcycle = db.motorcycles.find_one({"_id": ObjectId(data.motorcycle_id)})
+    try:
+        motorcycle_oid = ObjectId(data.motorcycle_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Geçersiz motosiklet ID")
+    
+    motorcycle = db.motorcycles.find_one({"_id": motorcycle_oid})
     if not motorcycle:
         raise HTTPException(status_code=404, detail="Motosiklet bulunamadı")
     
@@ -134,7 +139,7 @@ async def add_maintenance(data: MaintenanceCreate):
     
     # Create maintenance record
     maintenance = {
-        "motorcycle_id": ObjectId(data.motorcycle_id),
+        "motorcycle_id": motorcycle_oid,
         "courier_id": data.courier_id,
         "company_id": data.company_id,
         "maintenance_date": now,
