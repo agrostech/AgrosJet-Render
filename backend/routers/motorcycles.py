@@ -15,7 +15,7 @@ db = client[os.environ.get("DB_NAME", "shiftjet_db")]
 # Pydantic models
 class MotorcycleCreate(BaseModel):
     courier_id: str
-    company_id: str
+    company_id: Optional[str] = None
     brand: str
     model: str
     plate: str
