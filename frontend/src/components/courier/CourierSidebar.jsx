@@ -9,7 +9,8 @@ export default function CourierSidebar({
   setSidebarCollapsed, 
   onLogout,
   companyName,
-  companyLogo
+  companyLogo,
+  maintenanceNotifications = 0
 }) {
   const location = useLocation();
 
