@@ -302,21 +302,38 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full">
-      {/* Sol Panel - Kurye Listesi */}
-      <CourierList
-        displayList={displayList}
-        showArchived={showArchived}
-        setShowArchived={setShowArchived}
-        selectedEntity={selectedEntity}
-        totalBalance={totalBalance}
-        balancesMap={balancesMap}
-        listSearchQuery={listSearchQuery}
-        setListSearchQuery={setListSearchQuery}
-        onSelect={handleSelect}
-      />
+      {/* Sol Panel - Kurye Listesi (mobilde detay görünümünde gizle) */}
+      <div className={`${mobileDetailView ? 'hidden' : 'block'} lg:block`}>
+        <CourierList
+          displayList={displayList}
+          showArchived={showArchived}
+          setShowArchived={setShowArchived}
+          selectedEntity={selectedEntity}
+          totalBalance={totalBalance}
+          balancesMap={balancesMap}
+          listSearchQuery={listSearchQuery}
+          setListSearchQuery={setListSearchQuery}
+          onSelect={handleMobileSelect}
+        />
+      </div>
 
-      {/* Sağ Panel - İşlemler */}
-      <div ref={transactionRef} className="flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+      {/* Sağ Panel - İşlemler (mobilde sadece detay görünümünde göster) */}
+      <div ref={transactionRef} className={`flex-1 border-2 border-border bg-white flex flex-col ${mobileDetailView ? 'block' : 'hidden lg:flex'}`} style={{ height: 'calc(100vh - 220px)' }}>
+        {/* Mobil Geri Butonu */}
+        {selectedEntity && (
+          <div className="lg:hidden p-2 border-b-2 border-border bg-slate-100">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMobileBack}
+              className="h-8 text-sm font-medium"
+              data-testid="mobile-back-btn"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Listeye Dön
+            </Button>
+          </div>
+        )}
         <CourierTransactions
           selectedEntity={selectedEntity}
           showArchived={showArchived}
