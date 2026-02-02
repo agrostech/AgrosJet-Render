@@ -25,7 +25,7 @@ Kapsamlı bir kurye yönetim sistemi. Temel özellikler:
 
 ## What's Been Implemented
 
-### January 29, 2026 - Motosikletim + Mobil Menü + Yedekleme Güncellemesi (Latest)
+### January 29, 2026 - Motosikletim + Mobil Menü + Yedekleme + Admin Tahsilat (Latest)
 
 #### ✅ COMPLETED: Kurye Motosiklet ve Bakım Takibi
 Kuryeler için motosiklet ve bakım takibi özelliği eklendi.
@@ -63,7 +63,21 @@ Kuryeler için motosiklet ve bakım takibi özelliği eklendi.
 #### ✅ COMPLETED: Yedekleme Sistemi Güncellemesi
 - APScheduler ile her saat başı otomatik yedekleme kontrolü
 - Cloudflare R2'ye otomatik yedek yükleme
-- Yeni collection'lar eklendi: motorcycles, motorcycle_maintenances, dismissed_maintenance_notifications, invoice_shortfalls, business_invoices
+- Yeni collection'lar eklendi: motorcycles, motorcycle_maintenances, dismissed_maintenance_notifications, invoice_shortfalls, business_invoices, daily_collections, daily_comparisons, daily_excel_reports, google_settings, issued_invoices, admin_collection_status
+
+#### ✅ COMPLETED: Admin Bazlı Günlük Tahsilat
+- Günlük Tahsilat sayfasında admin bazlı özet eklendi
+- Her adminin topladığı nakit/kart tutarları görünüyor
+- Admin satırına tıklanınca kurye detayları açılıyor
+- **"Alındı" butonu SADECE Süper Admin'de görünüyor**
+- Normal adminler özeti görebilir ama "Alındı" butonuna basamaz
+
+**Yeni API Endpoints:**
+- `GET /api/daily-collections/{company_id}/admin-summary/{date}`: Admin bazlı tahsilat özeti
+- `POST /api/daily-collections/{company_id}/mark-admin-collected`: Admin tahsilatını alındı işaretle
+
+**DB Collections:**
+- `admin_collection_status`: Admin tahsilat alındı durumları
 
 ### January 28, 2026 - Muhasebe Tab Persistence + Mobil Dosya Düzeltmesi
 
