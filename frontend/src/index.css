@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,11 +15,10 @@ body {
     font-family: 'Montserrat', sans-serif;
 }
 
-/* Sayılar için düzgün font - slashed zero olmadan */
+/* JetBrains Mono - slashed zero kapalı */
 .font-mono {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
+    font-family: 'JetBrains Mono', monospace;
+    font-feature-settings: "zero" 0;
 }
 
 @layer base {
