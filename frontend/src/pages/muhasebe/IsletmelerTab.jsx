@@ -226,7 +226,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
               return (
                 <div
                   key={b.id}
-                  onClick={() => handleSelect(b)}
+                  onClick={() => handleMobileSelect(b)}
                   className={`p-3 border-b border-border cursor-pointer transition-colors ${selectedEntity?.id === b.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}
                   data-testid={`business-item-${b.id}`}
                 >
