@@ -486,18 +486,24 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
         </div>
       </div>
 
-      {/* Admin Bazlı Tahsilat Özeti */}
+      {/* Yönetici Bazlı Tahsilat Özeti */}
       {adminSummary.admins.length > 0 && (
         <div className="border-2 border-border rounded-lg bg-white overflow-hidden">
           <div className="p-3 border-b border-border bg-slate-50">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-primary" />
-                <span className="font-semibold text-sm">Admin Bazlı Tahsilat</span>
+                <span className="font-semibold text-sm">Yönetici Bazlı Tahsilat</span>
               </div>
-              <div className="flex gap-3 text-xs">
-                <span className="text-green-600 font-medium">Nakit: {formatMoney(adminSummary.grand_total.cash)}</span>
-                <span className="text-blue-600 font-medium">Kart: {formatMoney(adminSummary.grand_total.card)}</span>
+              <div className="flex gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <Banknote className="w-3 h-3 text-green-600" />
+                  <span className="text-green-700 font-medium">{formatMoney(adminSummary.grand_total.cash)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <CreditCard className="w-3 h-3 text-blue-600" />
+                  <span className="text-blue-700 font-medium">{formatMoney(adminSummary.grand_total.card)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -506,29 +512,30 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
             {adminSummary.admins.map((admin) => (
               <div key={admin.admin_id} className="p-3">
                 <div 
-                  className="flex items-center justify-between cursor-pointer"
+                  className="flex items-center justify-between cursor-pointer gap-2"
                   onClick={() => setExpandedAdmin(expandedAdmin === admin.admin_id ? null : admin.admin_id)}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <User className="w-4 h-4 text-primary" />
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{admin.admin_name}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{admin.admin_name}</p>
                       <p className="text-xs text-muted-foreground">{admin.courier_count} kurye</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground">Nakit / Kart</p>
-                      <p className="font-mono text-sm font-semibold">
-                        {formatMoney(admin.cash_total)} / {formatMoney(admin.card_total)}
-                      </p>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-green-600 font-mono font-semibold">{formatMoney(admin.cash_total)}</span>
+                        <span className="text-muted-foreground">/</span>
+                        <span className="text-blue-600 font-mono font-semibold">{formatMoney(admin.card_total)}</span>
+                      </div>
                     </div>
                     {expandedAdmin === admin.admin_id ? (
-                      <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                      <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     )}
                   </div>
                 </div>
@@ -537,87 +544,110 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
                 {expandedAdmin === admin.admin_id && (
                   <div className="mt-3 pt-3 border-t border-border">
                     {/* Kurye detayları */}
-                    <div className="space-y-1 mb-3">
+                    <div className="space-y-1.5 mb-3">
                       {admin.records.map((rec, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-xs py-1 px-2 bg-slate-50 rounded">
-                          <span>{rec.courier_name}</span>
-                          <span className="font-mono">
-                            {rec.cash_amount > 0 && <span className="text-green-600 mr-2">{rec.cash_amount} ₺</span>}
-                            {rec.card_total > 0 && <span className="text-blue-600">{rec.card_total} ₺</span>}
-                          </span>
+                        <div key={idx} className="flex items-center justify-between text-xs py-1.5 px-2 bg-slate-50 rounded">
+                          <span className="truncate mr-2">{rec.courier_name}</span>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {rec.cash_amount > 0 && (
+                              <span className="text-green-600 font-mono flex items-center gap-0.5">
+                                <Banknote className="w-3 h-3" />
+                                {rec.cash_amount.toLocaleString('tr-TR')}
+                              </span>
+                            )}
+                            {rec.card_total > 0 && (
+                              <span className="text-blue-600 font-mono flex items-center gap-0.5">
+                                <CreditCard className="w-3 h-3" />
+                                {rec.card_total.toLocaleString('tr-TR')}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
                     
                     {/* Alındı butonları - sadece SuperAdmin */}
                     {isSuperAdmin && (
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         {/* Nakit Alındı */}
-                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
-                          <div>
-                            <span className="text-green-700 text-xs">Nakit: </span>
-                            <span className="font-bold font-mono text-sm">{formatMoney(admin.cash_total)}</span>
+                        <div className={`flex flex-col gap-1 px-3 py-2 rounded border ${admin.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
+                          <div className="flex items-center gap-1 text-green-700">
+                            <Banknote className="w-3.5 h-3.5" />
+                            <span className="text-xs">Nakit</span>
                           </div>
-                          {admin.cash_collected ? (
-                            <div className="flex items-center gap-1 text-green-600 text-xs">
-                              <CheckCircle className="w-3 h-3" />
-                              <span>Alındı</span>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => { e.stopPropagation(); handleMarkAdminCollected(admin.admin_id, 'cash'); }}
-                              disabled={markingAdmin === `${admin.admin_id}-cash`}
-                              className="h-6 text-xs border-green-400 text-green-700 hover:bg-green-100"
-                            >
-                              {markingAdmin === `${admin.admin_id}-cash` ? '...' : 'Alındı'}
-                            </Button>
-                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold font-mono text-sm text-green-800">{formatMoney(admin.cash_total)}</span>
+                            {admin.cash_collected ? (
+                              <div className="flex items-center gap-1 text-green-600 text-xs">
+                                <CheckCircle className="w-3 h-3" />
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => { e.stopPropagation(); handleMarkAdminCollected(admin.admin_id, 'cash'); }}
+                                disabled={markingAdmin === `${admin.admin_id}-cash`}
+                                className="h-6 text-xs border-green-400 text-green-700 hover:bg-green-100 px-2"
+                              >
+                                {markingAdmin === `${admin.admin_id}-cash` ? '...' : 'Al'}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         
                         {/* Kart Alındı */}
-                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
-                          <div>
-                            <span className="text-blue-700 text-xs">Kart: </span>
-                            <span className="font-bold font-mono text-sm">{formatMoney(admin.card_total)}</span>
+                        <div className={`flex flex-col gap-1 px-3 py-2 rounded border ${admin.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
+                          <div className="flex items-center gap-1 text-blue-700">
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span className="text-xs">Kart</span>
                           </div>
-                          {admin.card_collected ? (
-                            <div className="flex items-center gap-1 text-blue-600 text-xs">
-                              <CheckCircle className="w-3 h-3" />
-                              <span>Alındı</span>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => { e.stopPropagation(); handleMarkAdminCollected(admin.admin_id, 'card'); }}
-                              disabled={markingAdmin === `${admin.admin_id}-card`}
-                              className="h-6 text-xs border-blue-400 text-blue-700 hover:bg-blue-100"
-                            >
-                              {markingAdmin === `${admin.admin_id}-card` ? '...' : 'Alındı'}
-                            </Button>
-                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold font-mono text-sm text-blue-800">{formatMoney(admin.card_total)}</span>
+                            {admin.card_collected ? (
+                              <div className="flex items-center gap-1 text-blue-600 text-xs">
+                                <CheckCircle className="w-3 h-3" />
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => { e.stopPropagation(); handleMarkAdminCollected(admin.admin_id, 'card'); }}
+                                disabled={markingAdmin === `${admin.admin_id}-card`}
+                                className="h-6 text-xs border-blue-400 text-blue-700 hover:bg-blue-100 px-2"
+                              >
+                                {markingAdmin === `${admin.admin_id}-card` ? '...' : 'Al'}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
                     
                     {/* Normal admin için sadece görüntüleme */}
                     {!isSuperAdmin && (
-                      <div className="flex gap-2">
-                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
-                          <span className="text-green-700 text-xs">Nakit: <span className="font-bold font-mono">{formatMoney(admin.cash_total)}</span></span>
-                          {admin.cash_collected && (
-                            <span className="flex items-center gap-1 text-green-600 text-xs">
-                              <CheckCircle className="w-3 h-3" /> Alındı
-                            </span>
-                          )}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className={`flex flex-col gap-1 px-3 py-2 rounded border ${admin.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
+                          <div className="flex items-center gap-1 text-green-700">
+                            <Banknote className="w-3.5 h-3.5" />
+                            <span className="text-xs">Nakit</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold font-mono text-sm">{formatMoney(admin.cash_total)}</span>
+                            {admin.cash_collected && <CheckCircle className="w-3.5 h-3.5 text-green-600" />}
+                          </div>
                         </div>
-                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
-                          <span className="text-blue-700 text-xs">Kart: <span className="font-bold font-mono">{formatMoney(admin.card_total)}</span></span>
-                          {admin.card_collected && (
-                            <span className="flex items-center gap-1 text-blue-600 text-xs">
-                              <CheckCircle className="w-3 h-3" /> Alındı
+                        <div className={`flex flex-col gap-1 px-3 py-2 rounded border ${admin.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
+                          <div className="flex items-center gap-1 text-blue-700">
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span className="text-xs">Kart</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold font-mono text-sm">{formatMoney(admin.card_total)}</span>
+                            {admin.card_collected && <CheckCircle className="w-3.5 h-3.5 text-blue-600" />}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                             </span>
                           )}
                         </div>
