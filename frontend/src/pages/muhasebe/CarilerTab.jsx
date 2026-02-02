@@ -191,7 +191,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
               return (
                 <div
                   key={v.id}
-                  onClick={() => handleSelect(v)}
+                  onClick={() => handleMobileSelect(v)}
                   className={`p-3 border-b border-border cursor-pointer transition-colors ${selectedEntity?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"}`}
                   data-testid={`vendor-item-${v.id}`}
                 >
