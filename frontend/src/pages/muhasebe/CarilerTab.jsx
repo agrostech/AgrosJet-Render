@@ -210,10 +210,23 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
         </div>
       </div>
 
-      {/* Sağ Panel - İşlemler */}
-      <div ref={transactionRef} className="flex-1 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
+      {/* Sağ Panel - İşlemler (mobilde sadece detay görünümünde göster) */}
+      <div ref={transactionRef} className={`flex-1 border-2 border-border bg-white flex flex-col ${mobileDetailView ? 'flex' : 'hidden lg:flex'}`} style={{ height: 'calc(100vh - 220px)' }}>
         {selectedEntity ? (
           <>
+            {/* Mobil Geri Butonu */}
+            <div className="lg:hidden p-2 border-b-2 border-border bg-slate-100">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMobileBack}
+                className="h-8 text-sm font-medium"
+                data-testid="mobile-back-btn"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Listeye Dön
+              </Button>
+            </div>
             {/* Header */}
             <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
               {/* Mobilde: İsim ve bakiye üstte, butonlar altta */}
