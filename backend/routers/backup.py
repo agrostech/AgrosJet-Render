@@ -57,6 +57,7 @@ BACKUP_COLLECTIONS = [
     "daily_collections",
     "daily_comparisons",
     "daily_excel_reports",
+    "admin_collection_status",
     # Zimmet
     "products",
     "product_types",
