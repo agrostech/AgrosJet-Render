@@ -12,7 +12,10 @@ import {
   CreditCard,
   Search,
   CheckCircle,
-  RotateCcw
+  RotateCcw,
+  User,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import {
   AlertDialog,
@@ -43,12 +46,18 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
   const [formData, setFormData] = useState({});
   const [collectionStatus, setCollectionStatus] = useState({ cash_collected: false, card_collected: false });
   const [savingCollection, setSavingCollection] = useState(null);
-  const [resetConfirm, setResetConfirm] = useState(null); // { courier_id, courier_name }
+  const [resetConfirm, setResetConfirm] = useState(null);
   const [resetting, setResetting] = useState(false);
+  
+  // Admin bazlı özet
+  const [adminSummary, setAdminSummary] = useState({ admins: [], grand_total: { cash: 0, card: 0 } });
+  const [expandedAdmin, setExpandedAdmin] = useState(null);
+  const [markingAdmin, setMarkingAdmin] = useState(null);
 
   useEffect(() => {
     fetchCouriersForDate();
     fetchCollectionStatus();
+    fetchAdminSummary();
   }, [companyId, selectedDate]);
 
   const fetchCouriersForDate = async () => {
@@ -79,23 +88,33 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     }
   };
 
-  const handleMarkCollected = async (type) => {
-    setSavingCollection(type);
+  const fetchAdminSummary = async () => {
     try {
-      await axios.post(`${API}/daily-collections/${companyId}/mark-collected`, {
+      const res = await axios.get(`${API}/daily-collections/${companyId}/admin-summary/${selectedDate}`);
+      setAdminSummary(res.data);
+    } catch (err) {
+      setAdminSummary({ admins: [], grand_total: { cash: 0, card: 0 } });
+    }
+  };
+
+  const handleMarkAdminCollected = async (targetAdminId, type) => {
+    setMarkingAdmin(`${targetAdminId}-${type}`);
+    try {
+      await axios.post(`${API}/daily-collections/${companyId}/mark-admin-collected`, {
         date: selectedDate,
+        admin_id: targetAdminId,
         type: type,
-        admin_id: adminId,
-        admin_name: adminName
+        collected_by_id: adminId,
+        collected_by_name: adminName
       });
       toast.success(`${type === 'cash' ? 'Nakit' : 'Kart'} alındı olarak işaretlendi`);
-      fetchCollectionStatus();
+      fetchAdminSummary();
     } catch (err) {
       if (!err.handled) {
         toast.error("İşlem başarısız");
       }
     } finally {
-      setSavingCollection(null);
+      setMarkingAdmin(null);
     }
   };
 
