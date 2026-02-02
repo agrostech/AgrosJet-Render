@@ -23,6 +23,9 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
   const [showAddModal, setShowAddModal] = useState(false);
   const [newVendor, setNewVendor] = useState({ name: "", phone: "", address: "" });
   
+  // Mobil görünüm state'i
+  const [mobileDetailView, setMobileDetailView] = useState(false);
+  
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {}, variant: "default" });
