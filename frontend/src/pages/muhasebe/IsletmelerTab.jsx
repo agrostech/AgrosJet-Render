@@ -198,12 +198,12 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
             </div>
           </div>
           <div className="relative mb-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
             <Input
               placeholder="İşletme ara..."
               value={listSearchQuery}
               onChange={(e) => setListSearchQuery(e.target.value)}
-              className="pl-10 h-9 border-2"
+              className="pl-9 h-8 border border-slate-200 rounded-lg text-sm placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
               data-testid="search-businesses-list"
             />
           </div>
