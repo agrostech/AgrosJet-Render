@@ -16,8 +16,8 @@ body {
 }
 
 .font-mono {
-    font-family: 'Yrsa', serif;
-    font-size: 1.1em;
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
 }
 
 @layer base {
