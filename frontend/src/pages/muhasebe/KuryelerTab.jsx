@@ -284,6 +284,20 @@ export default function KuryelerTab({ companyId, adminId, adminName, companyLogo
     }
   };
 
+  // Mobil için kurye seçme - detay görünümüne geç
+  const handleMobileSelect = (entity) => {
+    handleSelect(entity);
+    // Mobilde detay görünümüne geç
+    if (window.innerWidth < 1024) {
+      setMobileDetailView(true);
+    }
+  };
+
+  // Mobil geri butonu
+  const handleMobileBack = () => {
+    setMobileDetailView(false);
+  };
+
   if (loading) return <PageLoading />;
 
   return (
