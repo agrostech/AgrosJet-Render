@@ -120,6 +120,19 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     return v.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
 
+  // Mobil için cari seçme - detay görünümüne geç
+  const handleMobileSelect = (entity) => {
+    handleSelect(entity);
+    if (window.innerWidth < 1024) {
+      setMobileDetailView(true);
+    }
+  };
+
+  // Mobil geri butonu
+  const handleMobileBack = () => {
+    setMobileDetailView(false);
+  };
+
   if (loading) return <PageLoading />;
 
   return (
