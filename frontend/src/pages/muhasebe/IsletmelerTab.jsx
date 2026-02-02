@@ -155,6 +155,19 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     return b.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
 
+  // Mobil için işletme seçme - detay görünümüne geç
+  const handleMobileSelect = (entity) => {
+    handleSelect(entity);
+    if (window.innerWidth < 1024) {
+      setMobileDetailView(true);
+    }
+  };
+
+  // Mobil geri butonu
+  const handleMobileBack = () => {
+    setMobileDetailView(false);
+  };
+
   if (loading) return <PageLoading />;
 
   return (
