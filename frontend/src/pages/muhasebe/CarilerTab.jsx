@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Plus, Minus, Wallet, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil } from "lucide-react";
+import { Plus, Minus, Wallet, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil, ArrowLeft } from "lucide-react";
 import { 
   useAccountingTab, 
   formatMoney, 

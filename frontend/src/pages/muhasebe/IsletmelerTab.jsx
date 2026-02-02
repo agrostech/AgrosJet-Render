@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil } from "lucide-react";
+import { Plus, Minus, Building2, Trash2, Archive, ArchiveRestore, Search, Download, Clock, Pencil, ArrowLeft } from "lucide-react";
 import { 
   useAccountingTab, 
   formatMoney, 
