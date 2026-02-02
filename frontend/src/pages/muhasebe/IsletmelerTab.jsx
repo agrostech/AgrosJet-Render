@@ -24,6 +24,9 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
   const [showAddModal, setShowAddModal] = useState(false);
   const [newBusiness, setNewBusiness] = useState({ name: "", phone: "", address: "", tax_bracket: null });
   
+  // Mobil görünüm state'i
+  const [mobileDetailView, setMobileDetailView] = useState(false);
+  
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {}, variant: "default" });
