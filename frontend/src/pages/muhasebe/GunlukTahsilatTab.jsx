@@ -486,60 +486,150 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-        {/* Cash Summary */}
-        <div className={`flex items-center gap-2 px-3 py-2 rounded border ${collectionStatus.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
-          <div className="flex-1">
-            <span className="text-green-700 text-sm">Nakit: </span>
-            <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.cash_total || 0), 0))}</span>
-          </div>
-          {isSuperAdmin && (
-            collectionStatus.cash_collected ? (
-              <div className="flex items-center gap-1 text-green-600 text-xs">
-                <CheckCircle className="w-4 h-4" />
-                <span>Alındı</span>
+      {/* Admin Bazlı Tahsilat Özeti */}
+      {adminSummary.admins.length > 0 && (
+        <div className="border-2 border-border rounded-lg bg-white overflow-hidden">
+          <div className="p-3 border-b border-border bg-slate-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" />
+                <span className="font-semibold text-sm">Admin Bazlı Tahsilat</span>
               </div>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleMarkCollected('cash')}
-                disabled={savingCollection === 'cash'}
-                className="h-7 text-xs border-green-400 text-green-700 hover:bg-green-100"
-              >
-                {savingCollection === 'cash' ? '...' : 'Alındı'}
-              </Button>
-            )
-          )}
-        </div>
-        
-        {/* Card Summary */}
-        <div className={`flex items-center gap-2 px-3 py-2 rounded border ${collectionStatus.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
-          <div className="flex-1">
-            <span className="text-blue-700 text-sm">Kart: </span>
-            <span className="font-bold font-mono">{formatMoney(filteredCouriers.reduce((sum, c) => sum + (c.collection?.card_total || 0), 0))}</span>
-          </div>
-          {isSuperAdmin && (
-            collectionStatus.card_collected ? (
-              <div className="flex items-center gap-1 text-blue-600 text-xs">
-                <CheckCircle className="w-4 h-4" />
-                <span>Alındı</span>
+              <div className="flex gap-3 text-xs">
+                <span className="text-green-600 font-medium">Nakit: {formatMoney(adminSummary.grand_total.cash)}</span>
+                <span className="text-blue-600 font-medium">Kart: {formatMoney(adminSummary.grand_total.card)}</span>
               </div>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleMarkCollected('card')}
-                disabled={savingCollection === 'card'}
-                className="h-7 text-xs border-blue-400 text-blue-700 hover:bg-blue-100"
-              >
-                {savingCollection === 'card' ? '...' : 'Alındı'}
-              </Button>
-            )
-          )}
+            </div>
+          </div>
+          
+          <div className="divide-y divide-border">
+            {adminSummary.admins.map((admin) => (
+              <div key={admin.admin_id} className="p-3">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => setExpandedAdmin(expandedAdmin === admin.admin_id ? null : admin.admin_id)}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{admin.admin_name}</p>
+                      <p className="text-xs text-muted-foreground">{admin.courier_count} kurye</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">Nakit / Kart</p>
+                      <p className="font-mono text-sm font-semibold">
+                        {formatMoney(admin.cash_total)} / {formatMoney(admin.card_total)}
+                      </p>
+                    </div>
+                    {expandedAdmin === admin.admin_id ? (
+                      <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                
+                {/* Expanded details */}
+                {expandedAdmin === admin.admin_id && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    {/* Kurye detayları */}
+                    <div className="space-y-1 mb-3">
+                      {admin.records.map((rec, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs py-1 px-2 bg-slate-50 rounded">
+                          <span>{rec.courier_name}</span>
+                          <span className="font-mono">
+                            {rec.cash_amount > 0 && <span className="text-green-600 mr-2">{rec.cash_amount} ₺</span>}
+                            {rec.card_total > 0 && <span className="text-blue-600">{rec.card_total} ₺</span>}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Alındı butonları - sadece SuperAdmin */}
+                    {isSuperAdmin && (
+                      <div className="flex gap-2">
+                        {/* Nakit Alındı */}
+                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
+                          <div>
+                            <span className="text-green-700 text-xs">Nakit: </span>
+                            <span className="font-bold font-mono text-sm">{formatMoney(admin.cash_total)}</span>
+                          </div>
+                          {admin.cash_collected ? (
+                            <div className="flex items-center gap-1 text-green-600 text-xs">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Alındı</span>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => { e.stopPropagation(); handleMarkAdminCollected(admin.admin_id, 'cash'); }}
+                              disabled={markingAdmin === `${admin.admin_id}-cash`}
+                              className="h-6 text-xs border-green-400 text-green-700 hover:bg-green-100"
+                            >
+                              {markingAdmin === `${admin.admin_id}-cash` ? '...' : 'Alındı'}
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* Kart Alındı */}
+                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
+                          <div>
+                            <span className="text-blue-700 text-xs">Kart: </span>
+                            <span className="font-bold font-mono text-sm">{formatMoney(admin.card_total)}</span>
+                          </div>
+                          {admin.card_collected ? (
+                            <div className="flex items-center gap-1 text-blue-600 text-xs">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Alındı</span>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => { e.stopPropagation(); handleMarkAdminCollected(admin.admin_id, 'card'); }}
+                              disabled={markingAdmin === `${admin.admin_id}-card`}
+                              className="h-6 text-xs border-blue-400 text-blue-700 hover:bg-blue-100"
+                            >
+                              {markingAdmin === `${admin.admin_id}-card` ? '...' : 'Alındı'}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Normal admin için sadece görüntüleme */}
+                    {!isSuperAdmin && (
+                      <div className="flex gap-2">
+                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.cash_collected ? 'bg-green-100 border-green-300' : 'bg-green-50 border-green-200'}`}>
+                          <span className="text-green-700 text-xs">Nakit: <span className="font-bold font-mono">{formatMoney(admin.cash_total)}</span></span>
+                          {admin.cash_collected && (
+                            <span className="flex items-center gap-1 text-green-600 text-xs">
+                              <CheckCircle className="w-3 h-3" /> Alındı
+                            </span>
+                          )}
+                        </div>
+                        <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded border ${admin.card_collected ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'}`}>
+                          <span className="text-blue-700 text-xs">Kart: <span className="font-bold font-mono">{formatMoney(admin.card_total)}</span></span>
+                          {admin.card_collected && (
+                            <span className="flex items-center gap-1 text-blue-600 text-xs">
+                              <CheckCircle className="w-3 h-3" /> Alındı
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Reset Confirmation Dialog */}
       <AlertDialog open={!!resetConfirm} onOpenChange={(open) => !open && setResetConfirm(null)}>
