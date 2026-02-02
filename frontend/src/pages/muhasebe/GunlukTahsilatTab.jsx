@@ -648,11 +648,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
                         </div>
                       </div>
                     )}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
