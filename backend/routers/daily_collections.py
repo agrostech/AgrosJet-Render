@@ -227,6 +227,125 @@ async def get_couriers_with_collections(company_id: str, date: str):
     return result
 
 
+# ============ ADMIN BAZLI TAHSİLAT ÖZETİ ============
+
+@router.get("/{company_id}/admin-summary/{date}")
+async def get_admin_summary(company_id: str, date: str):
+    """
+    Belirli bir tarih için admin bazında tahsilat özeti
+    Her admin'in topladığı nakit ve kart tutarlarını gösterir
+    """
+    collections = await db.daily_collections.find(
+        {"company_id": company_id, "date": date},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Admin bazında grupla
+    admin_totals = {}
+    for col in collections:
+        admin_id = col.get("admin_id", "unknown")
+        if admin_id not in admin_totals:
+            admin_totals[admin_id] = {
+                "admin_id": admin_id,
+                "admin_name": col.get("admin_name", "Bilinmeyen"),
+                "cash_total": 0,
+                "card_total": 0,
+                "card_percent_1": 0,
+                "card_percent_10": 0,
+                "card_percent_20": 0,
+                "courier_count": 0,
+                "records": []
+            }
+        admin_totals[admin_id]["cash_total"] += col.get("cash_amount", 0)
+        admin_totals[admin_id]["card_total"] += col.get("card_total", 0)
+        admin_totals[admin_id]["card_percent_1"] += col.get("card_percent_1", 0)
+        admin_totals[admin_id]["card_percent_10"] += col.get("card_percent_10", 0)
+        admin_totals[admin_id]["card_percent_20"] += col.get("card_percent_20", 0)
+        admin_totals[admin_id]["courier_count"] += 1
+        admin_totals[admin_id]["records"].append({
+            "courier_id": col.get("courier_id"),
+            "courier_name": col.get("courier_name"),
+            "cash_amount": col.get("cash_amount", 0),
+            "card_total": col.get("card_total", 0),
+            "created_at": col.get("created_at")
+        })
+    
+    # Admin alındı durumlarını kontrol et
+    for admin_id in admin_totals:
+        status = await db.admin_collection_status.find_one({
+            "company_id": company_id,
+            "date": date,
+            "admin_id": admin_id
+        }, {"_id": 0})
+        
+        admin_totals[admin_id]["cash_collected"] = status.get("cash_collected", False) if status else False
+        admin_totals[admin_id]["card_collected"] = status.get("card_collected", False) if status else False
+        admin_totals[admin_id]["cash_collected_at"] = status.get("cash_collected_at") if status else None
+        admin_totals[admin_id]["card_collected_at"] = status.get("card_collected_at") if status else None
+    
+    # Grand total
+    grand_cash = sum(a["cash_total"] for a in admin_totals.values())
+    grand_card = sum(a["card_total"] for a in admin_totals.values())
+    
+    return {
+        "date": date,
+        "admins": list(admin_totals.values()),
+        "grand_total": {
+            "cash": grand_cash,
+            "card": grand_card,
+            "total": grand_cash + grand_card
+        }
+    }
+
+
+class MarkAdminCollectedRequest(BaseModel):
+    date: str
+    admin_id: str
+    type: str  # 'cash' or 'card'
+    collected_by_id: str
+    collected_by_name: str
+
+
+@router.post("/{company_id}/mark-admin-collected")
+async def mark_admin_collected(company_id: str, data: MarkAdminCollectedRequest):
+    """
+    Belirli bir admin'in topladığı nakit veya kartı alındı olarak işaretle
+    Sadece SuperAdmin kullanabilir
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    
+    update_data = {"updated_at": now}
+    if data.type == "cash":
+        update_data["cash_collected"] = True
+        update_data["cash_collected_at"] = now
+        update_data["cash_collected_by"] = data.collected_by_name
+    elif data.type == "card":
+        update_data["card_collected"] = True
+        update_data["card_collected_at"] = now
+        update_data["card_collected_by"] = data.collected_by_name
+    else:
+        raise HTTPException(status_code=400, detail="Geçersiz tip")
+    
+    await db.admin_collection_status.update_one(
+        {
+            "company_id": company_id,
+            "date": data.date,
+            "admin_id": data.admin_id
+        },
+        {
+            "$set": update_data,
+            "$setOnInsert": {
+                "company_id": company_id,
+                "date": data.date,
+                "admin_id": data.admin_id
+            }
+        },
+        upsert=True
+    )
+    
+    return {"message": f"Admin tahsilatı alındı olarak işaretlendi"}
+
+
 # ============ COLLECTION STATUS (SuperAdmin için Alındı takibi) ============
 
 class MarkCollectedRequest(BaseModel):
