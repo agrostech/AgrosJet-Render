@@ -155,6 +155,16 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     return b.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
 
+  // Pozitif ve negatif bakiyeleri ayrı hesapla
+  const { positiveTotal, negativeTotal } = Object.values(balancesMap || {}).reduce(
+    (acc, bal) => {
+      if (bal > 0) acc.positiveTotal += bal;
+      else if (bal < 0) acc.negativeTotal += bal;
+      return acc;
+    },
+    { positiveTotal: 0, negativeTotal: 0 }
+  );
+
   // Mobil için işletme seçme - detay görünümüne geç
   const handleMobileSelect = (entity) => {
     handleSelect(entity);
