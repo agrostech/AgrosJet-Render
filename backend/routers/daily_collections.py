@@ -357,7 +357,7 @@ async def reset_admin_cumulative(company_id: str, data: ResetAdminCumulativeRequ
         upsert=True
     )
     
-    # Log kaydı
+    # Log kaydı - bakiye bilgisi ile
     await db.admin_cumulative_reset_logs.insert_one({
         "id": str(uuid.uuid4()),
         "company_id": company_id,
@@ -365,6 +365,8 @@ async def reset_admin_cumulative(company_id: str, data: ResetAdminCumulativeRequ
         "admin_name": admin_name,
         "reset_by_id": data.reset_by_id,
         "reset_by_name": data.reset_by_name,
+        "cash_total": data.cash_total,
+        "card_total": data.card_total,
         "reset_at": now
     })
     
