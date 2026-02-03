@@ -243,6 +243,17 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     }).format(amount) + ' TL';
   };
 
+  // İsmi kısalt: "Emrullah Bayram" -> "Emrullah B.", "Ali Osman Bayram" -> "Ali O. B."
+  const formatName = (fullName) => {
+    if (!fullName) return "";
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    
+    const firstName = parts[0];
+    const initials = parts.slice(1).map(p => p.charAt(0).toUpperCase() + ".").join(" ");
+    return `${firstName} ${initials}`;
+  };
+
   const filteredCouriers = couriers
     .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
