@@ -15,7 +15,10 @@ import {
   RotateCcw,
   User,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Clock,
+  History,
+  X
 } from "lucide-react";
 import {
   AlertDialog,
@@ -27,6 +30,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
