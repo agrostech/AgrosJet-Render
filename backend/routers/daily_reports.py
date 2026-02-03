@@ -213,7 +213,12 @@ async def get_mutabakat_weekly_summary(company_id: str, week_start: str = None):
             "date": date_str
         })
         
-        is_processed = comparison.get("processed", False) if comparison else False
+        # İşlenmiş mi kontrol et - hem comparison hem de reports'tan
+        is_processed_comparison = comparison.get("processed", False) if comparison else False
+        is_processed_cash = cash_report.get("processed", False) if cash_report else False
+        is_processed_card = card_report.get("processed", False) if card_report else False
+        is_processed = is_processed_comparison or (is_processed_cash and is_processed_card)
+        
         has_cash = cash_report is not None
         has_card = card_report is not None
         
