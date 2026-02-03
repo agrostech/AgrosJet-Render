@@ -122,12 +122,19 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
   const handleResetCumulative = async () => {
     if (!cumulativeResetConfirm) return;
     
+    // Mevcut bakiyeyi bul
+    const admin = cumulativeSummary.admins.find(a => a.admin_id === cumulativeResetConfirm.admin_id);
+    const cashTotal = admin?.cash_total || 0;
+    const cardTotal = admin?.card_total || 0;
+    
     setResettingCumulative(cumulativeResetConfirm.admin_id);
     try {
       await axios.post(`${API}/daily-collections/${companyId}/reset-admin-cumulative`, {
         admin_id: cumulativeResetConfirm.admin_id,
         reset_by_id: adminId,
-        reset_by_name: adminName
+        reset_by_name: adminName,
+        cash_total: cashTotal,
+        card_total: cardTotal
       });
       toast.success(`${cumulativeResetConfirm.admin_name} için toplam sıfırlandı`);
       fetchCumulativeSummary();
@@ -136,6 +143,20 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     } finally {
       setResettingCumulative(null);
       setCumulativeResetConfirm(null);
+    }
+  };
+
+  const fetchHistory = async (adminId, adminName) => {
+    setHistoryModal({ admin_id: adminId, admin_name: adminName });
+    setLoadingHistory(true);
+    try {
+      const res = await axios.get(`${API}/daily-collections/${companyId}/admin-cumulative-history/${adminId}`);
+      setHistoryData(res.data.history || []);
+    } catch (err) {
+      toast.error("Geçmiş yüklenemedi");
+      setHistoryData([]);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
