@@ -700,6 +700,72 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* History Modal */}
+      <Dialog open={!!historyModal} onOpenChange={(open) => !open && setHistoryModal(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5 text-primary" />
+              {historyModal?.admin_name} - Sıfırlama Geçmişi
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="mt-2">
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+              </div>
+            ) : historyData.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>Henüz sıfırlama geçmişi yok</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {historyData.map((item, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground font-mono">
+                        {new Date(item.reset_at).toLocaleDateString('tr-TR', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.reset_by_name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5">
+                        <Banknote className="w-4 h-4 text-green-600" />
+                        <span className="font-mono font-semibold text-green-700">
+                          {(item.cash_total || 0).toLocaleString('tr-TR')} ₺
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <CreditCard className="w-4 h-4 text-blue-600" />
+                        <span className="font-mono font-semibold text-blue-700">
+                          {(item.card_total || 0).toLocaleString('tr-TR')} ₺
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-slate-200">
+                      <span className="text-xs text-muted-foreground">Toplam: </span>
+                      <span className="font-mono font-bold text-sm">
+                        {((item.cash_total || 0) + (item.card_total || 0)).toLocaleString('tr-TR')} ₺
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
