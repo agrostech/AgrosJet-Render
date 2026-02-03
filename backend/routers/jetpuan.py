@@ -274,12 +274,15 @@ async def manual_debit(
 
 @router.get("/orders/admin")
 async def get_all_orders(
-    status: str = None
+    status: str = None,
+    company_id: str = None
 ):
-    """Get all orders (admin)"""
+    """Get all orders (admin) - optionally filtered by company"""
     query = {}
     if status:
         query["status"] = status
+    if company_id:
+        query["company_id"] = company_id
     
     orders = await db.jetpuan_orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
     orders = await enrich_orders_with_courier_info(orders)
@@ -287,9 +290,12 @@ async def get_all_orders(
 
 
 @router.get("/orders/pending-count")
-async def get_pending_orders_count():
-    """Get count of pending orders for badge"""
-    count = await db.jetpuan_orders.count_documents({"status": "pending"})
+async def get_pending_orders_count(company_id: str = None):
+    """Get count of pending orders for badge - optionally filtered by company"""
+    query = {"status": "pending"}
+    if company_id:
+        query["company_id"] = company_id
+    count = await db.jetpuan_orders.count_documents(query)
     return {"count": count}
 
 
