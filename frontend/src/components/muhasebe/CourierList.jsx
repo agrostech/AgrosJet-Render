@@ -22,6 +22,16 @@ export default function CourierList({
     return c.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
 
+  // Pozitif ve negatif bakiyeleri ayrı hesapla
+  const { positiveTotal, negativeTotal } = Object.values(balancesMap || {}).reduce(
+    (acc, bal) => {
+      if (bal > 0) acc.positiveTotal += bal;
+      else if (bal < 0) acc.negativeTotal += bal;
+      return acc;
+    },
+    { positiveTotal: 0, negativeTotal: 0 }
+  );
+
   return (
     <div className="w-full lg:w-80 flex-shrink-0 border-2 border-border bg-white flex flex-col" style={{ height: 'calc(100vh - 220px)' }}>
       <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
