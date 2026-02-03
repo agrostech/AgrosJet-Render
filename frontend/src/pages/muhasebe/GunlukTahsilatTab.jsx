@@ -134,27 +134,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     }
   };
 
-  const handleMarkAdminCollected = async (targetAdminId, type) => {
-    setMarkingAdmin(`${targetAdminId}-${type}`);
-    try {
-      await axios.post(`${API}/daily-collections/${companyId}/mark-admin-collected`, {
-        date: selectedDate,
-        admin_id: targetAdminId,
-        type: type,
-        collected_by_id: adminId,
-        collected_by_name: adminName
-      });
-      toast.success(`${type === 'cash' ? 'Nakit' : 'Kart'} alındı olarak işaretlendi`);
-      fetchAdminSummary();
-    } catch (err) {
-      if (!err.handled) {
-        toast.error("İşlem başarısız");
-      }
-    } finally {
-      setMarkingAdmin(null);
-    }
-  };
-
   const handleResetCollection = async () => {
     if (!resetConfirm) return;
     
