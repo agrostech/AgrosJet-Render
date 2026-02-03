@@ -50,6 +50,7 @@ async def create_daily_collection(data: DailyCollectionCreate):
     """
     Kurye için günlük tahsilat kaydı oluştur
     NOT: Kayıtlar silinemez ve düzenlenemez
+    Sıfır değerler de kaydedilebilir (kuryenin tahsilatı yok anlamında)
     """
     # Verify courier exists
     courier = await db.couriers.find_one({"id": data.courier_id}, {"_id": 0, "name": 1})
