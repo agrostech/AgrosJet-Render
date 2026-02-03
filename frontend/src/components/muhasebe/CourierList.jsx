@@ -70,7 +70,7 @@ export default function CourierList({
           )}
           {positiveTotal !== 0 && (
             <span className="text-green-600 font-semibold font-mono">
-              +{formatCurrency(positiveTotal)}
+              {formatCurrency(positiveTotal)}
             </span>
           )}
           {negativeTotal === 0 && positiveTotal === 0 && (
