@@ -523,6 +523,65 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
         </div>
       </div>
 
+      {/* Kümülatif (Tüm Zamanlar) Yönetici Tahsilat Özeti - Sadece SuperAdmin için */}
+      {isSuperAdmin && cumulativeSummary.admins.length > 0 && (
+        <div className="border-2 border-primary/30 rounded-lg bg-primary/5 overflow-hidden">
+          <div className="p-3 border-b border-primary/20 bg-primary/10">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" />
+                <span className="font-semibold text-sm text-primary">Kümülatif Tahsilat (Tüm Zamanlar)</span>
+              </div>
+              <div className="flex gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <Banknote className="w-3 h-3 text-green-600" />
+                  <span className="text-green-700 font-medium">{formatMoney(cumulativeSummary.grand_total.cash)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <CreditCard className="w-3 h-3 text-blue-600" />
+                  <span className="text-blue-700 font-medium">{formatMoney(cumulativeSummary.grand_total.card)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="divide-y divide-primary/10">
+            {cumulativeSummary.admins.filter(a => a.cash_total > 0 || a.card_total > 0).map((admin) => (
+              <div key={admin.admin_id} className="p-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{admin.admin_name}</p>
+                    <p className="text-xs text-muted-foreground">{admin.record_count} kayıt</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="text-right">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-green-600 font-mono font-semibold">{formatMoney(admin.cash_total)}</span>
+                      <span className="text-muted-foreground">/</span>
+                      <span className="text-blue-600 font-mono font-semibold">{formatMoney(admin.card_total)}</span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setCumulativeResetConfirm({ admin_id: admin.admin_id, admin_name: admin.admin_name })}
+                    disabled={resettingCumulative === admin.admin_id}
+                    className="h-7 text-xs border-red-300 text-red-600 hover:bg-red-50 px-2"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Sıfırla
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Yönetici Bazlı Tahsilat Özeti */}
       {adminSummary.admins.length > 0 && (
         <div className="border-2 border-border rounded-lg bg-white overflow-hidden">
