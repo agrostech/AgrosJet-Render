@@ -299,7 +299,11 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
           {filteredCouriers.map((courier, index) => (
             <div 
               key={courier.id}
-              className={`grid grid-cols-12 gap-1 px-2 py-1.5 items-center ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
+              className={`grid grid-cols-12 gap-1 px-2 py-1.5 items-center ${
+                courier.has_collection 
+                  ? 'bg-green-50' 
+                  : index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
+              }`}
             >
               {/* Kurye Adı */}
               <div className="col-span-3 flex items-center gap-1 min-w-0">
