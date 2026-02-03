@@ -775,6 +775,30 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Cumulative Reset Confirmation Dialog */}
+      <AlertDialog open={!!cumulativeResetConfirm} onOpenChange={(open) => !open && setCumulativeResetConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kümülatif Tahsilat Sıfırlama</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{cumulativeResetConfirm?.admin_name}</strong> için tüm zamanların tahsilat toplamı sıfırlanacak.
+              <br /><br />
+              Bu işlem kayıtları silmez, sadece yeni bir başlangıç noktası belirler. Bu tarihten sonraki tahsilatlar tekrar birikmeye başlayacaktır.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resettingCumulative}>İptal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetCumulative}
+              disabled={resettingCumulative}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {resettingCumulative ? "Sıfırlanıyor..." : "Sıfırla"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
