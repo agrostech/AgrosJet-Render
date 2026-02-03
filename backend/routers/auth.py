@@ -91,6 +91,28 @@ async def login_courier(data: CourierLogin):
     }
 
 
+@router.get("/courier/{courier_id}/check-status")
+async def check_courier_status(courier_id: str, company_id: str = None):
+    """Kurye durumunu kontrol et - pasif mi, logout edilmeli mi"""
+    # company_couriers'dan kontrol et
+    query = {"courier_id": courier_id}
+    if company_id:
+        query["company_id"] = company_id
+    
+    relations = await db.company_couriers.find(query, {"_id": 0}).to_list(100)
+    
+    # Herhangi birinde pasif mi?
+    for rel in relations:
+        if rel.get("is_active") == False:
+            return {
+                "should_logout": True,
+                "reason": "Hesabınız pasif durumda",
+                "forced_logout_at": rel.get("forced_logout_at")
+            }
+    
+    return {"should_logout": False}
+
+
 # --- Admin Auth ---
 @router.post("/admin/login")
 async def login_admin(data: AdminLogin):
