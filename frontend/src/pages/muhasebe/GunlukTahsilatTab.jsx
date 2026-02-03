@@ -53,6 +53,11 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
   const [adminSummary, setAdminSummary] = useState({ admins: [], grand_total: { cash: 0, card: 0 } });
   const [expandedAdmin, setExpandedAdmin] = useState(null);
   const [markingAdmin, setMarkingAdmin] = useState(null);
+  
+  // Kümülatif (tüm zamanlar) özet
+  const [cumulativeSummary, setCumulativeSummary] = useState({ admins: [], grand_total: { cash: 0, card: 0 } });
+  const [resettingCumulative, setResettingCumulative] = useState(null);
+  const [cumulativeResetConfirm, setCumulativeResetConfirm] = useState(null);
 
   useEffect(() => {
     fetchCouriersForDate();
