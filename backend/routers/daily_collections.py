@@ -236,36 +236,36 @@ async def get_admin_cumulative_summary(company_id: str):
     Admin bazında kümülatif (tüm zamanlar) tahsilat özeti
     Her admin'in tüm zamanlarda topladığı nakit ve kart tutarlarını gösterir
     Son sıfırlama tarihinden itibaren hesaplanır
+    Detaylı kayıtları da içerir (kurye, tarih, tutarlar)
     """
-    # Önce tüm adminleri bul
+    # Önce tüm adminleri ve sıfırlama bilgilerini al
+    reset_docs = await db.admin_cumulative_resets.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).to_list(100)
+    reset_map = {r["admin_id"]: r.get("reset_at") for r in reset_docs}
+    
+    # Tüm tahsilatları al
     collections = await db.daily_collections.find(
         {"company_id": company_id},
         {"_id": 0}
-    ).to_list(10000)
+    ).sort("created_at", -1).to_list(10000)
     
     # Admin bazında grupla
     admin_totals = {}
     for col in collections:
         admin_id = col.get("admin_id", "unknown")
         
-        # Admin'in son sıfırlama tarihini kontrol et
+        # Admin'i ilk kez görüyorsak başlat
         if admin_id not in admin_totals:
-            reset_info = await db.admin_cumulative_resets.find_one(
-                {"company_id": company_id, "admin_id": admin_id},
-                {"_id": 0}
-            )
-            last_reset_at = reset_info.get("reset_at") if reset_info else None
-            
             admin_totals[admin_id] = {
                 "admin_id": admin_id,
                 "admin_name": col.get("admin_name", "Bilinmeyen"),
                 "cash_total": 0,
                 "card_total": 0,
-                "card_percent_1": 0,
-                "card_percent_10": 0,
-                "card_percent_20": 0,
                 "record_count": 0,
-                "last_reset_at": last_reset_at
+                "last_reset_at": reset_map.get(admin_id),
+                "records": []  # Detaylı kayıtlar
             }
         
         # Sıfırlama tarihinden sonraki kayıtları say
@@ -277,10 +277,20 @@ async def get_admin_cumulative_summary(company_id: str):
         
         admin_totals[admin_id]["cash_total"] += col.get("cash_amount", 0)
         admin_totals[admin_id]["card_total"] += col.get("card_total", 0)
-        admin_totals[admin_id]["card_percent_1"] += col.get("card_percent_1", 0)
-        admin_totals[admin_id]["card_percent_10"] += col.get("card_percent_10", 0)
-        admin_totals[admin_id]["card_percent_20"] += col.get("card_percent_20", 0)
         admin_totals[admin_id]["record_count"] += 1
+        
+        # Detaylı kayıt ekle
+        admin_totals[admin_id]["records"].append({
+            "courier_id": col.get("courier_id"),
+            "courier_name": col.get("courier_name"),
+            "date": col.get("date"),
+            "cash_amount": col.get("cash_amount", 0),
+            "card_total": col.get("card_total", 0),
+            "card_percent_1": col.get("card_percent_1", 0),
+            "card_percent_10": col.get("card_percent_10", 0),
+            "card_percent_20": col.get("card_percent_20", 0),
+            "created_at": col.get("created_at")
+        })
     
     # Grand total
     grand_cash = sum(a["cash_total"] for a in admin_totals.values())
