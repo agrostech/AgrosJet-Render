@@ -155,10 +155,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     const c10 = parseFloat(data.c10) || 0;
     const c20 = parseFloat(data.c20) || 0;
 
-    if (cash === 0 && c1 === 0 && c10 === 0 && c20 === 0) {
-      toast.error("En az bir değer girin");
-      return;
-    }
+    // Sıfır değer kaydına izin ver - artık kontrol yok
 
     setSubmitting(courier.id);
     try {
@@ -176,6 +173,8 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
       });
       toast.success(`${courier.name} için tahsilat kaydedildi`);
       fetchCouriersForDate();
+      fetchAdminSummary();
+      fetchCumulativeSummary();
     } catch (err) {
       if (!err.handled) {
         toast.error(err.response?.data?.detail || "Kayıt başarısız");
