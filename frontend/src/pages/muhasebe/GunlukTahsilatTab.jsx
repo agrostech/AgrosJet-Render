@@ -393,20 +393,6 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
           ))}
         </div>
       </div>
-                          disabled={submitting === courier.id}
-                          className="h-8 w-8 p-0 bg-primary hover:bg-primary/90"
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       {/* Kümülatif (Tüm Zamanlar) Yönetici Tahsilat Özeti - Sadece SuperAdmin için */}
       {isSuperAdmin && cumulativeSummary.admins.length > 0 && (
