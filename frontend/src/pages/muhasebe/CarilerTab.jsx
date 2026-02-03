@@ -120,6 +120,16 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
     return v.name.toLowerCase().includes(listSearchQuery.toLowerCase());
   });
 
+  // Pozitif ve negatif bakiyeleri ayrı hesapla
+  const { positiveTotal, negativeTotal } = Object.values(balancesMap || {}).reduce(
+    (acc, bal) => {
+      if (bal > 0) acc.positiveTotal += bal;
+      else if (bal < 0) acc.negativeTotal += bal;
+      return acc;
+    },
+    { positiveTotal: 0, negativeTotal: 0 }
+  );
+
   // Mobil için cari seçme - detay görünümüne geç
   const handleMobileSelect = (entity) => {
     handleSelect(entity);
