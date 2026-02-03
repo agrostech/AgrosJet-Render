@@ -61,15 +61,27 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
     
     start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Şirketteki aktif kurye sayısını bul (doğrudan company_id ile)
-    total_couriers = await db.couriers.count_documents({
+    # Toplam kurye sayısını hesapla
+    # 1. Doğrudan company_id ile bağlı kuryeler
+    direct_couriers = await db.couriers.count_documents({
         "company_id": company_id,
         "$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]
     })
     
-    # Eğer is_archived alanı hiç yoksa tüm kuryeleri say
+    # 2. company_couriers tablosu üzerinden bağlı kuryeler (hayalet dahil)
+    relation_count = await db.company_couriers.count_documents({
+        "company_id": company_id,
+        "$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]
+    })
+    
+    # En büyük değeri al (ikisi de aynı kuryeleri gösterebilir veya farklı olabilir)
+    total_couriers = max(direct_couriers, relation_count)
+    
+    # Eğer hala 0 ise, arşiv filtresi olmadan dene
     if total_couriers == 0:
-        total_couriers = await db.couriers.count_documents({"company_id": company_id})
+        direct_couriers = await db.couriers.count_documents({"company_id": company_id})
+        relation_count = await db.company_couriers.count_documents({"company_id": company_id})
+        total_couriers = max(direct_couriers, relation_count)
     
     # 7 gün için özet oluştur
     days = []
