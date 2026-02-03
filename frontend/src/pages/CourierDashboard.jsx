@@ -79,6 +79,20 @@ export default function CourierDashboard() {
     }
   }, []);
 
+  // Check if courier is deactivated (forced logout)
+  const checkCourierStatus = useCallback(async (courierId, companyId) => {
+    try {
+      const res = await axios.get(`${API}/auth/courier/${courierId}/check-status?company_id=${companyId}`);
+      if (res.data.should_logout) {
+        // Pasife alınmış, logout yap
+        localStorage.removeItem("user");
+        navigate("/login", { state: { message: res.data.reason || "Hesabınız pasif durumda" } });
+      }
+    } catch (err) {
+      // Sessizce devam et
+    }
+  }, [navigate]);
+
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) {
@@ -99,8 +113,18 @@ export default function CourierDashboard() {
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
       checkMaintenanceNotifications(parsed.id);
+      
+      // İlk kontrol
+      checkCourierStatus(parsed.id, parsed.company_id);
+      
+      // Her 30 saniyede bir pasif durumunu kontrol et
+      const intervalId = setInterval(() => {
+        checkCourierStatus(parsed.id, parsed.company_id);
+      }, 30000);
+      
+      return () => clearInterval(intervalId);
     }
-  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications]);
+  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
