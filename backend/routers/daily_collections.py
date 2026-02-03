@@ -45,6 +45,83 @@ class DailyCollectionResponse(BaseModel):
 
 # ============ ENDPOINTS ============
 
+@router.get("/{company_id}/weekly-summary")
+async def get_weekly_summary(company_id: str, week_start: str = None):
+    """
+    Haftalık tahsilat özeti - her gün için tamamlanan/toplam kurye sayısı
+    week_start: Haftanın başlangıç tarihi (Pazartesi), yoksa bu haftanın Pazartesisi
+    """
+    # Haftanın başlangıcını hesapla
+    if week_start:
+        start_date = datetime.strptime(week_start, "%Y-%m-%d")
+    else:
+        today = datetime.now(timezone.utc)
+        # Pazartesiye git (weekday 0 = Pazartesi)
+        start_date = today - timedelta(days=today.weekday())
+    
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Şirketteki aktif kurye sayısını bul
+    courier_relations = await db.company_couriers.find(
+        {"company_id": company_id},
+        {"_id": 0, "courier_id": 1}
+    ).to_list(1000)
+    courier_ids = [r["courier_id"] for r in courier_relations]
+    
+    # Aktif kuryeleri say (arşivlenmemiş)
+    active_couriers = await db.couriers.count_documents({
+        "id": {"$in": courier_ids},
+        "$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]
+    })
+    
+    total_couriers = active_couriers if active_couriers > 0 else len(courier_ids)
+    
+    # 7 gün için özet oluştur
+    days = []
+    day_names_tr = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    for i in range(7):
+        day_date = start_date + timedelta(days=i)
+        date_str = day_date.strftime("%Y-%m-%d")
+        
+        # O gün tahsilat yapılan benzersiz kurye sayısı
+        completed_couriers = await db.daily_collections.distinct(
+            "courier_id",
+            {"company_id": company_id, "date": date_str}
+        )
+        completed_count = len(completed_couriers)
+        
+        # Durum belirleme
+        is_future = date_str > today_str
+        is_today = date_str == today_str
+        
+        if is_future:
+            status = "future"
+        elif completed_count == 0:
+            status = "empty"
+        elif completed_count >= total_couriers:
+            status = "complete"
+        else:
+            status = "partial"
+        
+        days.append({
+            "date": date_str,
+            "day_name": day_names_tr[i],
+            "day_number": day_date.day,
+            "completed": completed_count,
+            "total": total_couriers,
+            "status": status,
+            "is_today": is_today
+        })
+    
+    return {
+        "week_start": start_date.strftime("%Y-%m-%d"),
+        "total_couriers": total_couriers,
+        "days": days
+    }
+
+
 @router.post("")
 async def create_daily_collection(data: DailyCollectionCreate):
     """
