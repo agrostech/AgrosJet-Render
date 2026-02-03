@@ -90,6 +90,32 @@ export function useMaliBellek(companyId, adminId, adminName, activeTab) {
       });
     }
     
+    // Sıralama:
+    // 1. Mali bellek alınmadı + zimmetli
+    // 2. Mali bellek alınmadı + zimmetsiz
+    // 3. Mali bellek alındı + zimmetsiz
+    // 4. Mali bellek alındı + zimmetli
+    result.sort((a, b) => {
+      const aCollected = a.mali_bellek?.is_collected ? 1 : 0;
+      const bCollected = b.mali_bellek?.is_collected ? 1 : 0;
+      
+      // Önce alınmadı olanlar
+      if (aCollected !== bCollected) return aCollected - bCollected;
+      
+      const aAssigned = a.assigned_to_courier_id ? 1 : 0;
+      const bAssigned = b.assigned_to_courier_id ? 1 : 0;
+      
+      // Alınmadı grubunda: zimmetli önce
+      // Alındı grubunda: zimmetsiz önce
+      if (!aCollected) {
+        // Alınmadı: zimmetli önce (1 önce gelsin)
+        return bAssigned - aAssigned;
+      } else {
+        // Alındı: zimmetsiz önce (0 önce gelsin)
+        return aAssigned - bAssigned;
+      }
+    });
+    
     return result;
   }, [maliBellekData, maliBellekSearch, maliBellekFilterCollected, maliBellekFilterNotCollected]);
 
