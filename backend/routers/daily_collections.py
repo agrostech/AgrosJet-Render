@@ -229,6 +229,121 @@ async def get_couriers_with_collections(company_id: str, date: str):
 
 # ============ ADMIN BAZLI TAHSİLAT ÖZETİ ============
 
+@router.get("/{company_id}/admin-cumulative-summary")
+async def get_admin_cumulative_summary(company_id: str):
+    """
+    Admin bazında kümülatif (tüm zamanlar) tahsilat özeti
+    Her admin'in tüm zamanlarda topladığı nakit ve kart tutarlarını gösterir
+    Son sıfırlama tarihinden itibaren hesaplanır
+    """
+    # Önce tüm adminleri bul
+    collections = await db.daily_collections.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Admin bazında grupla
+    admin_totals = {}
+    for col in collections:
+        admin_id = col.get("admin_id", "unknown")
+        
+        # Admin'in son sıfırlama tarihini kontrol et
+        if admin_id not in admin_totals:
+            reset_info = await db.admin_cumulative_resets.find_one(
+                {"company_id": company_id, "admin_id": admin_id},
+                {"_id": 0}
+            )
+            last_reset_at = reset_info.get("reset_at") if reset_info else None
+            
+            admin_totals[admin_id] = {
+                "admin_id": admin_id,
+                "admin_name": col.get("admin_name", "Bilinmeyen"),
+                "cash_total": 0,
+                "card_total": 0,
+                "card_percent_1": 0,
+                "card_percent_10": 0,
+                "card_percent_20": 0,
+                "record_count": 0,
+                "last_reset_at": last_reset_at
+            }
+        
+        # Sıfırlama tarihinden sonraki kayıtları say
+        last_reset = admin_totals[admin_id]["last_reset_at"]
+        if last_reset:
+            col_created_at = col.get("created_at", "")
+            if col_created_at <= last_reset:
+                continue  # Bu kayıt sıfırlamadan önce, atla
+        
+        admin_totals[admin_id]["cash_total"] += col.get("cash_amount", 0)
+        admin_totals[admin_id]["card_total"] += col.get("card_total", 0)
+        admin_totals[admin_id]["card_percent_1"] += col.get("card_percent_1", 0)
+        admin_totals[admin_id]["card_percent_10"] += col.get("card_percent_10", 0)
+        admin_totals[admin_id]["card_percent_20"] += col.get("card_percent_20", 0)
+        admin_totals[admin_id]["record_count"] += 1
+    
+    # Grand total
+    grand_cash = sum(a["cash_total"] for a in admin_totals.values())
+    grand_card = sum(a["card_total"] for a in admin_totals.values())
+    
+    return {
+        "admins": list(admin_totals.values()),
+        "grand_total": {
+            "cash": grand_cash,
+            "card": grand_card,
+            "total": grand_cash + grand_card
+        }
+    }
+
+
+class ResetAdminCumulativeRequest(BaseModel):
+    admin_id: str
+    reset_by_id: str
+    reset_by_name: str
+
+
+@router.post("/{company_id}/reset-admin-cumulative")
+async def reset_admin_cumulative(company_id: str, data: ResetAdminCumulativeRequest):
+    """
+    Admin'in kümülatif tahsilat toplamını sıfırla (sadece SuperAdmin)
+    Bu işlem kayıtları silmez, sadece yeni bir başlangıç noktası belirler
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Admin adını bul
+    admin = await db.admins.find_one({"id": data.admin_id}, {"_id": 0, "name": 1})
+    admin_name = admin.get("name", "Bilinmeyen") if admin else "Bilinmeyen"
+    
+    # Sıfırlama kaydı oluştur veya güncelle
+    await db.admin_cumulative_resets.update_one(
+        {"company_id": company_id, "admin_id": data.admin_id},
+        {
+            "$set": {
+                "reset_at": now,
+                "reset_by_id": data.reset_by_id,
+                "reset_by_name": data.reset_by_name
+            },
+            "$setOnInsert": {
+                "company_id": company_id,
+                "admin_id": data.admin_id
+            }
+        },
+        upsert=True
+    )
+    
+    # Log kaydı
+    await db.admin_cumulative_reset_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "admin_id": data.admin_id,
+        "admin_name": admin_name,
+        "reset_by_id": data.reset_by_id,
+        "reset_by_name": data.reset_by_name,
+        "reset_at": now
+    })
+    
+    return {"message": f"{admin_name} için tahsilat sıfırlandı"}
+
+
 @router.get("/{company_id}/admin-summary/{date}")
 async def get_admin_summary(company_id: str, date: str):
     """
