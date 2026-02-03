@@ -65,6 +65,10 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     fetchAdminSummary();
   }, [companyId, selectedDate]);
 
+  useEffect(() => {
+    fetchCumulativeSummary();
+  }, [companyId]);
+
   const fetchCouriersForDate = async () => {
     setLoading(true);
     try {
