@@ -162,22 +162,13 @@ export default function ExcelKarsilastirmaTab({ companyId, adminId, adminName })
 
   return (
     <div className="space-y-4" data-testid="excel-karsilastirma-tab">
-      {/* Tarih Seçimi */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white border-2 border-border p-4 rounded-lg">
-        <div className="flex items-center gap-3">
-          <Calendar className="w-5 h-5 text-primary" />
-          <div>
-            <Label className="text-sm font-semibold">Tarih Seçin</Label>
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="mt-1 h-10 border-2 font-mono w-44"
-              data-testid="date-picker"
-            />
-          </div>
-        </div>
-      </div>
+      {/* Haftalık Özet */}
+      <WeeklySummaryBar
+        companyId={companyId}
+        selectedDate={selectedDate}
+        onDateSelect={setSelectedDate}
+        type="mutabakat"
+      />
 
       {/* Excel Yükleme Alanları */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
