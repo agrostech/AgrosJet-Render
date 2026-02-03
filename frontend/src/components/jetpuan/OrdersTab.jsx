@@ -15,7 +15,7 @@ import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export function OrdersTab() {
+export function OrdersTab({ companyId }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -26,7 +26,9 @@ export function OrdersTab() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await axios.get(`${API}/jetpuan/orders/admin`);
+      const params = new URLSearchParams();
+      if (companyId) params.append('company_id', companyId);
+      const res = await axios.get(`${API}/jetpuan/orders/admin?${params.toString()}`);
       setOrders(res.data);
     } catch (err) {
       if (!err.handled) {
@@ -35,7 +37,7 @@ export function OrdersTab() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [companyId]);
 
   useEffect(() => {
     fetchOrders();
