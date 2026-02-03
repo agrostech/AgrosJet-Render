@@ -106,6 +106,35 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
     }
   };
 
+  const fetchCumulativeSummary = async () => {
+    try {
+      const res = await axios.get(`${API}/daily-collections/${companyId}/admin-cumulative-summary`);
+      setCumulativeSummary(res.data);
+    } catch (err) {
+      setCumulativeSummary({ admins: [], grand_total: { cash: 0, card: 0 } });
+    }
+  };
+
+  const handleResetCumulative = async () => {
+    if (!cumulativeResetConfirm) return;
+    
+    setResettingCumulative(cumulativeResetConfirm.admin_id);
+    try {
+      await axios.post(`${API}/daily-collections/${companyId}/reset-admin-cumulative`, {
+        admin_id: cumulativeResetConfirm.admin_id,
+        reset_by_id: adminId,
+        reset_by_name: adminName
+      });
+      toast.success(`${cumulativeResetConfirm.admin_name} için toplam sıfırlandı`);
+      fetchCumulativeSummary();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Sıfırlama başarısız");
+    } finally {
+      setResettingCumulative(null);
+      setCumulativeResetConfirm(null);
+    }
+  };
+
   const handleMarkAdminCollected = async (targetAdminId, type) => {
     setMarkingAdmin(`${targetAdminId}-${type}`);
     try {
