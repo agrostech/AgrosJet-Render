@@ -334,10 +334,16 @@ async def create_order(courier_id: str, data: JetPuanOrderCreate):
     order_id = str(uuid.uuid4())
     await debit_points_from_courier(courier_id, total_points, f"Sipariş #{order_id[:8]}")
     
+    # Get courier's company_id
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
+    relation = await db.company_couriers.find_one({"courier_id": courier_id}, {"_id": 0, "company_id": 1})
+    company_id = relation["company_id"] if relation else None
+    
     # Create order
     order = {
         "id": order_id,
         "courier_id": courier_id,
+        "company_id": company_id,
         "items": order_items,
         "total_points": total_points,
         "status": "pending",
@@ -347,11 +353,8 @@ async def create_order(courier_id: str, data: JetPuanOrderCreate):
     await db.jetpuan_orders.insert_one(order)
     
     # Send notification
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
-    if courier:
-        relation = await db.company_couriers.find_one({"courier_id": courier_id}, {"_id": 0, "company_id": 1})
-        if relation:
-            await send_jetpuan_notification(relation["company_id"], courier["name"], total_points, order["id"])
+    if courier and relation:
+        await send_jetpuan_notification(relation["company_id"], courier["name"], total_points, order["id"])
     
     return {"message": "Sipariş oluşturuldu", "order_id": order["id"], "total_points": total_points}
 
