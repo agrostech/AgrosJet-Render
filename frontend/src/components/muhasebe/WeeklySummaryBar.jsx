@@ -117,9 +117,17 @@ export default function WeeklySummaryBar({ companyId, selectedDate, onDateSelect
                 {day.day_number}
               </span>
               
-              {/* Tamamlandı ise tik, değilse boş */}
+              {/* Tamamlandı ise tik, değilse kayıt durumu */}
               <span className="h-3.5 flex items-center justify-center mt-0.5">
-                {isComplete && <Check className="w-3.5 h-3.5 text-green-600" />}
+                {isComplete ? (
+                  <Check className="w-3.5 h-3.5 text-green-600" />
+                ) : (
+                  type === "collection" && !isFuture && (
+                    <span className="text-[9px] text-slate-500 font-mono">
+                      {day.completed}/{day.total}
+                    </span>
+                  )
+                )}
               </span>
             </button>
           );
