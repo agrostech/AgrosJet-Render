@@ -217,10 +217,21 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
               data-testid="search-businesses-list"
             />
           </div>
-          <div className="text-xs text-muted-foreground">
-            Toplam: <span className={totalBalance > 0 ? 'text-green-600 font-semibold' : totalBalance < 0 ? 'text-red-600 font-semibold' : ''}>
-              {totalBalance === 0 ? '0 TL' : totalBalance > 0 ? `${formatCurrency(totalBalance)}` : `-${formatCurrency(totalBalance)}`}
-            </span>
+          <div className="text-xs flex items-center gap-2">
+            <span className="text-muted-foreground">Toplam:</span>
+            {negativeTotal !== 0 && (
+              <span className="text-red-600 font-semibold font-mono">
+                {formatCurrency(negativeTotal)}
+              </span>
+            )}
+            {positiveTotal !== 0 && (
+              <span className="text-green-600 font-semibold font-mono">
+                +{formatCurrency(positiveTotal)}
+              </span>
+            )}
+            {negativeTotal === 0 && positiveTotal === 0 && (
+              <span className="text-muted-foreground">0 TL</span>
+            )}
           </div>
         </div>
         
