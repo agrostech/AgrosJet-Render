@@ -206,11 +206,14 @@ async def deactivate_courier(company_id: str, courier_id: str):
             return None, f"Bu kuryenin {balance_text} alacağı bulunuyor"
         return None, f"Bu kuryenin {balance_text} borcu bulunuyor"
     
+    now = datetime.now(timezone.utc).isoformat()
+    
     result = await db.company_couriers.update_one(
         {"company_id": company_id, "courier_id": courier_id},
         {"$set": {
             "is_active": False,
-            "deactivated_at": datetime.now(timezone.utc).isoformat()
+            "deactivated_at": now,
+            "forced_logout_at": now  # Frontend bu timestamp'i kontrol edecek
         }}
     )
     
