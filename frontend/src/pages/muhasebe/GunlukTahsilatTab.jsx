@@ -585,8 +585,17 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
                 {/* Detaylı Kayıtlar - genişletildiğinde */}
                 {expandedAdmin === admin.admin_id && (
                   <div className="mt-3 pt-3 border-t border-primary/10">
-                    {/* Sıfırla butonu */}
-                    <div className="flex justify-end mb-3">
+                    {/* Butonlar */}
+                    <div className="flex justify-between items-center mb-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => { e.stopPropagation(); fetchHistory(admin.admin_id, admin.admin_name); }}
+                        className="h-7 text-xs px-3"
+                      >
+                        <Clock className="w-3 h-3 mr-1" />
+                        Geçmiş
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
