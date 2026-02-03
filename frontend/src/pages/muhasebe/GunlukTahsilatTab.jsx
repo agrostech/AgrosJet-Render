@@ -319,7 +319,9 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
               {/* Kurye Adı */}
               <div className="col-span-3 flex items-center gap-1 min-w-0">
                 {courier.has_collection && <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />}
-                <span className="text-sm font-medium truncate">{courier.name}</span>
+                <span className="text-sm font-medium truncate" title={courier.name}>
+                  {formatName(courier.name)}
+                </span>
               </div>
               
               {courier.has_collection ? (
