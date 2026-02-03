@@ -170,6 +170,85 @@ class ProcessReportRequest(BaseModel):
 
 # ============ ENDPOINTS ============
 
+@router.get("/weekly-summary/{company_id}")
+async def get_mutabakat_weekly_summary(company_id: str, week_start: str = None):
+    """
+    Haftalık mütabakat özeti - her gün için işlenmiş mi durumu
+    week_start: Haftanın başlangıç tarihi (Pazartesi), yoksa bu haftanın Pazartesisi
+    """
+    # Haftanın başlangıcını hesapla
+    if week_start:
+        start_date = datetime.strptime(week_start, "%Y-%m-%d")
+    else:
+        today = datetime.now(timezone.utc)
+        # Pazartesiye git (weekday 0 = Pazartesi)
+        start_date = today - timedelta(days=today.weekday())
+    
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # 7 gün için özet oluştur
+    days = []
+    day_names_tr = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    for i in range(7):
+        day_date = start_date + timedelta(days=i)
+        date_str = day_date.strftime("%Y-%m-%d")
+        
+        # O gün için Excel yüklenmiş mi?
+        cash_report = await db.daily_excel_reports.find_one({
+            "company_id": company_id,
+            "date": date_str,
+            "report_type": "cash"
+        })
+        card_report = await db.daily_excel_reports.find_one({
+            "company_id": company_id,
+            "date": date_str,
+            "report_type": "card"
+        })
+        
+        # O gün için karşılaştırma yapılmış mı?
+        comparison = await db.excel_comparisons.find_one({
+            "company_id": company_id,
+            "date": date_str
+        })
+        
+        is_processed = comparison.get("processed", False) if comparison else False
+        has_cash = cash_report is not None
+        has_card = card_report is not None
+        
+        # Durum belirleme
+        is_future = date_str > today_str
+        is_today = date_str == today_str
+        
+        if is_future:
+            status = "future"
+        elif is_processed:
+            status = "complete"
+        elif has_cash and has_card:
+            status = "ready"  # Excel'ler yüklü, karşılaştırma bekliyor
+        elif has_cash or has_card:
+            status = "partial"  # Sadece biri yüklü
+        else:
+            status = "empty"
+        
+        days.append({
+            "date": date_str,
+            "day_name": day_names_tr[i],
+            "day_number": day_date.day,
+            "has_cash_report": has_cash,
+            "has_card_report": has_card,
+            "is_processed": is_processed,
+            "status": status,
+            "is_today": is_today
+        })
+    
+    return {
+        "week_start": start_date.strftime("%Y-%m-%d"),
+        "days": days
+    }
+
+
 @router.post("/upload-excel/{company_id}")
 async def upload_excel(
     company_id: str,
