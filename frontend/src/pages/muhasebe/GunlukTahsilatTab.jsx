@@ -282,242 +282,117 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
         </div>
       </div>
 
-      {/* Mobile Cards View */}
-      <div className="space-y-3 md:hidden">
-        {filteredCouriers.map((courier) => (
-          <div 
-            key={courier.id}
-            className={`border-2 rounded-lg p-3 ${courier.has_collection ? 'bg-green-50/50 border-green-200' : 'bg-white border-border'}`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                {courier.has_collection && <Check className="w-4 h-4 text-green-500" />}
-                <span className="font-semibold">{courier.name}</span>
+      {/* Kurye Listesi - Tek satır tasarımı (Mobil & Masaüstü) */}
+      <div className="border border-slate-200 rounded-lg overflow-hidden">
+        {/* Header */}
+        <div className="grid grid-cols-12 gap-1 bg-slate-100 border-b border-slate-200 px-2 py-2 text-xs font-semibold text-slate-600">
+          <div className="col-span-3">Kurye</div>
+          <div className="col-span-2 text-center">Nakit</div>
+          <div className="col-span-2 text-center">%1</div>
+          <div className="col-span-2 text-center">%10</div>
+          <div className="col-span-2 text-center">%20</div>
+          <div className="col-span-1"></div>
+        </div>
+        
+        {/* Rows */}
+        <div className="divide-y divide-slate-100">
+          {filteredCouriers.map((courier, index) => (
+            <div 
+              key={courier.id}
+              className={`grid grid-cols-12 gap-1 px-2 py-1.5 items-center ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
+            >
+              {/* Kurye Adı */}
+              <div className="col-span-3 flex items-center gap-1 min-w-0">
+                {courier.has_collection && <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />}
+                <span className="text-sm font-medium truncate">{courier.name}</span>
               </div>
-              {!courier.has_collection && (
-                <Button 
-                  size="sm"
-                  onClick={() => handleSubmit(courier)}
-                  disabled={submitting === courier.id}
-                  className="h-8 px-3 bg-primary hover:bg-primary/90"
-                >
-                  <Save className="w-4 h-4 mr-1" />
-                  Kaydet
-                </Button>
+              
+              {courier.has_collection ? (
+                <>
+                  {/* Kayıtlı değerler */}
+                  <div className="col-span-2 text-center font-mono text-sm">
+                    {courier.collection.cash_total || '-'}
+                  </div>
+                  <div className="col-span-2 text-center font-mono text-sm">
+                    {courier.collection.card_percent_1 || '-'}
+                  </div>
+                  <div className="col-span-2 text-center font-mono text-sm">
+                    {courier.collection.card_percent_10 || '-'}
+                  </div>
+                  <div className="col-span-2 text-center font-mono text-sm">
+                    {courier.collection.card_percent_20 || '-'}
+                  </div>
+                  <div className="col-span-1 flex justify-center">
+                    {isSuperAdmin && (
+                      <button
+                        onClick={() => setResetConfirm({ courier_id: courier.id, courier_name: courier.name })}
+                        className="p-1 text-red-400 hover:text-red-600"
+                        title="Sıfırla"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Input alanları */}
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={formData[courier.id]?.cash || ""}
+                      onChange={(e) => handleInputChange(courier.id, "cash", e.target.value)}
+                      className="h-7 text-xs font-mono text-center border-slate-200 px-1"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={formData[courier.id]?.c1 || ""}
+                      onChange={(e) => handleInputChange(courier.id, "c1", e.target.value)}
+                      className="h-7 text-xs font-mono text-center border-slate-200 px-1"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={formData[courier.id]?.c10 || ""}
+                      onChange={(e) => handleInputChange(courier.id, "c10", e.target.value)}
+                      className="h-7 text-xs font-mono text-center border-slate-200 px-1"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={formData[courier.id]?.c20 || ""}
+                      onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
+                      className="h-7 text-xs font-mono text-center border-slate-200 px-1"
+                    />
+                  </div>
+                  <div className="col-span-1 flex justify-center">
+                    <button
+                      onClick={() => handleSubmit(courier)}
+                      disabled={submitting === courier.id}
+                      className="p-1 text-primary hover:text-primary/80 disabled:opacity-50"
+                      title="Kaydet"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </>
               )}
             </div>
-            
-            {courier.has_collection ? (
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-2 px-2 py-1.5 bg-green-100 rounded">
-                  <Banknote className="w-3 h-3 text-green-700" />
-                  <span className="text-green-700">Nakit:</span>
-                  <span className="font-mono font-semibold">{courier.collection.cash_total || '-'}</span>
-                </div>
-                <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 rounded">
-                  <CreditCard className="w-3 h-3 text-blue-700" />
-                  <span className="text-blue-700">%1:</span>
-                  <span className="font-mono font-semibold">{courier.collection.card_percent_1 || '-'}</span>
-                </div>
-                <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 rounded">
-                  <span className="text-blue-700">%10:</span>
-                  <span className="font-mono font-semibold">{courier.collection.card_percent_10 || '-'}</span>
-                </div>
-                <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-100 rounded">
-                  <span className="text-blue-700">%20:</span>
-                  <span className="font-mono font-semibold">{courier.collection.card_percent_20 || '-'}</span>
-                </div>
-                {/* SuperAdmin Reset Button */}
-                {isSuperAdmin && (
-                  <div className="col-span-2 mt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setResetConfirm({ courier_id: courier.id, courier_name: courier.name })}
-                      className="w-full h-8 text-xs border-red-300 text-red-600 hover:bg-red-50"
-                    >
-                      <RotateCcw className="w-3 h-3 mr-1" />
-                      Sıfırla
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                    <Banknote className="w-3 h-3" /> Nakit
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={formData[courier.id]?.cash || ""}
-                    onChange={(e) => handleInputChange(courier.id, "cash", e.target.value)}
-                    className="h-9 border font-mono text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                    <CreditCard className="w-3 h-3" /> %1
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={formData[courier.id]?.c1 || ""}
-                    onChange={(e) => handleInputChange(courier.id, "c1", e.target.value)}
-                    className="h-9 border font-mono text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">%10</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={formData[courier.id]?.c10 || ""}
-                    onChange={(e) => handleInputChange(courier.id, "c10", e.target.value)}
-                    className="h-9 border font-mono text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">%20</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={formData[courier.id]?.c20 || ""}
-                    onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
-                    className="h-9 border font-mono text-sm"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden md:block bg-white border-2 border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100 border-b-2 border-border">
-              <tr>
-                <th className="text-left p-2 pl-3 font-semibold w-48">Kurye</th>
-                <th className="text-left p-2 font-semibold w-24">
-                  <span className="flex items-center gap-1"><Banknote className="w-3 h-3" />Nakit</span>
-                </th>
-                <th className="text-left p-2 font-semibold w-24">
-                  <span className="flex items-center gap-1"><CreditCard className="w-3 h-3" />%1</span>
-                </th>
-                <th className="text-left p-2 font-semibold w-24">%10</th>
-                <th className="text-left p-2 font-semibold w-24">%20</th>
-                <th className="text-center p-2 font-semibold w-16"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCouriers.map((courier) => (
-                <tr 
-                  key={courier.id} 
-                  className={`border-b border-border hover:bg-slate-50 ${courier.has_collection ? 'bg-green-50/30' : ''}`}
-                >
-                  <td className="p-2 pl-3">
-                    <div className="flex items-center gap-2">
-                      {courier.has_collection && <Check className="w-4 h-4 text-green-500 flex-shrink-0" />}
-                      <span className="font-medium truncate">{courier.name}</span>
-                    </div>
-                  </td>
-                  {courier.has_collection ? (
-                    <>
-                      <td className="p-1">
-                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
-                          {courier.collection.cash_total > 0 ? courier.collection.cash_total : '-'}
-                        </div>
-                      </td>
-                      <td className="p-1">
-                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
-                          {courier.collection.card_percent_1 > 0 ? courier.collection.card_percent_1 : '-'}
-                        </div>
-                      </td>
-                      <td className="p-1">
-                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
-                          {courier.collection.card_percent_10 > 0 ? courier.collection.card_percent_10 : '-'}
-                        </div>
-                      </td>
-                      <td className="p-1">
-                        <div className="h-8 w-24 flex items-center font-mono text-xs px-2 bg-green-50 rounded border border-green-200 text-green-700">
-                          {courier.collection.card_percent_20 > 0 ? courier.collection.card_percent_20 : '-'}
-                        </div>
-                      </td>
-                      <td className="p-1 text-center">
-                        {isSuperAdmin && (
-                          <Button 
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setResetConfirm({ courier_id: courier.id, courier_name: courier.name })}
-                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                            title="Sıfırla"
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="p-1">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0"
-                          value={formData[courier.id]?.cash || ""}
-                          onChange={(e) => handleInputChange(courier.id, "cash", e.target.value)}
-                          onWheel={(e) => e.target.blur()}
-                          className="h-8 w-24 border font-mono text-xs px-2"
-                        />
-                      </td>
-                      <td className="p-1">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0"
-                          value={formData[courier.id]?.c1 || ""}
-                          onChange={(e) => handleInputChange(courier.id, "c1", e.target.value)}
-                          onWheel={(e) => e.target.blur()}
-                          className="h-8 w-24 border font-mono text-xs px-2"
-                        />
-                      </td>
-                      <td className="p-1">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0"
-                          value={formData[courier.id]?.c10 || ""}
-                          onChange={(e) => handleInputChange(courier.id, "c10", e.target.value)}
-                          onWheel={(e) => e.target.blur()}
-                          className="h-8 w-24 border font-mono text-xs px-2"
-                        />
-                      </td>
-                      <td className="p-1">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0"
-                          value={formData[courier.id]?.c20 || ""}
-                          onChange={(e) => handleInputChange(courier.id, "c20", e.target.value)}
-                          onWheel={(e) => e.target.blur()}
-                          className="h-8 w-24 border font-mono text-xs px-2"
-                        />
-                      </td>
-                      <td className="p-1 text-center">
-                        <Button 
-                          size="sm"
-                          onClick={() => handleSubmit(courier)}
                           disabled={submitting === courier.id}
                           className="h-8 w-8 p-0 bg-primary hover:bg-primary/90"
                         >
