@@ -310,6 +310,22 @@ class ResetAdminCumulativeRequest(BaseModel):
     admin_id: str
     reset_by_id: str
     reset_by_name: str
+    # Sıfırlama anındaki bakiye bilgisi
+    cash_total: float = 0
+    card_total: float = 0
+
+
+@router.get("/{company_id}/admin-cumulative-history/{admin_id}")
+async def get_admin_cumulative_history(company_id: str, admin_id: str):
+    """
+    Admin'in kümülatif tahsilat sıfırlama geçmişi
+    """
+    logs = await db.admin_cumulative_reset_logs.find(
+        {"company_id": company_id, "admin_id": admin_id},
+        {"_id": 0}
+    ).sort("reset_at", -1).to_list(100)
+    
+    return {"history": logs}
 
 
 @router.post("/{company_id}/reset-admin-cumulative")
