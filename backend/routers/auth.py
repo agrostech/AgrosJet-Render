@@ -57,7 +57,7 @@ async def login_courier(data: CourierLogin):
     if not courier or courier["password"] != hash_password(data.password):
         raise HTTPException(status_code=401, detail="Geçersiz telefon veya şifre")
     
-    # Pasif kurye kontrolü
+    # Kurye tablosundaki pasif kontrolü
     if courier.get("is_active") == False:
         raise HTTPException(status_code=403, detail="Hesabınız pasif durumda. Yöneticinizle iletişime geçin.")
     
@@ -67,11 +67,20 @@ async def login_courier(data: CourierLogin):
         {"_id": 0}
     ).to_list(100)
     
+    # Tüm şirketlerde pasif mi kontrol et
+    active_in_any_company = False
     companies = []
     for rel in company_relations:
-        company = await db.companies.find_one({"id": rel["company_id"]}, {"_id": 0})
-        if company:
-            companies.append(company)
+        # Pasif değilse şirketi ekle
+        if rel.get("is_active") != False:
+            company = await db.companies.find_one({"id": rel["company_id"]}, {"_id": 0})
+            if company:
+                companies.append(company)
+                active_in_any_company = True
+    
+    # Hiçbir şirkette aktif değilse giriş engelle
+    if not active_in_any_company and len(company_relations) > 0:
+        raise HTTPException(status_code=403, detail="Hesabınız pasif durumda. Yöneticinizle iletişime geçin.")
     
     return {
         "id": courier["id"],
