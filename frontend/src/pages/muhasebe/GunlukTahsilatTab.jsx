@@ -57,6 +57,11 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
   const [expandedAdmin, setExpandedAdmin] = useState(null);
   const [resettingCumulative, setResettingCumulative] = useState(null);
   const [cumulativeResetConfirm, setCumulativeResetConfirm] = useState(null);
+  
+  // Geçmiş modal
+  const [historyModal, setHistoryModal] = useState(null); // { admin_id, admin_name }
+  const [historyData, setHistoryData] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     fetchCouriersForDate();
