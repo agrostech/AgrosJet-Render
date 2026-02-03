@@ -18,6 +18,7 @@ import {
   CreditCard,
   AlertCircle
 } from "lucide-react";
+import WeeklySummaryBar from "@/components/muhasebe/WeeklySummaryBar";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
