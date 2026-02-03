@@ -255,34 +255,30 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
 
   return (
     <div className="space-y-4" data-testid="gunluk-tahsilat-tab">
-      {/* Header */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <Calendar className="w-5 h-5 text-primary" />
+      {/* Haftalık Özet */}
+      <WeeklySummaryBar
+        companyId={companyId}
+        selectedDate={selectedDate}
+        onDateSelect={setSelectedDate}
+        type="collection"
+      />
+
+      {/* Arama ve İstatistik */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="h-9 border-2 font-mono flex-1 max-w-[180px]"
-            data-testid="date-picker"
+            type="text"
+            placeholder="Kurye ara..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 pl-9 border border-slate-200 rounded-lg w-full"
+            data-testid="search-courier"
           />
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Kurye ara..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 pl-9 border-2 w-full"
-              data-testid="search-courier"
-            />
-          </div>
-          <div className="flex gap-3 text-sm justify-end">
-            <span className="text-muted-foreground">Kurye: <b>{filteredCouriers.length}</b></span>
-            <span className="text-green-600">Kayıtlı: <b>{filteredCouriers.filter(c => c.has_collection).length}</b></span>
-          </div>
+        <div className="flex gap-3 text-sm justify-end">
+          <span className="text-muted-foreground">Kurye: <b>{filteredCouriers.length}</b></span>
+          <span className="text-green-600">Kayıtlı: <b>{filteredCouriers.filter(c => c.has_collection).length}</b></span>
         </div>
       </div>
 
