@@ -57,6 +57,10 @@ async def login_courier(data: CourierLogin):
     if not courier or courier["password"] != hash_password(data.password):
         raise HTTPException(status_code=401, detail="Geçersiz telefon veya şifre")
     
+    # Pasif kurye kontrolü
+    if courier.get("is_active") == False:
+        raise HTTPException(status_code=403, detail="Hesabınız pasif durumda. Yöneticinizle iletişime geçin.")
+    
     # Get companies this courier belongs to
     company_relations = await db.company_couriers.find(
         {"courier_id": courier["id"], "status": "approved"}, 
