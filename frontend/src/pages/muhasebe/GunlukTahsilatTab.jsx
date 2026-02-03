@@ -49,13 +49,12 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
   const [resetConfirm, setResetConfirm] = useState(null);
   const [resetting, setResetting] = useState(false);
   
-  // Admin bazlı özet
+  // Admin bazlı özet - artık kullanılmıyor ama fetchAdminSummary hala tahsilat sonrası çağrılıyor
   const [adminSummary, setAdminSummary] = useState({ admins: [], grand_total: { cash: 0, card: 0 } });
-  const [expandedAdmin, setExpandedAdmin] = useState(null);
-  const [markingAdmin, setMarkingAdmin] = useState(null);
   
   // Kümülatif (tüm zamanlar) özet
   const [cumulativeSummary, setCumulativeSummary] = useState({ admins: [], grand_total: { cash: 0, card: 0 } });
+  const [expandedAdmin, setExpandedAdmin] = useState(null);
   const [resettingCumulative, setResettingCumulative] = useState(null);
   const [cumulativeResetConfirm, setCumulativeResetConfirm] = useState(null);
 
