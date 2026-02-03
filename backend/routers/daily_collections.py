@@ -459,7 +459,7 @@ async def mark_admin_collected(company_id: str, data: MarkAdminCollectedRequest)
         upsert=True
     )
     
-    return {"message": f"Admin tahsilatı alındı olarak işaretlendi"}
+    return {"message": "Admin tahsilatı alındı olarak işaretlendi"}
 
 
 # ============ COLLECTION STATUS (SuperAdmin için Alındı takibi) ============
