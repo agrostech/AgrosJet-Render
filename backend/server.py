@@ -123,6 +123,7 @@ from routers.daily_reports import router as daily_reports_router
 from routers.business_invoices import router as business_invoices_router
 from routers.system_settings import router as system_settings_router
 from routers.motorcycles import router as motorcycles_router
+from routers.chat import router as chat_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
@@ -147,6 +148,7 @@ app.include_router(daily_reports_router)
 app.include_router(business_invoices_router)
 app.include_router(system_settings_router)
 app.include_router(motorcycles_router)
+app.include_router(chat_router)
 
 # Health check
 @api_router.get("/")
