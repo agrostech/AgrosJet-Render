@@ -5,25 +5,32 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 
 ---
 
-## Son Güncelleme: 2 Şubat 2026
+## Son Güncelleme: 4 Şubat 2026
 
 ### ✅ Tamamlanan Özellikler (Bu Oturum)
 
-#### 1. Mobil UX Refactor - Muhasebe Tabları
-- **Kuryeler**, **İşletmeler** ve **Cariler** tabları için mobil UX iyileştirmesi
-- Mobilde: Liste görünümünden öğe seçildiğinde aynı kart içinde detay görünümüne geçiş
-- "Listeye Dön" butonu ile geri dönüş
-- Sadece mobil cihazlarda (lg breakpoint altında) aktif
-- **Dosyalar:** `KuryelerTab.jsx`, `IsletmelerTab.jsx`, `CarilerTab.jsx`
+#### 1. Chat/Mesajlaşma Sistemi (YENİ)
+- Admin ve kuryeler arası gerçek zamanlı mesajlaşma
+- 1-1 ve grup sohbetleri desteği
+- Dosya ve resim gönderme
+- Okunmamış mesaj sayacı (badge)
+- WebSocket ile canlı güncelleme
+- Şirket bazlı ayrım (company-specific)
+- **Backend:** `/app/backend/routers/chat.py`
+- **Frontend:** `ChatPage.jsx`, `ChatSidebar.jsx`, `MessagePane.jsx`, `NewChatModal.jsx`
+- **Hook:** `useChatData.js`
+- **Test Durumu:** %100 (15/15 backend, tüm frontend testleri geçti)
 
-### ✅ Önceki Oturumda Tamamlananlar
+### ✅ Önceki Oturumlarda Tamamlananlar
 
-1. **Motosikletim Özelliği** - Kuryeler için motosiklet ve bakım takibi
-2. **Günlük Tahsilat Refactor** - Yönetici bazlı tahsilat, süper admin onayı
-3. **Yedekleme Sistemi** - APScheduler + Cloudflare R2 entegrasyonu
-4. **Tab Kalıcılığı** - Muhasebe sayfası tab hatırlama
-5. **Numara Fontu Düzeltmesi** - Inter font ile "0" görünüm sorunu çözüldü
-6. **Kurye Paneli Mobil Navigasyon** - "Daha Fazla" dropdown menüsü
+1. **Mobil UX Refactor** - Muhasebe tabları için in-place detail view
+2. **Günlük Tahsilat** - Kümülatif sistem, reset butonu, geçmiş log
+3. **Haftalık Özet Barı** - Günlük Tahsilat ve Mütabakat tablarında
+4. **Kurye Deaktivasyonu** - Otomatik logout, login engeli
+5. **Telefon Doğrulama** - Kayıt ve giriş için numara validasyonu
+6. **Market Sistemi** - Şirkete özel sipariş ve badge
+7. **Motosikletim Özelliği** - Kurye motosiklet ve bakım takibi
+8. **Yedekleme Sistemi** - APScheduler + Cloudflare R2
 
 ---
 
@@ -32,24 +39,18 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 ### P0 - Mobil Dosya Yükleme
 - `accept="*/*"` düzeltmesi uygulandı
 - Fiziksel mobil cihazda test edilmesi gerekiyor
-- Test noktaları: Mütabakat, Kurye Fatura, Evrak Yükleme
+- Test noktaları: Mütabakat, Kurye Fatura, Evrak Yükleme, Chat Dosya
 
 ### P1 - Fatura Eksikliği (Shortfall) E2E Testi
 - Tam iş akışının kullanıcı tarafından test edilmesi gerekiyor
-
-### P1 - Kurye Fatura Görünürlüğü
-- Birden fazla fatura görünürlüğü kontrolü
-
-### P2 - Yedekleme E-posta
-- SMTP ayarları yapılandırılarak test edilmeli
 
 ---
 
 ## 🔵 Gelecek Görevler (Backlog)
 
 ### Refactoring (P1)
+- `GunlukTahsilatTab.jsx` - Çok büyük, parçalanmalı
 - `FaturalarTab.jsx` - Büyük dosya, parçalanmalı
-- `KuryelerTab.jsx` - Hook ayrıştırma
 - `useAccountingTab.js` - Hook bölünmesi
 
 ### Motosikletim Geliştirmeleri
@@ -62,6 +63,7 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 
 ### Backend
 - FastAPI + MongoDB
+- WebSocket (chat için)
 - APScheduler (otomatik yedekleme)
 - boto3 (Cloudflare R2)
 
@@ -74,11 +76,21 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 - `transactions`, `invoices`
 - `motorcycles`, `motorcycle_maintenances`
 - `daily_collections`, `admin_collection_status`
+- `chat_conversations`, `chat_messages` (YENİ)
 - `backup_settings`
 
 ---
 
 ## API Endpoints (Önemli)
+
+### Chat (YENİ)
+- `GET /api/chat/conversations/{user_id}` - Kullanıcı sohbetleri
+- `POST /api/chat/conversations` - Yeni sohbet oluştur
+- `GET /api/chat/conversations/{id}/messages` - Mesajları getir
+- `POST /api/chat/messages` - Mesaj gönder
+- `GET /api/chat/users/search` - Kullanıcı ara
+- `POST /api/chat/upload` - Dosya yükle
+- `WS /api/chat/ws/{user_id}` - WebSocket bağlantısı
 
 ### Muhasebe
 - `GET/POST /api/transactions`
