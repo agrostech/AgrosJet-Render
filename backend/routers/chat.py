@@ -123,6 +123,8 @@ async def create_conversation(data: CreateConversationRequest):
     }
     
     await db.chat_conversations.insert_one(conversation)
+    # Remove MongoDB _id before returning
+    conversation.pop("_id", None)
     return conversation
 
 
