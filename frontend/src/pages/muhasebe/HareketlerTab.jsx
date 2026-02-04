@@ -261,10 +261,17 @@ export default function HareketlerTab({ companyId }) {
                       {formatDate(log.created_at)}
                     </span>
                     <span className={`font-bold text-base ${
+                      log.action === 'transaction_updated' ? 'text-orange-600' :
                       log.action === 'installment_paid' ? 'text-purple-600' :
                       log.details?.type === 'payment_in' ? 'text-red-600' : 'text-green-600'
                     }`}>
-                      {(log.details?.type === 'payment_out' || log.action === 'installment_paid') && '-'}{formatCurrency(log.details?.amount || 0)}
+                      {log.action === 'transaction_updated' ? (
+                        log.details?.new_amount !== undefined ? formatCurrency(log.details.new_amount) : '-'
+                      ) : (
+                        <>
+                          {(log.details?.type === 'payment_out' || log.action === 'installment_paid') && '-'}{formatCurrency(log.details?.amount || 0)}
+                        </>
+                      )}
                     </span>
                   </div>
                   
