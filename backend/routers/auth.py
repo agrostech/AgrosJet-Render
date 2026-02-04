@@ -32,14 +32,33 @@ class AdminLogin(BaseModel):
 # --- Courier Auth ---
 @router.post("/courier/register")
 async def register_courier(data: CourierRegister):
-    existing = await db.couriers.find_one({"phone": data.phone})
+    # Telefon numarası doğrulaması
+    phone = data.phone.strip()
+    
+    # Başında 0 yoksa ekle
+    if not phone.startswith("0"):
+        phone = "0" + phone
+    
+    # 11 haneli olmalı
+    if len(phone) != 11:
+        raise HTTPException(status_code=400, detail="Telefon numarası 11 haneli olmalıdır (örn: 05527370032)")
+    
+    # Sadece rakam olmalı
+    if not phone.isdigit():
+        raise HTTPException(status_code=400, detail="Telefon numarası sadece rakam içermelidir")
+    
+    # 05 ile başlamalı (Türkiye mobil)
+    if not phone.startswith("05"):
+        raise HTTPException(status_code=400, detail="Geçerli bir cep telefonu numarası giriniz (05 ile başlamalı)")
+    
+    existing = await db.couriers.find_one({"phone": phone})
     if existing:
         raise HTTPException(status_code=400, detail="Bu telefon numarası zaten kayıtlı")
     
     courier = {
         "id": str(uuid.uuid4()),
         "name": format_name(data.name),
-        "phone": data.phone,
+        "phone": phone,
         "address": data.address,
         "iban": data.iban,
         "plate": data.plate.upper(),
