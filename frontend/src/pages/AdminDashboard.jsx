@@ -35,7 +35,13 @@ export default function AdminDashboard() {
   // Fetch pending orders count for badge
   const fetchBadges = useCallback(async () => {
     try {
-      const res = await axios.get(`${API}/jetpuan/orders/pending-count`);
+      const stored = localStorage.getItem("user");
+      if (!stored) return;
+      const userData = JSON.parse(stored);
+      const companyId = userData.company_id;
+      
+      const params = companyId ? `?company_id=${companyId}` : '';
+      const res = await axios.get(`${API}/jetpuan/orders/pending-count${params}`);
       setBadges(prev => ({ ...prev, jetpuan: res.data.count }));
     } catch (err) {
       console.error("Badge fetch error:", err);
