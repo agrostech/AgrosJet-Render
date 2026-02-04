@@ -72,7 +72,12 @@ async def register_courier(data: CourierRegister):
 
 @router.post("/courier/login")
 async def login_courier(data: CourierLogin):
-    courier = await db.couriers.find_one({"phone": data.phone}, {"_id": 0})
+    # Telefon numarasını normalize et
+    phone = data.phone.strip()
+    if not phone.startswith("0"):
+        phone = "0" + phone
+    
+    courier = await db.couriers.find_one({"phone": phone}, {"_id": 0})
     if not courier or courier["password"] != hash_password(data.password):
         raise HTTPException(status_code=401, detail="Geçersiz telefon veya şifre")
     
