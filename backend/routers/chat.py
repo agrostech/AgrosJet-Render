@@ -353,8 +353,10 @@ async def search_users(company_id: str, query: str, current_user_id: str):
     courier_relations = await db.company_couriers.find(
         {
             "company_id": company_id,
-            "$or": [{"is_active": {"$exists": False}}, {"is_active": True}],
-            "$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]
+            "$and": [
+                {"$or": [{"is_active": {"$exists": False}}, {"is_active": True}]},
+                {"$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]}
+            ]
         },
         {"_id": 0, "courier_id": 1}
     ).to_list(500)
