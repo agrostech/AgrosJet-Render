@@ -299,7 +299,11 @@ async def get_pending_orders_count(company_id: str = None):
     """Get count of pending orders for badge - optionally filtered by company"""
     query = {"status": "pending"}
     if company_id:
-        query["company_id"] = company_id
+        query["$or"] = [
+            {"company_id": company_id},
+            {"company_id": {"$exists": False}},
+            {"company_id": None}
+        ]
     count = await db.jetpuan_orders.count_documents(query)
     return {"count": count}
 
