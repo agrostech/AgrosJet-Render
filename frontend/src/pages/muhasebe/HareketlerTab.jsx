@@ -121,9 +121,16 @@ export default function HareketlerTab({ companyId }) {
       );
     }
     if (action === 'transaction_updated') {
+      const oldAmount = details?.old_amount;
+      const newAmount = details?.new_amount;
       return (
         <span className="inline-flex items-center gap-1">
           <span className="text-orange-700 font-medium">İşlem Güncellendi</span>
+          {oldAmount !== undefined && newAmount !== undefined && oldAmount !== newAmount && (
+            <span className="text-xs text-muted-foreground ml-1">
+              ({formatCurrency(oldAmount)} → {formatCurrency(newAmount)})
+            </span>
+          )}
         </span>
       );
     }
