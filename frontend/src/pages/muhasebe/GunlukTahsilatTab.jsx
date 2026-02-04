@@ -442,7 +442,7 @@ export default function GunlukTahsilatTab({ companyId, adminId, adminName, isSup
           </div>
           
           <div className="divide-y divide-primary/10">
-            {cumulativeSummary.admins.filter(a => a.cash_total > 0 || a.card_total > 0).map((admin) => (
+            {cumulativeSummary.admins.map((admin) => (
               <div key={admin.admin_id} className="p-3">
                 {/* Admin Header - tıklanabilir */}
                 <div 
