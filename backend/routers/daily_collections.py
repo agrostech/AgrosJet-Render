@@ -61,23 +61,27 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
     
     start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Toplam kurye sayısını hesapla
-    # 1. Doğrudan company_id ile bağlı kuryeler
+    # Toplam AKTİF kurye sayısını hesapla (pasif ve arşivlenmiş olanları hariç tut)
+    # 1. Doğrudan company_id ile bağlı aktif kuryeler
     direct_couriers = await db.couriers.count_documents({
         "company_id": company_id,
-        "$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]
+        "$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}],
+        "$or": [{"is_active": {"$exists": False}}, {"is_active": True}]
     })
     
-    # 2. company_couriers tablosu üzerinden bağlı kuryeler (hayalet dahil)
+    # 2. company_couriers tablosu üzerinden bağlı aktif kuryeler (hayalet dahil)
     relation_count = await db.company_couriers.count_documents({
         "company_id": company_id,
-        "$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]
+        "$and": [
+            {"$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]},
+            {"$or": [{"is_active": {"$exists": False}}, {"is_active": True}]}
+        ]
     })
     
     # En büyük değeri al (ikisi de aynı kuryeleri gösterebilir veya farklı olabilir)
     total_couriers = max(direct_couriers, relation_count)
     
-    # Eğer hala 0 ise, arşiv filtresi olmadan dene
+    # Eğer hala 0 ise, filtre olmadan dene
     if total_couriers == 0:
         direct_couriers = await db.couriers.count_documents({"company_id": company_id})
         relation_count = await db.company_couriers.count_documents({"company_id": company_id})
