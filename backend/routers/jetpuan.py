@@ -282,7 +282,12 @@ async def get_all_orders(
     if status:
         query["status"] = status
     if company_id:
-        query["company_id"] = company_id
+        # company_id eşleşen VEYA company_id alanı olmayan (eski kayıtlar)
+        query["$or"] = [
+            {"company_id": company_id},
+            {"company_id": {"$exists": False}},
+            {"company_id": None}
+        ]
     
     orders = await db.jetpuan_orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
     orders = await enrich_orders_with_courier_info(orders)
