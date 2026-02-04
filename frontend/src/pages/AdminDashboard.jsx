@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown, MessageCircle } from "lucide-react";
 
 // Page components
 import VardiyaPage from "./VardiyaPage";
@@ -15,6 +15,7 @@ import YoneticilerPage from "./admin/YoneticilerPage";
 import SistemPage from "./SistemPage";
 import JetPuanMarketPage from "./JetPuanMarketPage";
 import AkademiPage from "./admin/AkademiPage";
+import ChatPage from "./ChatPage";
 
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -32,17 +33,28 @@ export default function AdminDashboard() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [badges, setBadges] = useState({});
 
-  // Fetch pending orders count for badge
+  // Fetch pending orders count and unread messages for badges
   const fetchBadges = useCallback(async () => {
     try {
       const stored = localStorage.getItem("user");
       if (!stored) return;
       const userData = JSON.parse(stored);
       const companyId = userData.company_id;
+      const userId = userData.id;
       
       const params = companyId ? `?company_id=${companyId}` : '';
-      const res = await axios.get(`${API}/jetpuan/orders/pending-count${params}`);
-      setBadges(prev => ({ ...prev, jetpuan: res.data.count }));
+      
+      // Fetch JetPuan and Chat badges in parallel
+      const [jetpuanRes, chatRes] = await Promise.all([
+        axios.get(`${API}/jetpuan/orders/pending-count${params}`),
+        axios.get(`${API}/chat/unread-count/${userId}${params}`)
+      ]);
+      
+      setBadges(prev => ({ 
+        ...prev, 
+        jetpuan: jetpuanRes.data.count,
+        mesajlar: chatRes.data.count
+      }));
     } catch (err) {
       console.error("Badge fetch error:", err);
     }
@@ -119,6 +131,7 @@ export default function AdminDashboard() {
     { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya", permKey: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
+    { path: "/admin/mesajlar", label: "Mesajlar", icon: MessageCircle, key: "mesajlar", permKey: null },
     { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan", permKey: "market" },
     { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi", permKey: "akademi" },
     { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler", permKey: "kuryeler" },
@@ -271,6 +284,14 @@ export default function AdminDashboard() {
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />
               )}
+              <Route path="mesajlar" element={
+                <ChatPage 
+                  userId={user.id} 
+                  userName={user.name || user.username} 
+                  userRole={user.role === "superadmin" ? "admin" : user.role}
+                  companyId={user.company_id}
+                />
+              } />
               {(isSuperAdmin || permissions.market) && (
                 <Route path="jetpuan" element={<JetPuanMarketPage companyId={user.company_id} />} />
               )}

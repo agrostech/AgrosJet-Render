@@ -1,4 +1,4 @@
-import { Search, Plus, MessageCircle } from "lucide-react";
+import { Search, Plus, MessageCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -8,7 +8,8 @@ export default function ChatSidebar({
   selectedId, 
   onSelect, 
   onNewChat,
-  currentUserId 
+  currentUserId,
+  loading = false
 }) {
   const [search, setSearch] = useState("");
 
@@ -61,7 +62,11 @@ export default function ChatSidebar({
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground text-sm">
             <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
             <p>Henüz sohbet yok</p>
