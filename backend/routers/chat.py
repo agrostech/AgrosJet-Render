@@ -228,6 +228,8 @@ async def send_message(data: SendMessageRequest):
                     "created_at": now
                 })
     
+    # Remove MongoDB _id before returning
+    message.pop("_id", None)
     return message
 
 
