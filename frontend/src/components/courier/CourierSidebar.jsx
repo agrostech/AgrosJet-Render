@@ -10,7 +10,8 @@ export default function CourierSidebar({
   onLogout,
   companyName,
   companyLogo,
-  maintenanceNotifications = 0
+  maintenanceNotifications = 0,
+  chatUnreadCount = 0
 }) {
   const location = useLocation();
 
@@ -62,7 +63,8 @@ export default function CourierSidebar({
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 
             (item.path !== "/courier" && location.pathname.startsWith(item.path));
-          const showBadge = item.path === "/courier/motosikletim" && maintenanceNotifications > 0;
+          const showMaintenanceBadge = item.path === "/courier/motosikletim" && maintenanceNotifications > 0;
+          const showChatBadge = item.path === "/courier/mesajlar" && chatUnreadCount > 0;
           return (
             <Link 
               key={item.path} 
@@ -75,9 +77,14 @@ export default function CourierSidebar({
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
               {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
-              {showBadge && (
+              {showMaintenanceBadge && (
                 <span className={`${sidebarCollapsed ? 'absolute top-1 right-1' : 'ml-auto'} min-w-[18px] h-[18px] bg-white text-primary text-[10px] font-bold rounded-full flex items-center justify-center px-1`}>
                   {maintenanceNotifications}
+                </span>
+              )}
+              {showChatBadge && (
+                <span className={`${sidebarCollapsed ? 'absolute top-1 right-1' : 'ml-auto'} min-w-[18px] h-[18px] bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1`}>
+                  {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                 </span>
               )}
             </Link>
