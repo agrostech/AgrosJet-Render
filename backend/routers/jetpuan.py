@@ -410,6 +410,24 @@ async def cancel_order(
     return {"message": "Sipariş iptal edildi, puanlar iade edildi"}
 
 
+@router.delete("/orders/{order_id}/permanent")
+async def delete_order_permanently(
+    order_id: str,
+    admin_role: str = "admin"
+):
+    """Permanently delete an order without refunding points (superadmin only)"""
+    if admin_role != "superadmin":
+        raise HTTPException(status_code=403, detail="Bu işlem sadece süper admin tarafından yapılabilir")
+    
+    order = await db.jetpuan_orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    # Delete order without refund
+    await db.jetpuan_orders.delete_one({"id": order_id})
+    return {"message": "Sipariş kalıcı olarak silindi (puan iadesi yapılmadı)"}
+
+
 # ============ HELPER FOR ACCOUNTING ============
 
 async def calculate_and_credit_points(courier_id: str, hakedis_amount: float):
