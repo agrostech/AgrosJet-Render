@@ -228,6 +228,19 @@ export function OrdersTab({ companyId }) {
                       </Button>
                     </div>
                   )}
+                  
+                  {/* Superadmin can delete delivered orders */}
+                  {order.status === 'delivered' && isSuperAdmin && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => handlePermanentDelete(order.id)} 
+                      className="h-7 w-7 p-0 hover:bg-red-50 hover:text-red-600"
+                      title="Siparişi sil (puan iadesi yapılmaz)"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
