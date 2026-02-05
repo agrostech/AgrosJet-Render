@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calendar, Clock, RefreshCw, ChevronLeft, ChevronRight, Wallet, Users, Building2, Briefcase, ChevronDown, ChevronUp, CreditCard } from "lucide-react";
+import { Calendar, Clock, RefreshCw, ChevronLeft, ChevronRight, Wallet, Users, Building2, Briefcase, ChevronDown, ChevronUp, CreditCard, X, User, Package, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationsPopover from "@/components/admin/NotificationsPopover";
 import { PageLoading } from "@/components/ui/loading-spinner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
