@@ -19,6 +19,7 @@ from services.accounting_service import (
     get_entity_name,
     get_entity_transactions,
     calculate_total_balance,
+    calculate_balance_breakdown,
     parse_custom_date
 )
 
