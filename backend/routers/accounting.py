@@ -530,6 +530,89 @@ async def get_installment_summary(company_id: str) -> dict:
 
 # --- Taksitli Ürün (Installment Products) ---
 
+@router.get("/companies/{company_id}/installment-products/details")
+async def get_installment_details_by_company(company_id: str):
+    """Get detailed installment products grouped by courier for a company"""
+    # Get active installment products
+    products = await db.installment_products.find(
+        {"company_id": company_id, "is_completed": {"$ne": True}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    if not products:
+        return {"couriers": [], "summary": {"total": 0, "paid": 0, "remaining": 0, "product_count": 0}}
+    
+    # Group by courier
+    courier_map = {}
+    for p in products:
+        cid = p.get("courier_id")
+        if cid not in courier_map:
+            courier_map[cid] = {
+                "courier_id": cid,
+                "courier_name": None,
+                "products": [],
+                "total_amount": 0,
+                "paid_amount": 0,
+                "remaining_amount": 0
+            }
+        
+        product_total = p.get("total_amount", 0)
+        product_paid = p.get("paid_amount", 0)
+        
+        courier_map[cid]["products"].append({
+            "id": p.get("id"),
+            "name": p.get("name"),
+            "installment_amount": p.get("installment_amount", 0),
+            "installment_count": p.get("installment_count", 0),
+            "remaining_installments": p.get("remaining_installments", 0),
+            "total_amount": product_total,
+            "paid_amount": product_paid,
+            "remaining_amount": product_total - product_paid,
+            "created_at": p.get("created_at")
+        })
+        
+        courier_map[cid]["total_amount"] += product_total
+        courier_map[cid]["paid_amount"] += product_paid
+        courier_map[cid]["remaining_amount"] += (product_total - product_paid)
+    
+    # Get courier names
+    courier_ids = list(courier_map.keys())
+    couriers = await db.couriers.find(
+        {"id": {"$in": courier_ids}},
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(500)
+    
+    courier_name_map = {c["id"]: c["name"] for c in couriers}
+    
+    # Build result list
+    result = []
+    total_all = 0
+    paid_all = 0
+    remaining_all = 0
+    product_count = 0
+    
+    for cid, data in courier_map.items():
+        data["courier_name"] = courier_name_map.get(cid, "Bilinmeyen Kurye")
+        result.append(data)
+        total_all += data["total_amount"]
+        paid_all += data["paid_amount"]
+        remaining_all += data["remaining_amount"]
+        product_count += len(data["products"])
+    
+    # Sort by remaining amount descending
+    result.sort(key=lambda x: x["remaining_amount"], reverse=True)
+    
+    return {
+        "couriers": result,
+        "summary": {
+            "total": total_all,
+            "paid": paid_all,
+            "remaining": remaining_all,
+            "product_count": product_count
+        }
+    }
+
+
 @router.post("/couriers/{courier_id}/installment-products")
 async def create_installment_product(
     courier_id: str, 
