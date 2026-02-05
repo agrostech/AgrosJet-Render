@@ -474,22 +474,28 @@ async def get_accounting_summary(company_id: str):
     ).to_list(1000)
     vendor_ids = [v["id"] for v in vendors]
     
-    # Calculate balances using service helper
-    courier_balance = await calculate_total_balance("courier", courier_ids)
-    business_balance = await calculate_total_balance("business", business_ids)
-    vendor_balance = await calculate_total_balance("vendor", vendor_ids)
+    # Calculate balances with breakdown (positive/negative) using service helper
+    courier_breakdown = await calculate_balance_breakdown("courier", courier_ids)
+    business_breakdown = await calculate_balance_breakdown("business", business_ids)
+    vendor_breakdown = await calculate_balance_breakdown("vendor", vendor_ids)
     
     return {
         "couriers": {
-            "balance": courier_balance,
+            "balance": courier_breakdown["balance"],
+            "positive": courier_breakdown["positive"],
+            "negative": courier_breakdown["negative"],
             "count": len(courier_ids)
         },
         "businesses": {
-            "balance": business_balance,
+            "balance": business_breakdown["balance"],
+            "positive": business_breakdown["positive"],
+            "negative": business_breakdown["negative"],
             "count": len(business_ids)
         },
         "vendors": {
-            "balance": vendor_balance,
+            "balance": vendor_breakdown["balance"],
+            "positive": vendor_breakdown["positive"],
+            "negative": vendor_breakdown["negative"],
             "count": len(vendor_ids)
         }
     }
