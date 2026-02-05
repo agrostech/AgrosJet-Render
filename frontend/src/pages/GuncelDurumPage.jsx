@@ -528,32 +528,32 @@ export default function GuncelDurumPage({ companyId }) {
               onClick={handleInstallmentClick}
               data-testid="installment-summary-card"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-semibold text-slate-700">Taksitli Ürünler</span>
-                  <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                    {accountingSummary.installments.product_count} ürün
-                  </span>
-                </div>
-                <span className="text-xs text-muted-foreground">Detay için tıklayın →</span>
+              <div className="flex items-center gap-2 mb-3">
+                <CreditCard className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-600">Taksitli Ürünler</span>
+                <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+                  {accountingSummary.installments.product_count} ürün
+                </span>
+                <ChevronDown className="w-4 h-4 text-slate-400 ml-auto" />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center p-3 rounded-lg bg-purple-50 border border-purple-200">
-                  <p className="text-[10px] text-purple-600 uppercase mb-1">Toplam</p>
-                  <p className="text-sm sm:text-base font-bold font-mono text-purple-700">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-center flex-1">
+                  <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Toplam</p>
+                  <p className="text-sm sm:text-base font-bold font-mono text-slate-700">
                     {new Intl.NumberFormat('tr-TR').format(accountingSummary.installments.total_amount || 0)} ₺
                   </p>
                 </div>
-                <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
-                  <p className="text-[10px] text-green-600 uppercase mb-1">Ödenen</p>
-                  <p className="text-sm sm:text-base font-bold font-mono text-green-700">
+                <div className="w-px h-8 bg-slate-300"></div>
+                <div className="text-center flex-1">
+                  <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Ödenen</p>
+                  <p className="text-sm sm:text-base font-bold font-mono text-green-600">
                     {new Intl.NumberFormat('tr-TR').format(accountingSummary.installments.paid_amount || 0)} ₺
                   </p>
                 </div>
-                <div className="text-center p-3 rounded-lg bg-orange-50 border border-orange-200">
-                  <p className="text-[10px] text-orange-600 uppercase mb-1">Kalan</p>
-                  <p className="text-sm sm:text-base font-bold font-mono text-orange-700">
+                <div className="w-px h-8 bg-slate-300"></div>
+                <div className="text-center flex-1">
+                  <p className="text-[10px] text-muted-foreground uppercase mb-0.5">Kalan</p>
+                  <p className="text-sm sm:text-base font-bold font-mono text-red-600">
                     {new Intl.NumberFormat('tr-TR').format(accountingSummary.installments.remaining_amount || 0)} ₺
                   </p>
                 </div>
