@@ -521,15 +521,22 @@ export default function GuncelDurumPage({ companyId }) {
             </div>
           </div>
 
-          {/* Taksitli Ürünler Özeti */}
+          {/* Taksitli Ürünler Özeti - Tıklanabilir */}
           {accountingSummary.installments && accountingSummary.installments.product_count > 0 && (
-            <div className="pt-4 border-t border-slate-200">
-              <div className="flex items-center gap-2 mb-3">
-                <CreditCard className="w-4 h-4 text-purple-600" />
-                <span className="text-sm font-semibold text-slate-700">Taksitli Ürünler</span>
-                <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                  {accountingSummary.installments.product_count} ürün
-                </span>
+            <div 
+              className="pt-4 border-t border-slate-200 cursor-pointer hover:bg-slate-50 -mx-4 px-4 pb-4 -mb-4 transition-colors rounded-b-lg"
+              onClick={handleInstallmentClick}
+              data-testid="installment-summary-card"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-semibold text-slate-700">Taksitli Ürünler</span>
+                  <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                    {accountingSummary.installments.product_count} ürün
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">Detay için tıklayın →</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center p-3 rounded-lg bg-purple-50 border border-purple-200">
@@ -555,6 +562,146 @@ export default function GuncelDurumPage({ companyId }) {
           )}
         </div>
       )}
+
+      {/* Taksit Detay Modal */}
+      <Dialog open={showInstallmentModal} onOpenChange={setShowInstallmentModal}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-purple-600" />
+              Taksitli Ürün Detayları
+            </DialogTitle>
+          </DialogHeader>
+          
+          {loadingInstallments ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+            </div>
+          ) : installmentDetails ? (
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+              {/* Özet */}
+              <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-lg">
+                <div className="text-center">
+                  <p className="text-[10px] text-purple-600 uppercase">Toplam</p>
+                  <p className="font-bold font-mono text-purple-700">
+                    {new Intl.NumberFormat('tr-TR').format(installmentDetails.summary.total)} ₺
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-green-600 uppercase">Ödenen</p>
+                  <p className="font-bold font-mono text-green-700">
+                    {new Intl.NumberFormat('tr-TR').format(installmentDetails.summary.paid)} ₺
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-orange-600 uppercase">Kalan</p>
+                  <p className="font-bold font-mono text-orange-700">
+                    {new Intl.NumberFormat('tr-TR').format(installmentDetails.summary.remaining)} ₺
+                  </p>
+                </div>
+              </div>
+
+              {/* Kurye Listesi */}
+              {installmentDetails.couriers.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p>Aktif taksitli ürün bulunmuyor</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {installmentDetails.couriers.map((courier) => (
+                    <div 
+                      key={courier.courier_id} 
+                      className="border rounded-lg overflow-hidden"
+                    >
+                      {/* Kurye Header - Tıklanabilir */}
+                      <div 
+                        className="flex items-center justify-between p-3 bg-white cursor-pointer hover:bg-slate-50 transition-colors"
+                        onClick={() => setExpandedCourier(
+                          expandedCourier === courier.courier_id ? null : courier.courier_id
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-medium text-sm">
+                            {courier.courier_name?.charAt(0)?.toUpperCase() || "?"}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{courier.courier_name}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {courier.products.length} ürün
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">Kalan</p>
+                            <p className="font-bold font-mono text-orange-600">
+                              {new Intl.NumberFormat('tr-TR').format(courier.remaining_amount)} ₺
+                            </p>
+                          </div>
+                          <ChevronDown 
+                            className={`w-5 h-5 text-muted-foreground transition-transform ${
+                              expandedCourier === courier.courier_id ? 'rotate-180' : ''
+                            }`} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Ürün Detayları - Genişletilmiş */}
+                      {expandedCourier === courier.courier_id && (
+                        <div className="border-t bg-slate-50 p-3 space-y-2">
+                          {courier.products.map((product) => {
+                            const paidCount = product.installment_count - product.remaining_installments;
+                            const progressPercent = (paidCount / product.installment_count) * 100;
+                            
+                            return (
+                              <div 
+                                key={product.id} 
+                                className="bg-white rounded-lg p-3 border"
+                              >
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <p className="font-medium text-sm">{product.name}</p>
+                                    <p className="text-[10px] text-muted-foreground">
+                                      Taksit: {new Intl.NumberFormat('tr-TR').format(product.installment_amount)} ₺ × {product.installment_count}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-xs font-medium text-purple-600">
+                                      {paidCount}/{product.installment_count} taksit
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Progress Bar */}
+                                <div className="h-2 bg-slate-200 rounded-full overflow-hidden mb-2">
+                                  <div 
+                                    className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all"
+                                    style={{ width: `${progressPercent}%` }}
+                                  />
+                                </div>
+                                
+                                <div className="flex justify-between text-[10px]">
+                                  <span className="text-green-600">
+                                    Ödenen: {new Intl.NumberFormat('tr-TR').format(product.paid_amount)} ₺
+                                  </span>
+                                  <span className="text-orange-600">
+                                    Kalan: {new Intl.NumberFormat('tr-TR').format(product.remaining_amount)} ₺
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
