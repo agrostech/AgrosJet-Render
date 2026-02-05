@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Routes, Route, Link, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, MessageCircle } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 import {
   DropdownMenu,
@@ -19,7 +19,6 @@ import CourierEvraklarPage from "./courier/CourierEvraklarPage";
 import CourierMotosikletimPage from "./courier/CourierMotosikletimPage";
 import CourierJetPuanPage from "./courier/CourierJetPuanPage";
 import CourierAkademiPage from "./courier/CourierAkademiPage";
-import ChatPage from "./ChatPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -29,7 +28,6 @@ const BASE_NAV_ITEMS = [
   { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
   { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package, key: "zimmet" },
   { path: "/courier/motosikletim", label: "Motosikletim", icon: Bike, key: "motosikletim" },
-  { path: "/courier/mesajlar", label: "Mesajlar", icon: MessageCircle, key: "mesajlar" },
   { path: "/courier/akademi", label: "Akademi", icon: GraduationCap, key: "akademi" },
   { path: "/courier/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan" },
   { path: "/courier/evraklar", label: "Evraklar", icon: FileText, key: "evraklar" },
@@ -48,7 +46,6 @@ export default function CourierDashboard() {
   const [companyLogo, setCompanyLogo] = useState("");
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
-  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
 
   // Fetch document status
@@ -68,16 +65,6 @@ export default function CourierDashboard() {
       setMaintenanceNotifications(res.data.total_count || 0);
     } catch (err) {
       console.error("Bakım bildirimleri alınamadı", err);
-    }
-  }, []);
-
-  // Fetch chat unread count
-  const checkChatUnreadCount = useCallback(async (courierId, companyId) => {
-    try {
-      const res = await axios.get(`${API}/chat/unread-count/${courierId}?company_id=${companyId}`);
-      setChatUnreadCount(res.data.count || 0);
-    } catch (err) {
-      console.error("Mesaj sayısı alınamadı", err);
     }
   }, []);
 
@@ -126,20 +113,18 @@ export default function CourierDashboard() {
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
       checkMaintenanceNotifications(parsed.id);
-      checkChatUnreadCount(parsed.id, parsed.company_id);
       
       // İlk kontrol
       checkCourierStatus(parsed.id, parsed.company_id);
       
-      // Her 30 saniyede bir pasif durumunu ve mesajları kontrol et
+      // Her 30 saniyede bir pasif durumunu kontrol et
       const intervalId = setInterval(() => {
         checkCourierStatus(parsed.id, parsed.company_id);
-        checkChatUnreadCount(parsed.id, parsed.company_id);
       }, 30000);
       
       return () => clearInterval(intervalId);
     }
-  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkChatUnreadCount, checkCourierStatus]);
+  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -195,11 +180,6 @@ export default function CourierDashboard() {
                 {item.path === "/courier/motosikletim" && maintenanceNotifications > 0 && (
                   <span className="absolute top-1 right-1 w-4 h-4 bg-white text-primary text-[9px] font-bold rounded-full flex items-center justify-center">
                     {maintenanceNotifications}
-                  </span>
-                )}
-                {item.path === "/courier/mesajlar" && chatUnreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-white text-primary text-[9px] font-bold rounded-full flex items-center justify-center">
-                    {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                   </span>
                 )}
               </Link>
@@ -258,7 +238,6 @@ export default function CourierDashboard() {
           companyName={companyName}
           companyLogo={companyLogo}
           maintenanceNotifications={maintenanceNotifications}
-          chatUnreadCount={chatUnreadCount}
         />
 
         {/* Main Content */}
@@ -271,14 +250,6 @@ export default function CourierDashboard() {
               <Route path="muhasebe" element={<CourierMuhasebePage courierId={user.id} courierName={user.name} companyId={user.company_id} />} />
               <Route path="zimmet" element={<CourierZimmetPage courierId={user.id} />} />
               <Route path="motosikletim" element={<CourierMotosikletimPage courierId={user.id} companyId={user.company_id} />} />
-              <Route path="mesajlar" element={
-                <ChatPage 
-                  userId={user.id} 
-                  userName={user.name} 
-                  userRole="courier"
-                  companyId={user.company_id}
-                />
-              } />
               <Route path="jetpuan" element={<CourierJetPuanPage courierId={user.id} />} />
               <Route path="akademi" element={<CourierAkademiPage companyId={user.company_id} />} />
               <Route path="evraklar" element={

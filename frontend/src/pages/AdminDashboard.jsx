@@ -33,28 +33,17 @@ export default function AdminDashboard() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [badges, setBadges] = useState({});
 
-  // Fetch pending orders count and unread messages for badges
+  // Fetch pending orders count for badge
   const fetchBadges = useCallback(async () => {
     try {
       const stored = localStorage.getItem("user");
       if (!stored) return;
       const userData = JSON.parse(stored);
       const companyId = userData.company_id;
-      const userId = userData.id;
       
       const params = companyId ? `?company_id=${companyId}` : '';
-      
-      // Fetch JetPuan and Chat badges in parallel
-      const [jetpuanRes, chatRes] = await Promise.all([
-        axios.get(`${API}/jetpuan/orders/pending-count${params}`),
-        axios.get(`${API}/chat/unread-count/${userId}${params}`)
-      ]);
-      
-      setBadges(prev => ({ 
-        ...prev, 
-        jetpuan: jetpuanRes.data.count,
-        mesajlar: chatRes.data.count
-      }));
+      const res = await axios.get(`${API}/jetpuan/orders/pending-count${params}`);
+      setBadges(prev => ({ ...prev, jetpuan: res.data.count }));
     } catch (err) {
       console.error("Badge fetch error:", err);
     }
@@ -131,7 +120,6 @@ export default function AdminDashboard() {
     { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya", permKey: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
-    { path: "/admin/mesajlar", label: "Mesajlar", icon: MessageCircle, key: "mesajlar", permKey: null },
     { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan", permKey: "market" },
     { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi", permKey: "akademi" },
     { path: "/admin/kuryeler", label: "Kuryeler", icon: Users, key: "kuryeler", permKey: "kuryeler" },
