@@ -256,6 +256,16 @@ export function OrdersTab({ companyId }) {
         onConfirm={confirmCancel}
         variant="warning"
       />
+
+      {/* Superadmin permanent delete modal */}
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Siparişi Kalıcı Sil"
+        description="Bu siparişi kalıcı olarak silmek istediğinize emin misiniz? JetPuan iadesi yapılmayacak!"
+        onConfirm={confirmPermanentDelete}
+        variant="destructive"
+      />
     </div>
   );
 }
