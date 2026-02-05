@@ -503,10 +503,30 @@ async def get_accounting_summary(company_id: str):
 
 
 async def get_installment_summary(company_id: str) -> dict:
-    """Get installment products summary for a company"""
-    # Get active (not completed) installment products
+    """Get installment products summary for a company - filtered by company's couriers"""
+    # First get courier IDs that belong to this company
+    courier_relations = await db.company_couriers.find(
+        {
+            "company_id": company_id,
+            "$and": [
+                {"$or": [{"is_active": {"$exists": False}}, {"is_active": True}]},
+                {"$or": [{"is_archived": {"$exists": False}}, {"is_archived": False}]}
+            ]
+        },
+        {"_id": 0, "courier_id": 1}
+    ).to_list(500)
+    
+    courier_ids = [r["courier_id"] for r in courier_relations]
+    
+    if not courier_ids:
+        return {"total_amount": 0, "paid_amount": 0, "remaining_amount": 0, "product_count": 0}
+    
+    # Get active (not completed) installment products for these couriers
     active_products = await db.installment_products.find(
-        {"company_id": company_id, "is_completed": {"$ne": True}},
+        {
+            "courier_id": {"$in": courier_ids},
+            "is_completed": {"$ne": True}
+        },
         {"_id": 0}
     ).to_list(1000)
     
