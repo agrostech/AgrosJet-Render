@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown, MessageCircle } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown } from "lucide-react";
 
 // Page components
 import VardiyaPage from "./VardiyaPage";
@@ -15,7 +15,6 @@ import YoneticilerPage from "./admin/YoneticilerPage";
 import SistemPage from "./SistemPage";
 import JetPuanMarketPage from "./JetPuanMarketPage";
 import AkademiPage from "./admin/AkademiPage";
-import ChatPage from "./ChatPage";
 
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -272,14 +271,6 @@ export default function AdminDashboard() {
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />
               )}
-              <Route path="mesajlar" element={
-                <ChatPage 
-                  userId={user.id} 
-                  userName={user.name || user.username} 
-                  userRole={user.role === "superadmin" ? "admin" : user.role}
-                  companyId={user.company_id}
-                />
-              } />
               {(isSuperAdmin || permissions.market) && (
                 <Route path="jetpuan" element={<JetPuanMarketPage companyId={user.company_id} />} />
               )}
