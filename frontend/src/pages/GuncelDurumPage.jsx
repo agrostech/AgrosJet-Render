@@ -489,6 +489,39 @@ export default function GuncelDurumPage({ companyId }) {
               </div>
             </div>
           </div>
+
+          {/* Taksitli Ürünler Özeti */}
+          {accountingSummary.installments && accountingSummary.installments.product_count > 0 && (
+            <div className="pt-4 border-t border-slate-200">
+              <div className="flex items-center gap-2 mb-3">
+                <CreditCard className="w-4 h-4 text-purple-600" />
+                <span className="text-sm font-semibold text-slate-700">Taksitli Ürünler</span>
+                <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                  {accountingSummary.installments.product_count} ürün
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-3 rounded-lg bg-purple-50 border border-purple-200">
+                  <p className="text-[10px] text-purple-600 uppercase mb-1">Toplam</p>
+                  <p className="text-sm sm:text-base font-bold font-mono text-purple-700">
+                    {new Intl.NumberFormat('tr-TR').format(accountingSummary.installments.total_amount || 0)} ₺
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
+                  <p className="text-[10px] text-green-600 uppercase mb-1">Ödenen</p>
+                  <p className="text-sm sm:text-base font-bold font-mono text-green-700">
+                    {new Intl.NumberFormat('tr-TR').format(accountingSummary.installments.paid_amount || 0)} ₺
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-orange-50 border border-orange-200">
+                  <p className="text-[10px] text-orange-600 uppercase mb-1">Kalan</p>
+                  <p className="text-sm sm:text-base font-bold font-mono text-orange-700">
+                    {new Intl.NumberFormat('tr-TR').format(accountingSummary.installments.remaining_amount || 0)} ₺
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
