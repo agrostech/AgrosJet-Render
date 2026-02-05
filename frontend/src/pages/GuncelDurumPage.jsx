@@ -114,11 +114,36 @@ export default function GuncelDurumPage({ companyId }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null); // null = bugün (default)
   const [expandedShift, setExpandedShift] = useState(null); // Mobilde genişletilmiş vardiya
+  
+  // Taksit detay modal state
+  const [showInstallmentModal, setShowInstallmentModal] = useState(false);
+  const [installmentDetails, setInstallmentDetails] = useState(null);
+  const [loadingInstallments, setLoadingInstallments] = useState(false);
+  const [expandedCourier, setExpandedCourier] = useState(null);
 
   const workDay = getWorkDay();
   const activeDay = selectedDay || workDay.dayKey;
   const activeDayLabel = DAYS.find(d => d.key === activeDay)?.label || workDay.dayLabel;
   const isToday = !selectedDay || selectedDay === workDay.dayKey;
+
+  // Fetch installment details
+  const fetchInstallmentDetails = async () => {
+    setLoadingInstallments(true);
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}/installment-products/details`);
+      setInstallmentDetails(res.data);
+    } catch (err) {
+      console.error("Taksit detayları alınamadı:", err);
+      toast.error("Taksit detayları yüklenemedi");
+    } finally {
+      setLoadingInstallments(false);
+    }
+  };
+
+  const handleInstallmentClick = () => {
+    setShowInstallmentModal(true);
+    fetchInstallmentDetails();
+  };
 
   const fetchData = async () => {
     try {
