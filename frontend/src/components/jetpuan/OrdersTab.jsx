@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Check, X, Clock, Package } from "lucide-react";
+import { Check, X, Clock, Package, Trash2 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -19,10 +19,23 @@ export function OrdersTab({ companyId }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [userRole, setUserRole] = useState(null);
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingCancelOrderId, setPendingCancelOrderId] = useState(null);
+  
+  // Delete Modal State (for superadmin)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteOrderId, setPendingDeleteOrderId] = useState(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const userData = JSON.parse(stored);
+      setUserRole(userData.role);
+    }
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -82,6 +95,29 @@ export function OrdersTab({ companyId }) {
     }
   };
 
+  // Superadmin permanent delete
+  const handlePermanentDelete = (orderId) => {
+    setPendingDeleteOrderId(orderId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmPermanentDelete = async () => {
+    if (!pendingDeleteOrderId) return;
+    try {
+      await axios.delete(`${API}/jetpuan/orders/${pendingDeleteOrderId}/permanent?admin_role=${userRole}`);
+      toast.success("Sipariş kalıcı olarak silindi");
+      fetchOrders();
+      refreshBadges();
+    } catch (err) {
+      if (!err.handled) {
+        toast.error(err.response?.data?.detail || "Silme başarısız");
+      }
+    } finally {
+      setDeleteConfirmOpen(false);
+      setPendingDeleteOrderId(null);
+    }
+  };
+
   const filteredOrders = filterStatus === "all"
     ? orders
     : orders.filter(o => o.status === filterStatus);
@@ -97,6 +133,8 @@ export function OrdersTab({ companyId }) {
       minute: '2-digit'
     });
   };
+
+  const isSuperAdmin = userRole === "superadmin";
 
   if (loading) return <PageLoading />;
 
