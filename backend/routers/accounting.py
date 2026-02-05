@@ -497,9 +497,35 @@ async def get_accounting_summary(company_id: str):
             "positive": vendor_breakdown["positive"],
             "negative": vendor_breakdown["negative"],
             "count": len(vendor_ids)
-        }
+        },
+        "installments": await get_installment_summary(company_id)
     }
 
+
+async def get_installment_summary(company_id: str) -> dict:
+    """Get installment products summary for a company"""
+    # Get active (not completed) installment products
+    active_products = await db.installment_products.find(
+        {"company_id": company_id, "is_completed": {"$ne": True}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    total_amount = 0  # Toplam taksit tutarı
+    paid_amount = 0   # Ödenen tutar
+    remaining_amount = 0  # Kalan tutar
+    product_count = len(active_products)
+    
+    for p in active_products:
+        total_amount += p.get("total_amount", 0)
+        paid_amount += p.get("paid_amount", 0)
+        remaining_amount += (p.get("total_amount", 0) - p.get("paid_amount", 0))
+    
+    return {
+        "total_amount": total_amount,
+        "paid_amount": paid_amount,
+        "remaining_amount": remaining_amount,
+        "product_count": product_count
+    }
 
 
 # --- Taksitli Ürün (Installment Products) ---
