@@ -144,9 +144,25 @@ async def login_admin(data: AdminLogin):
     if not admin or admin["password"] != hash_password(data.password):
         raise HTTPException(status_code=401, detail="Geçersiz kullanıcı adı veya şifre")
     
+    # Get company_ids array (for multi-company access)
+    company_ids = admin.get("company_ids", [])
+    
+    # If no company_ids array, fall back to single company_id
+    if not company_ids and admin.get("company_id"):
+        company_ids = [admin["company_id"]]
+    
+    # Get primary company (first in list or single company_id)
+    primary_company_id = company_ids[0] if company_ids else admin.get("company_id")
+    
     company = None
-    if admin["company_id"]:
-        company = await db.companies.find_one({"id": admin["company_id"]}, {"_id": 0})
+    if primary_company_id:
+        company = await db.companies.find_one({"id": primary_company_id}, {"_id": 0})
+    
+    # Fetch all accessible companies
+    accessible_companies = []
+    if company_ids:
+        companies_cursor = db.companies.find({"id": {"$in": company_ids}}, {"_id": 0, "id": 1, "name": 1, "logo_url": 1})
+        accessible_companies = await companies_cursor.to_list(100)
     
     # Simple permission keys
     simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
@@ -178,8 +194,10 @@ async def login_admin(data: AdminLogin):
         "role": admin["role"],
         "permissions": permissions,
         "permissions_updated_at": admin.get("permissions_updated_at"),
-        "company_id": admin["company_id"],
+        "company_id": primary_company_id,
+        "company_ids": company_ids,
         "company": company,
+        "accessible_companies": accessible_companies,
         "email": admin.get("email")
     }
 
