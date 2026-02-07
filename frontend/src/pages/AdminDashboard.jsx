@@ -291,36 +291,46 @@ export default function AdminDashboard() {
           onProfileClick={() => setShowProfileModal(true)}
           onLogout={handleLogout}
           badges={badges}
+          companySwitcher={
+            accessibleCompanies.length > 1 ? (
+              <CompanySwitcher
+                companies={accessibleCompanies}
+                currentCompanyId={activeCompanyId}
+                onSwitch={handleCompanySwitch}
+                collapsed={sidebarCollapsed}
+              />
+            ) : null
+          }
         />
 
         {/* Main Content */}
         <main className={`flex-1 overflow-x-auto transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'}`}>
           <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
             <Routes>
-              <Route index element={<GuncelDurumPage companyId={user.company_id} />} />
+              <Route index element={<GuncelDurumPage companyId={activeCompanyId} />} />
               {(isSuperAdmin || permissions.vardiya) && (
-                <Route path="vardiyalar" element={<VardiyaPage companyId={user.company_id} />} />
+                <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />
               )}
               {(isSuperAdmin || permissions.muhasebe) && (
-                <Route path="muhasebe" element={<MuhasebePage companyId={user.company_id} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
+                <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
               )}
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />
               )}
               {(isSuperAdmin || permissions.market) && (
-                <Route path="jetpuan" element={<JetPuanMarketPage companyId={user.company_id} />} />
+                <Route path="jetpuan" element={<JetPuanMarketPage companyId={activeCompanyId} />} />
               )}
               {(isSuperAdmin || permissions.akademi) && (
-                <Route path="akademi" element={<AkademiPage companyId={user.company_id} companyName={company?.name} />} />
+                <Route path="akademi" element={<AkademiPage companyId={activeCompanyId} companyName={company?.name} />} />
               )}
               {(isSuperAdmin || permissions.kuryeler) && (
-                <Route path="kuryeler" element={<KuryelerPage companyId={user.company_id} />} />
+                <Route path="kuryeler" element={<KuryelerPage companyId={activeCompanyId} />} />
               )}
               {isSuperAdmin && (
-                <Route path="yoneticiler" element={<YoneticilerPage companyId={user.company_id} />} />
+                <Route path="yoneticiler" element={<YoneticilerPage companyId={activeCompanyId} />} />
               )}
               {(isSuperAdmin || permissions.sistem) && (
-                <Route path="sistem" element={<SistemPage companyId={user.company_id} />} />
+                <Route path="sistem" element={<SistemPage companyId={activeCompanyId} />} />
               )}
             </Routes>
           </div>
