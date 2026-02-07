@@ -174,14 +174,25 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-slate-50" data-testid="admin-dashboard">
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {company?.logo_url ? (
-            <img src={company.logo_url} alt={company.name} className="h-8 object-contain" />
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Company Switcher for mobile - shows if multiple companies */}
+          {accessibleCompanies.length > 1 ? (
+            <CompanySwitcher
+              companies={accessibleCompanies}
+              currentCompanyId={activeCompanyId}
+              onSwitch={handleCompanySwitch}
+              collapsed={false}
+            />
           ) : (
-            <span className="font-heading text-lg font-bold">{company?.name}</span>
+            // Single company - just show logo/name
+            company?.logo_url ? (
+              <img src={company.logo_url} alt={company.name} className="h-8 object-contain" />
+            ) : (
+              <span className="font-heading text-lg font-bold truncate">{company?.name}</span>
+            )
           )}
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white hover:bg-white/10" data-testid="admin-mobile-menu-btn">
+        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white hover:bg-white/10 flex-shrink-0" data-testid="admin-mobile-menu-btn">
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </Button>
       </header>
