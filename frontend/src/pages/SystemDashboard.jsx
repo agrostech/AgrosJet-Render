@@ -1040,6 +1040,7 @@ export default function SystemDashboard() {
   const NAV_ITEMS = [
     { path: "/system", label: "Şirketler", icon: Building2 },
     { path: "/system/yoneticiler", label: "Yöneticiler", icon: UserCog },
+    { path: "/system/kuryeler", label: "Kuryeler", icon: Users },
     { path: "/system/ayarlar", label: "Ayarlar", icon: Settings },
   ];
 
