@@ -32,7 +32,7 @@ class CompanyResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     name: str
-    logo_url: str
+    logo_url: Optional[str] = None
     tckn_vkn: Optional[str] = ""
     address: Optional[str] = ""
     tax_office: Optional[str] = ""
