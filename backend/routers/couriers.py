@@ -42,10 +42,36 @@ class CourierResponse(BaseModel):
 
 
 # --- Courier Management ---
+@router.get("/couriers/all")
+async def get_all_couriers_system():
+    """Get all couriers in the system with company info (for system admin)"""
+    return await courier_service.get_all_couriers()
+
+
 @router.get("/couriers")
 async def get_all_couriers():
     """Get all couriers in the system (for system admin)"""
     return await courier_service.get_all_couriers()
+
+
+@router.delete("/couriers/{courier_id}/permanent")
+async def delete_courier_permanently(courier_id: str):
+    """Permanently delete a courier account and all related data"""
+    # Check if courier exists
+    courier = await db.couriers.find_one({"id": courier_id})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Delete courier from all companies (company_couriers)
+    await db.company_couriers.delete_many({"courier_id": courier_id})
+    
+    # Delete courier's transactions (optional - might want to keep for records)
+    # await db.transactions.delete_many({"entity_id": courier_id, "entity_type": "courier"})
+    
+    # Delete courier
+    await db.couriers.delete_one({"id": courier_id})
+    
+    return {"message": "Kurye hesabı kalıcı olarak silindi"}
 
 
 @router.get("/couriers/search")
