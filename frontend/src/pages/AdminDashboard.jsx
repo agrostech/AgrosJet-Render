@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown, Building2 } from "lucide-react";
 
 // Page components
 import VardiyaPage from "./VardiyaPage";
@@ -19,6 +19,7 @@ import AkademiPage from "./admin/AkademiPage";
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import ProfileModal from "@/components/admin/ProfileModal";
+import CompanySwitcher from "@/components/admin/CompanySwitcher";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -31,22 +32,47 @@ export default function AdminDashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [badges, setBadges] = useState({});
+  
+  // Multi-company state
+  const [activeCompanyId, setActiveCompanyId] = useState(null);
+  const [accessibleCompanies, setAccessibleCompanies] = useState([]);
 
   // Fetch pending orders count for badge
   const fetchBadges = useCallback(async () => {
     try {
-      const stored = localStorage.getItem("user");
-      if (!stored) return;
-      const userData = JSON.parse(stored);
-      const companyId = userData.company_id;
+      const companyId = activeCompanyId;
+      if (!companyId) return;
       
-      const params = companyId ? `?company_id=${companyId}` : '';
+      const params = `?company_id=${companyId}`;
       const res = await axios.get(`${API}/jetpuan/orders/pending-count${params}`);
       setBadges(prev => ({ ...prev, jetpuan: res.data.count }));
     } catch (err) {
       console.error("Badge fetch error:", err);
     }
-  }, []);
+  }, [activeCompanyId]);
+
+  // Handle company switch
+  const handleCompanySwitch = useCallback((newCompanyId) => {
+    const newCompany = accessibleCompanies.find(c => c.id === newCompanyId);
+    if (!newCompany) return;
+
+    setActiveCompanyId(newCompanyId);
+    
+    // Update localStorage
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const userData = JSON.parse(stored);
+      userData.company_id = newCompanyId;
+      userData.company = newCompany;
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+    }
+    
+    toast.success(`${newCompany.name} şirketine geçildi`);
+    
+    // Refresh badges for new company
+    setTimeout(() => fetchBadges(), 100);
+  }, [accessibleCompanies, fetchBadges]);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -60,6 +86,16 @@ export default function AdminDashboard() {
       return;
     }
     setUser(parsed);
+    
+    // Set accessible companies and active company
+    const companies = parsed.accessible_companies || [];
+    if (companies.length > 0) {
+      setAccessibleCompanies(companies);
+    } else if (parsed.company) {
+      // Fallback: single company
+      setAccessibleCompanies([parsed.company]);
+    }
+    setActiveCompanyId(parsed.company_id);
     
     // İzin güncelleme kontrolü (sadece admin için, superadmin hariç)
     const checkPermissionUpdate = async () => {
