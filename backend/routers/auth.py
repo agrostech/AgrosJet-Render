@@ -202,6 +202,31 @@ async def login_admin(data: AdminLogin):
     }
 
 
+@router.put("/admin/{admin_id}/companies")
+async def update_admin_companies(admin_id: str, company_ids: list[str]):
+    """Update the list of companies an admin can access (superadmin only)"""
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin bulunamadı")
+    
+    # Validate all company_ids exist
+    for cid in company_ids:
+        company = await db.companies.find_one({"id": cid}, {"_id": 0, "id": 1})
+        if not company:
+            raise HTTPException(status_code=400, detail=f"Şirket bulunamadı: {cid}")
+    
+    # Update admin with new company_ids
+    primary_company_id = company_ids[0] if company_ids else None
+    await db.admins.update_one(
+        {"id": admin_id},
+        {"$set": {
+            "company_ids": company_ids,
+            "company_id": primary_company_id
+        }}
+    )
+    
+    return {"message": "Şirketler güncellendi", "company_ids": company_ids}
+
 
 @router.get("/check-permissions/{admin_id}")
 async def check_permissions_update(admin_id: str, timestamp: str = None):
