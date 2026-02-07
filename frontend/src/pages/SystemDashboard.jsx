@@ -641,6 +641,179 @@ function YoneticilerPage() {
 }
 
 
+// ============ KURYELER PAGE ============
+function KuryelerPage() {
+  const [couriers, setCouriers] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCompany, setFilterCompany] = useState("all");
+  
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
+
+  const fetchData = async () => {
+    try {
+      const [couriersRes, companiesRes] = await Promise.all([
+        axios.get(`${API}/couriers/all`),
+        axios.get(`${API}/companies`)
+      ]);
+      setCouriers(couriersRes.data);
+      setCompanies(companiesRes.data);
+    } catch (err) {
+      toast.error("Veriler yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDeleteCourier = (courier) => {
+    setConfirmConfig({
+      title: "Kurye Hesabını Sil",
+      description: `"${courier.name}" kuryesinin hesabını kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+      onConfirm: async () => {
+        try {
+          await axios.delete(`${API}/couriers/${courier.id}/permanent`);
+          toast.success("Kurye hesabı silindi");
+          fetchData();
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "Silme başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
+  };
+
+  const getCompanyName = (companyId) => {
+    const company = companies.find(c => c.id === companyId);
+    return company?.name || "-";
+  };
+
+  const filteredCouriers = couriers.filter(c => {
+    const matchesSearch = !searchQuery || 
+      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.phone?.includes(searchQuery);
+    const matchesCompany = filterCompany === "all" || 
+      c.company_ids?.includes(filterCompany) ||
+      c.company_id === filterCompany;
+    return matchesSearch && matchesCompany;
+  });
+
+  if (loading) return <PageLoading />;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">Kuryeler</h1>
+          <p className="text-muted-foreground text-sm">Sistemdeki tüm kurye hesaplarını görüntüleyin</p>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            placeholder="İsim veya telefon ara..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-48 border-2"
+          />
+          <select
+            value={filterCompany}
+            onChange={(e) => setFilterCompany(e.target.value)}
+            className="h-10 px-3 border-2 rounded-md text-sm"
+          >
+            <option value="all">Tüm Şirketler</option>
+            {companies.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="bg-white border-2 border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-slate-50">
+              <TableHead className="font-bold">Ad Soyad</TableHead>
+              <TableHead className="font-bold">Telefon</TableHead>
+              <TableHead className="font-bold">Şirketler</TableHead>
+              <TableHead className="font-bold">Kayıt Tarihi</TableHead>
+              <TableHead className="font-bold">Durum</TableHead>
+              <TableHead className="font-bold text-right">İşlemler</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCouriers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  {searchQuery || filterCompany !== "all" ? "Arama kriterlerine uygun kurye bulunamadı" : "Henüz kurye kaydı yok"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredCouriers.map((courier) => (
+                <TableRow key={courier.id}>
+                  <TableCell className="font-semibold">{courier.name}</TableCell>
+                  <TableCell className="font-mono text-sm text-muted-foreground">{courier.phone}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {(courier.company_names || []).map((name, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-slate-100 text-xs rounded">
+                          {name}
+                        </span>
+                      ))}
+                      {(!courier.company_names || courier.company_names.length === 0) && (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {courier.created_at ? new Date(courier.created_at).toLocaleDateString('tr-TR') : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                      courier.is_active !== false ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}>
+                      {courier.is_active !== false ? "Aktif" : "Pasif"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleDeleteCourier(courier)}
+                      className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600"
+                      title="Hesabı Sil"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="text-sm text-muted-foreground">
+        Toplam {filteredCouriers.length} kurye {filterCompany !== "all" || searchQuery ? "(filtrelenmiş)" : ""}
+      </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={confirmConfig.onConfirm}
+        variant="destructive"
+      />
+    </div>
+  );
+}
+
+
 // ============ SİSTEM AYARLARI PAGE ============
 function SistemAyarlariPage() {
   const [loading, setLoading] = useState(true);
