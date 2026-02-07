@@ -42,7 +42,9 @@ class AdminCreate(BaseModel):
     name: str
     username: str
     password: str
-    company_id: str
+    company_id: Optional[str] = None
+    company_ids: Optional[List[str]] = None
+    role: Optional[str] = "admin"
 
 
 class SuperAdminCreate(BaseModel):
@@ -71,6 +73,7 @@ class AdminResponse(BaseModel):
     role: str
     permissions: Optional[Dict[str, bool]] = None
     company_id: Optional[str] = None
+    company_ids: Optional[List[str]] = None
     email: Optional[str] = None
     created_at: str
 
