@@ -1096,6 +1096,7 @@ export default function SystemDashboard() {
             <Routes>
               <Route index element={<SirketlerPage />} />
               <Route path="yoneticiler" element={<YoneticilerPage />} />
+              <Route path="kuryeler" element={<KuryelerPage />} />
               <Route path="ayarlar" element={<SistemAyarlariPage />} />
             </Routes>
           </div>
