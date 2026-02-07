@@ -10,7 +10,8 @@ export default function AdminSidebar({
   setSidebarCollapsed, 
   onProfileClick,
   onLogout,
-  badges = {}
+  badges = {},
+  companySwitcher = null
 }) {
   const location = useLocation();
   const isSuperAdmin = user?.role === "superadmin";
@@ -30,6 +31,13 @@ export default function AdminSidebar({
           </>
         )}
       </div>
+      
+      {/* Company Switcher - if available */}
+      {companySwitcher && (
+        <div className={`border-b border-white/20 ${sidebarCollapsed ? 'p-1' : 'p-2'}`}>
+          {companySwitcher}
+        </div>
+      )}
       
       <nav className="flex-1 py-2 overflow-y-auto">
         {navItems.map((item) => (
