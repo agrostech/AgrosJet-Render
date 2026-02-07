@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -20,10 +21,625 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, UserPlus, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// ============ ŞİRKETLER PAGE (Sadece Şirket CRUD) ============
+function SirketlerPage() {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [newCompany, setNewCompany] = useState({ name: "", logo_url: "" });
+  
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await axios.get(`${API}/companies`);
+      setCompanies(res.data);
+    } catch (err) {
+      toast.error("Şirketler yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const handleAddCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/companies`, newCompany);
+      toast.success("Şirket oluşturuldu");
+      setShowAddModal(false);
+      setNewCompany({ name: "", logo_url: "" });
+      fetchCompanies();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Oluşturma başarısız");
+    }
+  };
+
+  const handleUpdateCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${API}/companies/${selectedCompany.id}`, {
+        name: selectedCompany.name,
+        logo_url: selectedCompany.logo_url
+      });
+      toast.success("Şirket güncellendi");
+      setShowEditModal(false);
+      fetchCompanies();
+    } catch (err) {
+      toast.error("Güncelleme başarısız");
+    }
+  };
+
+  const handleDeleteCompany = (company) => {
+    setConfirmConfig({
+      title: "Şirketi Sil",
+      description: `"${company.name}" şirketini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+      onConfirm: async () => {
+        try {
+          await axios.delete(`${API}/companies/${company.id}`);
+          toast.success("Şirket silindi");
+          fetchCompanies();
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "Silme başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
+  };
+
+  if (loading) return <PageLoading />;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">Şirketler</h1>
+          <p className="text-muted-foreground text-sm">Sistemdeki tüm şirketleri yönetin</p>
+        </div>
+        <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-company-btn">
+          <Plus className="w-4 h-4 mr-2" />
+          Şirket Ekle
+        </Button>
+      </div>
+
+      <div className="bg-white border-2 border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-slate-50">
+              <TableHead className="font-bold">Logo</TableHead>
+              <TableHead className="font-bold">Şirket Adı</TableHead>
+              <TableHead className="font-bold">Oluşturma Tarihi</TableHead>
+              <TableHead className="font-bold text-right">İşlemler</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {companies.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  Henüz şirket eklenmemiş
+                </TableCell>
+              </TableRow>
+            ) : (
+              companies.map((company) => (
+                <TableRow key={company.id}>
+                  <TableCell>
+                    {company.logo_url ? (
+                      <img src={company.logo_url} alt={company.name} className="h-10 w-auto object-contain" />
+                    ) : (
+                      <div className="w-10 h-10 bg-slate-100 flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-slate-400" />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-semibold">{company.name}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {new Date(company.created_at).toLocaleDateString('tr-TR')}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => { setSelectedCompany(company); setShowEditModal(true); }}
+                        className="h-8 px-2 border-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleDeleteCompany(company)}
+                        className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Add Company Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Yeni Şirket Ekle</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddCompany} className="space-y-4">
+            <div>
+              <Label className="text-sm font-semibold">Şirket Adı</Label>
+              <Input 
+                value={newCompany.name} 
+                onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })} 
+                className="mt-1 h-12 border-2" 
+                placeholder="Örn: ShiftJet İstanbul"
+                required 
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Logo URL (opsiyonel)</Label>
+              <Input 
+                value={newCompany.logo_url} 
+                onChange={(e) => setNewCompany({ ...newCompany, logo_url: e.target.value })} 
+                className="mt-1 h-12 border-2" 
+                placeholder="https://..."
+              />
+            </div>
+            <Button type="submit" className="w-full h-12 font-semibold">Oluştur</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Company Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Şirketi Düzenle</DialogTitle>
+          </DialogHeader>
+          {selectedCompany && (
+            <form onSubmit={handleUpdateCompany} className="space-y-4">
+              <div>
+                <Label className="text-sm font-semibold">Şirket Adı</Label>
+                <Input 
+                  value={selectedCompany.name} 
+                  onChange={(e) => setSelectedCompany({ ...selectedCompany, name: e.target.value })} 
+                  className="mt-1 h-12 border-2" 
+                  required 
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Logo URL</Label>
+                <Input 
+                  value={selectedCompany.logo_url || ""} 
+                  onChange={(e) => setSelectedCompany({ ...selectedCompany, logo_url: e.target.value })} 
+                  className="mt-1 h-12 border-2" 
+                  placeholder="https://..."
+                />
+              </div>
+              {selectedCompany.logo_url && (
+                <div className="p-3 bg-slate-50 border-2">
+                  <p className="text-xs text-muted-foreground mb-2">Önizleme:</p>
+                  <img src={selectedCompany.logo_url} alt="Logo" className="h-16 object-contain" />
+                </div>
+              )}
+              <Button type="submit" className="w-full h-12 font-semibold">Kaydet</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={confirmConfig.onConfirm}
+        variant="destructive"
+      />
+    </div>
+  );
+}
+
+
+// ============ YÖNETİCİLER PAGE (Tüm Adminler + Şirket Atama) ============
+function YoneticilerPage() {
+  const [admins, setAdmins] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [saving, setSaving] = useState(false);
+  
+  const [newAdmin, setNewAdmin] = useState({ 
+    name: "", 
+    username: "", 
+    password: "",
+    role: "superadmin",
+    company_ids: []
+  });
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
+
+  const fetchData = async () => {
+    try {
+      const [adminsRes, companiesRes] = await Promise.all([
+        axios.get(`${API}/admins/all`),
+        axios.get(`${API}/companies`)
+      ]);
+      setAdmins(adminsRes.data);
+      setCompanies(companiesRes.data);
+    } catch (err) {
+      toast.error("Veriler yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAddAdmin = async (e) => {
+    e.preventDefault();
+    if (newAdmin.company_ids.length === 0) {
+      toast.error("En az bir şirket seçmelisiniz");
+      return;
+    }
+    setSaving(true);
+    try {
+      await axios.post(`${API}/admins`, {
+        name: newAdmin.name,
+        username: newAdmin.username,
+        password: newAdmin.password,
+        role: newAdmin.role,
+        company_ids: newAdmin.company_ids
+      });
+      toast.success("Yönetici oluşturuldu");
+      setShowAddModal(false);
+      setNewAdmin({ name: "", username: "", password: "", role: "superadmin", company_ids: [] });
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Oluşturma başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateAdmin = async (e) => {
+    e.preventDefault();
+    if (selectedAdmin.company_ids.length === 0) {
+      toast.error("En az bir şirket seçmelisiniz");
+      return;
+    }
+    setSaving(true);
+    try {
+      // Update basic info
+      await axios.put(`${API}/admins/${selectedAdmin.id}`, {
+        name: selectedAdmin.name,
+        password: selectedAdmin.newPassword || undefined
+      });
+      // Update companies
+      await axios.put(`${API}/auth/admin/${selectedAdmin.id}/companies`, selectedAdmin.company_ids);
+      toast.success("Yönetici güncellendi");
+      setShowEditModal(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAdmin = (admin) => {
+    setConfirmConfig({
+      title: "Yöneticiyi Sil",
+      description: `"${admin.name}" yöneticisini silmek istediğinize emin misiniz?`,
+      onConfirm: async () => {
+        try {
+          await axios.delete(`${API}/admins/${admin.id}`);
+          toast.success("Yönetici silindi");
+          fetchData();
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "Silme başarısız");
+        }
+        setConfirmOpen(false);
+      }
+    });
+    setConfirmOpen(true);
+  };
+
+  const toggleCompanySelection = (companyId, isNew = false) => {
+    if (isNew) {
+      setNewAdmin(prev => ({
+        ...prev,
+        company_ids: prev.company_ids.includes(companyId)
+          ? prev.company_ids.filter(id => id !== companyId)
+          : [...prev.company_ids, companyId]
+      }));
+    } else {
+      setSelectedAdmin(prev => ({
+        ...prev,
+        company_ids: prev.company_ids.includes(companyId)
+          ? prev.company_ids.filter(id => id !== companyId)
+          : [...prev.company_ids, companyId]
+      }));
+    }
+  };
+
+  const getCompanyNames = (companyIds) => {
+    if (!companyIds || companyIds.length === 0) return "-";
+    return companyIds
+      .map(id => companies.find(c => c.id === id)?.name)
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  const openEditModal = (admin) => {
+    setSelectedAdmin({
+      ...admin,
+      company_ids: admin.company_ids || (admin.company_id ? [admin.company_id] : []),
+      newPassword: ""
+    });
+    setShowEditModal(true);
+  };
+
+  if (loading) return <PageLoading />;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">Yöneticiler</h1>
+          <p className="text-muted-foreground text-sm">Tüm yöneticileri ve şirket erişimlerini yönetin</p>
+        </div>
+        <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-admin-btn">
+          <Plus className="w-4 h-4 mr-2" />
+          Yönetici Ekle
+        </Button>
+      </div>
+
+      <div className="bg-white border-2 border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-slate-50">
+              <TableHead className="font-bold">Ad Soyad</TableHead>
+              <TableHead className="font-bold">Kullanıcı Adı</TableHead>
+              <TableHead className="font-bold">Rol</TableHead>
+              <TableHead className="font-bold">Erişebildiği Şirketler</TableHead>
+              <TableHead className="font-bold text-right">İşlemler</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {admins.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  Henüz yönetici eklenmemiş
+                </TableCell>
+              </TableRow>
+            ) : (
+              admins.map((admin) => (
+                <TableRow key={admin.id}>
+                  <TableCell className="font-semibold">{admin.name}</TableCell>
+                  <TableCell className="font-mono text-sm text-muted-foreground">{admin.username}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                      admin.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"
+                    }`}>
+                      {admin.role === "superadmin" ? "Süper Admin" : "Admin"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {(admin.company_ids || (admin.company_id ? [admin.company_id] : [])).map(cid => {
+                        const comp = companies.find(c => c.id === cid);
+                        return comp ? (
+                          <span key={cid} className="px-2 py-0.5 bg-slate-100 text-xs rounded">
+                            {comp.name}
+                          </span>
+                        ) : null;
+                      })}
+                      {(!admin.company_ids || admin.company_ids.length === 0) && !admin.company_id && (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => openEditModal(admin)}
+                        className="h-8 px-2 border-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleDeleteAdmin(admin)}
+                        className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Add Admin Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Yeni Yönetici Ekle</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddAdmin} className="space-y-4">
+            <div>
+              <Label className="text-sm font-semibold">Ad Soyad</Label>
+              <Input 
+                value={newAdmin.name} 
+                onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} 
+                className="mt-1 h-12 border-2" 
+                required 
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Kullanıcı Adı</Label>
+              <Input 
+                value={newAdmin.username} 
+                onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} 
+                className="mt-1 h-12 border-2" 
+                required 
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Şifre</Label>
+              <Input 
+                type="password"
+                value={newAdmin.password} 
+                onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} 
+                className="mt-1 h-12 border-2" 
+                required 
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Rol</Label>
+              <div className="flex gap-4 mt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    checked={newAdmin.role === "superadmin"}
+                    onChange={() => setNewAdmin({ ...newAdmin, role: "superadmin" })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Süper Admin</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    checked={newAdmin.role === "admin"}
+                    onChange={() => setNewAdmin({ ...newAdmin, role: "admin" })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Admin</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Erişebileceği Şirketler</Label>
+              <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border-2 rounded p-3">
+                {companies.map(company => (
+                  <label key={company.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                    <Checkbox 
+                      checked={newAdmin.company_ids.includes(company.id)}
+                      onCheckedChange={() => toggleCompanySelection(company.id, true)}
+                    />
+                    <span className="text-sm">{company.name}</span>
+                  </label>
+                ))}
+                {companies.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Henüz şirket eklenmemiş</p>
+                )}
+              </div>
+            </div>
+            <Button type="submit" className="w-full h-12 font-semibold" disabled={saving}>
+              {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Oluşturuluyor...</> : "Oluştur"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Admin Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Yöneticiyi Düzenle</DialogTitle>
+          </DialogHeader>
+          {selectedAdmin && (
+            <form onSubmit={handleUpdateAdmin} className="space-y-4">
+              <div>
+                <Label className="text-sm font-semibold">Ad Soyad</Label>
+                <Input 
+                  value={selectedAdmin.name} 
+                  onChange={(e) => setSelectedAdmin({ ...selectedAdmin, name: e.target.value })} 
+                  className="mt-1 h-12 border-2" 
+                  required 
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Kullanıcı Adı</Label>
+                <Input 
+                  value={selectedAdmin.username} 
+                  className="mt-1 h-12 border-2 bg-slate-50" 
+                  disabled 
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Yeni Şifre (değiştirmek için doldurun)</Label>
+                <Input 
+                  type="password"
+                  value={selectedAdmin.newPassword || ""} 
+                  onChange={(e) => setSelectedAdmin({ ...selectedAdmin, newPassword: e.target.value })} 
+                  className="mt-1 h-12 border-2" 
+                  placeholder="Boş bırakırsanız değişmez"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Erişebileceği Şirketler</Label>
+                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border-2 rounded p-3">
+                  {companies.map(company => (
+                    <label key={company.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded">
+                      <Checkbox 
+                        checked={selectedAdmin.company_ids?.includes(company.id)}
+                        onCheckedChange={() => toggleCompanySelection(company.id, false)}
+                      />
+                      <span className="text-sm">{company.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <Button type="submit" className="w-full h-12 font-semibold" disabled={saving}>
+                {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Kaydediliyor...</> : "Kaydet"}
+              </Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={confirmConfig.title}
+        description={confirmConfig.description}
+        onConfirm={confirmConfig.onConfirm}
+        variant="destructive"
+      />
+    </div>
+  );
+}
+
 
 // ============ SİSTEM AYARLARI PAGE ============
 function SistemAyarlariPage() {
@@ -59,7 +675,7 @@ function SistemAyarlariPage() {
       setFormData({
         account_id: res.data.account_id || "",
         access_key_id: res.data.access_key_id || "",
-        secret_access_key: "", // Don't populate secret for security
+        secret_access_key: "",
         bucket_name: res.data.bucket_name || "shiftjet"
       });
     } catch (err) {
@@ -77,7 +693,6 @@ function SistemAyarlariPage() {
       return;
     }
     
-    // If editing existing and secret is empty, don't require it
     if (!settings.configured && !formData.secret_access_key) {
       toast.error("Secret Access Key gerekli");
       return;
@@ -85,28 +700,9 @@ function SistemAyarlariPage() {
     
     setSaving(true);
     try {
-      const payload = {
-        account_id: formData.account_id,
-        access_key_id: formData.access_key_id,
-        bucket_name: formData.bucket_name
-      };
-      
-      // Only include secret if provided
-      if (formData.secret_access_key) {
-        payload.secret_access_key = formData.secret_access_key;
-      }
-      
-      if (settings.configured) {
-        await axios.put(`${API}/system-settings/cloudflare-r2`, payload);
-      } else {
-        payload.secret_access_key = formData.secret_access_key; // Required for new
-        await axios.post(`${API}/system-settings/cloudflare-r2`, payload);
-      }
-      
+      await axios.post(`${API}/system-settings/cloudflare-r2`, formData);
       toast.success("Ayarlar kaydedildi");
-      setFormData(prev => ({ ...prev, secret_access_key: "" }));
       fetchSettings();
-      setTestResult(null);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Kaydetme başarısız");
     } finally {
@@ -121,10 +717,7 @@ function SistemAyarlariPage() {
       const res = await axios.post(`${API}/system-settings/cloudflare-r2/test`);
       setTestResult(res.data);
     } catch (err) {
-      setTestResult({
-        success: false,
-        message: err.response?.data?.detail || "Bağlantı testi başarısız"
-      });
+      setTestResult({ success: false, message: err.response?.data?.detail || "Bağlantı başarısız" });
     } finally {
       setTesting(false);
     }
@@ -133,32 +726,29 @@ function SistemAyarlariPage() {
   if (loading) return <PageLoading />;
 
   return (
-    <div className="space-y-6" data-testid="sistem-ayarlari-page">
-      <div className="flex items-center gap-3 pb-4 border-b">
-        <Settings className="w-8 h-8 text-primary" />
-        <div>
-          <h1 className="text-2xl font-heading font-bold">Sistem Ayarları</h1>
-          <p className="text-muted-foreground text-sm">Cloudflare R2 ve diğer entegrasyonlar</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-heading text-2xl font-bold">Sistem Ayarları</h1>
+        <p className="text-muted-foreground text-sm">Cloudflare R2 depolama yapılandırması</p>
       </div>
 
-      {/* Cloudflare R2 Settings */}
-      <div className="bg-white border-2 border-border rounded-lg overflow-hidden">
-        <div className="bg-orange-50 px-6 py-4 border-b-2 border-border flex items-center gap-3">
-          <Cloud className="w-6 h-6 text-orange-600" />
+      <div className="bg-white border-2 border-border overflow-hidden">
+        <div className="p-6 border-b-2 border-border flex items-center gap-3">
+          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+            <Cloud className="w-5 h-5 text-orange-600" />
+          </div>
           <div>
-            <h2 className="font-heading font-bold text-lg">Cloudflare R2 Depolama</h2>
-            <p className="text-sm text-muted-foreground">Fatura ve evrak dosyalarının saklanacağı bulut depolama</p>
+            <h2 className="font-heading font-bold">Cloudflare R2</h2>
+            <p className="text-sm text-muted-foreground">Dosya depolama servisi</p>
           </div>
           {settings.configured && (
             <span className="ml-auto px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full flex items-center gap-1">
-              <CheckCircle className="w-4 h-4" />
-              Yapılandırıldı
+              <CheckCircle className="w-4 h-4" /> Yapılandırıldı
             </span>
           )}
         </div>
         
-        <form onSubmit={handleSave} className="p-6 space-y-5">
+        <form onSubmit={handleSave} className="p-6 space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-semibold">Account ID</Label>
@@ -168,9 +758,7 @@ function SistemAyarlariPage() {
                 placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                 className="mt-1 border-2 font-mono text-sm"
               />
-              <p className="text-xs text-muted-foreground mt-1">Cloudflare Dashboard URL&apos;sinde bulunur</p>
             </div>
-            
             <div>
               <Label className="text-sm font-semibold">Bucket Name</Label>
               <Input
@@ -192,7 +780,6 @@ function SistemAyarlariPage() {
                 className="mt-1 border-2 font-mono text-sm"
               />
             </div>
-            
             <div>
               <Label className="text-sm font-semibold">
                 Secret Access Key
@@ -203,7 +790,7 @@ function SistemAyarlariPage() {
                   type={showSecret ? "text" : "password"}
                   value={formData.secret_access_key}
                   onChange={(e) => setFormData({ ...formData, secret_access_key: e.target.value })}
-                  placeholder={settings.configured ? settings.secret_access_key_masked : "Yeni secret key girin"}
+                  placeholder={settings.configured ? "••••••••" : "Secret key girin"}
                   className="border-2 font-mono text-sm pr-10"
                 />
                 <button
@@ -217,7 +804,6 @@ function SistemAyarlariPage() {
             </div>
           </div>
           
-          {/* Test Result */}
           {testResult && (
             <div className={`p-4 rounded-lg border-2 ${testResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
               <div className="flex items-center gap-2">
@@ -230,9 +816,6 @@ function SistemAyarlariPage() {
                   {testResult.message}
                 </span>
               </div>
-              {testResult.success && testResult.bucket && (
-                <p className="text-sm text-green-600 mt-1">Bucket: {testResult.bucket}</p>
-              )}
             </div>
           )}
           
@@ -247,509 +830,13 @@ function SistemAyarlariPage() {
             )}
           </div>
         </form>
-        
-        {/* Instructions */}
-        <div className="bg-slate-50 px-6 py-4 border-t-2 border-border">
-          <h3 className="font-semibold text-sm mb-2">Nasıl Yapılandırılır?</h3>
-          <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-            <li>Cloudflare Dashboard&apos;a gidin - R2 Object Storage</li>
-            <li>Yeni bucket oluşturun (örn: shiftjet)</li>
-            <li>Manage R2 API Tokens - Create API Token</li>
-            <li>Object Read ve Write izni verin</li>
-            <li>Oluşturulan Access Key ve Secret Key&apos;i buraya girin</li>
-          </ol>
-        </div>
       </div>
     </div>
   );
 }
 
-// ============ ŞİRKETLER PAGE ============
-function SirketlerPage() {
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showSuperAdminModal, setShowSuperAdminModal] = useState(false);
-  const [showAdminsModal, setShowAdminsModal] = useState(false);
-  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
-  const [showEditAdminModal, setShowEditAdminModal] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState(null);
-  const [selectedAdmin, setSelectedAdmin] = useState(null);
-  const [companyAdmins, setCompanyAdmins] = useState([]);
-  const [adminsLoading, setAdminsLoading] = useState(false);
-  const [newCompany, setNewCompany] = useState({ name: "", logo_url: "" });
-  const [newSuperAdmin, setNewSuperAdmin] = useState({ name: "", username: "", password: "" });
-  const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
-  const [editAdminData, setEditAdminData] = useState({ name: "", password: "" });
-  
-  // Confirm Modal State
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
 
-  const fetchCompanies = async () => {
-    try {
-      const res = await axios.get(`${API}/companies`);
-      setCompanies(res.data);
-    } catch (err) {
-      if (!err.handled) {
-        toast.error("Şirketler yüklenemedi");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const fetchCompanyAdmins = async (companyId) => {
-    setAdminsLoading(true);
-    try {
-      const res = await axios.get(`${API}/admins?company_id=${companyId}`);
-      setCompanyAdmins(res.data);
-    } catch (err) {
-      if (!err.handled) {
-        toast.error("Yöneticiler yüklenemedi");
-      }
-    } finally {
-      setAdminsLoading(false);
-    }
-  };
-
-  const handleAddCompany = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API}/companies`, newCompany);
-      toast.success("Şirket oluşturuldu");
-      setShowAddModal(false);
-      setNewCompany({ name: "", logo_url: "" });
-      fetchCompanies();
-    } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Oluşturma başarısız");
-      }
-    }
-  };
-
-  const handleUpdateCompany = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`${API}/companies/${selectedCompany.id}`, {
-        name: selectedCompany.name,
-        logo_url: selectedCompany.logo_url
-      });
-      toast.success("Şirket güncellendi");
-      setShowEditModal(false);
-      fetchCompanies();
-    } catch (err) {
-      if (!err.handled) {
-        toast.error("Güncelleme başarısız");
-      }
-    }
-  };
-
-  const handleDeleteCompany = async (id) => {
-    setConfirmConfig({
-      title: "Şirket Silme",
-      description: "Bu şirketi ve tüm verilerini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-      onConfirm: async () => {
-        try {
-          await axios.delete(`${API}/companies/${id}`);
-          toast.success("Şirket silindi");
-          fetchCompanies();
-        } catch (err) {
-          if (!err.handled) {
-            toast.error("Silme başarısız");
-          }
-        }
-        setConfirmOpen(false);
-      }
-    });
-    setConfirmOpen(true);
-  };
-
-  const handleAddSuperAdmin = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API}/admins/superadmin`, {
-        ...newSuperAdmin,
-        company_id: selectedCompany.id
-      });
-      toast.success("Süper admin oluşturuldu");
-      setShowSuperAdminModal(false);
-      setNewSuperAdmin({ name: "", username: "", password: "" });
-      fetchCompanyAdmins(selectedCompany.id);
-    } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Oluşturma başarısız");
-      }
-    }
-  };
-
-  const handleAddAdmin = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API}/admins`, {
-        ...newAdmin,
-        company_id: selectedCompany.id
-      });
-      toast.success("Yönetici eklendi");
-      setShowAddAdminModal(false);
-      setNewAdmin({ name: "", username: "", password: "" });
-      fetchCompanyAdmins(selectedCompany.id);
-    } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Ekleme başarısız");
-      }
-    }
-  };
-
-  const handleDeleteAdmin = async (adminId) => {
-    setConfirmConfig({
-      title: "Yönetici Silme",
-      description: "Bu yöneticiyi silmek istediğinize emin misiniz?",
-      onConfirm: async () => {
-        try {
-          await axios.delete(`${API}/admins/${adminId}`);
-          toast.success("Yönetici silindi");
-          fetchCompanyAdmins(selectedCompany.id);
-        } catch (err) {
-          if (!err.handled) {
-            toast.error(err.response?.data?.detail || "Silme başarısız");
-          }
-        }
-        setConfirmOpen(false);
-      }
-    });
-    setConfirmOpen(true);
-  };
-
-  const handleEditAdmin = async (e) => {
-    e.preventDefault();
-    try {
-      const updateData = {};
-      if (editAdminData.name) updateData.name = editAdminData.name;
-      if (editAdminData.password) updateData.password = editAdminData.password;
-      
-      await axios.put(`${API}/admins/${selectedAdmin.id}`, updateData);
-      toast.success("Yönetici güncellendi");
-      setShowEditAdminModal(false);
-      setEditAdminData({ name: "", password: "" });
-      fetchCompanyAdmins(selectedCompany.id);
-    } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Güncelleme başarısız");
-      }
-    }
-  };
-
-  const openEditAdminModal = (admin) => {
-    setSelectedAdmin(admin);
-    setEditAdminData({ name: admin.name, password: "" });
-    setShowEditAdminModal(true);
-  };
-
-  const openEditModal = (company) => {
-    setSelectedCompany({ ...company });
-    setShowEditModal(true);
-  };
-
-  const openAdminsModal = (company) => {
-    setSelectedCompany(company);
-    setShowAdminsModal(true);
-    fetchCompanyAdmins(company.id);
-  };
-
-  const openSuperAdminModal = () => {
-    setShowSuperAdminModal(true);
-  };
-
-  const openAddAdminModal = () => {
-    setShowAddAdminModal(true);
-  };
-
-  const hasSuperAdmin = companyAdmins.some(a => a.role === "superadmin");
-
-  if (loading) return <PageLoading />;
-
-  return (
-    <div data-testid="system-sirketler-page">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="font-heading text-2xl font-bold tracking-tight">Şirketler</h2>
-        <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-company-btn">
-          <Plus className="w-4 h-4 mr-2" />
-          Şirket Ekle
-        </Button>
-      </div>
-
-      <div className="hidden md:block border-2 border-border bg-white overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b-2 border-primary">
-              <TableHead className="font-bold text-xs">Logo</TableHead>
-              <TableHead className="font-bold text-xs">Şirket Adı</TableHead>
-              <TableHead className="font-bold text-xs">Oluşturulma</TableHead>
-              <TableHead className="font-bold text-xs">İşlemler</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {companies.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">Kayıtlı şirket bulunmuyor</TableCell>
-              </TableRow>
-            ) : (
-              companies.map((c) => (
-                <TableRow key={c.id} className="border-b border-border hover:bg-slate-50">
-                  <TableCell>
-                    {c.logo_url ? (
-                      <img src={c.logo_url} alt={c.name} className="h-10 w-20 object-contain" />
-                    ) : (
-                      <div className="h-10 w-20 bg-slate-100 flex items-center justify-center text-xs text-muted-foreground">Logo Yok</div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell className="font-mono text-sm">{new Date(c.created_at).toLocaleDateString('tr-TR')}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="h-8 px-3 border-2" data-testid={`edit-${c.id}`}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => openAdminsModal(c)} className="h-8 px-3 border-2" data-testid={`admins-${c.id}`}>
-                        <Users className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDeleteCompany(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-${c.id}`}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="md:hidden space-y-4">
-        {companies.length === 0 ? (
-          <div className="border-2 border-border p-6 bg-white text-center text-muted-foreground">Kayıtlı şirket bulunmuyor</div>
-        ) : (
-          companies.map((c) => (
-            <div key={c.id} className="border-2 border-border p-4 bg-white">
-              <div className="flex items-start gap-4 mb-3">
-                {c.logo_url ? (
-                  <img src={c.logo_url} alt={c.name} className="h-12 w-24 object-contain" />
-                ) : (
-                  <div className="h-12 w-24 bg-slate-100 flex items-center justify-center text-xs text-muted-foreground">Logo Yok</div>
-                )}
-                <div>
-                  <p className="font-bold">{c.name}</p>
-                  <p className="font-mono text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString('tr-TR')}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => openEditModal(c)} className="flex-1 border-2">Düzenle</Button>
-                <Button size="sm" variant="outline" onClick={() => openAdminsModal(c)} className="flex-1 border-2">Yöneticiler</Button>
-                <Button size="sm" variant="outline" onClick={() => handleDeleteCompany(c.id)} className="border-2">Sil</Button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Add Company Modal */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Şirket Ekle</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddCompany} className="space-y-4">
-            <div>
-              <Label className="text-sm font-semibold">Şirket Adı</Label>
-              <Input data-testid="new-company-name" value={newCompany.name} onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })} className="mt-1 h-12 border-2" required />
-            </div>
-            <div>
-              <Label className="text-sm font-semibold">Logo URL (Opsiyonel)</Label>
-              <Input data-testid="new-company-logo" value={newCompany.logo_url} onChange={(e) => setNewCompany({ ...newCompany, logo_url: e.target.value })} className="mt-1 h-12 border-2" placeholder="https://..." />
-            </div>
-            <Button type="submit" className="w-full h-12 font-semibold" data-testid="submit-new-company">Ekle</Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Company Modal */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Şirket Düzenle</DialogTitle>
-          </DialogHeader>
-          {selectedCompany && (
-            <form onSubmit={handleUpdateCompany} className="space-y-4">
-              <div>
-                <Label className="text-sm font-semibold">Şirket Adı</Label>
-                <Input value={selectedCompany.name} onChange={(e) => setSelectedCompany({ ...selectedCompany, name: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Logo URL</Label>
-                <Input value={selectedCompany.logo_url || ""} onChange={(e) => setSelectedCompany({ ...selectedCompany, logo_url: e.target.value })} className="mt-1 h-12 border-2" placeholder="https://..." />
-              </div>
-              {selectedCompany.logo_url && (
-                <div>
-                  <Label className="text-sm font-semibold mb-2 block">Önizleme</Label>
-                  <img src={selectedCompany.logo_url} alt="Logo" className="h-16 object-contain border p-2" />
-                </div>
-              )}
-              <Button type="submit" className="w-full h-12 font-semibold">Kaydet</Button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Company Admins Modal */}
-      <Dialog open={showAdminsModal} onOpenChange={setShowAdminsModal}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-heading">{selectedCompany?.name} - Yöneticiler</DialogTitle>
-          </DialogHeader>
-          {adminsLoading ? (
-            <div className="py-8"><LoadingSpinner size="default" /></div>
-          ) : (
-            <div className="space-y-4">
-              {companyAdmins.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground border-2 border-dashed">
-                  Bu şirkete henüz yönetici atanmamış
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {companyAdmins.map((admin) => (
-                    <div key={admin.id} className="flex items-center justify-between p-3 border-2 border-border">
-                      <div>
-                        <p className="font-semibold">{admin.name}</p>
-                        <p className="text-sm text-muted-foreground font-mono">{admin.username}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 text-xs font-semibold ${admin.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
-                          {admin.role === "superadmin" ? "Süper Admin" : "Admin"}
-                        </span>
-                        <Button size="sm" variant="outline" onClick={() => openEditAdminModal(admin)} className="h-8 px-2 border-2">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(admin.id)} className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              <div className="flex gap-2 pt-2 border-t">
-                {!hasSuperAdmin && (
-                  <Button onClick={openSuperAdminModal} className="flex-1 font-semibold" data-testid="add-superadmin-btn">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Süper Admin Ekle
-                  </Button>
-                )}
-                <Button onClick={openAddAdminModal} variant={hasSuperAdmin ? "default" : "outline"} className="flex-1 font-semibold" data-testid="add-admin-btn">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Admin Ekle
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Super Admin Modal */}
-      <Dialog open={showSuperAdminModal} onOpenChange={setShowSuperAdminModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Süper Admin Ekle</DialogTitle>
-          </DialogHeader>
-          {selectedCompany && (
-            <form onSubmit={handleAddSuperAdmin} className="space-y-4">
-              <p className="text-sm text-muted-foreground"><strong>{selectedCompany.name}</strong> için süper admin oluşturun</p>
-              <div>
-                <Label className="text-sm font-semibold">İsim Soyisim</Label>
-                <Input data-testid="superadmin-name" value={newSuperAdmin.name} onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, name: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Kullanıcı Adı</Label>
-                <Input data-testid="superadmin-username" value={newSuperAdmin.username} onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, username: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Şifre</Label>
-                <Input data-testid="superadmin-password" type="password" value={newSuperAdmin.password} onChange={(e) => setNewSuperAdmin({ ...newSuperAdmin, password: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <Button type="submit" className="w-full h-12 font-semibold" data-testid="submit-superadmin">Oluştur</Button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Admin Modal */}
-      <Dialog open={showAddAdminModal} onOpenChange={setShowAddAdminModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Admin Ekle</DialogTitle>
-          </DialogHeader>
-          {selectedCompany && (
-            <form onSubmit={handleAddAdmin} className="space-y-4">
-              <p className="text-sm text-muted-foreground"><strong>{selectedCompany.name}</strong> için admin oluşturun</p>
-              <div>
-                <Label className="text-sm font-semibold">İsim Soyisim</Label>
-                <Input data-testid="admin-name" value={newAdmin.name} onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Kullanıcı Adı</Label>
-                <Input data-testid="admin-username" value={newAdmin.username} onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Şifre</Label>
-                <Input data-testid="admin-password" type="password" value={newAdmin.password} onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <Button type="submit" className="w-full h-12 font-semibold" data-testid="submit-admin">Ekle</Button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Admin Modal */}
-      <Dialog open={showEditAdminModal} onOpenChange={setShowEditAdminModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading">Yönetici Düzenle</DialogTitle>
-          </DialogHeader>
-          {selectedAdmin && (
-            <form onSubmit={handleEditAdmin} className="space-y-4">
-              <p className="text-sm text-muted-foreground"><strong>{selectedAdmin.username}</strong> bilgilerini düzenleyin</p>
-              <div>
-                <Label className="text-sm font-semibold">İsim Soyisim</Label>
-                <Input value={editAdminData.name} onChange={(e) => setEditAdminData({ ...editAdminData, name: e.target.value })} className="mt-1 h-12 border-2" required />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold">Yeni Şifre (boş bırakılırsa değişmez)</Label>
-                <Input type="password" value={editAdminData.password} onChange={(e) => setEditAdminData({ ...editAdminData, password: e.target.value })} className="mt-1 h-12 border-2" placeholder="Yeni şifre" />
-              </div>
-              <Button type="submit" className="w-full h-12 font-semibold">Kaydet</Button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <ConfirmModal
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title={confirmConfig.title}
-        description={confirmConfig.description}
-        onConfirm={confirmConfig.onConfirm}
-        variant="danger"
-      />
-    </div>
-  );
-}
-
+// ============ MAIN DASHBOARD ============
 export default function SystemDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -779,14 +866,15 @@ export default function SystemDashboard() {
 
   const NAV_ITEMS = [
     { path: "/system", label: "Şirketler", icon: Building2 },
-    { path: "/system/ayarlar", label: "Sistem Ayarları", icon: Settings },
+    { path: "/system/yoneticiler", label: "Yöneticiler", icon: UserCog },
+    { path: "/system/ayarlar", label: "Ayarlar", icon: Settings },
   ];
 
   return (
     <div className="min-h-screen bg-slate-50" data-testid="system-dashboard">
       <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
         <span className="font-heading text-lg font-bold">Sistem Yönetimi</span>
-        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white hover:bg-white/10" data-testid="system-mobile-menu-btn">
+        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white hover:bg-white/10">
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </Button>
       </header>
@@ -799,7 +887,7 @@ export default function SystemDashboard() {
               {item.label}
             </Link>
           ))}
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left" data-testid="system-mobile-logout-btn">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 text-left">
             <LogOut className="w-5 h-5" />
             Çıkış
           </button>
@@ -822,7 +910,7 @@ export default function SystemDashboard() {
             ))}
           </nav>
           <div className="p-4 border-t border-white/20">
-            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-white hover:bg-white/10 font-semibold text-sm" data-testid="system-logout-btn">
+            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-white hover:bg-white/10 font-semibold text-sm">
               <LogOut className="w-4 h-4 mr-2" />
               Çıkış Yap
             </Button>
@@ -833,13 +921,13 @@ export default function SystemDashboard() {
           <div className="p-4 md:p-8 min-h-[calc(100vh-80px)]">
             <Routes>
               <Route index element={<SirketlerPage />} />
+              <Route path="yoneticiler" element={<YoneticilerPage />} />
               <Route path="ayarlar" element={<SistemAyarlariPage />} />
             </Routes>
           </div>
           
-          {/* Footer */}
           <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
-            © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
+            © 2026 ShiftJet. Tüm hakları saklıdır.
           </footer>
         </main>
       </div>
