@@ -223,8 +223,6 @@ async def delete_admin(admin_id: str):
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
     if admin["role"] == "systemadmin":
         raise HTTPException(status_code=403, detail="Sistem yöneticisi silinemez")
-    if admin["role"] == "superadmin":
-        raise HTTPException(status_code=403, detail="Süper admin silinemez")
     await db.admins.delete_one({"id": admin_id})
     return {"message": "Yönetici silindi"}
 
