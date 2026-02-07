@@ -79,6 +79,33 @@ class AdminResponse(BaseModel):
 
 
 # --- Admin Management ---
+@router.get("/admins/all", response_model=List[AdminResponse])
+async def get_all_admins():
+    """Tüm adminleri getir (systemadmin hariç) - Sistem paneli için"""
+    admins = await db.admins.find(
+        {"role": {"$ne": "systemadmin"}}, 
+        {"_id": 0, "password": 0}
+    ).to_list(500)
+    
+    # Simple permission keys
+    simple_keys = {"vardiya", "muhasebe", "zimmet", "kuryeler", "market", "akademi", "sistem"}
+    
+    # Normalize permissions to simple format
+    for admin in admins:
+        db_permissions = admin.get("permissions", {})
+        has_simple_format = any(key in db_permissions for key in simple_keys)
+        
+        if has_simple_format:
+            admin["permissions"] = {k: db_permissions.get(k, False) for k in simple_keys}
+        else:
+            if admin.get("role") == "superadmin":
+                admin["permissions"] = get_full_permissions()
+            else:
+                admin["permissions"] = get_default_permissions()
+    
+    return admins
+
+
 @router.get("/admins", response_model=List[AdminResponse])
 async def get_admins(company_id: Optional[str] = None):
     if company_id:
@@ -114,14 +141,26 @@ async def create_admin(data: AdminCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Bu kullanıcı adı zaten kullanılıyor")
     
+    # Handle company_ids
+    company_ids = data.company_ids or []
+    if data.company_id and data.company_id not in company_ids:
+        company_ids.insert(0, data.company_id)
+    
+    primary_company_id = company_ids[0] if company_ids else None
+    
+    # Determine role and permissions
+    role = data.role if data.role in ["admin", "superadmin"] else "admin"
+    permissions = get_full_permissions() if role == "superadmin" else get_default_permissions()
+    
     admin = {
         "id": str(uuid.uuid4()),
         "name": format_name(data.name),
         "username": data.username,
         "password": hash_password(data.password),
-        "role": "admin",
-        "permissions": get_default_permissions(),
-        "company_id": data.company_id,
+        "role": role,
+        "permissions": permissions,
+        "company_id": primary_company_id,
+        "company_ids": company_ids,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.admins.insert_one(admin)
