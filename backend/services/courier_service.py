@@ -17,8 +17,37 @@ async def invalidate_user_session(user_id: str):
 
 
 async def get_all_couriers():
-    """Get all couriers in the system"""
-    return await db.couriers.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    """Get all couriers in the system with their company names"""
+    couriers = await db.couriers.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    
+    # Get all companies for mapping
+    companies = await db.companies.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+    company_map = {c["id"]: c["name"] for c in companies}
+    
+    # Get all courier-company relations
+    relations = await db.company_couriers.find({}, {"_id": 0, "courier_id": 1, "company_id": 1, "is_active": 1}).to_list(5000)
+    
+    # Group relations by courier
+    courier_companies = {}
+    courier_active_status = {}
+    for rel in relations:
+        cid = rel["courier_id"]
+        if cid not in courier_companies:
+            courier_companies[cid] = []
+            courier_active_status[cid] = True
+        company_name = company_map.get(rel["company_id"])
+        if company_name:
+            courier_companies[cid].append(company_name)
+        # If any relation is inactive, mark courier as inactive
+        if rel.get("is_active") == False:
+            courier_active_status[cid] = False
+    
+    # Enrich couriers with company names
+    for courier in couriers:
+        courier["company_names"] = courier_companies.get(courier["id"], [])
+        courier["is_active"] = courier_active_status.get(courier["id"], True)
+    
+    return couriers
 
 
 async def search_courier_by_phone(phone: str):
