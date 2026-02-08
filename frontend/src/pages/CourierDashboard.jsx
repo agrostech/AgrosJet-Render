@@ -317,6 +317,17 @@ export default function CourierDashboard() {
               })}
             </DropdownMenuContent>
           </DropdownMenu>
+          
+          {/* Kalan mola süresi göstergesi */}
+          {breakStatus && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded text-xs">
+              <Coffee className="w-3.5 h-3.5" />
+              <span className={breakStatus.remaining_break_time <= 5 ? "text-red-300" : ""}>
+                {breakStatus.remaining_break_time}dk
+              </span>
+            </div>
+          )}
+          
           <Button 
             variant="ghost" 
             size="icon" 
