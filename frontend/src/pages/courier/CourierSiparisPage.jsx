@@ -622,34 +622,63 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         </div>
       )}
 
-      {/* Yeni Siparişler (Onay Bekleyen) */}
-      {newOrders.length > 0 && (
+      {/* Atanmış Siparişler (assigned + confirmed - henüz yola çıkmamış) */}
+      {assignedOrders.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-purple-500" />
+            <Package className="w-5 h-5 text-purple-500" />
             <h3 className="font-semibold text-purple-700">
-              Yeni Siparişler ({newOrders.length})
+              Atanmış Siparişler ({assignedOrders.length})
             </h3>
           </div>
-          {newOrders.map((order) => (
-            <NewOrderCard
-              key={order.id}
-              order={order}
-              onConfirm={() => handleConfirmOrder(order.id)}
-              loading={actionLoading === order.id}
-            />
+          {assignedOrders.map((order) => (
+            order.status === "assigned" ? (
+              <NewOrderCard
+                key={order.id}
+                order={order}
+                onConfirm={() => handleConfirmOrder(order.id)}
+                loading={actionLoading === order.id}
+              />
+            ) : (
+              <ActiveOrderCard
+                key={order.id}
+                order={order}
+                onPickup={() => handlePickupOrder(order.id)}
+                onDeliver={() => handleDeliverOrder(order.id)}
+                onViewDetails={() => {
+                  setSelectedOrder(order);
+                  setShowDetailModal(true);
+                }}
+                onOpenMaps={() =>
+                  openInMaps(
+                    order.delivery_location?.latitude,
+                    order.delivery_location?.longitude,
+                    order.delivery_address
+                  )
+                }
+                onOpenRestaurantMaps={() =>
+                  openInMaps(
+                    order.restaurant_location?.latitude,
+                    order.restaurant_location?.longitude,
+                    order.restaurant_name
+                  )
+                }
+                onCall={() => callPhone(order.customer_phone)}
+                loading={actionLoading === order.id}
+              />
+            )
           ))}
         </div>
       )}
 
-      {/* Aktif Siparişler */}
-      {activeOrders.length > 0 && (
+      {/* Yoldaki Siparişler (on_the_way) */}
+      {onTheWayOrders.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Truck className="w-5 h-5 text-blue-500" />
               <h3 className="font-semibold text-blue-700">
-                Aktif Siparişler ({activeOrders.length})
+                Yoldaki Siparişler ({onTheWayOrders.length})
               </h3>
             </div>
             {/* Rota Oluştur Butonu - 2+ yolda sipariş varken */}
@@ -666,7 +695,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
               </Button>
             )}
           </div>
-          {activeOrders.map((order) => (
+          {onTheWayOrders.map((order) => (
             <ActiveOrderCard
               key={order.id}
               order={order}
