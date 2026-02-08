@@ -803,52 +803,51 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">{order.restaurant_name}</span>
                         {/* Durum Badge */}
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <Select 
-                            value={order.status} 
-                            onValueChange={(newValue) => {
-                              if (newValue.startsWith('preparing_')) {
-                                const prepTime = parseInt(newValue.split('_')[1]);
-                                handleUpdateStatus(order.id, 'preparing', prepTime);
-                              } else {
-                                handleUpdateStatus(order.id, newValue);
-                              }
-                            }}
+                        <Select 
+                          value={order.status} 
+                          onValueChange={(newValue) => {
+                            if (newValue.startsWith('preparing_')) {
+                              const prepTime = parseInt(newValue.split('_')[1]);
+                              handleUpdateStatus(order.id, 'preparing', prepTime);
+                            } else {
+                              handleUpdateStatus(order.id, newValue);
+                            }
+                          }}
+                        >
+                          <SelectTrigger 
+                            className={`${statusInfo.color} text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
+                            onPointerDown={(e) => e.stopPropagation()}
                           >
-                            <SelectTrigger 
-                              className={`${statusInfo.color} text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
-                            >
-                              <SelectValue>
-                                {order.status === 'preparing' && order.preparation_end_at
-                                  ? getCountdown(order.preparation_end_at)?.text
-                                  : statusInfo.label
-                                }
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                              {PREPARATION_TIMES.map(time => (
-                                <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
-                                  <div className="flex items-center gap-2">
-                                    <Timer className="w-3 h-3 text-yellow-500" />
-                                    {time.label}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                              <div className="border-t my-1" />
-                              {Object.entries(ORDER_STATUSES)
-                                .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                                .map(([key, value]) => (
-                                <SelectItem key={key} value={key} className="text-xs">
-                                  <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${value.color}`} />
-                                    {value.label}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                            <SelectValue>
+                              {order.status === 'preparing' && order.preparation_end_at
+                                ? getCountdown(order.preparation_end_at)?.text
+                                : statusInfo.label
+                              }
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                            {PREPARATION_TIMES.map(time => (
+                              <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
+                                <div className="flex items-center gap-2">
+                                  <Timer className="w-3 h-3 text-yellow-500" />
+                                  {time.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                            <div className="border-t my-1" />
+                            {Object.entries(ORDER_STATUSES)
+                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                              .map(([key, value]) => (
+                              <SelectItem key={key} value={key} className="text-xs">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${value.color}`} />
+                                  {value.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       {/* Adres bilgisi */}
                       <div className="text-xs text-muted-foreground truncate">
