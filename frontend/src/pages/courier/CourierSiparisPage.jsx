@@ -240,7 +240,21 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       fetchOrders(false);
       // Her 2 saniyede bir siparişleri güncelle
       const interval = setInterval(() => fetchOrders(false), 2000);
-      return () => clearInterval(interval);
+      
+      // Sayfa tekrar görünür olduğunda hemen fetch yap (arka plandan dönünce)
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          console.log("Sayfa görünür oldu, siparişler yenileniyor...");
+          isInitialLoadRef.current = false; // Arka plandan dönünce bildirim çalabilsin
+          fetchOrders(false);
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
+      return () => {
+        clearInterval(interval);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
   }, [courierId, fetchOrders]);
 
