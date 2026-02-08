@@ -988,7 +988,7 @@ export default function SiparisYonetimiPage({ companyId }) {
           
           {selectedOrder && (
             <Tabs value={orderDetailTab} onValueChange={setOrderDetailTab} className="flex-1 flex flex-col overflow-hidden">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details" className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   Detaylar
@@ -996,6 +996,10 @@ export default function SiparisYonetimiPage({ companyId }) {
                 <TabsTrigger value="location" className="flex items-center gap-2">
                   <Map className="w-4 h-4" />
                   Konum
+                </TabsTrigger>
+                <TabsTrigger value="history" className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Geçmiş
                 </TabsTrigger>
               </TabsList>
               
