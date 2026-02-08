@@ -655,60 +655,75 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             Kuryeler
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-2 space-y-3">
+        <CardContent className="p-2 space-y-2">
           {/* Aktif Kuryeler */}
-          <div>
-            <div className="flex items-center gap-2 px-2 py-1 bg-green-50 rounded text-xs font-semibold text-green-700 mb-1">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              Aktif ({couriersByStatus.active.length})
-            </div>
-            {couriersByStatus.active.length === 0 ? (
-              <p className="text-xs text-muted-foreground px-2">-</p>
-            ) : (
-              couriersByStatus.active.map(c => (
-                <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
-                  <Bike className="w-3 h-3 text-green-600" />
-                  <span className="truncate">{c.name}</span>
-                </div>
-              ))
-            )}
-          </div>
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 bg-green-50 rounded text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                Aktif ({couriersByStatus.active.length})
+              </div>
+              <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-1">
+              {couriersByStatus.active.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1">-</p>
+              ) : (
+                couriersByStatus.active.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
+                    <Bike className="w-3 h-3 text-green-600" />
+                    <span className="truncate">{c.name}</span>
+                  </div>
+                ))
+              )}
+            </CollapsibleContent>
+          </Collapsible>
           
           {/* Moladaki Kuryeler */}
-          <div>
-            <div className="flex items-center gap-2 px-2 py-1 bg-yellow-50 rounded text-xs font-semibold text-yellow-700 mb-1">
-              <div className="w-2 h-2 rounded-full bg-yellow-500" />
-              Molada ({couriersByStatus.on_break.length})
-            </div>
-            {couriersByStatus.on_break.length === 0 ? (
-              <p className="text-xs text-muted-foreground px-2">-</p>
-            ) : (
-              couriersByStatus.on_break.map(c => (
-                <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
-                  <Bike className="w-3 h-3 text-yellow-600" />
-                  <span className="truncate">{c.name}</span>
-                </div>
-              ))
-            )}
-          </div>
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 bg-yellow-50 rounded text-xs font-semibold text-yellow-700 hover:bg-yellow-100 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                Molada ({couriersByStatus.on_break.length})
+              </div>
+              <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-1">
+              {couriersByStatus.on_break.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1">-</p>
+              ) : (
+                couriersByStatus.on_break.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
+                    <Bike className="w-3 h-3 text-yellow-600" />
+                    <span className="truncate">{c.name}</span>
+                  </div>
+                ))
+              )}
+            </CollapsibleContent>
+          </Collapsible>
           
           {/* Çevrimdışı Kuryeler */}
-          <div>
-            <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 rounded text-xs font-semibold text-slate-600 mb-1">
-              <div className="w-2 h-2 rounded-full bg-slate-400" />
-              Çevrimdışı ({couriersByStatus.offline.length})
-            </div>
-            {couriersByStatus.offline.length === 0 ? (
-              <p className="text-xs text-muted-foreground px-2">-</p>
-            ) : (
-              couriersByStatus.offline.map(c => (
-                <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded text-muted-foreground">
-                  <Bike className="w-3 h-3" />
-                  <span className="truncate">{c.name}</span>
-                </div>
-              ))
-            )}
-          </div>
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 bg-slate-100 rounded text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-slate-400" />
+                Çevrimdışı ({couriersByStatus.offline.length})
+              </div>
+              <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-1">
+              {couriersByStatus.offline.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1">-</p>
+              ) : (
+                couriersByStatus.offline.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded text-muted-foreground">
+                    <Bike className="w-3 h-3" />
+                    <span className="truncate">{c.name}</span>
+                  </div>
+                ))
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
       </Card>
 
