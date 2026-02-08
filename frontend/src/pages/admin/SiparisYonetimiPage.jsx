@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   RefreshCw, MapPin, Phone, Clock, User, Bike, Store, Package,
   ChevronRight, Navigation, CheckCircle2, XCircle, AlertCircle,
-  Plus, Trash2, Filter, Users, Timer
+  Plus, Trash2, Filter, Users, Timer, Map
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
