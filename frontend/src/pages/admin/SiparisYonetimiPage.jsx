@@ -566,86 +566,92 @@ export default function SiparisYonetimiPage({ companyId }) {
                         <span className="text-xs text-muted-foreground hidden sm:block">{formatTime(order.created_at)}</span>
                         <span className="text-xs">{paymentInfo.icon}</span>
                         <span className="font-semibold text-sm min-w-[70px] text-right">{formatCurrency(order.total_amount)}</span>
-                        {order.courier_name ? (
-                          /* Kurye atanmış - dropdown ile değiştir/kaldır */
-                          <Select 
-                            value={order.courier_id}
-                            onValueChange={(value) => {
-                              if (value === "__remove__") {
-                                handleUnassignCourier(order.id);
-                              } else {
-                                handleReassignCourier(order.id, value);
-                              }
-                            }}
+                        
+                        {/* Kurye Dropdown - Her durumda aynı tasarım */}
+                        <Select 
+                          value={order.courier_id || ""}
+                          onValueChange={(value) => {
+                            if (value === "__remove__") {
+                              handleUnassignCourier(order.id);
+                            } else if (value) {
+                              handleReassignCourier(order.id, value);
+                            }
+                          }}
+                        >
+                          <SelectTrigger 
+                            className={`h-6 px-2 text-xs min-w-[90px] gap-1 ${
+                              order.courier_name 
+                                ? "bg-green-50 border-green-200 text-green-700" 
+                                : "bg-slate-50 border-slate-200 text-slate-600"
+                            }`}
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <SelectTrigger 
-                              className="h-6 px-2 text-xs min-w-[90px] bg-green-50 border-green-200 text-green-700 gap-1"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Bike className="w-3 h-3" />
-                              <span className="truncate max-w-[60px]">{order.courier_name}</span>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {/* Aktif Kuryeler */}
-                              {couriersByStatus.active.length > 0 && (
-                                <>
-                                  <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">
-                                    Aktif Kuryeler
-                                  </div>
-                                  {couriersByStatus.active.map(courier => (
-                                    <SelectItem key={courier.id} value={courier.id}>
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                                        {courier.name}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </>
-                              )}
-                              {/* Moladaki Kuryeler */}
-                              {couriersByStatus.on_break.length > 0 && (
-                                <>
-                                  <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">
-                                    Molada
-                                  </div>
-                                  {couriersByStatus.on_break.map(courier => (
-                                    <SelectItem key={courier.id} value={courier.id}>
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                                        {courier.name}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </>
-                              )}
-                              {/* Çevrimdışı Kuryeler */}
-                              {couriersByStatus.offline.length > 0 && (
-                                <>
-                                  <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">
-                                    Çevrimdışı
-                                  </div>
-                                  {couriersByStatus.offline.map(courier => (
-                                    <SelectItem key={courier.id} value={courier.id}>
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-slate-400" />
-                                        {courier.name}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </>
-                              )}
-                              {/* Atamayı Kaldır */}
-                              {order.status !== 'on_the_way' && order.status !== 'delivered' && (
-                                <>
-                                  <div className="border-t my-1" />
-                                  <SelectItem value="__remove__" className="text-red-600">
+                            <Bike className="w-3 h-3" />
+                            <span className="truncate max-w-[60px]">
+                              {order.courier_name || "Kurye Ata"}
+                            </span>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {/* Aktif Kuryeler */}
+                            {couriersByStatus.active.length > 0 && (
+                              <>
+                                <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">
+                                  Aktif Kuryeler
+                                </div>
+                                {couriersByStatus.active.map(courier => (
+                                  <SelectItem key={courier.id} value={courier.id}>
                                     <div className="flex items-center gap-2">
-                                      <XCircle className="w-3 h-3" />
-                                      Atamayı Kaldır
+                                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                                      {courier.name}
                                     </div>
                                   </SelectItem>
-                                </>
-                              )}
+                                ))}
+                              </>
+                            )}
+                            {/* Moladaki Kuryeler */}
+                            {couriersByStatus.on_break.length > 0 && (
+                              <>
+                                <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">
+                                  Molada
+                                </div>
+                                {couriersByStatus.on_break.map(courier => (
+                                  <SelectItem key={courier.id} value={courier.id}>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                      {courier.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                            {/* Çevrimdışı Kuryeler */}
+                            {couriersByStatus.offline.length > 0 && (
+                              <>
+                                <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">
+                                  Çevrimdışı
+                                </div>
+                                {couriersByStatus.offline.map(courier => (
+                                  <SelectItem key={courier.id} value={courier.id}>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-slate-400" />
+                                      {courier.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                            {/* Atamayı Kaldır - sadece kurye varsa ve uygun durumda göster */}
+                            {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
+                              <>
+                                <div className="border-t my-1" />
+                                <SelectItem value="__remove__" className="text-red-600">
+                                  <div className="flex items-center gap-2">
+                                    <XCircle className="w-3 h-3" />
+                                    Atamayı Kaldır
+                                  </div>
+                                </SelectItem>
+                              </>
+                            )}
                             </SelectContent>
                           </Select>
                         ) : (
