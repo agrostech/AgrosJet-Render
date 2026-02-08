@@ -648,7 +648,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
       {/* Map with Courier List */}
       <div className="flex gap-4">
-        {/* Courier Status List - Left Side */}
+        {/* Courier Status List - Left Side (Desktop only) */}
         <Card className="w-56 flex-shrink-0 hidden lg:block">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
