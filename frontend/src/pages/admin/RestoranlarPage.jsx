@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Phone, Link2, CheckCircle2, XCircle, Eye, EyeOff,
-  Store, RefreshCw
+  Store, RefreshCw, Navigation
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -26,6 +26,11 @@ export default function RestoranlarPage({ companyId }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  
+  // Map refs for location picker
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markerRef = useRef(null);
   
   // Form state
   const [formData, setFormData] = useState({
