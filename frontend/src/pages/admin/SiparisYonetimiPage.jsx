@@ -618,6 +618,27 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     }
   };
 
+  // Update courier availability status
+  const handleUpdateCourierStatus = async (courierId, newStatus) => {
+    try {
+      await axios.put(`${API}/couriers/${courierId}/availability`, {
+        availability_status: newStatus
+      });
+      toast.success(`Kurye durumu güncellendi: ${
+        newStatus === 'active' ? 'Aktif' : 
+        newStatus === 'on_break' ? 'Molada' : 'Çevrimdışı'
+      }`);
+      // Kurye listesini yenile
+      fetchCouriers();
+      // Modal'daki kurye bilgisini güncelle
+      if (selectedCourier && selectedCourier.id === courierId) {
+        setSelectedCourier({...selectedCourier, availability_status: newStatus});
+      }
+    } catch (err) {
+      toast.error("Kurye durumu güncellenemedi");
+    }
+  };
+
   // Assign courier to order
   const handleAssignCourier = async () => {
     if (!selectedOrder || !selectedCourierId) return;
