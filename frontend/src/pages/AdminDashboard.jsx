@@ -154,6 +154,8 @@ export default function AdminDashboard() {
   // Menü öğeleri - sayfa bazlı izin kontrolü
   const allNavItems = [
     { path: "/admin", label: "Anasayfa", icon: LayoutDashboard, key: "guncel", permKey: null },
+    { path: "/admin/siparisler", label: "Sipariş Yönetimi", icon: ClipboardList, key: "siparisler", permKey: "siparisler" },
+    { path: "/admin/restoranlar", label: "Restoranlar", icon: Store, key: "restoranlar", permKey: "restoranlar" },
     { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya", permKey: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
