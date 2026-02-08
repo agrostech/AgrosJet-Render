@@ -122,8 +122,12 @@ export default function CourierDashboard() {
       });
       setAvailabilityStatus(newStatus);
       toast.success(`Durumunuz güncellendi: ${AVAILABILITY_STATUSES[newStatus].label}`);
+      // Mola durumunu yenile
+      fetchBreakStatus(user.id);
     } catch (err) {
-      toast.error("Durum güncellenemedi");
+      // Mola limiti dolmuşsa özel hata mesajı göster
+      const errorMsg = err.response?.data?.detail || "Durum güncellenemedi";
+      toast.error(errorMsg);
     } finally {
       setStatusLoading(false);
     }
