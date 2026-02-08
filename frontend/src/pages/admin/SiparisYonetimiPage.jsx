@@ -1097,7 +1097,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         {order.delivery_address}
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span className="truncate max-w-[150px]">{order.customer_name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="truncate max-w-[120px]">{order.customer_name}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                            order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
+                          </span>
+                        </div>
                         {/* Kurye Dropdown */}
                         <Select
                           value={order.courier_id || ""}
