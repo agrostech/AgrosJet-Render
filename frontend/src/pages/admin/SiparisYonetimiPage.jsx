@@ -72,6 +72,11 @@ export default function SiparisYonetimiPage({ companyId }) {
   const [showOrderDetailModal, setShowOrderDetailModal] = useState(false);
   const [selectedCourierId, setSelectedCourierId] = useState("");
   
+  // Hazırlanıyor süresi seçim modalı
+  const [showPreparationModal, setShowPreparationModal] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState(null); // {orderId, status}
+  const [selectedPreparationTime, setSelectedPreparationTime] = useState("15");
+  
   // Map ref
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
