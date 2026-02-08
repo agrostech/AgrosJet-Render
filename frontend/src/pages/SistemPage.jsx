@@ -415,6 +415,66 @@ export default function SistemPage({ companyId }) {
         )}
       </div>
 
+      {/* Çalışma Saatleri - Collapsible */}
+      <div className="border-2 border-border bg-white">
+        <button 
+          type="button"
+          onClick={() => setWorkingHoursExpanded(!workingHoursExpanded)}
+          className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
+            <h3 className="font-semibold text-sm md:text-base">Çalışma Saatleri</h3>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full hidden sm:inline">
+              {workingHours.opening_time} - {workingHours.closing_time}
+            </span>
+          </div>
+          {workingHoursExpanded ? (
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+          )}
+        </button>
+        
+        {workingHoursExpanded && (
+          <div className="p-3 md:p-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Şirketinizin çalışma saatlerini belirleyin. Bu saatler raporlarda varsayılan olarak kullanılacaktır.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs md:text-sm font-semibold">Açılış Saati</Label>
+                <Input 
+                  type="time"
+                  value={workingHours.opening_time}
+                  onChange={(e) => setWorkingHours({...workingHours, opening_time: e.target.value})}
+                  className="mt-1 h-10 md:h-11 border-2 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs md:text-sm font-semibold">Kapanış Saati</Label>
+                <Input 
+                  type="time"
+                  value={workingHours.closing_time}
+                  onChange={(e) => setWorkingHours({...workingHours, closing_time: e.target.value})}
+                  className="mt-1 h-10 md:h-11 border-2 text-sm"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleWorkingHoursSave} 
+              disabled={workingHoursSaving} 
+              className="h-10 md:h-11 font-semibold text-sm"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {workingHoursSaving ? "Kaydediliyor..." : "Kaydet"}
+            </Button>
+          </div>
+        )}
+      </div>
+
       {/* E-posta (SMTP) Ayarları - Collapsible */}
       <div className="border-2 border-border bg-white">
         <button 
