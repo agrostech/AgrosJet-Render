@@ -166,17 +166,94 @@ export default function SiparisYonetimiPage({ companyId }) {
     return () => clearInterval(interval);
   }, [fetchAll, fetchOrders]);
 
-  // Geri sayım için her saniye re-render
+  // Geri sayım için her dakika re-render (dakika bazlı olduğu için)
   useEffect(() => {
     const hasPreparingOrders = orders.some(o => o.status === 'preparing' && o.preparation_end_at);
     if (!hasPreparingOrders) return;
     
     const tickInterval = setInterval(() => {
       setTick(t => t + 1);
-    }, 1000);
+    }, 60000); // Her dakika güncelle
     
     return () => clearInterval(tickInterval);
   }, [orders]);
+
+  // Order detail modal - Konum sekmesi haritası
+  useEffect(() => {
+    if (orderDetailTab !== 'location' || !selectedOrder || !orderMapRef.current) return;
+    if (orderMapInstanceRef.current) return; // Zaten var
+    
+    const initOrderMap = async () => {
+      // Leaflet yüklü mü kontrol et
+      if (!window.L) {
+        // Leaflet CSS ve JS zaten ana harita için yükleniyor olmalı
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (!window.L) return;
+      }
+      
+      const L = window.L;
+      const deliveryLat = selectedOrder.delivery_location?.latitude || 41.0082;
+      const deliveryLng = selectedOrder.delivery_location?.longitude || 28.9784;
+      const restaurantLat = selectedOrder.restaurant_location?.latitude;
+      const restaurantLng = selectedOrder.restaurant_location?.longitude;
+      
+      // Haritayı oluştur
+      const map = L.map(orderMapRef.current, {
+        scrollWheelZoom: false
+      }).setView([deliveryLat, deliveryLng], 15);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+      
+      // Teslimat noktası marker (kırmızı)
+      const deliveryIcon = L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background: #ef4444; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+      
+      L.marker([deliveryLat, deliveryLng], { icon: deliveryIcon })
+        .addTo(map)
+        .bindPopup(`<b>Teslimat Adresi</b><br>${selectedOrder.delivery_address}`);
+      
+      // Restoran marker (turuncu) - varsa
+      if (restaurantLat && restaurantLng) {
+        const restaurantIcon = L.divIcon({
+          className: 'custom-marker',
+          html: `<div style="background: #f97316; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+        
+        L.marker([restaurantLat, restaurantLng], { icon: restaurantIcon })
+          .addTo(map)
+          .bindPopup(`<b>${selectedOrder.restaurant_name}</b><br>Restoran`);
+        
+        // Her iki noktayı da göster
+        const bounds = L.latLngBounds([
+          [deliveryLat, deliveryLng],
+          [restaurantLat, restaurantLng]
+        ]);
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+      
+      orderMapInstanceRef.current = map;
+      
+      // Map resize fix
+      setTimeout(() => map.invalidateSize(), 100);
+    };
+    
+    initOrderMap();
+    
+    return () => {
+      if (orderMapInstanceRef.current) {
+        orderMapInstanceRef.current.remove();
+        orderMapInstanceRef.current = null;
+      }
+    };
+  }, [orderDetailTab, selectedOrder]);
 
   // Initialize map
   useEffect(() => {
