@@ -549,6 +549,13 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                   order.delivery_address
                 )
               }
+              onOpenRestaurantMaps={() =>
+                openInMaps(
+                  order.restaurant_location?.latitude,
+                  order.restaurant_location?.longitude,
+                  order.restaurant_name
+                )
+              }
               onCall={() => callPhone(order.customer_phone)}
               loading={actionLoading === order.id}
             />
