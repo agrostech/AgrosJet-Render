@@ -301,17 +301,6 @@ export default function SiparisYonetimiPage({ companyId }) {
       clearTimeout(timer);
     };
   }, [orderDetailTab, selectedOrder]);
-    };
-    
-    initOrderMap();
-    
-    return () => {
-      if (orderMapInstanceRef.current) {
-        orderMapInstanceRef.current.remove();
-        orderMapInstanceRef.current = null;
-      }
-    };
-  }, [orderDetailTab, selectedOrder]);
 
   // Initialize map
   useEffect(() => {
