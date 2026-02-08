@@ -155,11 +155,19 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   }, [previousOrderIds, playNotificationSound, showBrowserNotification]);
 
   // Siparişleri getir
-  const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
+  const fetchOrders = useCallback(async (showRefreshIndicator = false, checkNewOrders = false) => {
     if (showRefreshIndicator) setRefreshing(true);
     try {
       const res = await axios.get(`${API}/orders/courier/${courierId}/active`);
       setOrders(res.data);
+      
+      // Check for new orders only on interval fetches (not initial load)
+      if (checkNewOrders && res.data.length > 0) {
+        checkForNewOrders(res.data);
+      } else if (!checkNewOrders) {
+        // Initial load - just store the IDs
+        setPreviousOrderIds(new Set(res.data.map(o => o.id)));
+      }
     } catch (err) {
       if (!err.handled) {
         toast.error("Siparişler yüklenemedi");
@@ -168,16 +176,31 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [courierId]);
+  }, [courierId, checkForNewOrders]);
 
   useEffect(() => {
     if (courierId) {
-      fetchOrders();
-      // Her 15 saniyede bir siparişleri güncelle
-      const interval = setInterval(() => fetchOrders(false), 15000);
+      fetchOrders(false, false); // Initial load
+      // Her 10 saniyede bir siparişleri güncelle ve yeni sipariş kontrolü yap
+      const interval = setInterval(() => fetchOrders(false, true), 10000);
       return () => clearInterval(interval);
     }
   }, [courierId, fetchOrders]);
+
+  // Request notification permission on button click
+  const requestNotificationPermission = async () => {
+    if ("Notification" in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationsEnabled(permission === "granted");
+      if (permission === "granted") {
+        toast.success("Bildirimler aktif edildi");
+        // Test sound
+        playNotificationSound();
+      } else {
+        toast.error("Bildirim izni reddedildi");
+      }
+    }
+  };
 
   // Siparişi onayla (Gördüm)
   const handleConfirmOrder = async (orderId) => {
