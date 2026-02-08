@@ -595,53 +595,26 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       }
     });
 
-    // Order delivery markers (yuvarlak)
-    orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach((order, idx) => {
-      if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
-        try {
-          const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
-          const bgColor = statusInfo?.color?.replace('bg-', '') || 'yellow-500';
-          const colorMap = {
-            'yellow-500': '#eab308',
-            'orange-500': '#f97316',
-            'purple-500': '#a855f7',
-            'blue-500': '#3b82f6',
-            'cyan-500': '#06b6d4',
-            'green-500': '#22c55e',
-            'red-500': '#ef4444'
-          };
-          const hexColor = colorMap[bgColor] || '#eab308';
-          
-          const marker = L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
-            icon: L.divIcon({
-              className: 'order-marker',
-              html: `<div style="background: ${hexColor}; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">${idx + 1}</div>`,
-              iconSize: [32, 32],
-              iconAnchor: [16, 16]
-            })
-          }).addTo(map);
-          marker.bindPopup(`
-            <strong>${order.order_number}</strong><br/>
-            ${order.customer_name}<br/>
-            ${order.delivery_address}<br/>
-            <em>${statusInfo?.label || 'Beklemede'}</em>
-          `);
-          marker.on('click', () => {
-            setSelectedOrder(order);
-            setShowOrderDetailModal(true);
-          });
-          markersRef.current.push(marker);
-        } catch (e) {
-          console.error("Order marker error:", e);
-        }
-      }
-    });
+    // Sipariş marker'ları kaldırıldı - kurye modalında zaten gösteriliyor
 
-    // Courier locations (active and on_break only)
+    // Courier locations (active and on_break only) - with pulse animation
     const visibleCouriers = [
       ...(couriersByStatus.active || []),
       ...(couriersByStatus.on_break || [])
     ];
+    
+    // Helper function to get courier initials
+    const getCourierInitials = (name) => {
+      if (!name) return "?";
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) {
+        return parts[0].substring(0, 2).toUpperCase();
+      }
+      // İlk isim + son isim baş harfleri
+      const firstInitial = parts[0][0].toUpperCase();
+      const lastInitial = parts[parts.length - 1][0].toUpperCase();
+      return firstInitial + lastInitial;
+    };
     
     visibleCouriers.forEach(courier => {
       if (courier.current_location?.latitude && courier.current_location?.longitude) {
@@ -649,20 +622,38 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           const isOnBreak = courier.availability_status === 'on_break';
           const bgColor = isOnBreak ? '#eab308' : '#22c55e'; // yellow for break, green for active
           const statusLabel = isOnBreak ? 'Molada' : 'Aktif';
+          const initials = getCourierInitials(courier.name);
           
           const marker = L.marker([courier.current_location.latitude, courier.current_location.longitude], {
             icon: L.divIcon({
               className: 'courier-marker',
-              html: `<div style="background: ${bgColor}; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="18.5" cy="17.5" r="3.5"/>
-                  <circle cx="5.5" cy="17.5" r="3.5"/>
-                  <circle cx="15" cy="5" r="1"/>
-                  <path d="M12 17.5V14l-3-3 4-3 2 3h2"/>
-                </svg>
-              </div>`,
-              iconSize: [36, 36],
-              iconAnchor: [18, 18]
+              html: `
+                <div style="position: relative; width: 32px; height: 32px;">
+                  <div class="courier-pulse-ring" style="background: ${bgColor};"></div>
+                  <div class="courier-pulse-ring-delayed" style="background: ${bgColor};"></div>
+                  <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: ${bgColor};
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                  ">${initials}</div>
+                </div>
+              `,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
             })
           }).addTo(map);
           marker.bindPopup(`
