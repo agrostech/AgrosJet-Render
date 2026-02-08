@@ -35,6 +35,7 @@ const PAYMENT_METHODS = {
 export default function SiparisYonetimiPage({ companyId }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
+  const [couriersByStatus, setCouriersByStatus] = useState({ active: [], on_break: [], offline: [] });
   const [restaurants, setRestaurants] = useState([]);
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
