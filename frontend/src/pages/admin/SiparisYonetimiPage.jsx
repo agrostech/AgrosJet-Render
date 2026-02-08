@@ -65,7 +65,7 @@ export default function SiparisYonetimiPage({ companyId }) {
   const fetchCouriers = useCallback(async () => {
     if (!companyId) return;
     try {
-      const res = await axios.get(`${API}/couriers/company/${companyId}`);
+      const res = await axios.get(`${API}/couriers/companies/${companyId}/couriers`);
       setCouriers(res.data.filter(c => !c.is_archived));
     } catch (err) {
       console.error("Couriers fetch error:", err);
