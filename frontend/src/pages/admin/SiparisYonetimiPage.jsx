@@ -199,22 +199,25 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
   useEffect(() => {
     fetchAll();
-    // Her 5 saniyede bir siparişleri güncelle (anlık takip için)
-    const interval = setInterval(fetchOrders, 5000);
+    // Her 5 saniyede bir siparişleri ve kuryeleri güncelle (anlık takip için)
+    const orderInterval = setInterval(fetchOrders, 5000);
+    const courierInterval = setInterval(fetchCouriers, 5000);
     
     // Sayfa görünür olduğunda hemen güncelle
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchOrders();
+        fetchCouriers();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
-      clearInterval(interval);
+      clearInterval(orderInterval);
+      clearInterval(courierInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchAll, fetchOrders]);
+  }, [fetchAll, fetchOrders, fetchCouriers]);
 
   // Geri sayım için her dakika re-render (dakika bazlı olduğu için)
   useEffect(() => {
