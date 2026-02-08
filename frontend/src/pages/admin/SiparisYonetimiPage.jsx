@@ -374,10 +374,11 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     // Şirketin ili veya default Türkiye merkezi
     const centerLat = company?.city_lat || 39.0;
     const centerLng = company?.city_lng || 35.0;
-    const zoomLevel = company?.city_lat ? 13 : 6;
+    const zoomLevel = company?.city_lat ? 12 : 6;
     
     const map = window.L.map(mapRef.current, {
-      scrollWheelZoom: false
+      scrollWheelZoom: false,
+      attributionControl: false
     }).setView([centerLat, centerLng], zoomLevel);
     
     // CartoDB Positron - Temiz, modern harita stili
