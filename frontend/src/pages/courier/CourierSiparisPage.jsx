@@ -541,8 +541,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   // Siparişleri grupla
   const newOrders = orders.filter((o) => o.status === "assigned");
-  const activeOrders = orders.filter((o) => ["confirmed", "on_the_way"].includes(o.status));
-  const onTheWayOrders = orders.filter((o) => o.status === "on_the_way");
+  const assignedOrders = orders.filter((o) => ["assigned", "confirmed"].includes(o.status)); // Atanmış (henüz yola çıkmamış)
+  const onTheWayOrders = orders.filter((o) => o.status === "on_the_way"); // Yoldaki
 
   return (
     <div className="space-y-4" data-testid="courier-siparis-page">
