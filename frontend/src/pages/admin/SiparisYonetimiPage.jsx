@@ -301,13 +301,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         .addTo(map)
         .bindPopup(`<b>Teslimat Adresi</b><br>${selectedOrder.delivery_address}`);
       
-      // Restoran marker (turuncu) - varsa
+      // Restoran marker (gri, küçük) - varsa
       if (restaurantLat && restaurantLng) {
         const restaurantIcon = L.divIcon({
           className: 'custom-marker',
-          html: `<div style="background: #f97316; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-          iconSize: [20, 20],
-          iconAnchor: [10, 10]
+          html: `<div style="background: #9ca3af; width: 10px; height: 10px; border-radius: 50%; border: 1px solid #6b7280;"></div>`,
+          iconSize: [10, 10],
+          iconAnchor: [5, 5]
         });
         
         L.marker([restaurantLat, restaurantLng], { icon: restaurantIcon })
