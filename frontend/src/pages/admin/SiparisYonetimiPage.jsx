@@ -671,8 +671,8 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         try {
           const marker = L.marker([r.latitude, r.longitude], {
             icon: L.divIcon({
-              className: 'restaurant-marker',
-              html: '<div style="width:12px;height:12px;background:#9ca3af;border-radius:50%;border:1px solid #6b7280;"></div>',
+              className: '',
+              html: `<div style="width:12px;height:12px;background:#9ca3af;border-radius:50% !important;-webkit-border-radius:50% !important;border:1px solid #6b7280;box-sizing:border-box;"></div>`,
               iconSize: [12, 12],
               iconAnchor: [6, 6]
             })
