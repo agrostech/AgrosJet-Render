@@ -601,7 +601,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
           {/* Atanmış Siparişler Tab */}
           {activeTab === "assigned" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {assignedOrders.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
