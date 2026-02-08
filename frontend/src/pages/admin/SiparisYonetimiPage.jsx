@@ -924,7 +924,9 @@ export default function SiparisYonetimiPage({ companyId }) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(ORDER_STATUSES).map(([key, value]) => (
+                      {Object.entries(ORDER_STATUSES)
+                        .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key))
+                        .map(([key, value]) => (
                         <SelectItem key={key} value={key}>
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${value.color}`} />
