@@ -593,10 +593,19 @@ export default function SiparisYonetimiPage({ companyId }) {
                           }}
                         >
                           <SelectTrigger 
-                            className={`${statusInfo.color} text-white text-[10px] px-1.5 py-0 h-5 w-auto border-0 gap-0.5`}
+                            className={`${
+                              order.status === 'preparing' && order.preparation_end_at && getCountdown(order.preparation_end_at)?.expired
+                                ? 'bg-red-500'
+                                : statusInfo.color
+                            } text-white text-[10px] px-1.5 py-0 h-5 w-auto border-0 gap-0.5`}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <SelectValue>{statusInfo.label}</SelectValue>
+                            <SelectValue>
+                              {order.status === 'preparing' && order.preparation_end_at
+                                ? getCountdown(order.preparation_end_at)?.text
+                                : statusInfo.label
+                              }
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {/* Hazırlanıyor - süre seçenekleri */}
@@ -626,17 +635,6 @@ export default function SiparisYonetimiPage({ companyId }) {
                             ))}
                           </SelectContent>
                         </Select>
-                        {/* Hazırlanıyor durumunda geri sayım */}
-                        {order.status === 'preparing' && order.preparation_end_at && (
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 ${
-                            getCountdown(order.preparation_end_at)?.expired 
-                              ? 'bg-red-100 text-red-700' 
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            <Timer className="w-3 h-3" />
-                            {getCountdown(order.preparation_end_at)?.text}
-                          </span>
-                        )}
                         <span className="text-xs text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
                         <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
