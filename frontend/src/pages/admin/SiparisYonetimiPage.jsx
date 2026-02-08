@@ -826,9 +826,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
                 couriersByStatus.offline.map(c => (
-                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded text-muted-foreground">
-                    <Bike className="w-3 h-3" />
-                    <span className="truncate">{c.name}</span>
+                  <div 
+                    key={c.id} 
+                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-slate-50 rounded cursor-pointer text-muted-foreground"
+                    onClick={() => handleCourierClick(c)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Bike className="w-3 h-3" />
+                      <span className="truncate">{c.name}</span>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   </div>
                 ))
               )}
