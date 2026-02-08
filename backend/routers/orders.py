@@ -454,7 +454,14 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
         }
     )
     
-    # TODO: Kuryeye push notification gönder
+    # Kuryeye push notification gönder
+    try:
+        from services.push_notification_service import notify_courier_new_order
+        order["order_number"] = order.get("order_number", "")
+        order["restaurant_name"] = order.get("restaurant_name", "Restoran")
+        await notify_courier_new_order(data.courier_id, order)
+    except Exception as e:
+        print(f"Push notification error: {e}")
     
     return {"message": f"Sipariş {courier['name']} kuryesine atandı"}
 
