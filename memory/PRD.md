@@ -91,7 +91,9 @@ ORDER_STATUSES = {
 
 ### Kurye API Endpoints
 ```
-GET  /api/orders/courier/{courier_id}/active  - Kuryenin aktif siparişleri
+GET  /api/couriers/{courier_id}                                - Kurye bilgisi
+PUT  /api/couriers/{courier_id}/availability                   - Durum güncelle
+GET  /api/orders/courier/{courier_id}/active                   - Kuryenin aktif siparişleri
 POST /api/orders/courier/{courier_id}/order/{order_id}/confirm - Siparişi onayla
 POST /api/orders/courier/{courier_id}/order/{order_id}/pickup  - Yola çık
 POST /api/orders/courier/{courier_id}/order/{order_id}/deliver - Teslim et
