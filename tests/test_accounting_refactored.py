@@ -9,7 +9,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://food-delivery-233.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://orderflow-204.preview.emergentagent.com')
 
 # Test credentials
 SUPER_ADMIN_USERNAME = "onurertas"
