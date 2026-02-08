@@ -972,6 +972,47 @@ export default function SiparisYonetimiPage({ companyId }) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Hazırlanıyor Süresi Seçim Modalı */}
+      <Dialog open={showPreparationModal} onOpenChange={setShowPreparationModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Timer className="w-5 h-5 text-yellow-500" />
+              Hazırlık Süresi Seçin
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Sipariş ne kadar süre "Hazırlanıyor" durumunda kalacak?
+            </p>
+            <Select value={selectedPreparationTime} onValueChange={setSelectedPreparationTime}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5 Dakika</SelectItem>
+                <SelectItem value="10">10 Dakika</SelectItem>
+                <SelectItem value="15">15 Dakika</SelectItem>
+                <SelectItem value="30">30 Dakika</SelectItem>
+                <SelectItem value="60">60 Dakika</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowPreparationModal(false);
+              setPendingStatusChange(null);
+            }}>
+              İptal
+            </Button>
+            <Button onClick={handleConfirmPreparation} className="bg-yellow-500 hover:bg-yellow-600">
+              <Timer className="w-4 h-4 mr-2" />
+              Başlat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
