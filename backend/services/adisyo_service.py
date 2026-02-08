@@ -263,7 +263,7 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
             adisyo_order.get("statusId", 1),
             adisyo_order.get("status", "Beklemede")
         ),
-        "notes": adisyo_order.get("orderNote", ""),
+        "notes": order_notes,
         "source": "adisyo",
         "created_at": adisyo_order.get("insertDate") or datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
