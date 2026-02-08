@@ -646,6 +646,43 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         </div>
       </div>
 
+      {/* Mobile Courier Status Cards */}
+      <div className="flex gap-2 overflow-x-auto pb-2 lg:hidden">
+        <div className="flex-shrink-0 bg-green-50 border border-green-200 rounded-lg px-3 py-2 min-w-[100px]">
+          <div className="flex items-center gap-1 text-xs font-semibold text-green-700">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            Aktif
+          </div>
+          <div className="text-lg font-bold text-green-700">{couriersByStatus.active.length}</div>
+          <div className="text-[10px] text-green-600 truncate">
+            {couriersByStatus.active.slice(0, 2).map(c => c.name).join(', ')}
+            {couriersByStatus.active.length > 2 && '...'}
+          </div>
+        </div>
+        <div className="flex-shrink-0 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 min-w-[100px]">
+          <div className="flex items-center gap-1 text-xs font-semibold text-yellow-700">
+            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+            Molada
+          </div>
+          <div className="text-lg font-bold text-yellow-700">{couriersByStatus.on_break.length}</div>
+          <div className="text-[10px] text-yellow-600 truncate">
+            {couriersByStatus.on_break.slice(0, 2).map(c => c.name).join(', ')}
+            {couriersByStatus.on_break.length > 2 && '...'}
+          </div>
+        </div>
+        <div className="flex-shrink-0 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 min-w-[100px]">
+          <div className="flex items-center gap-1 text-xs font-semibold text-slate-600">
+            <div className="w-2 h-2 rounded-full bg-slate-400" />
+            Çevrimdışı
+          </div>
+          <div className="text-lg font-bold text-slate-600">{couriersByStatus.offline.length}</div>
+          <div className="text-[10px] text-slate-500 truncate">
+            {couriersByStatus.offline.slice(0, 2).map(c => c.name).join(', ')}
+            {couriersByStatus.offline.length > 2 && '...'}
+          </div>
+        </div>
+      </div>
+
       {/* Map with Courier List */}
       <div className="flex gap-4">
         {/* Courier Status List - Left Side (Desktop only) */}
