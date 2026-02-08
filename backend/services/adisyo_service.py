@@ -277,6 +277,9 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
     synced_count = 0
     skipped_count = 0
     
+    # ShiftJet'te daha ileri durumlar (bunları Adisyo ile ezme)
+    shiftjet_priority_statuses = ["assigned", "confirmed", "on_the_way", "delivered", "cancelled"]
+    
     for adisyo_order in result["orders"]:
         adisyo_order_id = adisyo_order.get("id")
         
@@ -284,24 +287,38 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
         existing = await db.orders.find_one({"adisyo_order_id": adisyo_order_id})
         
         if existing:
-            # Sipariş zaten var, durumu güncelle (eğer değiştiyse)
-            new_status = map_adisyo_status(
-                adisyo_order.get("statusId", 1),
-                adisyo_order.get("status", "")
-            )
-            if existing.get("status") != new_status:
-                await db.orders.update_one(
-                    {"adisyo_order_id": adisyo_order_id},
-                    {"$set": {
-                        "status": new_status,
-                        "updated_at": datetime.now(timezone.utc).isoformat()
-                    }}
-                )
+            # Sipariş zaten var
+            current_status = existing.get("status")
+            
+            # Eğer ShiftJet'te kurye atanmış veya ilerlemiş ise, durumu DEĞİŞTİRME
+            if current_status in shiftjet_priority_statuses:
+                skipped_count += 1
+                continue
+            
+            # Sadece Adisyo'dan teslim edildi veya iptal geldiyse güncelle
+            adisyo_status_id = adisyo_order.get("statusId", 1)
+            if adisyo_status_id in [5, 6]:  # 5: Teslim Edildi, 6: İptal
+                new_status = map_adisyo_status(adisyo_status_id, "")
+                if current_status != new_status:
+                    await db.orders.update_one(
+                        {"adisyo_order_id": adisyo_order_id},
+                        {"$set": {
+                            "status": new_status,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
             skipped_count += 1
             continue
         
         # Yeni sipariş - dönüştür ve kaydet
         shiftjet_order = await convert_adisyo_order_to_shiftjet(adisyo_order, restaurant)
+        
+        # Hazırlama süresini ekle (restoran ayarından)
+        prep_time = restaurant.get("preparation_time", 15)  # Varsayılan 15 dk
+        prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+        shiftjet_order["preparation_time"] = prep_time
+        shiftjet_order["preparation_end_at"] = prep_end.isoformat()
+        
         await db.orders.insert_one(shiftjet_order)
         synced_count += 1
     
