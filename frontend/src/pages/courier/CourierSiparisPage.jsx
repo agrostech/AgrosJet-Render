@@ -329,19 +329,51 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   };
 
-  // Siparişi teslim et
+  // Siparişi teslim et - ödeme kontrolü ile
   const handleDeliverOrder = async (orderId) => {
+    // Siparişi bul
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    // Nakit veya kart ödeme ise önce onay al
+    if (order.payment_method === 'cash' || order.payment_method === 'card') {
+      setPendingDeliveryOrder(order);
+      setShowPaymentConfirmModal(true);
+      return;
+    }
+    
+    // Online ödeme ise direkt teslim et
+    await executeDelivery(orderId);
+  };
+
+  // Gerçek teslim işlemi
+  const executeDelivery = async (orderId) => {
     setActionLoading(orderId);
     try {
       await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/deliver`);
       toast.success("Sipariş teslim edildi");
       fetchOrders();
       setShowDetailModal(false);
+      setShowPaymentConfirmModal(false);
+      setPendingDeliveryOrder(null);
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
     } finally {
       setActionLoading(null);
     }
+  };
+
+  // Ödeme onaylandı - teslim et
+  const handlePaymentConfirmed = () => {
+    if (pendingDeliveryOrder) {
+      executeDelivery(pendingDeliveryOrder.id);
+    }
+  };
+
+  // Ödeme onayı iptal
+  const handlePaymentCancelled = () => {
+    setShowPaymentConfirmModal(false);
+    setPendingDeliveryOrder(null);
   };
 
   // Haritada aç
