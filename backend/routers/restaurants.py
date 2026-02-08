@@ -21,6 +21,7 @@ class RestaurantCreate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     company_id: str
+    preparation_time: int = 15  # Hazırlık süresi (dakika), varsayılan 15 dakika
     # Adisyo API bilgileri
     adisyo_api_key: Optional[str] = None
     adisyo_api_secret: Optional[str] = None
@@ -33,6 +34,7 @@ class RestaurantUpdate(BaseModel):
     address: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    preparation_time: Optional[int] = None  # Hazırlık süresi (dakika)
     adisyo_api_key: Optional[str] = None
     adisyo_api_secret: Optional[str] = None
     adisyo_branch_id: Optional[str] = None
