@@ -119,7 +119,7 @@ export default function SiparisYonetimiPage({ companyId }) {
   }, []);
 
   const initMap = () => {
-    if (!mapRef.current || !window.L) return;
+    if (!mapRef.current || !window.L || mapInstanceRef.current) return;
     
     // Istanbul center
     const map = window.L.map(mapRef.current).setView([41.0082, 28.9784], 11);
