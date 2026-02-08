@@ -64,6 +64,34 @@ const getCountdown = (preparationEndAt) => {
   };
 };
 
+// Hedeflenen teslimat zamanı hesaplama (sipariş + 35 dk)
+const getTargetDelivery = (createdAt) => {
+  if (!createdAt) return null;
+  
+  const orderTime = new Date(createdAt);
+  const targetTime = new Date(orderTime.getTime() + 35 * 60000); // +35 dakika
+  const now = new Date();
+  
+  const targetTimeStr = targetTime.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  
+  if (now > targetTime) {
+    // Gecikme var
+    const delayMs = now - targetTime;
+    const delayMinutes = Math.floor(delayMs / 60000);
+    return {
+      time: targetTimeStr,
+      delayed: true,
+      delayMinutes
+    };
+  }
+  
+  return {
+    time: targetTimeStr,
+    delayed: false,
+    delayMinutes: 0
+  };
+};
+
 export default function SiparisYonetimiPage({ companyId, adminName }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
