@@ -472,52 +472,7 @@ async def delete_order(company_id: str, order_id: str):
     return {"message": "Sipariş silindi"}
 
 
-# --- Mock Data Endpoints ---
-
-@router.post("/{company_id}/generate-mock")
-async def generate_mock(company_id: str, count: int = 5):
-    """Test amaçlı mock sipariş oluştur"""
-    orders = await generate_mock_orders(company_id, count)
-    return {"message": f"{len(orders)} mock sipariş oluşturuldu", "count": len(orders)}
-
-
-@router.delete("/{company_id}/clear-mock")
-async def clear_mock_orders(company_id: str):
-    """Tüm mock siparişleri sil"""
-    result = await db.orders.delete_many({"company_id": company_id, "source": "mock"})
-    return {"message": f"{result.deleted_count} mock sipariş silindi"}
-
-
-# --- İstatistikler ---
-
-@router.get("/{company_id}/stats/summary")
-async def get_order_stats(company_id: str):
-    """Sipariş özet istatistikleri"""
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    # Bugünkü siparişler
-    today_orders = await db.orders.count_documents({
-        "company_id": company_id,
-        "created_at": {"$gte": today_start.isoformat()}
-    })
-    
-    # Aktif siparişler
-    active = await db.orders.count_documents({
-        "company_id": company_id,
-        "status": {"$nin": ["delivered", "cancelled"]}
-    })
-    
-    # Atanmamış siparişler
-    unassigned = await db.orders.count_documents({
-        "company_id": company_id,
-        "status": {"$in": ["new", "preparing", "ready"]},
-        "courier_id": None
-    })
-    
-    # Durum bazlı sayılar
-    status_counts = {}
-    for status in ORDER_STATUSES.keys():
-        count = await db.orders.count_documents({
+# --- Kurye Endpoints ---
             "company_id": company_id,
             "status": status
         })
