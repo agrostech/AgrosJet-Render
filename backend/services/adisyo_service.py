@@ -202,25 +202,26 @@ def parse_and_categorize_notes(raw_notes: str) -> str:
         r"Havale/?EFT",
     ]
     
-    # Mutfak notları kalıpları - genellikle genel talimatlar
+    # Mutfak notları kalıpları - yiyecekle ilgili talimatlar
+    # Daha spesifik olarak sadece yemek/malzeme ile ilgili olanlar
     kitchen_patterns = [
         r"çatal\s*b[ıi]çak",
         r"peçete",
         r"ketchup",
         r"mayonez",
-        r"sos",
-        r"acı",
+        r"sos\s*(ist|gön|koy)",  # sos istemiyorum, sos gönder gibi
+        r"ac[ıi]\s*(ist|gön|koy|olmas)",  # acı istemiyorum gibi
         r"az\s*tuzlu",
         r"tuzsuz",
-        r"ekstra",
-        r"fazla",
-        r"yanında",
-        r"içecek",
+        r"ekstra\s*(sos|peynir|et)",
+        r"fazla\s*(sos|peynir|et)",
+        r"yan[ıi]nda\s*(sos|peynir)",
+        r"içecek\s*(ist|gön)",
         r"göndermeyin",
-        r"gönderin",
-        r"istemiyorum",
-        r"istiyorum",
-        r"lütfen",
+        r"gönderin$",
+        r"istemiyorum$",
+        r"koymay[ıi]n",
+        r"\*\*",  # ** işareti genellikle mutfak notu
     ]
     
     # Notu parçalara ayır (| veya ; veya , ile ayrılmış olabilir)
