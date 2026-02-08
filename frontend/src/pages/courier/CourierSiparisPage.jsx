@@ -279,17 +279,57 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fetchOrders(true)}
-          disabled={refreshing}
-          data-testid="refresh-orders-btn"
-        >
-          <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
-          Yenile
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Notification Permission Button */}
+          <Button
+            variant={notificationsEnabled ? "outline" : "default"}
+            size="sm"
+            onClick={requestNotificationPermission}
+            className={notificationsEnabled ? "text-green-600 border-green-300" : "bg-purple-600 hover:bg-purple-700"}
+            data-testid="notification-btn"
+          >
+            {notificationsEnabled ? (
+              <>
+                <Bell className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Aktif</span>
+              </>
+            ) : (
+              <>
+                <BellOff className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Bildirim Aç</span>
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchOrders(true, false)}
+            disabled={refreshing}
+            data-testid="refresh-orders-btn"
+          >
+            <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Yenile</span>
+          </Button>
+        </div>
       </div>
+
+      {/* Notification Permission Banner */}
+      {!notificationsEnabled && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-center gap-3">
+          <Bell className="w-5 h-5 text-purple-600 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-purple-800">Bildirimleri açın</p>
+            <p className="text-xs text-purple-600">Yeni sipariş geldiğinde sesli bildirim alın</p>
+          </div>
+          <Button 
+            size="sm" 
+            onClick={requestNotificationPermission}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            İzin Ver
+          </Button>
+        </div>
+      )}
 
       {/* Boş durum */}
       {orders.length === 0 && (
