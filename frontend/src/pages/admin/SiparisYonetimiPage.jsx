@@ -582,7 +582,9 @@ export default function SiparisYonetimiPage({ companyId }) {
                             <SelectValue>{statusInfo.label}</SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.entries(ORDER_STATUSES).map(([key, value]) => (
+                            {Object.entries(ORDER_STATUSES)
+                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key))
+                              .map(([key, value]) => (
                               <SelectItem key={key} value={key} className="text-xs">
                                 <div className="flex items-center gap-2">
                                   <div className={`w-2 h-2 rounded-full ${value.color}`} />
@@ -592,6 +594,17 @@ export default function SiparisYonetimiPage({ companyId }) {
                             ))}
                           </SelectContent>
                         </Select>
+                        {/* Hazırlanıyor durumunda geri sayım */}
+                        {order.status === 'preparing' && order.preparation_end_at && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                            getCountdown(order.preparation_end_at)?.expired 
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            <Timer className="w-3 h-3" />
+                            {getCountdown(order.preparation_end_at)?.text}
+                          </span>
+                        )}
                         <span className="text-xs text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
                         <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
