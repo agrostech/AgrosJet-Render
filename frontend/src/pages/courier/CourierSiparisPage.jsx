@@ -189,31 +189,41 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       const assignedOrders = newOrders.filter(o => o.status === "assigned");
       
       if (isInitialLoadRef.current) {
-        // First load - just store IDs, don't notify
-        previousOrderIdsRef.current = new Set(newOrders.map(o => o.id));
+        // First load - store current assigned order IDs (don't notify)
+        assignedOrders.forEach(o => notifiedOrdersRef.current.add(o.id));
         isInitialLoadRef.current = false;
       } else {
-        // Check for new orders not in previous set
+        // Check for NEW assigned orders that we haven't notified yet
         assignedOrders.forEach(order => {
-          if (!previousOrderIdsRef.current.has(order.id)) {
-            // NEW ORDER DETECTED!
+          if (!notifiedOrdersRef.current.has(order.id)) {
+            // NEW ORDER - hasn't been notified before!
             console.log("🔔 Yeni sipariş algılandı:", order.order_number);
             
-            // Play sound (only once - SW is silent)
+            // Mark as notified FIRST to prevent duplicates
+            notifiedOrdersRef.current.add(order.id);
+            
+            // Play sound
             playNotificationSound();
             
-            // Show browser notification (via SW if available)
+            // Show browser notification
             showBrowserNotification(order);
             
-            // Show toast in app
+            // Show toast
             toast.success(`🔔 Yeni sipariş: ${order.restaurant_name}`, {
               duration: 15000,
             });
           }
         });
-        // Update the ref
-        previousOrderIdsRef.current = new Set(newOrders.map(o => o.id));
       }
+      
+      // Clean up: remove notified orders that are no longer assigned
+      const currentOrderIds = new Set(newOrders.map(o => o.id));
+      notifiedOrdersRef.current.forEach(id => {
+        if (!currentOrderIds.has(id)) {
+          notifiedOrdersRef.current.delete(id);
+        }
+      });
+      
     } catch (err) {
       if (!err.handled) {
         toast.error("Siparişler yüklenemedi");
