@@ -633,8 +633,6 @@ export default function SiparisYonetimiPage({ companyId }) {
                     ))}
                   </>
                 )}
-                  </SelectItem>
-                ))}
               </SelectContent>
             </Select>
           </div>
