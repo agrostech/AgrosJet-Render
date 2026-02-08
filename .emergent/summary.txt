@@ -1,0 +1,174 @@
+<analysis>**original_problem_statement:**
+The user initially requested a Ghost Courier system, Invoice Shortfall logic, UI enhancements, a Company Switcher, and a refactored System Admin panel.
+
+Recently, the user introduced a major new requirement: to build a comprehensive, Adisyo-integrated order management system directly into the existing ShiftJet application.
+
+**PRODUCT REQUIREMENTS (New - Adisyo Integration):**
+*   **Integration:** Connect with the Adisyo API () for order and courier management.
+*   **Order Module:** Pull orders from Adisyo via Webhooks (, ) or polling. Manage order statuses (Preparing, Assigned, Courier Confirmed, On The Way, Delivered).
+*   **Courier Module:** Utilize existing ShiftJet couriers. Provide them with an interface to view, accept/reject orders, and update delivery status. Include one-touch navigation to the customer's address. Use push notifications for new orders.
+*   **Admin Panel:** A dashboard for admins to view new orders, see customer locations on a map, and manually assign couriers.
+*   **Finance Module:** Integrate with the existing ShiftJet transaction system to calculate courier earnings based on various models (fixed, distance-based) and handle daily financial reconciliation (cash, card, online).
+
+**User's preferred language**: Turkish
+
+**what currently exists?**
+The application features a multi-company administration system with a Company Switcher for admins managing multiple entities. The System Admin panel is logically structured into tabs for managing Companies, Admins, and Couriers system-wide. The main dashboard's accounting card shows detailed, company-specific credit/debit and installment summaries.
+
+The agent just completed a detailed analysis and proposed a multi-phase implementation plan for the new Adisyo integration, which is now the primary focus.
+
+**Last working item**:
+- Last item agent was working: The agent pivoted from bug fixing to analyzing and planning a major new feature request: an **Adisyo-integrated order management system**. A detailed analysis of the Adisyo API documentation was performed, and a comprehensive, multi-phase implementation plan was presented to the user for approval.
+- Status: USER VERIFICATION PENDING
+- Agent Testing Done: N/A (Planning phase)
+- Which testing method agent to use? N/A
+- User Testing Done: N
+
+**All Pending/In progress Issue list**:
+-   **Issue 1: Adisyo Integration - Awaiting User Go-Ahead (P0 - HIGHEST PRIORITY)**
+-   **Issue 2: Mobile Company Switcher Missing (P0)**
+-   **Issue 3: Mobile Courier List UI (P0)**
+-   **Issue 4: Mobile file uploads do not show Files option (P0)**
+-   **Issue 5: System Panel Refactor & Company Switcher E2E Test (P1)**
+-   **Issue 6: The complete Invoice Shortfall workflow requires E2E user verification (P2)**
+-   **Issue 7: Courier invoice visibility fix requires user verification (P2)**
+-   **Issue 8: Backup email functionality is not fully tested (P3)**
+
+Issues Detail:
+-   **Issue 1: Adisyo Integration - Awaiting User Go-Ahead (P0)**
+    -   **Attempted fixes:** N/A. The agent has just completed the analysis and planning phase.
+    -   **Next debug checklist:** The agent must wait for the user to answer the questions posed in the implementation plan (e.g., how to start, how to handle API keys, courier matching).
+    -   **Why fix this issue and what will be achieved with the fix?** This is the user's new primary focus and a major new feature set for the application.
+    -   **Status:** BLOCKED (Awaiting user feedback)
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** User decision.
+
+-   **Issue 2: Mobile Company Switcher Missing (P0)**
+    -   **Attempted fixes:** The agent identified the  component was missing from the mobile header in  and added it.
+    -   **Next debug checklist:** The user needs to test this on a mobile device. If it still doesn't appear, the next agent should check for responsive visibility classes (, etc.) that might be overriding the change.
+    -   **Why fix this issue and what will be achieved with the fix?** Critical for admins who manage multiple companies on mobile.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** frontend
+
+-   **Issue 3: Mobile Courier List UI (P0)**
+    -   **Attempted fixes:** The agent modified  to render a responsive card layout for the couriers list on mobile instead of a wide, scrolling table.
+    -   **Next debug checklist:** The user needs to test the  page on a mobile device to confirm the layout is usable.
+    -   **Why fix this issue and what will be achieved with the fix?** Improves usability for system admins on mobile.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** frontend
+
+-   **Issue 4: Mobile file uploads do not show Files option (P0)**
+    -   **Status:** USER VERIFICATION PENDING (Recurring issue, no new fix attempted this session).
+    -   **Is recurring issue?** Y
+    -   **Blocked on other issue:** User testing on a physical device.
+
+-   **Issue 5, 6, 7, 8:** These are features from previous sessions that still require full end-to-end user testing to be considered fully resolved.
+    -   **Status:** USER VERIFICATION PENDING for all.
+
+**In progress Task List**:
+-   **Task 1: Adisyo Integration Implementation**
+    -   **Where to resume:** Awaiting user response to the detailed implementation plan (mock data vs. real data, API key availability, courier matching strategy).
+    -   **What will be achieved with this?** A full order management system integrated with Adisyo.
+    -   **Status:** BLOCKED
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on something:** User feedback on the proposed plan.
+
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks:**
+    -   **P0 - Implement Adisyo Integration:** Begin Phase 1 (Settings & Webhook) as soon as the user provides the necessary clarifications and API keys.
+-   **Future Tasks:**
+    -   **Re-enable & Enhance Chat System (P1)**
+    -   **Dark Mode Implementation (P2)**
+    -   **Refactoring (P2):**
+        -   Break down , , and  into smaller components.
+    -   **Motosikletim Feature Enhancements (P3)**
+
+**Completed work in this session**
+-   **Analysis & Planning:** Performed a comprehensive analysis of the Adisyo API and created a detailed, multi-phase implementation plan for the new order management system.
+-   **Bug Fix:** Resolved an issue where couriers appeared duplicated in the system admin panel. The fix involved deleting duplicate documents from the  MongoDB collection.
+-   **DB Integrity:** Added a unique index to the uid=0(root) gid=0(root) groups=0(root) field of the  collection to prevent future data duplication.
+-   **Bug Fix:** Fixed the Permanent Delete functionality for couriers, which was failing due to a missing  import in .
+-   **UI Improvement:** Added the missing Company Switcher to the mobile view.
+-   **UI Improvement:** Made the Couriers list in the system admin panel mobile-responsive by using a card layout.
+
+**Earlier issues found/mentioned but not fixed**
+-   The high-priority mobile file upload issue remains unresolved pending user verification on a physical device.
+
+**Known issue recurrence from previous fork**
+-   **Issue recurrence in previous fork:** Mobile file upload issue.
+-   **Recurrence count:** 5+ sessions.
+-   **Status:** USER VERIFICATION PENDING
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Database Integrity:** Ensured data consistency by identifying and removing duplicate records in a production collection () and then enforcing uniqueness by adding a unique index on the primary identifier field (uid=0(root) gid=0(root) groups=0(root)). This is a critical practice to prevent data corruption.
+-   **API Analysis & Feature Planning:** Conducted a thorough review of a third-party API (Adisyo) to create a detailed, phased implementation plan for a major new feature, breaking it down into testable sprints.
+
+**key DB schema**
+-   ****: Added a unique index on the uid=0(root) gid=0(root) groups=0(root) field to prevent duplicate courier entries.
+
+**changes in tech stack**
+-   None.
+
+**All files of reference**
+-    (Modified for mobile Company Switcher)
+-    (Modified for mobile courier list)
+-    (Modified to fix delete endpoint)
+
+**Areas that need refactoring**:
+-   : Still very large and should be broken into components for each tab.
+-   : The installment modal logic should be extracted into its own component.
+
+**key api endpoints**
+-   : **FIXED**. This endpoint now correctly deletes couriers.
+
+**Critical Info for New Agent**
+-   **STOP! Your top priority is the new Adisyo integration.** The user has just made a huge feature request and is reviewing your proposed plan. **DO NOT** start any other work until you receive the user's feedback on the plan.
+-   The user must answer your questions about API keys and implementation strategy before you can begin.
+-   Once you get the go-ahead, you will likely need to call the  for Adisyo to get the best implementation practices, even though you have already reviewed the docs.
+-   Several smaller fixes from this session are pending user verification (mobile company switcher, mobile courier list). You may need to remind the user to check these after the Adisyo plan is settled.
+-   The duplicate courier bug was a **data issue**, not just a code issue. The fix involved a one-time database cleanup script and adding a unique index. Be mindful of potential data inconsistencies.
+
+**documents and test reports created in this job**
+-   None.
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User:** The new Adisyo integration is the most important thing. Push notifications are sufficient. Review the docs and tell me what to do. **Status: ADDRESSED**. The agent performed a full analysis and presented a plan.
+2.  **User:** (Provided a comprehensive summary of a new feature request: Adisyo integration). **Status: ADDRESSED**.
+3.  **User:** Courier deletion is failing from the main panel. Also, the courier list requires horizontal scrolling on mobile. **Status: COMPLETED**. The agent fixed the deletion API and improved the mobile UI for the list.
+4.  **User:** The company switcher is missing on mobile. **Status: COMPLETED**. The agent added the component to the mobile view.
+5.  **User:** In the system panel, couriers are appearing more than once. **Status: COMPLETED**. The agent identified and fixed the root cause (duplicate data in the  collection).
+6.  **User:** (From previous session) Let's add a 'Couriers' section to the system panel. **Status: COMPLETED**.
+7.  **User:** (From previous session) The system panel logic is a bit bad. **Status: COMPLETED** (Led to refactor).
+8.  **User:** (From previous session) How do I switch companies? **Status: COMPLETED** (Led to Company Switcher).
+9.  **User:** (From previous session) Error when logging in as 'ShiftJet'. **Status: COMPLETED**.
+10. **User:** (From previous session) Let's add the company switcher feature. **Status: COMPLETED**.
+
+**Project Health Check:**
+-   **Broken:**
+    -   **Mobile File Upload:** Potentially still broken, awaiting user verification on a physical device. This is a long-standing P0 issue.
+-   **Mocked:** None.
+
+**3rd Party Integrations**
+-   : For Cloudflare R2 storage.
+-   : For background jobs.
+-   usage: websockets [--version | <uri>]: For the hidden chat feature.
+-   : **Planned**. This is the next major integration.
+
+**Testing status**
+-   Testing agent used after significant changes: NO
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: None.
+-   Known regressions: None.
+
+**Credentials to test flow:**
+-   **System Admin:** username: 
+-   **Multi-company Admin:** username: , password: 
+
+**What agent forgot to execute**
+- The agent successfully addressed all immediate user requests and pivoted to plan the new large-scale Adisyo integration as requested. No tasks were forgotten. The current state is a planned pause, awaiting user direction.</analysis>

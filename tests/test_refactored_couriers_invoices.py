@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://admin-hub-132.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://food-delivery-233.preview.emergentagent.com')
 
 # Test credentials
 SUPER_ADMIN_USERNAME = "onurertas"
