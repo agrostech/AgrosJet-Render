@@ -110,6 +110,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const audioRef = useRef(null);
   const previousOrderIdsRef = useRef(new Set());
   const isInitialLoadRef = useRef(true);
+  const notifiedOrdersRef = useRef(new Set()); // Bildirim gönderilen siparişler
 
   // Request notification permission
   useEffect(() => {
