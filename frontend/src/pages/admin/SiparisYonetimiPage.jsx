@@ -93,6 +93,28 @@ const getTargetDelivery = (createdAt) => {
   };
 };
 
+// Son konum bilgisi zamanını hesapla
+const getLocationTimeAgo = (updatedAt) => {
+  if (!updatedAt) return null;
+  
+  const now = new Date();
+  const updateTime = new Date(updatedAt);
+  const diffMs = now - updateTime;
+  
+  if (diffMs < 0) return "Şimdi";
+  
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  
+  if (diffSeconds < 30) return "Şimdi";
+  if (diffSeconds < 60) return `${diffSeconds} sn önce`;
+  if (diffMinutes < 60) return `${diffMinutes} dk önce`;
+  if (diffHours < 24) return `${diffHours} saat önce`;
+  
+  return updateTime.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+};
+
 export default function SiparisYonetimiPage({ companyId, adminName }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
