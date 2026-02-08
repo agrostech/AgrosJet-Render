@@ -432,8 +432,8 @@ export default function RestoranlarPage({ companyId }) {
       )}
 
       {/* Add Modal */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <Dialog open={showAddModal} onOpenChange={(open) => { setShowAddModal(open); if (!open) resetForm(); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Yeni Restoran Ekle</DialogTitle>
           </DialogHeader>
@@ -463,27 +463,24 @@ export default function RestoranlarPage({ companyId }) {
                 placeholder="Tam adres"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Enlem (Latitude)</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={formData.latitude}
-                  onChange={(e) => setFormData({...formData, latitude: e.target.value})}
-                  placeholder="41.0082"
-                />
-              </div>
-              <div>
-                <Label>Boylam (Longitude)</Label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={formData.longitude}
-                  onChange={(e) => setFormData({...formData, longitude: e.target.value})}
-                  placeholder="28.9784"
-                />
-              </div>
+            
+            {/* Haritadan Konum Seçimi */}
+            <div>
+              <Label className="flex items-center gap-2 mb-2">
+                <MapPin className="w-4 h-4" />
+                Konum (Haritadan İşaretle)
+              </Label>
+              <div 
+                ref={mapContainerRef} 
+                className="w-full h-[250px] rounded-lg border"
+                style={{ zIndex: 1 }}
+              />
+              {formData.latitude && formData.longitude && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Navigation className="w-3 h-3" />
+                  {formData.latitude}, {formData.longitude}
+                </p>
+              )}
             </div>
 
             {/* Adisyo API Bilgileri */}
