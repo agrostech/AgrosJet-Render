@@ -1478,11 +1478,15 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+                      
+                      {/* Orta: Müşteri + Adres + Mesafe */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0 justify-center">
+                        <span className="text-xs text-muted-foreground truncate max-w-[100px]">{order.customer_name}</span>
                         <span className="text-xs text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
-                        <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
+                        <span className="text-xs text-muted-foreground truncate max-w-[180px] hidden lg:block">{order.delivery_address}</span>
                         {getOrderDistance(order) && (
-                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap hidden md:inline">
+                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap">
                             📍 {getOrderDistance(order)}
                           </span>
                         )}
