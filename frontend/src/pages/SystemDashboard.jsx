@@ -238,6 +238,20 @@ function SirketlerPage() {
               />
             </div>
             <div>
+              <Label className="text-sm font-semibold">İl</Label>
+              <Select value={newCompany.city} onValueChange={(v) => setNewCompany({ ...newCompany, city: v })}>
+                <SelectTrigger className="mt-1 h-12 border-2">
+                  <SelectValue placeholder="İl seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TURKEY_CITIES.map(city => (
+                    <SelectItem key={city.name} value={city.name}>{city.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">Harita bu ile otomatik ortalanacak</p>
+            </div>
+            <div>
               <Label className="text-sm font-semibold">Logo URL (opsiyonel)</Label>
               <Input 
                 value={newCompany.logo_url} 
@@ -267,6 +281,19 @@ function SirketlerPage() {
                   className="mt-1 h-12 border-2" 
                   required 
                 />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">İl</Label>
+                <Select value={selectedCompany.city || ""} onValueChange={(v) => setSelectedCompany({ ...selectedCompany, city: v })}>
+                  <SelectTrigger className="mt-1 h-12 border-2">
+                    <SelectValue placeholder="İl seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TURKEY_CITIES.map(city => (
+                      <SelectItem key={city.name} value={city.name}>{city.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-sm font-semibold">Logo URL</Label>
