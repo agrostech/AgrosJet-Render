@@ -609,7 +609,7 @@ async def get_courier_active_orders(courier_id: str):
 
 @router.post("/courier/{courier_id}/order/{order_id}/confirm")
 async def courier_confirm_order(courier_id: str, order_id: str):
-    """Kurye siparişi kabul eder"""
+    """Kurye siparişi kabul eder (Siparişi Gördüm)"""
     order = await db.orders.find_one({"id": order_id, "courier_id": courier_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
@@ -617,13 +617,32 @@ async def courier_confirm_order(courier_id: str, order_id: str):
     if order["status"] != "assigned":
         raise HTTPException(status_code=400, detail="Bu sipariş onaylanamaz")
     
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
+    courier_name = courier.get("name", "Kurye") if courier else "Kurye"
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # History entry
+    history_entry = {
+        "status": "confirmed",
+        "label": "Onaylandı",
+        "timestamp": now,
+        "note": "Kurye siparişi gördü",
+        "actor_type": "courier",
+        "actor_name": courier_name
+    }
+    
     await db.orders.update_one(
         {"id": order_id},
-        {"$set": {
-            "status": "confirmed",
-            "confirmed_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
+        {
+            "$set": {
+                "status": "confirmed",
+                "confirmed_at": now,
+                "updated_at": now
+            },
+            "$push": {"status_history": history_entry}
+        }
     )
     
     return {"message": "Sipariş onaylandı"}
