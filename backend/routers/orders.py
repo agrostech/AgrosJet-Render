@@ -158,6 +158,9 @@ async def get_orders(
     limit: int = 50
 ):
     """Şirkete ait siparişleri getir"""
+    # Önce hazırlık süresi dolan siparişleri güncelle
+    await check_preparation_times(company_id)
+    
     query = {"company_id": company_id}
     
     if status:
@@ -178,7 +181,26 @@ async def get_orders(
     return orders
 
 
-@router.get("/{company_id}/{order_id}")
+async def check_preparation_times(company_id: str):
+    """Hazırlık süresi dolan siparişleri otomatik 'Hazır' durumuna güncelle"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Hazırlanıyor durumunda ve hazırlık süresi dolmuş siparişleri bul ve güncelle
+    result = await db.orders.update_many(
+        {
+            "company_id": company_id,
+            "status": "preparing",
+            "preparation_end_at": {"$lte": now}
+        },
+        {
+            "$set": {
+                "status": "ready",
+                "updated_at": now
+            }
+        }
+    )
+    
+    return result.modified_count@router.get("/{company_id}/{order_id}")
 async def get_order(company_id: str, order_id: str):
     """Tek bir sipariş detayı"""
     order = await db.orders.find_one(
