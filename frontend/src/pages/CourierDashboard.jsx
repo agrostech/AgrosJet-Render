@@ -19,6 +19,7 @@ import CourierEvraklarPage from "./courier/CourierEvraklarPage";
 import CourierMotosikletimPage from "./courier/CourierMotosikletimPage";
 import CourierJetPuanPage from "./courier/CourierJetPuanPage";
 import CourierAkademiPage from "./courier/CourierAkademiPage";
+import CourierSiparisPage from "./courier/CourierSiparisPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
