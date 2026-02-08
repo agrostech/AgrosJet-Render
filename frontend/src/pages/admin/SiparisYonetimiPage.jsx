@@ -1263,13 +1263,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <div className="space-y-2">
               {orders.map((order) => {
                 const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
-                const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
                 const targetDelivery = getTargetDelivery(order.created_at);
                 
                 return (
                   <div 
                     key={order.id}
-                    className={`p-3 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-md transition-shadow`}
+                    className={`p-3 rounded-lg border bg-white cursor-pointer hover:shadow-md transition-shadow`}
                     onClick={(e) => {
                       const target = e.target;
                       if (
@@ -1286,139 +1285,112 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    {/* SATIR 1: Saat | Restoran | Durum | Tutar | Kurye */}
-                    <div className="flex items-center justify-between gap-3 mb-2">
-                      {/* Sol grup */}
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        {/* Saat */}
-                        <div className="flex flex-col min-w-[50px]">
-                          <span className="text-sm font-mono font-medium">{formatTime(order.created_at)}</span>
-                          {targetDelivery && order.status !== 'delivered' && order.status !== 'cancelled' && (
-                            <span className={`text-[10px] ${targetDelivery.delayed ? 'text-red-600 font-semibold' : 'text-green-600'}`}>
-                              → {targetDelivery.time} {targetDelivery.delayed && `(+${targetDelivery.delayMinutes}dk)`}
-                            </span>
-                          )}
-                        </div>
-                        
-                        {/* Restoran */}
-                        <span className="font-semibold text-sm truncate max-w-[200px]">{order.restaurant_name}</span>
-                        
-                        {/* Durum */}
-                        <Select 
-                          value={order.status} 
-                          onValueChange={(newValue) => {
-                            if (newValue.startsWith('preparing_')) {
-                              handleUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
-                            } else {
-                              handleUpdateStatus(order.id, newValue);
-                            }
-                          }}
-                        >
-                          <SelectTrigger 
-                            className={`${
-                              order.status === 'preparing' && order.preparation_end_at && getCountdown(order.preparation_end_at)?.expired
-                                ? 'bg-red-500' : statusInfo.color
-                            } text-white text-xs px-2 py-1 h-6 min-w-[80px] border-0`}
-                          >
-                            <SelectValue>
-                              {order.status === 'preparing' && order.preparation_end_at
-                                ? getCountdown(order.preparation_end_at)?.text
-                                : statusInfo.label
-                              }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                            {PREPARATION_TIMES.map(time => (
-                              <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
-                                <Timer className="w-3 h-3 inline mr-1" />{time.label}
-                              </SelectItem>
-                            ))}
-                            <div className="border-t my-1" />
-                            {Object.entries(ORDER_STATUSES)
-                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                              .map(([key, value]) => (
-                              <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    {/* Üst: Restoran + Durum + Tutar */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
+                        <span className="font-semibold">{order.restaurant_name}</span>
                       </div>
-                      
-                      {/* Sağ grup */}
-                      <div className="flex items-center gap-3">
-                        {/* Tutar */}
-                        <span className="font-bold text-base">{formatCurrency(order.total_amount)}</span>
-                        
-                        {/* Kurye */}
-                        <Select 
-                          value={order.courier_id || ""}
-                          onValueChange={(value) => {
-                            if (value === "__remove__") handleUnassignCourier(order.id);
-                            else if (value) handleReassignCourier(order.id, value);
-                          }}
-                        >
-                          <SelectTrigger 
-                            className={`h-7 px-2 text-xs min-w-[100px] ${
-                              order.courier_name ? "bg-green-100 border-green-300 text-green-800" : "bg-white border-dashed"
-                            }`}
-                          >
-                            <Bike className="w-4 h-4 mr-1" />
-                            <span className="truncate">{order.courier_name || "Kurye Ata"}</span>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {couriersByStatus.active.length > 0 && (
-                              <>
-                                <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
-                                {couriersByStatus.active.map(c => (
-                                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                ))}
-                              </>
-                            )}
-                            {couriersByStatus.on_break.length > 0 && (
-                              <>
-                                <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
-                                {couriersByStatus.on_break.map(c => (
-                                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                ))}
-                              </>
-                            )}
-                            {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
-                              <>
-                                <div className="border-t my-1" />
-                                <SelectItem value="__remove__" className="text-red-600">Atamayı Kaldır</SelectItem>
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
+                      <div className="flex items-center gap-2">
+                        <span className={`${statusInfo.color} text-white text-xs px-2 py-0.5 rounded`}>
+                          {order.status === 'preparing' && order.preparation_end_at
+                            ? getCountdown(order.preparation_end_at)?.text
+                            : statusInfo.label}
+                        </span>
+                        <span className="font-bold">{formatCurrency(order.total_amount)}</span>
                       </div>
                     </div>
                     
-                    {/* SATIR 2: Müşteri | Adres | Mesafe | Ödeme */}
-                    <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground border-t pt-2">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        {/* Müşteri */}
-                        <span className="font-medium text-foreground">{order.customer_name}</span>
-                        
-                        {/* Adres */}
-                        <span className="truncate flex-1 text-xs">{order.delivery_address}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Mesafe */}
-                        {getOrderDistance(order) && (
-                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-                            {getOrderDistance(order)}
-                          </span>
-                        )}
-                        
-                        {/* Ödeme */}
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    {/* Orta: Müşteri + Adres */}
+                    <div className="mb-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">{order.customer_name}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-xs ${
                           order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 
                           order.payment_method === 'online' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'
                         }`}>
                           {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'online' ? 'Online' : 'Kart'}
                         </span>
+                        {getOrderDistance(order) && (
+                          <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                            {getOrderDistance(order)}
+                          </span>
+                        )}
                       </div>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">{order.delivery_address}</p>
+                    </div>
+                    
+                    {/* Alt: Kurye */}
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <Select 
+                        value={order.status} 
+                        onValueChange={(newValue) => {
+                          if (newValue.startsWith('preparing_')) {
+                            handleUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
+                          } else {
+                            handleUpdateStatus(order.id, newValue);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-7 w-auto text-xs px-2 bg-slate-50">
+                          <span>Durum Değiştir</span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                          {PREPARATION_TIMES.map(time => (
+                            <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
+                              {time.label}
+                            </SelectItem>
+                          ))}
+                          <div className="border-t my-1" />
+                          {Object.entries(ORDER_STATUSES)
+                            .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                            .map(([key, value]) => (
+                            <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <Select 
+                        value={order.courier_id || ""}
+                        onValueChange={(value) => {
+                          if (value === "__remove__") handleUnassignCourier(order.id);
+                          else if (value) handleReassignCourier(order.id, value);
+                        }}
+                      >
+                        <SelectTrigger 
+                          className={`h-7 px-2 text-xs ${
+                            order.courier_name ? "bg-green-100 border-green-300 text-green-800" : "bg-slate-50"
+                          }`}
+                        >
+                          <Bike className="w-3 h-3 mr-1" />
+                          <span>{order.courier_name || "Kurye Ata"}</span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {couriersByStatus.active.length > 0 && (
+                            <>
+                              <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
+                              {couriersByStatus.active.map(c => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              ))}
+                            </>
+                          )}
+                          {couriersByStatus.on_break.length > 0 && (
+                            <>
+                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
+                              {couriersByStatus.on_break.map(c => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              ))}
+                            </>
+                          )}
+                          {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
+                            <>
+                              <div className="border-t my-1" />
+                              <SelectItem value="__remove__" className="text-red-600">Kaldır</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 );
