@@ -870,7 +870,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                           >
                           <SelectTrigger 
                             className="h-6 text-xs border-dashed w-auto gap-1 px-2"
-                            onClick={(e) => e.stopPropagation()}
                           >
                             <Bike className="w-3 h-3" />
                             <SelectValue>
@@ -889,6 +888,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             ))}
                           </SelectContent>
                         </Select>
+                        </div>
                       </div>
                     </div>
 
@@ -914,6 +914,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         </div>
                         <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
                         {/* Durum Dropdown - Tıkla değiştir */}
+                        <div onClick={(e) => e.stopPropagation()}>
                         <Select 
                           value={order.status} 
                           onValueChange={(newValue) => {
