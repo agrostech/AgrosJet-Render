@@ -791,12 +791,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               iconAnchor: [11, 11]
             })
           }).addTo(map);
-          marker.bindPopup(`
-            <strong>🛵 ${courier.name}</strong><br/>
-            <span style="color: ${bgColor}; font-weight: bold;">${statusLabel}</span>
-            ${orderCount > 0 ? `<br/><small>${orderCount} aktif sipariş</small>` : ''}<br/>
-            <small>${courier.phone || ''}</small>
-          `);
+          // Popup kaldırıldı - tıklayınca modal açılıyor
           marker.on('click', () => {
             setSelectedCourier(courier);
             setShowCourierDetailModal(true);
