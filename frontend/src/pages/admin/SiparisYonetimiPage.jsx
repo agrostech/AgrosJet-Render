@@ -400,7 +400,7 @@ export default function SiparisYonetimiPage({ companyId }) {
               </Button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-1">
               {orders.map((order) => {
                 const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
                 const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
@@ -408,56 +408,40 @@ export default function SiparisYonetimiPage({ companyId }) {
                 return (
                   <div 
                     key={order.id}
-                    className={`p-4 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-md transition-shadow`}
+                    className={`px-3 py-2 rounded-md border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
                     onClick={() => {
                       setSelectedOrder(order);
                       setShowOrderDetailModal(true);
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Store className="w-4 h-4 text-red-500" />
-                          <span className="font-semibold">{order.restaurant_name}</span>
-                          <Badge className={`${statusInfo.color} text-white text-xs`}>
-                            {statusInfo.label}
-                          </Badge>
-                          <span className="text-sm">{paymentInfo.icon}</span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <User className="w-3.5 h-3.5" />
-                            {order.customer_name}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {formatTime(order.created_at)}
-                          </span>
-                          <span className="text-xs text-slate-400">#{order.order_number?.split('-')[1]}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1 truncate flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                          {order.delivery_address}
-                        </p>
+                    <div className="flex items-center justify-between gap-2">
+                      {/* Sol: Restoran + Durum + Müşteri + Adres */}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className={`w-2 h-2 rounded-full ${statusInfo.color} flex-shrink-0`} />
+                        <span className="font-medium text-sm truncate max-w-[120px]">{order.restaurant_name}</span>
+                        <span className="text-xs text-muted-foreground truncate max-w-[100px]">{order.customer_name}</span>
+                        <span className="text-xs text-muted-foreground truncate max-w-[180px] hidden md:block">{order.delivery_address}</span>
                       </div>
                       
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className="font-semibold">{formatCurrency(order.total_amount)}</p>
-                          {order.courier_name ? (
-                            <p className="text-sm text-muted-foreground flex items-center gap-1 justify-end">
-                              <Bike className="w-3.5 h-3.5" />
-                              {order.courier_name}
-                            </p>
-                          ) : (
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="mt-1"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedOrder(order);
+                      {/* Sağ: Saat + Tutar + Kurye/Ata */}
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
+                        <span className="text-xs">{paymentInfo.icon}</span>
+                        <span className="font-semibold text-sm w-20 text-right">{formatCurrency(order.total_amount)}</span>
+                        {order.courier_name ? (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 w-24 truncate">
+                            <Bike className="w-3 h-3 flex-shrink-0" />
+                            {order.courier_name}
+                          </span>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOrder(order);
                                 setShowAssignModal(true);
                               }}
                             >
