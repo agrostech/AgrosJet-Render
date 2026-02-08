@@ -227,8 +227,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     if (courierId) {
       isInitialLoadRef.current = true;
       fetchOrders(false);
-      // Her 5 saniyede bir siparişleri güncelle
-      const interval = setInterval(() => fetchOrders(false), 5000);
+      // Her 2 saniyede bir siparişleri güncelle
+      const interval = setInterval(() => fetchOrders(false), 2000);
       return () => clearInterval(interval);
     }
   }, [courierId, fetchOrders]);
