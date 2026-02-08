@@ -248,7 +248,9 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
         "status": "assigned",
         "label": "Kurye Atandı",
         "timestamp": now,
-        "note": f"Kurye: {courier['name']}"
+        "note": f"Kurye: {courier['name']}",
+        "actor_type": "admin" if data.admin_name else "system",
+        "actor_name": data.admin_name or "Sistem"
     }
     
     await db.orders.update_one(
