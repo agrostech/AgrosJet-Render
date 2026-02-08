@@ -277,9 +277,38 @@ export default function SiparisYonetimiPage({ companyId }) {
 
   return (
     <div data-testid="siparis-yonetimi-page" className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="font-heading text-xl font-bold tracking-tight">Sipariş Yönetimi</h2>
+      {/* Header with inline stats */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-4 flex-wrap">
+          <h2 className="font-heading text-xl font-bold tracking-tight">Sipariş Yönetimi</h2>
+          {/* Inline Stats */}
+          <div className="flex items-center gap-3 text-sm">
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-full">
+              <Package className="w-3.5 h-3.5 text-slate-600" />
+              <span className="font-semibold">{stats.total}</span>
+            </span>
+            {stats.unassigned > 0 && (
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-100 rounded-full text-orange-700">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span className="font-semibold">{stats.unassigned}</span>
+                <span className="text-xs">bekliyor</span>
+              </span>
+            )}
+            {stats.onTheWay > 0 && (
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-cyan-100 rounded-full text-cyan-700">
+                <Bike className="w-3.5 h-3.5" />
+                <span className="font-semibold">{stats.onTheWay}</span>
+                <span className="text-xs">yolda</span>
+              </span>
+            )}
+            {stats.delivered > 0 && (
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-green-100 rounded-full text-green-700">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span className="font-semibold">{stats.delivered}</span>
+              </span>
+            )}
+          </div>
+        </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={fetchAll}>
             <RefreshCw className="w-4 h-4 mr-2" />
