@@ -146,6 +146,7 @@ export default function RestoranlarPage({ companyId }) {
       address: "",
       latitude: "",
       longitude: "",
+      preparation_time: 15,
       adisyo_api_key: "",
       adisyo_api_secret: "",
       adisyo_branch_id: ""
@@ -165,6 +166,7 @@ export default function RestoranlarPage({ companyId }) {
         ...formData,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        preparation_time: parseInt(formData.preparation_time) || 15,
         company_id: companyId
       });
       toast.success("Restoran eklendi");
@@ -186,7 +188,8 @@ export default function RestoranlarPage({ companyId }) {
       await axios.put(`${API}/restaurants/${selectedRestaurant.id}`, {
         ...formData,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null
+        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        preparation_time: parseInt(formData.preparation_time) || 15
       });
       toast.success("Restoran güncellendi");
       setShowEditModal(false);
