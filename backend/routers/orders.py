@@ -143,7 +143,9 @@ async def generate_mock_orders(company_id: str, count: int = 5):
                     "status": "preparing",
                     "label": "Sipariş Alındı",
                     "timestamp": created_at.isoformat(),
-                    "note": f"Hazırlık süresi: {prep_time} dakika"
+                    "note": f"Hazırlık süresi: {prep_time} dakika",
+                    "actor_type": "system",  # system, admin, courier
+                    "actor_name": "Sistem"
                 }
             ]
         }
