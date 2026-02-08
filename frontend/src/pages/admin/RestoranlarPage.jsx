@@ -62,6 +62,85 @@ export default function RestoranlarPage({ companyId }) {
     fetchRestaurants();
   }, [fetchRestaurants]);
 
+  // Initialize location picker map
+  const initLocationPicker = useCallback((initialLat = null, initialLng = null) => {
+    // Wait for container to be available
+    setTimeout(() => {
+      if (!mapContainerRef.current || mapInstanceRef.current) return;
+      
+      // Load Leaflet if needed
+      if (!window.L) {
+        if (!document.querySelector('link[href*="leaflet"]')) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+          document.head.appendChild(link);
+        }
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = () => createMap(initialLat, initialLng);
+        document.body.appendChild(script);
+      } else {
+        createMap(initialLat, initialLng);
+      }
+    }, 100);
+  }, []);
+
+  const createMap = (initialLat, initialLng) => {
+    if (!mapContainerRef.current || !window.L || mapInstanceRef.current) return;
+    
+    const L = window.L;
+    const defaultLat = initialLat || 41.0082;
+    const defaultLng = initialLng || 28.9784;
+    
+    const map = L.map(mapContainerRef.current, {
+      scrollWheelZoom: true,
+      zoomSnap: 1,
+      zoomDelta: 1,
+      wheelPxPerZoomLevel: 120
+    }).setView([defaultLat, defaultLng], initialLat ? 15 : 11);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    // Add marker if initial position
+    if (initialLat && initialLng) {
+      markerRef.current = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
+      markerRef.current.on('dragend', (e) => {
+        const { lat, lng } = e.target.getLatLng();
+        setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+      });
+    }
+    
+    // Click to place/move marker
+    map.on('click', (e) => {
+      const { lat, lng } = e.latlng;
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      } else {
+        markerRef.current = L.marker([lat, lng], { draggable: true }).addTo(map);
+        markerRef.current.on('dragend', (ev) => {
+          const pos = ev.target.getLatLng();
+          setFormData(prev => ({ ...prev, latitude: pos.lat.toFixed(6), longitude: pos.lng.toFixed(6) }));
+        });
+      }
+      setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+    });
+    
+    mapInstanceRef.current = map;
+  };
+
+  const cleanupMap = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+    if (markerRef.current) {
+      markerRef.current = null;
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -74,6 +153,7 @@ export default function RestoranlarPage({ companyId }) {
       adisyo_branch_id: ""
     });
     setShowApiKeys(false);
+    cleanupMap();
   };
 
   const handleAdd = async () => {
