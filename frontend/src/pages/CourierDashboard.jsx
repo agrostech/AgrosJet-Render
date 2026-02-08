@@ -59,6 +59,7 @@ export default function CourierDashboard() {
   const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
   const [availabilityStatus, setAvailabilityStatus] = useState("offline");
   const [statusLoading, setStatusLoading] = useState(false);
+  const [breakStatus, setBreakStatus] = useState(null); // Mola durumu
 
   // Fetch document status
   const checkDocumentStatus = useCallback(async (courierId) => {
