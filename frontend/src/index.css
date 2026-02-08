@@ -78,11 +78,26 @@ body {
 .leaflet-div-icon {
     background: transparent !important;
     border: none !important;
+    box-shadow: none !important;
+}
+
+.leaflet-div-icon.restaurant-marker,
+.leaflet-div-icon.order-marker {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .restaurant-marker,
 .order-marker {
     background: transparent !important;
     border: none !important;
+    box-shadow: none !important;
+}
+
+/* Force round markers */
+.restaurant-marker > div,
+.order-marker > div {
+    border-radius: 50% !important;
 }
 
