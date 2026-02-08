@@ -708,52 +708,52 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
   if (!order) return null;
 
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
-  const PaymentIcon = PAYMENT_METHODS[order.payment_method]?.icon || Banknote;
-  const paymentLabel = PAYMENT_METHODS[order.payment_method]?.label || "Nakit";
+  const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+  const PaymentIcon = paymentInfo.icon;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Package className="w-4 h-4" />
             Sipariş Detayı
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs">
             {order.order_number} • {formatDate(order.created_at)} {formatTime(order.created_at)}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Durum */}
           <div className="flex items-center justify-between">
-            <Badge className={`${statusConfig.color} text-white`}>{statusConfig.label}</Badge>
-            <div className="flex items-center gap-1 text-sm">
-              <PaymentIcon className="w-4 h-4" />
-              <span>{paymentLabel}</span>
+            <Badge className={`${statusConfig.color} text-white text-xs`}>{statusConfig.label}</Badge>
+            <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
+              <PaymentIcon className="w-3 h-3" />
+              <span>{paymentInfo.label}</span>
               <span className="font-semibold ml-1">{formatCurrency(order.total_amount)}</span>
             </div>
           </div>
 
           {/* Restoran */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center gap-2 text-sm font-medium mb-1">
-              <Store className="w-4 h-4 text-orange-500" />
+          <div className="border rounded p-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium mb-0.5">
+              <Store className="w-3.5 h-3.5 text-orange-500" />
               Restoran
             </div>
-            <p className="text-sm">{order.restaurant_name}</p>
+            <p className="text-xs">{order.restaurant_name}</p>
           </div>
 
           {/* Müşteri */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center gap-2 text-sm font-medium mb-1">
-              <User className="w-4 h-4 text-blue-500" />
+          <div className="border rounded p-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium mb-0.5">
+              <User className="w-3.5 h-3.5 text-blue-500" />
               Müşteri
             </div>
-            <p className="text-sm">{order.customer_name}</p>
+            <p className="text-xs">{order.customer_name}</p>
             <button
               onClick={onCall}
-              className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-1"
+              className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5"
             >
               <Phone className="w-3 h-3" />
               {order.customer_phone}
@@ -761,16 +761,16 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
           </div>
 
           {/* Adres */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center gap-2 text-sm font-medium mb-1">
-              <MapPin className="w-4 h-4 text-red-500" />
+          <div className="border rounded p-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium mb-0.5">
+              <MapPin className="w-3.5 h-3.5 text-red-500" />
               Teslimat Adresi
             </div>
-            <p className="text-sm">{order.delivery_address}</p>
+            <p className="text-xs">{order.delivery_address}</p>
             <Button
               variant="link"
               size="sm"
-              className="p-0 h-auto text-blue-600"
+              className="p-0 h-auto text-blue-600 text-xs"
               onClick={onOpenMaps}
             >
               <Navigation className="w-3 h-3 mr-1" />
@@ -779,24 +779,20 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
           </div>
 
           {/* Ürünler */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center gap-2 text-sm font-medium mb-2">
-              <FileText className="w-4 h-4 text-muted-foreground" />
+          <div className="border rounded p-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium mb-1">
+              <FileText className="w-3.5 h-3.5 text-muted-foreground" />
               Sipariş İçeriği
             </div>
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {order.items?.map((item, idx) => (
-                <li key={idx} className="text-sm flex justify-between">
-                  <span>
-                    {item.quantity}x {item.name}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {formatCurrency(item.price * item.quantity)}
-                  </span>
+                <li key={idx} className="text-xs flex justify-between">
+                  <span>{item.quantity}x {item.name}</span>
+                  <span className="text-muted-foreground">{formatCurrency(item.price * item.quantity)}</span>
                 </li>
               ))}
             </ul>
-            <div className="border-t mt-2 pt-2 flex justify-between font-semibold text-sm">
+            <div className="border-t mt-1.5 pt-1.5 flex justify-between font-semibold text-xs">
               <span>Toplam</span>
               <span>{formatCurrency(order.total_amount)}</span>
             </div>
@@ -804,37 +800,39 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
 
           {/* Not */}
           {order.notes && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs">
               <span className="font-medium text-yellow-800">Not:</span> {order.notes}
             </div>
           )}
 
           {/* Aksiyonlar */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-1">
             {order.status === "confirmed" && (
               <Button
-                className="flex-1 bg-cyan-600 hover:bg-cyan-700"
+                size="sm"
+                className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-8 text-xs"
                 onClick={onPickup}
                 disabled={loading}
               >
                 {loading ? (
-                  <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
                 ) : (
-                  <Truck className="w-4 h-4 mr-1" />
+                  <Truck className="w-3.5 h-3.5 mr-1" />
                 )}
                 Yola Çık
               </Button>
             )}
             {order.status === "on_the_way" && (
               <Button
-                className="flex-1 bg-green-600 hover:bg-green-700"
+                size="sm"
+                className="flex-1 bg-green-600 hover:bg-green-700 h-8 text-xs"
                 onClick={onDeliver}
                 disabled={loading}
               >
                 {loading ? (
-                  <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
                 ) : (
-                  <CheckCircle className="w-4 h-4 mr-1" />
+                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
                 )}
                 Teslim Et
               </Button>
