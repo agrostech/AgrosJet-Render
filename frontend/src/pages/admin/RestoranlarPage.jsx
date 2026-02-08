@@ -247,6 +247,7 @@ export default function RestoranlarPage({ companyId }) {
       address: restaurant.address || "",
       latitude: restaurant.latitude?.toString() || "",
       longitude: restaurant.longitude?.toString() || "",
+      preparation_time: restaurant.preparation_time || 15,
       adisyo_api_key: "",  // Güvenlik için boş göster
       adisyo_api_secret: "",
       adisyo_branch_id: restaurant.adisyo_branch_id || ""
