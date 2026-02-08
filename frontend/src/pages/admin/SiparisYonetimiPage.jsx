@@ -613,39 +613,28 @@ export default function SiparisYonetimiPage({ companyId }) {
                 </Button>
               )}
 
-              {/* Status Actions */}
+              {/* Status Change - Dropdown */}
               {selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled' && (
-                <div className="flex gap-2 flex-wrap pt-2 border-t">
-                  {selectedOrder.status === 'new' && (
-                    <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(selectedOrder.id, 'preparing')}>
-                      Hazırlanıyor
-                    </Button>
-                  )}
-                  {selectedOrder.status === 'preparing' && (
-                    <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(selectedOrder.id, 'ready')}>
-                      Hazır
-                    </Button>
-                  )}
-                  {['assigned', 'courier_confirmed'].includes(selectedOrder.status) && (
-                    <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(selectedOrder.id, 'on_the_way')}>
-                      Yola Çıktı
-                    </Button>
-                  )}
-                  {selectedOrder.status === 'on_the_way' && (
-                    <Button size="sm" variant="default" onClick={() => handleUpdateStatus(selectedOrder.id, 'delivered')}>
-                      <CheckCircle2 className="w-4 h-4 mr-1" />
-                      Teslim Edildi
-                    </Button>
-                  )}
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="text-red-600"
-                    onClick={() => handleUpdateStatus(selectedOrder.id, 'cancelled')}
+                <div className="pt-2 border-t">
+                  <Label className="text-sm font-medium mb-2 block">Durum Değiştir</Label>
+                  <Select 
+                    value={selectedOrder.status} 
+                    onValueChange={(newStatus) => handleUpdateStatus(selectedOrder.id, newStatus)}
                   >
-                    <XCircle className="w-4 h-4 mr-1" />
-                    İptal
-                  </Button>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(ORDER_STATUSES).map(([key, value]) => (
+                        <SelectItem key={key} value={key}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${value.color}`} />
+                            {value.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
