@@ -597,7 +597,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchOrders(true, false)}
+            onClick={() => fetchOrders(true)}
             disabled={refreshing}
             data-testid="refresh-orders-btn"
           >
