@@ -273,7 +273,7 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
 
 
 @router.delete("/{company_id}/{order_id}/assign")
-async def unassign_courier(company_id: str, order_id: str):
+async def unassign_courier(company_id: str, order_id: str, admin_name: Optional[str] = None):
     """Siparişten kurye atamasını kaldır"""
     order = await db.orders.find_one({"id": order_id, "company_id": company_id})
     if not order:
@@ -294,7 +294,9 @@ async def unassign_courier(company_id: str, order_id: str):
         "status": "ready",
         "label": "Kurye Ataması Kaldırıldı",
         "timestamp": now,
-        "note": f"Önceki kurye: {courier_name}"
+        "note": f"Önceki kurye: {courier_name}",
+        "actor_type": "admin" if admin_name else "system",
+        "actor_name": admin_name or "Sistem"
     }
     
     await db.orders.update_one(
