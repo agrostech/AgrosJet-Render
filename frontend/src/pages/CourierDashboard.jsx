@@ -126,7 +126,6 @@ export default function CourierDashboard() {
         longitude
       });
     } catch (err) {
-      // Silent fail - location update is not critical
       console.error("Konum güncellenemedi:", err);
     }
   }, []);
@@ -139,7 +138,23 @@ export default function CourierDashboard() {
     if (availabilityStatus === "offline") return;
     
     let watchId = null;
+    let intervalId = null;
     
+    const getCurrentLocation = () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            updateCourierLocation(user.id, position.coords.latitude, position.coords.longitude);
+          },
+          (error) => {
+            console.error("Konum alınamadı:", error);
+          },
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      }
+    };
+    
+    // watchPosition kullan
     if ("geolocation" in navigator) {
       watchId = navigator.geolocation.watchPosition(
         (position) => {
@@ -151,15 +166,31 @@ export default function CourierDashboard() {
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 30000
+          maximumAge: 10000
         }
       );
+      
+      // Ayrıca her 15 saniyede manuel konum al (watchPosition bazen durabilir)
+      intervalId = setInterval(getCurrentLocation, 15000);
     }
+    
+    // Sayfa görünür olduğunda konum güncelle
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && availabilityStatus !== "offline") {
+        console.log("Sayfa görünür, konum güncelleniyor...");
+        getCurrentLocation();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
       }
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user?.id, availabilityStatus, updateCourierLocation]);
 
