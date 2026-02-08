@@ -513,7 +513,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   // Update markers when data changes
   useEffect(() => {
     updateMapMarkers();
-  }, [orders, restaurants, couriers]);
+  }, [orders, restaurants, couriers, couriersByStatus]);
 
   const updateMapMarkers = () => {
     if (!mapInstanceRef.current || !window.L) return;
