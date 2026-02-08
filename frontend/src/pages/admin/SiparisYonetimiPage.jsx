@@ -400,7 +400,7 @@ export default function SiparisYonetimiPage({ companyId }) {
               </Button>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {orders.map((order) => {
                 const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
                 const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
@@ -408,37 +408,40 @@ export default function SiparisYonetimiPage({ companyId }) {
                 return (
                   <div 
                     key={order.id}
-                    className={`px-3 py-2 rounded-md border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
+                    className={`px-3 py-2.5 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
                     onClick={() => {
                       setSelectedOrder(order);
                       setShowOrderDetailModal(true);
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      {/* Sol: Restoran + Durum + Müşteri + Adres */}
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={`w-2 h-2 rounded-full ${statusInfo.color} flex-shrink-0`} />
-                        <span className="font-medium text-sm truncate max-w-[120px]">{order.restaurant_name}</span>
-                        <span className="text-xs text-muted-foreground truncate max-w-[100px]">{order.customer_name}</span>
-                        <span className="text-xs text-muted-foreground truncate max-w-[180px] hidden md:block">{order.delivery_address}</span>
+                    <div className="flex items-center justify-between gap-3">
+                      {/* Sol: Restoran + Durum + Müşteri */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
+                        <Badge className={`${statusInfo.color} text-white text-[10px] px-1.5 py-0 h-5`}>
+                          {statusInfo.label}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
+                        <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
                       </div>
                       
-                      {/* Sağ: Saat + Tutar + Kurye/Ata */}
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
+                      {/* Sağ: Saat + Ödeme + Tutar + Kurye/Ata */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs text-muted-foreground hidden sm:block">{formatTime(order.created_at)}</span>
                         <span className="text-xs">{paymentInfo.icon}</span>
-                        <span className="font-semibold text-sm w-20 text-right">{formatCurrency(order.total_amount)}</span>
+                        <span className="font-semibold text-sm min-w-[70px] text-right">{formatCurrency(order.total_amount)}</span>
                         {order.courier_name ? (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1 w-24 truncate">
-                            <Bike className="w-3 h-3 flex-shrink-0" />
-                            {order.courier_name}
+                          <span className="text-xs text-green-600 flex items-center gap-1 min-w-[80px]">
+                            <Bike className="w-3 h-3" />
+                            <span className="truncate max-w-[60px]">{order.courier_name}</span>
                           </span>
                         ) : (
                           <Button 
                             size="sm" 
                             variant="outline"
-                            className="h-6 px-2 text-xs"
+                            className="h-6 px-2 text-xs min-w-[50px]"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedOrder(order);
