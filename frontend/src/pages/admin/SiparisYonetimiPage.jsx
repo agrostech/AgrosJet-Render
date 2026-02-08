@@ -8,9 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   RefreshCw, MapPin, Phone, Clock, User, Bike, Store, Package,
-  ChevronRight, Navigation, CheckCircle2, XCircle, AlertCircle,
+  ChevronRight, ChevronDown, Navigation, CheckCircle2, XCircle, AlertCircle,
   Plus, Trash2, Filter, Users, Timer, Map
 } from "lucide-react";
 
