@@ -248,7 +248,8 @@ export default function CourierDashboard() {
         }`}>
           <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
             <Routes>
-              <Route index element={<CourierVardiyalarPage courierId={user.id} companyId={user.company_id} />} />
+              <Route index element={<CourierSiparisPage courierId={user.id} companyId={user.company_id} />} />
+              <Route path="vardiyalar" element={<CourierVardiyalarPage courierId={user.id} companyId={user.company_id} />} />
               <Route path="muhasebe" element={<CourierMuhasebePage courierId={user.id} courierName={user.name} companyId={user.company_id} />} />
               <Route path="zimmet" element={<CourierZimmetPage courierId={user.id} />} />
               <Route path="motosikletim" element={<CourierMotosikletimPage courierId={user.id} companyId={user.company_id} />} />
