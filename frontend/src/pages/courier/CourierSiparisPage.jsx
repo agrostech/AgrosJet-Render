@@ -167,6 +167,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   // Show browser notification via Service Worker (works in background!)
   const showBrowserNotification = useCallback((order) => {
     // Method 1: Try Service Worker notification (works in background)
+    // If SW handles it, don't play sound here (SW will handle notification)
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
         type: 'NEW_ORDER',
@@ -178,12 +179,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         }
       });
       console.log("Sent notification to Service Worker");
-      return;
+      // Service Worker will handle the notification, so we return here
+      // No need for additional notification from main app
+      return true; // Indicates SW handled it
     }
     
-    // Method 2: Fallback to regular Notification API
-    if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
+    // Method 2: Fallback to regular Notification API (only if SW not available)
+    if (!("Notification" in window)) return false;
+    if (Notification.permission !== "granted") return false;
     
     try {
       const notification = new Notification("🔔 YENİ SİPARİŞ!", {
@@ -199,10 +202,11 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         notification.close();
       };
       
-      // Auto close after 30 seconds
       setTimeout(() => notification.close(), 30000);
+      return false; // SW didn't handle it, main app did
     } catch (e) {
       console.error("Notification error:", e);
+      return false;
     }
   }, []);
 
