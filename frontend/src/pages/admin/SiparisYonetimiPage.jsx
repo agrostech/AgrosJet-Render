@@ -433,20 +433,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       }
     };
   }, [showCourierDetailModal, selectedCourier, orders, company]);
-    }
-    
-    courierMapInstanceRef.current = map;
-    
-    // Harita boyutunu düzelt
-    setTimeout(() => map.invalidateSize(), 200);
-    
-    return () => {
-      if (courierMapInstanceRef.current) {
-        courierMapInstanceRef.current.remove();
-        courierMapInstanceRef.current = null;
-      }
-    };
-  }, [showCourierDetailModal, selectedCourier, orders, company]);
 
   // Initialize map
   useEffect(() => {
