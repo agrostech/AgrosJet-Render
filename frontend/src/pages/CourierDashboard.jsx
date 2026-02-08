@@ -91,6 +91,33 @@ export default function CourierDashboard() {
     }
   }, []);
 
+  // Fetch courier availability status
+  const fetchAvailabilityStatus = useCallback(async (courierId) => {
+    try {
+      const res = await axios.get(`${API}/couriers/${courierId}`);
+      setAvailabilityStatus(res.data.availability_status || "offline");
+    } catch (err) {
+      console.error("Kurye durumu alınamadı", err);
+    }
+  }, []);
+
+  // Update availability status
+  const updateAvailabilityStatus = async (newStatus) => {
+    if (!user?.id) return;
+    setStatusLoading(true);
+    try {
+      await axios.put(`${API}/couriers/${user.id}/availability`, {
+        availability_status: newStatus
+      });
+      setAvailabilityStatus(newStatus);
+      toast.success(`Durumunuz güncellendi: ${AVAILABILITY_STATUSES[newStatus].label}`);
+    } catch (err) {
+      toast.error("Durum güncellenemedi");
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
   // Check if courier is deactivated (forced logout)
   const checkCourierStatus = useCallback(async (courierId, companyId) => {
     try {
