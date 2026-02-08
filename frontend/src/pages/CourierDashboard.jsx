@@ -164,7 +164,7 @@ export default function CourierDashboard() {
       
       return () => clearInterval(intervalId);
     }
-  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus]);
+  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
