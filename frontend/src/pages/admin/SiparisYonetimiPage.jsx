@@ -1285,23 +1285,51 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    {/* Üst: Restoran + Durum + Tutar */}
+                    {/* Üst: Saat + Restoran + Durum + Tutar */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
                         <span className="font-semibold">{order.restaurant_name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`${statusInfo.color} text-white text-xs px-2 py-0.5 rounded`}>
-                          {order.status === 'preparing' && order.preparation_end_at
-                            ? getCountdown(order.preparation_end_at)?.text
-                            : statusInfo.label}
-                        </span>
+                        {/* Durum Badge - Tıklanabilir */}
+                        <Select 
+                          value={order.status} 
+                          onValueChange={(newValue) => {
+                            if (newValue.startsWith('preparing_')) {
+                              handleUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
+                            } else {
+                              handleUpdateStatus(order.id, newValue);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={`${statusInfo.color} text-white text-xs px-2 py-0.5 h-6 border-0 min-w-[70px]`}>
+                            <SelectValue>
+                              {order.status === 'preparing' && order.preparation_end_at
+                                ? getCountdown(order.preparation_end_at)?.text
+                                : statusInfo.label}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                            {PREPARATION_TIMES.map(time => (
+                              <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
+                                {time.label}
+                              </SelectItem>
+                            ))}
+                            <div className="border-t my-1" />
+                            {Object.entries(ORDER_STATUSES)
+                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                              .map(([key, value]) => (
+                              <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <span className="font-bold">{formatCurrency(order.total_amount)}</span>
                       </div>
                     </div>
                     
-                    {/* Orta: Müşteri + Adres */}
+                    {/* Orta: Müşteri + Adres + Ödeme + Mesafe */}
                     <div className="mb-2">
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium">{order.customer_name}</span>
@@ -1321,36 +1349,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     </div>
                     
                     {/* Alt: Kurye */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <Select 
-                        value={order.status} 
-                        onValueChange={(newValue) => {
-                          if (newValue.startsWith('preparing_')) {
-                            handleUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
-                          } else {
-                            handleUpdateStatus(order.id, newValue);
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="h-7 w-auto text-xs px-2 bg-slate-50">
-                          <span>Durum Değiştir</span>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                          {PREPARATION_TIMES.map(time => (
-                            <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
-                              {time.label}
-                            </SelectItem>
-                          ))}
-                          <div className="border-t my-1" />
-                          {Object.entries(ORDER_STATUSES)
-                            .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                            .map(([key, value]) => (
-                            <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      
+                    <div className="flex items-center justify-end pt-2 border-t">
                       <Select 
                         value={order.courier_id || ""}
                         onValueChange={(value) => {
