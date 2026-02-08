@@ -4,7 +4,64 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler
 
-#### 🚀 Kurye Paneli - Durum Kontrolü (YENİ)
+#### 🔔 Push Notification (YENİ)
+Kurye sipariş atandığında sesli bildirim alır:
+
+**Özellikler:**
+- Browser notification desteği (izin gerekli)
+- Ses çalma (3 tekrarlı alarm)
+- Toast bildirimi
+- "Bildirimleri açın" banner ve "İzin Ver" butonu
+- 10 saniyede bir yeni sipariş kontrolü
+
+**Dosyalar:**
+- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` (GÜNCELLENDİ)
+
+---
+
+#### 🗺️ Kurye Konumları Haritada (YENİ)
+Admin panelinde aktif ve molada kuryelerin konumları görünür:
+
+**Özellikler:**
+- Yeşil marker: Aktif kuryeler
+- Sarı marker: Molada kuryeler
+- Çevrimdışı kuryelerin konumu gizli
+- Motosiklet ikonu ile gösterim
+- Konum 30 saniyede bir güncellenir (geolocation API)
+
+**Dosyalar:**
+- `/app/frontend/src/pages/admin/SiparisYonetimiPage.jsx` (GÜNCELLENDİ)
+- `/app/frontend/src/pages/CourierDashboard.jsx` (konum takibi)
+- `/app/backend/routers/couriers.py` (PUT /couriers/{id}/location)
+
+---
+
+#### ⏰ Şirket Çalışma Saatleri (YENİ)
+Admin Sistem sayfasında açılış/kapanış saati ayarı:
+
+**Özellikler:**
+- Açılış ve kapanış saati seçimi (time picker)
+- Raporlarda varsayılan olarak kullanılacak
+- Collapsible kart tasarımı
+
+**Dosyalar:**
+- `/app/frontend/src/pages/SistemPage.jsx` (GÜNCELLENDİ)
+- `/app/backend/routers/companies.py` (GET/PUT /companies/{id}/working-hours)
+
+---
+
+#### 🎨 Kurye Durum İkonları (GÜNCELLENDİ)
+- **Aktif:** ✓ Tik ikonu (yeşil)
+- **Molada:** ☕ Fincan ikonu (sarı)  
+- **Çevrimdışı:** ⊗ X ikonu (gri)
+
+**Dosyalar:**
+- `/app/frontend/src/pages/CourierDashboard.jsx`
+- `/app/frontend/src/components/courier/CourierSidebar.jsx`
+
+---
+
+#### 🚀 Kurye Paneli - Durum Kontrolü
 Kuryeler artık kendi durumlarını değiştirebilir:
 
 **Durumlar:**
@@ -19,15 +76,10 @@ Kuryeler artık kendi durumlarını değiştirebilir:
 - Admin panelinde kurye durumları görünür
 - Anlık toast bildirimi
 
-**Dosyalar:**
-- `/app/frontend/src/pages/CourierDashboard.jsx` (GÜNCELLENDİ)
-- `/app/frontend/src/components/courier/CourierSidebar.jsx` (GÜNCELLENDİ)
-- `/app/backend/routers/couriers.py` (GÜNCELLENDİ - GET /couriers/{id} eklendi)
-
 ---
 
-#### 🚀 Kurye Paneli - Sipariş Yönetimi (YENİ)
-Kuryeler için tam özellikli sipariş yönetimi sekmesi eklendi:
+#### 🚀 Kurye Paneli - Sipariş Yönetimi
+Kuryeler için tam özellikli sipariş yönetimi sekmesi:
 
 **Akış:**
 1. **Yeni Sipariş Atandı** → Kurye "Siparişi Gördüm" butonunu görür (detaylar gizli)
@@ -40,13 +92,7 @@ Kuryeler için tam özellikli sipariş yönetimi sekmesi eklendi:
 - "Yol Tarifi" butonu: Google Maps'te açar
 - "Ara" butonu: Müşteriyi arar
 - Mobil uyumlu tasarım
-- 15 saniyede bir otomatik yenileme
 - Status history kaydı (kim ne zaman değiştirdi)
-
-**Dosyalar:**
-- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` (YENİ)
-- `/app/frontend/src/pages/CourierDashboard.jsx` (GÜNCELLENDİ)
-- `/app/backend/routers/orders.py` (GÜNCELLENDİ)
 
 ---
 
