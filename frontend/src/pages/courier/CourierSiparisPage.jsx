@@ -107,8 +107,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const audioRef = useRef(null);
-  const previousOrderIdsRef = useRef(new Set());
+  const [showPaymentConfirmModal, setShowPaymentConfirmModal] = useState(false);
+  const [pendingDeliveryOrder, setPendingDeliveryOrder] = useState(null);
   const isInitialLoadRef = useRef(true);
   const notifiedOrdersRef = useRef(new Set()); // Bildirim gönderilen siparişler
 
