@@ -49,10 +49,10 @@ COURIER_ONLY_STATUSES = ["confirmed"]
 # --- Mock Data Generator ---
 async def generate_mock_orders(company_id: str, count: int = 5):
     """Test amaçlı mock sipariş oluştur"""
-    # Şirketin restoranlarını al
+    # Şirketin restoranlarını al (hazırlık süresi dahil)
     restaurants = await db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
-        {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1}
+        {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1, "preparation_time": 1}
     ).to_list(50)
     
     if not restaurants:
@@ -89,7 +89,6 @@ async def generate_mock_orders(company_id: str, count: int = 5):
     ]
     
     orders = []
-    statuses = ["preparing", "ready"]  # Mock siparişler için durumlar
     
     for i in range(count):
         restaurant = random.choice(restaurants)
@@ -99,8 +98,12 @@ async def generate_mock_orders(company_id: str, count: int = 5):
         
         total = sum(item["price"] * item["quantity"] for item in items)
         
-        # Son 30 dakika içinde rastgele zaman
-        created_at = datetime.now(timezone.utc) - timedelta(minutes=random.randint(1, 30))
+        # Şimdi oluştur (geri sayım için)
+        created_at = datetime.now(timezone.utc)
+        
+        # Restoran hazırlık süresi (varsayılan 15 dakika)
+        prep_time = restaurant.get("preparation_time", 15)
+        preparation_end_at = created_at + timedelta(minutes=prep_time)
         
         order = {
             "id": str(uuid.uuid4()),
@@ -122,7 +125,9 @@ async def generate_mock_orders(company_id: str, count: int = 5):
             "items": items,
             "total_amount": total,
             "payment_method": random.choice(["cash", "card", "online"]),
-            "status": random.choice(statuses),
+            "status": "preparing",  # Yeni siparişler hazırlanıyor ile başlar
+            "preparation_time": prep_time,  # Hazırlık süresi (dakika)
+            "preparation_end_at": preparation_end_at.isoformat(),  # Hazırlık bitiş zamanı
             "courier_id": None,
             "courier_name": None,
             "assigned_at": None,
