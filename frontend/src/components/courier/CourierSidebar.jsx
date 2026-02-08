@@ -89,21 +89,51 @@ export default function CourierSidebar({
           </>
         )}
         {sidebarCollapsed && (
-          companyLogo ? (
-            <img 
-              src={companyLogo} 
-              alt={companyName} 
-              className="w-10 h-10 mx-auto rounded-lg object-cover bg-white"
-              onError={(e) => { 
-                e.target.style.display = 'none'; 
-                e.target.parentElement.innerHTML = '<div class="w-10 h-10 mx-auto rounded-lg bg-white/20 flex items-center justify-center"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
-              }}
-            />
-          ) : (
-            <div className="w-10 h-10 mx-auto rounded-lg bg-white/20 flex items-center justify-center">
-              <User className="w-5 h-5" />
-            </div>
-          )
+          <div className="flex flex-col items-center gap-2">
+            {companyLogo ? (
+              <img 
+                src={companyLogo} 
+                alt={companyName} 
+                className="w-10 h-10 rounded-lg object-cover bg-white"
+                onError={(e) => { 
+                  e.target.style.display = 'none'; 
+                  e.target.parentElement.innerHTML = '<div class="w-10 h-10 mx-auto rounded-lg bg-white/20 flex items-center justify-center"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
+                }}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <User className="w-5 h-5" />
+              </div>
+            )}
+            {/* Collapsed Status Indicator */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStatus.color} hover:opacity-90 transition-opacity`}
+                  disabled={statusLoading}
+                  title={currentStatus.label}
+                >
+                  <StatusIcon className="w-4 h-4 text-white" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="right" className="w-40">
+                {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
+                  const Icon = status.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={key}
+                      onClick={() => onStatusChange && onStatusChange(key)}
+                      className={`flex items-center gap-2 ${availabilityStatus === key ? 'bg-accent' : ''}`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                      <Icon className="w-4 h-4" />
+                      {status.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </div>
       
