@@ -516,37 +516,35 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   );
 }
 
-// Yeni Sipariş Kartı (Onay Bekleyen)
+// Yeni Sipariş Kartı (Onay Bekleyen) - Kompakt
 function NewOrderCard({ order, onConfirm, loading }) {
   return (
     <div
       className="border-2 border-purple-300 bg-purple-50 rounded-lg overflow-hidden animate-pulse"
       data-testid={`new-order-card-${order.id}`}
     >
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-purple-500 text-white">Yeni Sipariş</Badge>
-            <span className="text-sm font-mono text-muted-foreground">{order.order_number}</span>
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Yeni</Badge>
+            <span className="text-xs font-mono text-muted-foreground">{order.order_number}</span>
           </div>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {formatTime(order.created_at)}
           </span>
         </div>
 
         {/* Restoran bilgisi */}
-        <div className="flex items-center gap-2 mb-2 text-sm">
-          <Store className="w-4 h-4 text-purple-600" />
-          <span className="font-medium">{order.restaurant_name}</span>
+        <div className="flex items-center gap-1.5 mb-2 text-xs">
+          <Store className="w-3.5 h-3.5 text-purple-600" />
+          <span className="font-medium truncate">{order.restaurant_name}</span>
         </div>
 
         {/* Sipariş özeti (gizli) */}
-        <div className="bg-white/50 rounded-lg p-3 mb-3 border border-purple-200">
-          <div className="flex items-center gap-2 text-purple-700">
-            <Eye className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              Sipariş detaylarını görmek için onaylayın
-            </span>
+        <div className="bg-white/50 rounded p-2 mb-2 border border-purple-200">
+          <div className="flex items-center gap-1.5 text-purple-700">
+            <Eye className="w-3.5 h-3.5" />
+            <span className="text-xs font-medium">Detayları görmek için onaylayın</span>
           </div>
         </div>
 
@@ -554,13 +552,14 @@ function NewOrderCard({ order, onConfirm, loading }) {
         <Button
           onClick={onConfirm}
           disabled={loading}
-          className="w-full bg-purple-600 hover:bg-purple-700"
+          size="sm"
+          className="w-full bg-purple-600 hover:bg-purple-700 h-8 text-xs"
           data-testid={`confirm-order-btn-${order.id}`}
         >
           {loading ? (
-            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
           ) : (
-            <Eye className="w-4 h-4 mr-2" />
+            <Eye className="w-3.5 h-3.5 mr-1.5" />
           )}
           Siparişi Gördüm
         </Button>
