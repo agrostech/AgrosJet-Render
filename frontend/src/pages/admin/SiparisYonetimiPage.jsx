@@ -1141,6 +1141,43 @@ export default function SiparisYonetimiPage({ companyId }) {
                   </a>
                 </div>
               </TabsContent>
+              
+              {/* Geçmiş Sekmesi */}
+              <TabsContent value="history" className="flex-1 overflow-y-auto mt-4">
+                <div className="space-y-1">
+                  {selectedOrder.status_history && selectedOrder.status_history.length > 0 ? (
+                    [...selectedOrder.status_history].reverse().map((entry, idx) => {
+                      const statusColor = ORDER_STATUSES[entry.status]?.color || 'bg-slate-500';
+                      const entryTime = new Date(entry.timestamp);
+                      
+                      return (
+                        <div key={idx} className="flex items-start gap-3 p-3 border-l-2 border-slate-200 ml-2">
+                          <div className={`w-3 h-3 rounded-full ${statusColor} mt-1 flex-shrink-0 -ml-[19px]`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium text-sm">{entry.label}</p>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {entryTime.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            {entry.note && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{entry.note}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {entryTime.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Henüz geçmiş kaydı yok</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
             </Tabs>
           )}
         </DialogContent>
