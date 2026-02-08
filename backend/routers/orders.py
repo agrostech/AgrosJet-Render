@@ -22,7 +22,7 @@ class OrderAssign(BaseModel):
 
 
 class OrderStatusUpdate(BaseModel):
-    status: str  # preparing, assigned, courier_confirmed, on_the_way, delivered, cancelled
+    status: str  # preparing, ready, assigned, on_the_way, delivered, cancelled
     courier_id: Optional[str] = None
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
@@ -30,14 +30,12 @@ class OrderStatusUpdate(BaseModel):
 
 # --- Sipariş Durumları ---
 ORDER_STATUSES = {
-    "new": {"label": "Yeni", "color": "blue"},
     "preparing": {"label": "Hazırlanıyor", "color": "yellow"},
     "ready": {"label": "Hazır", "color": "orange"},
     "assigned": {"label": "Kurye Atandı", "color": "purple"},
-    "courier_confirmed": {"label": "Kurye Onayladı", "color": "indigo"},
     "on_the_way": {"label": "Yolda", "color": "cyan"},
     "delivered": {"label": "Teslim Edildi", "color": "green"},
-    "cancelled": {"label": "İptal", "color": "red"}
+    "cancelled": {"label": "İptal Edildi", "color": "red"}
 }
 
 
