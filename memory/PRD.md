@@ -5,57 +5,80 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 
 ---
 
-## Son Güncelleme: 4 Şubat 2026
+## Son Güncelleme: 8 Şubat 2026
 
 ### ✅ Tamamlanan Özellikler (Bu Oturum)
 
-#### 1. Chat/Mesajlaşma Sistemi (YENİ)
-- Admin ve kuryeler arası gerçek zamanlı mesajlaşma
-- 1-1 ve grup sohbetleri desteği
-- Dosya ve resim gönderme
-- Okunmamış mesaj sayacı (badge)
-- WebSocket ile canlı güncelleme
-- Şirket bazlı ayrım (company-specific)
-- **Backend:** `/app/backend/routers/chat.py`
-- **Frontend:** `ChatPage.jsx`, `ChatSidebar.jsx`, `MessagePane.jsx`, `NewChatModal.jsx`
-- **Hook:** `useChatData.js`
-- **Test Durumu:** %100 (15/15 backend, tüm frontend testleri geçti)
+#### 1. Sipariş Yönetimi Sistemi (YENİ - Adisyo Entegrasyon Temeli)
+- **Sipariş Yönetimi Sekmesi** - Tam işlevsel admin paneli sekmesi
+  - Canlı İstanbul haritası (Leaflet/OpenStreetMap)
+  - İstatistik kartları: Toplam, Atanmamış, Yolda, Teslim
+  - Sipariş listesi filtreli görünüm
+  - Sipariş detay modal (müşteri, adres, ürünler, toplam)
+  - Kurye atama modal
+  - Durum güncelleme butonları
+  - Mock sipariş oluşturma (test için)
+- **Backend:** `/app/backend/routers/orders.py`
+- **Frontend:** `/app/frontend/src/pages/admin/SiparisYonetimiPage.jsx`
+
+#### 2. Restoranlar Yönetimi (YENİ)
+- **Restoranlar Sekmesi** - Ana menüde ayrı sekme
+  - Restoran ekleme/düzenleme/silme/arşivleme
+  - Konum bilgileri (enlem/boylam)
+  - **Adisyo API Entegrasyonu bilgileri:**
+    - API Key
+    - API Secret  
+    - Branch ID
+  - Bağlantı test butonu
+  - Arama ve filtreleme
+- **Backend:** `/app/backend/routers/restaurants.py`
+- **Frontend:** `/app/frontend/src/pages/admin/RestoranlarPage.jsx`
 
 ### ✅ Önceki Oturumlarda Tamamlananlar
 
-1. **Mobil UX Refactor** - Muhasebe tabları için in-place detail view
-2. **Günlük Tahsilat** - Kümülatif sistem, reset butonu, geçmiş log
-3. **Haftalık Özet Barı** - Günlük Tahsilat ve Mütabakat tablarında
-4. **Kurye Deaktivasyonu** - Otomatik logout, login engeli
-5. **Telefon Doğrulama** - Kayıt ve giriş için numara validasyonu
-6. **Market Sistemi** - Şirkete özel sipariş ve badge
-7. **Motosikletim Özelliği** - Kurye motosiklet ve bakım takibi
+1. **Multi-Company System** - Şirket değiştirici, çoklu şirket yönetimi
+2. **System Admin Panel** - Şirketler, Yöneticiler, Kuryeler tabs
+3. **Chat/Mesajlaşma Sistemi** - WebSocket ile gerçek zamanlı
+4. **Mobil UX Refactor** - Responsive tasarım
+5. **Günlük Tahsilat** - Kümülatif sistem
+6. **Market Sistemi** - JetPuan sipariş
+7. **Motosikletim** - Kurye motosiklet takibi
 8. **Yedekleme Sistemi** - APScheduler + Cloudflare R2
 
 ---
 
-## 🔴 Kullanıcı Doğrulaması Bekleyen (P0/P1)
+## 🔴 Kullanıcı Doğrulaması Bekleyen (P0)
 
 ### P0 - Mobil Dosya Yükleme
-- `accept="*/*"` düzeltmesi uygulandı
-- Fiziksel mobil cihazda test edilmesi gerekiyor
+- Fiziksel mobil cihazda test gerekiyor
 - Test noktaları: Mütabakat, Kurye Fatura, Evrak Yükleme, Chat Dosya
 
-### P1 - Fatura Eksikliği (Shortfall) E2E Testi
-- Tam iş akışının kullanıcı tarafından test edilmesi gerekiyor
+### P0 - Adisyo Gerçek API Entegrasyonu
+- Şu an mock data kullanılıyor
+- Gerçek API bağlantısı için kullanıcıdan API anahtarları gerekli
 
 ---
 
-## 🔵 Gelecek Görevler (Backlog)
+## 🔵 Yaklaşan Görevler (P1-P2)
 
-### Refactoring (P1)
-- `GunlukTahsilatTab.jsx` - Çok büyük, parçalanmalı
-- `FaturalarTab.jsx` - Büyük dosya, parçalanmalı
-- `useAccountingTab.js` - Hook bölünmesi
+### Adisyo Entegrasyonu - Faz 2 (P1)
+- Webhook endpoint'leri (order.created, order.updated)
+- Gerçek sipariş çekme
+- Kurye canlı konum takibi
+- Push notification entegrasyonu
 
-### Motosikletim Geliştirmeleri
-- Bakım geçmişi görünümü
-- Motosiklet istatistik dashboard'u
+### Refactoring (P2)
+- `SystemDashboard.jsx` - Bileşenlere ayırma
+- `GuncelDurumPage.jsx` - Taksit modal extraction
+
+---
+
+## 🟢 Gelecek Görevler (Backlog)
+
+- Chat sistemi yeniden aktifleştirme
+- Dark mode implementasyonu
+- Motosikletim feature geliştirmeleri
+- Kurye mobil app için sipariş kabul/red akışı
 
 ---
 
@@ -70,37 +93,38 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 ### Frontend
 - React + Tailwind CSS
 - Shadcn/UI bileşenleri
+- Leaflet (harita)
 
-### Veritabanı Koleksiyonları
-- `admins`, `couriers`, `companies`
-- `transactions`, `invoices`
-- `motorcycles`, `motorcycle_maintenances`
-- `daily_collections`, `admin_collection_status`
-- `chat_conversations`, `chat_messages` (YENİ)
-- `backup_settings`
+### Yeni Veritabanı Koleksiyonları
+- `restaurants` - Restoran bilgileri + Adisyo API credentials
+- `orders` - Sipariş yönetimi
+
+### API Endpoints (Yeni)
+
+#### Restoranlar
+- `GET /api/restaurants/{company_id}` - Şirket restoranları
+- `POST /api/restaurants` - Restoran ekle
+- `PUT /api/restaurants/{id}` - Güncelle
+- `DELETE /api/restaurants/{id}` - Sil
+- `POST /api/restaurants/{id}/test-adisyo` - API test
+
+#### Siparişler
+- `GET /api/orders/{company_id}` - Siparişleri listele
+- `POST /api/orders/{company_id}/{order_id}/assign` - Kurye ata
+- `POST /api/orders/{company_id}/{order_id}/status` - Durum güncelle
+- `POST /api/orders/{company_id}/generate-mock` - Mock oluştur (test)
+- `DELETE /api/orders/{company_id}/clear-mock` - Mock temizle
 
 ---
 
-## API Endpoints (Önemli)
+## Test Credentials
+- **System Admin:** ShiftJet / Delivery32..
+- **Test Admin:** testadmin / 123456
+- **Test Company ID:** af44eb06-9148-4990-8338-ea0208a47734
 
-### Chat (YENİ)
-- `GET /api/chat/conversations/{user_id}` - Kullanıcı sohbetleri
-- `POST /api/chat/conversations` - Yeni sohbet oluştur
-- `GET /api/chat/conversations/{id}/messages` - Mesajları getir
-- `POST /api/chat/messages` - Mesaj gönder
-- `GET /api/chat/users/search` - Kullanıcı ara
-- `POST /api/chat/upload` - Dosya yükle
-- `WS /api/chat/ws/{user_id}` - WebSocket bağlantısı
+---
 
-### Muhasebe
-- `GET/POST /api/transactions`
-- `GET /api/daily-collections/admin-summary`
-- `POST /api/daily-collections/mark-admin-collection-as-received`
-
-### Motosiklet
-- `GET/POST /api/motorcycles`
-- `POST /api/motorcycles/maintenance`
-- `PUT/DELETE /api/motorcycles/{id}`
-
-### Yedekleme
-- `POST /api/backup/company/{id}/send-now`
+## Notlar
+- Sipariş sistemi şu an MOCK DATA ile çalışıyor
+- Gerçek Adisyo entegrasyonu için API anahtarları gerekli
+- Restoranlar artık ayrı sekmeden yönetiliyor (Muhasebe'den bağımsız)
