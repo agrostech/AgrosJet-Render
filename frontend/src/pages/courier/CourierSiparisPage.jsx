@@ -674,12 +674,9 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-3">
-        {/* Header - Durum + Sipariş No + Ödeme */}
+        {/* Header - Durum + Ödeme */}
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Badge className={`${statusConfig.color} text-white text-xs px-2 py-0.5`}>{statusConfig.label}</Badge>
-            <span className="text-xs font-mono text-muted-foreground">{order.order_number}</span>
-          </div>
+          <Badge className={`${statusConfig.color} text-white text-xs px-2 py-0.5`}>{statusConfig.label}</Badge>
           <div className="flex items-center gap-2">
             {getOrderDistance(order) && (
               <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium">
