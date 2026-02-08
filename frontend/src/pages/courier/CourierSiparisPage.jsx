@@ -58,35 +58,14 @@ const createAlarmSound = () => {
     // Play alarm pattern - 6 beeps
     const now = audioContext.currentTime;
     for (let i = 0; i < 6; i++) {
-      playTone(880, now + i * 0.3, 0.15);  // A5
-      playTone(1100, now + i * 0.3, 0.15); // Higher tone for louder effect
+      playTone(880, now + i * 0.3, 0.15);
+      playTone(1100, now + i * 0.3, 0.15);
     }
     
     return audioContext;
   } catch (e) {
     console.error("Audio context error:", e);
     return null;
-  }
-};
-
-// Alternative sound using Audio element
-const playAlarmAudio = () => {
-  try {
-    // Use online alarm sound for reliability
-    const sounds = [
-      "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
-      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
-    ];
-    
-    const audio = new Audio(sounds[0]);
-    audio.volume = 1.0;
-    audio.play().catch(e => {
-      console.log("Audio play blocked, trying alternative...");
-      // Try Web Audio API as fallback
-      createAlarmSound();
-    });
-  } catch (e) {
-    console.error("Audio error:", e);
   }
 };
 
