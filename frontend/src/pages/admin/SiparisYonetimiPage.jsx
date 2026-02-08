@@ -646,42 +646,70 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         </div>
       </div>
 
-      {/* Mobile Courier Status Cards */}
-      <div className="flex gap-2 overflow-x-auto pb-2 lg:hidden">
-        <div className="flex-shrink-0 bg-green-50 border border-green-200 rounded-lg px-3 py-2 min-w-[100px]">
-          <div className="flex items-center gap-1 text-xs font-semibold text-green-700">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            Aktif
+      {/* Mobile Courier Status List */}
+      <Card className="lg:hidden">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Kuryeler
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-2 space-y-3">
+          {/* Aktif Kuryeler */}
+          <div>
+            <div className="flex items-center gap-2 px-2 py-1 bg-green-50 rounded text-xs font-semibold text-green-700 mb-1">
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              Aktif ({couriersByStatus.active.length})
+            </div>
+            {couriersByStatus.active.length === 0 ? (
+              <p className="text-xs text-muted-foreground px-2">-</p>
+            ) : (
+              couriersByStatus.active.map(c => (
+                <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
+                  <Bike className="w-3 h-3 text-green-600" />
+                  <span className="truncate">{c.name}</span>
+                </div>
+              ))
+            )}
           </div>
-          <div className="text-lg font-bold text-green-700">{couriersByStatus.active.length}</div>
-          <div className="text-[10px] text-green-600 truncate">
-            {couriersByStatus.active.slice(0, 2).map(c => c.name).join(', ')}
-            {couriersByStatus.active.length > 2 && '...'}
+          
+          {/* Moladaki Kuryeler */}
+          <div>
+            <div className="flex items-center gap-2 px-2 py-1 bg-yellow-50 rounded text-xs font-semibold text-yellow-700 mb-1">
+              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+              Molada ({couriersByStatus.on_break.length})
+            </div>
+            {couriersByStatus.on_break.length === 0 ? (
+              <p className="text-xs text-muted-foreground px-2">-</p>
+            ) : (
+              couriersByStatus.on_break.map(c => (
+                <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
+                  <Bike className="w-3 h-3 text-yellow-600" />
+                  <span className="truncate">{c.name}</span>
+                </div>
+              ))
+            )}
           </div>
-        </div>
-        <div className="flex-shrink-0 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 min-w-[100px]">
-          <div className="flex items-center gap-1 text-xs font-semibold text-yellow-700">
-            <div className="w-2 h-2 rounded-full bg-yellow-500" />
-            Molada
+          
+          {/* Çevrimdışı Kuryeler */}
+          <div>
+            <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 rounded text-xs font-semibold text-slate-600 mb-1">
+              <div className="w-2 h-2 rounded-full bg-slate-400" />
+              Çevrimdışı ({couriersByStatus.offline.length})
+            </div>
+            {couriersByStatus.offline.length === 0 ? (
+              <p className="text-xs text-muted-foreground px-2">-</p>
+            ) : (
+              couriersByStatus.offline.map(c => (
+                <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded text-muted-foreground">
+                  <Bike className="w-3 h-3" />
+                  <span className="truncate">{c.name}</span>
+                </div>
+              ))
+            )}
           </div>
-          <div className="text-lg font-bold text-yellow-700">{couriersByStatus.on_break.length}</div>
-          <div className="text-[10px] text-yellow-600 truncate">
-            {couriersByStatus.on_break.slice(0, 2).map(c => c.name).join(', ')}
-            {couriersByStatus.on_break.length > 2 && '...'}
-          </div>
-        </div>
-        <div className="flex-shrink-0 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 min-w-[100px]">
-          <div className="flex items-center gap-1 text-xs font-semibold text-slate-600">
-            <div className="w-2 h-2 rounded-full bg-slate-400" />
-            Çevrimdışı
-          </div>
-          <div className="text-lg font-bold text-slate-600">{couriersByStatus.offline.length}</div>
-          <div className="text-[10px] text-slate-500 truncate">
-            {couriersByStatus.offline.slice(0, 2).map(c => c.name).join(', ')}
-            {couriersByStatus.offline.length > 2 && '...'}
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Map with Courier List */}
       <div className="flex gap-4">
