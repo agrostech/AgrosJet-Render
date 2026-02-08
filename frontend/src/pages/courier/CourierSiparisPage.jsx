@@ -810,29 +810,6 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
     </div>
   );
 }
-                Yol Tarifi
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1 bg-green-600 hover:bg-green-700 h-8 text-xs"
-                onClick={onDeliver}
-                disabled={loading}
-                data-testid={`deliver-btn-${order.id}`}
-              >
-                {loading ? (
-                  <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
-                ) : (
-                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                )}
-                Teslim Et
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Sipariş Detay Modal
 function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMaps, onCall, loading }) {
