@@ -326,7 +326,7 @@ export default function AdminDashboard() {
             <Routes>
               <Route index element={<GuncelDurumPage companyId={activeCompanyId} />} />
               {/* Sipariş Yönetimi ve Restoranlar tüm adminlere açık */}
-              <Route path="siparisler" element={<SiparisYonetimiPage companyId={activeCompanyId} />} />
+              <Route path="siparisler" element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} />} />
               <Route path="restoranlar" element={<RestoranlarPage companyId={activeCompanyId} />} />
               {(isSuperAdmin || permissions.vardiya) && (
                 <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />
