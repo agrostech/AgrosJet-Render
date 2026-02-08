@@ -1669,26 +1669,26 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           </DialogHeader>
           
           {selectedCourier && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Harita */}
               <div className="rounded-lg overflow-hidden border">
-                <div ref={courierMapRef} className="h-[250px] w-full bg-slate-100" />
+                <div ref={courierMapRef} className="h-[200px] w-full bg-slate-100" />
               </div>
               
-              {/* Sipariş Sayısı */}
-              <div className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
-                <span className="text-sm font-medium">Aktif Siparişler</span>
-                <Badge variant="secondary" className="text-lg px-3">
+              {/* Sipariş Sayısı - Kompakt */}
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs text-muted-foreground">Aktif Siparişler</span>
+                <span className="text-xs font-medium bg-slate-100 px-2 py-0.5 rounded">
                   {selectedCourierOrders.length}
-                </Badge>
+                </span>
               </div>
               
               {/* Sipariş Listesi */}
               <div className="space-y-2">
                 {selectedCourierOrders.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Bu kuryeye atanmış aktif sipariş yok</p>
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">Bu kuryeye atanmış aktif sipariş yok</p>
                   </div>
                 ) : (
                   selectedCourierOrders.map((order, idx) => {
