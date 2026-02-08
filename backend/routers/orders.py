@@ -742,17 +742,36 @@ async def courier_reject_order(courier_id: str, order_id: str, reason: Optional[
     if order["status"] not in ["assigned", "confirmed"]:
         raise HTTPException(status_code=400, detail="Bu sipariş reddedilemez")
     
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
+    courier_name = courier.get("name", "Kurye") if courier else "Kurye"
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # History entry
+    history_entry = {
+        "status": "ready",
+        "label": "Kurye Reddetti",
+        "timestamp": now,
+        "note": f"Kurye: {courier_name}" + (f", Sebep: {reason}" if reason else ""),
+        "actor_type": "courier",
+        "actor_name": courier_name
+    }
+    
     # Kuryeyi siparişten çıkar, sipariş tekrar atanabilir duruma gelir
     await db.orders.update_one(
         {"id": order_id},
-        {"$set": {
-            "courier_id": None,
-            "courier_name": None,
-            "status": "ready",  # Tekrar atanmaya hazır
-            "rejection_reason": reason,
-            "rejected_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
+        {
+            "$set": {
+                "courier_id": None,
+                "courier_name": None,
+                "status": "ready",  # Tekrar atanmaya hazır
+                "rejection_reason": reason,
+                "rejected_at": now,
+                "updated_at": now
+            },
+            "$push": {"status_history": history_entry}
+        }
     )
     
     return {"message": "Sipariş reddedildi, başka kuryeye atanabilir"}
