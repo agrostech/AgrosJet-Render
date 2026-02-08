@@ -393,7 +393,10 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   // Re-center map when company data loads
   useEffect(() => {
     if (mapInstanceRef.current && company?.city_lat && company?.city_lng) {
+      console.log("Harita merkezi güncelleniyor:", company.city_lat, company.city_lng);
       mapInstanceRef.current.setView([company.city_lat, company.city_lng], 14);
+      // Marker'ları da güncelle
+      setTimeout(() => updateMapMarkers(), 100);
     }
   }, [company]);
 
