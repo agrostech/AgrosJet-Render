@@ -1408,9 +1408,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     </div>
 
                     {/* Desktop görünüm */}
-                    <div className="hidden sm:flex items-center justify-between gap-3">
-                      {/* Sol: Saat + Restoran + Durum + Müşteri */}
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="hidden sm:flex items-center justify-between gap-2">
+                      {/* Sol: Saat + Restoran + Durum */}
+                      <div className="flex items-center gap-2 min-w-0" style={{flex: '0 0 auto'}}>
                         {/* Saat ve Hedef Teslimat */}
                         <div className="flex flex-col min-w-[50px]">
                           <span className="text-xs text-muted-foreground font-mono">{formatTime(order.created_at)}</span>
@@ -1427,7 +1427,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             </div>
                           )}
                         </div>
-                        <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
+                        <span className="font-medium text-sm truncate max-w-[120px]">{order.restaurant_name}</span>
                         {/* Durum Dropdown - Tıkla değiştir */}
                         <Select 
                           value={order.status} 
