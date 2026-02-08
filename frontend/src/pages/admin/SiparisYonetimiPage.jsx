@@ -130,7 +130,12 @@ export default function SiparisYonetimiPage({ companyId }) {
     if (!mapRef.current || !window.L || mapInstanceRef.current) return;
     
     // Istanbul center
-    const map = window.L.map(mapRef.current).setView([41.0082, 28.9784], 11);
+    const map = window.L.map(mapRef.current, {
+      scrollWheelZoom: true,
+      zoomSnap: 1,
+      zoomDelta: 1,
+      wheelPxPerZoomLevel: 120  // Daha yavaş zoom - 1 scroll = 1 zoom level
+    }).setView([41.0082, 28.9784], 11);
     
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
