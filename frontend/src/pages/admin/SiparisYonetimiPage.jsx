@@ -1678,14 +1678,41 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <DialogTitle className="flex items-center gap-2">
               <Bike className="w-5 h-5" />
               {selectedCourier?.name}
-              <Badge variant="outline" className={`ml-2 ${
-                selectedCourier?.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
-                selectedCourier?.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                'bg-slate-100 text-slate-600 border-slate-200'
-              }`}>
-                {selectedCourier?.availability_status === 'active' ? 'Aktif' : 
-                 selectedCourier?.availability_status === 'on_break' ? 'Molada' : 'Çevrimdışı'}
-              </Badge>
+              <Select
+                value={selectedCourier?.availability_status || 'offline'}
+                onValueChange={(value) => handleUpdateCourierStatus(selectedCourier.id, value)}
+              >
+                <SelectTrigger className={`ml-2 h-6 w-auto text-xs px-2 gap-1 ${
+                  selectedCourier?.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
+                  selectedCourier?.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                  'bg-slate-100 text-slate-600 border-slate-200'
+                }`}>
+                  <SelectValue>
+                    {selectedCourier?.availability_status === 'active' ? 'Aktif' : 
+                     selectedCourier?.availability_status === 'on_break' ? 'Molada' : 'Çevrimdışı'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active" className="text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      Aktif
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="on_break" className="text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                      Molada
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="offline" className="text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-slate-400" />
+                      Çevrimdışı
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </DialogTitle>
           </DialogHeader>
           
