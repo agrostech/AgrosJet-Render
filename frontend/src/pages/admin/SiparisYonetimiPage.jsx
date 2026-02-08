@@ -777,7 +777,11 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   <div 
                     key={order.id}
                     className={`px-3 py-2.5 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
-                    onClick={() => {
+                    onClick={(e) => {
+                      // Dropdown tıklamalarında modal açılmasın
+                      if (e.target.closest('[role="combobox"]') || e.target.closest('[role="listbox"]')) {
+                        return;
+                      }
                       setSelectedOrder(order);
                       setShowOrderDetailModal(true);
                     }}
@@ -799,65 +803,71 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">{order.restaurant_name}</span>
                         {/* Durum Badge */}
-                        <Select 
-                          value={order.status} 
-                          onValueChange={(newValue) => {
-                            if (newValue.startsWith('preparing_')) {
-                              const prepTime = parseInt(newValue.split('_')[1]);
-                              handleUpdateStatus(order.id, 'preparing', prepTime);
-                            } else {
-                              handleUpdateStatus(order.id, newValue);
-                            }
-                          }}
-                        >
-                          <SelectTrigger 
-                            className={`${statusInfo.color} text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <SelectValue>
-                              {order.status === 'preparing' && order.preparation_end_at
-                                ? getCountdown(order.preparation_end_at)?.text
-                                : statusInfo.label
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(newValue) => {
+                              if (newValue.startsWith('preparing_')) {
+                                const prepTime = parseInt(newValue.split('_')[1]);
+                                handleUpdateStatus(order.id, 'preparing', prepTime);
+                              } else {
+                                handleUpdateStatus(order.id, newValue);
                               }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                            {PREPARATION_TIMES.map(time => (
-                              <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
-                                <div className="flex items-center gap-2">
-                                  <Timer className="w-3 h-3 text-yellow-500" />
-                                  {time.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                            <div className="border-t my-1" />
-                            {Object.entries(ORDER_STATUSES)
-                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                              .map(([key, value]) => (
-                              <SelectItem key={key} value={key} className="text-xs">
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-2 h-2 rounded-full ${value.color}`} />
-                                  {value.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                            }}
+                          >
+                            <SelectTrigger 
+                              className={`${statusInfo.color} text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
+                            >
+                              <SelectValue>
+                                {order.status === 'preparing' && order.preparation_end_at
+                                  ? getCountdown(order.preparation_end_at)?.text
+                                  : statusInfo.label
+                                }
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                              {PREPARATION_TIMES.map(time => (
+                                <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
+                                  <div className="flex items-center gap-2">
+                                    <Timer className="w-3 h-3 text-yellow-500" />
+                                    {time.label}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                              <div className="border-t my-1" />
+                              {Object.entries(ORDER_STATUSES)
+                                .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                                .map(([key, value]) => (
+                                <SelectItem key={key} value={key} className="text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${value.color}`} />
+                                    {value.label}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      {/* Adres bilgisi */}
+                      <div className="text-xs text-muted-foreground truncate">
+                        {order.delivery_address}
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span className="truncate max-w-[200px]">{order.customer_name}</span>
+                        <span className="truncate max-w-[150px]">{order.customer_name}</span>
                         {/* Kurye Dropdown */}
-                        <Select
-                          value={order.courier_id || "unassigned"}
-                          onValueChange={(value) => {
-                            if (value === "unassigned") {
-                              handleUnassignCourier(order.id);
-                            } else {
-                              handleAssignCourier(order.id, value);
-                            }
-                          }}
-                        >
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <Select
+                            value={order.courier_id || "unassigned"}
+                            onValueChange={(value) => {
+                              if (value === "unassigned") {
+                                handleUnassignCourier(order.id);
+                              } else {
+                                handleAssignCourier(order.id, value);
+                              }
+                            }}
+                          >
                           <SelectTrigger 
                             className="h-6 text-xs border-dashed w-auto gap-1 px-2"
                             onClick={(e) => e.stopPropagation()}
