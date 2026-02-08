@@ -37,6 +37,7 @@ export default function SiparisYonetimiPage({ companyId }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
+  const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState("active");
@@ -50,6 +51,17 @@ export default function SiparisYonetimiPage({ companyId }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+
+  // Fetch company info for city center
+  const fetchCompany = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}`);
+      setCompany(res.data);
+    } catch (err) {
+      console.error("Company fetch error:", err);
+    }
+  }, [companyId]);
 
   // Fetch data
   const fetchOrders = useCallback(async () => {
