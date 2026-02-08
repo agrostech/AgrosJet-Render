@@ -988,13 +988,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                 ? "bg-green-50 border-green-200 text-green-700" 
                                 : "bg-slate-50 border-slate-200 text-slate-600"
                             }`}
+                            onPointerDown={(e) => e.stopPropagation()}
                           >
                             <Bike className="w-3 h-3 flex-shrink-0" />
                             <span>
                               {order.courier_name || "Kurye Ata"}
                             </span>
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
                             {/* Aktif Kuryeler */}
                             {couriersByStatus.active.length > 0 && (
                               <>
