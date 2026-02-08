@@ -232,16 +232,13 @@ export default function CourierSiparisPage({ courierId, companyId }) {
             // NEW ORDER DETECTED!
             console.log("🔔 Yeni sipariş algılandı:", order.order_number);
             
-            // Show notification (SW or fallback)
-            const swHandled = showBrowserNotification(order);
+            // Play sound (only once - SW is silent)
+            playNotificationSound();
             
-            // Only play sound if Service Worker didn't handle it
-            // (SW plays its own notification sound)
-            if (!swHandled) {
-              playNotificationSound();
-            }
+            // Show browser notification (via SW if available)
+            showBrowserNotification(order);
             
-            // Always show toast in app
+            // Show toast in app
             toast.success(`🔔 Yeni sipariş: ${order.restaurant_name}`, {
               duration: 15000,
             });
