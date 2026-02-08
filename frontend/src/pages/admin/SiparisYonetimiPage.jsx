@@ -419,9 +419,30 @@ export default function SiparisYonetimiPage({ companyId }) {
                       {/* Sol: Restoran + Durum + Müşteri */}
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
-                        <Badge className={`${statusInfo.color} text-white text-[10px] px-1.5 py-0 h-5`}>
-                          {statusInfo.label}
-                        </Badge>
+                        {/* Durum Dropdown - Tıkla değiştir */}
+                        <Select 
+                          value={order.status} 
+                          onValueChange={(newStatus) => {
+                            handleUpdateStatus(order.id, newStatus);
+                          }}
+                        >
+                          <SelectTrigger 
+                            className={`${statusInfo.color} text-white text-[10px] px-1.5 py-0 h-5 w-auto border-0 gap-0.5`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <SelectValue>{statusInfo.label}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(ORDER_STATUSES).map(([key, value]) => (
+                              <SelectItem key={key} value={key} className="text-xs">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${value.color}`} />
+                                  {value.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <span className="text-xs text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
                         <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
