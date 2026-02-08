@@ -392,45 +392,40 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   useEffect(() => {
     if (loading) return; // Veriler yüklenene kadar bekle
     if (mapInitialBoundsSet) return; // Sadece ilk seferde odaklan
+    if (!mapInstanceRef.current || !window.L) return;
     
-    // Harita hazır olana kadar bekle
-    const checkAndSetBounds = () => {
-      if (!mapInstanceRef.current || !window.L) {
-        setTimeout(checkAndSetBounds, 200);
-        return;
+    const map = mapInstanceRef.current;
+    const L = window.L;
+    
+    // Tüm noktaları topla
+    const allPoints = [];
+    
+    restaurants.forEach(r => {
+      if (r.latitude && r.longitude) {
+        allPoints.push([r.latitude, r.longitude]);
       }
-      
-      const map = mapInstanceRef.current;
-      const L = window.L;
-      
-      // Tüm noktaları topla
-      const allPoints = [];
-      
-      restaurants.forEach(r => {
-        if (r.latitude && r.longitude) {
-          allPoints.push([r.latitude, r.longitude]);
-        }
-      });
-      
-      orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach(o => {
-        if (o.delivery_location?.latitude && o.delivery_location?.longitude) {
-          allPoints.push([o.delivery_location.latitude, o.delivery_location.longitude]);
-        }
-      });
-      
-      if (allPoints.length > 0) {
-        // Sipariş/restoran varsa, onlara odaklan
+    });
+    
+    orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach(o => {
+      if (o.delivery_location?.latitude && o.delivery_location?.longitude) {
+        allPoints.push([o.delivery_location.latitude, o.delivery_location.longitude]);
+      }
+    });
+    
+    if (allPoints.length > 0) {
+      // Sipariş/restoran varsa, onlara odaklan
+      try {
         const bounds = L.latLngBounds(allPoints);
         map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
         setMapInitialBoundsSet(true);
-      } else if (company?.city_lat && company?.city_lng) {
-        // Sipariş yoksa şirket şehrine odaklan
-        map.setView([company.city_lat, company.city_lng], 14);
-        setMapInitialBoundsSet(true);
+      } catch (e) {
+        console.error("fitBounds error:", e);
       }
-    };
-    
-    checkAndSetBounds();
+    } else if (company?.city_lat && company?.city_lng) {
+      // Sipariş yoksa şirket şehrine odaklan
+      map.setView([company.city_lat, company.city_lng], 14);
+      setMapInitialBoundsSet(true);
+    }
   }, [loading, orders, restaurants, company, mapInitialBoundsSet]);
 
   // Update markers when data changes
