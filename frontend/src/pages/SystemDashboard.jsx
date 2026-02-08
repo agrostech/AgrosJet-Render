@@ -157,6 +157,7 @@ function SirketlerPage() {
             <TableRow className="bg-slate-50">
               <TableHead className="font-bold">Logo</TableHead>
               <TableHead className="font-bold">Şirket Adı</TableHead>
+              <TableHead className="font-bold">İl</TableHead>
               <TableHead className="font-bold">Oluşturma Tarihi</TableHead>
               <TableHead className="font-bold text-right">İşlemler</TableHead>
             </TableRow>
