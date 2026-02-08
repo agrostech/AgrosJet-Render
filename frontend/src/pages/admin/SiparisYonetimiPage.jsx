@@ -932,7 +932,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                 ? 'bg-red-500'
                                 : statusInfo.color
                             } text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
-                            onClick={(e) => e.stopPropagation()}
                           >
                             <SelectValue>
                               {order.status === 'preparing' && order.preparation_end_at
@@ -964,6 +963,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             ))}
                           </SelectContent>
                         </Select>
+                        </div>
                         <span className="text-xs text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
                         <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
@@ -975,6 +975,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <span className="font-semibold text-sm min-w-[70px] text-right">{formatCurrency(order.total_amount)}</span>
                         
                         {/* Kurye Dropdown - Her durumda aynı tasarım */}
+                        <div onClick={(e) => e.stopPropagation()}>
                         <Select 
                           value={order.courier_id || ""}
                           onValueChange={(value) => {
@@ -991,7 +992,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                 ? "bg-green-50 border-green-200 text-green-700" 
                                 : "bg-slate-50 border-slate-200 text-slate-600"
                             }`}
-                            onClick={(e) => e.stopPropagation()}
                           >
                             <Bike className="w-3 h-3 flex-shrink-0" />
                             <span>
