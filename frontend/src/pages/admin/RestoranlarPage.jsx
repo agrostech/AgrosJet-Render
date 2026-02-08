@@ -94,10 +94,7 @@ export default function RestoranlarPage({ companyId }) {
     const defaultLng = initialLng || 28.9784;
     
     const map = L.map(mapContainerRef.current, {
-      scrollWheelZoom: true,
-      zoomSnap: 1,
-      zoomDelta: 1,
-      wheelPxPerZoomLevel: 120
+      scrollWheelZoom: false  // Scroll zoom kapalı
     }).setView([defaultLat, defaultLng], initialLat ? 15 : 11);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
