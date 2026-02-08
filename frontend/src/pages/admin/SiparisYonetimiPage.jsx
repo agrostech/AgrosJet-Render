@@ -783,7 +783,107 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    <div className="flex items-center justify-between gap-3">
+                    {/* Mobil görünüm */}
+                    <div className="flex flex-col gap-2 sm:hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground font-mono">{formatTime(order.created_at)}</span>
+                          {targetDelivery && order.status !== 'delivered' && order.status !== 'cancelled' && (
+                            <span className={`text-xs font-mono ${targetDelivery.delayed ? 'text-red-600' : 'text-green-600'}`}>
+                              → {targetDelivery.time}
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-semibold text-sm">{formatCurrency(order.total_amount)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{order.restaurant_name}</span>
+                        {/* Durum Badge */}
+                        <Select 
+                          value={order.status} 
+                          onValueChange={(newValue) => {
+                            if (newValue.startsWith('preparing_')) {
+                              const prepTime = parseInt(newValue.split('_')[1]);
+                              handleUpdateStatus(order.id, 'preparing', prepTime);
+                            } else {
+                              handleUpdateStatus(order.id, newValue);
+                            }
+                          }}
+                        >
+                          <SelectTrigger 
+                            className={`${statusInfo.color} text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <SelectValue>
+                              {order.status === 'preparing' && order.preparation_end_at
+                                ? getCountdown(order.preparation_end_at)?.text
+                                : statusInfo.label
+                              }
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                            {PREPARATION_TIMES.map(time => (
+                              <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
+                                <div className="flex items-center gap-2">
+                                  <Timer className="w-3 h-3 text-yellow-500" />
+                                  {time.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                            <div className="border-t my-1" />
+                            {Object.entries(ORDER_STATUSES)
+                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                              .map(([key, value]) => (
+                              <SelectItem key={key} value={key} className="text-xs">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${value.color}`} />
+                                  {value.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span className="truncate max-w-[200px]">{order.customer_name}</span>
+                        {/* Kurye Dropdown */}
+                        <Select
+                          value={order.courier_id || "unassigned"}
+                          onValueChange={(value) => {
+                            if (value === "unassigned") {
+                              handleUnassignCourier(order.id);
+                            } else {
+                              handleAssignCourier(order.id, value);
+                            }
+                          }}
+                        >
+                          <SelectTrigger 
+                            className="h-6 text-xs border-dashed w-auto gap-1 px-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Bike className="w-3 h-3" />
+                            <SelectValue>
+                              {order.courier_name || "Kurye Ata"}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unassigned" className="text-xs text-muted-foreground">
+                              Kurye Kaldır
+                            </SelectItem>
+                            <div className="border-t my-1" />
+                            {couriers.filter(c => c.status === 'active').map(c => (
+                              <SelectItem key={c.id} value={c.id} className="text-xs">
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Desktop görünüm */}
+                    <div className="hidden sm:flex items-center justify-between gap-3">
                       {/* Sol: Saat + Restoran + Durum + Müşteri */}
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         {/* Saat ve Hedef Teslimat */}
@@ -807,7 +907,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <Select 
                           value={order.status} 
                           onValueChange={(newValue) => {
-                            // Hazırlanıyor süre seçenekleri: preparing_5, preparing_10, vb.
                             if (newValue.startsWith('preparing_')) {
                               const prepTime = parseInt(newValue.split('_')[1]);
                               handleUpdateStatus(order.id, 'preparing', prepTime);
@@ -832,10 +931,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            {/* Hazırlanıyor - süre seçenekleri */}
-                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">
-                              Hazırlanıyor
-                            </div>
+                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
                             {PREPARATION_TIMES.map(time => (
                               <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
                                 <div className="flex items-center gap-2">
@@ -844,8 +940,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                 </div>
                               </SelectItem>
                             ))}
-                            
-                            {/* Diğer durumlar */}
                             <div className="border-t my-1" />
                             {Object.entries(ORDER_STATUSES)
                               .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
