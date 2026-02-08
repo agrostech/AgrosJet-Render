@@ -304,10 +304,10 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         .addTo(map)
         .bindPopup(`<b>Teslimat Adresi</b><br>${selectedOrder.delivery_address}`);
       
-      // Restoran marker (gri, küçük, yuvarlak) - circleMarker kullan
+      // Restoran marker (gri, küçük, yuvarlak) - circle kullan
       if (restaurantLat && restaurantLng) {
-        L.circleMarker([restaurantLat, restaurantLng], {
-          radius: 5,
+        L.circle([restaurantLat, restaurantLng], {
+          radius: 10,
           fillColor: '#9ca3af',
           color: '#6b7280',
           weight: 1,
