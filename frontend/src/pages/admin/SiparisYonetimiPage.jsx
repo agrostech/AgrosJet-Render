@@ -730,6 +730,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               {orders.map((order) => {
                 const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
                 const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+                const targetDelivery = getTargetDelivery(order.created_at);
                 
                 return (
                   <div 
@@ -744,7 +745,22 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     <div className="flex items-center justify-between gap-3">
                       {/* Sol: Saat + Restoran + Durum + Müşteri */}
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-xs text-muted-foreground font-mono min-w-[40px]">{formatTime(order.created_at)}</span>
+                        {/* Saat ve Hedef Teslimat */}
+                        <div className="flex flex-col min-w-[50px]">
+                          <span className="text-xs text-muted-foreground font-mono">{formatTime(order.created_at)}</span>
+                          {targetDelivery && order.status !== 'delivered' && order.status !== 'cancelled' && (
+                            <div className="flex flex-col">
+                              <span className={`text-[10px] font-mono ${targetDelivery.delayed ? 'text-red-600 font-semibold' : 'text-green-600'}`}>
+                                → {targetDelivery.time}
+                              </span>
+                              {targetDelivery.delayed && (
+                                <span className="text-[9px] text-red-500">
+                                  ({targetDelivery.delayMinutes} dk gecikti)
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
                         {/* Durum Dropdown - Tıkla değiştir */}
                         <Select 
