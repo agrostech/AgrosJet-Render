@@ -696,13 +696,35 @@ async def courier_deliver_order(courier_id: str, order_id: str):
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
+    if order["status"] != "on_the_way":
+        raise HTTPException(status_code=400, detail="Önce yola çıkmalısınız")
+    
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
+    courier_name = courier.get("name", "Kurye") if courier else "Kurye"
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # History entry
+    history_entry = {
+        "status": "delivered",
+        "label": "Teslim Edildi",
+        "timestamp": now,
+        "note": "Sipariş müşteriye teslim edildi",
+        "actor_type": "courier",
+        "actor_name": courier_name
+    }
+    
     await db.orders.update_one(
         {"id": order_id},
-        {"$set": {
-            "status": "delivered",
-            "delivered_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
+        {
+            "$set": {
+                "status": "delivered",
+                "delivered_at": now,
+                "updated_at": now
+            },
+            "$push": {"status_history": history_entry}
+        }
     )
     
     # TODO: Kurye kazancını hesapla ve transaction oluştur
