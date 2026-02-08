@@ -231,7 +231,8 @@ export default function CourierDashboard() {
             className="text-white hover:bg-white/10"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </Button>
+          </Button>
+        </div>
       </header>
 
       {/* Mobile Navigation - Grid Layout with overflow menu */}
