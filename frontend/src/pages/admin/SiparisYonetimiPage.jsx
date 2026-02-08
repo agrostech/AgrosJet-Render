@@ -575,8 +575,9 @@ export default function SiparisYonetimiPage({ companyId }) {
                     data-testid={`order-card-${order.id}`}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      {/* Sol: Restoran + Durum + Müşteri */}
+                      {/* Sol: Saat + Restoran + Durum + Müşteri */}
                       <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-xs text-muted-foreground font-mono min-w-[40px]">{formatTime(order.created_at)}</span>
                         <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
                         {/* Durum Dropdown - Tıkla değiştir */}
                         <Select 
@@ -641,10 +642,9 @@ export default function SiparisYonetimiPage({ companyId }) {
                         <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
                       </div>
                       
-                      {/* Sağ: Saat + Ödeme + Tutar + Kurye/Ata */}
+                      {/* Sağ: Ödeme + Tutar + Kurye/Ata */}
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs text-muted-foreground hidden sm:block">{formatTime(order.created_at)}</span>
-                        <span className="text-xs">{paymentInfo.icon}</span>
+                        <span className="text-xs text-muted-foreground hidden sm:block">{paymentInfo.label}</span>
                         <span className="font-semibold text-sm min-w-[70px] text-right">{formatCurrency(order.total_amount)}</span>
                         
                         {/* Kurye Dropdown - Her durumda aynı tasarım */}
