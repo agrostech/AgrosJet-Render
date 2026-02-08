@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Routes, Route, Link, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Circle, Coffee, WifiOff } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 import {
   DropdownMenu,
