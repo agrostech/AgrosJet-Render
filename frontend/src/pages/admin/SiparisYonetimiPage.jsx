@@ -593,7 +593,49 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       }
     });
 
-    // TODO: Courier live locations (green) - requires real-time location tracking
+    // Courier locations (active and on_break only)
+    const visibleCouriers = [
+      ...(couriersByStatus.active || []),
+      ...(couriersByStatus.on_break || [])
+    ];
+    
+    visibleCouriers.forEach(courier => {
+      if (courier.current_location?.latitude && courier.current_location?.longitude) {
+        try {
+          const isOnBreak = courier.availability_status === 'on_break';
+          const bgColor = isOnBreak ? '#eab308' : '#22c55e'; // yellow for break, green for active
+          const statusLabel = isOnBreak ? 'Molada' : 'Aktif';
+          
+          const marker = L.marker([courier.current_location.latitude, courier.current_location.longitude], {
+            icon: L.divIcon({
+              className: 'courier-marker',
+              html: `<div style="background: ${bgColor}; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18.5" cy="17.5" r="3.5"/>
+                  <circle cx="5.5" cy="17.5" r="3.5"/>
+                  <circle cx="15" cy="5" r="1"/>
+                  <path d="M12 17.5V14l-3-3 4-3 2 3h2"/>
+                </svg>
+              </div>`,
+              iconSize: [36, 36],
+              iconAnchor: [18, 18]
+            })
+          }).addTo(map);
+          marker.bindPopup(`
+            <strong>🛵 ${courier.name}</strong><br/>
+            <span style="color: ${bgColor}; font-weight: bold;">${statusLabel}</span><br/>
+            <small>${courier.phone || ''}</small>
+          `);
+          marker.on('click', () => {
+            setSelectedCourier(courier);
+            setShowCourierDetailModal(true);
+          });
+          markersRef.current.push(marker);
+        } catch (e) {
+          console.error("Courier marker error:", e);
+        }
+      }
+    });
   };
 
   // Generate mock orders
