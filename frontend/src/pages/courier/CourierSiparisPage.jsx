@@ -75,8 +75,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [previousOrderIds, setPreviousOrderIds] = useState(new Set());
   const audioRef = useRef(null);
+  const previousOrderIdsRef = useRef(new Set());
+  const isInitialLoadRef = useRef(true);
 
   // Request notification permission
   useEffect(() => {
@@ -91,26 +92,31 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, []);
 
-  // Play notification sound
+  // Play notification sound - LOUD
   const playNotificationSound = useCallback(() => {
     try {
-      // Create audio element if not exists
-      if (!audioRef.current) {
-        audioRef.current = new Audio(NOTIFICATION_SOUND_URL);
-        audioRef.current.loop = false;
-      }
-      audioRef.current.currentTime = 0;
-      audioRef.current.volume = 1.0;
+      // Create new audio each time for reliability
+      const audio = new Audio(NOTIFICATION_SOUND_URL);
+      audio.volume = 1.0;
       
       // Play multiple times for loud alert
-      const playMultiple = async () => {
-        for (let i = 0; i < 3; i++) {
-          audioRef.current.currentTime = 0;
-          await audioRef.current.play();
-          await new Promise(resolve => setTimeout(resolve, 500));
+      const playSequence = async () => {
+        for (let i = 0; i < 5; i++) {
+          try {
+            await audio.play();
+            await new Promise(resolve => setTimeout(resolve, 400));
+            audio.currentTime = 0;
+          } catch (e) {
+            console.error("Audio play error:", e);
+          }
         }
       };
-      playMultiple().catch(console.error);
+      playSequence();
+      
+      // Also try vibration
+      if (navigator.vibrate) {
+        navigator.vibrate([500, 200, 500, 200, 500]);
+      }
     } catch (e) {
       console.error("Could not play notification sound:", e);
     }
@@ -118,55 +124,60 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   // Show browser notification
   const showBrowserNotification = useCallback((order) => {
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
     
-    const notification = new Notification("🔔 Yeni Sipariş Atandı!", {
-      body: `${order.restaurant_name} - ${order.order_number}`,
-      icon: "/logo192.png",
-      tag: order.id,
-      requireInteraction: true,
-      vibrate: [200, 100, 200, 100, 200],
-    });
-    
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
+    try {
+      const notification = new Notification("🔔 YENİ SİPARİŞ!", {
+        body: `${order.restaurant_name}\n${order.order_number}`,
+        icon: "/logo192.png",
+        tag: `order-${order.id}`,
+        requireInteraction: true,
+        silent: false,
+      });
+      
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+      
+      // Auto close after 30 seconds
+      setTimeout(() => notification.close(), 30000);
+    } catch (e) {
+      console.error("Notification error:", e);
+    }
   }, []);
 
-  // Check for new orders and notify
-  const checkForNewOrders = useCallback((newOrders) => {
-    const newOrderIds = new Set(newOrders.map(o => o.id));
-    const assignedOrders = newOrders.filter(o => o.status === "assigned");
-    
-    // Find truly new orders (not seen before)
-    assignedOrders.forEach(order => {
-      if (!previousOrderIds.has(order.id)) {
-        // New order detected!
-        playNotificationSound();
-        showBrowserNotification(order);
-        toast.success(`🔔 Yeni sipariş: ${order.restaurant_name}`, {
-          duration: 10000,
-        });
-      }
-    });
-    
-    setPreviousOrderIds(newOrderIds);
-  }, [previousOrderIds, playNotificationSound, showBrowserNotification]);
-
   // Siparişleri getir
-  const fetchOrders = useCallback(async (showRefreshIndicator = false, checkNewOrders = false) => {
+  const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setRefreshing(true);
     try {
       const res = await axios.get(`${API}/orders/courier/${courierId}/active`);
-      setOrders(res.data);
+      const newOrders = res.data;
+      setOrders(newOrders);
       
-      // Check for new orders only on interval fetches (not initial load)
-      if (checkNewOrders && res.data.length > 0) {
-        checkForNewOrders(res.data);
-      } else if (!checkNewOrders) {
-        // Initial load - just store the IDs
-        setPreviousOrderIds(new Set(res.data.map(o => o.id)));
+      // Check for new assigned orders
+      const assignedOrders = newOrders.filter(o => o.status === "assigned");
+      
+      if (isInitialLoadRef.current) {
+        // First load - just store IDs, don't notify
+        previousOrderIdsRef.current = new Set(newOrders.map(o => o.id));
+        isInitialLoadRef.current = false;
+      } else {
+        // Check for new orders not in previous set
+        assignedOrders.forEach(order => {
+          if (!previousOrderIdsRef.current.has(order.id)) {
+            // NEW ORDER DETECTED!
+            console.log("🔔 Yeni sipariş algılandı:", order.order_number);
+            playNotificationSound();
+            showBrowserNotification(order);
+            toast.success(`🔔 Yeni sipariş: ${order.restaurant_name}`, {
+              duration: 15000,
+            });
+          }
+        });
+        // Update the ref
+        previousOrderIdsRef.current = new Set(newOrders.map(o => o.id));
       }
     } catch (err) {
       if (!err.handled) {
@@ -176,13 +187,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [courierId, checkForNewOrders]);
+  }, [courierId, playNotificationSound, showBrowserNotification]);
 
   useEffect(() => {
     if (courierId) {
-      fetchOrders(false, false); // Initial load
-      // Her 10 saniyede bir siparişleri güncelle ve yeni sipariş kontrolü yap
-      const interval = setInterval(() => fetchOrders(false, true), 10000);
+      isInitialLoadRef.current = true;
+      fetchOrders(false);
+      // Her 5 saniyede bir siparişleri güncelle
+      const interval = setInterval(() => fetchOrders(false), 5000);
       return () => clearInterval(interval);
     }
   }, [courierId, fetchOrders]);
