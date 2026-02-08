@@ -392,10 +392,19 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
   // Şirket verisi yüklenince haritayı şirketin iline ortala
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
     if (!company?.city_lat || !company?.city_lng) return;
     
-    mapInstanceRef.current.setView([company.city_lat, company.city_lng], 14);
+    // Harita hazır olana kadar bekle
+    const centerMap = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView([company.city_lat, company.city_lng], 14);
+      } else {
+        // Harita henüz yüklenmemişse tekrar dene
+        setTimeout(centerMap, 300);
+      }
+    };
+    
+    centerMap();
   }, [company]);
 
   // Update markers when data changes
