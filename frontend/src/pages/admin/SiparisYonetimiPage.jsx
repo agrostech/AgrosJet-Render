@@ -345,69 +345,94 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   // Kurye detay modalı haritası
   useEffect(() => {
     if (!showCourierDetailModal || !selectedCourier) return;
-    if (!courierMapRef.current) return;
     
     // Leaflet yüklü değilse bekle
     if (!window.L) return;
     
-    // Mevcut haritayı temizle
-    if (courierMapInstanceRef.current) {
-      courierMapInstanceRef.current.remove();
-      courierMapInstanceRef.current = null;
-    }
-    
-    const L = window.L;
-    const centerLat = company?.city_lat || 39.0;
-    const centerLng = company?.city_lng || 35.0;
-    
-    const map = L.map(courierMapRef.current, {
-      scrollWheelZoom: false,
-      attributionControl: false
-    }).setView([centerLat, centerLng], 12);
-    
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 19
-    }).addTo(map);
-    
-    // Kurye siparişlerini haritada göster
-    const courierOrders = orders.filter(o => o.courier_id === selectedCourier.id && o.status !== 'delivered' && o.status !== 'cancelled');
-    
-    courierOrders.forEach((order, idx) => {
-      if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
-        const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
-        const colorMap = {
-          'bg-yellow-500': '#eab308',
-          'bg-orange-500': '#f97316',
-          'bg-purple-500': '#a855f7',
-          'bg-blue-500': '#3b82f6',
-          'bg-cyan-500': '#06b6d4',
-          'bg-green-500': '#22c55e',
-          'bg-red-500': '#ef4444'
-        };
-        const hexColor = colorMap[statusInfo.color] || '#3b82f6';
-        
-        L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
-          icon: L.divIcon({
-            className: 'order-marker',
-            html: `<div style="background: ${hexColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold;">${idx + 1}</div>`,
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
-          })
-        }).addTo(map)
-          .bindPopup(`<strong>${order.order_number}</strong><br/>${order.restaurant_name}<br/>${order.delivery_address}`);
+    const initCourierMap = () => {
+      if (!courierMapRef.current) {
+        // DOM henüz hazır değil, tekrar dene
+        setTimeout(initCourierMap, 100);
+        return;
       }
-    });
-    
-    // Siparişlere odaklan
-    if (courierOrders.length > 0) {
-      const points = courierOrders
-        .filter(o => o.delivery_location?.latitude && o.delivery_location?.longitude)
-        .map(o => [o.delivery_location.latitude, o.delivery_location.longitude]);
-      if (points.length > 0) {
-        const bounds = L.latLngBounds(points);
-        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+      
+      // Mevcut haritayı temizle
+      if (courierMapInstanceRef.current) {
+        courierMapInstanceRef.current.remove();
+        courierMapInstanceRef.current = null;
       }
+      
+      const L = window.L;
+      const centerLat = company?.city_lat || 39.0;
+      const centerLng = company?.city_lng || 35.0;
+      
+      const map = L.map(courierMapRef.current, {
+        scrollWheelZoom: false,
+        attributionControl: false
+      }).setView([centerLat, centerLng], 12);
+      
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+      
+      // Kurye siparişlerini haritada göster
+      const courierOrders = orders.filter(o => o.courier_id === selectedCourier.id && o.status !== 'delivered' && o.status !== 'cancelled');
+      
+      courierOrders.forEach((order, idx) => {
+        if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
+          const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+          const colorMap = {
+            'bg-yellow-500': '#eab308',
+            'bg-orange-500': '#f97316',
+            'bg-purple-500': '#a855f7',
+            'bg-blue-500': '#3b82f6',
+            'bg-cyan-500': '#06b6d4',
+            'bg-green-500': '#22c55e',
+            'bg-red-500': '#ef4444'
+          };
+          const hexColor = colorMap[statusInfo.color] || '#3b82f6';
+          
+          L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
+            icon: L.divIcon({
+              className: 'order-marker',
+              html: `<div style="background: ${hexColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold;">${idx + 1}</div>`,
+              iconSize: [28, 28],
+              iconAnchor: [14, 14]
+            })
+          }).addTo(map)
+            .bindPopup(`<strong>${order.order_number}</strong><br/>${order.restaurant_name}<br/>${order.delivery_address}`);
+        }
+      });
+      
+      // Siparişlere odaklan
+      if (courierOrders.length > 0) {
+        const points = courierOrders
+          .filter(o => o.delivery_location?.latitude && o.delivery_location?.longitude)
+          .map(o => [o.delivery_location.latitude, o.delivery_location.longitude]);
+        if (points.length > 0) {
+          const bounds = L.latLngBounds(points);
+          map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+        }
+      }
+      
+      courierMapInstanceRef.current = map;
+      
+      // Harita boyutunu düzelt
+      setTimeout(() => map.invalidateSize(), 200);
+    };
+    
+    // Biraz bekleyip başlat
+    const timer = setTimeout(initCourierMap, 150);
+    
+    return () => {
+      clearTimeout(timer);
+      if (courierMapInstanceRef.current) {
+        courierMapInstanceRef.current.remove();
+        courierMapInstanceRef.current = null;
+      }
+    };
+  }, [showCourierDetailModal, selectedCourier, orders, company]);
     }
     
     courierMapInstanceRef.current = map;
