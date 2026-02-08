@@ -150,13 +150,18 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     try {
       // Kuryeleri availability durumuna göre gruplu al
       const res = await axios.get(`${API}/companies/${companyId}/couriers/with-availability`);
+      // Her kurye objesine availability_status ekle
+      const activeList = (res.data.active || []).map(c => ({...c, availability_status: 'active'}));
+      const onBreakList = (res.data.on_break || []).map(c => ({...c, availability_status: 'on_break'}));
+      const offlineList = (res.data.offline || []).map(c => ({...c, availability_status: 'offline'}));
+      
       setCouriersByStatus({
-        active: res.data.active || [],
-        on_break: res.data.on_break || [],
-        offline: res.data.offline || []
+        active: activeList,
+        on_break: onBreakList,
+        offline: offlineList
       });
       // Tüm kuryeler (eski uyumluluk için)
-      const allCouriers = [...(res.data.active || []), ...(res.data.on_break || []), ...(res.data.offline || [])];
+      const allCouriers = [...activeList, ...onBreakList, ...offlineList];
       setCouriers(allCouriers);
     } catch (err) {
       console.error("Couriers fetch error:", err);
