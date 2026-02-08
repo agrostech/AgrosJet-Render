@@ -14,16 +14,14 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Sipariş durumları
+// Sipariş durumları (Yeni kaldırıldı, courier_confirmed kaldırıldı)
 const ORDER_STATUSES = {
-  new: { label: "Yeni", color: "bg-blue-500", textColor: "text-blue-700", bgLight: "bg-blue-50" },
   preparing: { label: "Hazırlanıyor", color: "bg-yellow-500", textColor: "text-yellow-700", bgLight: "bg-yellow-50" },
   ready: { label: "Hazır", color: "bg-orange-500", textColor: "text-orange-700", bgLight: "bg-orange-50" },
   assigned: { label: "Kurye Atandı", color: "bg-purple-500", textColor: "text-purple-700", bgLight: "bg-purple-50" },
-  courier_confirmed: { label: "Kurye Onayladı", color: "bg-indigo-500", textColor: "text-indigo-700", bgLight: "bg-indigo-50" },
   on_the_way: { label: "Yolda", color: "bg-cyan-500", textColor: "text-cyan-700", bgLight: "bg-cyan-50" },
   delivered: { label: "Teslim Edildi", color: "bg-green-500", textColor: "text-green-700", bgLight: "bg-green-50" },
-  cancelled: { label: "İptal", color: "bg-red-500", textColor: "text-red-700", bgLight: "bg-red-50" }
+  cancelled: { label: "İptal Edildi", color: "bg-red-500", textColor: "text-red-700", bgLight: "bg-red-50" }
 };
 
 // Ödeme yöntemleri
