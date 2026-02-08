@@ -237,3 +237,59 @@ async def cancel_termination(
 async def get_termination_status(courier_id: str, company_id: str):
     """Get termination status for a courier"""
     return await courier_service.get_termination_status(company_id, courier_id)
+
+
+
+# --- Kurye Availability Status (Aktif/Molada/Çevrimdışı) ---
+class AvailabilityStatusUpdate(BaseModel):
+    availability_status: str  # active, on_break, offline
+
+
+@router.put("/couriers/{courier_id}/availability")
+async def update_courier_availability(courier_id: str, data: AvailabilityStatusUpdate):
+    """Update courier availability status (active/on_break/offline)"""
+    valid_statuses = ["active", "on_break", "offline"]
+    if data.availability_status not in valid_statuses:
+        raise HTTPException(status_code=400, detail="Geçersiz durum. active, on_break veya offline olmalı")
+    
+    result = await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"availability_status": data.availability_status}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    status_labels = {"active": "Aktif", "on_break": "Molada", "offline": "Çevrimdışı"}
+    return {"message": f"Kurye durumu güncellendi: {status_labels[data.availability_status]}"}
+
+
+@router.get("/companies/{company_id}/couriers/with-availability")
+async def get_couriers_with_availability(company_id: str):
+    """Get couriers grouped by availability status"""
+    couriers = await db.couriers.find(
+        {"company_ids": company_id, "is_archived": {"$ne": True}},
+        {"_id": 0}
+    ).to_list(500)
+    
+    # Set default availability if not set
+    for c in couriers:
+        if "availability_status" not in c:
+            c["availability_status"] = "offline"
+    
+    # Group by availability
+    active = [c for c in couriers if c.get("availability_status") == "active"]
+    on_break = [c for c in couriers if c.get("availability_status") == "on_break"]
+    offline = [c for c in couriers if c.get("availability_status") == "offline"]
+    
+    return {
+        "active": active,
+        "on_break": on_break,
+        "offline": offline,
+        "counts": {
+            "active": len(active),
+            "on_break": len(on_break),
+            "offline": len(offline),
+            "total": len(couriers)
+        }
+    }
