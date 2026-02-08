@@ -189,16 +189,33 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
             "notes": product.get("productNote", "")
         })
     
-    # Müşteri adresi
+    # Müşteri adresi - Notları ayır
     address_parts = []
     if customer.get("address"):
         address_parts.append(customer["address"])
-    if customer.get("addressDescription"):
-        address_parts.append(customer["addressDescription"])
+    
+    # addressDescription'da not olabilir, kontrol et
+    address_desc = customer.get("addressDescription", "")
+    if address_desc:
+        # "**" veya "ÇATAL" gibi not işaretleri içeriyorsa adrese ekleme
+        if not ("**" in address_desc or "ÇATAL" in address_desc.upper() or "BIÇAK" in address_desc.upper() or "GÖNDERMEYİN" in address_desc.upper()):
+            address_parts.append(address_desc)
+    
     if customer.get("region"):
         address_parts.append(customer["region"])
     
     delivery_address = ", ".join(filter(None, address_parts)) or "Adres belirtilmemiş"
+    
+    # Sipariş notları - orderNote + addressDescription'daki notlar
+    notes_parts = []
+    if adisyo_order.get("orderNote"):
+        notes_parts.append(adisyo_order["orderNote"])
+    
+    # addressDescription'da not varsa ekle
+    if address_desc and ("**" in address_desc or "ÇATAL" in address_desc.upper() or "BIÇAK" in address_desc.upper() or "GÖNDERMEYİN" in address_desc.upper()):
+        notes_parts.append(address_desc)
+    
+    order_notes = " | ".join(notes_parts) if notes_parts else ""
     
     # Müşteri adı - None değerlerini filtrele
     customer_name_parts = []
