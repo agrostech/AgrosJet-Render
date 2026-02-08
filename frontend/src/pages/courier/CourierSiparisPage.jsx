@@ -670,10 +670,17 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
           </div>
         </div>
 
-        {/* Restoran */}
-        <div className="flex items-center gap-1.5 mb-1.5 text-xs">
-          <Store className="w-3.5 h-3.5 text-orange-500" />
-          <span className="font-medium truncate">{order.restaurant_name}</span>
+        {/* Restoran ve Uzaklık */}
+        <div className="flex items-center justify-between mb-1.5 text-xs">
+          <div className="flex items-center gap-1.5">
+            <Store className="w-3.5 h-3.5 text-orange-500" />
+            <span className="font-medium truncate">{order.restaurant_name}</span>
+          </div>
+          {getOrderDistance(order) && (
+            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap">
+              📍 {getOrderDistance(order)}
+            </span>
+          )}
         </div>
 
         {/* Müşteri */}
