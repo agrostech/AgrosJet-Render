@@ -1058,7 +1058,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             )}
                           </SelectContent>
                         </Select>
-                        </div>
                         
                         <ChevronRight className="w-4 h-4 text-muted-foreground" />
                       </div>
