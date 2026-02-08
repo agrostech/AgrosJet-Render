@@ -152,6 +152,7 @@ export default function CourierDashboard() {
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
       checkMaintenanceNotifications(parsed.id);
+      fetchAvailabilityStatus(parsed.id);
       
       // İlk kontrol
       checkCourierStatus(parsed.id, parsed.company_id);
