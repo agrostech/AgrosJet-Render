@@ -77,10 +77,31 @@ export default function SiparisYonetimiPage({ companyId }) {
   const fetchCouriers = useCallback(async () => {
     if (!companyId) return;
     try {
-      const res = await axios.get(`${API}/couriers/companies/${companyId}/couriers`);
-      setCouriers(res.data.filter(c => !c.is_archived));
+      // Kuryeleri availability durumuna göre gruplu al
+      const res = await axios.get(`${API}/companies/${companyId}/couriers/with-availability`);
+      setCouriersByStatus({
+        active: res.data.active || [],
+        on_break: res.data.on_break || [],
+        offline: res.data.offline || []
+      });
+      // Tüm kuryeler (eski uyumluluk için)
+      const allCouriers = [...(res.data.active || []), ...(res.data.on_break || []), ...(res.data.offline || [])];
+      setCouriers(allCouriers);
     } catch (err) {
       console.error("Couriers fetch error:", err);
+      // Fallback to old endpoint
+      try {
+        const res = await axios.get(`${API}/couriers/companies/${companyId}/couriers`);
+        const filtered = res.data.filter(c => !c.is_archived);
+        setCouriers(filtered);
+        setCouriersByStatus({
+          active: filtered.filter(c => c.availability_status === 'active'),
+          on_break: filtered.filter(c => c.availability_status === 'on_break'),
+          offline: filtered.filter(c => !c.availability_status || c.availability_status === 'offline')
+        });
+      } catch (e) {
+        console.error("Fallback couriers fetch error:", e);
+      }
     }
   }, [companyId]);
 
