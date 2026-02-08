@@ -116,6 +116,14 @@ export default function SiparisYonetimiPage({ companyId }) {
     } else {
       initMap();
     }
+    
+    // Cleanup on unmount
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
   }, []);
 
   const initMap = () => {
