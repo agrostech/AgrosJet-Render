@@ -42,8 +42,8 @@ ORDER_STATUSES = {
 # Kurye ataması kaldırılacak durumlar
 COURIER_REMOVAL_STATUSES = ["preparing", "ready", "cancelled"]
 
-# Admin tarafından seçilemeyen durumlar (sadece kurye seçebilir)
-COURIER_ONLY_STATUSES = ["confirmed"]
+# Admin tarafından seçilemeyen durumlar (sadece kurye seçebilir veya otomatik atanır)
+COURIER_ONLY_STATUSES = ["assigned", "confirmed"]
 
 
 # --- Mock Data Generator ---

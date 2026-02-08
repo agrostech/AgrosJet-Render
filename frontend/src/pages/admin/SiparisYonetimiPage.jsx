@@ -26,8 +26,8 @@ const ORDER_STATUSES = {
   cancelled: { label: "İptal Edildi", color: "bg-red-500", textColor: "text-red-700", bgLight: "bg-red-50" }
 };
 
-// Admin tarafından seçilemeyen durumlar (sadece kurye seçebilir)
-const COURIER_ONLY_STATUSES = ["confirmed"];
+// Admin tarafından seçilemeyen durumlar (otomatik atanır veya kurye seçer)
+const COURIER_ONLY_STATUSES = ["assigned", "confirmed"];
 
 // Ödeme yöntemleri
 const PAYMENT_METHODS = {
