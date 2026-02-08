@@ -1255,9 +1255,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                           </SelectContent>
                         </Select>
                       </div>
-                      {/* Adres bilgisi */}
-                      <div className="text-xs text-muted-foreground truncate">
-                        {order.delivery_address}
+                      {/* Adres bilgisi ve Uzaklık */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground truncate flex-1">
+                          {order.delivery_address}
+                        </span>
+                        {getOrderDistance(order) && (
+                          <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap">
+                            📍 {getOrderDistance(order)}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <div className="flex items-center gap-2">
