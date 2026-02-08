@@ -183,6 +183,34 @@ export default function SistemPage({ companyId }) {
     }
   };
 
+  // Working Hours Functions
+  const fetchWorkingHours = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}/working-hours`);
+      setWorkingHours({
+        opening_time: res.data.opening_time || "09:00",
+        closing_time: res.data.closing_time || "22:00"
+      });
+    } catch (err) {
+      console.error("Working hours fetch error:", err);
+    }
+  };
+
+  const handleWorkingHoursSave = async () => {
+    setWorkingHoursSaving(true);
+    try {
+      await axios.put(`${API}/companies/${companyId}/working-hours`, workingHours);
+      toast.success("Çalışma saatleri kaydedildi");
+    } catch (err) {
+      if (!err.handled) {
+        toast.error("Kaydetme başarısız");
+      }
+    } finally {
+      setWorkingHoursSaving(false);
+    }
+  };
+
   const handleBackupSave = async () => {
     if (backupSettings.enabled && !backupSettings.email) {
       toast.error("Otomatik yedekleme için e-posta adresi gerekli");
