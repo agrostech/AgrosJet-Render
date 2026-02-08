@@ -828,174 +828,233 @@ export default function SiparisYonetimiPage({ companyId }) {
       </Dialog>
 
       {/* Order Detail Modal */}
-      <Dialog open={showOrderDetailModal} onOpenChange={setShowOrderDetailModal}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={showOrderDetailModal} onOpenChange={(open) => {
+        setShowOrderDetailModal(open);
+        if (!open) {
+          setOrderDetailTab("details");
+          // Cleanup order map
+          if (orderMapInstanceRef.current) {
+            orderMapInstanceRef.current.remove();
+            orderMapInstanceRef.current = null;
+          }
+        }
+      }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedOrder?.order_number}
               {selectedOrder && (
                 <Badge className={`${ORDER_STATUSES[selectedOrder.status]?.color} text-white`}>
-                  {ORDER_STATUSES[selectedOrder.status]?.label}
+                  {selectedOrder.status === 'preparing' && selectedOrder.preparation_end_at
+                    ? getCountdown(selectedOrder.preparation_end_at)?.text
+                    : ORDER_STATUSES[selectedOrder.status]?.label
+                  }
                 </Badge>
               )}
             </DialogTitle>
           </DialogHeader>
+          
           {selectedOrder && (
-            <div className="space-y-4">
-              {/* Restaurant */}
-              <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                <Store className="w-5 h-5 text-red-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">{selectedOrder.restaurant_name}</p>
-                  <p className="text-sm text-muted-foreground">Restoran</p>
-                </div>
-              </div>
-
-              {/* Customer */}
-              <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                <User className="w-5 h-5 text-blue-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-medium">{selectedOrder.customer_name}</p>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Phone className="w-3.5 h-3.5" />
-                    {selectedOrder.customer_phone}
-                  </p>
-                </div>
-                <a 
-                  href={`tel:${selectedOrder.customer_phone}`}
-                  className="p-2 bg-green-100 rounded-full hover:bg-green-200"
-                >
-                  <Phone className="w-4 h-4 text-green-600" />
-                </a>
-              </div>
-
-              {/* Delivery Address */}
-              <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                <MapPin className="w-5 h-5 text-orange-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-medium">{selectedOrder.delivery_address}</p>
-                  {selectedOrder.notes && (
-                    <p className="text-sm text-orange-600 mt-1">Not: {selectedOrder.notes}</p>
-                  )}
-                </div>
-                <a 
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${selectedOrder.delivery_location?.latitude},${selectedOrder.delivery_location?.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 bg-blue-100 rounded-full hover:bg-blue-200"
-                >
-                  <Navigation className="w-4 h-4 text-blue-600" />
-                </a>
-              </div>
-
-              {/* Items */}
-              <div className="border rounded-lg p-3">
-                <p className="font-medium mb-2">Ürünler</p>
-                <div className="space-y-1">
-                  {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-sm">
-                      <span>{item.quantity}x {item.name}</span>
-                      <span>{formatCurrency(item.price * item.quantity)}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between font-semibold mt-2 pt-2 border-t">
-                  <span>Toplam</span>
-                  <span>{formatCurrency(selectedOrder.total_amount)}</span>
-                </div>
-                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                  <span>{PAYMENT_METHODS[selectedOrder.payment_method]?.icon}</span>
-                  <span>{PAYMENT_METHODS[selectedOrder.payment_method]?.label}</span>
-                </div>
-              </div>
-
-              {/* Courier */}
-              {selectedOrder.courier_name ? (
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Bike className="w-5 h-5 text-green-600" />
-                    <div>
-                      <p className="font-medium">{selectedOrder.courier_name}</p>
-                      <p className="text-sm text-muted-foreground">Kurye</p>
-                    </div>
+            <Tabs value={orderDetailTab} onValueChange={setOrderDetailTab} className="flex-1 flex flex-col overflow-hidden">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="details" className="flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Detaylar
+                </TabsTrigger>
+                <TabsTrigger value="location" className="flex items-center gap-2">
+                  <Map className="w-4 h-4" />
+                  Konum
+                </TabsTrigger>
+              </TabsList>
+              
+              {/* Detaylar Sekmesi */}
+              <TabsContent value="details" className="flex-1 overflow-y-auto mt-4 space-y-4">
+                {/* Restaurant */}
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                  <Store className="w-5 h-5 text-red-500 mt-0.5" />
+                  <div>
+                    <p className="font-medium">{selectedOrder.restaurant_name}</p>
+                    <p className="text-sm text-muted-foreground">Restoran</p>
                   </div>
-                  {selectedOrder.status !== 'on_the_way' && selectedOrder.status !== 'delivered' && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => {
-                        handleUnassignCourier(selectedOrder.id);
-                        setShowOrderDetailModal(false);
-                      }}
-                    >
-                      <XCircle className="w-4 h-4 mr-1" />
-                      Kaldır
-                    </Button>
-                  )}
                 </div>
-              ) : (
-                <Button 
-                  className="w-full"
-                  onClick={() => {
-                    setShowOrderDetailModal(false);
-                    setShowAssignModal(true);
-                  }}
-                >
-                  <Bike className="w-4 h-4 mr-2" />
-                  Kurye Ata
-                </Button>
-              )}
 
-              {/* Status Change - Dropdown */}
-              {selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled' && (
-                <div className="pt-2 border-t">
-                  <Label className="text-sm font-medium mb-2 block">Durum Değiştir</Label>
-                  <Select 
-                    value={selectedOrder.status} 
-                    onValueChange={(newValue) => {
-                      if (newValue.startsWith('preparing_')) {
-                        const prepTime = parseInt(newValue.split('_')[1]);
-                        handleUpdateStatus(selectedOrder.id, 'preparing', prepTime);
-                      } else {
-                        handleUpdateStatus(selectedOrder.id, newValue);
-                      }
+                {/* Customer */}
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                  <User className="w-5 h-5 text-blue-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium">{selectedOrder.customer_name}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5" />
+                      {selectedOrder.customer_phone}
+                    </p>
+                  </div>
+                  <a 
+                    href={`tel:${selectedOrder.customer_phone}`}
+                    className="p-2 bg-green-100 rounded-full hover:bg-green-200"
+                  >
+                    <Phone className="w-4 h-4 text-green-600" />
+                  </a>
+                </div>
+
+                {/* Delivery Address */}
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                  <MapPin className="w-5 h-5 text-orange-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium">{selectedOrder.delivery_address}</p>
+                    {selectedOrder.notes && (
+                      <p className="text-sm text-orange-600 mt-1">Not: {selectedOrder.notes}</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-2 bg-blue-100 rounded-full hover:bg-blue-200"
+                    onClick={() => setOrderDetailTab("location")}
+                  >
+                    <Navigation className="w-4 h-4 text-blue-600" />
+                  </Button>
+                </div>
+
+                {/* Items */}
+                <div className="border rounded-lg p-3">
+                  <p className="font-medium mb-2">Ürünler</p>
+                  <div className="space-y-1">
+                    {selectedOrder.items?.map((item, idx) => (
+                      <div key={idx} className="flex justify-between text-sm">
+                        <span>{item.quantity}x {item.name}</span>
+                        <span>{formatCurrency(item.price * item.quantity)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between font-semibold mt-2 pt-2 border-t">
+                    <span>Toplam</span>
+                    <span>{formatCurrency(selectedOrder.total_amount)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                    <span>{PAYMENT_METHODS[selectedOrder.payment_method]?.label}</span>
+                  </div>
+                </div>
+
+                {/* Courier */}
+                {selectedOrder.courier_name ? (
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Bike className="w-5 h-5 text-green-600" />
+                      <div>
+                        <p className="font-medium">{selectedOrder.courier_name}</p>
+                        <p className="text-sm text-muted-foreground">Kurye</p>
+                      </div>
+                    </div>
+                    {selectedOrder.status !== 'on_the_way' && selectedOrder.status !== 'delivered' && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => {
+                          handleUnassignCourier(selectedOrder.id);
+                          setShowOrderDetailModal(false);
+                        }}
+                      >
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Kaldır
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <Button 
+                    className="w-full"
+                    onClick={() => {
+                      setShowOrderDetailModal(false);
+                      setShowAssignModal(true);
                     }}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* Hazırlanıyor - süre seçenekleri */}
-                      <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">
-                        Hazırlanıyor
-                      </div>
-                      {PREPARATION_TIMES.map(time => (
-                        <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="pl-4">
-                          <div className="flex items-center gap-2">
-                            <Timer className="w-3 h-3 text-yellow-500" />
-                            {time.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                      
-                      {/* Diğer durumlar */}
-                      <div className="border-t my-1" />
-                      {Object.entries(ORDER_STATUSES)
-                        .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                        .map(([key, value]) => (
-                        <SelectItem key={key} value={key}>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${value.color}`} />
-                            {value.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Bike className="w-4 h-4 mr-2" />
+                    Kurye Ata
+                  </Button>
+                )}
+
+                {/* Status Change - Dropdown */}
+                {selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled' && (
+                  <div className="pt-2 border-t">
+                    <Label className="text-sm font-medium mb-2 block">Durum Değiştir</Label>
+                    <Select 
+                      value={selectedOrder.status} 
+                      onValueChange={(newValue) => {
+                        if (newValue.startsWith('preparing_')) {
+                          const prepTime = parseInt(newValue.split('_')[1]);
+                          handleUpdateStatus(selectedOrder.id, 'preparing', prepTime);
+                        } else {
+                          handleUpdateStatus(selectedOrder.id, newValue);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {/* Hazırlanıyor - süre seçenekleri */}
+                        <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">
+                          Hazırlanıyor
+                        </div>
+                        {PREPARATION_TIMES.map(time => (
+                          <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="pl-4">
+                            <div className="flex items-center gap-2">
+                              <Timer className="w-3 h-3 text-yellow-500" />
+                              {time.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                        
+                        {/* Diğer durumlar */}
+                        <div className="border-t my-1" />
+                        {Object.entries(ORDER_STATUSES)
+                          .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                          .map(([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${value.color}`} />
+                              {value.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </TabsContent>
+              
+              {/* Konum Sekmesi */}
+              <TabsContent value="location" className="flex-1 mt-4">
+                <div className="space-y-3">
+                  {/* Adres bilgisi */}
+                  <div className="flex items-start gap-2 p-2 bg-orange-50 rounded-lg">
+                    <MapPin className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{selectedOrder.delivery_address}</p>
+                      <p className="text-xs text-muted-foreground">{selectedOrder.customer_name}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Harita */}
+                  <div 
+                    ref={orderMapRef}
+                    className="w-full h-[300px] rounded-lg border"
+                    style={{ zIndex: 1 }}
+                  />
+                  
+                  {/* Google Maps'te aç butonu */}
+                  <a 
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${selectedOrder.delivery_location?.latitude},${selectedOrder.delivery_location?.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    <Navigation className="w-4 h-4" />
+                    Google Maps'te Yol Tarifi Al
+                  </a>
                 </div>
-              )}
-            </div>
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
