@@ -4,6 +4,28 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler
 
+#### 🚀 Kurye Paneli - Durum Kontrolü (YENİ)
+Kuryeler artık kendi durumlarını değiştirebilir:
+
+**Durumlar:**
+- **Aktif** (Yeşil) - Sipariş almaya hazır
+- **Molada** (Sarı) - Geçici olarak müsait değil
+- **Çevrimdışı** (Gri) - Çalışmıyor
+
+**Özellikler:**
+- Desktop sidebar'da durum dropdown'u
+- Mobil header'da durum butonu
+- Collapsed sidebar'da durum ikonu
+- Admin panelinde kurye durumları görünür
+- Anlık toast bildirimi
+
+**Dosyalar:**
+- `/app/frontend/src/pages/CourierDashboard.jsx` (GÜNCELLENDİ)
+- `/app/frontend/src/components/courier/CourierSidebar.jsx` (GÜNCELLENDİ)
+- `/app/backend/routers/couriers.py` (GÜNCELLENDİ - GET /couriers/{id} eklendi)
+
+---
+
 #### 🚀 Kurye Paneli - Sipariş Yönetimi (YENİ)
 Kuryeler için tam özellikli sipariş yönetimi sekmesi eklendi:
 
