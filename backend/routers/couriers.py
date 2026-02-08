@@ -267,8 +267,15 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
 @router.get("/companies/{company_id}/couriers/with-availability")
 async def get_couriers_with_availability(company_id: str):
     """Get couriers grouped by availability status"""
+    # Kuryeler company_id field'ını kullanıyor (tekil veya array olabilir)
     couriers = await db.couriers.find(
-        {"company_ids": company_id, "is_archived": {"$ne": True}},
+        {
+            "$or": [
+                {"company_id": company_id},
+                {"company_ids": company_id}
+            ],
+            "is_archived": {"$ne": True}
+        },
         {"_id": 0}
     ).to_list(500)
     
