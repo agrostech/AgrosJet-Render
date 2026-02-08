@@ -153,6 +153,18 @@ export default function SiparisYonetimiPage({ companyId }) {
     return () => clearInterval(interval);
   }, [fetchAll, fetchOrders]);
 
+  // Geri sayım için her saniye re-render
+  useEffect(() => {
+    const hasPreparingOrders = orders.some(o => o.status === 'preparing' && o.preparation_end_at);
+    if (!hasPreparingOrders) return;
+    
+    const tickInterval = setInterval(() => {
+      setTick(t => t + 1);
+    }, 1000);
+    
+    return () => clearInterval(tickInterval);
+  }, [orders]);
+
   // Initialize map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
