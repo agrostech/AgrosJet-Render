@@ -472,20 +472,6 @@ async def delete_order(company_id: str, order_id: str):
     return {"message": "Sipariş silindi"}
 
 
-# --- Kurye Endpoints ---
-            "company_id": company_id,
-            "status": status
-        })
-        status_counts[status] = count
-    
-    return {
-        "today_total": today_orders,
-        "active": active,
-        "unassigned": unassigned,
-        "by_status": status_counts
-    }
-
-
 # --- Kurye için Endpoints ---
 
 @router.get("/courier/{courier_id}/active")
