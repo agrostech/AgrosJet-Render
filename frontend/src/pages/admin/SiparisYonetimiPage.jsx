@@ -141,13 +141,16 @@ export default function SiparisYonetimiPage({ companyId }) {
   const initMap = () => {
     if (!mapRef.current || !window.L || mapInstanceRef.current) return;
     
-    // Istanbul center
+    // Şirketin ili veya default İstanbul
+    const centerLat = company?.city_lat || 41.0082;
+    const centerLng = company?.city_lng || 28.9784;
+    
     const map = window.L.map(mapRef.current, {
       scrollWheelZoom: true,
       zoomSnap: 1,
       zoomDelta: 1,
       wheelPxPerZoomLevel: 120  // Daha yavaş zoom - 1 scroll = 1 zoom level
-    }).setView([41.0082, 28.9784], 11);
+    }).setView([centerLat, centerLng], 12);
     
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
@@ -156,6 +159,13 @@ export default function SiparisYonetimiPage({ companyId }) {
     mapInstanceRef.current = map;
     updateMapMarkers();
   };
+
+  // Re-center map when company data loads
+  useEffect(() => {
+    if (mapInstanceRef.current && company?.city_lat && company?.city_lng) {
+      mapInstanceRef.current.setView([company.city_lat, company.city_lng], 12);
+    }
+  }, [company]);
 
   // Update markers when data changes
   useEffect(() => {
