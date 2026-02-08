@@ -6,7 +6,7 @@ Adisyo API Entegrasyon Servisi
 """
 import httpx
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 from utils.database import db
 
