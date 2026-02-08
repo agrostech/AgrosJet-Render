@@ -122,9 +122,8 @@ POST /api/orders/courier/{courier_id}/order/{order_id}/reject  - Reddet
 ## Bekleyen Görevler
 
 ### P0
-- Kurye durum kontrolü (Aktif/Molada/Çevrimdışı)
-- Adisyo gerçek API entegrasyonu (API anahtarları gerekli)
 - Push notification (sipariş atandığında)
+- Adisyo gerçek API entegrasyonu (API anahtarları gerekli)
 
 ### P1
 - Webhook endpoint'leri
