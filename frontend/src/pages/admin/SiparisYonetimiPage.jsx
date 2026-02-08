@@ -10,12 +10,12 @@ import { Label } from "@/components/ui/label";
 import { 
   RefreshCw, MapPin, Phone, Clock, User, Bike, Store, Package,
   ChevronRight, Navigation, CheckCircle2, XCircle, AlertCircle,
-  Plus, Trash2, Filter, Users
+  Plus, Trash2, Filter, Users, Timer
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Sipariş durumları (Yeni kaldırıldı)
+// Sipariş durumları
 const ORDER_STATUSES = {
   preparing: { label: "Hazırlanıyor", color: "bg-yellow-500", textColor: "text-yellow-700", bgLight: "bg-yellow-50" },
   ready: { label: "Hazır", color: "bg-orange-500", textColor: "text-orange-700", bgLight: "bg-orange-50" },
@@ -26,11 +26,34 @@ const ORDER_STATUSES = {
   cancelled: { label: "İptal Edildi", color: "bg-red-500", textColor: "text-red-700", bgLight: "bg-red-50" }
 };
 
+// Admin tarafından seçilemeyen durumlar (sadece kurye seçebilir)
+const COURIER_ONLY_STATUSES = ["confirmed"];
+
 // Ödeme yöntemleri
 const PAYMENT_METHODS = {
   cash: { label: "Nakit", icon: "💵" },
   card: { label: "Kart", icon: "💳" },
   online: { label: "Online", icon: "📱" }
+};
+
+// Geri sayım hesaplama
+const getCountdown = (preparationEndAt) => {
+  if (!preparationEndAt) return null;
+  const now = new Date();
+  const endTime = new Date(preparationEndAt);
+  const diffMs = endTime - now;
+  
+  if (diffMs <= 0) return { expired: true, text: "Süre doldu" };
+  
+  const minutes = Math.floor(diffMs / 60000);
+  const seconds = Math.floor((diffMs % 60000) / 1000);
+  
+  return { 
+    expired: false, 
+    text: `${minutes}:${seconds.toString().padStart(2, '0')}`,
+    minutes,
+    seconds
+  };
 };
 
 export default function SiparisYonetimiPage({ companyId }) {
@@ -42,6 +65,7 @@ export default function SiparisYonetimiPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState("active");
+  const [, setTick] = useState(0); // Geri sayım için re-render
   
   // Modal states
   const [showAssignModal, setShowAssignModal] = useState(false);
