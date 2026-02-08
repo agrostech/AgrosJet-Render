@@ -151,6 +151,8 @@ app.include_router(business_invoices_router)
 app.include_router(system_settings_router)
 app.include_router(motorcycles_router)
 app.include_router(chat_router)
+app.include_router(restaurants_router)
+app.include_router(orders_router)
 
 # Health check
 @api_router.get("/")
