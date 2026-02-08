@@ -625,7 +625,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               Kuryeler
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-2 space-y-3 max-h-[380px] overflow-y-auto">
+          <CardContent className="p-2 space-y-3 max-h-[500px] overflow-y-auto">
             {/* Aktif Kuryeler */}
             <div>
               <div className="flex items-center gap-2 px-2 py-1 bg-green-50 rounded text-xs font-semibold text-green-700 mb-1">
@@ -693,7 +693,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           <CardContent className="p-0">
             <div 
               ref={mapRef} 
-              className="w-full h-[350px] md:h-[400px] rounded-b-lg"
+              className="w-full h-[450px] md:h-[520px] rounded-b-lg"
               style={{ zIndex: 1 }}
             />
           </CardContent>
