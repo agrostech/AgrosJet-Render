@@ -64,7 +64,7 @@ const getCountdown = (preparationEndAt) => {
   };
 };
 
-export default function SiparisYonetimiPage({ companyId }) {
+export default function SiparisYonetimiPage({ companyId, adminName }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [couriersByStatus, setCouriersByStatus] = useState({ active: [], on_break: [], offline: [] });
