@@ -544,9 +544,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const assignedOrders = orders.filter((o) => ["assigned", "confirmed"].includes(o.status));
   const onTheWayOrders = orders.filter((o) => o.status === "on_the_way");
 
-  // Aktif sekme state
-  const [activeTab, setActiveTab] = useState("assigned");
-
   return (
     <div className="space-y-3" data-testid="courier-siparis-page">
       {/* Boş durum */}
