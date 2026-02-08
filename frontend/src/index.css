@@ -104,11 +104,14 @@ body {
     border: none !important;
 }
 
-/* Force round markers */
+/* Force round markers - ALL nested divs */
+.leaflet-marker-icon > div,
+.leaflet-marker-icon > div > div,
 .restaurant-marker > div,
 .order-marker > div,
 .courier-marker > div {
     border-radius: 50% !important;
+    -webkit-border-radius: 50% !important;
 }
 
 /* Courier marker inner circle */
