@@ -659,10 +659,12 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
   const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
   const PaymentIcon = paymentInfo.icon;
 
-  // Restoran telefonu için (varsa)
+  // Restoran telefonu için
   const callRestaurant = () => {
     if (order.restaurant_phone) {
       window.location.href = `tel:${order.restaurant_phone}`;
+    } else {
+      alert("Restoran telefon numarası bulunamadı");
     }
   };
 
