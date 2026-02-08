@@ -143,8 +143,125 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showPaymentConfirmModal, setShowPaymentConfirmModal] = useState(false);
   const [pendingDeliveryOrder, setPendingDeliveryOrder] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState(null);
   const isInitialLoadRef = useRef(true);
   const notifiedOrdersRef = useRef(new Set()); // Bildirim gönderilen siparişler
+
+  // Kuryenin konumunu al
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    
+    // İlk konum al
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCurrentLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        });
+      },
+      (err) => console.log("Konum alınamadı:", err),
+      { enableHighAccuracy: true }
+    );
+    
+    // Konum değişikliklerini izle
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setCurrentLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        });
+      },
+      (err) => console.log("Konum izleme hatası:", err),
+      { enableHighAccuracy: true, maximumAge: 30000 }
+    );
+    
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  // Rota oluştur - en yakından uzağa sırala ve Google Maps'te aç
+  const createOptimizedRoute = useCallback(() => {
+    // Yolda olan siparişleri al
+    const onTheWayOrders = orders.filter(o => o.status === "on_the_way");
+    
+    if (onTheWayOrders.length < 2) {
+      toast.error("Rota için en az 2 sipariş gerekli");
+      return;
+    }
+    
+    // Başlangıç noktası - kurye konumu veya ilk siparişin restoranı
+    let startLat, startLng;
+    if (currentLocation?.latitude && currentLocation?.longitude) {
+      startLat = currentLocation.latitude;
+      startLng = currentLocation.longitude;
+    } else {
+      // Konum yoksa ilk siparişin restoran konumunu kullan
+      const firstOrder = onTheWayOrders[0];
+      if (firstOrder.restaurant_location?.latitude) {
+        startLat = firstOrder.restaurant_location.latitude;
+        startLng = firstOrder.restaurant_location.longitude;
+      } else {
+        toast.error("Konum bilgisi alınamadı");
+        return;
+      }
+    }
+    
+    // Siparişleri mesafeye göre sırala (Nearest Neighbor algoritması)
+    const sortedOrders = [];
+    const remaining = [...onTheWayOrders];
+    let currentLat = startLat;
+    let currentLng = startLng;
+    
+    while (remaining.length > 0) {
+      // En yakın siparişi bul
+      let nearestIdx = 0;
+      let nearestDist = Infinity;
+      
+      remaining.forEach((order, idx) => {
+        const orderLat = order.delivery_location?.latitude;
+        const orderLng = order.delivery_location?.longitude;
+        if (orderLat && orderLng) {
+          const dist = calculateDistance(currentLat, currentLng, orderLat, orderLng);
+          if (dist !== null && dist < nearestDist) {
+            nearestDist = dist;
+            nearestIdx = idx;
+          }
+        }
+      });
+      
+      // En yakını listeye ekle
+      const nearest = remaining.splice(nearestIdx, 1)[0];
+      sortedOrders.push(nearest);
+      
+      // Sonraki iterasyon için konumu güncelle
+      if (nearest.delivery_location?.latitude) {
+        currentLat = nearest.delivery_location.latitude;
+        currentLng = nearest.delivery_location.longitude;
+      }
+    }
+    
+    // Google Maps URL oluştur
+    // Format: https://www.google.com/maps/dir/?api=1&origin=LAT,LNG&destination=LAT,LNG&waypoints=LAT,LNG|LAT,LNG&travelmode=driving
+    const origin = `${startLat},${startLng}`;
+    const destination = `${sortedOrders[sortedOrders.length - 1].delivery_location.latitude},${sortedOrders[sortedOrders.length - 1].delivery_location.longitude}`;
+    
+    // Ara noktalar (son nokta hariç)
+    const waypoints = sortedOrders
+      .slice(0, -1)
+      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`)
+      .join("|");
+    
+    let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+    if (waypoints) {
+      mapsUrl += `&waypoints=${waypoints}`;
+    }
+    
+    // Toast ile sıralamayı göster
+    const routeInfo = sortedOrders.map((o, i) => `${i + 1}. ${o.customer_name}`).join(" → ");
+    toast.success(`Rota: ${routeInfo}`, { duration: 5000 });
+    
+    // Google Maps'i aç
+    window.open(mapsUrl, "_blank");
+  }, [orders, currentLocation]);
 
   // Check notification permission status (don't auto-request)
   useEffect(() => {
