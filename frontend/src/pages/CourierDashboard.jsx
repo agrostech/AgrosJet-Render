@@ -39,6 +39,13 @@ const BASE_NAV_ITEMS = [
 // Mobil menüde gösterilecek maksimum sekme sayısı
 const MOBILE_NAV_LIMIT = 6;
 
+// Kurye durumları
+const AVAILABILITY_STATUSES = {
+  active: { label: "Aktif", color: "bg-green-500", icon: Circle },
+  on_break: { label: "Molada", color: "bg-yellow-500", icon: Coffee },
+  offline: { label: "Çevrimdışı", color: "bg-gray-400", icon: WifiOff },
+};
+
 export default function CourierDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
