@@ -112,16 +112,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const isInitialLoadRef = useRef(true);
   const notifiedOrdersRef = useRef(new Set()); // Bildirim gönderilen siparişler
 
-  // Request notification permission
+  // Check notification permission status (don't auto-request)
   useEffect(() => {
     if ("Notification" in window) {
-      if (Notification.permission === "granted") {
-        setNotificationsEnabled(true);
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then((permission) => {
-          setNotificationsEnabled(permission === "granted");
-        });
-      }
+      // Only check current status, don't request automatically
+      // Auto-requesting causes touch issues on Android
+      setNotificationsEnabled(Notification.permission === "granted");
     }
   }, []);
 
