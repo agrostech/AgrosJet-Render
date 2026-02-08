@@ -70,8 +70,47 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # Add break time reset job - checks every minute if any company's closing time has passed
+    async def reset_courier_break_times():
+        """Şirket kapanış saatinde kurye mola sürelerini sıfırla"""
+        from datetime import datetime, timezone
+        try:
+            now = datetime.now(timezone.utc)
+            current_hour = now.hour
+            current_minute = now.minute
+            current_time_str = f"{current_hour:02d}:{current_minute:02d}"
+            
+            # Kapanış saati şu anki saate eşit olan şirketleri bul
+            companies = await db.companies.find(
+                {
+                    "is_archived": {"$ne": True},
+                    "closing_time": current_time_str
+                },
+                {"_id": 0, "id": 1, "name": 1, "closing_time": 1}
+            ).to_list(100)
+            
+            for company in companies:
+                # Bu şirketin tüm kuryelerinin mola sürelerini sıfırla
+                result = await db.couriers.update_many(
+                    {"company_id": company["id"]},
+                    {"$set": {"used_break_time": 0, "break_start_time": None}}
+                )
+                if result.modified_count > 0:
+                    print(f"Break time reset: {result.modified_count} couriers for {company['name']} at {current_time_str}")
+        except Exception as e:
+            print(f"Break time reset job error: {e}")
+    
+    scheduler.add_job(
+        reset_courier_break_times,
+        'interval',
+        minutes=1,  # Her dakika kontrol et
+        id="break_time_reset",
+        name="Courier Break Time Reset",
+        replace_existing=True
+    )
+    
     scheduler.start()
-    print("Schedulers started - backup (hourly), adisyo sync (30s)")
+    print("Schedulers started - backup (hourly), adisyo sync (30s), break reset (1m)")
     
     yield
     
