@@ -653,11 +653,18 @@ function NewOrderCard({ order, onConfirm, loading }) {
   );
 }
 
-// Aktif Sipariş Kartı - Kompakt
+// Aktif Sipariş Kartı - Yeni Tasarım
 function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading }) {
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
   const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
   const PaymentIcon = paymentInfo.icon;
+
+  // Restoran telefonu için (varsa)
+  const callRestaurant = () => {
+    if (order.restaurant_phone) {
+      window.location.href = `tel:${order.restaurant_phone}`;
+    }
+  };
 
   return (
     <div
@@ -665,64 +672,90 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-3">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
+        {/* Header - Durum + Sipariş No + Ödeme */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
             <Badge className={`${statusConfig.color} text-white text-xs px-2 py-0.5`}>{statusConfig.label}</Badge>
             <span className="text-xs font-mono text-muted-foreground">{order.order_number}</span>
           </div>
-          <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
-            <PaymentIcon className="w-3 h-3" />
-            <span>{paymentInfo.label}</span>
+          <div className="flex items-center gap-2">
+            {getOrderDistance(order) && (
+              <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium">
+                📍 {getOrderDistance(order)}
+              </span>
+            )}
+            <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
+              <PaymentIcon className="w-3 h-3" />
+              <span>{paymentInfo.label}</span>
+            </div>
           </div>
         </div>
 
-        {/* Restoran ve Uzaklık */}
-        <div className="flex items-center justify-between mb-1.5 text-xs">
-          <div className="flex items-center gap-1.5">
-            <Store className="w-3.5 h-3.5 text-orange-500" />
-            <span className="font-medium truncate">{order.restaurant_name}</span>
-            <button
-              onClick={onOpenRestaurantMaps}
-              className="flex items-center gap-0.5 text-orange-600 hover:text-orange-800"
-              title="Restorana git"
-            >
-              <Navigation className="w-3 h-3" />
-            </button>
+        {/* RESTORAN BİLGİLERİ */}
+        <div className="bg-orange-50 rounded-lg p-2 mb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Store className="w-4 h-4 text-orange-600" />
+              <span className="font-semibold text-sm">{order.restaurant_name}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {order.restaurant_phone && (
+                <button
+                  onClick={callRestaurant}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-700 hover:bg-orange-200"
+                  title="Restoranı Ara"
+                >
+                  <Phone className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                onClick={onOpenRestaurantMaps}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-700 hover:bg-orange-200"
+                title="Restorana Git"
+              >
+                <Navigation className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          {getOrderDistance(order) && (
-            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap">
-              📍 {getOrderDistance(order)}
-            </span>
-          )}
         </div>
 
-        {/* Müşteri */}
-        <div className="flex items-center gap-1.5 mb-1.5 text-xs">
-          <User className="w-3.5 h-3.5 text-blue-500" />
-          <span className="truncate">{order.customer_name}</span>
-          <button
-            onClick={onCall}
-            className="ml-auto flex items-center gap-1 text-blue-600 hover:underline text-xs"
-          >
-            <Phone className="w-3 h-3" />
-            Ara
-          </button>
-        </div>
-
-        {/* Adres */}
-        <div className="flex items-start gap-1.5 mb-2 text-xs">
-          <MapPin className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
-          <span className="line-clamp-1">{order.delivery_address}</span>
-        </div>
-
-        {/* Ürünler - Kompakt */}
-        <div className="bg-slate-50 rounded p-2 mb-2">
+        {/* MÜŞTERİ BİLGİLERİ */}
+        <div className="bg-blue-50 rounded-lg p-2 mb-2">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-muted-foreground">Sipariş İçeriği</span>
-            <span className="text-xs font-semibold">{formatCurrency(order.total_amount)}</span>
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-blue-600" />
+              <span className="font-semibold text-sm">{order.customer_name}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={onCall}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200"
+                title="Müşteriyi Ara"
+              >
+                <Phone className="w-4 h-4" />
+              </button>
+              <button
+                onClick={onOpenMaps}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200"
+                title="Müşteriye Git"
+              >
+                <Navigation className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="flex items-start gap-1.5 text-xs text-blue-800">
+            <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+            <span className="line-clamp-2">{order.delivery_address}</span>
+          </div>
+        </div>
+
+        {/* SİPARİŞ BİLGİLERİ */}
+        <div className="bg-slate-50 rounded-lg p-2 mb-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-slate-600">Sipariş İçeriği</span>
+            <span className="font-bold text-sm">{formatCurrency(order.total_amount)}</span>
+          </div>
+          <div className="text-xs text-slate-600">
             {order.items?.map((item, idx) => (
               <span key={idx}>
                 {item.quantity}x {item.name}{idx < order.items.length - 1 ? ', ' : ''}
@@ -733,51 +766,50 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
 
         {/* Not */}
         {order.notes && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-1.5 mb-2 text-xs">
-            <span className="font-medium text-yellow-800">Not:</span> {order.notes}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2 text-xs">
+            <span className="font-semibold text-yellow-800">Not:</span> <span className="text-yellow-700">{order.notes}</span>
           </div>
         )}
 
         {/* Aksiyonlar */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-3">
           {order.status === "confirmed" && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 h-8 text-xs"
-                onClick={onOpenMaps}
-                data-testid={`navigate-btn-${order.id}`}
-              >
-                <Navigation className="w-3.5 h-3.5 mr-1" />
-                Yol Tarifi
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-8 text-xs"
-                onClick={onPickup}
-                disabled={loading}
-                data-testid={`pickup-btn-${order.id}`}
-              >
-                {loading ? (
-                  <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
-                ) : (
-                  <Truck className="w-3.5 h-3.5 mr-1" />
-                )}
-                Yola Çık
-              </Button>
-            </>
+            <Button
+              size="sm"
+              className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-9"
+              onClick={onPickup}
+              disabled={loading}
+              data-testid={`pickup-btn-${order.id}`}
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
+              ) : (
+                <Truck className="w-4 h-4 mr-1.5" />
+              )}
+              Yola Çık
+            </Button>
           )}
           {order.status === "on_the_way" && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 h-8 text-xs"
-                onClick={onOpenMaps}
-                data-testid={`navigate-btn-${order.id}`}
-              >
-                <Navigation className="w-3.5 h-3.5 mr-1" />
+            <Button
+              size="sm"
+              className="flex-1 bg-green-600 hover:bg-green-700 h-9"
+              onClick={onDeliver}
+              disabled={loading}
+              data-testid={`deliver-btn-${order.id}`}
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-1.5" />
+              )}
+              Teslim Et
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
                 Yol Tarifi
               </Button>
               <Button
