@@ -96,9 +96,23 @@ body {
     box-shadow: none !important;
 }
 
+/* Leaflet divIcon override - force transparent */
+.leaflet-marker-icon.courier-marker,
+.leaflet-marker-icon.restaurant-marker,
+.leaflet-marker-icon.order-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
 /* Force round markers */
 .restaurant-marker > div,
-.order-marker > div {
+.order-marker > div,
+.courier-marker > div {
+    border-radius: 50% !important;
+}
+
+/* Courier marker inner circle */
+.courier-marker > div > div:last-child {
     border-radius: 50% !important;
 }
 
