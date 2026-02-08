@@ -180,16 +180,63 @@ export default function SiparisYonetimiPage({ companyId }) {
 
   // Order detail modal - Konum sekmesi haritası
   useEffect(() => {
-    if (orderDetailTab !== 'location' || !selectedOrder || !orderMapRef.current) return;
-    if (orderMapInstanceRef.current) return; // Zaten var
+    if (orderDetailTab !== 'location' || !selectedOrder) return;
     
+    // DOM hazır olana kadar bekle
     const initOrderMap = async () => {
+      // Container hazır mı?
+      if (!orderMapRef.current) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!orderMapRef.current) return;
+      }
+      
+      // Zaten harita varsa temizle
+      if (orderMapInstanceRef.current) {
+        orderMapInstanceRef.current.remove();
+        orderMapInstanceRef.current = null;
+      }
+      
       // Leaflet yüklü mü kontrol et
       if (!window.L) {
-        // Leaflet CSS ve JS zaten ana harita için yükleniyor olmalı
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (!window.L) return;
+        // Leaflet'i yükle
+        const loadLeaflet = () => {
+          return new Promise((resolve) => {
+            if (window.L) {
+              resolve();
+              return;
+            }
+            
+            // CSS
+            if (!document.querySelector('link[href*="leaflet"]')) {
+              const link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+              document.head.appendChild(link);
+            }
+            
+            // JS
+            if (!document.querySelector('script[src*="leaflet"]')) {
+              const script = document.createElement('script');
+              script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+              script.onload = () => resolve();
+              document.head.appendChild(script);
+            } else {
+              // Script var ama henüz yüklenmemiş olabilir
+              const checkInterval = setInterval(() => {
+                if (window.L) {
+                  clearInterval(checkInterval);
+                  resolve();
+                }
+              }, 100);
+            }
+          });
+        };
+        
+        await loadLeaflet();
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
+      
+      if (!window.L || !orderMapRef.current) return;
       
       const L = window.L;
       const deliveryLat = selectedOrder.delivery_location?.latitude || 41.0082;
@@ -241,8 +288,19 @@ export default function SiparisYonetimiPage({ companyId }) {
       
       orderMapInstanceRef.current = map;
       
-      // Map resize fix
+      // Map resize fix - birden fazla kez çağır
       setTimeout(() => map.invalidateSize(), 100);
+      setTimeout(() => map.invalidateSize(), 300);
+      setTimeout(() => map.invalidateSize(), 500);
+    };
+    
+    // Biraz bekleyip başlat (tab geçişi için)
+    const timer = setTimeout(initOrderMap, 150);
+    
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [orderDetailTab, selectedOrder]);
     };
     
     initOrderMap();
