@@ -255,7 +255,7 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
             "longitude": restaurant.get("longitude")
         },
         "customer_name": customer_name,
-        "customer_phone": customer.get("customerPhone", ""),
+        "customer_phone": customer_phone,
         "delivery_address": delivery_address,
         "delivery_location": {
             "latitude": delivery_lat,
