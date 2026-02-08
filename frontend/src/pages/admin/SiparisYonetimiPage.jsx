@@ -79,11 +79,16 @@ export default function SiparisYonetimiPage({ companyId }) {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showOrderDetailModal, setShowOrderDetailModal] = useState(false);
   const [selectedCourierId, setSelectedCourierId] = useState("");
+  const [orderDetailTab, setOrderDetailTab] = useState("details");
   
   // Map ref
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+  
+  // Order detail modal map ref
+  const orderMapRef = useRef(null);
+  const orderMapInstanceRef = useRef(null);
 
   // Fetch company info for city center
   const fetchCompany = useCallback(async () => {
