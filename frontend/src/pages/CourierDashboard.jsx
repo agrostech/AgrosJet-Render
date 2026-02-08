@@ -314,11 +314,11 @@ export default function CourierDashboard() {
             {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* Notification Button */}
           <button
             onClick={requestNotificationPermission}
-            className={`p-1.5 rounded-full ${notificationsEnabled ? 'bg-green-500' : 'bg-white/20'}`}
+            className={`w-8 h-8 flex items-center justify-center rounded-full ${notificationsEnabled ? 'bg-green-500' : 'bg-white/20'}`}
             title={notificationsEnabled ? "Bildirimler açık" : "Bildirimleri aç"}
           >
             {notificationsEnabled ? (
@@ -332,12 +332,11 @@ export default function CourierDashboard() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${currentStatus.color} text-white`}
+                className={`w-8 h-8 flex items-center justify-center rounded-full ${currentStatus.color} text-white`}
                 disabled={statusLoading}
                 data-testid="mobile-status-dropdown"
               >
-                <StatusIcon className="w-3 h-3" />
-                <span className="hidden xs:inline">{currentStatus.label}</span>
+                <StatusIcon className="w-4 h-4" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
