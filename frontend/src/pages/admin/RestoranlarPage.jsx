@@ -39,6 +39,7 @@ export default function RestoranlarPage({ companyId }) {
     address: "",
     latitude: "",
     longitude: "",
+    preparation_time: 15,  // Hazırlık süresi (dakika)
     adisyo_api_key: "",
     adisyo_api_secret: "",
     adisyo_branch_id: ""
