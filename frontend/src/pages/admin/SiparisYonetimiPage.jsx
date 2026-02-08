@@ -1285,25 +1285,27 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    {/* Üst: Saat + Restoran + Tutar */}
+                    {/* Üst: Saat + Restoran + Fiyat/Ödeme */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
                         <span className="font-semibold">{order.restaurant_name}</span>
                       </div>
-                      <span className="font-bold">{formatCurrency(order.total_amount)}</span>
-                    </div>
-                    
-                    {/* Orta: Müşteri + Adres + Ödeme + Mesafe */}
-                    <div className="mb-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium">{order.customer_name}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-bold">{formatCurrency(order.total_amount)}</span>
                         <span className={`px-1.5 py-0.5 rounded text-xs ${
                           order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 
                           order.payment_method === 'online' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'
                         }`}>
                           {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'online' ? 'Online' : 'Kart'}
                         </span>
+                      </div>
+                    </div>
+                    
+                    {/* Orta: Müşteri + Adres + Mesafe */}
+                    <div className="mb-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">{order.customer_name}</span>
                         {getOrderDistance(order) && (
                           <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
                             {getOrderDistance(order)}
