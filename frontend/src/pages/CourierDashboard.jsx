@@ -57,6 +57,8 @@ export default function CourierDashboard() {
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
   const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
+  const [availabilityStatus, setAvailabilityStatus] = useState("offline");
+  const [statusLoading, setStatusLoading] = useState(false);
 
   // Fetch document status
   const checkDocumentStatus = useCallback(async (courierId) => {
