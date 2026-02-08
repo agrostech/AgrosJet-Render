@@ -17,6 +17,9 @@ class CompanyCreate(BaseModel):
     address: Optional[str] = ""
     tax_office: Optional[str] = ""
     email: Optional[str] = ""
+    city: Optional[str] = ""
+    city_lat: Optional[float] = None
+    city_lng: Optional[float] = None
 
 
 class CompanyUpdate(BaseModel):
@@ -26,6 +29,9 @@ class CompanyUpdate(BaseModel):
     address: Optional[str] = None
     tax_office: Optional[str] = None
     email: Optional[str] = None
+    city: Optional[str] = None
+    city_lat: Optional[float] = None
+    city_lng: Optional[float] = None
 
 
 class CompanyResponse(BaseModel):
@@ -37,6 +43,9 @@ class CompanyResponse(BaseModel):
     address: Optional[str] = ""
     tax_office: Optional[str] = ""
     email: Optional[str] = ""
+    city: Optional[str] = ""
+    city_lat: Optional[float] = None
+    city_lng: Optional[float] = None
     created_at: str
 
 
