@@ -390,8 +390,8 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       if (restaurantLat && restaurantLng) {
         L.marker([restaurantLat, restaurantLng], {
           icon: L.divIcon({
-            className: 'restaurant-marker',
-            html: '<div style="width:10px;height:10px;background:#9ca3af;border-radius:50%;border:1px solid #6b7280;"></div>',
+            className: '',
+            html: `<div style="width:10px;height:10px;background:#9ca3af;border-radius:50% !important;-webkit-border-radius:50% !important;border:1px solid #6b7280;box-sizing:border-box;"></div>`,
             iconSize: [10, 10],
             iconAnchor: [5, 5]
           })
