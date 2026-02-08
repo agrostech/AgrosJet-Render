@@ -36,6 +36,15 @@ const PAYMENT_METHODS = {
   online: { label: "Online", icon: "📱" }
 };
 
+// Hazırlık süreleri
+const PREPARATION_TIMES = [
+  { value: 5, label: "5 Dakika" },
+  { value: 10, label: "10 Dakika" },
+  { value: 15, label: "15 Dakika" },
+  { value: 30, label: "30 Dakika" },
+  { value: 60, label: "60 Dakika" }
+];
+
 // Geri sayım hesaplama
 const getCountdown = (preparationEndAt) => {
   if (!preparationEndAt) return null;
