@@ -1062,6 +1062,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     key={c.id} 
                     className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-slate-50 rounded cursor-pointer text-muted-foreground"
                     onClick={() => handleCourierClick(c)}
+                    onMouseEnter={() => handleCourierHover(c)}
                   >
                     <div className="flex items-center gap-2">
                       <Bike className="w-3 h-3" />
