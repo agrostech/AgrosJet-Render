@@ -492,24 +492,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       }
     });
 
-    // Sipariş ve restoran varsa, haritayı tüm markerları gösterecek şekilde ayarla
-    const allPoints = [];
-    restaurants.forEach(r => {
-      if (r.latitude && r.longitude) {
-        allPoints.push([r.latitude, r.longitude]);
-      }
-    });
-    orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach(o => {
-      if (o.delivery_location?.latitude && o.delivery_location?.longitude) {
-        allPoints.push([o.delivery_location.latitude, o.delivery_location.longitude]);
-      }
-    });
-    
-    if (allPoints.length > 0) {
-      const bounds = L.latLngBounds(allPoints);
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
-    }
-
     // TODO: Courier live locations (green) - requires real-time location tracking
   };
 
