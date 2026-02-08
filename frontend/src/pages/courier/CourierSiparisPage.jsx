@@ -811,7 +811,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
 
   return (
     <div
-      className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+      className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow border-l-4 border-blue-500"
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-3">
