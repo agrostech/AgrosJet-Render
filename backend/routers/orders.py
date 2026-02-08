@@ -42,6 +42,9 @@ ORDER_STATUSES = {
 # Kurye ataması kaldırılacak durumlar
 COURIER_REMOVAL_STATUSES = ["preparing", "ready", "cancelled"]
 
+# Admin tarafından seçilemeyen durumlar (sadece kurye seçebilir)
+COURIER_ONLY_STATUSES = ["confirmed"]
+
 
 # --- Mock Data Generator ---
 async def generate_mock_orders(company_id: str, count: int = 5):
