@@ -299,53 +299,24 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
     
     delivery_address = ", ".join(filter(None, address_parts)) or "Adres belirtilmemiş"
     
-    # Sipariş notlarını işle ve kategorize et
-    customer_notes = []  # Müşteri özel notları (kırmızı gösterilecek)
-    kitchen_notes = []   # Mutfak notları (çatal bıçak vs.)
+    # Sipariş notlarını topla
+    raw_notes_parts = []
     
-    def process_note(note_text):
-        if not note_text:
-            return
-        
-        # Ödeme yöntemi bilgilerini kaldır
-        payment_keywords = ["Online Kredi", "Banka Kartı", "Kredi Kartı", "Nakit", "Online Ödeme", "Kapıda Ödeme"]
-        cleaned = note_text
-        for keyword in payment_keywords:
-            cleaned = cleaned.replace(keyword, "").replace(keyword.upper(), "").replace(keyword.lower(), "")
-        
-        # Birden fazla notu ayır (| veya ; ile)
-        parts = cleaned.replace("|", ";").split(";")
-        
-        for part in parts:
-            part = part.strip()
-            if not part or len(part) < 3:
-                continue
-            
-            # ** ile başlayan veya ÇATAL/BIÇAK içeren notlar mutfak notu
-            if "**" in part or "ÇATAL" in part.upper() or "BIÇAK" in part.upper() or "GÖNDERMEYİN" in part.upper():
-                # ** işaretlerini temizle
-                clean_part = part.replace("**", "").strip()
-                if clean_part:
-                    kitchen_notes.append(clean_part)
-            else:
-                # Diğerleri müşteri notu
-                customer_notes.append(part)
-    
-    # orderNote'u işle
+    # orderNote'u ekle
     if adisyo_order.get("orderNote"):
-        process_note(adisyo_order["orderNote"])
+        raw_notes_parts.append(adisyo_order["orderNote"])
     
-    # addressDescription'daki notları işle
+    # addressDescription'daki notları ekle
     if address_desc:
-        process_note(address_desc)
+        raw_notes_parts.append(address_desc)
     
-    # Notları birleştir - önce müşteri notları (customer_note), sonra mutfak notları (kitchen_note)
-    order_notes = ""
-    if customer_notes or kitchen_notes:
-        order_notes = "|".join([
-            "CUSTOMER:" + ";".join(customer_notes) if customer_notes else "",
-            "KITCHEN:" + ";".join(kitchen_notes) if kitchen_notes else ""
-        ]).strip("|")
+    # orderExplanation ekle
+    if adisyo_order.get("orderExplanation"):
+        raw_notes_parts.append(adisyo_order["orderExplanation"])
+    
+    # Tüm notları birleştir ve kategorize et
+    raw_notes = " | ".join(filter(None, raw_notes_parts))
+    order_notes = parse_and_categorize_notes(raw_notes)
     
     # Müşteri adı - None değerlerini filtrele
     customer_name_parts = []
