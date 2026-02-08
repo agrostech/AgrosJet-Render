@@ -80,12 +80,8 @@ body {
     border: none !important;
 }
 
-.custom-restaurant-marker {
-    background: transparent !important;
-    border: none !important;
-}
-
-.custom-delivery-marker {
+.restaurant-marker,
+.order-marker {
     background: transparent !important;
     border: none !important;
 }
