@@ -919,9 +919,13 @@ export default function SiparisYonetimiPage({ companyId }) {
         <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {selectedOrder?.order_number}
+              Sipariş Bilgileri
               {selectedOrder && (
-                <Badge className={`${ORDER_STATUSES[selectedOrder.status]?.color} text-white`}>
+                <Badge className={`${
+                  selectedOrder.status === 'preparing' && selectedOrder.preparation_end_at && getCountdown(selectedOrder.preparation_end_at)?.expired
+                    ? 'bg-red-500'
+                    : ORDER_STATUSES[selectedOrder.status]?.color
+                } text-white`}>
                   {selectedOrder.status === 'preparing' && selectedOrder.preparation_end_at
                     ? getCountdown(selectedOrder.preparation_end_at)?.text
                     : ORDER_STATUSES[selectedOrder.status]?.label
