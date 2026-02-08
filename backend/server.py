@@ -38,14 +38,46 @@ async def lifespan(app: FastAPI):
         name="Scheduled Database Backup",
         replace_existing=True
     )
+    
+    # Add Adisyo sync job - runs every 30 seconds
+    async def sync_adisyo_orders():
+        """Tüm şirketler için Adisyo siparişlerini senkronize et"""
+        try:
+            from services.adisyo_service import sync_all_company_orders
+            
+            # Adisyo bağlantısı olan şirketleri bul
+            companies = await db.companies.find(
+                {"is_archived": {"$ne": True}},
+                {"_id": 0, "id": 1}
+            ).to_list(100)
+            
+            for company in companies:
+                try:
+                    result = await sync_all_company_orders(company["id"])
+                    if result["total_synced"] > 0:
+                        print(f"Adisyo sync: {result['total_synced']} new orders for company {company['id']}")
+                except Exception as e:
+                    print(f"Adisyo sync error for company {company['id']}: {e}")
+        except Exception as e:
+            print(f"Adisyo sync job error: {e}")
+    
+    scheduler.add_job(
+        sync_adisyo_orders,
+        'interval',
+        seconds=30,  # Her 30 saniyede bir
+        id="adisyo_sync",
+        name="Adisyo Order Sync",
+        replace_existing=True
+    )
+    
     scheduler.start()
-    print("Backup scheduler started - running hourly")
+    print("Schedulers started - backup (hourly), adisyo sync (30s)")
     
     yield
     
     # Shutdown
     scheduler.shutdown()
-    print("Backup scheduler stopped")
+    print("Schedulers stopped")
 
 app = FastAPI(lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
