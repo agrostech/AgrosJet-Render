@@ -244,18 +244,20 @@ export default function CourierDashboard() {
       checkDocumentStatus(parsed.id);
       checkMaintenanceNotifications(parsed.id);
       fetchAvailabilityStatus(parsed.id);
+      fetchBreakStatus(parsed.id);
       
       // İlk kontrol
       checkCourierStatus(parsed.id, parsed.company_id);
       
-      // Her 30 saniyede bir pasif durumunu kontrol et
+      // Her 30 saniyede bir pasif durumunu ve mola durumunu kontrol et
       const intervalId = setInterval(() => {
         checkCourierStatus(parsed.id, parsed.company_id);
+        fetchBreakStatus(parsed.id);
       }, 30000);
       
       return () => clearInterval(intervalId);
     }
-  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus]);
+  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
