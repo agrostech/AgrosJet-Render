@@ -452,7 +452,8 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     
     try {
       await axios.post(`${API}/orders/${companyId}/${selectedOrder.id}/assign`, {
-        courier_id: selectedCourierId
+        courier_id: selectedCourierId,
+        admin_name: adminName || "Admin"
       });
       toast.success("Kurye atandı");
       setShowAssignModal(false);
@@ -466,7 +467,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   // Unassign courier from order
   const handleUnassignCourier = async (orderId) => {
     try {
-      await axios.delete(`${API}/orders/${companyId}/${orderId}/assign`);
+      await axios.delete(`${API}/orders/${companyId}/${orderId}/assign?admin_name=${encodeURIComponent(adminName || "Admin")}`);
       toast.success("Kurye ataması kaldırıldı");
       fetchOrders();
     } catch (err) {
