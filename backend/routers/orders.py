@@ -212,6 +212,35 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     return {"message": f"Sipariş {courier['name']} kuryesine atandı"}
 
 
+@router.delete("/{company_id}/{order_id}/assign")
+async def unassign_courier(company_id: str, order_id: str):
+    """Siparişten kurye atamasını kaldır"""
+    order = await db.orders.find_one({"id": order_id, "company_id": company_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    if not order.get("courier_id"):
+        raise HTTPException(status_code=400, detail="Bu siparişe kurye atanmamış")
+    
+    # Sipariş teslim edilmiş veya yoldaysa atama kaldırılamaz
+    if order.get("status") in ["delivered", "on_the_way"]:
+        raise HTTPException(status_code=400, detail="Bu durumda kurye ataması kaldırılamaz")
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {"$set": {
+            "courier_id": None,
+            "courier_name": None,
+            "status": "ready",  # Tekrar atanmaya hazır
+            "assigned_at": None,
+            "confirmed_at": None,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Kurye ataması kaldırıldı"}
+
+
 @router.post("/{company_id}/{order_id}/status")
 async def update_order_status(company_id: str, order_id: str, data: OrderStatusUpdate):
     """Sipariş durumunu güncelle"""
