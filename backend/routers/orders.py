@@ -183,8 +183,8 @@ async def generate_mock_orders(company_id: str, count: int = 5):
             "restaurant_id": restaurant["id"],
             "restaurant_name": restaurant["name"],
             "restaurant_location": {
-                "latitude": restaurant.get("latitude", 41.0082),
-                "longitude": restaurant.get("longitude", 28.9784)
+                "latitude": restaurant.get("latitude", base_lat),
+                "longitude": restaurant.get("longitude", base_lng)
             },
             "customer_name": customer,
             "customer_phone": f"05{random.randint(30, 59)}{random.randint(1000000, 9999999)}",
