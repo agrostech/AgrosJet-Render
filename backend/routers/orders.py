@@ -132,11 +132,20 @@ async def generate_mock_orders(company_id: str, count: int = 5):
             "courier_id": None,
             "courier_name": None,
             "assigned_at": None,
+            "confirmed_at": None,
             "delivered_at": None,
             "notes": random.choice(["", "", "Kapıda ödeme", "Zile basma, ara", "Acele"]),
             "source": "mock",  # mock veya adisyo
             "created_at": created_at.isoformat(),
-            "updated_at": created_at.isoformat()
+            "updated_at": created_at.isoformat(),
+            "status_history": [
+                {
+                    "status": "preparing",
+                    "label": "Sipariş Alındı",
+                    "timestamp": created_at.isoformat(),
+                    "note": f"Hazırlık süresi: {prep_time} dakika"
+                }
+            ]
         }
         
         orders.append(order)
