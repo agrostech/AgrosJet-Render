@@ -23,6 +23,7 @@ class OrderAssign(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: str  # preparing, ready, assigned, on_the_way, delivered, cancelled
+    preparation_time: Optional[int] = None  # Hazırlanıyor durumu için süre (dakika)
     courier_id: Optional[str] = None
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
