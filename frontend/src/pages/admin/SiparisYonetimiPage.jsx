@@ -412,11 +412,11 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     markersRef.current.forEach(marker => map.removeLayer(marker));
     markersRef.current = [];
 
-    // Restaurant markers (gri, küçük, yuvarlak) - circleMarker kullan
+    // Restaurant markers (gri, küçük, yuvarlak) - circle kullan
     restaurants.forEach(r => {
       if (r.latitude && r.longitude) {
-        const marker = L.circleMarker([r.latitude, r.longitude], {
-          radius: 6,
+        const marker = L.circle([r.latitude, r.longitude], {
+          radius: 15,
           fillColor: '#9ca3af',
           color: '#6b7280',
           weight: 1,
