@@ -374,7 +374,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     
     const map = window.L.map(mapRef.current, {
       scrollWheelZoom: false  // Scroll zoom kapalı - sadece butonlarla zoom
-    }).setView([centerLat, centerLng], 12);
+    }).setView([centerLat, centerLng], 14);
     
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
@@ -387,7 +387,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   // Re-center map when company data loads
   useEffect(() => {
     if (mapInstanceRef.current && company?.city_lat && company?.city_lng) {
-      mapInstanceRef.current.setView([company.city_lat, company.city_lng], 12);
+      mapInstanceRef.current.setView([company.city_lat, company.city_lng], 14);
     }
   }, [company]);
 
