@@ -377,7 +377,9 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
         "status": data.status,
         "label": ORDER_STATUSES[data.status]["label"],
         "timestamp": now.isoformat(),
-        "note": history_note
+        "note": history_note,
+        "actor_type": "admin" if data.admin_name else "system",
+        "actor_name": data.admin_name or "Sistem"
     }
     
     await db.orders.update_one(
