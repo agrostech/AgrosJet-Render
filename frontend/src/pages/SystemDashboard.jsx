@@ -165,7 +165,7 @@ function SirketlerPage() {
           <TableBody>
             {companies.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   Henüz şirket eklenmemiş
                 </TableCell>
               </TableRow>
@@ -182,6 +182,14 @@ function SirketlerPage() {
                     )}
                   </TableCell>
                   <TableCell className="font-semibold">{company.name}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {company.city ? (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5" />
+                        {company.city}
+                      </span>
+                    ) : "-"}
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {new Date(company.created_at).toLocaleDateString('tr-TR')}
                   </TableCell>
