@@ -21,10 +21,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Türkiye illeri ve koordinatları
+const TURKEY_CITIES = [
+  { name: "Adana", lat: 37.0, lng: 35.3213 },
+  { name: "Ankara", lat: 39.9334, lng: 32.8597 },
+  { name: "Antalya", lat: 36.8969, lng: 30.7133 },
+  { name: "Bursa", lat: 40.1885, lng: 29.0610 },
+  { name: "Denizli", lat: 37.7765, lng: 29.0864 },
+  { name: "Diyarbakır", lat: 37.9144, lng: 40.2306 },
+  { name: "Eskişehir", lat: 39.7767, lng: 30.5206 },
+  { name: "Gaziantep", lat: 37.0662, lng: 37.3833 },
+  { name: "İstanbul", lat: 41.0082, lng: 28.9784 },
+  { name: "İzmir", lat: 38.4237, lng: 27.1428 },
+  { name: "Kayseri", lat: 38.7312, lng: 35.4787 },
+  { name: "Kocaeli", lat: 40.8533, lng: 29.8815 },
+  { name: "Konya", lat: 37.8746, lng: 32.4932 },
+  { name: "Mersin", lat: 36.8121, lng: 34.6415 },
+  { name: "Muğla", lat: 37.2153, lng: 28.3636 },
+  { name: "Sakarya", lat: 40.7569, lng: 30.3781 },
+  { name: "Samsun", lat: 41.2867, lng: 36.33 },
+  { name: "Tekirdağ", lat: 41.0023, lng: 27.5046 },
+  { name: "Trabzon", lat: 41.0015, lng: 39.7178 },
+  { name: "Diğer", lat: 39.9334, lng: 32.8597 }
+];
 
 // ============ ŞİRKETLER PAGE (Sadece Şirket CRUD) ============
 function SirketlerPage() {
@@ -33,7 +58,7 @@ function SirketlerPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [newCompany, setNewCompany] = useState({ name: "", logo_url: "" });
+  const [newCompany, setNewCompany] = useState({ name: "", logo_url: "", city: "" });
   
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
@@ -55,11 +80,18 @@ function SirketlerPage() {
 
   const handleAddCompany = async (e) => {
     e.preventDefault();
+    // İl koordinatlarını ekle
+    const cityData = TURKEY_CITIES.find(c => c.name === newCompany.city);
+    const companyData = {
+      ...newCompany,
+      city_lat: cityData?.lat || 41.0082,
+      city_lng: cityData?.lng || 28.9784
+    };
     try {
-      await axios.post(`${API}/companies`, newCompany);
+      await axios.post(`${API}/companies`, companyData);
       toast.success("Şirket oluşturuldu");
       setShowAddModal(false);
-      setNewCompany({ name: "", logo_url: "" });
+      setNewCompany({ name: "", logo_url: "", city: "" });
       fetchCompanies();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Oluşturma başarısız");
@@ -68,10 +100,15 @@ function SirketlerPage() {
 
   const handleUpdateCompany = async (e) => {
     e.preventDefault();
+    // İl koordinatlarını ekle
+    const cityData = TURKEY_CITIES.find(c => c.name === selectedCompany.city);
     try {
       await axios.put(`${API}/companies/${selectedCompany.id}`, {
         name: selectedCompany.name,
-        logo_url: selectedCompany.logo_url
+        logo_url: selectedCompany.logo_url,
+        city: selectedCompany.city,
+        city_lat: cityData?.lat,
+        city_lng: cityData?.lng
       });
       toast.success("Şirket güncellendi");
       setShowEditModal(false);
