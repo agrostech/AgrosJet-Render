@@ -1580,6 +1580,91 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         </DialogContent>
       </Dialog>
 
+      {/* Courier Detail Modal */}
+      <Dialog open={showCourierDetailModal} onOpenChange={setShowCourierDetailModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bike className="w-5 h-5" />
+              {selectedCourier?.name}
+              <Badge variant="outline" className={`ml-2 ${
+                selectedCourier?.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
+                selectedCourier?.status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                'bg-slate-100 text-slate-600 border-slate-200'
+              }`}>
+                {selectedCourier?.status === 'active' ? 'Aktif' : 
+                 selectedCourier?.status === 'on_break' ? 'Molada' : 'Çevrimdışı'}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedCourier && (
+            <div className="space-y-4">
+              {/* Harita */}
+              <div className="rounded-lg overflow-hidden border">
+                <div ref={courierMapRef} className="h-[250px] w-full bg-slate-100" />
+              </div>
+              
+              {/* Sipariş Sayısı */}
+              <div className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
+                <span className="text-sm font-medium">Aktif Siparişler</span>
+                <Badge variant="secondary" className="text-lg px-3">
+                  {selectedCourierOrders.length}
+                </Badge>
+              </div>
+              
+              {/* Sipariş Listesi */}
+              <div className="space-y-2">
+                {selectedCourierOrders.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Bu kuryeye atanmış aktif sipariş yok</p>
+                  </div>
+                ) : (
+                  selectedCourierOrders.map((order, idx) => {
+                    const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+                    return (
+                      <div 
+                        key={order.id} 
+                        className={`p-3 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowCourierDetailModal(false);
+                          setShowOrderDetailModal(true);
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`w-6 h-6 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-xs font-bold flex-shrink-0`}>
+                            {idx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-medium text-sm">{order.restaurant_name}</span>
+                              <Badge className={`${statusInfo.color} text-white text-[10px]`}>
+                                {statusInfo.label}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                              {order.delivery_address}
+                            </p>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                              <span>{order.customer_name}</span>
+                              <span>•</span>
+                              <span>{formatCurrency(order.total_amount)}</span>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
