@@ -1646,12 +1646,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               <Bike className="w-5 h-5" />
               {selectedCourier?.name}
               <Badge variant="outline" className={`ml-2 ${
-                selectedCourier?.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
-                selectedCourier?.status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                selectedCourier?.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
+                selectedCourier?.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                 'bg-slate-100 text-slate-600 border-slate-200'
               }`}>
-                {selectedCourier?.status === 'active' ? 'Aktif' : 
-                 selectedCourier?.status === 'on_break' ? 'Molada' : 'Çevrimdışı'}
+                {selectedCourier?.availability_status === 'active' ? 'Aktif' : 
+                 selectedCourier?.availability_status === 'on_break' ? 'Molada' : 'Çevrimdışı'}
               </Badge>
             </DialogTitle>
           </DialogHeader>
