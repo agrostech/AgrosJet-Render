@@ -56,6 +56,36 @@ export default function CourierSidebar({
               </div>
             </div>
             <p className="text-white/60 text-xs">Kurye Paneli</p>
+            {/* Availability Status Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className={`mt-2 w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium ${currentStatus.color} text-white hover:opacity-90 transition-opacity`}
+                  disabled={statusLoading}
+                  data-testid="desktop-status-dropdown"
+                >
+                  <StatusIcon className="w-3.5 h-3.5" />
+                  <span>{currentStatus.label}</span>
+                  <ChevronRight className="w-3 h-3 ml-auto" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
+                  const Icon = status.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={key}
+                      onClick={() => onStatusChange && onStatusChange(key)}
+                      className={`flex items-center gap-2 ${availabilityStatus === key ? 'bg-accent' : ''}`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                      <Icon className="w-4 h-4" />
+                      {status.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
         )}
         {sidebarCollapsed && (
