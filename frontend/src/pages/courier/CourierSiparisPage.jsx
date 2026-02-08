@@ -884,3 +884,71 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
     </Dialog>
   );
 }
+
+// Ödeme Onay Modalı
+function PaymentConfirmModal({ order, open, onConfirm, onCancel, loading }) {
+  if (!order) return null;
+
+  const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+  const PaymentIcon = paymentInfo.icon;
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <PaymentIcon className={`w-5 h-5 ${paymentInfo.color}`} />
+            Ödeme Onayı
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Sipariş bilgisi */}
+          <div className={`p-3 rounded-lg ${paymentInfo.bg} border`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">{order.order_number}</span>
+              <span className={`text-sm font-bold ${paymentInfo.color}`}>
+                {formatCurrency(order.total_amount)}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">{order.customer_name}</p>
+          </div>
+
+          {/* Soru */}
+          <div className="text-center py-2">
+            <p className="text-sm font-medium text-foreground">
+              Siparişin ödemesi alındı mı?
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {paymentInfo.label} ödeme ({formatCurrency(order.total_amount)})
+            </p>
+          </div>
+
+          {/* Butonlar */}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 h-10"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Hayır
+            </Button>
+            <Button
+              className="flex-1 h-10 bg-green-600 hover:bg-green-700"
+              onClick={onConfirm}
+              disabled={loading}
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              )}
+              Evet, Alındı
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
