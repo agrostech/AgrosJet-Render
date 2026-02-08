@@ -1717,10 +1717,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             <p className="text-xs text-muted-foreground mt-1 truncate">
                               {order.delivery_address}
                             </p>
-                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                              <span>{order.customer_name}</span>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                              <span className="truncate">{order.customer_name}</span>
                               <span>•</span>
                               <span>{formatCurrency(order.total_amount)}</span>
+                              <span>•</span>
+                              <span className={`px-1.5 py-0.5 rounded ${
+                                order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
+                              </span>
                             </div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
