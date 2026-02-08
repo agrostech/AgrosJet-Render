@@ -276,6 +276,34 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     return {"message": f"Kurye durumu güncellendi: {status_labels[data.availability_status]}"}
 
 
+# --- Courier Location Update ---
+class CourierLocationUpdate(BaseModel):
+    latitude: float
+    longitude: float
+
+
+@router.put("/couriers/{courier_id}/location")
+async def update_courier_location(courier_id: str, data: CourierLocationUpdate):
+    """Update courier's current location"""
+    from datetime import datetime, timezone
+    
+    result = await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {
+            "current_location": {
+                "latitude": data.latitude,
+                "longitude": data.longitude,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    return {"message": "Konum güncellendi"}
+
+
 @router.get("/companies/{company_id}/couriers/with-availability")
 async def get_couriers_with_availability(company_id: str):
     """Get couriers grouped by availability status"""
