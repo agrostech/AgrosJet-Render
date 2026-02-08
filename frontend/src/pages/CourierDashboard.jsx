@@ -25,7 +25,8 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Yeni sıralama
 const BASE_NAV_ITEMS = [
-  { path: "/courier", label: "Vardiyalarım", icon: Clock, key: "vardiya" },
+  { path: "/courier", label: "Siparişler", icon: ClipboardList, key: "siparis" },
+  { path: "/courier/vardiyalar", label: "Vardiyalarım", icon: Clock, key: "vardiya" },
   { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
   { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package, key: "zimmet" },
   { path: "/courier/motosikletim", label: "Motosikletim", icon: Bike, key: "motosikletim" },
