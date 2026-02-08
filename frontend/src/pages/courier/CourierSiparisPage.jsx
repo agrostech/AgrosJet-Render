@@ -699,15 +699,13 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
               <span className="font-semibold text-sm">{order.restaurant_name}</span>
             </div>
             <div className="flex items-center gap-1">
-              {order.restaurant_phone && (
-                <button
-                  onClick={callRestaurant}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-700 hover:bg-orange-200"
-                  title="Restoranı Ara"
-                >
-                  <Phone className="w-4 h-4" />
-                </button>
-              )}
+              <button
+                onClick={callRestaurant}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-700 hover:bg-orange-200"
+                title="Restoranı Ara"
+              >
+                <Phone className="w-4 h-4" />
+              </button>
               <button
                 onClick={onOpenRestaurantMaps}
                 className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-700 hover:bg-orange-200"
