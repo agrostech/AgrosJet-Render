@@ -311,6 +311,9 @@ export default function CourierDashboard() {
           companyName={companyName}
           companyLogo={companyLogo}
           maintenanceNotifications={maintenanceNotifications}
+          availabilityStatus={availabilityStatus}
+          onStatusChange={updateAvailabilityStatus}
+          statusLoading={statusLoading}
         />
 
         {/* Main Content */}
