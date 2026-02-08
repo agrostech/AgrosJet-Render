@@ -479,7 +479,8 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   const handleReassignCourier = async (orderId, courierId) => {
     try {
       await axios.post(`${API}/orders/${companyId}/${orderId}/assign`, {
-        courier_id: courierId
+        courier_id: courierId,
+        admin_name: adminName || "Admin"
       });
       toast.success("Kurye değiştirildi");
       fetchOrders();
@@ -491,7 +492,10 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   // Update order status
   const handleUpdateStatus = async (orderId, newStatus, preparationTime = null) => {
     try {
-      const payload = { status: newStatus };
+      const payload = { 
+        status: newStatus,
+        admin_name: adminName || "Admin"
+      };
       if (preparationTime) {
         payload.preparation_time = parseInt(preparationTime);
       }
