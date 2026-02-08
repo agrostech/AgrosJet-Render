@@ -70,8 +70,8 @@ async def generate_mock_orders(company_id: str, count: int = 5):
     city_neighborhoods = {
         "Mersin": {
             "neighborhoods": [
-                "Akdeniz", "Mezitli", "Yenişehir", "Toroslar", "Tarsus",
-                "Çamlıyayla", "Pozcu", "Forum", "Liparis", "Güvenevler"
+                "Akdeniz", "Mezitli", "Yenişehir", "Toroslar", "Pozcu",
+                "Forum", "Liparis", "Güvenevler", "Çankaya", "Bahçe"
             ],
             "streets": [
                 "Gazi Mustafa Kemal Bulvarı", "İsmet İnönü Bulvarı", "Atatürk Caddesi",
@@ -80,6 +80,19 @@ async def generate_mock_orders(company_id: str, count: int = 5):
             ],
             "base_lat": 36.8121,
             "base_lng": 34.6415
+        },
+        "Isparta": {
+            "neighborhoods": [
+                "Merkez", "Çünür", "Pirimehmet", "İstiklal", "Yayla",
+                "Emre", "Sermet", "Turan", "Keçeci", "Modernevler"
+            ],
+            "streets": [
+                "Süleyman Demirel Bulvarı", "İstasyon Caddesi", "Mimar Sinan Caddesi",
+                "Cengiz Topel Caddesi", "113. Cadde", "Doğancı Caddesi", "Gazi Kemal Caddesi",
+                "Yaşar Kemal Caddesi", "SDÜ Caddesi", "Gölcük Yolu"
+            ],
+            "base_lat": 37.7648,
+            "base_lng": 30.5566
         },
         "İstanbul": {
             "neighborhoods": [
@@ -116,12 +129,48 @@ async def generate_mock_orders(company_id: str, count: int = 5):
             ],
             "base_lat": 38.4192,
             "base_lng": 27.1287
+        },
+        "Antalya": {
+            "neighborhoods": [
+                "Muratpaşa", "Konyaaltı", "Kepez", "Lara", "Kaleiçi",
+                "Varsak", "Hurma", "Güzeloba", "Şirinyalı", "Meltem"
+            ],
+            "streets": [
+                "Atatürk Caddesi", "Lara Caddesi", "Konyaaltı Caddesi", "Fener Caddesi",
+                "Işıklar Caddesi", "Şarampol Caddesi", "Ali Çetinkaya Caddesi"
+            ],
+            "base_lat": 36.8969,
+            "base_lng": 30.7133
+        },
+        "Bursa": {
+            "neighborhoods": [
+                "Osmangazi", "Nilüfer", "Yıldırım", "Görükle", "Altıparmak",
+                "Çekirge", "Heykel", "Setbaşı", "Mudanya", "Gemlik"
+            ],
+            "streets": [
+                "Atatürk Caddesi", "Altıparmak Caddesi", "Çekirge Caddesi", "Stadyum Caddesi",
+                "İzmir Yolu", "FSM Bulvarı", "Mudanya Caddesi"
+            ],
+            "base_lat": 40.1828,
+            "base_lng": 29.0665
         }
     }
     
+    # Bilinmeyen şehirler için genel Türkiye mahalle/sokak isimleri
+    default_city_data = {
+        "neighborhoods": [
+            "Merkez", "Yenimahalle", "Cumhuriyet", "Atatürk", "İstiklal",
+            "Fatih", "Bahçelievler", "Yeşilyurt", "Güneşli", "Çarşı"
+        ],
+        "streets": [
+            "Atatürk Caddesi", "Cumhuriyet Caddesi", "İstiklal Caddesi", "Hürriyet Caddesi",
+            "Gazi Caddesi", "Çarşı Caddesi", "İnönü Caddesi", "Hastane Caddesi"
+        ]
+    }
+    
     # Şirketin şehrini al veya varsayılan kullan
-    city_name = company.get("city", "İstanbul") if company else "İstanbul"
-    city_data = city_neighborhoods.get(city_name, city_neighborhoods["İstanbul"])
+    city_name = company.get("city", "") if company else ""
+    city_data = city_neighborhoods.get(city_name, default_city_data)
     
     # Şirketin koordinatlarını kullan veya şehir varsayılanını
     base_lat = company.get("city_lat", city_data["base_lat"]) if company else city_data["base_lat"]
