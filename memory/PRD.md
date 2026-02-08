@@ -8,14 +8,55 @@
 Kurye 2+ siparişi yola çıkardığında tek tuşla optimum rotayı Google Maps'te açar:
 
 **Özellikler:**
-- "Rota" butonu üst header'da (2+ yolda sipariş varken görünür)
-- Badge ile yolda sipariş sayısı gösterimi
+- "Rota Oluştur" butonu "Yoldaki Siparişler" başlığının yanında
 - Kuryenin GPS konumundan başlayarak en yakın siparişe doğru sıralama (Nearest Neighbor)
 - Google Maps'te multi-stop navigasyon URL'i açılır
-- Toast ile rota sırası bilgisi (1. Müşteri A → 2. Müşteri B → 3. Müşteri C)
+- Toast ile rota sırası bilgisi
 
 **Dosyalar:**
 - `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` (createOptimizedRoute fonksiyonu)
+
+---
+
+#### ⏰ Kurye Bazlı Mola Süresi (YENİ - 8 Şubat 2026)
+Her kurye için günlük mola limiti belirlenir ve takip edilir:
+
+**Özellikler:**
+- Admin kurye düzenleme modalında "Günlük Mola" dropdown (15dk - 2 saat arası)
+- Varsayılan limit: 30 dakika
+- Kurye header'daki durum dropdown'unda "Molada (Kalan Xdk)" gösterimi
+- Mola limiti dolduğunda kurye molaya çıkamaz (hata mesajı)
+- Şirket kapanış saatinde tüm kuryelerin mola süreleri sıfırlanır (APScheduler job)
+
+**API Endpoints:**
+- `GET /api/couriers/{id}/break-status` - Mola durumu
+- `PUT /api/couriers/{id}/break-limit` - Mola limiti güncelleme
+
+**Dosyalar:**
+- `/app/backend/routers/couriers.py` (break-status, break-limit endpoints)
+- `/app/backend/server.py` (reset_courier_break_times job)
+- `/app/frontend/src/components/kuryeler/CourierEditModal.jsx`
+- `/app/frontend/src/pages/CourierDashboard.jsx`
+
+---
+
+#### 📋 Sipariş Listesi Yeniden Düzenleme (8 Şubat 2026)
+Kurye sipariş sayfası 2 bölüme ayrıldı:
+
+- **Atanmış Siparişler**: assigned + confirmed durumundaki siparişler (mor başlık)
+- **Yoldaki Siparişler**: on_the_way durumundaki siparişler (mavi başlık)
+
+---
+
+#### 🔔 Bildirim Butonu Taşıma (8 Şubat 2026)
+- Bildirim butonu sipariş sayfasından header'a taşındı
+- Yeşil ikon = aktif, gri ikon = pasif
+
+---
+
+#### 🐛 Bug Fix: Restoran Telefonu (8 Şubat 2026)
+- Mevcut 43 siparişe restoran telefonu eklendi
+- Kurye artık restoran arama butonunu kullanabilir
 
 ---
 
