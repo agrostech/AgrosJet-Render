@@ -564,6 +564,17 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     }
   };
 
+  // Kurye detay modalını aç
+  const handleCourierClick = (courier) => {
+    setSelectedCourier(courier);
+    setShowCourierDetailModal(true);
+  };
+
+  // Seçilen kuryenin aktif siparişleri
+  const selectedCourierOrders = selectedCourier 
+    ? orders.filter(o => o.courier_id === selectedCourier.id && o.status !== 'delivered' && o.status !== 'cancelled')
+    : [];
+
   // Update order status
   const handleUpdateStatus = async (orderId, newStatus, preparationTime = null) => {
     try {
