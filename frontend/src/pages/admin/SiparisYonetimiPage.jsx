@@ -778,8 +778,15 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     key={order.id}
                     className={`px-3 py-2.5 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
                     onClick={(e) => {
-                      // Dropdown tıklamalarında modal açılmasın
-                      if (e.target.closest('[role="combobox"]') || e.target.closest('[role="listbox"]')) {
+                      // Dropdown veya buton tıklamalarında modal açılmasın
+                      const target = e.target;
+                      if (
+                        target.closest('[data-radix-select-trigger]') ||
+                        target.closest('[data-radix-select-content]') ||
+                        target.closest('[role="combobox"]') ||
+                        target.closest('[role="option"]') ||
+                        target.closest('button')
+                      ) {
                         return;
                       }
                       setSelectedOrder(order);
