@@ -77,15 +77,6 @@ export default function SiparisYonetimiPage({ companyId }) {
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
 
-  // Hazırlanıyor süre seçenekleri
-  const PREPARATION_TIMES = [
-    { value: 5, label: "5 dk" },
-    { value: 10, label: "10 dk" },
-    { value: 15, label: "15 dk" },
-    { value: 30, label: "30 dk" },
-    { value: 60, label: "60 dk" },
-  ];
-
   // Fetch company info for city center
   const fetchCompany = useCallback(async () => {
     if (!companyId) return;
