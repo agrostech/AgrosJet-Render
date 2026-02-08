@@ -173,6 +173,9 @@ export default function CourierDashboard() {
 
   if (!user) return null;
 
+  const currentStatus = AVAILABILITY_STATUSES[availabilityStatus] || AVAILABILITY_STATUSES.offline;
+  const StatusIcon = currentStatus.icon;
+
   return (
     <div className="min-h-screen bg-slate-50" data-testid="courier-dashboard">
       {/* Mobile Header */}
@@ -191,13 +194,43 @@ export default function CourierDashboard() {
             {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
           </div>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-          className="text-white hover:bg-white/10"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <div className="flex items-center gap-2">
+          {/* Status Dropdown - Mobile */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${currentStatus.color} text-white`}
+                disabled={statusLoading}
+                data-testid="mobile-status-dropdown"
+              >
+                <StatusIcon className="w-3 h-3" />
+                <span className="hidden xs:inline">{currentStatus.label}</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              {Object.entries(AVAILABILITY_STATUSES).map(([key, status]) => {
+                const Icon = status.icon;
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => updateAvailabilityStatus(key)}
+                    className={`flex items-center gap-2 ${availabilityStatus === key ? 'bg-accent' : ''}`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                    <Icon className="w-4 h-4" />
+                    {status.label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+            className="text-white hover:bg-white/10"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </Button>
       </header>
 
