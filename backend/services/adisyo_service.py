@@ -174,6 +174,99 @@ def parse_coordinate(coord) -> float:
     return None
 
 
+def parse_and_categorize_notes(raw_notes: str) -> str:
+    """
+    Adisyo notlarını ayrıştır ve kategorize et.
+    - Ödeme bilgilerini temizle
+    - Müşteri notlarını (operasyonel) CUSTOMER: öneki ile işaretle
+    - Mutfak notlarını KITCHEN: öneki ile işaretle
+    
+    Örnek giriş: "Online Kredi/Banka Kartı | ömer aybak çiğköfteye gelicek | çatal bıçak göndermeyin"
+    Örnek çıkış: "CUSTOMER:ömer aybak çiğköfteye gelicek|KITCHEN:çatal bıçak göndermeyin"
+    """
+    import re
+    
+    if not raw_notes:
+        return ""
+    
+    # Ödeme metinleri - bunları tamamen sil
+    payment_patterns = [
+        r"Online\s*Kredi/?Banka\s*Kart[ıi]?",
+        r"Kredi/?Banka\s*Kart[ıi]?",
+        r"Online\s*Ödeme",
+        r"Nakit\s*Ödeme",
+        r"Kap[ıi]da\s*Ödeme",
+        r"Kap[ıi]da\s*Kredi\s*Kart[ıi]?",
+        r"Kap[ıi]da\s*Nakit",
+        r"POS",
+        r"Havale/?EFT",
+    ]
+    
+    # Mutfak notları kalıpları - genellikle genel talimatlar
+    kitchen_patterns = [
+        r"çatal\s*b[ıi]çak",
+        r"peçete",
+        r"ketchup",
+        r"mayonez",
+        r"sos",
+        r"acı",
+        r"az\s*tuzlu",
+        r"tuzsuz",
+        r"ekstra",
+        r"fazla",
+        r"yanında",
+        r"içecek",
+        r"göndermeyin",
+        r"gönderin",
+        r"istemiyorum",
+        r"istiyorum",
+        r"lütfen",
+    ]
+    
+    # Notu parçalara ayır (| veya ; veya , ile ayrılmış olabilir)
+    parts = re.split(r'\s*[\|;]\s*', raw_notes)
+    
+    customer_notes = []
+    kitchen_notes = []
+    
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        
+        # Ödeme bilgisi mi kontrol et
+        is_payment = False
+        for pattern in payment_patterns:
+            if re.search(pattern, part, re.IGNORECASE):
+                is_payment = True
+                break
+        
+        if is_payment:
+            continue  # Ödeme bilgisini atla
+        
+        # Mutfak notu mu kontrol et
+        is_kitchen = False
+        for pattern in kitchen_patterns:
+            if re.search(pattern, part, re.IGNORECASE):
+                is_kitchen = True
+                break
+        
+        if is_kitchen:
+            kitchen_notes.append(part)
+        else:
+            # Müşteri notu (operasyonel - önemli)
+            customer_notes.append(part)
+    
+    # Sonucu formatla
+    result_parts = []
+    if customer_notes:
+        result_parts.append(f"CUSTOMER:{';'.join(customer_notes)}")
+    if kitchen_notes:
+        result_parts.append(f"KITCHEN:{';'.join(kitchen_notes)}")
+    
+    return "|".join(result_parts)
+
+
 async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict) -> dict:
     """Adisyo sipariş formatını ShiftJet formatına çevir"""
     customer = adisyo_order.get("customer", {})
