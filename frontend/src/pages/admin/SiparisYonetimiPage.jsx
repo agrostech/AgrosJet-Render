@@ -253,6 +253,14 @@ export default function SiparisYonetimiPage({ companyId }) {
         attribution: '© OpenStreetMap'
       }).addTo(map);
       
+      // 1km çap = 500m yarıçap için bounds hesapla
+      // 1 derece latitude ≈ 111km, 500m ≈ 0.0045 derece
+      const radiusInDegrees = 0.0045;
+      const bounds1km = L.latLngBounds([
+        [deliveryLat - radiusInDegrees, deliveryLng - radiusInDegrees],
+        [deliveryLat + radiusInDegrees, deliveryLng + radiusInDegrees]
+      ]);
+      
       // Teslimat noktası marker (kırmızı)
       const deliveryIcon = L.divIcon({
         className: 'custom-marker',
@@ -277,14 +285,10 @@ export default function SiparisYonetimiPage({ companyId }) {
         L.marker([restaurantLat, restaurantLng], { icon: restaurantIcon })
           .addTo(map)
           .bindPopup(`<b>${selectedOrder.restaurant_name}</b><br>Restoran`);
-        
-        // Her iki noktayı da göster
-        const bounds = L.latLngBounds([
-          [deliveryLat, deliveryLng],
-          [restaurantLat, restaurantLng]
-        ]);
-        map.fitBounds(bounds, { padding: [30, 30] });
       }
+      
+      // Haritayı 1km çapında teslimat noktasına ortala
+      map.fitBounds(bounds1km);
       
       orderMapInstanceRef.current = map;
       
