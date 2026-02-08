@@ -45,7 +45,7 @@ const PREPARATION_TIMES = [
   { value: 60, label: "60 Dakika" }
 ];
 
-// Geri sayım hesaplama
+// Geri sayım hesaplama (dakika bazlı)
 const getCountdown = (preparationEndAt) => {
   if (!preparationEndAt) return null;
   const now = new Date();
@@ -54,14 +54,12 @@ const getCountdown = (preparationEndAt) => {
   
   if (diffMs <= 0) return { expired: true, text: "Süre doldu" };
   
-  const minutes = Math.floor(diffMs / 60000);
-  const seconds = Math.floor((diffMs % 60000) / 1000);
+  const minutes = Math.ceil(diffMs / 60000); // Yukarı yuvarla
   
   return { 
     expired: false, 
-    text: `${minutes}:${seconds.toString().padStart(2, '0')}`,
-    minutes,
-    seconds
+    text: `${minutes} dk`,
+    minutes
   };
 };
 
