@@ -766,9 +766,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
                 couriersByStatus.active.map(c => (
-                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
-                    <Bike className="w-3 h-3 text-green-600" />
-                    <span className="truncate">{c.name}</span>
+                  <div 
+                    key={c.id} 
+                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-green-50 rounded cursor-pointer"
+                    onClick={() => handleCourierClick(c)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Bike className="w-3 h-3 text-green-600" />
+                      <span className="truncate">{c.name}</span>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   </div>
                 ))
               )}
@@ -789,9 +796,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
                 couriersByStatus.on_break.map(c => (
-                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
-                    <Bike className="w-3 h-3 text-yellow-600" />
-                    <span className="truncate">{c.name}</span>
+                  <div 
+                    key={c.id} 
+                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-yellow-50 rounded cursor-pointer"
+                    onClick={() => handleCourierClick(c)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Bike className="w-3 h-3 text-yellow-600" />
+                      <span className="truncate">{c.name}</span>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   </div>
                 ))
               )}
