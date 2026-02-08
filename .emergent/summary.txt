@@ -1,98 +1,123 @@
 <analysis>**original_problem_statement:**
-The user initially requested a Ghost Courier system, Invoice Shortfall logic, UI enhancements, a Company Switcher, and a refactored System Admin panel.
+The user is building a comprehensive, Adisyo-integrated order management system within their existing ShiftJet application.
 
-Recently, the user introduced a major new requirement: to build a comprehensive, Adisyo-integrated order management system directly into the existing ShiftJet application.
-
-**PRODUCT REQUIREMENTS (New - Adisyo Integration):**
-*   **Integration:** Connect with the Adisyo API () for order and courier management.
-*   **Order Module:** Pull orders from Adisyo via Webhooks (, ) or polling. Manage order statuses (Preparing, Assigned, Courier Confirmed, On The Way, Delivered).
-*   **Courier Module:** Utilize existing ShiftJet couriers. Provide them with an interface to view, accept/reject orders, and update delivery status. Include one-touch navigation to the customer's address. Use push notifications for new orders.
-*   **Admin Panel:** A dashboard for admins to view new orders, see customer locations on a map, and manually assign couriers.
-*   **Finance Module:** Integrate with the existing ShiftJet transaction system to calculate courier earnings based on various models (fixed, distance-based) and handle daily financial reconciliation (cash, card, online).
+The core requirements implemented and refined during this session include:
+*   **Order Status Management:**
+    *   A new Onaylandı (Confirmed) status for when a courier accepts an order.
+    *   Admins should be restricted from manually setting certain statuses like Kurye Atandı (Courier Assigned) and Onaylandı (Confirmed), as these should be triggered by specific actions (assigning a courier, courier confirmation).
+    *   When an order status is changed to Hazırlanıyor (Preparing) or Hazır (Ready), any existing courier assignment should be automatically removed.
+*   **Courier Assignment UI/UX:**
+    *   The courier's full name should be visible, without truncation.
+    *   The UI for assigning a new courier and re-assigning an existing one should be unified into a single dropdown component.
+    *   This dropdown should allow un-assigning the courier.
+*   **Preparation Time & Countdown:**
+    *   Restaurants must have a configurable preparation time in minutes.
+    *   When a new order arrives, a countdown should start based on the restaurant's preparation time.
+    *   The Hazırlanıyor status badge should display the remaining time (e.g., 15 Dakika).
+    *   When the timer expires, the order status should automatically change to Hazır.
+    *   If an admin manually sets an order back to Hazırlanıyor, they should be able to select a new duration (5, 10, 15, 30, 60 mins) from a dropdown submenu.
+*   **Order Details & UI:**
+    *   The order creation time should be displayed on the far left of each order row.
+    *   The payment method should be displayed as text (Nakit, Kart) instead of an icon.
+    *   The order details modal should have three tabs: Detaylar (Details), Konum (Location), and Geçmiş (History).
+    *   The Konum tab should display a map centered on the delivery address with a 1km zoom, showing both the delivery and restaurant locations.
+    *   The Geçmiş tab should show a timeline of all status changes, including who performed the action (admin name, courier name, or Otomatik).
+    *   A Target Delivery Time (order time + 35 minutes) and any delay should be displayed below the order creation time.
+*   **Map & Visuals:**
+    *   The overall map theme should be improved for better aesthetics (e.g., using CartoDB Positron).
+    *   Restaurant location markers on the map should be small, round, gray dots.
+    *   The default map zoom on the main page should be closer to the company's city.
+    *   The height of the couriers list and the main map should be increased.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application features a multi-company administration system with a Company Switcher for admins managing multiple entities. The System Admin panel is logically structured into tabs for managing Companies, Admins, and Couriers system-wide. The main dashboard's accounting card shows detailed, company-specific credit/debit and installment summaries.
-
-The agent just completed a detailed analysis and proposed a multi-phase implementation plan for the new Adisyo integration, which is now the primary focus.
+The Sipariş Yönetimi page is now highly functional, running on mock data. It features a sophisticated order list with real-time countdowns for preparation, target delivery time calculations, and detailed status/courier assignment dropdowns. The order detail modal has been enhanced with tabs for Details, a live in-modal Leaflet map for Location, and a complete status change History with actor tracking. Backend logic has been implemented to support preparation timers, automatic status changes, history logging, and role-based restrictions on status management. The UI has been iteratively refined based on user feedback, including layout adjustments, standardized component sizes, and an improved map theme.
 
 **Last working item**:
-- Last item agent was working: The agent pivoted from bug fixing to analyzing and planning a major new feature request: an **Adisyo-integrated order management system**. A detailed analysis of the Adisyo API documentation was performed, and a comprehensive, multi-phase implementation plan was presented to the user for approval.
-- Status: USER VERIFICATION PENDING
-- Agent Testing Done: N/A (Planning phase)
-- Which testing method agent to use? N/A
+- Last item agent was working: The agent was addressing a user request to improve the map's visual quality. It implemented a change to switch the Leaflet map's tile layer from the default to the CartoDB Positron theme, which offers a cleaner, more modern look. This was applied to both the main order map and the map inside the order detail modal.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? screenshot tool
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Adisyo Integration - Awaiting User Go-Ahead (P0 - HIGHEST PRIORITY)**
--   **Issue 2: Mobile Company Switcher Missing (P0)**
--   **Issue 3: Mobile Courier List UI (P0)**
--   **Issue 4: Mobile file uploads do not show Files option (P0)**
--   **Issue 5: System Panel Refactor & Company Switcher E2E Test (P1)**
+-   **Issue 1: Verify Map Theme Change (P0 - HIGHEST PRIORITY)**
+-   **Issue 2: Mobile Company Switcher Missing (P1)**
+-   **Issue 3: Mobile Courier List UI (P1)**
+-   **Issue 4: Mobile file uploads do not show Files option (P1)**
+-   **Issue 5: System Panel Refactor & Company Switcher E2E Test (P2)**
 -   **Issue 6: The complete Invoice Shortfall workflow requires E2E user verification (P2)**
 -   **Issue 7: Courier invoice visibility fix requires user verification (P2)**
 -   **Issue 8: Backup email functionality is not fully tested (P3)**
 
 Issues Detail:
--   **Issue 1: Adisyo Integration - Awaiting User Go-Ahead (P0)**
-    -   **Attempted fixes:** N/A. The agent has just completed the analysis and planning phase.
-    -   **Next debug checklist:** The agent must wait for the user to answer the questions posed in the implementation plan (e.g., how to start, how to handle API keys, courier matching).
-    -   **Why fix this issue and what will be achieved with the fix?** This is the user's new primary focus and a major new feature set for the application.
-    -   **Status:** BLOCKED (Awaiting user feedback)
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue:** User decision.
-
--   **Issue 2: Mobile Company Switcher Missing (P0)**
-    -   **Attempted fixes:** The agent identified the  component was missing from the mobile header in  and added it.
-    -   **Next debug checklist:** The user needs to test this on a mobile device. If it still doesn't appear, the next agent should check for responsive visibility classes (, etc.) that might be overriding the change.
-    -   **Why fix this issue and what will be achieved with the fix?** Critical for admins who manage multiple companies on mobile.
-    -   **Status:** USER VERIFICATION PENDING
+-   **Issue 1: Verify Map Theme Change (P0)**
+    -   **Attempted fixes:** The agent edited  to replace the existing Leaflet tile layer URL with the one for CartoDB Positron.
+    -   **Next debug checklist:**
+        1.  Log in as /.
+        2.  Navigate to the Sipariş Yönetimi page.
+        3.  Visually confirm that the main map has a light, minimalist design style.
+        4.  Click on an order to open the detail modal, switch to the Konum tab, and verify that this map also uses the new theme.
+    -   **Why fix this issue and what will be achieved with the fix?** To confirm the user's request for a better map design has been successfully implemented.
+    -   **Status:** IN PROGRESS
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** frontend
-
--   **Issue 3: Mobile Courier List UI (P0)**
-    -   **Attempted fixes:** The agent modified  to render a responsive card layout for the couriers list on mobile instead of a wide, scrolling table.
-    -   **Next debug checklist:** The user needs to test the  page on a mobile device to confirm the layout is usable.
-    -   **Why fix this issue and what will be achieved with the fix?** Improves usability for system admins on mobile.
-    -   **Status:** USER VERIFICATION PENDING
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** frontend
-
--   **Issue 4: Mobile file uploads do not show Files option (P0)**
-    -   **Status:** USER VERIFICATION PENDING (Recurring issue, no new fix attempted this session).
-    -   **Is recurring issue?** Y
-    -   **Blocked on other issue:** User testing on a physical device.
-
--   **Issue 5, 6, 7, 8:** These are features from previous sessions that still require full end-to-end user testing to be considered fully resolved.
+    -   **Blocked on other issue:** None.
+-   **Issue 2, 3, 4, 5, 6, 7, 8:** These are pending items from a previous session that require the user to test and verify the fixes.
     -   **Status:** USER VERIFICATION PENDING for all.
 
 **In progress Task List**:
--   **Task 1: Adisyo Integration Implementation**
-    -   **Where to resume:** Awaiting user response to the detailed implementation plan (mock data vs. real data, API key availability, courier matching strategy).
-    -   **What will be achieved with this?** A full order management system integrated with Adisyo.
-    -   **Status:** BLOCKED
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on something:** User feedback on the proposed plan.
+-   **Task 1: Adisyo Integration Foundational UI (P0)**
+    -   **Where to resume:** The immediate next step is to perform a visual check (using the screenshot tool) to confirm the new map theme is applied correctly, resolving Issue #1.
+    -   **What will be achieved with this?** This will complete another round of significant UI/UX enhancements, making the order management module even more polished and ready for the Adisyo API integration phase.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on something:** Blocked on verifying the fix for **Issue 1**.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0 - Implement Adisyo Integration:** Begin Phase 1 (Settings & Webhook) as soon as the user provides the necessary clarifications and API keys.
+    -   **P0 - Courier Panel Status Control:** Implement the functionality for couriers to change their own availability status (Aktif, Molada, Çevrimdışı) from their own dashboard.
+    -   **P0 - Courier Order Confirmation:** Implement the backend and frontend logic for a courier to confirm an assigned order, which will trigger the Onaylandı status.
+    -   **P0 - Live Courier Location:** Integrate logic to display the live location of active couriers on the order management map.
+    -   **P1 - Adisyo API Integration:** Replace the current mock data system with a real integration to the Adisyo API. This will involve using the  subagent and handling real-time order data.
+    -   **P1 - Push Notifications:** Implement push notifications to alert couriers of newly assigned orders.
 -   **Future Tasks:**
-    -   **Re-enable & Enhance Chat System (P1)**
-    -   **Dark Mode Implementation (P2)**
-    -   **Refactoring (P2):**
-        -   Break down , , and  into smaller components.
-    -   **Motosikletim Feature Enhancements (P3)**
+    -   **P1 - Re-enable & Enhance Chat System**
+    -   **P2 - Dark Mode Implementation**
+    -   **P2 - Component Refactoring:** Break down the large  file into smaller, reusable components (e.g., , , ).
+    -   **P3 - Motosikletim Feature Enhancements**
 
 **Completed work in this session**
--   **Analysis & Planning:** Performed a comprehensive analysis of the Adisyo API and created a detailed, multi-phase implementation plan for the new order management system.
--   **Bug Fix:** Resolved an issue where couriers appeared duplicated in the system admin panel. The fix involved deleting duplicate documents from the  MongoDB collection.
--   **DB Integrity:** Added a unique index to the uid=0(root) gid=0(root) groups=0(root) field of the  collection to prevent future data duplication.
--   **Bug Fix:** Fixed the Permanent Delete functionality for couriers, which was failing due to a missing  import in .
--   **UI Improvement:** Added the missing Company Switcher to the mobile view.
--   **UI Improvement:** Made the Couriers list in the system admin panel mobile-responsive by using a card layout.
+-   **New Confirmed Order Status:** Added a confirmed status and prevented admins from setting it manually.
+-   **Courier Assignment Logic:**
+    -   Fixed a bug where courier assignments were dropped on status changes.
+    -   Automated un-assignment when an order is moved to Preparing or Ready.
+    -   Created a unified dropdown for assigning, re-assigning, and un-assigning couriers.
+-   **Preparation Time & Countdown:**
+    -   Added a  field to restaurants.
+    -   Implemented a countdown timer on the Preparing status badge, which automatically updates the status to Ready upon completion.
+    -   Added a dropdown submenu to manually set a preparation time when changing status to Preparing.
+-   **Order History Tracking:**
+    -   Implemented a  array in the backend for each order.
+    -   All status changes, assignments, and automatic updates are logged with an actor (, , ) and timestamp.
+    -   Added a Geçmiş (History) tab to the order detail modal to display this timeline.
+-   **Order Detail Modal Overhaul:**
+    -   Re-designed the modal with three tabs: Details, Location (with an embedded map), and History.
+    -   The location map now centers on the delivery address with a 1km zoom.
+    -   Removed the ability to change order status from within the modal to simplify the UX.
+-   **UI/UX Enhancements:**
+    -   Added Target Delivery Time and delay calculation to the order list.
+    -   Adjusted the order row layout (time on left, payment method as text).
+    -   Standardized status badge sizes.
+    -   Changed map markers to be small, round, and gray for a cleaner look.
+    -   Increased the height of the main map and courier list panels.
+    -   Increased the default map zoom level for a closer view of the city.
+    -   Switched to the CartoDB Positron map theme for a more modern appearance.
+-   **Bug Fixes:**
+    -   Fixed a critical bug that prevented mock orders from being deleted by re-ordering the API routes in .
+    -   Fixed courier name truncation in the assignment dropdown.
+    -   Fixed an issue where the map in the modal would not load (white screen).
 
 **Earlier issues found/mentioned but not fixed**
 -   The high-priority mobile file upload issue remains unresolved pending user verification on a physical device.
@@ -103,72 +128,82 @@ Issues Detail:
 -   **Status:** USER VERIFICATION PENDING
 
 **Code Architecture**
-
+preparation_time
 
 **Key Technical Concepts**
--   **Database Integrity:** Ensured data consistency by identifying and removing duplicate records in a production collection () and then enforcing uniqueness by adding a unique index on the primary identifier field (uid=0(root) gid=0(root) groups=0(root)). This is a critical practice to prevent data corruption.
--   **API Analysis & Feature Planning:** Conducted a thorough review of a third-party API (Adisyo) to create a detailed, phased implementation plan for a major new feature, breaking it down into testable sprints.
+-   **Stateful UI Logic:** Managed complex frontend state for countdown timers (), conditional rendering based on status, and multi-step actions (dropdown submenus).
+-   **Dynamic Component Loading:** Implemented logic to dynamically load Leaflet's JS and CSS assets for the in-modal map to prevent rendering issues.
+-   **Backend Data Auditing:** Added a  array to the order document to create an audit trail of all changes, including the actor (admin, system, auto).
+-   **API Route Specificity:** Resolved a critical bug by understanding and correcting FastAPI route order precedence, ensuring specific routes () are not shadowed by general ones ().
+-   **Complex UI Components:** Built advanced UI elements like dropdowns with nested submenus for selecting preparation times.
 
 **key DB schema**
--   ****: Added a unique index on the uid=0(root) gid=0(root) groups=0(root) field to prevent duplicate courier entries.
-
-**changes in tech stack**
--   None.
+-   ****:
+    -    (ISO timestamp for when preparation should finish).
+    -    (Array to log status changes). Each entry contains , , , , , and .
+-   ****:
+    -    (Default preparation time in minutes).
 
 **All files of reference**
--    (Modified for mobile Company Switcher)
--    (Modified for mobile courier list)
--    (Modified to fix delete endpoint)
+-   
+-   
+-   
+-   
+-   
 
 **Areas that need refactoring**:
--   : Still very large and should be broken into components for each tab.
--   : The installment modal logic should be extracted into its own component.
+-    is now extremely large (over 1200 lines) and manages a vast amount of state and logic. It urgently needs to be broken down into smaller components (e.g., , , , , , ).
 
 **key api endpoints**
--   : **FIXED**. This endpoint now correctly deletes couriers.
+-   : Updated to accept an optional  and log the admin's name in the history.
+-   : Updated to log the admin's name in the history.
+-   : Updated to log the admin's name in the history.
+-   : Route moved to prevent conflicts.
+-   : **FIXED**. Route moved to prevent conflicts.
 
 **Critical Info for New Agent**
--   **STOP! Your top priority is the new Adisyo integration.** The user has just made a huge feature request and is reviewing your proposed plan. **DO NOT** start any other work until you receive the user's feedback on the plan.
--   The user must answer your questions about API keys and implementation strategy before you can begin.
--   Once you get the go-ahead, you will likely need to call the  for Adisyo to get the best implementation practices, even though you have already reviewed the docs.
--   Several smaller fixes from this session are pending user verification (mobile company switcher, mobile courier list). You may need to remind the user to check these after the Adisyo plan is settled.
--   The duplicate courier bug was a **data issue**, not just a code issue. The fix involved a one-time database cleanup script and adding a unique index. Be mindful of potential data inconsistencies.
+-   Your immediate priority is to **verify the map theme change** on the Sipariş Yönetimi page. Use the screenshot tool to confirm both the main map and the modal map have the new CartoDB Positron style.
+-   All user communication **must be in Turkish.**
+-   The user is highly engaged and provides frequent, specific UI feedback. Expect to make small, iterative changes. The current feature set is a result of this close collaboration.
+-   The  file is very large. Be cautious when editing and consider proposing a refactor as a future task.
 
 **documents and test reports created in this job**
--   None.
+-   /app/memory/PRD.md
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** The new Adisyo integration is the most important thing. Push notifications are sufficient. Review the docs and tell me what to do. **Status: ADDRESSED**. The agent performed a full analysis and presented a plan.
-2.  **User:** (Provided a comprehensive summary of a new feature request: Adisyo integration). **Status: ADDRESSED**.
-3.  **User:** Courier deletion is failing from the main panel. Also, the courier list requires horizontal scrolling on mobile. **Status: COMPLETED**. The agent fixed the deletion API and improved the mobile UI for the list.
-4.  **User:** The company switcher is missing on mobile. **Status: COMPLETED**. The agent added the component to the mobile view.
-5.  **User:** In the system panel, couriers are appearing more than once. **Status: COMPLETED**. The agent identified and fixed the root cause (duplicate data in the  collection).
-6.  **User:** (From previous session) Let's add a 'Couriers' section to the system panel. **Status: COMPLETED**.
-7.  **User:** (From previous session) The system panel logic is a bit bad. **Status: COMPLETED** (Led to refactor).
-8.  **User:** (From previous session) How do I switch companies? **Status: COMPLETED** (Led to Company Switcher).
-9.  **User:** (From previous session) Error when logging in as 'ShiftJet'. **Status: COMPLETED**.
-10. **User:** (From previous session) Let's add the company switcher feature. **Status: COMPLETED**.
+1.  **User:** The map theme is low quality. Can we change it? **Status: IN PROGRESS (Code changed, verification pending).**
+2.  **User:** The mock order delete function is broken. **Status: COMPLETED.**
+3.  **User:** The default map zoom is too far out. Make it closer. **Status: COMPLETED.**
+4.  **User:** Increase the height of the courier list and map. **Status: COMPLETED.**
+5.  **User:** The restaurant markers on the map should be round, not square. **Status: COMPLETED.**
+6.  **User:** The restaurant markers are too big and prominent. Make them small, gray dots. **Status: COMPLETED.**
+7.  **User:** Add a target delivery time (order time + 35 mins) and show delays. **Status: COMPLETED.**
+8.  **User:** Add an actor to the history tab (who made the change). **Status: COMPLETED.**
+9.  **User:** The order details modal needs a third tab for History. **Status: COMPLETED.**
+10. **User:** The location link in the modal opens a new tab. Instead, add a second Location tab to the modal with a map inside. **Status: COMPLETED.**
 
 **Project Health Check:**
 -   **Broken:**
-    -   **Mobile File Upload:** Potentially still broken, awaiting user verification on a physical device. This is a long-standing P0 issue.
--   **Mocked:** None.
+    -   **Map Theme:** The new map theme has been implemented but not visually verified.
+    -   **Mobile File Upload:** A long-standing, unverified P0 issue from previous sessions.
+-   **Mocked:**
+    -   The entire order management system is running on mock data generated via API endpoints. The frontend is feature-rich, but backend data is not persistent or from a real source.
 
 **3rd Party Integrations**
 -   : For Cloudflare R2 storage.
--   : For background jobs.
--   usage: websockets [--version | <uri>]: For the hidden chat feature.
--   : **Planned**. This is the next major integration.
+-   : For background jobs (currently used for checking preparation times).
+-   usage: websockets [--version | <uri>]: For a hidden chat feature.
+-   : **Planned**. This is the next major integration to be implemented.
 
 **Testing status**
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None.
--   Known regressions: None.
+-   Test files created: None
+-   Known regressions: None
 
 **Credentials to test flow:**
--   **System Admin:** username: 
 -   **Multi-company Admin:** username: , password: 
+-   **System Admin:** username: 
 
 **What agent forgot to execute**
-- The agent successfully addressed all immediate user requests and pivoted to plan the new large-scale Adisyo integration as requested. No tasks were forgotten. The current state is a planned pause, awaiting user direction.</analysis>
+-   The agent implemented the new map theme as requested but did not take the final step to visually verify that the change was successful and looked correct on the frontend (e.g., with a screenshot) before finishing its turn.</analysis>
