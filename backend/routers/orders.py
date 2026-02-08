@@ -356,7 +356,8 @@ async def courier_confirm_order(courier_id: str, order_id: str):
     await db.orders.update_one(
         {"id": order_id},
         {"$set": {
-            "status": "courier_confirmed",
+            "status": "confirmed",
+            "confirmed_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }}
     )
@@ -411,7 +412,7 @@ async def courier_reject_order(courier_id: str, order_id: str, reason: Optional[
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
-    if order["status"] not in ["assigned", "courier_confirmed"]:
+    if order["status"] not in ["assigned", "confirmed"]:
         raise HTTPException(status_code=400, detail="Bu sipariş reddedilemez")
     
     # Kuryeyi siparişten çıkar, sipariş tekrar atanabilir duruma gelir
