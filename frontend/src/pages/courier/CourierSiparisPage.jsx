@@ -763,8 +763,33 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
 
         {/* Not */}
         {order.notes && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2 text-xs">
-            <span className="font-semibold text-yellow-800">Not:</span> <span className="text-yellow-700">{order.notes}</span>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2 text-xs space-y-1">
+            {/* Müşteri notları (kırmızı) */}
+            {order.notes.includes("CUSTOMER:") && (() => {
+              const customerMatch = order.notes.match(/CUSTOMER:([^|]*)/);
+              const customerNotes = customerMatch ? customerMatch[1].split(";").filter(n => n.trim()) : [];
+              return customerNotes.length > 0 && (
+                <div className="text-red-700 font-semibold">
+                  ⚠️ {customerNotes.join(" • ")}
+                </div>
+              );
+            })()}
+            {/* Mutfak notları (normal) */}
+            {order.notes.includes("KITCHEN:") && (() => {
+              const kitchenMatch = order.notes.match(/KITCHEN:([^|]*)/);
+              const kitchenNotes = kitchenMatch ? kitchenMatch[1].split(";").filter(n => n.trim()) : [];
+              return kitchenNotes.length > 0 && (
+                <div className="text-yellow-800">
+                  🍽️ {kitchenNotes.join(" • ")}
+                </div>
+              );
+            })()}
+            {/* Eski format notlar (CUSTOMER/KITCHEN içermeyenler) */}
+            {!order.notes.includes("CUSTOMER:") && !order.notes.includes("KITCHEN:") && (
+              <div className="text-yellow-800">
+                📝 {order.notes}
+              </div>
+            )}
           </div>
         )}
 
