@@ -4,6 +4,32 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler
 
+#### 🚀 Kurye Paneli - Sipariş Yönetimi (YENİ)
+Kuryeler için tam özellikli sipariş yönetimi sekmesi eklendi:
+
+**Akış:**
+1. **Yeni Sipariş Atandı** → Kurye "Siparişi Gördüm" butonunu görür (detaylar gizli)
+2. **Siparişi Gördüm** → Sipariş detayları açılır, durum "Onaylandı" olur
+3. **Yola Çık** → Kurye siparişi almaya gider, durum "Yolda" olur
+4. **Teslim Et** → Sipariş tamamlanır, durum "Teslim Edildi" olur
+
+**Özellikler:**
+- Sipariş kartı: Restoran, müşteri, adres, ürünler, toplam, not bilgileri
+- "Yol Tarifi" butonu: Google Maps'te açar
+- "Ara" butonu: Müşteriyi arar
+- Mobil uyumlu tasarım
+- 15 saniyede bir otomatik yenileme
+- Status history kaydı (kim ne zaman değiştirdi)
+
+**Dosyalar:**
+- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` (YENİ)
+- `/app/frontend/src/pages/CourierDashboard.jsx` (GÜNCELLENDİ)
+- `/app/backend/routers/orders.py` (GÜNCELLENDİ)
+
+---
+
+### Önceki Tamamlanan Değişiklikler
+
 #### 1. Türkiye 81 İl Listesi
 - Tüm 81 il alfabetik sırayla eklendi (Isparta dahil)
 - Her ilin koordinatları mevcut
