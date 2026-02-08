@@ -605,10 +605,17 @@ function NewOrderCard({ order, onConfirm, loading }) {
           </span>
         </div>
 
-        {/* Restoran bilgisi */}
-        <div className="flex items-center gap-1.5 mb-2 text-xs">
-          <Store className="w-3.5 h-3.5 text-purple-600" />
-          <span className="font-medium truncate">{order.restaurant_name}</span>
+        {/* Restoran bilgisi ve Uzaklık */}
+        <div className="flex items-center justify-between mb-2 text-xs">
+          <div className="flex items-center gap-1.5">
+            <Store className="w-3.5 h-3.5 text-purple-600" />
+            <span className="font-medium truncate">{order.restaurant_name}</span>
+          </div>
+          {getOrderDistance(order) && (
+            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-medium whitespace-nowrap">
+              📍 {getOrderDistance(order)}
+            </span>
+          )}
         </div>
 
         {/* Sipariş özeti (gizli) */}
