@@ -585,8 +585,23 @@ export default function SiparisYonetimiPage({ companyId }) {
                             <SelectValue>{statusInfo.label}</SelectValue>
                           </SelectTrigger>
                           <SelectContent>
+                            {/* Hazırlanıyor - süre seçenekleri */}
+                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">
+                              Hazırlanıyor
+                            </div>
+                            {PREPARATION_TIMES.map(time => (
+                              <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
+                                <div className="flex items-center gap-2">
+                                  <Timer className="w-3 h-3 text-yellow-500" />
+                                  {time.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                            
+                            {/* Diğer durumlar */}
+                            <div className="border-t my-1" />
                             {Object.entries(ORDER_STATUSES)
-                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key))
+                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
                               .map(([key, value]) => (
                               <SelectItem key={key} value={key} className="text-xs">
                                 <div className="flex items-center gap-2">
