@@ -1387,6 +1387,11 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <span className="text-xs text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
                         <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
+                        {getOrderDistance(order) && (
+                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap hidden md:inline">
+                            📍 {getOrderDistance(order)}
+                          </span>
+                        )}
                       </div>
                       
                       {/* Sağ: Ödeme + Tutar + Kurye/Ata */}
