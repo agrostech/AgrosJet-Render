@@ -96,9 +96,9 @@ export default function SiparisYonetimiPage({ companyId }) {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    await Promise.all([fetchOrders(), fetchCouriers(), fetchRestaurants()]);
+    await Promise.all([fetchOrders(), fetchCouriers(), fetchRestaurants(), fetchCompany()]);
     setLoading(false);
-  }, [fetchOrders, fetchCouriers, fetchRestaurants]);
+  }, [fetchOrders, fetchCouriers, fetchRestaurants, fetchCompany]);
 
   useEffect(() => {
     fetchAll();
