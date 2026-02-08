@@ -72,15 +72,19 @@ export default function SiparisYonetimiPage({ companyId }) {
   const [showOrderDetailModal, setShowOrderDetailModal] = useState(false);
   const [selectedCourierId, setSelectedCourierId] = useState("");
   
-  // Hazırlanıyor süresi seçim modalı
-  const [showPreparationModal, setShowPreparationModal] = useState(false);
-  const [pendingStatusChange, setPendingStatusChange] = useState(null); // {orderId, status}
-  const [selectedPreparationTime, setSelectedPreparationTime] = useState("15");
-  
   // Map ref
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+
+  // Hazırlanıyor süre seçenekleri
+  const PREPARATION_TIMES = [
+    { value: 5, label: "5 dk" },
+    { value: 10, label: "10 dk" },
+    { value: 15, label: "15 dk" },
+    { value: 30, label: "30 dk" },
+    { value: 60, label: "60 dk" },
+  ];
 
   // Fetch company info for city center
   const fetchCompany = useCallback(async () => {
