@@ -397,7 +397,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     // Harita hazır olana kadar bekle
     const centerMap = () => {
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.setView([company.city_lat, company.city_lng], 14);
+        mapInstanceRef.current.setView([company.city_lat, company.city_lng], 13);
       } else {
         // Harita henüz yüklenmemişse tekrar dene
         setTimeout(centerMap, 300);
