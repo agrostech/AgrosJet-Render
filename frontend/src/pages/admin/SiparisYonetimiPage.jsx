@@ -628,7 +628,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             icon: L.divIcon({
               className: 'courier-marker',
               html: `
-                <div style="position: relative; width: 32px; height: 32px;">
+                <div style="position: relative; width: 22px; height: 22px;">
                   <div class="courier-pulse-ring" style="background: ${bgColor};"></div>
                   <div class="courier-pulse-ring-delayed" style="background: ${bgColor};"></div>
                   <div style="
@@ -637,23 +637,23 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     left: 50%;
                     transform: translate(-50%, -50%);
                     background: ${bgColor};
-                    width: 28px;
-                    height: 28px;
+                    width: 20px;
+                    height: 20px;
                     border-radius: 50%;
                     border: 2px solid white;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     color: white;
-                    font-size: 10px;
+                    font-size: 8px;
                     font-weight: 700;
-                    letter-spacing: 0.5px;
+                    letter-spacing: 0.3px;
                   ">${initials}</div>
                 </div>
               `,
-              iconSize: [32, 32],
-              iconAnchor: [16, 16]
+              iconSize: [22, 22],
+              iconAnchor: [11, 11]
             })
           }).addTo(map);
           marker.bindPopup(`
