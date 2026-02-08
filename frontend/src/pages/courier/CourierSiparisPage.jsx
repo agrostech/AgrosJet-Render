@@ -77,11 +77,11 @@ const ORDER_STATUS_CONFIG = {
   delivered: { label: "Teslim Edildi", color: "bg-green-500", textColor: "text-green-600" },
 };
 
-// Ödeme yöntemi
+// Ödeme yöntemi - renkli
 const PAYMENT_METHODS = {
-  cash: { label: "Nakit", icon: Banknote },
-  card: { label: "Kart", icon: CreditCard },
-  online: { label: "Online", icon: CreditCard },
+  cash: { label: "Nakit", icon: Banknote, color: "text-green-600", bg: "bg-green-50" },
+  card: { label: "Kart", icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
+  online: { label: "Online", icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
 };
 
 // Zaman formatı
