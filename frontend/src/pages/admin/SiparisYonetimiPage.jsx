@@ -1269,7 +1269,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 return (
                   <div 
                     key={order.id}
-                    className={`px-3 py-2.5 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
+                    className={`px-3 py-2 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
                     onClick={(e) => {
                       // Dropdown veya buton tıklamalarında modal açılmasın
                       const target = e.target;
@@ -1287,97 +1287,129 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    {/* Mobil görünüm */}
-                    <div className="flex flex-col gap-2 sm:hidden">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground font-mono">{formatTime(order.created_at)}</span>
-                          {targetDelivery && order.status !== 'delivered' && order.status !== 'cancelled' && (
-                            <span className={`text-xs font-mono ${targetDelivery.delayed ? 'text-red-600' : 'text-green-600'}`}>
-                              → {targetDelivery.time}
-                            </span>
-                          )}
-                        </div>
-                        <span className="font-semibold text-sm">{formatCurrency(order.total_amount)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">{order.restaurant_name}</span>
-                        {/* Durum Badge */}
-                        <Select 
-                          value={order.status} 
-                          onValueChange={(newValue) => {
-                            if (newValue.startsWith('preparing_')) {
-                              const prepTime = parseInt(newValue.split('_')[1]);
-                              handleUpdateStatus(order.id, 'preparing', prepTime);
-                            } else {
-                              handleUpdateStatus(order.id, newValue);
-                            }
-                          }}
-                        >
-                          <SelectTrigger 
-                            className={`${statusInfo.color} text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
-                            
-                          >
-                            <SelectValue>
-                              {order.status === 'preparing' && order.preparation_end_at
-                                ? getCountdown(order.preparation_end_at)?.text
-                                : statusInfo.label
-                              }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent >
-                            <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                            {PREPARATION_TIMES.map(time => (
-                              <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
-                                <div className="flex items-center gap-2">
-                                  <Timer className="w-3 h-3 text-yellow-500" />
-                                  {time.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                            <div className="border-t my-1" />
-                            {Object.entries(ORDER_STATUSES)
-                              .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                              .map(([key, value]) => (
-                              <SelectItem key={key} value={key} className="text-xs">
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-2 h-2 rounded-full ${value.color}`} />
-                                  {value.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {/* Adres bilgisi ve Uzaklık */}
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground truncate flex-1">
-                          {order.delivery_address}
-                        </span>
-                        {getOrderDistance(order) && (
-                          <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap">
-                            📍 {getOrderDistance(order)}
+                    {/* YENİ TASARIM - Tek satır, tüm cihazlar için */}
+                    <div className="flex items-center gap-2">
+                      {/* Saat */}
+                      <div className="flex flex-col items-center min-w-[45px]">
+                        <span className="text-xs font-mono text-muted-foreground">{formatTime(order.created_at)}</span>
+                        {targetDelivery && order.status !== 'delivered' && order.status !== 'cancelled' && (
+                          <span className={`text-[10px] font-mono ${targetDelivery.delayed ? 'text-red-600' : 'text-green-600'}`}>
+                            {targetDelivery.delayed ? `+${targetDelivery.delayMinutes}dk` : `→${targetDelivery.time}`}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate max-w-[120px]">{order.customer_name}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                            order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                          }`}>
-                            {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
-                          </span>
-                        </div>
-                        {/* Kurye Dropdown */}
-                        <Select
-                          value={order.courier_id || ""}
-                          onValueChange={(value) => {
-                            if (value === "__remove__") {
-                              handleUnassignCourier(order.id);
-                            } else if (value) {
-                              handleReassignCourier(order.id, value);
+                      
+                      {/* Durum */}
+                      <Select 
+                        value={order.status} 
+                        onValueChange={(newValue) => {
+                          if (newValue.startsWith('preparing_')) {
+                            handleUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
+                          } else {
+                            handleUpdateStatus(order.id, newValue);
+                          }
+                        }}
+                      >
+                        <SelectTrigger 
+                          className={`${
+                            order.status === 'preparing' && order.preparation_end_at && getCountdown(order.preparation_end_at)?.expired
+                              ? 'bg-red-500' : statusInfo.color
+                          } text-white text-[10px] px-1.5 py-0 h-5 min-w-[65px] border-0 gap-0`}
+                        >
+                          <SelectValue>
+                            {order.status === 'preparing' && order.preparation_end_at
+                              ? getCountdown(order.preparation_end_at)?.text
+                              : statusInfo.label
                             }
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                          {PREPARATION_TIMES.map(time => (
+                            <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
+                              <Timer className="w-3 h-3 inline mr-1" />{time.label}
+                            </SelectItem>
+                          ))}
+                          <div className="border-t my-1" />
+                          {Object.entries(ORDER_STATUSES)
+                            .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                            .map(([key, value]) => (
+                            <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      {/* Restoran */}
+                      <span className="font-medium text-xs truncate min-w-[60px] max-w-[100px] hidden sm:block">{order.restaurant_name}</span>
+                      
+                      {/* Müşteri */}
+                      <span className="text-xs text-muted-foreground truncate min-w-[50px] max-w-[80px]">{order.customer_name}</span>
+                      
+                      {/* Mesafe */}
+                      {getOrderDistance(order) && (
+                        <span className="px-1 py-0.5 bg-blue-50 text-blue-700 rounded text-[9px] font-medium whitespace-nowrap">
+                          {getOrderDistance(order)}
+                        </span>
+                      )}
+                      
+                      {/* Ödeme */}
+                      <span className={`px-1 py-0.5 rounded text-[9px] font-medium ${
+                        order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 
+                        order.payment_method === 'online' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'online' ? 'Online' : 'Kart'}
+                      </span>
+                      
+                      {/* Tutar */}
+                      <span className="font-semibold text-xs min-w-[55px] text-right">{formatCurrency(order.total_amount)}</span>
+                      
+                      {/* Kurye */}
+                      <Select 
+                        value={order.courier_id || ""}
+                        onValueChange={(value) => {
+                          if (value === "__remove__") handleUnassignCourier(order.id);
+                          else if (value) handleReassignCourier(order.id, value);
+                        }}
+                      >
+                        <SelectTrigger 
+                          className={`h-5 px-1.5 text-[10px] min-w-[70px] max-w-[90px] gap-0.5 ${
+                            order.courier_name ? "bg-green-50 border-green-200 text-green-700" : "bg-slate-50 border-slate-200"
+                          }`}
+                        >
+                          <Bike className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{order.courier_name || "Ata"}</span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {couriersByStatus.active.length > 0 && (
+                            <>
+                              <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
+                              {couriersByStatus.active.map(c => (
+                                <SelectItem key={c.id} value={c.id} className="text-xs">{c.name}</SelectItem>
+                              ))}
+                            </>
+                          )}
+                          {couriersByStatus.on_break.length > 0 && (
+                            <>
+                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
+                              {couriersByStatus.on_break.map(c => (
+                                <SelectItem key={c.id} value={c.id} className="text-xs">{c.name}</SelectItem>
+                              ))}
+                            </>
+                          )}
+                          {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
+                            <>
+                              <div className="border-t my-1" />
+                              <SelectItem value="__remove__" className="text-red-600 text-xs">Kaldır</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      
+                      <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    </div>
+                  </div>
+                );
+              })}
                           }}
                         >
                           <SelectTrigger 
