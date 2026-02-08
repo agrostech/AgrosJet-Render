@@ -682,6 +682,13 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
           <div className="flex items-center gap-1.5">
             <Store className="w-3.5 h-3.5 text-orange-500" />
             <span className="font-medium truncate">{order.restaurant_name}</span>
+            <button
+              onClick={onOpenRestaurantMaps}
+              className="flex items-center gap-0.5 text-orange-600 hover:text-orange-800"
+              title="Restorana git"
+            >
+              <Navigation className="w-3 h-3" />
+            </button>
           </div>
           {getOrderDistance(order) && (
             <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap">
