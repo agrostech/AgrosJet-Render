@@ -540,12 +540,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   }
 
   // Siparişleri grupla
-  const newOrders = orders.filter((o) => o.status === "assigned");
-  const assignedOrders = orders.filter((o) => ["assigned", "confirmed"].includes(o.status)); // Atanmış (henüz yola çıkmamış)
-  const onTheWayOrders = orders.filter((o) => o.status === "on_the_way"); // Yoldaki
+  const assignedOrders = orders.filter((o) => ["assigned", "confirmed"].includes(o.status));
+  const onTheWayOrders = orders.filter((o) => o.status === "on_the_way");
+
+  // Aktif sekme state
+  const [activeTab, setActiveTab] = useState("assigned");
 
   return (
-    <div className="space-y-4" data-testid="courier-siparis-page">
+    <div className="space-y-3" data-testid="courier-siparis-page">
       {/* Boş durum */}
       {orders.length === 0 && (
         <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
@@ -557,108 +559,151 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         </div>
       )}
 
-      {/* Atanmış Siparişler (assigned + confirmed - henüz yola çıkmamış) */}
-      {assignedOrders.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Package className="w-5 h-5 text-purple-500" />
-            <h3 className="font-semibold text-purple-700">
-              Atanmış Siparişler ({assignedOrders.length})
-            </h3>
+      {/* Sekmeler */}
+      {orders.length > 0 && (
+        <>
+          <div className="flex bg-slate-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab("assigned")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+                activeTab === "assigned"
+                  ? "bg-white text-purple-700 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Package className="w-4 h-4" />
+              Atanmış
+              {assignedOrders.length > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+                  activeTab === "assigned" ? "bg-purple-100 text-purple-700" : "bg-slate-200 text-slate-600"
+                }`}>
+                  {assignedOrders.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("ontheway")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+                activeTab === "ontheway"
+                  ? "bg-white text-blue-700 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Truck className="w-4 h-4" />
+              Yolda
+              {onTheWayOrders.length > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+                  activeTab === "ontheway" ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-600"
+                }`}>
+                  {onTheWayOrders.length}
+                </span>
+              )}
+            </button>
           </div>
-          {assignedOrders.map((order) => (
-            order.status === "assigned" ? (
-              <NewOrderCard
-                key={order.id}
-                order={order}
-                onConfirm={() => handleConfirmOrder(order.id)}
-                loading={actionLoading === order.id}
-              />
-            ) : (
-              <ActiveOrderCard
-                key={order.id}
-                order={order}
-                onPickup={() => handlePickupOrder(order.id)}
-                onDeliver={() => handleDeliverOrder(order.id)}
-                onViewDetails={() => {
-                  setSelectedOrder(order);
-                  setShowDetailModal(true);
-                }}
-                onOpenMaps={() =>
-                  openInMaps(
-                    order.delivery_location?.latitude,
-                    order.delivery_location?.longitude,
-                    order.delivery_address
-                  )
-                }
-                onOpenRestaurantMaps={() =>
-                  openInMaps(
-                    order.restaurant_location?.latitude,
-                    order.restaurant_location?.longitude,
-                    order.restaurant_name
-                  )
-                }
-                onCall={() => callPhone(order.customer_phone)}
-                loading={actionLoading === order.id}
-              />
-            )
-          ))}
-        </div>
-      )}
 
-      {/* Yoldaki Siparişler (on_the_way) */}
-      {onTheWayOrders.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-blue-500" />
-              <h3 className="font-semibold text-blue-700">
-                Yoldaki Siparişler ({onTheWayOrders.length})
-              </h3>
+          {/* Atanmış Siparişler Tab */}
+          {activeTab === "assigned" && (
+            <div className="space-y-3">
+              {assignedOrders.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Atanmış sipariş yok</p>
+                </div>
+              ) : (
+                assignedOrders.map((order) => (
+                  order.status === "assigned" ? (
+                    <NewOrderCard
+                      key={order.id}
+                      order={order}
+                      onConfirm={() => handleConfirmOrder(order.id)}
+                      loading={actionLoading === order.id}
+                    />
+                  ) : (
+                    <ActiveOrderCard
+                      key={order.id}
+                      order={order}
+                      onPickup={() => handlePickupOrder(order.id)}
+                      onDeliver={() => handleDeliverOrder(order.id)}
+                      onViewDetails={() => {
+                        setSelectedOrder(order);
+                        setShowDetailModal(true);
+                      }}
+                      onOpenMaps={() =>
+                        openInMaps(
+                          order.delivery_location?.latitude,
+                          order.delivery_location?.longitude,
+                          order.delivery_address
+                        )
+                      }
+                      onOpenRestaurantMaps={() =>
+                        openInMaps(
+                          order.restaurant_location?.latitude,
+                          order.restaurant_location?.longitude,
+                          order.restaurant_name
+                        )
+                      }
+                      onCall={() => callPhone(order.customer_phone)}
+                      loading={actionLoading === order.id}
+                    />
+                  )
+                ))
+              )}
             </div>
-            {/* Rota Oluştur Butonu - 2+ yolda sipariş varken */}
-            {onTheWayOrders.length >= 2 && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={createOptimizedRoute}
-                className="text-cyan-700 border-cyan-300 hover:bg-cyan-50"
-                data-testid="create-route-btn"
-              >
-                <Route className="w-4 h-4 mr-1.5" />
-                Rota Oluştur
-              </Button>
-            )}
-          </div>
-          {onTheWayOrders.map((order) => (
-            <ActiveOrderCard
-              key={order.id}
-              order={order}
-              onPickup={() => handlePickupOrder(order.id)}
-              onDeliver={() => handleDeliverOrder(order.id)}
-              onViewDetails={() => {
-                setSelectedOrder(order);
-                setShowDetailModal(true);
-              }}
-              onOpenMaps={() =>
-                openInMaps(
-                  order.delivery_location?.latitude,
-                  order.delivery_location?.longitude,
-                  order.delivery_address
-                )
-              }
-              onOpenRestaurantMaps={() =>
-                openInMaps(
-                  order.restaurant_location?.latitude,
-                  order.restaurant_location?.longitude,
-                  order.restaurant_name
-                )
-              }
-              onCall={() => callPhone(order.customer_phone)}
-              loading={actionLoading === order.id}
-            />
-          ))}
-        </div>
+          )}
+
+          {/* Yoldaki Siparişler Tab */}
+          {activeTab === "ontheway" && (
+            <div className="space-y-3">
+              {/* Rota Oluştur Butonu */}
+              {onTheWayOrders.length >= 2 && (
+                <Button
+                  onClick={createOptimizedRoute}
+                  className="w-full bg-cyan-600 hover:bg-cyan-700"
+                  data-testid="create-route-btn"
+                >
+                  <Route className="w-4 h-4 mr-2" />
+                  Rota Oluştur ({onTheWayOrders.length} sipariş)
+                </Button>
+              )}
+              
+              {onTheWayOrders.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Truck className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Yolda sipariş yok</p>
+                </div>
+              ) : (
+                onTheWayOrders.map((order) => (
+                  <ActiveOrderCard
+                    key={order.id}
+                    order={order}
+                    onPickup={() => handlePickupOrder(order.id)}
+                    onDeliver={() => handleDeliverOrder(order.id)}
+                    onViewDetails={() => {
+                      setSelectedOrder(order);
+                      setShowDetailModal(true);
+                    }}
+                    onOpenMaps={() =>
+                      openInMaps(
+                        order.delivery_location?.latitude,
+                        order.delivery_location?.longitude,
+                        order.delivery_address
+                      )
+                    }
+                    onOpenRestaurantMaps={() =>
+                      openInMaps(
+                        order.restaurant_location?.latitude,
+                        order.restaurant_location?.longitude,
+                        order.restaurant_name
+                      )
+                    }
+                    onCall={() => callPhone(order.customer_phone)}
+                    loading={actionLoading === order.id}
+                  />
+                ))
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* Sipariş Detay Modal */}
