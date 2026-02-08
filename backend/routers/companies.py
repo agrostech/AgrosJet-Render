@@ -98,6 +98,12 @@ async def update_company(company_id: str, data: CompanyUpdate):
         update_data["tax_office"] = data.tax_office
     if data.email is not None:
         update_data["email"] = data.email
+    if data.city is not None:
+        update_data["city"] = data.city
+    if data.city_lat is not None:
+        update_data["city_lat"] = data.city_lat
+    if data.city_lng is not None:
+        update_data["city_lng"] = data.city_lng
     
     if not update_data:
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
