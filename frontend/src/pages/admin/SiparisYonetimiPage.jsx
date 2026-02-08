@@ -1410,8 +1410,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   </div>
                 );
               })}
-                          }}
-                        >
                           <SelectTrigger 
                             className="h-6 text-xs border-dashed w-auto gap-1 px-2"
                           >
