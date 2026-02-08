@@ -38,32 +38,55 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const createAlarmSound = () => {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
     
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    // Create multiple oscillators for louder sound
+    const playTone = (frequency, startTime, duration) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'square';
+      gainNode.gain.value = 0.3;
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
     
-    oscillator.frequency.value = 880; // A5 note - loud and attention-grabbing
-    oscillator.type = 'square';
-    gainNode.gain.value = 0.5;
-    
-    oscillator.start();
-    
-    // Beep pattern
-    let time = audioContext.currentTime;
+    // Play alarm pattern - 6 beeps
+    const now = audioContext.currentTime;
     for (let i = 0; i < 6; i++) {
-      gainNode.gain.setValueAtTime(0.5, time);
-      gainNode.gain.setValueAtTime(0, time + 0.15);
-      time += 0.3;
+      playTone(880, now + i * 0.3, 0.15);  // A5
+      playTone(1100, now + i * 0.3, 0.15); // Higher tone for louder effect
     }
-    
-    oscillator.stop(time);
     
     return audioContext;
   } catch (e) {
     console.error("Audio context error:", e);
     return null;
+  }
+};
+
+// Alternative sound using Audio element
+const playAlarmAudio = () => {
+  try {
+    // Use online alarm sound for reliability
+    const sounds = [
+      "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
+      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+    ];
+    
+    const audio = new Audio(sounds[0]);
+    audio.volume = 1.0;
+    audio.play().catch(e => {
+      console.log("Audio play blocked, trying alternative...");
+      // Try Web Audio API as fallback
+      createAlarmSound();
+    });
+  } catch (e) {
+    console.error("Audio error:", e);
   }
 };
 
