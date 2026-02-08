@@ -163,7 +163,7 @@ async def generate_mock_orders(company_id: str, count: int = 5):
     
     for i in range(count):
         restaurant = random.choice(restaurants)
-        delivery = random.choice(sample_addresses)
+        delivery = generate_address()  # Dinamik adres oluştur
         customer = random.choice(sample_customers)
         items = random.choice(sample_items)
         
