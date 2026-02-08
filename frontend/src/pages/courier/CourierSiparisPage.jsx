@@ -568,80 +568,73 @@ function NewOrderCard({ order, onConfirm, loading }) {
   );
 }
 
-// Aktif Sipariş Kartı
+// Aktif Sipariş Kartı - Kompakt
 function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps, onCall, loading }) {
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
-  const PaymentIcon = PAYMENT_METHODS[order.payment_method]?.icon || Banknote;
-  const paymentLabel = PAYMENT_METHODS[order.payment_method]?.label || "Nakit";
+  const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
+  const PaymentIcon = paymentInfo.icon;
 
   return (
     <div
-      className="border-2 border-border bg-white rounded-lg overflow-hidden"
+      className="border border-border bg-white rounded-lg overflow-hidden"
       data-testid={`active-order-card-${order.id}`}
     >
-      <div className="p-4">
+      <div className="p-3">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Badge className={`${statusConfig.color} text-white`}>{statusConfig.label}</Badge>
-            <span className="text-sm font-mono text-muted-foreground">{order.order_number}</span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <Badge className={`${statusConfig.color} text-white text-xs px-2 py-0.5`}>{statusConfig.label}</Badge>
+            <span className="text-xs font-mono text-muted-foreground">{order.order_number}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <PaymentIcon className="w-4 h-4" />
-            <span>{paymentLabel}</span>
+          <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
+            <PaymentIcon className="w-3 h-3" />
+            <span>{paymentInfo.label}</span>
           </div>
         </div>
 
         {/* Restoran */}
-        <div className="flex items-center gap-2 mb-2 text-sm">
-          <Store className="w-4 h-4 text-orange-500" />
-          <span className="font-medium">{order.restaurant_name}</span>
+        <div className="flex items-center gap-1.5 mb-1.5 text-xs">
+          <Store className="w-3.5 h-3.5 text-orange-500" />
+          <span className="font-medium truncate">{order.restaurant_name}</span>
         </div>
 
         {/* Müşteri */}
-        <div className="flex items-center gap-2 mb-2 text-sm">
-          <User className="w-4 h-4 text-blue-500" />
-          <span>{order.customer_name}</span>
+        <div className="flex items-center gap-1.5 mb-1.5 text-xs">
+          <User className="w-3.5 h-3.5 text-blue-500" />
+          <span className="truncate">{order.customer_name}</span>
           <button
             onClick={onCall}
-            className="ml-auto flex items-center gap-1 text-blue-600 hover:underline"
+            className="ml-auto flex items-center gap-1 text-blue-600 hover:underline text-xs"
           >
-            <Phone className="w-4 h-4" />
-            <span>Ara</span>
+            <Phone className="w-3 h-3" />
+            Ara
           </button>
         </div>
 
         {/* Adres */}
-        <div className="flex items-start gap-2 mb-3 text-sm">
-          <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-          <span className="line-clamp-2">{order.delivery_address}</span>
+        <div className="flex items-start gap-1.5 mb-2 text-xs">
+          <MapPin className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+          <span className="line-clamp-1">{order.delivery_address}</span>
         </div>
 
-        {/* Ürünler */}
-        <div className="bg-slate-50 rounded-lg p-3 mb-3">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Sipariş İçeriği</span>
+        {/* Ürünler - Kompakt */}
+        <div className="bg-slate-50 rounded p-2 mb-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-medium text-muted-foreground">Sipariş İçeriği</span>
+            <span className="text-xs font-semibold">{formatCurrency(order.total_amount)}</span>
           </div>
-          <ul className="space-y-1">
+          <div className="text-xs text-muted-foreground">
             {order.items?.map((item, idx) => (
-              <li key={idx} className="text-sm flex justify-between">
-                <span>
-                  {item.quantity}x {item.name}
-                </span>
-                <span className="text-muted-foreground">{formatCurrency(item.price * item.quantity)}</span>
-              </li>
+              <span key={idx}>
+                {item.quantity}x {item.name}{idx < order.items.length - 1 ? ', ' : ''}
+              </span>
             ))}
-          </ul>
-          <div className="border-t border-border mt-2 pt-2 flex justify-between font-semibold">
-            <span>Toplam</span>
-            <span>{formatCurrency(order.total_amount)}</span>
           </div>
         </div>
 
         {/* Not */}
         {order.notes && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-3 text-sm">
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-1.5 mb-2 text-xs">
             <span className="font-medium text-yellow-800">Not:</span> {order.notes}
           </div>
         )}
@@ -652,23 +645,25 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
             <>
               <Button
                 variant="outline"
-                className="flex-1"
+                size="sm"
+                className="flex-1 h-8 text-xs"
                 onClick={onOpenMaps}
                 data-testid={`navigate-btn-${order.id}`}
               >
-                <Navigation className="w-4 h-4 mr-1" />
+                <Navigation className="w-3.5 h-3.5 mr-1" />
                 Yol Tarifi
               </Button>
               <Button
-                className="flex-1 bg-cyan-600 hover:bg-cyan-700"
+                size="sm"
+                className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-8 text-xs"
                 onClick={onPickup}
                 disabled={loading}
                 data-testid={`pickup-btn-${order.id}`}
               >
                 {loading ? (
-                  <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
                 ) : (
-                  <Truck className="w-4 h-4 mr-1" />
+                  <Truck className="w-3.5 h-3.5 mr-1" />
                 )}
                 Yola Çık
               </Button>
@@ -678,23 +673,25 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
             <>
               <Button
                 variant="outline"
-                className="flex-1"
+                size="sm"
+                className="flex-1 h-8 text-xs"
                 onClick={onOpenMaps}
                 data-testid={`navigate-btn-${order.id}`}
               >
-                <Navigation className="w-4 h-4 mr-1" />
+                <Navigation className="w-3.5 h-3.5 mr-1" />
                 Yol Tarifi
               </Button>
               <Button
-                className="flex-1 bg-green-600 hover:bg-green-700"
+                size="sm"
+                className="flex-1 bg-green-600 hover:bg-green-700 h-8 text-xs"
                 onClick={onDeliver}
                 disabled={loading}
                 data-testid={`deliver-btn-${order.id}`}
               >
                 {loading ? (
-                  <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
                 ) : (
-                  <CheckCircle className="w-4 h-4 mr-1" />
+                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
                 )}
                 Teslim Et
               </Button>
