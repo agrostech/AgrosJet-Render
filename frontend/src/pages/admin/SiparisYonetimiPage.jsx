@@ -823,7 +823,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         >
                           <SelectTrigger 
                             className={`${statusInfo.color} text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
-                            onPointerDown={(e) => e.stopPropagation()}
+                            
                           >
                             <SelectValue>
                               {order.status === 'preparing' && order.preparation_end_at
@@ -832,7 +832,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                               }
                             </SelectValue>
                           </SelectTrigger>
-                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+                          <SelectContent >
                             <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
                             {PREPARATION_TIMES.map(time => (
                               <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
@@ -875,14 +875,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         >
                           <SelectTrigger 
                             className="h-6 text-xs border-dashed w-auto gap-1 px-2"
-                            onPointerDown={(e) => e.stopPropagation()}
+                            
                           >
                             <Bike className="w-3 h-3" />
                             <SelectValue>
                               {order.courier_name || "Kurye Ata"}
                             </SelectValue>
                           </SelectTrigger>
-                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+                          <SelectContent >
                             <SelectItem value="unassigned" className="text-xs text-muted-foreground">
                               Kurye Kaldır
                             </SelectItem>
@@ -936,7 +936,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                 ? 'bg-red-500'
                                 : statusInfo.color
                             } text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
-                            onPointerDown={(e) => e.stopPropagation()}
+                            
                           >
                             <SelectValue>
                               {order.status === 'preparing' && order.preparation_end_at
@@ -945,7 +945,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                               }
                             </SelectValue>
                           </SelectTrigger>
-                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+                          <SelectContent >
                             <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
                             {PREPARATION_TIMES.map(time => (
                               <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
@@ -995,14 +995,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                 ? "bg-green-50 border-green-200 text-green-700" 
                                 : "bg-slate-50 border-slate-200 text-slate-600"
                             }`}
-                            onPointerDown={(e) => e.stopPropagation()}
+                            
                           >
                             <Bike className="w-3 h-3 flex-shrink-0" />
                             <span>
                               {order.courier_name || "Kurye Ata"}
                             </span>
                           </SelectTrigger>
-                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+                          <SelectContent >
                             {/* Aktif Kuryeler */}
                             {couriersByStatus.active.length > 0 && (
                               <>
