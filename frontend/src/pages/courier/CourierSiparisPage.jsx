@@ -560,20 +560,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Rota Oluştur Butonu - 2+ yolda sipariş varken */}
-          {onTheWayOrders.length >= 2 && (
-            <Button
-              size="sm"
-              onClick={createOptimizedRoute}
-              className="bg-cyan-600 hover:bg-cyan-700"
-              data-testid="create-route-btn"
-            >
-              <Route className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Rota</span>
-              <span className="sm:hidden">🗺️</span>
-              <Badge className="ml-1 bg-white/20 text-white text-xs px-1.5">{onTheWayOrders.length}</Badge>
-            </Button>
-          )}
           {/* Notification Permission Button */}
           <Button
             variant={notificationsEnabled ? "outline" : "default"}
