@@ -197,14 +197,15 @@ export default function SiparisYonetimiPage({ companyId }) {
       }
     });
 
-    // Order delivery markers (blue - for undelivered orders)
+    // Order delivery markers (for undelivered orders)
     orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach((order, idx) => {
       if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
-        const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.new;
+        const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+        const markerColor = statusInfo?.color || 'bg-yellow-500';
         const marker = L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
           icon: L.divIcon({
             className: 'custom-marker',
-            html: `<div class="w-8 h-8 ${statusInfo.color} rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg border-2 border-white">${idx + 1}</div>`,
+            html: `<div class="w-8 h-8 ${markerColor} rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg border-2 border-white">${idx + 1}</div>`,
             iconSize: [32, 32],
             iconAnchor: [16, 16]
           })
