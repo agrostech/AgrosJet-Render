@@ -739,7 +739,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 function NewOrderCard({ order, onConfirm, loading }) {
   return (
     <div
-      className="border-2 border-purple-300 bg-purple-50 rounded-lg overflow-hidden animate-pulse"
+      className="bg-purple-50 rounded-xl shadow-md border-l-4 border-purple-500"
       data-testid={`new-order-card-${order.id}`}
     >
       <div className="p-3">
