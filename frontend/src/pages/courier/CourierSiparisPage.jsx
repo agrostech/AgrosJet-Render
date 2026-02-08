@@ -148,10 +148,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   // Play notification sound - LOUD using Web Audio API
   const playNotificationSound = useCallback(() => {
     try {
-      // Use Web Audio API for loud, reliable sound
+      // Try multiple methods for maximum compatibility
+      // Method 1: Web Audio API (works even without user interaction in some cases)
       createAlarmSound();
       
-      // Also try vibration
+      // Method 2: Audio element (more compatible)
+      playAlarmAudio();
+      
+      // Method 3: Vibration
       if (navigator.vibrate) {
         navigator.vibrate([500, 200, 500, 200, 500, 200, 500]);
       }
