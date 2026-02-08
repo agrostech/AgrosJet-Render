@@ -864,34 +864,37 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <span className="truncate max-w-[150px]">{order.customer_name}</span>
                         {/* Kurye Dropdown */}
                         <Select
-                          value={order.courier_id || "unassigned"}
+                          value={order.courier_id || ""}
                           onValueChange={(value) => {
-                            if (value === "unassigned") {
+                            if (value === "__remove__") {
                               handleUnassignCourier(order.id);
-                            } else {
-                              handleAssignCourier(order.id, value);
+                            } else if (value) {
+                              handleReassignCourier(order.id, value);
                             }
                           }}
                         >
                           <SelectTrigger 
                             className="h-6 text-xs border-dashed w-auto gap-1 px-2"
-                            
                           >
                             <Bike className="w-3 h-3" />
                             <SelectValue>
                               {order.courier_name || "Kurye Ata"}
                             </SelectValue>
                           </SelectTrigger>
-                          <SelectContent >
-                            <SelectItem value="unassigned" className="text-xs text-muted-foreground">
-                              Kurye Kaldır
-                            </SelectItem>
-                            <div className="border-t my-1" />
+                          <SelectContent>
                             {couriers.filter(c => c.status === 'active').map(c => (
                               <SelectItem key={c.id} value={c.id} className="text-xs">
                                 {c.name}
                               </SelectItem>
                             ))}
+                            {order.courier_id && (
+                              <>
+                                <div className="border-t my-1" />
+                                <SelectItem value="__remove__" className="text-xs text-red-600">
+                                  Kurye Kaldır
+                                </SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
