@@ -282,16 +282,30 @@ async def unassign_courier(company_id: str, order_id: str):
     if order.get("status") in ["delivered", "on_the_way"]:
         raise HTTPException(status_code=400, detail="Bu durumda kurye ataması kaldırılamaz")
     
+    now = datetime.now(timezone.utc).isoformat()
+    courier_name = order.get("courier_name", "Bilinmiyor")
+    
+    # History'ye ekle
+    history_entry = {
+        "status": "ready",
+        "label": "Kurye Ataması Kaldırıldı",
+        "timestamp": now,
+        "note": f"Önceki kurye: {courier_name}"
+    }
+    
     await db.orders.update_one(
         {"id": order_id},
-        {"$set": {
-            "courier_id": None,
-            "courier_name": None,
-            "status": "ready",  # Tekrar atanmaya hazır
-            "assigned_at": None,
-            "confirmed_at": None,
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
+        {
+            "$set": {
+                "courier_id": None,
+                "courier_name": None,
+                "status": "ready",
+                "assigned_at": None,
+                "confirmed_at": None,
+                "updated_at": now
+            },
+            "$push": {"status_history": history_entry}
+        }
     )
     
     return {"message": "Kurye ataması kaldırıldı"}
@@ -321,10 +335,15 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
             detail="Hazırlanıyor durumu için süre belirtilmeli"
         )
     
+    now = datetime.now(timezone.utc)
+    
     update_fields = {
         "status": data.status,
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": now.isoformat()
     }
+    
+    # History için note
+    history_note = ""
     
     # Durum değiştiğinde geri sayımı sıfırla
     update_fields["preparation_end_at"] = None
@@ -332,10 +351,10 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
     
     # Hazırlanıyor durumuna geçişte yeni geri sayım başlat
     if data.status == "preparing" and data.preparation_time:
-        now = datetime.now(timezone.utc)
         preparation_end_at = now + timedelta(minutes=data.preparation_time)
         update_fields["preparation_time"] = data.preparation_time
         update_fields["preparation_end_at"] = preparation_end_at.isoformat()
+        history_note = f"Hazırlık süresi: {data.preparation_time} dakika"
     
     # Kurye ataması kaldırılacak durumlara geçişte kurye bilgisini sil
     if data.status in COURIER_REMOVAL_STATUSES:
@@ -345,11 +364,22 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
         update_fields["confirmed_at"] = None
     
     if data.status == "delivered":
-        update_fields["delivered_at"] = datetime.now(timezone.utc).isoformat()
+        update_fields["delivered_at"] = now.isoformat()
+    
+    # History'ye ekle
+    history_entry = {
+        "status": data.status,
+        "label": ORDER_STATUSES[data.status]["label"],
+        "timestamp": now.isoformat(),
+        "note": history_note
+    }
     
     await db.orders.update_one(
         {"id": order_id},
-        {"$set": update_fields}
+        {
+            "$set": update_fields,
+            "$push": {"status_history": history_entry}
+        }
     )
     
     return {"message": f"Sipariş durumu güncellendi: {ORDER_STATUSES[data.status]['label']}"}
