@@ -123,6 +123,8 @@ async def update_restaurant(restaurant_id: str, data: RestaurantUpdate):
         update_fields["latitude"] = data.latitude
     if data.longitude is not None:
         update_fields["longitude"] = data.longitude
+    if data.preparation_time is not None:
+        update_fields["preparation_time"] = data.preparation_time
     if data.adisyo_api_key is not None:
         update_fields["adisyo_api_key"] = data.adisyo_api_key
         update_fields["adisyo_connected"] = False  # API değişince bağlantıyı resetle
