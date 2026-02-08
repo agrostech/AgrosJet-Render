@@ -1410,6 +1410,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Assign Courier Modal - Sipariş detay modalından kullanılıyor */}
       <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
         <DialogContent>
           <DialogHeader>
