@@ -251,7 +251,23 @@ export default function RestoranlarPage({ companyId }) {
       adisyo_branch_id: restaurant.adisyo_branch_id || ""
     });
     setShowEditModal(true);
+    // Initialize map with existing location
+    setTimeout(() => {
+      initLocationPicker(restaurant.latitude, restaurant.longitude);
+    }, 200);
   };
+
+  // Initialize map when add modal opens
+  useEffect(() => {
+    if (showAddModal) {
+      initLocationPicker();
+    }
+    return () => {
+      if (!showAddModal && !showEditModal) {
+        cleanupMap();
+      }
+    };
+  }, [showAddModal, initLocationPicker]);
 
   const filteredRestaurants = restaurants.filter(r => 
     r.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
