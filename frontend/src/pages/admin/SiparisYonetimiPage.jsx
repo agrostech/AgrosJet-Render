@@ -586,8 +586,8 @@ export default function SiparisYonetimiPage({ companyId }) {
                             }`}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Bike className="w-3 h-3" />
-                            <span className="truncate max-w-[60px]">
+                            <Bike className="w-3 h-3 flex-shrink-0" />
+                            <span>
                               {order.courier_name || "Kurye Ata"}
                             </span>
                           </SelectTrigger>
