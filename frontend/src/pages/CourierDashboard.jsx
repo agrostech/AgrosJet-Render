@@ -315,6 +315,19 @@ export default function CourierDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Notification Button */}
+          <button
+            onClick={requestNotificationPermission}
+            className={`p-1.5 rounded-full ${notificationsEnabled ? 'bg-green-500' : 'bg-white/20'}`}
+            title={notificationsEnabled ? "Bildirimler açık" : "Bildirimleri aç"}
+          >
+            {notificationsEnabled ? (
+              <Bell className="w-4 h-4 text-white" />
+            ) : (
+              <BellOff className="w-4 h-4 text-white/70" />
+            )}
+          </button>
+          
           {/* Status Dropdown - Mobile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
