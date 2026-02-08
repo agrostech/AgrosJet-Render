@@ -52,13 +52,13 @@ const getCountdown = (preparationEndAt) => {
   const endTime = new Date(preparationEndAt);
   const diffMs = endTime - now;
   
-  if (diffMs <= 0) return { expired: true, text: "Süre doldu" };
+  if (diffMs <= 0) return { expired: true, text: "Süre Doldu" };
   
   const minutes = Math.ceil(diffMs / 60000); // Yukarı yuvarla
   
   return { 
     expired: false, 
-    text: `${minutes} dk`,
+    text: `${minutes} Dakika`,
     minutes
   };
 };
