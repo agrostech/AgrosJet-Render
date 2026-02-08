@@ -546,33 +546,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   return (
     <div className="space-y-4" data-testid="courier-siparis-page">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
-            <Package className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="font-heading font-bold text-xl">Siparişlerim</h2>
-            <p className="text-sm text-muted-foreground">
-              {orders.length > 0 ? `${orders.length} aktif sipariş` : "Aktif sipariş yok"}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchOrders(true)}
-            disabled={refreshing}
-            data-testid="refresh-orders-btn"
-          >
-            <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Yenile</span>
-          </Button>
-        </div>
-      </div>
-
       {/* Boş durum */}
       {orders.length === 0 && (
         <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
