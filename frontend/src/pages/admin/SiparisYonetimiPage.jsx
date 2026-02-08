@@ -352,16 +352,41 @@ export default function SiparisYonetimiPage({ companyId }) {
   };
 
   // Update order status
-  const handleUpdateStatus = async (orderId, newStatus) => {
+  const handleUpdateStatus = async (orderId, newStatus, preparationTime = null) => {
+    // Hazırlanıyor durumuna geçişte süre seçimi gerekli
+    if (newStatus === 'preparing' && !preparationTime) {
+      setPendingStatusChange({ orderId, status: newStatus });
+      setSelectedPreparationTime("15");
+      setShowPreparationModal(true);
+      return;
+    }
+    
     try {
-      await axios.post(`${API}/orders/${companyId}/${orderId}/status`, {
-        status: newStatus
-      });
+      const payload = { status: newStatus };
+      if (newStatus === 'preparing' && preparationTime) {
+        payload.preparation_time = parseInt(preparationTime);
+      }
+      
+      await axios.post(`${API}/orders/${companyId}/${orderId}/status`, payload);
       toast.success(`Durum güncellendi: ${ORDER_STATUSES[newStatus].label}`);
       fetchOrders();
     } catch (err) {
-      toast.error("Durum güncellenemedi");
+      toast.error(err.response?.data?.detail || "Durum güncellenemedi");
     }
+  };
+
+  // Hazırlanıyor süresi onaylandığında
+  const handleConfirmPreparation = async () => {
+    if (!pendingStatusChange) return;
+    
+    await handleUpdateStatus(
+      pendingStatusChange.orderId, 
+      pendingStatusChange.status, 
+      selectedPreparationTime
+    );
+    
+    setShowPreparationModal(false);
+    setPendingStatusChange(null);
   };
 
   // Stats
