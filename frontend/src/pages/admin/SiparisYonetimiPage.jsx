@@ -1292,7 +1292,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <span className="font-semibold">{order.restaurant_name}</span>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="font-bold">{formatCurrency(order.total_amount)}</span>
+                        <span className="font-semibold text-sm">{formatCurrency(order.total_amount)}</span>
                         <span className={`px-1.5 py-0.5 rounded text-xs ${
                           order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 
                           order.payment_method === 'online' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'
