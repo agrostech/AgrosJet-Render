@@ -55,6 +55,18 @@ async def get_all_couriers():
     return await courier_service.get_all_couriers()
 
 
+@router.get("/couriers/{courier_id}")
+async def get_courier_by_id(courier_id: str):
+    """Get single courier by ID"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    # Set default availability if not present
+    if "availability_status" not in courier:
+        courier["availability_status"] = "offline"
+    return courier
+
+
 @router.delete("/couriers/{courier_id}/permanent")
 async def delete_courier_permanently(courier_id: str):
     """Permanently delete a courier account and all related data"""
