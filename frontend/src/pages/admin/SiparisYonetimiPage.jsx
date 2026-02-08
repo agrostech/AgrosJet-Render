@@ -368,8 +368,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     };
   }, []);
 
-  const [mapInitialBoundsSet, setMapInitialBoundsSet] = useState(false);
-
   const initMap = () => {
     if (!mapRef.current || !window.L || mapInstanceRef.current) return;
     
