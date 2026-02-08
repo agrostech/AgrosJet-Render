@@ -708,17 +708,17 @@ function KuryelerPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-bold">Kuryeler</h1>
           <p className="text-muted-foreground text-sm">Sistemdeki tüm kurye hesaplarını görüntüleyin</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="İsim veya telefon ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-48 border-2"
+            className="w-full sm:w-48 border-2"
           />
           <select
             value={filterCompany}
@@ -733,7 +733,59 @@ function KuryelerPage() {
         </div>
       </div>
 
-      <div className="bg-white border-2 border-border overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {filteredCouriers.length === 0 ? (
+          <div className="bg-white border-2 rounded-lg p-6 text-center text-muted-foreground">
+            {searchQuery || filterCompany !== "all" ? "Arama kriterlerine uygun kurye bulunamadı" : "Henüz kurye kaydı yok"}
+          </div>
+        ) : (
+          filteredCouriers.map((courier) => (
+            <div key={courier.id} className="bg-white border-2 rounded-lg p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold truncate">{courier.name}</span>
+                    <span className={`px-2 py-0.5 text-xs font-semibold rounded flex-shrink-0 ${
+                      courier.is_active !== false ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}>
+                      {courier.is_active !== false ? "Aktif" : "Pasif"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-mono">{courier.phone}</p>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {(courier.company_names || []).map((name, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-slate-100 text-xs rounded">
+                        {name}
+                      </span>
+                    ))}
+                    {(!courier.company_names || courier.company_names.length === 0) && (
+                      <span className="text-muted-foreground text-xs">Şirket atanmamış</span>
+                    )}
+                  </div>
+                  {courier.created_at && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Kayıt: {new Date(courier.created_at).toLocaleDateString('tr-TR')}
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleDeleteCourier(courier)}
+                  className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600 flex-shrink-0"
+                  title="Hesabı Sil"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white border-2 border-border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
