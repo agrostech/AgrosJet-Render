@@ -742,7 +742,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
           </div>
           <div className="flex items-start gap-1.5 text-xs text-blue-800">
             <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-            <span className="line-clamp-3">{order.delivery_address}</span>
+            <span className="line-clamp-4">{order.delivery_address}</span>
           </div>
         </div>
 
