@@ -274,12 +274,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       
       // Haritayı oluştur
       const map = L.map(orderMapRef.current, {
-        scrollWheelZoom: false
+        scrollWheelZoom: false,
+        attributionControl: false
       }).setView([deliveryLat, deliveryLng], 15);
       
       // CartoDB Positron - Temiz, modern harita stili
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
         maxZoom: 19
       }).addTo(map);
