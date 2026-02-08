@@ -39,8 +39,8 @@ ORDER_STATUSES = {
     "cancelled": {"label": "İptal Edildi", "color": "red"}
 }
 
-# Durumlar arası geçiş kuralları - kurye atamasının korunacağı durumlar
-COURIER_PRESERVING_STATUSES = ["assigned", "confirmed", "on_the_way", "delivered"]
+# Kurye ataması kaldırılacak durumlar
+COURIER_REMOVAL_STATUSES = ["preparing", "ready", "cancelled"]
 
 
 # --- Mock Data Generator ---
@@ -227,21 +227,12 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
-    # Kurye ataması gerektiren bir duruma geçiliyorsa ve kurye yoksa, uyarı ver
-    if data.status in COURIER_PRESERVING_STATUSES and not order.get("courier_id"):
-        # Eğer kurye atanmamışsa bu durumlara geçilemez (assigned hariç - o atama ile geliyor)
-        if data.status != "assigned":
-            raise HTTPException(
-                status_code=400, 
-                detail=f"'{ORDER_STATUSES[data.status]['label']}' durumu için önce kurye ataması yapılmalı"
-            )
-    
-    # Kurye atanmamış durumlara (preparing, ready) geçiliyorsa kurye bilgisini KALDIRMA
-    # Sadece cancelled durumuna geçişte kurye bilgisi silinir
-    if data.status == "cancelled":
+    # Kurye ataması kaldırılacak durumlara geçişte kurye bilgisini sil
+    if data.status in COURIER_REMOVAL_STATUSES:
         update_fields["courier_id"] = None
         update_fields["courier_name"] = None
         update_fields["assigned_at"] = None
+        update_fields["confirmed_at"] = None
     
     if data.status == "delivered":
         update_fields["delivered_at"] = datetime.now(timezone.utc).isoformat()
