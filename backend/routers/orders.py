@@ -82,7 +82,7 @@ async def generate_mock_orders(company_id: str, count: int = 5):
     ]
     
     orders = []
-    statuses = ["new", "preparing", "ready"]  # Yeni siparişler için durumlar
+    statuses = ["preparing", "ready"]  # Mock siparişler için durumlar
     
     for i in range(count):
         restaurant = random.choice(restaurants)
