@@ -135,15 +135,43 @@ def map_adisyo_status(status_id: int, status_name: str) -> str:
     return status_map.get(status_id, "preparing")
 
 
-def map_adisyo_payment(payment_method_id: int, payment_method_name: str) -> str:
+def map_adisyo_payment(payment_method_id: int, payment_method_name: str, external_app_name: str = "") -> str:
     """Adisyo ödeme yöntemini ShiftJet'e çevir"""
-    # 1: Nakit, 2: Kredi Kartı, 3: Online
-    if payment_method_id == 1 or "nakit" in payment_method_name.lower():
+    payment_name_lower = (payment_method_name or "").lower()
+    external_app_lower = (external_app_name or "").lower()
+    
+    # Yemeksepeti, Getir gibi platformlardan gelen siparişler online
+    online_platforms = ["yemeksepeti", "getir", "trendyol", "migros"]
+    if any(platform in external_app_lower for platform in online_platforms):
+        return "online"
+    
+    # Ödeme yöntemi adına göre kontrol
+    if "nakit" in payment_name_lower or "cash" in payment_name_lower:
         return "cash"
-    elif payment_method_id == 3 or "online" in payment_method_name.lower():
+    elif "online" in payment_name_lower or "çevrimiçi" in payment_name_lower:
+        return "online"
+    elif payment_method_id == 1:
+        return "cash"
+    elif payment_method_id == 3:
         return "online"
     else:
         return "card"
+
+
+def parse_coordinate(coord) -> float:
+    """Koordinatı float'a çevir (virgül veya nokta formatını destekle)"""
+    if coord is None:
+        return None
+    if isinstance(coord, (int, float)):
+        return float(coord)
+    if isinstance(coord, str):
+        # Virgülü noktaya çevir
+        coord = coord.replace(",", ".")
+        try:
+            return float(coord)
+        except ValueError:
+            return None
+    return None
 
 
 async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict) -> dict:
@@ -172,12 +200,27 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
     
     delivery_address = ", ".join(filter(None, address_parts)) or "Adres belirtilmemiş"
     
+    # Müşteri adı - None değerlerini filtrele
+    customer_name_parts = []
+    if customer.get("customerName"):
+        customer_name_parts.append(customer["customerName"])
+    if customer.get("customerSurname") and customer.get("customerSurname") != "None":
+        customer_name_parts.append(customer["customerSurname"])
+    customer_name = " ".join(customer_name_parts).strip() or "Müşteri"
+    
+    # Koordinatları düzgün parse et
+    delivery_lat = parse_coordinate(adisyo_order.get("customerLatitude"))
+    delivery_lng = parse_coordinate(adisyo_order.get("customerLongitude"))
+    
+    # External app adını al (Yemeksepeti, Getir vb.)
+    external_app_name = adisyo_order.get("externalAppName", "")
+    
     return {
         "id": str(uuid.uuid4()),
         "order_number": f"ADY-{adisyo_order.get('orderNumber', adisyo_order.get('id'))}",
         "adisyo_order_id": adisyo_order.get("id"),
         "external_app_id": adisyo_order.get("externalAppId"),
-        "external_app_name": adisyo_order.get("externalAppName", "Adisyo"),
+        "external_app_name": external_app_name,
         "company_id": restaurant.get("company_id"),
         "restaurant_id": restaurant.get("id"),
         "restaurant_name": restaurant.get("name"),
@@ -185,18 +228,19 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
             "latitude": restaurant.get("latitude"),
             "longitude": restaurant.get("longitude")
         },
-        "customer_name": f"{customer.get('customerName', '')} {customer.get('customerSurname', '')}".strip() or "Müşteri",
+        "customer_name": customer_name,
         "customer_phone": customer.get("customerPhone", ""),
         "delivery_address": delivery_address,
         "delivery_location": {
-            "latitude": adisyo_order.get("customerLatitude"),
-            "longitude": adisyo_order.get("customerLongitude")
+            "latitude": delivery_lat,
+            "longitude": delivery_lng
         },
         "items": items,
         "total_amount": float(adisyo_order.get("orderTotal", 0)),
         "payment_method": map_adisyo_payment(
             adisyo_order.get("paymentMethodId", 1),
-            adisyo_order.get("paymentMethodName", "Nakit")
+            adisyo_order.get("paymentMethodName", "Nakit"),
+            external_app_name
         ),
         "status": map_adisyo_status(
             adisyo_order.get("statusId", 1),
