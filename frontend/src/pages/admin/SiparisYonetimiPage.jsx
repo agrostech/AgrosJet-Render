@@ -286,6 +286,30 @@ export default function SiparisYonetimiPage({ companyId }) {
     }
   };
 
+  // Unassign courier from order
+  const handleUnassignCourier = async (orderId) => {
+    try {
+      await axios.delete(`${API}/orders/${companyId}/${orderId}/assign`);
+      toast.success("Kurye ataması kaldırıldı");
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kurye ataması kaldırılamadı");
+    }
+  };
+
+  // Reassign courier (assign different courier)
+  const handleReassignCourier = async (orderId, courierId) => {
+    try {
+      await axios.post(`${API}/orders/${companyId}/${orderId}/assign`, {
+        courier_id: courierId
+      });
+      toast.success("Kurye değiştirildi");
+      fetchOrders();
+    } catch (err) {
+      toast.error("Kurye atanamadı");
+    }
+  };
+
   // Update order status
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
