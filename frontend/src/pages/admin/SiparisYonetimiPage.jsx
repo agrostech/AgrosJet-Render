@@ -147,7 +147,7 @@ export default function SiparisYonetimiPage({ companyId }) {
       scrollWheelZoom: true,
       zoomSnap: 1,
       zoomDelta: 1,
-      wheelPxPerZoomLevel: 120  // Daha yavaş zoom - 1 scroll = 1 zoom level
+      wheelPxPerZoomLevel: 300  // Çok daha yavaş zoom - yaklaşık 3x scroll = 1 zoom
     }).setView([centerLat, centerLng], 12);
     
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
