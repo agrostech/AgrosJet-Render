@@ -49,7 +49,14 @@ COURIER_ONLY_STATUSES = ["assigned", "confirmed"]
 
 # --- Mock Data Generator ---
 async def generate_mock_orders(company_id: str, count: int = 5):
-    """Test amaçlı mock sipariş oluştur"""
+    """Test amaçlı mock sipariş oluştur - Şirketin bulunduğu şehirden"""
+    
+    # Şirket bilgilerini al (şehir koordinatları için)
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "city": 1, "city_lat": 1, "city_lng": 1}
+    )
+    
     # Şirketin restoranlarını al (hazırlık süresi dahil)
     restaurants = await db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
@@ -59,19 +66,82 @@ async def generate_mock_orders(company_id: str, count: int = 5):
     if not restaurants:
         return []
     
-    # İstanbul'dan örnek adresler
-    sample_addresses = [
-        {"address": "Kadıköy, Moda Caddesi No:45", "lat": 40.9869, "lng": 29.0260},
-        {"address": "Beşiktaş, Barbaros Bulvarı No:120", "lat": 41.0422, "lng": 29.0083},
-        {"address": "Üsküdar, Bağlarbaşı Caddesi No:78", "lat": 41.0241, "lng": 29.0155},
-        {"address": "Maltepe, Bağdat Caddesi No:234", "lat": 40.9342, "lng": 29.1310},
-        {"address": "Ataşehir, Barbaros Mahallesi No:56", "lat": 40.9923, "lng": 29.1187},
-        {"address": "Şişli, Halaskargazi Caddesi No:89", "lat": 41.0602, "lng": 28.9877},
-        {"address": "Bakırköy, İstanbul Caddesi No:167", "lat": 40.9819, "lng": 28.8772},
-        {"address": "Fatih, Vatan Caddesi No:23", "lat": 41.0186, "lng": 28.9272},
-        {"address": "Beyoğlu, İstiklal Caddesi No:445", "lat": 41.0339, "lng": 28.9778},
-        {"address": "Sarıyer, Maslak Mahallesi No:12", "lat": 41.1089, "lng": 29.0217},
-    ]
+    # Şirket şehrine göre mahalle ve sokak bilgileri
+    city_neighborhoods = {
+        "Mersin": {
+            "neighborhoods": [
+                "Akdeniz", "Mezitli", "Yenişehir", "Toroslar", "Tarsus",
+                "Çamlıyayla", "Pozcu", "Forum", "Liparis", "Güvenevler"
+            ],
+            "streets": [
+                "Gazi Mustafa Kemal Bulvarı", "İsmet İnönü Bulvarı", "Atatürk Caddesi",
+                "Silifke Caddesi", "Hal Caddesi", "Çankaya Caddesi", "Kuvai Milliye Caddesi",
+                "Hastane Caddesi", "Liman Caddesi", "Sahil Yolu"
+            ],
+            "base_lat": 36.8121,
+            "base_lng": 34.6415
+        },
+        "İstanbul": {
+            "neighborhoods": [
+                "Kadıköy", "Beşiktaş", "Üsküdar", "Maltepe", "Ataşehir",
+                "Şişli", "Bakırköy", "Fatih", "Beyoğlu", "Sarıyer"
+            ],
+            "streets": [
+                "Bağdat Caddesi", "Barbaros Bulvarı", "İstiklal Caddesi", "Halaskargazi Caddesi",
+                "Moda Caddesi", "Vatan Caddesi", "Bağlarbaşı Caddesi", "Maslak Caddesi"
+            ],
+            "base_lat": 41.0082,
+            "base_lng": 28.9784
+        },
+        "Ankara": {
+            "neighborhoods": [
+                "Çankaya", "Kızılay", "Bahçelievler", "Keçiören", "Yenimahalle",
+                "Etimesgut", "Mamak", "Altındağ", "Sincan", "Pursaklar"
+            ],
+            "streets": [
+                "Atatürk Bulvarı", "Tunalı Hilmi Caddesi", "Kızılay Caddesi", "Bahçelievler Caddesi",
+                "Hoşdere Caddesi", "Çetin Emeç Bulvarı", "Eskişehir Yolu"
+            ],
+            "base_lat": 39.9334,
+            "base_lng": 32.8597
+        },
+        "İzmir": {
+            "neighborhoods": [
+                "Alsancak", "Konak", "Karşıyaka", "Bornova", "Buca",
+                "Bayraklı", "Çiğli", "Gaziemir", "Balçova", "Narlıdere"
+            ],
+            "streets": [
+                "Kordon Boyu", "Atatürk Caddesi", "Cumhuriyet Bulvarı", "Fevzipaşa Bulvarı",
+                "Alsancak Caddesi", "Kıbrıs Şehitleri Caddesi"
+            ],
+            "base_lat": 38.4192,
+            "base_lng": 27.1287
+        }
+    }
+    
+    # Şirketin şehrini al veya varsayılan kullan
+    city_name = company.get("city", "İstanbul") if company else "İstanbul"
+    city_data = city_neighborhoods.get(city_name, city_neighborhoods["İstanbul"])
+    
+    # Şirketin koordinatlarını kullan veya şehir varsayılanını
+    base_lat = company.get("city_lat", city_data["base_lat"]) if company else city_data["base_lat"]
+    base_lng = company.get("city_lng", city_data["base_lng"]) if company else city_data["base_lng"]
+    
+    # Dinamik adresler oluştur (şirket konumu etrafında ~3km yarıçapta)
+    def generate_address():
+        neighborhood = random.choice(city_data["neighborhoods"])
+        street = random.choice(city_data["streets"])
+        building_no = random.randint(1, 200)
+        
+        # Rastgele konum (merkez etrafında ~3km)
+        lat_offset = random.uniform(-0.025, 0.025)  # ~2.5km
+        lng_offset = random.uniform(-0.025, 0.025)
+        
+        return {
+            "address": f"{neighborhood}, {street} No:{building_no}",
+            "lat": base_lat + lat_offset,
+            "lng": base_lng + lng_offset
+        }
     
     sample_customers = [
         "Ahmet Yılmaz", "Mehmet Demir", "Ayşe Kaya", "Fatma Öztürk", "Ali Çelik",
