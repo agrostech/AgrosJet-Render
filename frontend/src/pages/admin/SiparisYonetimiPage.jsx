@@ -432,6 +432,18 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     // Leaflet yüklü değilse bekle
     if (!window.L) return;
     
+    // Kurye baş harflerini al
+    const getCourierInitials = (name) => {
+      if (!name) return "?";
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) {
+        return parts[0].substring(0, 2).toUpperCase();
+      }
+      const firstInitial = parts[0][0].toUpperCase();
+      const lastInitial = parts[parts.length - 1][0].toUpperCase();
+      return firstInitial + lastInitial;
+    };
+    
     const initCourierMap = () => {
       if (!courierMapRef.current) {
         // DOM henüz hazır değil, tekrar dene
@@ -459,7 +471,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         maxZoom: 19
       }).addTo(map);
       
-      // Kurye siparişlerini haritada göster (ref kullan, sürekli yenilenmesin)
+      const allPoints = [];
+      
+      // Kurye siparişlerini haritada göster (küçük ikonlar)
       const currentOrders = ordersRef.current;
       const courierOrders = currentOrders.filter(o => o.courier_id === selectedCourier.id && o.status !== 'delivered' && o.status !== 'cancelled');
       
@@ -477,27 +491,68 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           };
           const hexColor = colorMap[statusInfo.color] || '#3b82f6';
           
+          // Küçük sipariş ikonu (kurye ikonu boyutunda)
           L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
             icon: L.divIcon({
               className: 'order-marker',
-              html: `<div style="background: ${hexColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold;">${idx + 1}</div>`,
-              iconSize: [28, 28],
-              iconAnchor: [14, 14]
+              html: `<div style="background: ${hexColor}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 9px; font-weight: bold;">${idx + 1}</div>`,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
             })
           }).addTo(map)
             .bindPopup(`<strong>${order.order_number}</strong><br/>${order.restaurant_name}<br/>${order.delivery_address}`);
+          
+          allPoints.push([order.delivery_location.latitude, order.delivery_location.longitude]);
         }
       });
       
-      // Siparişlere odaklan
-      if (courierOrders.length > 0) {
-        const points = courierOrders
-          .filter(o => o.delivery_location?.latitude && o.delivery_location?.longitude)
-          .map(o => [o.delivery_location.latitude, o.delivery_location.longitude]);
-        if (points.length > 0) {
-          const bounds = L.latLngBounds(points);
-          map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
-        }
+      // Kuryenin kendi konumunu göster (animasyonlu ikon)
+      if (selectedCourier.current_location?.latitude && selectedCourier.current_location?.longitude) {
+        const isOnBreak = selectedCourier.availability_status === 'on_break';
+        const bgColor = isOnBreak ? '#eab308' : '#22c55e';
+        const initials = getCourierInitials(selectedCourier.name);
+        
+        L.marker([selectedCourier.current_location.latitude, selectedCourier.current_location.longitude], {
+          icon: L.divIcon({
+            className: 'courier-marker',
+            html: `
+              <div style="position: relative; width: 22px; height: 22px; border-radius: 50% !important; background: transparent !important;">
+                <div class="courier-pulse-ring" style="background: ${bgColor}; border-radius: 50% !important;"></div>
+                <div class="courier-pulse-ring-delayed" style="background: ${bgColor}; border-radius: 50% !important;"></div>
+                <div style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: ${bgColor};
+                  width: 20px;
+                  height: 20px;
+                  border-radius: 50% !important;
+                  -webkit-border-radius: 50% !important;
+                  border: 2px solid white;
+                  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  font-size: 8px;
+                  font-weight: 700;
+                ">${initials}</div>
+              </div>
+            `,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+          })
+        }).addTo(map)
+          .bindPopup(`<strong>🛵 ${selectedCourier.name}</strong><br/>${isOnBreak ? 'Molada' : 'Aktif'}`);
+        
+        allPoints.push([selectedCourier.current_location.latitude, selectedCourier.current_location.longitude]);
+      }
+      
+      // Tüm noktalara odaklan (kurye + siparişler)
+      if (allPoints.length > 0) {
+        const bounds = L.latLngBounds(allPoints);
+        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
       }
       
       courierMapInstanceRef.current = map;
