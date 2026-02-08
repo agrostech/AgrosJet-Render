@@ -289,9 +289,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         [deliveryLat + radiusInDegrees, deliveryLng + radiusInDegrees]
       ]);
       
-      // Teslimat noktası marker (kırmızı)
+      // Teslimat noktası marker (kırmızı, yuvarlak)
       const deliveryIcon = L.divIcon({
-        className: 'custom-marker',
+        className: '',
         html: `<div style="background: #ef4444; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
         iconSize: [24, 24],
         iconAnchor: [12, 12]
@@ -301,10 +301,10 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         .addTo(map)
         .bindPopup(`<b>Teslimat Adresi</b><br>${selectedOrder.delivery_address}`);
       
-      // Restoran marker (gri, küçük) - varsa
+      // Restoran marker (gri, küçük, yuvarlak) - varsa
       if (restaurantLat && restaurantLng) {
         const restaurantIcon = L.divIcon({
-          className: 'custom-marker',
+          className: '',
           html: `<div style="background: #9ca3af; width: 10px; height: 10px; border-radius: 50%; border: 1px solid #6b7280;"></div>`,
           iconSize: [10, 10],
           iconAnchor: [5, 5]
