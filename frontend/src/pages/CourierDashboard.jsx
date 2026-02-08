@@ -102,6 +102,16 @@ export default function CourierDashboard() {
     }
   }, []);
 
+  // Fetch break status
+  const fetchBreakStatus = useCallback(async (courierId) => {
+    try {
+      const res = await axios.get(`${API}/couriers/${courierId}/break-status`);
+      setBreakStatus(res.data);
+    } catch (err) {
+      console.error("Mola durumu alınamadı", err);
+    }
+  }, []);
+
   // Update availability status
   const updateAvailabilityStatus = async (newStatus) => {
     if (!user?.id) return;
