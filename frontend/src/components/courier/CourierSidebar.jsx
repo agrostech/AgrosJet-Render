@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, User, Circle, Coffee, WifiOff } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, User, Check, Coffee, XCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +10,9 @@ import {
 
 // Kurye durumları
 const AVAILABILITY_STATUSES = {
-  active: { label: "Aktif", color: "bg-green-500", icon: Circle },
+  active: { label: "Aktif", color: "bg-green-500", icon: Check },
   on_break: { label: "Molada", color: "bg-yellow-500", icon: Coffee },
-  offline: { label: "Çevrimdışı", color: "bg-gray-400", icon: WifiOff },
+  offline: { label: "Çevrimdışı", color: "bg-gray-400", icon: XCircle },
 };
 
 export default function CourierSidebar({ 
