@@ -4,7 +4,52 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler
 
-#### 🔔 Push Notification (YENİ)
+#### 🗺️ Rota Optimizasyonu (YENİ - 8 Şubat 2026)
+Kurye 2+ siparişi yola çıkardığında tek tuşla optimum rotayı Google Maps'te açar:
+
+**Özellikler:**
+- "Rota" butonu üst header'da (2+ yolda sipariş varken görünür)
+- Badge ile yolda sipariş sayısı gösterimi
+- Kuryenin GPS konumundan başlayarak en yakın siparişe doğru sıralama (Nearest Neighbor)
+- Google Maps'te multi-stop navigasyon URL'i açılır
+- Toast ile rota sırası bilgisi (1. Müşteri A → 2. Müşteri B → 3. Müşteri C)
+
+**Dosyalar:**
+- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` (createOptimizedRoute fonksiyonu)
+
+---
+
+#### 📝 Adisyo Not Ayrıştırma (DÜZELTİLDİ - 8 Şubat 2026)
+Adisyo'dan gelen siparişlerdeki notlar düzgün kategorize ediliyor:
+
+**Özellikler:**
+- Ödeme bilgileri (Online Kredi/Banka Kartı vb.) otomatik temizleniyor
+- Müşteri notları (CUSTOMER:) - operasyonel notlar (örn: "ömer aybak çiğköfteye gelicek")
+- Mutfak notları (KITCHEN:) - yemek talimatları (örn: "çatal bıçak göndermeyin")
+- Frontend'de CUSTOMER notları kırmızı, KITCHEN notları normal renkte
+
+**Dosyalar:**
+- `/app/backend/services/adisyo_service.py` (parse_and_categorize_notes fonksiyonu)
+- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx` (not gösterimi)
+
+---
+
+#### 🔴 Yuvarlak Restoran Markerları (DÜZELTİLDİ - 8 Şubat 2026)
+Haritadaki restoran ikonları artık yuvarlak görünüyor:
+
+**Özellikler:**
+- Leaflet divIcon className kaldırıldı
+- Inline style ile border-radius: 50% zorlandı
+- -webkit-border-radius eklendi (cross-browser)
+- CSS'te .leaflet-marker-icon > div seçicisi güçlendirildi
+
+**Dosyalar:**
+- `/app/frontend/src/pages/admin/SiparisYonetimiPage.jsx` (updateMapMarkers)
+- `/app/frontend/src/index.css` (Leaflet override CSS)
+
+---
+
+#### 🔔 Push Notification
 Kurye sipariş atandığında sesli bildirim alır:
 
 **Özellikler:**
