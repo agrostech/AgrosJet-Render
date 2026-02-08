@@ -397,17 +397,14 @@ export default function SiparisYonetimiPage({ companyId }) {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold">{order.order_number}</span>
+                          <Store className="w-4 h-4 text-red-500" />
+                          <span className="font-semibold">{order.restaurant_name}</span>
                           <Badge className={`${statusInfo.color} text-white text-xs`}>
                             {statusInfo.label}
                           </Badge>
                           <span className="text-sm">{paymentInfo.icon}</span>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Store className="w-3.5 h-3.5" />
-                            {order.restaurant_name}
-                          </span>
                           <span className="flex items-center gap-1">
                             <User className="w-3.5 h-3.5" />
                             {order.customer_name}
@@ -416,6 +413,7 @@ export default function SiparisYonetimiPage({ companyId }) {
                             <Clock className="w-3.5 h-3.5" />
                             {formatTime(order.created_at)}
                           </span>
+                          <span className="text-xs text-slate-400">#{order.order_number?.split('-')[1]}</span>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 truncate flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
