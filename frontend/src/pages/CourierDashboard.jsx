@@ -118,6 +118,51 @@ export default function CourierDashboard() {
     }
   };
 
+  // Update courier location
+  const updateCourierLocation = useCallback(async (courierId, latitude, longitude) => {
+    try {
+      await axios.put(`${API}/couriers/${courierId}/location`, {
+        latitude,
+        longitude
+      });
+    } catch (err) {
+      // Silent fail - location update is not critical
+      console.error("Konum güncellenemedi:", err);
+    }
+  }, []);
+
+  // Start location tracking when courier is active or on_break
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Only track location if courier is active or on_break
+    if (availabilityStatus === "offline") return;
+    
+    let watchId = null;
+    
+    if ("geolocation" in navigator) {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          updateCourierLocation(user.id, position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.error("Konum izleme hatası:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 30000
+        }
+      );
+    }
+    
+    return () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [user?.id, availabilityStatus, updateCourierLocation]);
+
   // Check if courier is deactivated (forced logout)
   const checkCourierStatus = useCallback(async (courierId, companyId) => {
     try {
