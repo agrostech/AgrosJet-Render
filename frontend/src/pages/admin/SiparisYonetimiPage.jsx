@@ -857,26 +857,26 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span className="truncate max-w-[150px]">{order.customer_name}</span>
                         {/* Kurye Dropdown */}
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <Select
-                            value={order.courier_id || "unassigned"}
-                            onValueChange={(value) => {
-                              if (value === "unassigned") {
-                                handleUnassignCourier(order.id);
-                              } else {
-                                handleAssignCourier(order.id, value);
-                              }
-                            }}
-                          >
+                        <Select
+                          value={order.courier_id || "unassigned"}
+                          onValueChange={(value) => {
+                            if (value === "unassigned") {
+                              handleUnassignCourier(order.id);
+                            } else {
+                              handleAssignCourier(order.id, value);
+                            }
+                          }}
+                        >
                           <SelectTrigger 
                             className="h-6 text-xs border-dashed w-auto gap-1 px-2"
+                            onPointerDown={(e) => e.stopPropagation()}
                           >
                             <Bike className="w-3 h-3" />
                             <SelectValue>
                               {order.courier_name || "Kurye Ata"}
                             </SelectValue>
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
                             <SelectItem value="unassigned" className="text-xs text-muted-foreground">
                               Kurye Kaldır
                             </SelectItem>
@@ -888,7 +888,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             ))}
                           </SelectContent>
                         </Select>
-                        </div>
                       </div>
                     </div>
 
