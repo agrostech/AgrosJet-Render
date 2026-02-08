@@ -406,12 +406,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     markersRef.current.forEach(marker => map.removeLayer(marker));
     markersRef.current = [];
 
-    // Restaurant markers (gri, küçük)
+    // Restaurant markers (gri, küçük, yuvarlak)
     restaurants.forEach(r => {
       if (r.latitude && r.longitude) {
         const marker = L.marker([r.latitude, r.longitude], {
           icon: L.divIcon({
-            className: 'custom-marker',
+            className: '',
             html: `<div style="background: #9ca3af; width: 12px; height: 12px; border-radius: 50%; border: 1px solid #6b7280;"></div>`,
             iconSize: [12, 12],
             iconAnchor: [6, 6]
@@ -422,15 +422,26 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       }
     });
 
-    // Order delivery markers (for undelivered orders)
+    // Order delivery markers (yuvarlak)
     orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach((order, idx) => {
       if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
         const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
-        const markerColor = statusInfo?.color || 'bg-yellow-500';
+        const bgColor = statusInfo?.color?.replace('bg-', '') || 'yellow-500';
+        const colorMap = {
+          'yellow-500': '#eab308',
+          'orange-500': '#f97316',
+          'purple-500': '#a855f7',
+          'blue-500': '#3b82f6',
+          'cyan-500': '#06b6d4',
+          'green-500': '#22c55e',
+          'red-500': '#ef4444'
+        };
+        const hexColor = colorMap[bgColor] || '#eab308';
+        
         const marker = L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
           icon: L.divIcon({
-            className: 'custom-marker',
-            html: `<div class="w-8 h-8 ${markerColor} rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg border-2 border-white">${idx + 1}</div>`,
+            className: '',
+            html: `<div style="background: ${hexColor}; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">${idx + 1}</div>`,
             iconSize: [32, 32],
             iconAnchor: [16, 16]
           })
