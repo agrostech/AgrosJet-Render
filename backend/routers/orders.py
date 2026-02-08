@@ -292,10 +292,28 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
             detail=f"'{ORDER_STATUSES[data.status]['label']}' durumu sadece kurye tarafından seçilebilir"
         )
     
+    # Hazırlanıyor durumuna geçişte süre zorunlu
+    if data.status == "preparing" and not data.preparation_time:
+        raise HTTPException(
+            status_code=400,
+            detail="Hazırlanıyor durumu için süre belirtilmeli"
+        )
+    
     update_fields = {
         "status": data.status,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
+    
+    # Durum değiştiğinde geri sayımı sıfırla
+    update_fields["preparation_end_at"] = None
+    update_fields["preparation_time"] = None
+    
+    # Hazırlanıyor durumuna geçişte yeni geri sayım başlat
+    if data.status == "preparing" and data.preparation_time:
+        now = datetime.now(timezone.utc)
+        preparation_end_at = now + timedelta(minutes=data.preparation_time)
+        update_fields["preparation_time"] = data.preparation_time
+        update_fields["preparation_end_at"] = preparation_end_at.isoformat()
     
     # Kurye ataması kaldırılacak durumlara geçişte kurye bilgisini sil
     if data.status in COURIER_REMOVAL_STATUSES:
