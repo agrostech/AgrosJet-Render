@@ -834,12 +834,28 @@ export default function SiparisYonetimiPage({ companyId }) {
 
               {/* Courier */}
               {selectedOrder.courier_name ? (
-                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                  <Bike className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="font-medium">{selectedOrder.courier_name}</p>
-                    <p className="text-sm text-muted-foreground">Kurye</p>
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Bike className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="font-medium">{selectedOrder.courier_name}</p>
+                      <p className="text-sm text-muted-foreground">Kurye</p>
+                    </div>
                   </div>
+                  {selectedOrder.status !== 'on_the_way' && selectedOrder.status !== 'delivered' && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        handleUnassignCourier(selectedOrder.id);
+                        setShowOrderDetailModal(false);
+                      }}
+                    >
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Kaldır
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <Button 
