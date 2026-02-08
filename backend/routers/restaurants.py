@@ -193,32 +193,65 @@ async def delete_restaurant(restaurant_id: str):
 
 # --- Adisyo API Bağlantı Test ---
 @router.post("/{restaurant_id}/test-adisyo")
-async def test_adisyo_connection(restaurant_id: str):
+async def test_adisyo_connection_endpoint(restaurant_id: str):
     """Adisyo API bağlantısını test et"""
-    restaurant = await db.restaurants.find_one(
-        {"id": restaurant_id},
-        {"_id": 0, "adisyo_api_key": 1, "adisyo_api_secret": 1, "adisyo_branch_id": 1}
-    )
+    from services.adisyo_service import test_adisyo_connection
     
-    if not restaurant:
-        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    result = await test_adisyo_connection(restaurant_id)
     
-    if not restaurant.get("adisyo_api_key") or not restaurant.get("adisyo_api_secret"):
-        raise HTTPException(status_code=400, detail="Adisyo API bilgileri eksik")
+    if result["success"]:
+        # Bağlantı başarılı, veritabanını güncelle
+        await db.restaurants.update_one(
+            {"id": restaurant_id},
+            {"$set": {
+                "adisyo_connected": True,
+                "adisyo_last_test": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        return {"message": "Adisyo bağlantısı başarılı", "connected": True}
+    else:
+        # Bağlantı başarısız
+        await db.restaurants.update_one(
+            {"id": restaurant_id},
+            {"$set": {
+                "adisyo_connected": False,
+                "adisyo_last_test": datetime.now(timezone.utc).isoformat(),
+                "adisyo_last_error": result["error"]
+            }}
+        )
+        raise HTTPException(status_code=400, detail=result["error"])
+
+
+@router.post("/{restaurant_id}/sync-adisyo")
+async def sync_adisyo_orders_endpoint(restaurant_id: str):
+    """Restoran için Adisyo siparişlerini senkronize et"""
+    from services.adisyo_service import sync_restaurant_orders
     
-    # TODO: Gerçek Adisyo API bağlantı testi
-    # Şimdilik mock olarak başarılı döndür
+    result = await sync_restaurant_orders(restaurant_id)
     
-    # Bağlantı başarılı, veritabanını güncelle
-    await db.restaurants.update_one(
-        {"id": restaurant_id},
-        {"$set": {
-            "adisyo_connected": True,
-            "adisyo_last_test": datetime.now(timezone.utc).isoformat()
-        }}
-    )
+    if result["success"]:
+        return {
+            "message": f"{result['synced']} yeni sipariş eklendi",
+            "synced": result["synced"],
+            "skipped": result.get("skipped", 0),
+            "total": result.get("total", 0)
+        }
+    else:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+
+@router.post("/company/{company_id}/sync-adisyo")
+async def sync_all_adisyo_orders_endpoint(company_id: str):
+    """Şirketteki tüm restoranların Adisyo siparişlerini senkronize et"""
+    from services.adisyo_service import sync_all_company_orders
     
-    return {"message": "Adisyo bağlantısı başarılı", "connected": True}
+    result = await sync_all_company_orders(company_id)
+    
+    return {
+        "message": f"Toplam {result['total_synced']} sipariş senkronize edildi",
+        "total_synced": result["total_synced"],
+        "restaurants": result["restaurants"]
+    }
 
 
 # --- İstatistikler ---
