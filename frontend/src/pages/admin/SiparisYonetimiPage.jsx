@@ -373,10 +373,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   const initMap = () => {
     if (!mapRef.current || !window.L || mapInstanceRef.current) return;
     
-    // Başlangıçta Türkiye merkezi - sonra veriler yüklenince güncellenir
+    // Şirketin ili veya default Türkiye merkezi
+    const centerLat = company?.city_lat || 39.0;
+    const centerLng = company?.city_lng || 35.0;
+    const zoomLevel = company?.city_lat ? 14 : 6;
+    
     const map = window.L.map(mapRef.current, {
-      scrollWheelZoom: false  // Scroll zoom kapalı - sadece butonlarla zoom
-    }).setView([39.0, 35.0], 6); // Türkiye merkezi
+      scrollWheelZoom: false
+    }).setView([centerLat, centerLng], zoomLevel);
     
     // CartoDB Positron - Temiz, modern harita stili
     window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -388,45 +392,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     mapInstanceRef.current = map;
   };
 
-  // Haritayı şirket konumuna veya siparişlere göre merkeze al (loading bitince)
+  // Şirket verisi yüklenince haritayı şirketin iline ortala
   useEffect(() => {
-    if (loading) return; // Veriler yüklenene kadar bekle
-    if (mapInitialBoundsSet) return; // Sadece ilk seferde odaklan
-    if (!mapInstanceRef.current || !window.L) return;
+    if (!mapInstanceRef.current) return;
+    if (!company?.city_lat || !company?.city_lng) return;
     
-    const map = mapInstanceRef.current;
-    const L = window.L;
-    
-    // Tüm noktaları topla
-    const allPoints = [];
-    
-    restaurants.forEach(r => {
-      if (r.latitude && r.longitude) {
-        allPoints.push([r.latitude, r.longitude]);
-      }
-    });
-    
-    orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach(o => {
-      if (o.delivery_location?.latitude && o.delivery_location?.longitude) {
-        allPoints.push([o.delivery_location.latitude, o.delivery_location.longitude]);
-      }
-    });
-    
-    if (allPoints.length > 0) {
-      // Sipariş/restoran varsa, onlara odaklan
-      try {
-        const bounds = L.latLngBounds(allPoints);
-        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
-        setMapInitialBoundsSet(true);
-      } catch (e) {
-        console.error("fitBounds error:", e);
-      }
-    } else if (company?.city_lat && company?.city_lng) {
-      // Sipariş yoksa şirket şehrine odaklan
-      map.setView([company.city_lat, company.city_lng], 14);
-      setMapInitialBoundsSet(true);
-    }
-  }, [loading, orders, restaurants, company, mapInitialBoundsSet]);
+    mapInstanceRef.current.setView([company.city_lat, company.city_lng], 14);
+  }, [company]);
 
   // Update markers when data changes
   useEffect(() => {
