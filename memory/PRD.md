@@ -139,11 +139,18 @@ ORDER_STATUSES = {
 ```
 GET  /api/couriers/{courier_id}                                - Kurye bilgisi
 PUT  /api/couriers/{courier_id}/availability                   - Durum güncelle
+PUT  /api/couriers/{courier_id}/location                       - Konum güncelle
 GET  /api/orders/courier/{courier_id}/active                   - Kuryenin aktif siparişleri
 POST /api/orders/courier/{courier_id}/order/{order_id}/confirm - Siparişi onayla
 POST /api/orders/courier/{courier_id}/order/{order_id}/pickup  - Yola çık
 POST /api/orders/courier/{courier_id}/order/{order_id}/deliver - Teslim et
 POST /api/orders/courier/{courier_id}/order/{order_id}/reject  - Reddet
+```
+
+### Şirket API Endpoints
+```
+GET  /api/companies/{company_id}/working-hours                 - Çalışma saatleri
+PUT  /api/companies/{company_id}/working-hours                 - Çalışma saatleri güncelle
 ```
 
 ### Harita Zoom Ayarları
