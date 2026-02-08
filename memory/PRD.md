@@ -9,41 +9,32 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 
 ### ✅ Tamamlanan Özellikler (Bu Oturum)
 
-#### 1. Sipariş Yönetimi Sistemi (YENİ - Adisyo Entegrasyon Temeli)
-- **Sipariş Yönetimi Sekmesi** - Tam işlevsel admin paneli sekmesi
-  - Canlı İstanbul haritası (Leaflet/OpenStreetMap)
-  - İstatistik kartları: Toplam, Atanmamış, Yolda, Teslim
-  - Sipariş listesi filtreli görünüm
-  - Sipariş detay modal (müşteri, adres, ürünler, toplam)
-  - Kurye atama modal
-  - Durum güncelleme butonları
-  - Mock sipariş oluşturma (test için)
-- **Backend:** `/app/backend/routers/orders.py`
-- **Frontend:** `/app/frontend/src/pages/admin/SiparisYonetimiPage.jsx`
+#### 1. Sipariş Yönetimi UI İyileştirmeleri
+- **İstatistikler kompakt** - Üstte badge olarak gösteriliyor (yer kaplamıyor)
+- **Sipariş kartı** - Restoran adı öncelikli gösterim (ORD-xxx yerine)
+- **Harita zoom** - 1 scroll = 1 zoom level (hassasiyet düzeltildi)
+- **Şirket ili bazlı harita ortalama** - Harita şirketin iline otomatik ortalanıyor
 
-#### 2. Restoranlar Yönetimi (YENİ)
-- **Restoranlar Sekmesi** - Ana menüde ayrı sekme
-  - Restoran ekleme/düzenleme/silme/arşivleme
-  - Konum bilgileri (enlem/boylam)
-  - **Adisyo API Entegrasyonu bilgileri:**
-    - API Key
-    - API Secret  
-    - Branch ID
-  - Bağlantı test butonu
-  - Arama ve filtreleme
-- **Backend:** `/app/backend/routers/restaurants.py`
-- **Frontend:** `/app/frontend/src/pages/admin/RestoranlarPage.jsx`
+#### 2. Restoran Yönetimi İyileştirmeleri
+- **Haritadan konum seçimi** - Enlem/boylam manuel giriş yerine haritadan tıklayarak işaretleme
+- **Menü sırası düzeltildi** - Restoranlar sekmesi Kuryeler'in altına taşındı
+
+#### 3. Şirket Yönetimi İyileştirmeleri
+- **İl seçimi eklendi** - Şirket eklerken/düzenlerken Türkiye illeri dropdown
+- **Harita otomatik ortalama** - Sipariş haritası şirketin iline göre ortalanıyor
 
 ### ✅ Önceki Oturumlarda Tamamlananlar
 
-1. **Multi-Company System** - Şirket değiştirici, çoklu şirket yönetimi
-2. **System Admin Panel** - Şirketler, Yöneticiler, Kuryeler tabs
-3. **Chat/Mesajlaşma Sistemi** - WebSocket ile gerçek zamanlı
-4. **Mobil UX Refactor** - Responsive tasarım
-5. **Günlük Tahsilat** - Kümülatif sistem
-6. **Market Sistemi** - JetPuan sipariş
-7. **Motosikletim** - Kurye motosiklet takibi
-8. **Yedekleme Sistemi** - APScheduler + Cloudflare R2
+1. **Sipariş Yönetimi Sistemi** - Harita + sipariş listesi + kurye atama
+2. **Restoranlar Yönetimi** - CRUD + Adisyo API bilgileri
+3. **Multi-Company System** - Şirket değiştirici
+4. **System Admin Panel** - Şirketler, Yöneticiler, Kuryeler tabs
+5. **Chat/Mesajlaşma Sistemi** - WebSocket
+6. **Mobil UX Refactor** - Responsive tasarım
+7. **Günlük Tahsilat** - Kümülatif sistem
+8. **Market Sistemi** - JetPuan
+9. **Motosikletim** - Kurye motosiklet takibi
+10. **Yedekleme Sistemi** - APScheduler + Cloudflare R2
 
 ---
 
@@ -51,7 +42,6 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 
 ### P0 - Mobil Dosya Yükleme
 - Fiziksel mobil cihazda test gerekiyor
-- Test noktaları: Mütabakat, Kurye Fatura, Evrak Yükleme, Chat Dosya
 
 ### P0 - Adisyo Gerçek API Entegrasyonu
 - Şu an mock data kullanılıyor
@@ -95,36 +85,23 @@ ShiftJet, kurye yönetimi, muhasebe takibi, vardiya planlaması ve işletme yön
 - Shadcn/UI bileşenleri
 - Leaflet (harita)
 
-### Yeni Veritabanı Koleksiyonları
+### Veritabanı Koleksiyonları
+- `companies` - Şirket bilgileri (artık city, city_lat, city_lng dahil)
 - `restaurants` - Restoran bilgileri + Adisyo API credentials
 - `orders` - Sipariş yönetimi
 
-### API Endpoints (Yeni)
-
-#### Restoranlar
-- `GET /api/restaurants/{company_id}` - Şirket restoranları
-- `POST /api/restaurants` - Restoran ekle
-- `PUT /api/restaurants/{id}` - Güncelle
-- `DELETE /api/restaurants/{id}` - Sil
-- `POST /api/restaurants/{id}/test-adisyo` - API test
-
-#### Siparişler
-- `GET /api/orders/{company_id}` - Siparişleri listele
-- `POST /api/orders/{company_id}/{order_id}/assign` - Kurye ata
-- `POST /api/orders/{company_id}/{order_id}/status` - Durum güncelle
-- `POST /api/orders/{company_id}/generate-mock` - Mock oluştur (test)
-- `DELETE /api/orders/{company_id}/clear-mock` - Mock temizle
+### Türkiye İlleri (Harita Koordinatları)
+Frontend'de TURKEY_CITIES array'i ile 20 büyük il koordinatları mevcut.
 
 ---
 
 ## Test Credentials
 - **System Admin:** ShiftJet / Delivery32..
 - **Test Admin:** testadmin / 123456
-- **Test Company ID:** af44eb06-9148-4990-8338-ea0208a47734
 
 ---
 
 ## Notlar
-- Sipariş sistemi şu an MOCK DATA ile çalışıyor
+- Sipariş sistemi **MOCK DATA** ile çalışıyor
 - Gerçek Adisyo entegrasyonu için API anahtarları gerekli
-- Restoranlar artık ayrı sekmeden yönetiliyor (Muhasebe'den bağımsız)
+- Restoranlar artık haritadan konum seçimiyle ekleniyor
