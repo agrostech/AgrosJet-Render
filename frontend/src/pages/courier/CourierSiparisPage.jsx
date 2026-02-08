@@ -645,11 +645,26 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       {/* Aktif Siparişler */}
       {activeOrders.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Truck className="w-5 h-5 text-blue-500" />
-            <h3 className="font-semibold text-blue-700">
-              Aktif Siparişler ({activeOrders.length})
-            </h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-blue-500" />
+              <h3 className="font-semibold text-blue-700">
+                Aktif Siparişler ({activeOrders.length})
+              </h3>
+            </div>
+            {/* Rota Oluştur Butonu - 2+ yolda sipariş varken */}
+            {onTheWayOrders.length >= 2 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={createOptimizedRoute}
+                className="text-cyan-700 border-cyan-300 hover:bg-cyan-50"
+                data-testid="create-route-btn"
+              >
+                <Route className="w-4 h-4 mr-1.5" />
+                Rota Oluştur
+              </Button>
+            )}
           </div>
           {activeOrders.map((order) => (
             <ActiveOrderCard
