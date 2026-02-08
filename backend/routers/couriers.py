@@ -340,3 +340,25 @@ async def get_couriers_with_availability(company_id: str):
             "total": len(couriers)
         }
     }
+
+
+# --- Push Notification Subscription ---
+class PushSubscription(BaseModel):
+    endpoint: str
+    keys: dict
+
+
+@router.post("/couriers/{courier_id}/push-subscription")
+async def save_courier_push_subscription(courier_id: str, subscription: PushSubscription):
+    """Save push notification subscription for courier"""
+    from services.push_notification_service import save_push_subscription
+    
+    await save_push_subscription(courier_id, subscription.model_dump())
+    return {"message": "Push subscription kaydedildi"}
+
+
+@router.delete("/couriers/{courier_id}/push-subscription")
+async def delete_courier_push_subscription(courier_id: str):
+    """Delete push notification subscription for courier"""
+    await db.push_subscriptions.delete_one({"courier_id": courier_id})
+    return {"message": "Push subscription silindi"}
