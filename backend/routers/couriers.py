@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 from services import courier_service
+from utils.database import db
 
 router = APIRouter(prefix="/api", tags=["Couriers"])
 
