@@ -124,20 +124,14 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, []);
 
-  // Play notification sound - LOUD (single sound)
+  // Play notification sound - LOUD
   const playNotificationSound = useCallback(() => {
-    try {
-      // Use Web Audio API - most reliable
-      createAlarmSound();
-      
-      // Vibration for mobile
-      if (navigator.vibrate) {
-        navigator.vibrate([500, 200, 500, 200, 500]);
-      }
-    } catch (e) {
-      console.error("Could not play notification sound:", e);
-      // Fallback to audio element
-      playAlarmAudio();
+    // Web Audio API
+    createAlarmSound();
+    
+    // Vibration
+    if (navigator.vibrate) {
+      navigator.vibrate([500, 200, 500, 200, 500]);
     }
   }, []);
 
