@@ -419,22 +419,32 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     const L = window.L;
     
     // Clear existing markers
-    markersRef.current.forEach(marker => map.removeLayer(marker));
+    markersRef.current.forEach(marker => {
+      try {
+        map.removeLayer(marker);
+      } catch (e) {
+        // ignore
+      }
+    });
     markersRef.current = [];
 
-    // Restaurant markers (gri, küçük, yuvarlak) - circle kullan
+    // Restaurant markers (gri, küçük, yuvarlak)
     restaurants.forEach(r => {
       if (r.latitude && r.longitude) {
-        const marker = L.circle([r.latitude, r.longitude], {
-          radius: 15,
-          fillColor: '#9ca3af',
-          color: '#6b7280',
-          weight: 1,
-          opacity: 1,
-          fillOpacity: 1
-        }).addTo(map);
-        marker.bindPopup(`<strong>${r.name}</strong><br/>${r.address || ''}`);
-        markersRef.current.push(marker);
+        try {
+          const marker = L.marker([r.latitude, r.longitude], {
+            icon: L.divIcon({
+              className: 'restaurant-marker',
+              html: '<div style="width:12px;height:12px;background:#9ca3af;border-radius:50%;border:1px solid #6b7280;"></div>',
+              iconSize: [12, 12],
+              iconAnchor: [6, 6]
+            })
+          }).addTo(map);
+          marker.bindPopup(`<strong>${r.name}</strong><br/>${r.address || ''}`);
+          markersRef.current.push(marker);
+        } catch (e) {
+          console.error("Restaurant marker error:", e);
+        }
       }
     });
 
