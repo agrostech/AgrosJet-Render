@@ -628,9 +628,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             icon: L.divIcon({
               className: 'courier-marker',
               html: `
-                <div style="position: relative; width: 22px; height: 22px;">
-                  <div class="courier-pulse-ring" style="background: ${bgColor};"></div>
-                  <div class="courier-pulse-ring-delayed" style="background: ${bgColor};"></div>
+                <div style="position: relative; width: 22px; height: 22px; border-radius: 50% !important; background: transparent !important;">
+                  <div class="courier-pulse-ring" style="background: ${bgColor}; border-radius: 50% !important;"></div>
+                  <div class="courier-pulse-ring-delayed" style="background: ${bgColor}; border-radius: 50% !important;"></div>
                   <div style="
                     position: absolute;
                     top: 50%;
@@ -639,7 +639,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     background: ${bgColor};
                     width: 20px;
                     height: 20px;
-                    border-radius: 50%;
+                    border-radius: 50% !important;
+                    -webkit-border-radius: 50% !important;
+                    -moz-border-radius: 50% !important;
                     border: 2px solid white;
                     box-shadow: 0 1px 4px rgba(0,0,0,0.3);
                     display: flex;
