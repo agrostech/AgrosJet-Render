@@ -214,7 +214,7 @@ export default function SiparisYonetimiPage({ companyId }) {
           <strong>${order.order_number}</strong><br/>
           ${order.customer_name}<br/>
           ${order.delivery_address}<br/>
-          <em>${statusInfo.label}</em>
+          <em>${statusInfo?.label || 'Beklemede'}</em>
         `);
         marker.on('click', () => {
           setSelectedOrder(order);
