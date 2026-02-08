@@ -93,6 +93,7 @@ async def create_restaurant(data: RestaurantCreate):
         "latitude": data.latitude,
         "longitude": data.longitude,
         "company_id": data.company_id,
+        "preparation_time": data.preparation_time,  # Hazırlık süresi (dakika)
         "adisyo_api_key": data.adisyo_api_key,
         "adisyo_api_secret": data.adisyo_api_secret,
         "adisyo_branch_id": data.adisyo_branch_id,
