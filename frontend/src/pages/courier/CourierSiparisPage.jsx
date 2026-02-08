@@ -137,15 +137,31 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, []);
 
-  // Show browser notification
+  // Show browser notification via Service Worker (works in background!)
   const showBrowserNotification = useCallback((order) => {
+    // Method 1: Try Service Worker notification (works in background)
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'NEW_ORDER',
+        payload: {
+          orderId: order.id,
+          orderNumber: order.order_number,
+          restaurantName: order.restaurant_name,
+          customerName: order.customer_name
+        }
+      });
+      console.log("Sent notification to Service Worker");
+      return;
+    }
+    
+    // Method 2: Fallback to regular Notification API
     if (!("Notification" in window)) return;
     if (Notification.permission !== "granted") return;
     
     try {
       const notification = new Notification("🔔 YENİ SİPARİŞ!", {
         body: `${order.restaurant_name}\n${order.order_number}`,
-        icon: "/logo192.png",
+        icon: "/icon-192.png",
         tag: `order-${order.id}`,
         requireInteraction: true,
         silent: false,
