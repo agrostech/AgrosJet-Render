@@ -574,8 +574,14 @@ export default function SiparisYonetimiPage({ companyId }) {
                         {/* Durum Dropdown - Tıkla değiştir */}
                         <Select 
                           value={order.status} 
-                          onValueChange={(newStatus) => {
-                            handleUpdateStatus(order.id, newStatus);
+                          onValueChange={(newValue) => {
+                            // Hazırlanıyor süre seçenekleri: preparing_5, preparing_10, vb.
+                            if (newValue.startsWith('preparing_')) {
+                              const prepTime = parseInt(newValue.split('_')[1]);
+                              handleUpdateStatus(order.id, 'preparing', prepTime);
+                            } else {
+                              handleUpdateStatus(order.id, newValue);
+                            }
                           }}
                         >
                           <SelectTrigger 
