@@ -74,6 +74,9 @@ async def create_company(data: CompanyCreate):
         "address": data.address or "",
         "tax_office": data.tax_office or "",
         "email": data.email or "",
+        "city": data.city or "",
+        "city_lat": data.city_lat,
+        "city_lng": data.city_lng,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.companies.insert_one(company)
