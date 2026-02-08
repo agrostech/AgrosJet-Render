@@ -1,6 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, User, Circle, Coffee, WifiOff } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+// Kurye durumları
+const AVAILABILITY_STATUSES = {
+  active: { label: "Aktif", color: "bg-green-500", icon: Circle },
+  on_break: { label: "Molada", color: "bg-yellow-500", icon: Coffee },
+  offline: { label: "Çevrimdışı", color: "bg-gray-400", icon: WifiOff },
+};
 
 export default function CourierSidebar({ 
   user, 
@@ -11,9 +24,14 @@ export default function CourierSidebar({
   companyName,
   companyLogo,
   maintenanceNotifications = 0,
-  chatUnreadCount = 0
+  chatUnreadCount = 0,
+  availabilityStatus = "offline",
+  onStatusChange,
+  statusLoading = false
 }) {
   const location = useLocation();
+  const currentStatus = AVAILABILITY_STATUSES[availabilityStatus] || AVAILABILITY_STATUSES.offline;
+  const StatusIcon = currentStatus.icon;
 
   return (
     <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
