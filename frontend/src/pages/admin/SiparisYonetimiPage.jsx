@@ -1070,7 +1070,12 @@ export default function SiparisYonetimiPage({ companyId }) {
                       }}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue />
+                        <SelectValue>
+                          {selectedOrder.status === 'preparing' && selectedOrder.preparation_end_at
+                            ? getCountdown(selectedOrder.preparation_end_at)?.text
+                            : ORDER_STATUSES[selectedOrder.status]?.label
+                          }
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {/* Hazırlanıyor - süre seçenekleri */}
