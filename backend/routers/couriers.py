@@ -260,20 +260,112 @@ class AvailabilityStatusUpdate(BaseModel):
 @router.put("/couriers/{courier_id}/availability")
 async def update_courier_availability(courier_id: str, data: AvailabilityStatusUpdate):
     """Update courier availability status (active/on_break/offline)"""
+    from datetime import datetime, timezone
+    
     valid_statuses = ["active", "on_break", "offline"]
     if data.availability_status not in valid_statuses:
         raise HTTPException(status_code=400, detail="Geçersiz durum. active, on_break veya offline olmalı")
     
+    # Kurye bilgilerini al
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    current_status = courier.get("availability_status", "offline")
+    now = datetime.now(timezone.utc)
+    
+    update_data = {"availability_status": data.availability_status}
+    
+    # Molaya çıkış kontrolü
+    if data.availability_status == "on_break" and current_status != "on_break":
+        # Mola limitini kontrol et
+        daily_break_limit = courier.get("daily_break_limit", 30)  # Varsayılan 30dk
+        used_break_time = courier.get("used_break_time", 0)
+        remaining = daily_break_limit - used_break_time
+        
+        if remaining <= 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Günlük mola süreniz doldu. Limit: {daily_break_limit} dakika"
+            )
+        
+        # Mola başlangıç zamanını kaydet
+        update_data["break_start_time"] = now.isoformat()
+    
+    # Moladan çıkış - kullanılan süreyi hesapla
+    if current_status == "on_break" and data.availability_status != "on_break":
+        break_start = courier.get("break_start_time")
+        if break_start:
+            try:
+                start_time = datetime.fromisoformat(break_start.replace('Z', '+00:00'))
+                elapsed_minutes = int((now - start_time).total_seconds() / 60)
+                used_break_time = courier.get("used_break_time", 0) + elapsed_minutes
+                update_data["used_break_time"] = used_break_time
+                update_data["break_start_time"] = None
+            except:
+                pass
+    
     result = await db.couriers.update_one(
         {"id": courier_id},
-        {"$set": {"availability_status": data.availability_status}}
+        {"$set": update_data}
+    )
+    
+    status_labels = {"active": "Aktif", "on_break": "Molada", "offline": "Çevrimdışı"}
+    return {"message": f"Kurye durumu güncellendi: {status_labels[data.availability_status]}"}
+
+
+# --- Kurye Mola Limiti Ayarlama ---
+class BreakLimitUpdate(BaseModel):
+    daily_break_limit: int  # Dakika cinsinden
+
+
+@router.put("/couriers/{courier_id}/break-limit")
+async def update_courier_break_limit(courier_id: str, data: BreakLimitUpdate):
+    """Kuryenin günlük mola limitini ayarla (dakika)"""
+    if data.daily_break_limit < 0 or data.daily_break_limit > 480:  # Max 8 saat
+        raise HTTPException(status_code=400, detail="Mola limiti 0-480 dakika arasında olmalı")
+    
+    result = await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"daily_break_limit": data.daily_break_limit}}
     )
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    status_labels = {"active": "Aktif", "on_break": "Molada", "offline": "Çevrimdışı"}
-    return {"message": f"Kurye durumu güncellendi: {status_labels[data.availability_status]}"}
+    return {"message": f"Mola limiti güncellendi: {data.daily_break_limit} dakika"}
+
+
+@router.get("/couriers/{courier_id}/break-status")
+async def get_courier_break_status(courier_id: str):
+    """Kuryenin mola durumunu ve kalan süresini al"""
+    from datetime import datetime, timezone
+    
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    daily_break_limit = courier.get("daily_break_limit", 30)
+    used_break_time = courier.get("used_break_time", 0)
+    
+    # Eğer şu an molada ise, geçen süreyi de ekle
+    if courier.get("availability_status") == "on_break" and courier.get("break_start_time"):
+        try:
+            now = datetime.now(timezone.utc)
+            start_time = datetime.fromisoformat(courier["break_start_time"].replace('Z', '+00:00'))
+            current_break_minutes = int((now - start_time).total_seconds() / 60)
+            used_break_time += current_break_minutes
+        except:
+            pass
+    
+    remaining = max(0, daily_break_limit - used_break_time)
+    
+    return {
+        "daily_break_limit": daily_break_limit,
+        "used_break_time": used_break_time,
+        "remaining_break_time": remaining,
+        "is_on_break": courier.get("availability_status") == "on_break"
+    }
 
 
 # --- Courier Location Update ---
