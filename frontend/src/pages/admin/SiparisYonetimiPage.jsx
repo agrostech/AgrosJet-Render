@@ -597,7 +597,7 @@ export default function SiparisYonetimiPage({ companyId }) {
                               order.status === 'preparing' && order.preparation_end_at && getCountdown(order.preparation_end_at)?.expired
                                 ? 'bg-red-500'
                                 : statusInfo.color
-                            } text-white text-[10px] px-1.5 py-0 h-5 w-auto border-0 gap-0.5`}
+                            } text-white text-xs px-2 py-0.5 h-6 min-w-[90px] border-0 gap-1 justify-center`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <SelectValue>
