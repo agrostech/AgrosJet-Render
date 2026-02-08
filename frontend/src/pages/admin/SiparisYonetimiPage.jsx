@@ -652,22 +652,9 @@ export default function SiparisYonetimiPage({ companyId }) {
                                 </SelectItem>
                               </>
                             )}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="h-6 px-2 text-xs min-w-[50px]"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedOrder(order);
-                              setShowAssignModal(true);
-                            }}
-                          >
-                            Ata
-                          </Button>
-                        )}
+                          </SelectContent>
+                        </Select>
+                        
                         <ChevronRight className="w-4 h-4 text-muted-foreground" />
                       </div>
                     </div>
@@ -679,7 +666,7 @@ export default function SiparisYonetimiPage({ companyId }) {
         </CardContent>
       </Card>
 
-      {/* Assign Courier Modal */}
+      {/* Assign Courier Modal - Sipariş detay modalından kullanılıyor */}
       <Dialog open={showAssignModal} onOpenChange={setShowAssignModal}>
         <DialogContent>
           <DialogHeader>
