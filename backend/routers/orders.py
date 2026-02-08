@@ -239,15 +239,28 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # History'ye ekle
+    history_entry = {
+        "status": "assigned",
+        "label": "Kurye Atandı",
+        "timestamp": now,
+        "note": f"Kurye: {courier['name']}"
+    }
+    
     await db.orders.update_one(
         {"id": order_id},
-        {"$set": {
-            "courier_id": data.courier_id,
-            "courier_name": courier["name"],
-            "status": "assigned",
-            "assigned_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        }}
+        {
+            "$set": {
+                "courier_id": data.courier_id,
+                "courier_name": courier["name"],
+                "status": "assigned",
+                "assigned_at": now,
+                "updated_at": now
+            },
+            "$push": {"status_history": history_entry}
+        }
     )
     
     # TODO: Kuryeye push notification gönder
