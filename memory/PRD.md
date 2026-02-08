@@ -60,10 +60,20 @@ ORDER_STATUSES = {
   preparing: "Hazırlanıyor",
   ready: "Hazır", 
   assigned: "Kurye Atandı",
+  confirmed: "Onaylandı",  // Kurye siparişi gördü
   on_the_way: "Yolda",
   delivered: "Teslim Edildi",
   cancelled: "İptal Edildi"
 }
+```
+
+### Kurye API Endpoints
+```
+GET  /api/orders/courier/{courier_id}/active  - Kuryenin aktif siparişleri
+POST /api/orders/courier/{courier_id}/order/{order_id}/confirm - Siparişi onayla
+POST /api/orders/courier/{courier_id}/order/{order_id}/pickup  - Yola çık
+POST /api/orders/courier/{courier_id}/order/{order_id}/deliver - Teslim et
+POST /api/orders/courier/{courier_id}/order/{order_id}/reject  - Reddet
 ```
 
 ### Harita Zoom Ayarları
@@ -81,20 +91,24 @@ ORDER_STATUSES = {
 ## Test Credentials
 - **System Admin:** ShiftJet / Delivery32..
 - **Test Admin:** testadmin / 123456
+- **Test Courier:** 05551234567 / 123456
 
 ---
 
 ## Bekleyen Görevler
 
 ### P0
+- Kurye durum kontrolü (Aktif/Molada/Çevrimdışı)
 - Adisyo gerçek API entegrasyonu (API anahtarları gerekli)
-- Mobil dosya yükleme doğrulaması
+- Push notification (sipariş atandığında)
 
 ### P1
 - Webhook endpoint'leri
 - Kurye canlı konum takibi
-- Push notification
+- Admin panelinde kurye detay modalındaki harita düzeltmesi
+- Restaurant marker stilini yuvarlak yap
 
 ### Backlog
 - Chat sistemi
 - Dark mode
+- SiparisYonetimiPage.jsx refactoring (~1700+ satır)
