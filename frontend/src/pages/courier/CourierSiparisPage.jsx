@@ -739,7 +739,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 function NewOrderCard({ order, onConfirm, loading }) {
   return (
     <div
-      className="bg-purple-50 rounded-xl shadow-md border-l-4 border-purple-500"
+      className="bg-purple-50 rounded-xl shadow-lg border-l-4 border-purple-500"
       data-testid={`new-order-card-${order.id}`}
     >
       <div className="p-3">
@@ -811,7 +811,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps
 
   return (
     <div
-      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow"
+      className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow"
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-3">
