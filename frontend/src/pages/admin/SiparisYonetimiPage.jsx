@@ -793,7 +793,8 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           }).addTo(map);
           marker.bindPopup(`
             <strong>🛵 ${courier.name}</strong><br/>
-            <span style="color: ${bgColor}; font-weight: bold;">${statusLabel}</span><br/>
+            <span style="color: ${bgColor}; font-weight: bold;">${statusLabel}</span>
+            ${orderCount > 0 ? `<br/><small>${orderCount} aktif sipariş</small>` : ''}<br/>
             <small>${courier.phone || ''}</small>
           `);
           marker.on('click', () => {
