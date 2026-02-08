@@ -912,7 +912,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         </div>
                         <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
                         {/* Durum Dropdown - Tıkla değiştir */}
-                        <div onClick={(e) => e.stopPropagation()}>
                         <Select 
                           value={order.status} 
                           onValueChange={(newValue) => {
@@ -930,6 +929,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                 ? 'bg-red-500'
                                 : statusInfo.color
                             } text-white text-[11px] px-2 py-0 h-5 w-auto border-0 gap-0.5`}
+                            onPointerDown={(e) => e.stopPropagation()}
                           >
                             <SelectValue>
                               {order.status === 'preparing' && order.preparation_end_at
@@ -938,7 +938,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                               }
                             </SelectValue>
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
                             <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
                             {PREPARATION_TIMES.map(time => (
                               <SelectItem key={`preparing_${time.value}`} value={`preparing_${time.value}`} className="text-xs pl-4">
@@ -961,7 +961,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             ))}
                           </SelectContent>
                         </Select>
-                        </div>
                         <span className="text-xs text-muted-foreground">•</span>
                         <span className="text-xs text-muted-foreground truncate">{order.customer_name}</span>
                         <span className="text-xs text-muted-foreground truncate hidden lg:block">- {order.delivery_address}</span>
@@ -973,7 +972,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <span className="font-semibold text-sm min-w-[70px] text-right">{formatCurrency(order.total_amount)}</span>
                         
                         {/* Kurye Dropdown - Her durumda aynı tasarım */}
-                        <div onClick={(e) => e.stopPropagation()}>
                         <Select 
                           value={order.courier_id || ""}
                           onValueChange={(value) => {
