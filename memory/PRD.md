@@ -175,12 +175,10 @@ PUT  /api/companies/{company_id}/working-hours                 - Çalışma saat
 ## Bekleyen Görevler
 
 ### P0
-- Push notification (sipariş atandığında)
 - Adisyo gerçek API entegrasyonu (API anahtarları gerekli)
 
 ### P1
 - Webhook endpoint'leri
-- Kurye canlı konum takibi
 - Admin panelinde kurye detay modalındaki harita düzeltmesi
 - Restaurant marker stilini yuvarlak yap
 
