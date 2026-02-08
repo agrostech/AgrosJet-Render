@@ -225,6 +225,15 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         customer_name_parts.append(customer["customerSurname"])
     customer_name = " ".join(customer_name_parts).strip() or "Müşteri"
     
+    # Telefon numarası - 5 ile başlıyorsa başına 0 ekle
+    customer_phone = customer.get("customerPhone", "")
+    if customer_phone:
+        # Boşlukları ve tire işaretlerini kaldır
+        clean_phone = customer_phone.replace(" ", "").replace("-", "")
+        # 5 ile başlıyorsa ve 10 haneli ise başına 0 ekle
+        if clean_phone.startswith("5") and len(clean_phone) == 10:
+            customer_phone = "0" + customer_phone
+    
     # Koordinatları düzgün parse et
     delivery_lat = parse_coordinate(adisyo_order.get("customerLatitude"))
     delivery_lng = parse_coordinate(adisyo_order.get("customerLongitude"))
