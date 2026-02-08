@@ -366,22 +366,90 @@ export default function SiparisYonetimiPage({ companyId }) {
         </div>
       </div>
 
-      {/* Map */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            Canlı Harita
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div 
-            ref={mapRef} 
-            className="w-full h-[350px] md:h-[400px] rounded-b-lg"
-            style={{ zIndex: 1 }}
-          />
-        </CardContent>
-      </Card>
+      {/* Map with Courier List */}
+      <div className="flex gap-4">
+        {/* Courier Status List - Left Side */}
+        <Card className="w-56 flex-shrink-0 hidden lg:block">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Kuryeler
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 space-y-3 max-h-[380px] overflow-y-auto">
+            {/* Aktif Kuryeler */}
+            <div>
+              <div className="flex items-center gap-2 px-2 py-1 bg-green-50 rounded text-xs font-semibold text-green-700 mb-1">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                Aktif ({couriersByStatus.active.length})
+              </div>
+              {couriersByStatus.active.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2">-</p>
+              ) : (
+                couriersByStatus.active.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
+                    <Bike className="w-3 h-3 text-green-600" />
+                    <span className="truncate">{c.name}</span>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            {/* Moladaki Kuryeler */}
+            <div>
+              <div className="flex items-center gap-2 px-2 py-1 bg-yellow-50 rounded text-xs font-semibold text-yellow-700 mb-1">
+                <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                Molada ({couriersByStatus.on_break.length})
+              </div>
+              {couriersByStatus.on_break.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2">-</p>
+              ) : (
+                couriersByStatus.on_break.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded">
+                    <Bike className="w-3 h-3 text-yellow-600" />
+                    <span className="truncate">{c.name}</span>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            {/* Çevrimdışı Kuryeler */}
+            <div>
+              <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 rounded text-xs font-semibold text-slate-600 mb-1">
+                <div className="w-2 h-2 rounded-full bg-slate-400" />
+                Çevrimdışı ({couriersByStatus.offline.length})
+              </div>
+              {couriersByStatus.offline.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2">-</p>
+              ) : (
+                couriersByStatus.offline.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-slate-50 rounded text-muted-foreground">
+                    <Bike className="w-3 h-3" />
+                    <span className="truncate">{c.name}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Map - Right Side */}
+        <Card className="flex-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Canlı Harita
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div 
+              ref={mapRef} 
+              className="w-full h-[350px] md:h-[400px] rounded-b-lg"
+              style={{ zIndex: 1 }}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Orders List */}
       <Card>
