@@ -442,14 +442,13 @@ export default function SiparisYonetimiPage({ companyId }) {
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedOrder(order);
-                                setShowAssignModal(true);
-                              }}
-                            >
-                              Kurye Ata
-                            </Button>
-                          )}
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                              setShowAssignModal(true);
+                            }}
+                          >
+                            Ata
+                          </Button>
+                        )}
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
                       </div>
                     </div>
                   </div>
