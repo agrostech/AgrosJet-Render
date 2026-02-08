@@ -200,7 +200,10 @@ async def check_preparation_times(company_id: str):
         }
     )
     
-    return result.modified_count@router.get("/{company_id}/{order_id}")
+    return result.modified_count
+
+
+@router.get("/{company_id}/{order_id}")
 async def get_order(company_id: str, order_id: str):
     """Tek bir sipariş detayı"""
     order = await db.orders.find_one(
