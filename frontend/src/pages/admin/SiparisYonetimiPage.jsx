@@ -384,7 +384,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     };
   }, [orderDetailTab, selectedOrder]);
 
-  // Kurye detay modalı haritası
+  // Store orders in ref to avoid re-render issues
+  const ordersRef = useRef(orders);
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
+
+  // Kurye detay modalı haritası - only triggered on modal open/courier change
   useEffect(() => {
     if (!showCourierDetailModal || !selectedCourier) return;
     
@@ -418,8 +424,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         maxZoom: 19
       }).addTo(map);
       
-      // Kurye siparişlerini haritada göster
-      const courierOrders = orders.filter(o => o.courier_id === selectedCourier.id && o.status !== 'delivered' && o.status !== 'cancelled');
+      // Kurye siparişlerini haritada göster (ref kullan, sürekli yenilenmesin)
+      const currentOrders = ordersRef.current;
+      const courierOrders = currentOrders.filter(o => o.courier_id === selectedCourier.id && o.status !== 'delivered' && o.status !== 'cancelled');
       
       courierOrders.forEach((order, idx) => {
         if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
@@ -474,7 +481,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         courierMapInstanceRef.current = null;
       }
     };
-  }, [showCourierDetailModal, selectedCourier, orders, company]);
+  }, [showCourierDetailModal, selectedCourier?.id, company?.city_lat, company?.city_lng]);
 
   // Initialize map
   useEffect(() => {
