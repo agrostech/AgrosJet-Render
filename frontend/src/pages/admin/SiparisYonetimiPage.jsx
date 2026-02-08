@@ -762,10 +762,32 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   };
 
   // Kurye detay modalını aç
+  // Haritayı kuryeye odakla (hover veya tıklama ile)
+  const focusMapOnCourier = useCallback((courier) => {
+    if (!mapInstanceRef.current || !courier.current_location?.latitude || !courier.current_location?.longitude) {
+      return;
+    }
+    
+    const map = mapInstanceRef.current;
+    map.setView(
+      [courier.current_location.latitude, courier.current_location.longitude],
+      16, // Yakınlaştırma seviyesi
+      { animate: true, duration: 0.5 }
+    );
+  }, []);
+
   const handleCourierClick = (courier) => {
+    // Önce haritayı odakla
+    focusMapOnCourier(courier);
+    // Sonra modal aç
     setSelectedCourier(courier);
     setShowCourierDetailModal(true);
   };
+
+  // Hover ile sadece haritayı odakla (modal açma)
+  const handleCourierHover = useCallback((courier) => {
+    focusMapOnCourier(courier);
+  }, [focusMapOnCourier]);
 
   // Seçilen kuryenin aktif siparişleri
   const selectedCourierOrders = selectedCourier 
