@@ -544,6 +544,15 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         onCall={() => selectedOrder && callPhone(selectedOrder.customer_phone)}
         loading={actionLoading === selectedOrder?.id}
       />
+
+      {/* Ödeme Onay Modalı */}
+      <PaymentConfirmModal
+        order={pendingDeliveryOrder}
+        open={showPaymentConfirmModal}
+        onConfirm={handlePaymentConfirmed}
+        onCancel={handlePaymentCancelled}
+        loading={actionLoading === pendingDeliveryOrder?.id}
+      />
     </div>
   );
 }
