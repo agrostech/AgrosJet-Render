@@ -375,13 +375,12 @@ export default function SiparisYonetimiPage({ companyId }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">Aktif Siparişler</SelectItem>
-                <SelectItem value="new">Yeni</SelectItem>
                 <SelectItem value="preparing">Hazırlanıyor</SelectItem>
                 <SelectItem value="ready">Hazır</SelectItem>
                 <SelectItem value="assigned">Kurye Atandı</SelectItem>
                 <SelectItem value="on_the_way">Yolda</SelectItem>
                 <SelectItem value="delivered">Teslim Edildi</SelectItem>
-                <SelectItem value="cancelled">İptal</SelectItem>
+                <SelectItem value="cancelled">İptal Edildi</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -402,7 +401,7 @@ export default function SiparisYonetimiPage({ companyId }) {
           ) : (
             <div className="space-y-3">
               {orders.map((order) => {
-                const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.new;
+                const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
                 const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
                 
                 return (
