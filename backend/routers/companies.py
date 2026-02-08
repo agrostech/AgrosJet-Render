@@ -120,3 +120,36 @@ async def delete_company(company_id: str):
     await db.company_couriers.delete_many({"company_id": company_id})
     await db.admins.delete_many({"company_id": company_id})
     return {"message": "Şirket ve tüm verileri silindi"}
+
+
+# --- Working Hours ---
+class WorkingHoursUpdate(BaseModel):
+    opening_time: str = "09:00"
+    closing_time: str = "22:00"
+
+
+@router.get("/companies/{company_id}/working-hours")
+async def get_working_hours(company_id: str):
+    """Get company working hours"""
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1, "closing_time": 1})
+    if not company:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    return {
+        "opening_time": company.get("opening_time", "09:00"),
+        "closing_time": company.get("closing_time", "22:00")
+    }
+
+
+@router.put("/companies/{company_id}/working-hours")
+async def update_working_hours(company_id: str, data: WorkingHoursUpdate):
+    """Update company working hours"""
+    result = await db.companies.update_one(
+        {"id": company_id},
+        {"$set": {
+            "opening_time": data.opening_time,
+            "closing_time": data.closing_time
+        }}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    return {"message": "Çalışma saatleri güncellendi"}
