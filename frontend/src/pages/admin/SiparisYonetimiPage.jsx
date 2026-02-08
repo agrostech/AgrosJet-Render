@@ -706,13 +706,56 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       return firstInitial + lastInitial;
     };
     
+    // Helper function to get courier color based on order status
+    const getCourierColorByOrderStatus = (courier) => {
+      // Kuryenin aktif siparişlerini bul
+      const courierOrders = orders.filter(o => 
+        o.courier_id === courier.id && 
+        o.status !== 'delivered' && 
+        o.status !== 'cancelled'
+      );
+      
+      // Molada ise sarı
+      if (courier.availability_status === 'on_break') {
+        return { color: '#eab308', label: 'Molada' }; // Sarı
+      }
+      
+      // Sipariş yoksa - Boş (Yeşil)
+      if (courierOrders.length === 0) {
+        return { color: '#22c55e', label: 'Boş' }; // Yeşil
+      }
+      
+      // Sipariş durumlarına göre öncelik sırası
+      const hasOnTheWay = courierOrders.some(o => o.status === 'on_the_way');
+      const hasConfirmed = courierOrders.some(o => o.status === 'confirmed');
+      const hasAssigned = courierOrders.some(o => o.status === 'assigned');
+      
+      if (hasOnTheWay) {
+        return { color: '#3b82f6', label: 'Yolda' }; // Mavi
+      }
+      if (hasConfirmed) {
+        return { color: '#1e3a8a', label: 'Onaylandı' }; // Lacivert
+      }
+      if (hasAssigned) {
+        return { color: '#a855f7', label: 'Onay Bekliyor' }; // Mor
+      }
+      
+      // Default - Aktif (Yeşil)
+      return { color: '#22c55e', label: 'Aktif' };
+    };
+    
     visibleCouriers.forEach(courier => {
       if (courier.current_location?.latitude && courier.current_location?.longitude) {
         try {
-          const isOnBreak = courier.availability_status === 'on_break';
-          const bgColor = isOnBreak ? '#eab308' : '#22c55e'; // yellow for break, green for active
-          const statusLabel = isOnBreak ? 'Molada' : 'Aktif';
+          const { color: bgColor, label: statusLabel } = getCourierColorByOrderStatus(courier);
           const initials = getCourierInitials(courier.name);
+          
+          // Kuryenin aktif sipariş sayısı
+          const orderCount = orders.filter(o => 
+            o.courier_id === courier.id && 
+            o.status !== 'delivered' && 
+            o.status !== 'cancelled'
+          ).length;
           
           const marker = L.marker([courier.current_location.latitude, courier.current_location.longitude], {
             icon: L.divIcon({
