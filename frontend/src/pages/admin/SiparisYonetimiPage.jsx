@@ -1802,6 +1802,29 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <div ref={courierMapRef} className="h-[200px] w-full bg-slate-100" />
               </div>
               
+              {/* Son Konum Bilgisi */}
+              <div className="flex items-center justify-between px-1 py-1.5 bg-slate-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-500" />
+                  <span className="text-xs text-muted-foreground">Son Konum Bilgisi</span>
+                </div>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                  selectedCourier.current_location?.updated_at 
+                    ? (() => {
+                        const timeAgo = getLocationTimeAgo(selectedCourier.current_location.updated_at);
+                        if (timeAgo === "Şimdi" || timeAgo?.includes("sn")) return "bg-green-100 text-green-700";
+                        if (timeAgo?.includes("dk") && parseInt(timeAgo) <= 5) return "bg-green-100 text-green-700";
+                        if (timeAgo?.includes("dk") && parseInt(timeAgo) <= 15) return "bg-yellow-100 text-yellow-700";
+                        return "bg-red-100 text-red-700";
+                      })()
+                    : "bg-slate-100 text-slate-600"
+                }`}>
+                  {selectedCourier.current_location?.updated_at 
+                    ? getLocationTimeAgo(selectedCourier.current_location.updated_at)
+                    : "Konum yok"}
+                </span>
+              </div>
+              
               {/* Sipariş Sayısı - Kompakt */}
               <div className="flex items-center justify-between px-1">
                 <span className="text-xs text-muted-foreground">Aktif Siparişler</span>
