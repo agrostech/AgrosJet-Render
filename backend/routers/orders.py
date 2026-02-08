@@ -251,13 +251,20 @@ async def unassign_courier(company_id: str, order_id: str):
 
 @router.post("/{company_id}/{order_id}/status")
 async def update_order_status(company_id: str, order_id: str, data: OrderStatusUpdate):
-    """Sipariş durumunu güncelle"""
+    """Sipariş durumunu güncelle (Admin için)"""
     order = await db.orders.find_one({"id": order_id, "company_id": company_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
     if data.status not in ORDER_STATUSES:
         raise HTTPException(status_code=400, detail="Geçersiz durum")
+    
+    # Admin sadece kurye onaylayabileceği durumları seçemez
+    if data.status in COURIER_ONLY_STATUSES:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"'{ORDER_STATUSES[data.status]['label']}' durumu sadece kurye tarafından seçilebilir"
+        )
     
     update_fields = {
         "status": data.status,
@@ -273,9 +280,6 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
     
     if data.status == "delivered":
         update_fields["delivered_at"] = datetime.now(timezone.utc).isoformat()
-    
-    if data.status == "confirmed":
-        update_fields["confirmed_at"] = datetime.now(timezone.utc).isoformat()
     
     await db.orders.update_one(
         {"id": order_id},
