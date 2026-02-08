@@ -103,7 +103,7 @@ self.addEventListener('message', event => {
   console.log('SW received message:', event.data);
   
   if (event.data && event.data.type === 'NEW_ORDER') {
-    // Show notification from main app
+    // Show notification from main app - SILENT (main app handles sound)
     const data = event.data.payload;
     
     self.registration.showNotification('🔔 YENİ SİPARİŞ!', {
@@ -112,7 +112,8 @@ self.addEventListener('message', event => {
       badge: '/icon-192.png',
       tag: `order-${data.orderId}`,
       requireInteraction: true,
-      vibrate: [500, 200, 500, 200, 500, 200, 500],
+      silent: true, // Don't play browser sound - main app handles it
+      vibrate: [500, 200, 500, 200, 500], // But still vibrate
       data: data
     });
   }
