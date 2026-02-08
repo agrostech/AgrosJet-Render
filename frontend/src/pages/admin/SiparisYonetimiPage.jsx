@@ -451,38 +451,42 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     // Order delivery markers (yuvarlak)
     orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').forEach((order, idx) => {
       if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
-        const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
-        const bgColor = statusInfo?.color?.replace('bg-', '') || 'yellow-500';
-        const colorMap = {
-          'yellow-500': '#eab308',
-          'orange-500': '#f97316',
-          'purple-500': '#a855f7',
-          'blue-500': '#3b82f6',
-          'cyan-500': '#06b6d4',
-          'green-500': '#22c55e',
-          'red-500': '#ef4444'
-        };
-        const hexColor = colorMap[bgColor] || '#eab308';
-        
-        const marker = L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
-          icon: L.divIcon({
-            className: '',
-            html: `<div style="background: ${hexColor}; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">${idx + 1}</div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-          })
-        }).addTo(map);
-        marker.bindPopup(`
-          <strong>${order.order_number}</strong><br/>
-          ${order.customer_name}<br/>
-          ${order.delivery_address}<br/>
-          <em>${statusInfo?.label || 'Beklemede'}</em>
-        `);
-        marker.on('click', () => {
-          setSelectedOrder(order);
-          setShowOrderDetailModal(true);
-        });
-        markersRef.current.push(marker);
+        try {
+          const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+          const bgColor = statusInfo?.color?.replace('bg-', '') || 'yellow-500';
+          const colorMap = {
+            'yellow-500': '#eab308',
+            'orange-500': '#f97316',
+            'purple-500': '#a855f7',
+            'blue-500': '#3b82f6',
+            'cyan-500': '#06b6d4',
+            'green-500': '#22c55e',
+            'red-500': '#ef4444'
+          };
+          const hexColor = colorMap[bgColor] || '#eab308';
+          
+          const marker = L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
+            icon: L.divIcon({
+              className: 'order-marker',
+              html: `<div style="background: ${hexColor}; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">${idx + 1}</div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
+            })
+          }).addTo(map);
+          marker.bindPopup(`
+            <strong>${order.order_number}</strong><br/>
+            ${order.customer_name}<br/>
+            ${order.delivery_address}<br/>
+            <em>${statusInfo?.label || 'Beklemede'}</em>
+          `);
+          marker.on('click', () => {
+            setSelectedOrder(order);
+            setShowOrderDetailModal(true);
+          });
+          markersRef.current.push(marker);
+        } catch (e) {
+          console.error("Order marker error:", e);
+        }
       }
     });
 
