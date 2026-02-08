@@ -74,6 +74,85 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [previousOrderIds, setPreviousOrderIds] = useState(new Set());
+  const audioRef = useRef(null);
+
+  // Request notification permission
+  useEffect(() => {
+    if ("Notification" in window) {
+      if (Notification.permission === "granted") {
+        setNotificationsEnabled(true);
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then((permission) => {
+          setNotificationsEnabled(permission === "granted");
+        });
+      }
+    }
+  }, []);
+
+  // Play notification sound
+  const playNotificationSound = useCallback(() => {
+    try {
+      // Create audio element if not exists
+      if (!audioRef.current) {
+        audioRef.current = new Audio(NOTIFICATION_SOUND_URL);
+        audioRef.current.loop = false;
+      }
+      audioRef.current.currentTime = 0;
+      audioRef.current.volume = 1.0;
+      
+      // Play multiple times for loud alert
+      const playMultiple = async () => {
+        for (let i = 0; i < 3; i++) {
+          audioRef.current.currentTime = 0;
+          await audioRef.current.play();
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      };
+      playMultiple().catch(console.error);
+    } catch (e) {
+      console.error("Could not play notification sound:", e);
+    }
+  }, []);
+
+  // Show browser notification
+  const showBrowserNotification = useCallback((order) => {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    
+    const notification = new Notification("🔔 Yeni Sipariş Atandı!", {
+      body: `${order.restaurant_name} - ${order.order_number}`,
+      icon: "/logo192.png",
+      tag: order.id,
+      requireInteraction: true,
+      vibrate: [200, 100, 200, 100, 200],
+    });
+    
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  }, []);
+
+  // Check for new orders and notify
+  const checkForNewOrders = useCallback((newOrders) => {
+    const newOrderIds = new Set(newOrders.map(o => o.id));
+    const assignedOrders = newOrders.filter(o => o.status === "assigned");
+    
+    // Find truly new orders (not seen before)
+    assignedOrders.forEach(order => {
+      if (!previousOrderIds.has(order.id)) {
+        // New order detected!
+        playNotificationSound();
+        showBrowserNotification(order);
+        toast.success(`🔔 Yeni sipariş: ${order.restaurant_name}`, {
+          duration: 10000,
+        });
+      }
+    });
+    
+    setPreviousOrderIds(newOrderIds);
+  }, [previousOrderIds, playNotificationSound, showBrowserNotification]);
 
   // Siparişleri getir
   const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
