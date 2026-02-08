@@ -34,8 +34,38 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Notification sound - loud alarm
-const NOTIFICATION_SOUND_URL = "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleQcPW7bk8dNwDgVFotbz7plQBgZlvO378IYnABmK1fz98a5IBQB3yPr9+sFlCQBpv/f8+MpvDgB3yvr9+sVoCABov/X5+ctrDQB2yfv9+8VoBwBmvfT3+stsDgB4yvv9+8VmBgBkvPP2+sptDwB6y/z++sRlBQBjuvH1+cpuEAB7zP3/+sNjBABhue/0+MlwEQB9zf7/+cJiAwBfuO3z98hxEgB/zv//+MFgAgBdtuvy9shyFACB0P//98BfAQBbte/y9sd0FQCDz///97/gAQBatO3x9cd1FgCEz///9r7fAABYs+zw88Z2FwCG0P//9b3eAABXsuvv8sV4GACH0f//9LzdAABVsevu8cR5GgCJ0v//87vcAABTsOrt8MN6GwCK0///8rrbAABRr+ns78J8HACL1P//8bnaAABPrunr7sF9HgCM1f//8LjZAABNrejs7cB/HwCO1v//77fYAABLrOXq68GAIACg1///7rbXAABJq+Tp6r+CIQCR2P//7bXWAABHquLo6b6DIgCS2f//7LTVAABFqOHn6L2FJACQ1///66/RAABFqOHn6L2FJACQ1///66/RAAA=";
+// Create loud notification sound using Web Audio API
+const createAlarmSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 880; // A5 note - loud and attention-grabbing
+    oscillator.type = 'square';
+    gainNode.gain.value = 0.5;
+    
+    oscillator.start();
+    
+    // Beep pattern
+    let time = audioContext.currentTime;
+    for (let i = 0; i < 6; i++) {
+      gainNode.gain.setValueAtTime(0.5, time);
+      gainNode.gain.setValueAtTime(0, time + 0.15);
+      time += 0.3;
+    }
+    
+    oscillator.stop(time);
+    
+    return audioContext;
+  } catch (e) {
+    console.error("Audio context error:", e);
+    return null;
+  }
+};
 
 // Sipariş durumları ve renkler
 const ORDER_STATUS_CONFIG = {
