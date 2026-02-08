@@ -145,10 +145,7 @@ export default function SiparisYonetimiPage({ companyId }) {
     const centerLng = company?.city_lng || 28.9784;
     
     const map = window.L.map(mapRef.current, {
-      scrollWheelZoom: true,
-      zoomSnap: 1,
-      zoomDelta: 1,
-      wheelPxPerZoomLevel: 300  // Çok daha yavaş zoom - yaklaşık 3x scroll = 1 zoom
+      scrollWheelZoom: false  // Scroll zoom kapalı - sadece butonlarla zoom
     }).setView([centerLat, centerLng], 12);
     
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
