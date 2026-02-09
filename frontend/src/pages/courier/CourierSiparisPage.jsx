@@ -904,8 +904,10 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         <div className="border-b border-slate-100 pb-2 mb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Store className="w-4 h-4 text-slate-400" />
-              <span className="font-medium text-sm text-slate-700">{order.restaurant_name}</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-lg text-sm font-semibold text-slate-700">
+                <Store className="w-4 h-4 text-slate-500" />
+                {order.restaurant_name}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <button
