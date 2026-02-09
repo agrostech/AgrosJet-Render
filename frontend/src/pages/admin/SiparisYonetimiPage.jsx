@@ -1580,7 +1580,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     {/* Üst: Saat + Süre + Restoran + Fiyat/Ödeme */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 text-xs text-muted-foreground">
                           <span>{formatTime(order.created_at)}</span>
                           {!['delivered', 'cancelled'].includes(order.status) && getOrderAge(order) && (
                             <span className={`flex items-center gap-1 font-medium ${
