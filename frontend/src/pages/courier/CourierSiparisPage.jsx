@@ -762,6 +762,48 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         onCancel={handlePaymentCancelled}
         loading={actionLoading === pendingDeliveryOrder?.id}
       />
+
+      {/* Hazır Değil Onay Modalı */}
+      <Dialog open={showNotReadyModal} onOpenChange={setShowNotReadyModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-700">
+              <Clock className="w-5 h-5" />
+              Sipariş Hazır Değil
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Bu siparişe <strong>5 dakika</strong> bekleme süresi eklenecek ve siparişe 5 dakika sonra <strong>farklı bir kurye</strong> atanacak.
+            </p>
+            <p className="text-sm font-medium mt-3">
+              Siparişi almadan devam etmeyi onaylıyor musun?
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setShowNotReadyModal(false);
+                setPendingNotReadyOrder(null);
+              }}
+            >
+              Vazgeç
+            </Button>
+            <Button
+              className="flex-1 bg-orange-600 hover:bg-orange-700"
+              onClick={executeNotReady}
+              disabled={actionLoading === pendingNotReadyOrder?.id}
+            >
+              {actionLoading === pendingNotReadyOrder?.id ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Evet, Onayla
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
