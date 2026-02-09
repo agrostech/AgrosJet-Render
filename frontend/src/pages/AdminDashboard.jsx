@@ -153,8 +153,8 @@ export default function AdminDashboard() {
 
   // Menü öğeleri - sayfa bazlı izin kontrolü
   const allNavItems = [
-    { path: "/admin", label: "Anasayfa", icon: LayoutDashboard, key: "guncel", permKey: null },
-    { path: "/admin/siparisler", label: "Sipariş Yönetimi", icon: ClipboardList, key: "siparisler", permKey: "siparisler" },
+    { path: "/admin", label: "Sipariş Yönetimi", icon: ClipboardList, key: "siparisler", permKey: null },
+    { path: "/admin/guncel-durum", label: "Güncel Durum", icon: LayoutDashboard, key: "guncel", permKey: null },
     { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya", permKey: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
@@ -324,9 +324,9 @@ export default function AdminDashboard() {
         <main className={`flex-1 overflow-x-auto transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'}`}>
           <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
             <Routes>
-              <Route index element={<GuncelDurumPage companyId={activeCompanyId} />} />
-              {/* Sipariş Yönetimi ve Restoranlar tüm adminlere açık */}
-              <Route path="siparisler" element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} />} />
+              {/* Sipariş Yönetimi varsayılan sayfa */}
+              <Route index element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} />} />
+              <Route path="guncel-durum" element={<GuncelDurumPage companyId={activeCompanyId} />} />
               <Route path="restoranlar" element={<RestoranlarPage companyId={activeCompanyId} />} />
               {(isSuperAdmin || permissions.vardiya) && (
                 <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />
