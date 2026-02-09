@@ -1557,7 +1557,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                   {courier.name}
                                 </div>
                                 {formatCourierDistance(courier.distanceToRestaurant) && (
-                                  <span className="text-xs text-muted-foreground">{formatCourierDistance(courier.distanceToRestaurant)}</span>
+                                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{formatCourierDistance(courier.distanceToRestaurant)}</span>
                                 )}
                               </div>
                             </SelectItem>
@@ -1578,7 +1578,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                   {courier.name}
                                 </div>
                                 {formatCourierDistance(courier.distanceToRestaurant) && (
-                                  <span className="text-xs text-muted-foreground">{formatCourierDistance(courier.distanceToRestaurant)}</span>
+                                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{formatCourierDistance(courier.distanceToRestaurant)}</span>
                                 )}
                               </div>
                             </SelectItem>
@@ -1599,7 +1599,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                   {courier.name}
                                 </div>
                                 {formatCourierDistance(courier.distanceToRestaurant) && (
-                                  <span className="text-xs text-muted-foreground">{formatCourierDistance(courier.distanceToRestaurant)}</span>
+                                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{formatCourierDistance(courier.distanceToRestaurant)}</span>
                                 )}
                               </div>
                             </SelectItem>
