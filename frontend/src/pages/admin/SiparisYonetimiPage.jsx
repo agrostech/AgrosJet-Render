@@ -1394,6 +1394,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <span className="truncate">{c.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
+                        {counts.assigned > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{counts.assigned}</span>
+                        )}
+                        {counts.confirmed > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">{counts.confirmed}</span>
+                        )}
                         {counts.onTheWay > 0 && (
                           <span className="text-[10px] px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded">{counts.onTheWay}</span>
                         )}
