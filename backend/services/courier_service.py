@@ -81,7 +81,7 @@ async def get_company_couriers(company_id: str, include_inactive: bool = False, 
         courier = couriers_dict.get(rel["courier_id"])
         if courier:
             courier = courier.copy()  # Orijinali değiştirme
-            courier["company_status"] = rel["status"]
+            courier["company_status"] = rel.get("status", "active")
             courier["is_archived"] = rel.get("is_archived", False)
             courier["is_active"] = rel.get("is_active", True)
             courier["termination_start_date"] = rel.get("termination_start_date")
