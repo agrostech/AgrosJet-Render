@@ -1973,18 +1973,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
       {/* Courier Detail Modal */}
       <Dialog open={showCourierDetailModal} onOpenChange={setShowCourierDetailModal}>
-        <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6">
-          <DialogHeader className="pb-2">
-            <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <div className="flex items-center gap-2">
-                <Bike className="w-5 h-5 flex-shrink-0" />
-                <span className="truncate">{selectedCourier?.name}</span>
-              </div>
+        <DialogContent className="w-[92vw] max-w-[360px] p-3 overflow-hidden">
+          <DialogHeader className="pb-1">
+            <DialogTitle className="text-base flex items-center gap-2">
+              <Bike className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate flex-1">{selectedCourier?.name}</span>
               <Select
                 value={selectedCourier?.availability_status || 'offline'}
                 onValueChange={(value) => handleUpdateCourierStatus(selectedCourier.id, value)}
               >
-                <SelectTrigger className={`h-7 w-fit text-xs px-2 gap-1 ${
+                <SelectTrigger className={`h-6 w-auto text-[10px] px-2 gap-1 flex-shrink-0 ${
                   selectedCourier?.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
                   selectedCourier?.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                   'bg-slate-100 text-slate-600 border-slate-200'
@@ -1995,108 +1993,78 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active" className="text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
-                      Aktif
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="on_break" className="text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                      Molada
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="offline" className="text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-slate-400" />
-                      Çevrimdışı
-                    </div>
-                  </SelectItem>
+                  <SelectItem value="active" className="text-xs">Aktif</SelectItem>
+                  <SelectItem value="on_break" className="text-xs">Molada</SelectItem>
+                  <SelectItem value="offline" className="text-xs">Çevrimdışı</SelectItem>
                 </SelectContent>
               </Select>
             </DialogTitle>
           </DialogHeader>
           
           {selectedCourier && (
-            <div className="space-y-3">
+            <div className="space-y-2 w-full overflow-hidden">
               {/* Harita */}
-              <div className="rounded-lg overflow-hidden border">
-                <div ref={courierMapRef} className="h-[180px] sm:h-[200px] w-full bg-slate-100" />
+              <div className="rounded-lg overflow-hidden border w-full">
+                <div ref={courierMapRef} className="h-[150px] w-full bg-slate-100" />
               </div>
               
-              {/* Son Konum Bilgisi */}
-              <div className="flex items-center justify-between px-2 py-2 bg-slate-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                  <span className="text-xs text-muted-foreground">Son Konum</span>
-                </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+              {/* Son Konum */}
+              <div className="flex items-center justify-between px-2 py-1.5 bg-slate-50 rounded text-xs">
+                <span className="text-muted-foreground">Son Konum</span>
+                <span className={`font-medium px-1.5 py-0.5 rounded ${
                   selectedCourier.current_location?.updated_at 
                     ? (() => {
                         const timeAgo = getLocationTimeAgo(selectedCourier.current_location.updated_at);
                         if (timeAgo === "Şimdi" || timeAgo?.includes("sn")) return "bg-green-100 text-green-700";
                         if (timeAgo?.includes("dk") && parseInt(timeAgo) <= 5) return "bg-green-100 text-green-700";
-                        if (timeAgo?.includes("dk") && parseInt(timeAgo) <= 15) return "bg-yellow-100 text-yellow-700";
-                        return "bg-red-100 text-red-700";
+                        return "bg-yellow-100 text-yellow-700";
                       })()
                     : "bg-slate-100 text-slate-600"
                 }`}>
                   {selectedCourier.current_location?.updated_at 
                     ? getLocationTimeAgo(selectedCourier.current_location.updated_at)
-                    : "Konum yok"}
-                </span>
-              </div>
-              
-              {/* Sipariş Sayısı */}
-              <div className="flex items-center justify-between px-2">
-                <span className="text-xs text-muted-foreground">Aktif Siparişler</span>
-                <span className="text-xs font-medium bg-slate-100 px-2 py-0.5 rounded">
-                  {selectedCourierOrders.length}
+                    : "Yok"}
                 </span>
               </div>
               
               {/* Sipariş Listesi */}
-              <div className="space-y-2 max-h-[200px] overflow-y-auto overflow-x-hidden">
-                {selectedCourierOrders.length === 0 ? (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-xs">Bu kuryeye atanmış aktif sipariş yok</p>
-                  </div>
-                ) : (
-                  selectedCourierOrders.map((order, idx) => {
-                    const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
-                    return (
-                      <div 
-                        key={order.id} 
-                        className={`p-2 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setShowCourierDetailModal(false);
-                          setShowOrderDetailModal(true);
-                        }}
-                      >
-                        <div className="flex items-start gap-2">
-                          <div className={`w-5 h-5 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5`}>
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1 min-w-0 overflow-hidden">
-                            <div className="font-medium text-sm truncate">{order.restaurant_name}</div>
-                            <div className="text-xs text-muted-foreground truncate">{order.delivery_address}</div>
-                            <div className="flex items-center gap-2 text-xs mt-1">
-                              <span className="font-medium">{formatCurrency(order.total_amount)}</span>
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                                order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                              }`}>
-                                {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
-                              </span>
-                            </div>
+              <div className="w-full overflow-hidden">
+                <div className="text-xs text-muted-foreground mb-1 px-1">
+                  Siparişler ({selectedCourierOrders.length})
+                </div>
+                <div className="space-y-1.5 max-h-[180px] overflow-y-auto overflow-x-hidden w-full">
+                  {selectedCourierOrders.length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground text-xs">
+                      Aktif sipariş yok
+                    </div>
+                  ) : (
+                    selectedCourierOrders.map((order, idx) => {
+                      const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+                      return (
+                        <div 
+                          key={order.id} 
+                          className={`p-2 rounded border ${statusInfo.bgLight} cursor-pointer w-full overflow-hidden`}
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setShowCourierDetailModal(false);
+                            setShowOrderDetailModal(true);
+                          }}
+                        >
+                          <div className="text-xs font-medium truncate w-full">{order.restaurant_name}</div>
+                          <div className="text-[10px] text-muted-foreground truncate w-full">{order.delivery_address}</div>
+                          <div className="flex items-center gap-2 text-[10px] mt-1">
+                            <span className="font-medium">{formatCurrency(order.total_amount)}</span>
+                            <span className={`px-1 rounded ${
+                              order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
+                      );
+                    })
+                  )}
+                </div>
               </div>
             </div>
           )}
