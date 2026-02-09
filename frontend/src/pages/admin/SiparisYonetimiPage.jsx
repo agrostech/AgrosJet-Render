@@ -1272,6 +1272,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         {counts.assigned > 0 && (
                           <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{counts.assigned}</span>
                         )}
+                        {counts.confirmed > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">{counts.confirmed}</span>
+                        )}
                         <ChevronRight className="w-3 h-3 text-muted-foreground" />
                       </div>
                     </div>
