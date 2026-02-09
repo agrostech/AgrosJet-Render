@@ -873,7 +873,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       const hasAssigned = courierOrders.some(o => o.status === 'assigned');
       
       if (hasOnTheWay) {
-        return { color: '#ef4444', label: 'Yolda' }; // Kırmızı
+        return { color: '#06b6d4', label: 'Yolda' }; // Turkuaz
       }
       if (hasConfirmed) {
         return { color: '#1e3a8a', label: 'Onaylandı' }; // Lacivert
