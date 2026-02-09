@@ -478,6 +478,20 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   };
 
+  // Sipariş hazır değil - 5dk ekle ve atamayı kaldır
+  const handleNotReady = async (orderId) => {
+    setActionLoading(orderId);
+    try {
+      await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/not-ready`);
+      toast.success("Sipariş hazırlanıyor olarak işaretlendi");
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Siparişi teslim et - ödeme kontrolü ile
   const handleDeliverOrder = async (orderId) => {
     // Siparişi bul
