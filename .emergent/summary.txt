@@ -1,84 +1,65 @@
 <analysis>**original_problem_statement:**
 The user is building a comprehensive, Adisyo-integrated order management system named ShiftJet.
 
-The initial goal was to build a complete Courier Panel. This session evolved into heavily refining existing features and implementing a real data integration with the Adisyo API. Key work includes:
-*   **Adisyo API Integration:** Implemented a polling mechanism to fetch live orders from Adisyo. This involved creating a new backend service to handle data fetching, parsing, and synchronization. Multiple bugs related to data parsing were fixed, including customer names, phone numbers, GPS coordinates, payment methods, and order notes. The sync logic was improved to prevent overwriting statuses of orders already being managed in ShiftJet.
-*   **Live Map Redesign:** The courier icons on the admin's live map were completely redesigned. They are now smaller, round, display the courier's initials, have a pulsing animation to indicate they are live, and are color-coded based on the courier's current order status (e.g., green for idle, red for on the way).
-*   **Order Card UI/UX Overhaul:** The order cards on both the admin and courier pages underwent multiple, significant redesigns based on iterative user feedback. This included changing layouts, adjusting font sizes, adding/moving information (like distance), and improving the information hierarchy.
-*   **Feature Refinements:**
-    *   Added a last seen timestamp to courier location details.
-    - Added a Haversine distance calculation to show the distance on order cards.
-    *   Fixed a bug causing the map in the courier detail modal to endlessly refresh.
-    *   Implemented a feature where hovering over a courier's name in the admin list focuses the map on that courier.
-*   **Bug Fixes:**
-    *   Resolved a UI freeze on Android devices caused by the notification permission dialog.
-    *   Investigated an issue where couriers from all companies were being displayed, concluding it was likely a data issue.
+The initial goal was to build a complete Courier Panel. This session focused on resolving high-priority visual and data parsing bugs, and then rapidly implementing several new user-requested features for the courier workflow.
+
+PRODUCT REQUIREMENTS added in this session:
+1.  **Multi-Delivery Routing:** A courier with multiple on the way orders should be able to press a single button to generate an optimized Google Maps route visiting each delivery location, ordered from nearest to farthest.
+2.  **Courier Break Time Management:**
+    *   Admins must be able to set a daily break time limit (e.g., 45 minutes) for each courier from the admin panel.
+    *   This limit should reset for all couriers every day at the company's closing time.
+    *   Couriers must be able to see their remaining break time on their dashboard.
+    *   The system should prevent a courier from taking a break if their remaining time is zero.
+3.  **Order Not Ready Feature:**
+    *   When a courier arrives at a restaurant for a  order, the Yola Çık (Start Delivery) button should be split into two.
+    *   A new Sipariş Hazır Değil (Order Not Ready) button will be added.
+    *   Clicking this button should show a confirmation modal explaining that a 5-minute delay will be added to the order, and it will be unassigned from the current courier and reassigned later.
+4.  **UI/UX Overhauls for Courier Page:**
+    *   The single list of active orders should be replaced with two tabs: Atanmış (Assigned) and Yoldaki (On the way).
+    *   Order cards should be visually distinct using shadows and colored side-borders (purple for assigned, blue for on the way).
+    *   UI elements on the courier dashboard should be reorganized for a cleaner look (e.g., move notification button to header, move break time info into the status dropdown).
+5.  **Order Age Display:**
+    *   The age of an order (time since creation) must be displayed on both the courier and admin order cards.
+    *   The format should be in total minutes (e.g., 77 dk).
+    *   On the admin panel's mobile view, the order age should be displayed in red if it exceeds 35 minutes.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application now has a foundational, but fragile, integration with the Adisyo API, which polls for new orders every 30 seconds. The data from Adisyo is parsed and transformed to fit the system's models, with several hotfixes applied to handle incorrect data formats for names, phone numbers, coordinates, and payment types. The admin panel features a visually enhanced live map with animated, color-coded, and dynamic courier icons. Both admin and courier order cards have been extensively redesigned for better usability and information density, including the display of order distance. Numerous small bugs and UI issues have been addressed, but the system's stability, especially regarding the Adisyo integration and large refactoring-needy components, is a concern.
+The application has fixed its critical P0 bugs from the previous session (Adisyo note parsing and square restaurant markers). It now includes significant new functionality for couriers: a multi-stop route generation feature, a complete courier-specific break time management system (with daily resets via a scheduler job), and an order not ready workflow that un-assigns the courier and delays the order. The courier's main order page has been completely redesigned with a tabbed interface (Atanmış and Yolda) and visually improved order cards. The courier dashboard UI has also been reorganized based on user feedback. Both admin and courier views now display the order's age in minutes, with conditional coloring on the admin mobile view for orders older than 35 minutes.
 
 **Last working item**:
-- Last item agent was working: The agent was attempting to parse complex order notes coming from the Adisyo API. The user wants to:
-    1.  Remove payment method text (e.g., Online Kredi/Banka Kartı) from the notes.
-    2.  Differentiate between note types (e.g., operational notes like ömer aybak çiğköfteye gelicek vs. generic instructions like çatal bıçak göndermeyin).
-    3.  Display the operational notes in red.
-- Status: IN PROGRESS
-- Agent Testing Done: N
-- Which testing method agent to use? backend testing agent
+- Last item agent was working: The agent was implementing a feature to show the order's age (in minutes) on the admin panel's mobile view. The text color should be black for orders under 35 minutes and red for orders 35 minutes or older. This should not apply to 'delivered' or 'cancelled' orders.
+- Status: USER VERIFICATION PENDING
+- Agent Testing Done: Y (Verified via screenshot)
+- Which testing method agent to use? screenshot tool
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Adisyo Note Parsing Logic (P0 - HIGHEST PRIORITY)**
--   **Issue 2: Restaurant Markers are Square, Not Round (P0)**
--   **Issue 3: Courier List Filtering by Company (P1)**
--   **Issue 4: Background Task Reliability (Notifications/Location) (P1)**
--   **Issue 5: Admin Order Card Layout (P2)**
+-   **Issue 1: Courier List Filtering by Company (P1)**
+-   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
+-   **Issue 3: Admin Order Card Layout (P2)**
 
 Issues Detail:
--   **Issue 1: Adisyo Note Parsing Logic (P0)**
-    -   **Attempted fixes:** The agent modified  with string splitting () and regex to separate different kinds of notes and remove payment text. Several database update scripts were run, but the results were inconsistent, indicating the logic is not robust enough.
-    -   **Next debug checklist:**
-        1.  Review the note parsing logic in  in . Replace fragile string splits with more reliable regex patterns.
-        2.  Handle edge cases where notes might not contain the delimiters the current logic expects.
-        3.  Verify that the frontend component in  correctly receives and renders the  in red and  normally.
-    -   **Why fix this issue and what will be achieved with the fix?** Critical order information is being presented incorrectly or with confusing extra text, which can lead to courier errors.
-    -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue:** None.
--   **Issue 2: Restaurant Markers are Square, Not Round (P0)**
-    -   **Attempted fixes:** None in this session. This is a persistent visual bug from a previous session.
-    -   **Next debug checklist:**
-        1.  Inspect the CSS rules applied to  in the browser dev tools to find what's overriding .
-        2.  Create a simple  with a minimal inline style  to isolate the issue.
-    -   **Why fix this issue and what will be achieved with the fix?** This is a high-priority visual requirement from the user that has been pending for multiple sessions.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on other issue:** None.
--   **Issue 3: Courier List Filtering by Company (P1)**
-    -   **Attempted fixes:** The agent investigated the backend endpoint  and confirmed it filters correctly. The agent concluded the issue is likely due to couriers in the database having a  or incorrect .
-    -   **Next debug checklist:**
-        1.  Run a script to find all couriers where  is null or does not match any existing company.
-        2.  Propose a fix to either assign them to a default company or hide them from lists.
-    -   **Why fix this issue and what will be achieved with the fix?** Admins see irrelevant couriers, which clutters the UI and can lead to incorrect assignment attempts.
+-   **Issue 1: Courier List Filtering by Company (P1)**
+    -   **Attempted fixes:** (From previous session) Agent confirmed the backend endpoint  filters correctly. The issue is likely due to couriers having a  or incorrect .
+    -   **Next debug checklist:** Run a script to find couriers with  as null or not matching any existing company. Propose a fix to assign a default company or hide them.
+    -   **Why fix this issue and what will be achieved with the fix?** Admins see irrelevant couriers, which clutters the UI.
     -   **Status:** NOT STARTED
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** backend
     -   **Blocked on other issue:** None.
--   **Issue 4: Background Task Reliability (Notifications/Location) (P1)**
+-   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
     -   **Attempted fixes:** A  listener was added in a previous session.
-    -   **Next debug checklist:** This requires long-term testing by the user on a real device. The agent cannot verify this. The agent should ask the user to confirm if the issue persists.
+    -   **Next debug checklist:** This requires long-term user testing on a real device. The agent should ask the user to confirm if the issue persists.
     -   **Why fix this issue and what will be achieved with the fix?** Core functionality depends on reliable background operations.
     -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** frontend
     -   **Blocked on other issue:** None.
--   **Issue 5: Admin Order Card Layout (P2)**
-    -   **Attempted fixes:** The agent went through at least 5 major redesigns of the admin order card in this session alone. The current state is the result of the user's latest instruction.
-    -   **Next debug checklist:** The user is highly sensitive to this component's design. The agent should be prepared for more change requests. The risk of this completed task becoming an issue again is high.
+-   **Issue 3: Admin Order Card Layout (P2)**
+    -   **Attempted fixes:** The admin order card has been redesigned multiple times. The current state is the result of the user's latest instruction.
+    -   **Next debug checklist:** The user is highly sensitive to this component's design. Be prepared for more change requests.
     -   **Why fix this issue and what will be achieved with the fix?** User satisfaction with the primary admin interface.
     -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** Y
@@ -86,8 +67,8 @@ Issues Detail:
     -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   **Task 1: Test and Finalize Payment Confirmation Modal (P0)** (from previous handoff)
-    -   **Where to resume:** This task was not worked on in this session and remains pending from the previous handoff. The code in  needs to be tested end-to-end.
+-   **Task 1: Test and Finalize Payment Confirmation Modal (P0)**
+    -   **Where to resume:** This task was not worked on and remains pending from a previous handoff. The code exists in  but needs to be tested end-to-end.
     -   **What will be achieved with this?** A critical business rule (confirming payment before delivery) will be enforced.
     -   **Status:** NOT STARTED
     -   **Should Test frontend/backend/both after fix?** frontend
@@ -95,118 +76,129 @@ Issues Detail:
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0 - Implement Adisyo Webhooks:** The current polling method is inefficient. The agent should implement a webhook endpoint to receive order updates from Adisyo in real-time as originally planned.
+    -   **P0 - Implement Adisyo Webhooks:** The current polling method is inefficient. Implement a webhook endpoint to receive real-time order updates.
     -   **P1 - Restrict Order Assignment:** Implement logic to prevent admins from assigning orders to couriers who are Molada (On Break) or Çevrimdışı (Offline).
 -   **Future Tasks:**
     -   **P1 - Re-enable & Enhance Chat System**
     -   **P2 - Dark Mode Implementation**
-    -   **P2 - Component Refactoring:** Critically refactor  and  into smaller, manageable components. This technical debt is increasing.
+    -   **P2 - Component Refactoring:** Critically refactor  and  into smaller, manageable components.
     -   **P3 - Motosikletim Feature Enhancements**
 
 **Completed work in this session**
--   **Adisyo Integration (V1):** Implemented a background job to poll the Adisyo API for new orders and save them to the database.
--   **Adisyo Data Parsing Fixes:**
-    -   Fixed parsing of customer names, phone numbers (adding leading '0'), GPS coordinates (comma to period conversion), and payment methods.
-    -   Modified status sync logic to prevent Adisyo from overwriting statuses of orders already in progress in ShiftJet.
--   **Live Map Courier Icon Redesign:** Courier markers are now round, animated, color-coded by status, and display the courier's initials.
--   **Admin & Courier Order Card Overhaul:** Both primary order cards were redesigned multiple times for better layout, information hierarchy, and to meet specific user requests.
--   **UI/UX Enhancements:**
-    -   Added distance calculation () to all order cards.
-    -   Added a last seen timestamp to courier details.
-    -   Implemented map focusing when hovering over a courier in the admin list.
-    -   Fixed a map re-rendering loop in the courier detail modal.
-    -   Removed the info popup from map markers for a cleaner experience.
-    -   Added navigation buttons to courier cards for both restaurant and customer addresses.
--   **Bug Fix:** Resolved a UI freeze on Android related to the notification permission prompt.
+- **P0 Bug Fixes:**
+  - Resolved the Adisyo note parsing issue by implementing more robust regex logic in .
+  - Fixed the square restaurant markers on the admin map by forcing  in  and .
+- **Courier Multi-Delivery Routing:**
+  - Implemented a Rota Oluştur button on the courier page that generates a multi-stop Google Maps URL for all on the way orders.
+- **Courier Break Time Management:**
+  - Added an admin endpoint () and UI in  to set a daily break limit.
+  - Created a daily scheduler job in  to reset all courier break times.
+  - Implemented logic in  and the backend to display remaining break time and prevent taking breaks if the limit is exceeded.
+- **Order Not Ready Feature:**
+  - Created a backend endpoint () to unassign a courier and add a 5-minute preparation delay.
+  - Added a Hazır Değil button to the courier order card, which triggers a confirmation modal before calling the endpoint.
+- **Courier Page UI/UX Overhaul:**
+  - Refactored  to use a tabbed layout for Atanmış (Assigned) and Yoldaki (On the way) orders.
+  - Redesigned order cards with shadows, spacing, and status-based colored borders for better visual separation.
+  - Reorganized  header: moved notification button and integrated remaining break time into the status dropdown.
+- **Order Age Display:**
+  - Created a helper function to calculate order age in minutes.
+  - Displayed the order age on both  and  order cards.
+  - Implemented conditional red coloring for orders older than 35 minutes on the admin mobile view.
+- **Bug Fix:** Fixed an issue preventing couriers from calling restaurants by backfilling the  field on existing orders.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Restaurant markers are square.** This P0 visual bug from the previous session was not addressed.
+None in this session. The primary pending visual bug (square markers) was fixed.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork:** Mobile file upload issue.
 -   **Recurrence count:** 5+
--   **Status:** NOT STARTED
+-   **Status:** NOT STARTED (Not addressed in this session).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Background Jobs (APScheduler):** Used to create a scheduled job for polling the Adisyo API.
--   **API Integration:** Made external API calls to a third-party service () using .
--   **Custom Leaflet Markers ():** Used to create highly customized, animated HTML markers for couriers on the map.
--   **Haversine Formula:** Implemented a utility function in JavaScript to calculate geographical distance between two points.
--   **React :** Employed to prevent a map component from re-rendering unnecessarily due to state updates from polling.
--   **Tailwind CSS:** Used extensively for rapid UI prototyping and iterative design changes, including  for text truncation.
+-   **APScheduler:** Used to schedule a daily job to reset courier break times.
+-   **React UI Patterns:** Implemented a tabbed interface using  to manage the active tab and filter displayed data.
+-   **Conditional Rendering:** Extensively used to show/hide UI elements like buttons (Yola Çık vs. Hazır Değil), tabs, and modals.
+-   **Component-Level State Management:** Managed modal visibility, pending actions, and UI state within React components.
+-   **Tailwind CSS:** Used for dynamic and conditional styling (e.g., ).
+-   **API Design:** Added new REST endpoints with clear responsibilities for managing courier breaks and order states.
+-   **Data Backfilling:** Ran a one-time script via  to update existing database records with missing  data.
 
 **key DB schema**
+-   **couriers:**
+    -    (int): Maximum daily break time in minutes.
+    -    (int): Accumulated break duration in seconds for the current day.
+    -    (datetime): Timestamp for when the current break started.
 -   **orders:**
-    -   , , : Fields to store and categorize parsed notes from Adisyo.
-    -   : Stores the external ID from Adisyo.
-    -   : Identifies the order source (e.g., 'adisyo').
-    -   , : Added to the order for easy access by the courier.
-    -   : Timestamp now correctly calculated based on restaurant's preparation time.
+    -   : Timestamp is now updated by the not-ready feature to add a 5-minute delay.
+    -   : Field now populated for all orders after a backfill script was run.
 
 **All files of reference**
 -    (Heavily Modified)
 -    (Heavily Modified)
--    (New)
+-    (Modified)
+-    (Modified)
+-    (Modified)
 -    (Modified)
 -    (Modified)
 
 **Areas that need refactoring**:
--   **:** This file is critically oversized and complex. The logic for the order list, courier list, and the main map are tightly coupled and should be extracted into separate, reusable components to reduce complexity and improve maintainability.
--   **:** This page has also grown significantly and contains several sub-components (like ) that should be defined in their own files.
--   **:** The data parsing logic relies on string manipulation that has proven fragile. It should be refactored to use more robust methods like regex for all parsing to handle variations in the incoming data.
+-   ****: This file has become extremely large and complex. It now contains the logic for tabs, data filtering, multiple modals (, ), and defines the  and  components inline. These cards should be extracted into their own files in a  directory.
+-   ****: This component has absorbed significant logic for managing availability status, break time, location tracking, and notifications. Some of this logic, especially the UI parts, could be broken into smaller sub-components.
+-   ****: Remains a large, complex component from previous sessions and is a candidate for being broken down.
 
 **key api endpoints**
--   : (New) Manually triggers an order sync from Adisyo for a specific restaurant.
--   A background job now periodically fetches orders from Adisyo's external API.
+-   : Sets the daily break time limit (in minutes) for a courier.
+-   : Retrieves the courier's break time limit, used time, and remaining time.
+-   : Un-assigns the current courier, sets the order status back to , and adds 5 minutes to its  time.
+-   : (Modified) Now checks remaining break time before allowing a status change to .
 
 **Critical Info for New Agent**
 -   **All communication must be in Turkish.**
--   **UI/UX is a top priority for the user.** Be prepared for very specific, iterative feedback, especially concerning the admin order cards. The user often provides screenshots to illustrate their requests. Assume no UI is final until explicitly approved.
--   The **Adisyo integration is new and brittle.** The data parsing logic has required several hotfixes and is still being worked on (specifically for notes). Expect to find more edge cases. Debugging should start in .
--   Remember to address **long-standing P0 issues**, like the square restaurant markers, in your plan. The user prioritizes new features, but technical and visual debt is accumulating.
+-   The user is highly engaged and provides frequent, specific UI/UX feedback, often with screenshots. Expect to iterate on visual details. Prioritize clear, simple designs.
+-   The courier-facing pages (, ) have been the focus of this session and are now significantly different. Review these files thoroughly before making changes.
+-   The new break time and not ready features involve coordinated changes across the frontend, backend routers, and scheduled jobs. Be mindful of these interconnected parts when debugging.
 
 **documents and test reports created in this job**
-None.
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** The courier card is messy. Redesign it with sections for Restaurant, Customer, and Order info. -> **Status: COMPLETED**
-2.  **User:** The redesigned card is missing the Call Restaurant button. -> **Status: COMPLETED**
-3.  **User:** The order ID (e.g., ADY-253) is not needed on the card. -> **Status: COMPLETED**
-4.  **User:** The address is cut off, make it 3 lines. -> **Status: COMPLETED**
-5.  **User:** Still not enough, make it 4 lines. -> **Status: COMPLETED**
-6.  **User:** The note contains payment info like Online Kredi/Banka Kartı and mixed messages. Important notes should be red. -> **Status: IN PROGRESS**
-7.  **User:** The address on the admin card is taking up too much space and looks bad. -> **Status: COMPLETED** (After several redesigns)
-8.  **User:** This new design is terrible on both mobile and desktop. -> **Status: COMPLETED** (Agent redesigned it again)
-9.  **User:** This is also bad. -> **Status: COMPLETED** (Agent redesigned it again)
-10. **User:** It was better when I could change the status directly from the badge. -> **Status: COMPLETED** (Agent reverted to a dropdown badge)
+1.  **User:** The header buttons on the courier dashboard look uneven. -> **Status: COMPLETED**
+2.  **User:** Remove the Siparişlerim (My Orders) header from the courier page. -> **Status: COMPLETED**
+3.  **User:** Show Assigned and On the way orders in separate tabs, not one long list. -> **Status: COMPLETED**
+4.  **User:** The order cards in the list blend together. Add a frame or shadow. -> **Status: COMPLETED** (Agent added shadow).
+5.  **User:** The shadow should be more prominent. -> **Status: COMPLETED**
+6.  **User:** Add the colored side-border to the on the way order cards too. -> **Status: COMPLETED**
+7.  **User:** When an order is , split the Start Delivery button into two: Order Not Ready and Start Delivery. Not Ready should un-assign the courier and add a 5-minute penalty. -> **Status: COMPLETED**
+8.  **User:** Add a confirmation modal for the Order Not Ready button. -> **Status: COMPLETED**
+9.  **User:** The colors on the order card are too much. Simplify them. -> **Status: COMPLETED**
+10. **User:** The Route Created toast notification is unnecessary. Remove it. -> **Status: COMPLETED**
 
 **Project Health Check:**
--   **Broken:**
-    -   **Restaurant Marker Style:** A persistent P0 visual bug where markers are square instead of round.
-    -   **Adisyo Note Parsing:** The current implementation is incorrect and is the last active issue.
--   **Mocked:** The application is in a transition phase. While live orders are being pulled from Adisyo, some mock data and related logic might still exist.
+-   **Broken:** No new critical breakages were introduced. Previously identified P0 issues were resolved.
+-   **Mocked:** Mock order generation is still heavily used for testing courier assignments and statuses. The  function in  is the entry point for this.
 
 **3rd Party Integrations**
--   : **Newly Integrated** via a polling mechanism to fetch orders.
--   : (New dependency) Used by the Adisyo service for making HTTP requests.
+-   : Integrated via a polling mechanism to fetch orders.
+-   
 -   
 -   
 -   
 
 **Testing status**
--   Testing agent used after significant changes: NO
+-   Testing agent used after significant changes: YES, once.
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
--   Known regressions: The admin order card UI went through several regressions from the user's perspective before arriving at the current state.
+-   Known regressions: None in this session.
 
 **Credentials to test flow:**
 -   **Multi-company Admin:** username: , password: 
 -   **Courier:** username: , password: 
 
 **What agent forgot to execute**
--   The agent did not address the long-standing **P0 square restaurant marker issue** from the previous handoff.
--   The agent planned to implement **Adisyo webhooks** for real-time updates but only implemented a less efficient polling system. The webhook part was forgotten.
--   Verification of several older issues (background task reliability, mobile courier assignment dropdown) was not followed up on.</analysis>
+-   The agent did not address the pending P1 issues from the previous handoff: **Courier List Filtering by Company** and **Background Task Reliability**.
+-   The agent did not work on the pending task from the previous handoff: **Test and Finalize Payment Confirmation Modal**.
+-   The agent did not start work on the high-priority upcoming task: **Implement Adisyo Webhooks**.</analysis>
