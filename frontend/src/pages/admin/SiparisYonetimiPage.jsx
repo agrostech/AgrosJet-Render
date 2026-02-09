@@ -167,6 +167,29 @@ const getLocationTimeAgo = (updatedAt) => {
   return updateTime.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
+// Sipariş notlarını parse et (CUSTOMER:, KITCHEN: gibi prefixleri temizle)
+const parseOrderNotes = (notes) => {
+  if (!notes) return null;
+  
+  const result = { customer: null, kitchen: null, other: null };
+  
+  // CUSTOMER: ve KITCHEN: formatını parse et
+  const parts = notes.split('|');
+  
+  parts.forEach(part => {
+    const trimmed = part.trim();
+    if (trimmed.startsWith('CUSTOMER:')) {
+      result.customer = trimmed.replace('CUSTOMER:', '').trim();
+    } else if (trimmed.startsWith('KITCHEN:')) {
+      result.kitchen = trimmed.replace('KITCHEN:', '').trim();
+    } else if (trimmed) {
+      result.other = result.other ? `${result.other}, ${trimmed}` : trimmed;
+    }
+  });
+  
+  return result;
+};
+
 export default function SiparisYonetimiPage({ companyId, adminName }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
