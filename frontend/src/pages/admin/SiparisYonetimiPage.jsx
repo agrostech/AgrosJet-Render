@@ -138,11 +138,7 @@ const getOrderAge = (order) => {
     const diffMins = Math.floor(diffMs / 60000);
     
     if (diffMins < 1) return "Yeni";
-    if (diffMins < 60) return `${diffMins} dk`;
-    
-    const hours = Math.floor(diffMins / 60);
-    const mins = diffMins % 60;
-    return `${hours} sa ${mins} dk`;
+    return `${diffMins} dk`;
   } catch {
     return null;
   }
