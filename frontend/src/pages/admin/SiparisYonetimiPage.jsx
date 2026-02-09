@@ -1712,19 +1712,10 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               {/* Konum Sekmesi */}
               <TabsContent value="location" className="flex-1 mt-4">
                 <div className="space-y-3">
-                  {/* Adres bilgisi */}
-                  <div className="flex items-start gap-2 p-2 bg-orange-50 rounded-lg">
-                    <MapPin className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">{selectedOrder.delivery_address}</p>
-                      <p className="text-xs text-muted-foreground">{selectedOrder.customer_name}</p>
-                    </div>
-                  </div>
-                  
                   {/* Harita */}
                   <div 
                     ref={orderMapRef}
-                    className="w-full h-[300px] rounded-lg border"
+                    className="w-full h-[350px] rounded-lg border"
                     style={{ zIndex: 1 }}
                   />
                   
