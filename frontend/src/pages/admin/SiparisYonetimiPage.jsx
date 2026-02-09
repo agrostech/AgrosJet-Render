@@ -1612,9 +1612,28 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   <MapPin className="w-5 h-5 text-orange-500 mt-0.5" />
                   <div className="flex-1">
                     <p className="font-medium">{selectedOrder.delivery_address}</p>
-                    {selectedOrder.notes && (
-                      <p className="text-sm text-orange-600 mt-1">Not: {selectedOrder.notes}</p>
-                    )}
+                    {selectedOrder.notes && (() => {
+                      const parsedNotes = parseOrderNotes(selectedOrder.notes);
+                      return (
+                        <div className="mt-2 space-y-1">
+                          {parsedNotes.customer && (
+                            <p className="text-sm text-blue-600">
+                              <span className="font-medium">Müşteri Notu:</span> {parsedNotes.customer}
+                            </p>
+                          )}
+                          {parsedNotes.kitchen && (
+                            <p className="text-sm text-orange-600">
+                              <span className="font-medium">Mutfak Notu:</span> {parsedNotes.kitchen}
+                            </p>
+                          )}
+                          {parsedNotes.other && (
+                            <p className="text-sm text-slate-600">
+                              <span className="font-medium">Not:</span> {parsedNotes.other}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <Button
                     variant="ghost"
