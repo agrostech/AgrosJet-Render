@@ -369,6 +369,35 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     };
   }, [fetchAll, fetchOrders, fetchCouriers]);
 
+  // Dağıtımda olan kuryeleri hesapla (yolda siparişi olanlar)
+  const couriersOnDelivery = useMemo(() => {
+    // Yolda siparişleri olan kurye ID'lerini bul
+    const onTheWayCourierIds = new Set(
+      orders
+        .filter(o => o.status === 'on_the_way' && o.courier_id)
+        .map(o => o.courier_id)
+    );
+    
+    // Tüm kuryeler içinden yolda olanları filtrele
+    const allCouriers = [
+      ...couriersByStatus.active,
+      ...couriersByStatus.on_break,
+      ...couriersByStatus.offline
+    ];
+    
+    return allCouriers.filter(c => onTheWayCourierIds.has(c.id));
+  }, [orders, couriersByStatus]);
+
+  // Dağıtımda olmayan kuryeleri hesapla (aktif listeden çıkar)
+  const couriersNotOnDelivery = useMemo(() => {
+    const onDeliveryIds = new Set(couriersOnDelivery.map(c => c.id));
+    return {
+      active: couriersByStatus.active.filter(c => !onDeliveryIds.has(c.id)),
+      on_break: couriersByStatus.on_break.filter(c => !onDeliveryIds.has(c.id)),
+      offline: couriersByStatus.offline.filter(c => !onDeliveryIds.has(c.id))
+    };
+  }, [couriersByStatus, couriersOnDelivery]);
+
   // Geri sayım için her dakika re-render (dakika bazlı olduğu için)
   useEffect(() => {
     const hasPreparingOrders = orders.some(o => o.status === 'preparing' && o.preparation_end_at);
