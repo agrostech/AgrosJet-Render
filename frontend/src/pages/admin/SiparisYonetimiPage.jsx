@@ -1305,13 +1305,17 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     {/* Üst: Saat + Süre + Restoran + Fiyat/Ödeme */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
-                        {getOrderAge(order) && (
-                          <span className="flex items-center gap-1 text-xs text-orange-600 font-medium">
-                            <Clock className="w-3 h-3" />
-                            {getOrderAge(order)}
-                          </span>
-                        )}
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
+                          {!['delivered', 'cancelled'].includes(order.status) && getOrderAge(order) && (
+                            <span className={`flex items-center gap-1 text-xs font-medium ${
+                              getOrderAge(order).mins > 35 ? 'text-red-600' : 'text-slate-700'
+                            }`}>
+                              <Clock className="w-3 h-3" />
+                              {getOrderAge(order).text}
+                            </span>
+                          )}
+                        </div>
                         <span className="font-semibold">{order.restaurant_name}</span>
                       </div>
                       <div className="flex flex-col items-end">
