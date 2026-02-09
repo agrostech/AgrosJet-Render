@@ -1472,57 +1472,49 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                           <Bike className="w-3 h-3 mr-1" />
                           <span>{order.courier_name || "Kurye Ata"}</span>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="min-w-[280px]">
                           {(() => {
-                            const sortedActive = sortCouriersByDistance(couriersByStatus.active, order.restaurant_location);
-                            const sortedOnBreak = sortCouriersByDistance(couriersByStatus.on_break, order.restaurant_location);
-                            const sortedOffline = sortCouriersByDistance(couriersByStatus.offline, order.restaurant_location);
+                            const sortedActive = sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders);
+                            const sortedOnBreak = sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders);
+                            const sortedOffline = sortCouriersByDistanceAndLoad(couriersByStatus.offline, order.restaurant_location, orders);
+                            
+                            const renderCourierItem = (c) => (
+                              <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white [&>span]:w-full">
+                                <div className="flex items-center justify-between w-full gap-2">
+                                  <span className="font-medium">{c.name}</span>
+                                  <div className="flex items-center gap-1 flex-shrink-0">
+                                    {formatCourierDistance(c.distanceToRestaurant) && (
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                                    )}
+                                    {c.assignedCount > 0 && (
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">{c.assignedCount} Atanmış</span>
+                                    )}
+                                    {c.onTheWayCount > 0 && (
+                                      <span className="text-[10px] px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded font-medium">{c.onTheWayCount} Yolda</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            );
                             
                             return (
                               <>
                                 {sortedActive.length > 0 && (
                                   <>
                                     <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
-                                    {sortedActive.map(c => (
-                                      <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white">
-                                        <span>
-                                          {c.name}
-                                          {formatCourierDistance(c.distanceToRestaurant) && (
-                                            <span className="ml-1">({formatCourierDistance(c.distanceToRestaurant)})</span>
-                                          )}
-                                        </span>
-                                      </SelectItem>
-                                    ))}
+                                    {sortedActive.map(renderCourierItem)}
                                   </>
                                 )}
                                 {sortedOnBreak.length > 0 && (
                                   <>
                                     <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
-                                    {sortedOnBreak.map(c => (
-                                      <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white">
-                                        <span>
-                                          {c.name}
-                                          {formatCourierDistance(c.distanceToRestaurant) && (
-                                            <span className="ml-1">({formatCourierDistance(c.distanceToRestaurant)})</span>
-                                          )}
-                                        </span>
-                                      </SelectItem>
-                                    ))}
+                                    {sortedOnBreak.map(renderCourierItem)}
                                   </>
                                 )}
                                 {sortedOffline.length > 0 && (
                                   <>
                                     <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">Çevrimdışı</div>
-                                    {sortedOffline.map(c => (
-                                      <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white">
-                                        <span>
-                                          {c.name}
-                                          {formatCourierDistance(c.distanceToRestaurant) && (
-                                            <span className="ml-1">({formatCourierDistance(c.distanceToRestaurant)})</span>
-                                          )}
-                                        </span>
-                                      </SelectItem>
-                                    ))}
+                                    {sortedOffline.map(renderCourierItem)}
                                   </>
                                 )}
                               </>
