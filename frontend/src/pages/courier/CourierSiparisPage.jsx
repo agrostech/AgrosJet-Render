@@ -259,10 +259,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       mapsUrl += `&waypoints=${waypoints}`;
     }
     
-    // Toast ile sıralamayı göster
-    const routeInfo = sortedOrders.map((o, i) => `${i + 1}. ${o.customer_name}`).join(" → ");
-    toast.success(`Rota: ${routeInfo}`, { duration: 5000 });
-    
     // Google Maps'i aç
     window.open(mapsUrl, "_blank");
   }, [orders, currentLocation]);
