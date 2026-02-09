@@ -1146,15 +1146,15 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 bg-green-50 rounded text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
-                Aktif ({couriersByStatus.active.length})
+                Aktif ({couriersNotOnDelivery.active.length})
               </div>
               <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-1">
-              {couriersByStatus.active.length === 0 ? (
+              {couriersNotOnDelivery.active.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
-                couriersByStatus.active.map(c => (
+                couriersNotOnDelivery.active.map(c => (
                   <div 
                     key={c.id} 
                     className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-green-50 rounded cursor-pointer"
@@ -1172,20 +1172,51 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             </CollapsibleContent>
           </Collapsible>
           
+          {/* Dağıtımda Kuryeler */}
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 bg-cyan-50 rounded text-xs font-semibold text-cyan-700 hover:bg-cyan-100 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                Dağıtımda ({couriersOnDelivery.length})
+              </div>
+              <ChevronDown className="w-4 h-4 transition-transform duration-200" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-1">
+              {couriersOnDelivery.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1">-</p>
+              ) : (
+                couriersOnDelivery.map(c => (
+                  <div 
+                    key={c.id} 
+                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-cyan-50 rounded cursor-pointer"
+                    onClick={() => handleCourierClick(c)}
+                    onMouseEnter={() => handleCourierHover(c)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Bike className="w-3 h-3 text-cyan-600" />
+                      <span className="truncate">{c.name}</span>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                ))
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+          
           {/* Moladaki Kuryeler */}
           <Collapsible>
             <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 bg-yellow-50 rounded text-xs font-semibold text-yellow-700 hover:bg-yellow-100 transition-colors">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                Molada ({couriersByStatus.on_break.length})
+                Molada ({couriersNotOnDelivery.on_break.length})
               </div>
               <ChevronDown className="w-4 h-4 transition-transform duration-200" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-1">
-              {couriersByStatus.on_break.length === 0 ? (
+              {couriersNotOnDelivery.on_break.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
-                couriersByStatus.on_break.map(c => (
+                couriersNotOnDelivery.on_break.map(c => (
                   <div 
                     key={c.id} 
                     className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-yellow-50 rounded cursor-pointer"
