@@ -1974,15 +1974,17 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       {/* Courier Detail Modal */}
       <Dialog open={showCourierDetailModal} onOpenChange={setShowCourierDetailModal}>
         <DialogContent className="w-[92vw] max-w-[360px] sm:max-w-[500px] lg:max-w-[550px] p-3 sm:p-5 overflow-hidden">
-          <DialogHeader className="pb-1 sm:pb-2">
+          <DialogHeader className="pb-1 sm:pb-2 pr-8">
             <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
               <Bike className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span className="truncate flex-1">{selectedCourier?.name}</span>
+            </DialogTitle>
+            <div className="mt-2">
               <Select
                 value={selectedCourier?.availability_status || 'offline'}
                 onValueChange={(value) => handleUpdateCourierStatus(selectedCourier.id, value)}
               >
-                <SelectTrigger className={`h-6 sm:h-7 w-auto text-[10px] sm:text-xs px-2 gap-1 flex-shrink-0 ${
+                <SelectTrigger className={`h-7 w-fit text-xs px-3 gap-1 ${
                   selectedCourier?.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
                   selectedCourier?.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                   'bg-slate-100 text-slate-600 border-slate-200'
@@ -1998,7 +2000,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   <SelectItem value="offline" className="text-xs">Çevrimdışı</SelectItem>
                 </SelectContent>
               </Select>
-            </DialogTitle>
+            </div>
           </DialogHeader>
           
           {selectedCourier && (
