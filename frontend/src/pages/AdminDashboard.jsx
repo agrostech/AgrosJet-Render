@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [badges, setBadges] = useState({});
   
