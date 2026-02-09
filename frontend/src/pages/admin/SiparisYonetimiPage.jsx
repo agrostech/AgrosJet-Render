@@ -1042,7 +1042,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     const map = mapInstanceRef.current;
     map.setView(
       [courier.current_location.latitude, courier.current_location.longitude],
-      16, // Yakınlaştırma seviyesi
+      14, // Yakınlaştırma seviyesi (2 tık azaltıldı)
       { animate: true, duration: 0.5 }
     );
   }, []);
