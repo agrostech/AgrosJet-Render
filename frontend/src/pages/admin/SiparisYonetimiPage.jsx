@@ -1460,13 +1460,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                   <>
                                     <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
                                     {sortedActive.map(c => (
-                                      <SelectItem key={c.id} value={c.id}>
-                                        <div className="flex items-center justify-between w-full gap-2">
-                                          <span>{c.name}</span>
+                                      <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white">
+                                        <span>
+                                          {c.name}
                                           {formatCourierDistance(c.distanceToRestaurant) && (
-                                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                                            <span className="ml-1">({formatCourierDistance(c.distanceToRestaurant)})</span>
                                           )}
-                                        </div>
+                                        </span>
                                       </SelectItem>
                                     ))}
                                   </>
@@ -1475,13 +1475,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                   <>
                                     <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
                                     {sortedOnBreak.map(c => (
-                                      <SelectItem key={c.id} value={c.id}>
-                                        <div className="flex items-center justify-between w-full gap-2">
-                                          <span>{c.name}</span>
+                                      <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white">
+                                        <span>
+                                          {c.name}
                                           {formatCourierDistance(c.distanceToRestaurant) && (
-                                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                                            <span className="ml-1">({formatCourierDistance(c.distanceToRestaurant)})</span>
                                           )}
-                                        </div>
+                                        </span>
                                       </SelectItem>
                                     ))}
                                   </>
@@ -1490,13 +1490,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                                   <>
                                     <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">Çevrimdışı</div>
                                     {sortedOffline.map(c => (
-                                      <SelectItem key={c.id} value={c.id}>
-                                        <div className="flex items-center justify-between w-full gap-2">
-                                          <span>{c.name}</span>
+                                      <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white">
+                                        <span>
+                                          {c.name}
                                           {formatCourierDistance(c.distanceToRestaurant) && (
-                                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                                            <span className="ml-1">({formatCourierDistance(c.distanceToRestaurant)})</span>
                                           )}
-                                        </div>
+                                        </span>
                                       </SelectItem>
                                     ))}
                                   </>
