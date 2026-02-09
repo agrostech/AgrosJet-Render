@@ -1595,7 +1595,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-3 leading-relaxed">{order.delivery_address}</p>
+                      <p className="text-xs text-slate-600 mt-1 line-clamp-3 leading-relaxed">{order.delivery_address}</p>
                     </div>
                     
                     {/* Alt: Durum + Kurye yan yana */}
