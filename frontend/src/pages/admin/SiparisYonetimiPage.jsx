@@ -1536,54 +1536,79 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <SelectValue placeholder="Kurye seçin" />
               </SelectTrigger>
               <SelectContent>
-                {/* Aktif Kuryeler */}
-                {couriersByStatus.active.length > 0 && (
-                  <>
-                    <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">
-                      Aktif Kuryeler
-                    </div>
-                    {couriersByStatus.active.map(courier => (
-                      <SelectItem key={courier.id} value={courier.id}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-green-500" />
-                          {courier.name} {courier.phone && `- ${courier.phone}`}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </>
-                )}
-                {/* Moladaki Kuryeler */}
-                {couriersByStatus.on_break.length > 0 && (
-                  <>
-                    <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">
-                      Molada
-                    </div>
-                    {couriersByStatus.on_break.map(courier => (
-                      <SelectItem key={courier.id} value={courier.id}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                          {courier.name} {courier.phone && `- ${courier.phone}`}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </>
-                )}
-                {/* Çevrimdışı Kuryeler */}
-                {couriersByStatus.offline.length > 0 && (
-                  <>
-                    <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">
-                      Çevrimdışı
-                    </div>
-                    {couriersByStatus.offline.map(courier => (
-                      <SelectItem key={courier.id} value={courier.id}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-slate-400" />
-                          {courier.name} {courier.phone && `- ${courier.phone}`}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </>
-                )}
+                {(() => {
+                  const sortedActive = sortCouriersByDistance(couriersByStatus.active, selectedOrder?.restaurant_location);
+                  const sortedOnBreak = sortCouriersByDistance(couriersByStatus.on_break, selectedOrder?.restaurant_location);
+                  const sortedOffline = sortCouriersByDistance(couriersByStatus.offline, selectedOrder?.restaurant_location);
+                  
+                  return (
+                    <>
+                      {/* Aktif Kuryeler */}
+                      {sortedActive.length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">
+                            Aktif Kuryeler
+                          </div>
+                          {sortedActive.map(courier => (
+                            <SelectItem key={courier.id} value={courier.id}>
+                              <div className="flex items-center justify-between w-full gap-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                                  {courier.name}
+                                </div>
+                                {formatCourierDistance(courier.distanceToRestaurant) && (
+                                  <span className="text-xs text-muted-foreground">{formatCourierDistance(courier.distanceToRestaurant)}</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {/* Moladaki Kuryeler */}
+                      {sortedOnBreak.length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">
+                            Molada
+                          </div>
+                          {sortedOnBreak.map(courier => (
+                            <SelectItem key={courier.id} value={courier.id}>
+                              <div className="flex items-center justify-between w-full gap-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                  {courier.name}
+                                </div>
+                                {formatCourierDistance(courier.distanceToRestaurant) && (
+                                  <span className="text-xs text-muted-foreground">{formatCourierDistance(courier.distanceToRestaurant)}</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {/* Çevrimdışı Kuryeler */}
+                      {sortedOffline.length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">
+                            Çevrimdışı
+                          </div>
+                          {sortedOffline.map(courier => (
+                            <SelectItem key={courier.id} value={courier.id}>
+                              <div className="flex items-center justify-between w-full gap-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-slate-400" />
+                                  {courier.name}
+                                </div>
+                                {formatCourierDistance(courier.distanceToRestaurant) && (
+                                  <span className="text-xs text-muted-foreground">{formatCourierDistance(courier.distanceToRestaurant)}</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  );
+                })()}
               </SelectContent>
             </Select>
           </div>
