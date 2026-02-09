@@ -1436,6 +1436,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                               ))}
                             </>
                           )}
+                          {couriersByStatus.offline.length > 0 && (
+                            <>
+                              <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">Çevrimdışı</div>
+                              {couriersByStatus.offline.map(c => (
+                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              ))}
+                            </>
+                          )}
                           {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
                             <>
                               <div className="border-t my-1" />
