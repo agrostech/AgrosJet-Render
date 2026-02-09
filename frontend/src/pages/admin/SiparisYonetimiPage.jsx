@@ -1110,26 +1110,26 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           <h2 className="font-heading text-xl font-bold tracking-tight">Sipariş Yönetimi</h2>
           {/* Inline Stats */}
           <div className="flex items-center gap-3 text-sm">
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-full">
-              <Package className="w-3.5 h-3.5 text-slate-600" />
-              <span className="font-semibold">{stats.total}</span>
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50/70 rounded-full">
+              <Package className="w-3.5 h-3.5 text-slate-500" />
+              <span className="font-semibold text-slate-600">{stats.total}</span>
             </span>
             {stats.unassigned > 0 && (
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-100 rounded-full text-orange-700">
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-50/70 rounded-full text-orange-600">
                 <AlertCircle className="w-3.5 h-3.5" />
                 <span className="font-semibold">{stats.unassigned}</span>
                 <span className="text-xs">bekliyor</span>
               </span>
             )}
             {stats.onTheWay > 0 && (
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-cyan-100 rounded-full text-cyan-700">
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-cyan-50/70 rounded-full text-cyan-600">
                 <Bike className="w-3.5 h-3.5" />
                 <span className="font-semibold">{stats.onTheWay}</span>
                 <span className="text-xs">yolda</span>
               </span>
             )}
             {stats.delivered > 0 && (
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-green-100 rounded-full text-green-700">
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-green-50/70 rounded-full text-green-600">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span className="font-semibold">{stats.delivered}</span>
               </span>
