@@ -636,6 +636,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                       order={order}
                       onPickup={() => handlePickupOrder(order.id)}
                       onDeliver={() => handleDeliverOrder(order.id)}
+                      onNotReady={() => handleNotReady(order.id)}
                       onViewDetails={() => {
                         setSelectedOrder(order);
                         setShowDetailModal(true);
