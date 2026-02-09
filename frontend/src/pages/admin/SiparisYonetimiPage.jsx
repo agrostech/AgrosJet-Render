@@ -398,6 +398,24 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     };
   }, [couriersByStatus, couriersOnDelivery]);
 
+  // Her kurye için paket sayılarını hesapla
+  const courierPackageCounts = useMemo(() => {
+    const counts = {};
+    orders.forEach(order => {
+      if (order.courier_id && !['delivered', 'cancelled'].includes(order.status)) {
+        if (!counts[order.courier_id]) {
+          counts[order.courier_id] = { assigned: 0, onTheWay: 0 };
+        }
+        if (order.status === 'on_the_way') {
+          counts[order.courier_id].onTheWay++;
+        } else if (['assigned', 'confirmed', 'preparing'].includes(order.status)) {
+          counts[order.courier_id].assigned++;
+        }
+      }
+    });
+    return counts;
+  }, [orders]);
+
   // Geri sayım için her dakika re-render (dakika bazlı olduğu için)
   useEffect(() => {
     const hasPreparingOrders = orders.some(o => o.status === 'preparing' && o.preparation_end_at);
