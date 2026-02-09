@@ -1316,7 +1316,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             </span>
                           )}
                         </div>
-                        <span className="px-2 py-1 bg-slate-800 text-white text-sm font-semibold rounded-md">
+                        <span className="px-2 py-0.5 bg-slate-100 text-slate-800 text-sm font-medium rounded border border-slate-200">
                           {order.restaurant_name}
                         </span>
                       </div>
