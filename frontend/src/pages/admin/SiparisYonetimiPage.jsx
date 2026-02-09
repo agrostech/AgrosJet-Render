@@ -1334,12 +1334,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <div>
               <div className="flex items-center gap-2 px-2 py-1 bg-yellow-50 rounded text-xs font-semibold text-yellow-700 mb-1">
                 <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                Molada ({couriersByStatus.on_break.length})
+                Molada ({couriersNotOnDelivery.on_break.length})
               </div>
-              {couriersByStatus.on_break.length === 0 ? (
+              {couriersNotOnDelivery.on_break.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2">-</p>
               ) : (
-                couriersByStatus.on_break.map(c => (
+                couriersNotOnDelivery.on_break.map(c => (
                   <div 
                     key={c.id} 
                     className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-yellow-50 rounded cursor-pointer"
@@ -1360,12 +1360,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <div>
               <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 rounded text-xs font-semibold text-slate-600 mb-1">
                 <div className="w-2 h-2 rounded-full bg-slate-400" />
-                Çevrimdışı ({couriersByStatus.offline.length})
+                Çevrimdışı ({couriersNotOnDelivery.offline.length})
               </div>
-              {couriersByStatus.offline.length === 0 ? (
+              {couriersNotOnDelivery.offline.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2">-</p>
               ) : (
-                couriersByStatus.offline.map(c => (
+                couriersNotOnDelivery.offline.map(c => (
                   <div 
                     key={c.id} 
                     className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-slate-50 rounded cursor-pointer text-muted-foreground"
