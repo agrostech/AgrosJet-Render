@@ -127,22 +127,46 @@ const getOrderDistance = (order) => {
   return `${distance.toFixed(1)} km`;
 };
 
-// Kuryeleri restorana yakınlığa göre sırala
-const sortCouriersByDistance = (couriers, restaurantLocation) => {
-  if (!restaurantLocation?.latitude || !restaurantLocation?.longitude) {
-    return couriers;
-  }
+// Kuryeleri restorana yakınlığa ve paket sayısına göre sırala
+const sortCouriersByDistanceAndLoad = (couriers, restaurantLocation, orders) => {
+  // Her kurye için atanmış ve yolda paket sayısını hesapla
+  const courierOrderCounts = {};
+  orders.forEach(order => {
+    if (order.courier_id) {
+      if (!courierOrderCounts[order.courier_id]) {
+        courierOrderCounts[order.courier_id] = { assigned: 0, onTheWay: 0 };
+      }
+      if (order.status === 'assigned' || order.status === 'confirmed') {
+        courierOrderCounts[order.courier_id].assigned++;
+      } else if (order.status === 'on_the_way') {
+        courierOrderCounts[order.courier_id].onTheWay++;
+      }
+    }
+  });
   
   return [...couriers].map(courier => {
     const distance = calculateDistance(
-      restaurantLocation.latitude,
-      restaurantLocation.longitude,
+      restaurantLocation?.latitude,
+      restaurantLocation?.longitude,
       courier.current_location?.latitude,
       courier.current_location?.longitude
     );
-    return { ...courier, distanceToRestaurant: distance };
+    const orderCounts = courierOrderCounts[courier.id] || { assigned: 0, onTheWay: 0 };
+    const totalPackages = orderCounts.assigned + orderCounts.onTheWay;
+    
+    return { 
+      ...courier, 
+      distanceToRestaurant: distance,
+      assignedCount: orderCounts.assigned,
+      onTheWayCount: orderCounts.onTheWay,
+      totalPackages
+    };
   }).sort((a, b) => {
-    // Konumu olmayanları sona at
+    // Önce paketsiz kuryeler
+    if (a.totalPackages === 0 && b.totalPackages > 0) return -1;
+    if (a.totalPackages > 0 && b.totalPackages === 0) return 1;
+    
+    // Paket sayısı aynıysa mesafeye göre sırala
     if (a.distanceToRestaurant === null) return 1;
     if (b.distanceToRestaurant === null) return -1;
     return a.distanceToRestaurant - b.distanceToRestaurant;
