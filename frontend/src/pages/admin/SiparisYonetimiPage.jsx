@@ -1217,7 +1217,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
                 couriersOnDelivery.map(c => {
-                  const counts = courierPackageCounts[c.id] || { assigned: 0, onTheWay: 0 };
+                  const counts = courierPackageCounts[c.id] || { assigned: 0, confirmed: 0, onTheWay: 0 };
                   return (
                     <div 
                       key={c.id} 
@@ -1256,7 +1256,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
                 couriersNotOnDelivery.on_break.map(c => {
-                  const counts = courierPackageCounts[c.id] || { assigned: 0, onTheWay: 0 };
+                  const counts = courierPackageCounts[c.id] || { assigned: 0, confirmed: 0, onTheWay: 0 };
                   return (
                     <div 
                       key={c.id} 
