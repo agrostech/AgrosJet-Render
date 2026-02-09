@@ -137,8 +137,8 @@ const getOrderAge = (order) => {
     const diffMs = now - createdAt;
     const diffMins = Math.floor(diffMs / 60000);
     
-    if (diffMins < 1) return "Yeni";
-    return `${diffMins} dk`;
+    if (diffMins < 1) return { text: "Yeni", mins: 0 };
+    return { text: `${diffMins} dk`, mins: diffMins };
   } catch {
     return null;
   }
