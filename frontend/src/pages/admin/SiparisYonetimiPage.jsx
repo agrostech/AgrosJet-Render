@@ -1583,10 +1583,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 text-xs text-muted-foreground">
                           <span>{formatTime(order.created_at)}</span>
                           {!['delivered', 'cancelled'].includes(order.status) && getOrderAge(order) && (
-                            <span className={`flex items-center gap-1 font-medium ${
+                            <span className={`font-medium ${
                               getOrderAge(order).mins > 35 ? 'text-red-600' : 'text-slate-600'
                             }`}>
-                              <Clock className="w-3 h-3" />
                               {getOrderAge(order).text}
                             </span>
                           )}
