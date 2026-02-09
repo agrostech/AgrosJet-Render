@@ -836,7 +836,12 @@ function NewOrderCard({ order, onConfirm, loading }) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Yeni</Badge>
-            <span className="text-xs font-mono text-muted-foreground">{order.order_number}</span>
+            {getOrderAge(order) && (
+              <span className="text-xs text-purple-600 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {getOrderAge(order)}
+              </span>
+            )}
           </div>
           <span className="text-xs text-muted-foreground">
             {formatTime(order.created_at)}
