@@ -168,11 +168,11 @@ export default function AdminDashboard() {
 
   // İzin kontrolü ile filtreleme
   const NAV_ITEMS = allNavItems.filter((item) => {
-    if (!item.permKey) return true; // Anasayfa herkese açık
+    if (!item.permKey) return true; // Sipariş Yönetimi ve Güncel Durum herkese açık
     if (isSuperAdmin) return true; // Superadmin her şeyi görür
     if (item.permKey === "yoneticiler") return false; // Yöneticiler sadece superadmin
-    // Sipariş yönetimi ve restoranlar tüm adminlere açık
-    if (item.permKey === "siparisler" || item.permKey === "restoranlar") return true;
+    // Restoranlar tüm adminlere açık
+    if (item.permKey === "restoranlar") return true;
     return permissions[item.permKey] === true;
   });
 
