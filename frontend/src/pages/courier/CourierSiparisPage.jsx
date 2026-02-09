@@ -937,20 +937,33 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         {/* Aksiyonlar */}
         <div className="flex gap-2 mt-3">
           {order.status === "confirmed" && (
-            <Button
-              size="sm"
-              className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-9"
-              onClick={onPickup}
-              disabled={loading}
-              data-testid={`pickup-btn-${order.id}`}
-            >
-              {loading ? (
-                <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
-              ) : (
-                <Truck className="w-4 h-4 mr-1.5" />
-              )}
-              Yola Çık
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 h-9"
+                onClick={onNotReady}
+                disabled={loading}
+                data-testid={`not-ready-btn-${order.id}`}
+              >
+                <Clock className="w-4 h-4 mr-1" />
+                Hazır Değil
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-9"
+                onClick={onPickup}
+                disabled={loading}
+                data-testid={`pickup-btn-${order.id}`}
+              >
+                {loading ? (
+                  <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Truck className="w-4 h-4 mr-1.5" />
+                )}
+                Yola Çık
+              </Button>
+            </>
           )}
           {order.status === "on_the_way" && (
             <Button
