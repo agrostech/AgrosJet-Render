@@ -110,6 +110,23 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return distance;
 };
 
+// Kuryenin kalan mola süresini hesapla
+const getRemainingBreakTime = (courier) => {
+  const dailyLimit = courier.daily_break_limit || 30; // Varsayılan 30 dk
+  let usedTime = courier.used_break_time || 0;
+  
+  // Şu an moladaysa, geçen süreyi de ekle
+  if (courier.availability_status === 'on_break' && courier.break_start_time) {
+    const startTime = new Date(courier.break_start_time);
+    const now = new Date();
+    const currentBreakMinutes = Math.floor((now - startTime) / 60000);
+    usedTime += currentBreakMinutes;
+  }
+  
+  const remaining = Math.max(0, dailyLimit - usedTime);
+  return { remaining, dailyLimit, usedTime };
+};
+
 // Sipariş uzaklığını formatla
 const getOrderDistance = (order) => {
   const restLat = order.restaurant_location?.latitude;
