@@ -1644,11 +1644,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                       >
                         <SelectTrigger 
                           className={`h-7 px-2 text-xs min-w-[100px] ${
-                            order.courier_name ? "bg-green-100 border-green-300 text-green-800" : "bg-slate-50"
+                            order.courier_name 
+                              ? "bg-green-200/40 border border-slate-300/50 text-slate-700 font-medium shadow-sm" 
+                              : "bg-slate-50 border border-slate-200"
                           }`}
                         >
                           <Bike className="w-3 h-3 mr-1" />
-                          <span>{order.courier_name || "Kurye Ata"}</span>
+                          <span className={order.courier_name ? "font-semibold" : ""}>{order.courier_name || "Kurye Ata"}</span>
                         </SelectTrigger>
                         <SelectContent className="min-w-[280px]">
                           {(() => {
