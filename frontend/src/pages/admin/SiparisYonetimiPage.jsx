@@ -1550,7 +1550,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             Aktif Kuryeler
                           </div>
                           {sortedActive.map(courier => (
-                            <SelectItem key={courier.id} value={courier.id}>
+                            <SelectItem key={courier.id} value={courier.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white">
                               <div className="flex items-center justify-between w-full gap-3">
                                 <div className="flex items-center gap-2">
                                   <div className="w-2 h-2 rounded-full bg-green-500" />
