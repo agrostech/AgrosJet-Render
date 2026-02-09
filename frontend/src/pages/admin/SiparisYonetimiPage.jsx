@@ -1611,7 +1611,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                           }
                         }}
                       >
-                        <SelectTrigger className={`${statusInfo.color} text-white text-xs px-2 py-0.5 h-7 border-0 min-w-[90px]`}>
+                        <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
                           <SelectValue>
                             {order.status === 'preparing' && order.preparation_end_at
                               ? getCountdown(order.preparation_end_at)?.text
