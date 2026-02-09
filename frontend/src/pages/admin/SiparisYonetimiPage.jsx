@@ -1375,7 +1375,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <p className="text-xs text-muted-foreground px-2">-</p>
               ) : (
                 couriersOnDelivery.map(c => {
-                  const counts = courierPackageCounts[c.id] || { assigned: 0, onTheWay: 0 };
+                  const counts = courierPackageCounts[c.id] || { assigned: 0, confirmed: 0, onTheWay: 0 };
                   return (
                     <div 
                       key={c.id} 
@@ -1409,7 +1409,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <p className="text-xs text-muted-foreground px-2">-</p>
               ) : (
                 couriersNotOnDelivery.on_break.map(c => {
-                  const counts = courierPackageCounts[c.id] || { assigned: 0, onTheWay: 0 };
+                  const counts = courierPackageCounts[c.id] || { assigned: 0, confirmed: 0, onTheWay: 0 };
                   return (
                     <div 
                       key={c.id} 
@@ -1424,6 +1424,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                       <div className="flex items-center gap-1">
                         {counts.assigned > 0 && (
                           <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{counts.assigned}</span>
+                        )}
+                        {counts.confirmed > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">{counts.confirmed}</span>
                         )}
                         <ChevronRight className="w-3 h-3 text-muted-foreground" />
                       </div>
