@@ -1239,15 +1239,15 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 bg-slate-100 rounded text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-slate-400" />
-                Çevrimdışı ({couriersByStatus.offline.length})
+                Çevrimdışı ({couriersNotOnDelivery.offline.length})
               </div>
               <ChevronDown className="w-4 h-4 transition-transform duration-200" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-1">
-              {couriersByStatus.offline.length === 0 ? (
+              {couriersNotOnDelivery.offline.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
-                couriersByStatus.offline.map(c => (
+                couriersNotOnDelivery.offline.map(c => (
                   <div 
                     key={c.id} 
                     className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-slate-50 rounded cursor-pointer text-muted-foreground"
@@ -1282,12 +1282,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <div>
               <div className="flex items-center gap-2 px-2 py-1 bg-green-50 rounded text-xs font-semibold text-green-700 mb-1">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
-                Aktif ({couriersByStatus.active.length})
+                Aktif ({couriersNotOnDelivery.active.length})
               </div>
-              {couriersByStatus.active.length === 0 ? (
+              {couriersNotOnDelivery.active.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2">-</p>
               ) : (
-                couriersByStatus.active.map(c => (
+                couriersNotOnDelivery.active.map(c => (
                   <div 
                     key={c.id} 
                     className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-green-50 rounded cursor-pointer"
@@ -1296,6 +1296,32 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   >
                     <div className="flex items-center gap-2">
                       <Bike className="w-3 h-3 text-green-600" />
+                      <span className="truncate">{c.name}</span>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                ))
+              )}
+            </div>
+            
+            {/* Dağıtımda Kuryeler */}
+            <div>
+              <div className="flex items-center gap-2 px-2 py-1 bg-cyan-50 rounded text-xs font-semibold text-cyan-700 mb-1">
+                <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                Dağıtımda ({couriersOnDelivery.length})
+              </div>
+              {couriersOnDelivery.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2">-</p>
+              ) : (
+                couriersOnDelivery.map(c => (
+                  <div 
+                    key={c.id} 
+                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-cyan-50 rounded cursor-pointer"
+                    onClick={() => handleCourierClick(c)}
+                    onMouseEnter={() => handleCourierHover(c)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Bike className="w-3 h-3 text-cyan-600" />
                       <span className="truncate">{c.name}</span>
                     </div>
                     <ChevronRight className="w-3 h-3 text-muted-foreground" />
