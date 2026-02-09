@@ -2052,15 +2052,23 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             setShowOrderDetailModal(true);
                           }}
                         >
-                          <div className="text-xs sm:text-sm font-medium truncate w-full">{order.restaurant_name}</div>
-                          <div className="text-[10px] sm:text-xs text-muted-foreground truncate w-full">{order.delivery_address}</div>
-                          <div className="flex items-center gap-2 text-[10px] sm:text-xs mt-1">
-                            <span className="font-medium">{formatCurrency(order.total_amount)}</span>
-                            <span className={`px-1 sm:px-1.5 py-0.5 rounded ${
-                              order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
-                            </span>
+                          <div className="flex items-start gap-2">
+                            <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-[10px] sm:text-xs font-bold flex-shrink-0`}>
+                              {idx + 1}
+                            </div>
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <div className="text-xs sm:text-sm font-medium truncate">{order.restaurant_name}</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground truncate">{order.customer_name}</div>
+                              <div className="text-[10px] sm:text-xs text-muted-foreground truncate">{order.delivery_address}</div>
+                              <div className="flex items-center gap-2 text-[10px] sm:text-xs mt-1">
+                                <span className="font-medium">{formatCurrency(order.total_amount)}</span>
+                                <span className={`px-1 sm:px-1.5 py-0.5 rounded ${
+                                  order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       );
