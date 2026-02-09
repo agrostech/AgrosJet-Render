@@ -1441,6 +1441,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               ) : (
                 couriersNotOnDelivery.on_break.map(c => {
                   const counts = courierPackageCounts[c.id] || { assigned: 0, confirmed: 0, onTheWay: 0 };
+                  const breakInfo = getRemainingBreakTime(c);
                   return (
                     <div 
                       key={c.id} 
@@ -1453,6 +1454,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                         <span className="truncate">{c.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
+                        <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">{breakInfo.remaining}dk</span>
                         {counts.assigned > 0 && (
                           <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{counts.assigned}</span>
                         )}
