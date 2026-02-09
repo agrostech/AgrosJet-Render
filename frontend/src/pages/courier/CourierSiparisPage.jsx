@@ -480,13 +480,26 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   };
 
-  // Sipariş hazır değil - 5dk ekle ve atamayı kaldır
-  const handleNotReady = async (orderId) => {
-    setActionLoading(orderId);
+  // Sipariş hazır değil - önce onay al
+  const handleNotReady = (orderId) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      setPendingNotReadyOrder(order);
+      setShowNotReadyModal(true);
+    }
+  };
+
+  // Hazır değil onaylandı - API çağrısı yap
+  const executeNotReady = async () => {
+    if (!pendingNotReadyOrder) return;
+    
+    setActionLoading(pendingNotReadyOrder.id);
     try {
-      await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/not-ready`);
+      await axios.post(`${API}/orders/courier/${courierId}/order/${pendingNotReadyOrder.id}/not-ready`);
       toast.success("Sipariş hazırlanıyor olarak işaretlendi");
       fetchOrders();
+      setShowNotReadyModal(false);
+      setPendingNotReadyOrder(null);
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
     } finally {
