@@ -1973,16 +1973,18 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
       {/* Courier Detail Modal */}
       <Dialog open={showCourierDetailModal} onOpenChange={setShowCourierDetailModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Bike className="w-5 h-5" />
-              {selectedCourier?.name}
+        <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Bike className="w-5 h-5 flex-shrink-0" />
+                <span className="truncate">{selectedCourier?.name}</span>
+              </div>
               <Select
                 value={selectedCourier?.availability_status || 'offline'}
                 onValueChange={(value) => handleUpdateCourierStatus(selectedCourier.id, value)}
               >
-                <SelectTrigger className={`ml-2 h-6 w-auto text-xs px-2 gap-1 ${
+                <SelectTrigger className={`h-7 w-fit text-xs px-2 gap-1 ${
                   selectedCourier?.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
                   selectedCourier?.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                   'bg-slate-100 text-slate-600 border-slate-200'
@@ -2020,14 +2022,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <div className="space-y-3">
               {/* Harita */}
               <div className="rounded-lg overflow-hidden border">
-                <div ref={courierMapRef} className="h-[200px] w-full bg-slate-100" />
+                <div ref={courierMapRef} className="h-[180px] sm:h-[200px] w-full bg-slate-100" />
               </div>
               
               {/* Son Konum Bilgisi */}
-              <div className="flex items-center justify-between px-1 py-1.5 bg-slate-50 rounded-lg">
+              <div className="flex items-center justify-between px-2 py-2 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs text-muted-foreground">Son Konum Bilgisi</span>
+                  <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <span className="text-xs text-muted-foreground">Son Konum</span>
                 </div>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded ${
                   selectedCourier.current_location?.updated_at 
@@ -2046,8 +2048,8 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 </span>
               </div>
               
-              {/* Sipariş Sayısı - Kompakt */}
-              <div className="flex items-center justify-between px-1">
+              {/* Sipariş Sayısı */}
+              <div className="flex items-center justify-between px-2">
                 <span className="text-xs text-muted-foreground">Aktif Siparişler</span>
                 <span className="text-xs font-medium bg-slate-100 px-2 py-0.5 rounded">
                   {selectedCourierOrders.length}
@@ -2055,7 +2057,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               </div>
               
               {/* Sipariş Listesi */}
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {selectedCourierOrders.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -2067,32 +2069,31 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     return (
                       <div 
                         key={order.id} 
-                        className={`p-3 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
+                        className={`p-2 sm:p-3 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
                         onClick={() => {
                           setSelectedOrder(order);
                           setShowCourierDetailModal(false);
                           setShowOrderDetailModal(true);
                         }}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2 sm:gap-3">
                           <div className={`w-6 h-6 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-xs font-bold flex-shrink-0`}>
                             {idx + 1}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 overflow-hidden">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="font-medium text-sm">{order.restaurant_name}</span>
-                              <Badge className={`${statusInfo.color} text-white text-[10px]`}>
+                              <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
+                              <Badge className={`${statusInfo.color} text-white text-[10px] flex-shrink-0`}>
                                 {statusInfo.label}
                               </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1 truncate">
                               {order.delivery_address}
                             </p>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                              <span className="truncate">{order.customer_name}</span>
+                            <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1 text-xs text-muted-foreground">
+                              <span className="truncate max-w-[100px]">{order.customer_name}</span>
                               <span>•</span>
                               <span>{formatCurrency(order.total_amount)}</span>
-                              <span>•</span>
                               <span className={`px-1.5 py-0.5 rounded ${
                                 order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                               }`}>
@@ -2100,7 +2101,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                               </span>
                             </div>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 hidden sm:block" />
                         </div>
                       </div>
                     );
