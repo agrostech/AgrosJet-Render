@@ -1306,10 +1306,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     }}
                     data-testid={`order-card-${order.id}`}
                   >
-                    {/* Üst: Saat + Restoran + Fiyat/Ödeme */}
+                    {/* Üst: Saat + Süre + Restoran + Fiyat/Ödeme */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
+                        {getOrderAge(order) && (
+                          <span className="flex items-center gap-1 text-xs text-orange-600 font-medium">
+                            <Clock className="w-3 h-3" />
+                            {getOrderAge(order)}
+                          </span>
+                        )}
                         <span className="font-semibold">{order.restaurant_name}</span>
                       </div>
                       <div className="flex flex-col items-end">
