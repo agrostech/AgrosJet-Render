@@ -1,74 +1,93 @@
 <analysis>**original_problem_statement:**
-The user is building a comprehensive, Adisyo-integrated order management system named ShiftJet.
-
-The initial goal was to build a complete Courier Panel. This session focused on resolving high-priority visual and data parsing bugs, and then rapidly implementing several new user-requested features for the courier workflow.
+The user is building a comprehensive, Adisyo-integrated order management system named ShiftJet. This session focused on a series of rapid UI/UX improvements and bug fixes for the admin panel, driven by direct user feedback.
 
 PRODUCT REQUIREMENTS added in this session:
-1.  **Multi-Delivery Routing:** A courier with multiple on the way orders should be able to press a single button to generate an optimized Google Maps route visiting each delivery location, ordered from nearest to farthest.
-2.  **Courier Break Time Management:**
-    *   Admins must be able to set a daily break time limit (e.g., 45 minutes) for each courier from the admin panel.
-    *   This limit should reset for all couriers every day at the company's closing time.
-    *   Couriers must be able to see their remaining break time on their dashboard.
-    *   The system should prevent a courier from taking a break if their remaining time is zero.
-3.  **Order Not Ready Feature:**
-    *   When a courier arrives at a restaurant for a  order, the Yola Çık (Start Delivery) button should be split into two.
-    *   A new Sipariş Hazır Değil (Order Not Ready) button will be added.
-    *   Clicking this button should show a confirmation modal explaining that a 5-minute delay will be added to the order, and it will be unassigned from the current courier and reassigned later.
-4.  **UI/UX Overhauls for Courier Page:**
-    *   The single list of active orders should be replaced with two tabs: Atanmış (Assigned) and Yoldaki (On the way).
-    *   Order cards should be visually distinct using shadows and colored side-borders (purple for assigned, blue for on the way).
-    *   UI elements on the courier dashboard should be reorganized for a cleaner look (e.g., move notification button to header, move break time info into the status dropdown).
-5.  **Order Age Display:**
-    *   The age of an order (time since creation) must be displayed on both the courier and admin order cards.
-    *   The format should be in total minutes (e.g., 77 dk).
-    *   On the admin panel's mobile view, the order age should be displayed in red if it exceeds 35 minutes.
+1.  **Admin Sidebar Default State:** The main admin navigation sidebar should be collapsed by default on page load.
+2.  **Admin Dashboard Navigation:** Sipariş Yönetimi (Order Management) should be the default, top-most menu item. The Anasayfa (Homepage) link should be renamed to Güncel Durum (Current Status) and moved to the second position.
+3.  **Courier Assignment Logic:**
+    *   The courier assignment dropdown must show all couriers, including those who are offline or on break.
+    *   The sorting logic must prioritize couriers with no active packages, and then sort by the closest proximity to the restaurant.
+    *   The dropdown must display each courier's distance from the restaurant and their active package count (assigned and on the way) using distinct badges.
+4.  **Admin Courier List UI:**
+    *   A new Dağıtımda (On Delivery) section should be added to the sidebar courier list to show couriers with on_the_way orders.
+    *   This list must show the number of packages for each courier (assigned, confirmed, or on the way) with color-coded badges (purple for assigned, dark blue for confirmed, cyan for on the way).
+5.  **Courier Data Integrity:** Resolve inconsistencies where some couriers were not appearing in the Çevrimdışı (Offline) list due to missing s in the database. Subsequently, delete all couriers except one (Onur Ertaş) and create 5 new test couriers.
+6.  **Courier Detail Modal Redesign:**
+    *   Fix severe horizontal overflow issues on both desktop and mobile views, especially when the courier has active orders. The modal must be fully responsive.
+    *   Add the customer's name and a map-corresponding number to each order card within the modal.
+7.  **Order Detail Modal Cleanup:**
+    *   Parse and reformat the order  field to remove technical prefixes like CUSTOMER: and KITCHEN:, replacing them with user-friendly labels.
+    *   Simplify the Konum (Location) tab by removing the redundant address and customer name text, showing only the map.
+8.  **Global Status Coloring:** The Yolda (On the way) status should be consistently colored red across all UI components.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application has fixed its critical P0 bugs from the previous session (Adisyo note parsing and square restaurant markers). It now includes significant new functionality for couriers: a multi-stop route generation feature, a complete courier-specific break time management system (with daily resets via a scheduler job), and an order not ready workflow that un-assigns the courier and delays the order. The courier's main order page has been completely redesigned with a tabbed interface (Atanmış and Yolda) and visually improved order cards. The courier dashboard UI has also been reorganized based on user feedback. Both admin and courier views now display the order's age in minutes, with conditional coloring on the admin mobile view for orders older than 35 minutes.
+The application has undergone significant UI and data handling improvements on the admin panel. The sidebar now defaults to a collapsed state, and the menu has been reordered per the user's preference. The courier assignment dropdown is now highly sophisticated, sorting couriers by availability and proximity while displaying their distance and package load. The main sidebar courier list has been updated with a new Dağıtımda section and color-coded badges indicating each courier's package count.
+
+A critical backend crash () and a data inconsistency issue (couriers missing ) have been resolved through a backend code patch and a database backfill script. The courier database was also cleaned and repopulated with test data. The most significant change was the complete responsive redesign of the courier detail modal, which previously had severe layout-breaking bugs. It now correctly displays all information, including order numbers and customer names, without overflowing on mobile or desktop.
 
 **Last working item**:
-- Last item agent was working: The agent was implementing a feature to show the order's age (in minutes) on the admin panel's mobile view. The text color should be black for orders under 35 minutes and red for orders 35 minutes or older. This should not apply to 'delivered' or 'cancelled' orders.
-- Status: USER VERIFICATION PENDING
-- Agent Testing Done: Y (Verified via screenshot)
+- Last item agent was working: The user requested to make the Yolda (On the way) status color red everywhere in the application (e.g., courier list, package status badges). The agent acknowledged the request and was about to begin implementation.
+- Status: NOT STARTED
+- Agent Testing Done: N
 - Which testing method agent to use? screenshot tool
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Courier List Filtering by Company (P1)**
+-   **Issue 1: Mobile Sidebar Courier List Collapsible Bug (P1)**
 -   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
 -   **Issue 3: Admin Order Card Layout (P2)**
+-   **Issue 4: Root Cause of Missing  on Courier Creation (P2)**
 
 Issues Detail:
--   **Issue 1: Courier List Filtering by Company (P1)**
-    -   **Attempted fixes:** (From previous session) Agent confirmed the backend endpoint  filters correctly. The issue is likely due to couriers having a  or incorrect .
-    -   **Next debug checklist:** Run a script to find couriers with  as null or not matching any existing company. Propose a fix to assign a default company or hide them.
-    -   **Why fix this issue and what will be achieved with the fix?** Admins see irrelevant couriers, which clutters the UI.
+-   **Issue 1: Mobile Sidebar Courier List Collapsible Bug (P1)**
+    -   **Attempted fixes:** The agent noticed that the collapsible sections (e.g., Aktif, Dağıtımda) in the  mobile sidebar do not expand when clicked, despite having  props. The agent noted the bug but deferred the fix.
+    -   **Next debug checklist:**
+        - Inspect the  component from  in .
+        - Check for CSS  or  issues that might be preventing the content from showing.
+        - Verify the state management () for the  prop of the collapsible components on mobile viewports.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical UI bug that makes the courier list unusable on mobile devices.
     -   **Status:** NOT STARTED
     -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** backend
+    -   **Should Test frontend/backend/both after fix?** frontend
     -   **Blocked on other issue:** None.
 -   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
-    -   **Attempted fixes:** A  listener was added in a previous session.
-    -   **Next debug checklist:** This requires long-term user testing on a real device. The agent should ask the user to confirm if the issue persists.
-    -   **Why fix this issue and what will be achieved with the fix?** Core functionality depends on reliable background operations.
+    -   **Attempted fixes:** (From previous session) A  listener was added.
+    -   **Next debug checklist:** This requires long-term user testing on a real device. The agent should ask the user to confirm if the issue persists after other tasks are completed.
+    -   **Why fix this issue and what will be achieved with the fix?** Core functionality like live location tracking and notifications depends on reliable background operations.
     -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** frontend
     -   **Blocked on other issue:** None.
 -   **Issue 3: Admin Order Card Layout (P2)**
-    -   **Attempted fixes:** The admin order card has been redesigned multiple times. The current state is the result of the user's latest instruction.
+    -   **Attempted fixes:** The component has been redesigned multiple times based on user feedback. The current state is the result of the user's latest instruction.
     -   **Next debug checklist:** The user is highly sensitive to this component's design. Be prepared for more change requests.
     -   **Why fix this issue and what will be achieved with the fix?** User satisfaction with the primary admin interface.
     -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** frontend
     -   **Blocked on other issue:** None.
+-   **Issue 4: Root Cause of Missing  on Courier Creation (P2)**
+    -   **Attempted fixes:** The agent ran a one-time script to backfill  for existing couriers. This fixed the symptom but not the root cause.
+    -   **Next debug checklist:**
+        - Review the create courier endpoint and UI ( and related backend router).
+        - Ensure that  is a mandatory field and is correctly passed and saved when a new courier is created.
+    -   **Why fix this issue and what will be achieved with the fix?** Prevents future data corruption and ensures that all couriers are correctly associated with a company, which is critical for filtering.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   **Task 1: Test and Finalize Payment Confirmation Modal (P0)**
-    -   **Where to resume:** This task was not worked on and remains pending from a previous handoff. The code exists in  but needs to be tested end-to-end.
+-   **Task 1: Change Yolda status color to Red (P0)**
+    -   **Where to resume:** The agent has acknowledged the request. The next step is to identify all components where the Yolda status is displayed and apply a red color class.
+    -   **What will be achieved with this?** A consistent, high-visibility status indicator for orders that are on their way.
+    -   **Status:** NOT STARTED
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on something:** None.
+-   **Task 2: Test and Finalize Payment Confirmation Modal (P0)**
+    -   **Where to resume:** This task remains pending from a previous handoff. The code exists in  but needs to be tested end-to-end.
     -   **What will be achieved with this?** A critical business rule (confirming payment before delivery) will be enforced.
     -   **Status:** NOT STARTED
     -   **Should Test frontend/backend/both after fix?** frontend
@@ -76,39 +95,36 @@ Issues Detail:
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0 - Implement Adisyo Webhooks:** The current polling method is inefficient. Implement a webhook endpoint to receive real-time order updates.
-    -   **P1 - Restrict Order Assignment:** Implement logic to prevent admins from assigning orders to couriers who are Molada (On Break) or Çevrimdışı (Offline).
+    -   **P0 - Implement Adisyo Webhooks:** Replace the inefficient polling mechanism with real-time order updates.
+    -   **P1 - Restrict Order Assignment:** Prevent admins from assigning orders to couriers who are Molada (On Break) or Çevrimdışı (Offline). This needs clarification, as the user wanted to see them in the list. The ideal behavior might be to show them but disable the assignment action.
 -   **Future Tasks:**
     -   **P1 - Re-enable & Enhance Chat System**
     -   **P2 - Dark Mode Implementation**
-    -   **P2 - Component Refactoring:** Critically refactor  and  into smaller, manageable components.
+    -   **P2 - Component Refactoring:**  is now critically overloaded and must be broken down.  also needs refactoring.
     -   **P3 - Motosikletim Feature Enhancements**
 
 **Completed work in this session**
-- **P0 Bug Fixes:**
-  - Resolved the Adisyo note parsing issue by implementing more robust regex logic in .
-  - Fixed the square restaurant markers on the admin map by forcing  in  and .
-- **Courier Multi-Delivery Routing:**
-  - Implemented a Rota Oluştur button on the courier page that generates a multi-stop Google Maps URL for all on the way orders.
-- **Courier Break Time Management:**
-  - Added an admin endpoint () and UI in  to set a daily break limit.
-  - Created a daily scheduler job in  to reset all courier break times.
-  - Implemented logic in  and the backend to display remaining break time and prevent taking breaks if the limit is exceeded.
-- **Order Not Ready Feature:**
-  - Created a backend endpoint () to unassign a courier and add a 5-minute preparation delay.
-  - Added a Hazır Değil button to the courier order card, which triggers a confirmation modal before calling the endpoint.
-- **Courier Page UI/UX Overhaul:**
-  - Refactored  to use a tabbed layout for Atanmış (Assigned) and Yoldaki (On the way) orders.
-  - Redesigned order cards with shadows, spacing, and status-based colored borders for better visual separation.
-  - Reorganized  header: moved notification button and integrated remaining break time into the status dropdown.
-- **Order Age Display:**
-  - Created a helper function to calculate order age in minutes.
-  - Displayed the order age on both  and  order cards.
-  - Implemented conditional red coloring for orders older than 35 minutes on the admin mobile view.
-- **Bug Fix:** Fixed an issue preventing couriers from calling restaurants by backfilling the  field on existing orders.
+-   **Admin Panel UI/UX:**
+    -   The admin sidebar now defaults to a collapsed state ().
+    -   Admin navigation reordered: Sipariş Yönetimi is now the default page and top menu item ().
+    -   Fixed alignment and styled the restaurant name as a badge on the desktop order card ().
+-   **Courier Management & Assignment:**
+    -   Added a Dağıtımda (On Delivery) section to the admin sidebar courier list ().
+    -   The courier list now displays package counts (assigned/on-the-way) with color-coded badges ().
+    -   The courier assignment dropdown now sorts by package count and proximity, and displays this info using badges ().
+    -   A new badge color (dark blue) was added for confirmed assigned packages.
+-   **Modal Redesigns:**
+    -   Completely fixed the responsive layout of the courier detail modal, resolving all horizontal overflow issues ().
+    -   Added customer name and a map-corresponding number to order cards within the courier detail modal.
+    -   Cleaned up order notes in the order detail modal, replacing prefixes with user-friendly labels.
+    -   Simplified the location tab in the order detail modal.
+-   **Backend & Data Integrity:**
+    -   Fixed a backend crash () by adding a default value in .
+    -   Resolved courier data inconsistency by running a script to backfill missing s for all couriers.
+    -   Cleaned the database by deleting all couriers except Onur Ertaş and creating 5 new test couriers as requested.
 
 **Earlier issues found/mentioned but not fixed**
-None in this session. The primary pending visual bug (square markers) was fixed.
+-   **Mobile Sidebar Courier List Collapsible Bug:** The collapsible sections for courier statuses in the  mobile sidebar do not expand when clicked. This was discovered by the agent during testing but was not fixed.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork:** Mobile file upload issue.
@@ -119,86 +135,72 @@ None in this session. The primary pending visual bug (square markers) was fixed.
 
 
 **Key Technical Concepts**
--   **APScheduler:** Used to schedule a daily job to reset courier break times.
--   **React UI Patterns:** Implemented a tabbed interface using  to manage the active tab and filter displayed data.
--   **Conditional Rendering:** Extensively used to show/hide UI elements like buttons (Yola Çık vs. Hazır Değil), tabs, and modals.
--   **Component-Level State Management:** Managed modal visibility, pending actions, and UI state within React components.
--   **Tailwind CSS:** Used for dynamic and conditional styling (e.g., ).
--   **API Design:** Added new REST endpoints with clear responsibilities for managing courier breaks and order states.
--   **Data Backfilling:** Ran a one-time script via  to update existing database records with missing  data.
+-   **React :** Used to efficiently compute derived data like courier package counts and sorted courier lists without re-calculating on every render.
+-   **Complex Responsive Design (Tailwind CSS):** Utilized advanced Tailwind CSS (responsive prefixes, , , , ) to create a complex, responsive modal () that works across various screen sizes.
+-   **Database Scripting & Repair:** The agent diagnosed a data integrity problem and wrote/executed a Python script to directly interact with the MongoDB database to backfill missing  fields, resolving a critical bug.
+-   **Defensive Backend Coding:** Patched  to handle missing  keys in database documents, preventing API crashes.
 
 **key DB schema**
--   **couriers:**
-    -    (int): Maximum daily break time in minutes.
-    -    (int): Accumulated break duration in seconds for the current day.
-    -    (datetime): Timestamp for when the current break started.
--   **orders:**
-    -   : Timestamp is now updated by the not-ready feature to add a 5-minute delay.
-    -   : Field now populated for all orders after a backfill script was run.
+-   **couriers:** Found to have documents with , which were programmatically fixed by assigning a default company ID.
+-   **company_couriers:** The relationship collection was missing a  field for some documents, causing a  on the backend. This was patched in the service layer to assume a default status.
 
 **All files of reference**
--    (Heavily Modified)
--    (Heavily Modified)
--    (Modified)
--    (Modified)
--    (Modified)
--    (Modified)
--    (Modified)
+-    (Extremely heavily modified, contains logic for multiple features and modals)
+-    (Modified for sidebar state and menu order)
+-    (Modified to fix a backend crash)
 
 **Areas that need refactoring**:
--   ****: This file has become extremely large and complex. It now contains the logic for tabs, data filtering, multiple modals (, ), and defines the  and  components inline. These cards should be extracted into their own files in a  directory.
--   ****: This component has absorbed significant logic for managing availability status, break time, location tracking, and notifications. Some of this logic, especially the UI parts, could be broken into smaller sub-components.
--   ****: Remains a large, complex component from previous sessions and is a candidate for being broken down.
+-   **:** This file's complexity has increased exponentially and is now a critical technical debt. It monolithically manages the courier sidebar, the courier assignment dropdown, the courier detail modal, the order detail modal, and the main order list/map. At a minimum, the **Courier Detail Modal** and the **Courier List Sidebar** should be extracted into their own dedicated components to make the code manageable.
 
 **key api endpoints**
--   : Sets the daily break time limit (in minutes) for a courier.
--   : Retrieves the courier's break time limit, used time, and remaining time.
--   : Un-assigns the current courier, sets the order status back to , and adds 5 minutes to its  time.
--   : (Modified) Now checks remaining break time before allowing a status change to .
+-   : Used to permanently delete a courier.
+-   : Used to generate test orders.
+-   : Used to assign orders to couriers for testing.
+-   : Used to update order statuses for testing.
 
 **Critical Info for New Agent**
 -   **All communication must be in Turkish.**
--   The user is highly engaged and provides frequent, specific UI/UX feedback, often with screenshots. Expect to iterate on visual details. Prioritize clear, simple designs.
--   The courier-facing pages (, ) have been the focus of this session and are now significantly different. Review these files thoroughly before making changes.
--   The new break time and not ready features involve coordinated changes across the frontend, backend routers, and scheduled jobs. Be mindful of these interconnected parts when debugging.
+-   The user provides extremely specific, iterative UI/UX feedback. Be prepared to make small, precise changes, especially within .
+-    is the center of all recent changes and is very complex. It needs to be handled with extreme care. Proposing a refactor for this file should be a priority.
+-   A new UI bug was identified: the collapsible courier lists on the mobile sidebar are not functional. This needs to be addressed.
+-   Data integrity in the  and  collections is fragile. Be mindful of this when creating or updating courier data.
 
 **documents and test reports created in this job**
--   
+None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** The header buttons on the courier dashboard look uneven. -> **Status: COMPLETED**
-2.  **User:** Remove the Siparişlerim (My Orders) header from the courier page. -> **Status: COMPLETED**
-3.  **User:** Show Assigned and On the way orders in separate tabs, not one long list. -> **Status: COMPLETED**
-4.  **User:** The order cards in the list blend together. Add a frame or shadow. -> **Status: COMPLETED** (Agent added shadow).
-5.  **User:** The shadow should be more prominent. -> **Status: COMPLETED**
-6.  **User:** Add the colored side-border to the on the way order cards too. -> **Status: COMPLETED**
-7.  **User:** When an order is , split the Start Delivery button into two: Order Not Ready and Start Delivery. Not Ready should un-assign the courier and add a 5-minute penalty. -> **Status: COMPLETED**
-8.  **User:** Add a confirmation modal for the Order Not Ready button. -> **Status: COMPLETED**
-9.  **User:** The colors on the order card are too much. Simplify them. -> **Status: COMPLETED**
-10. **User:** The Route Created toast notification is unnecessary. Remove it. -> **Status: COMPLETED**
+1.  **User:** Courier detail modal overflows horizontally. **Status: COMPLETED** (After multiple iterations).
+2.  **User:** Add customer name and order number to the order cards inside the courier detail modal. **Status: COMPLETED**
+3.  **User:** The courier list in the sidebar should show how many packages each courier has. **Status: COMPLETED**
+4.  **User:** If a courier's assigned package is confirmed, show the badge in dark blue instead of purple. **Status: COMPLETED**
+5.  **User:** We used red for on the way status on the map; let's use red for it everywhere else too. **Status: PENDING**
+6.  **User:** The modal is still very ugly. The cards don't fit and overflow. **Status: COMPLETED**
+7.  **User:** The modal is now too small and narrow on desktop, it looks like a mobile view. **Status: COMPLETED**
+8.  **User:** The status dropdown and the close button are overlapping in the modal. **Status: COMPLETED**
+9.  **User:** The order cards are overflowing to the right. **Status: COMPLETED**
+10. **User:** In the modal, the customer name and the map number are missing from the order cards. **Status: COMPLETED**
 
 **Project Health Check:**
--   **Broken:** No new critical breakages were introduced. Previously identified P0 issues were resolved.
--   **Mocked:** Mock order generation is still heavily used for testing courier assignments and statuses. The  function in  is the entry point for this.
+-   **Broken:** The collapsible courier lists in the mobile sidebar () are non-functional, preventing users from seeing courier lists on mobile.
+-   **Mocked:** The application heavily relies on test couriers and mock orders for development and testing.
 
 **3rd Party Integrations**
--   : Integrated via a polling mechanism to fetch orders.
+-   : Integrated via a polling mechanism.
 -   
 -   
 -   
 -   
 
 **Testing status**
--   Testing agent used after significant changes: YES, once.
+-   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
--   Known regressions: None in this session.
+-   Known regressions: A new bug was introduced where the mobile sidebar's collapsible lists do not open.
 
 **Credentials to test flow:**
 -   **Multi-company Admin:** username: , password: 
--   **Courier:** username: , password: 
+-   **Courier:** , , etc. with password: 
 
 **What agent forgot to execute**
--   The agent did not address the pending P1 issues from the previous handoff: **Courier List Filtering by Company** and **Background Task Reliability**.
--   The agent did not work on the pending task from the previous handoff: **Test and Finalize Payment Confirmation Modal**.
--   The agent did not start work on the high-priority upcoming task: **Implement Adisyo Webhooks**.</analysis>
+-   The agent did not address the following tasks from the previous handoff: **Test and Finalize Payment Confirmation Modal**, **Implement Adisyo Webhooks**, and **Restrict Order Assignment**.
+-   The agent discovered but did not fix the **Mobile Sidebar Collapsible Bug**.</analysis>
