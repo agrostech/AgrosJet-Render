@@ -2057,7 +2057,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               </div>
               
               {/* Sipariş Listesi */}
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              <div className="space-y-2 max-h-[200px] overflow-y-auto overflow-x-hidden">
                 {selectedCourierOrders.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -2069,39 +2069,37 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                     return (
                       <div 
                         key={order.id} 
-                        className={`p-2 sm:p-3 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow`}
+                        className={`p-2 rounded-lg border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow overflow-hidden`}
                         onClick={() => {
                           setSelectedOrder(order);
                           setShowCourierDetailModal(false);
                           setShowOrderDetailModal(true);
                         }}
                       >
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <div className={`w-6 h-6 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-xs font-bold flex-shrink-0`}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-5 h-5 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0`}>
                             {idx + 1}
                           </div>
-                          <div className="flex-1 min-w-0 overflow-hidden">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-medium text-sm truncate">{order.restaurant_name}</span>
-                              <Badge className={`${statusInfo.color} text-white text-[10px] flex-shrink-0`}>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-xs truncate flex-1">{order.restaurant_name}</span>
+                              <Badge className={`${statusInfo.color} text-white text-[9px] px-1 py-0 flex-shrink-0`}>
                                 {statusInfo.label}
                               </Badge>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1 truncate">
+                            <p className="text-[10px] text-muted-foreground truncate">
                               {order.delivery_address}
                             </p>
-                            <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1 text-xs text-muted-foreground">
-                              <span className="truncate max-w-[100px]">{order.customer_name}</span>
-                              <span>•</span>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                               <span>{formatCurrency(order.total_amount)}</span>
-                              <span className={`px-1.5 py-0.5 rounded ${
+                              <span className={`px-1 rounded ${
                                 order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                               }`}>
                                 {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
                               </span>
                             </div>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 hidden sm:block" />
+                          <ChevronRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                         </div>
                       </div>
                     );
