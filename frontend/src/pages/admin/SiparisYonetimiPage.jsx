@@ -404,12 +404,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     orders.forEach(order => {
       if (order.courier_id && !['delivered', 'cancelled'].includes(order.status)) {
         if (!counts[order.courier_id]) {
-          counts[order.courier_id] = { assigned: 0, onTheWay: 0 };
+          counts[order.courier_id] = { assigned: 0, confirmed: 0, onTheWay: 0 };
         }
         if (order.status === 'on_the_way') {
           counts[order.courier_id].onTheWay++;
-        } else if (['assigned', 'confirmed', 'preparing'].includes(order.status)) {
+        } else if (order.status === 'assigned') {
           counts[order.courier_id].assigned++;
+        } else if (['confirmed', 'preparing'].includes(order.status)) {
+          counts[order.courier_id].confirmed++;
         }
       }
     });
