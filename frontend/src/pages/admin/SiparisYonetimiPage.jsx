@@ -1172,20 +1172,28 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               {couriersNotOnDelivery.active.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
-                couriersNotOnDelivery.active.map(c => (
-                  <div 
-                    key={c.id} 
-                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-green-50 rounded cursor-pointer"
-                    onClick={() => handleCourierClick(c)}
-                    onMouseEnter={() => handleCourierHover(c)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Bike className="w-3 h-3 text-green-600" />
-                      <span className="truncate">{c.name}</span>
+                couriersNotOnDelivery.active.map(c => {
+                  const counts = courierPackageCounts[c.id] || { assigned: 0, onTheWay: 0 };
+                  return (
+                    <div 
+                      key={c.id} 
+                      className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-green-50 rounded cursor-pointer"
+                      onClick={() => handleCourierClick(c)}
+                      onMouseEnter={() => handleCourierHover(c)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bike className="w-3 h-3 text-green-600" />
+                        <span className="truncate">{c.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {counts.assigned > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{counts.assigned}</span>
+                        )}
+                        <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                      </div>
                     </div>
-                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
-                  </div>
-                ))
+                  );
+                })
               )}
             </CollapsibleContent>
           </Collapsible>
@@ -1203,11 +1211,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               {couriersOnDelivery.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2 py-1">-</p>
               ) : (
-                couriersOnDelivery.map(c => (
-                  <div 
-                    key={c.id} 
-                    className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-cyan-50 rounded cursor-pointer"
-                    onClick={() => handleCourierClick(c)}
+                couriersOnDelivery.map(c => {
+                  const counts = courierPackageCounts[c.id] || { assigned: 0, onTheWay: 0 };
+                  return (
+                    <div 
+                      key={c.id} 
+                      className="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-cyan-50 rounded cursor-pointer"
+                      onClick={() => handleCourierClick(c)}
                     onMouseEnter={() => handleCourierHover(c)}
                   >
                     <div className="flex items-center gap-2">
