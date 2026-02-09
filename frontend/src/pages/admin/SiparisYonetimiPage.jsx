@@ -1973,16 +1973,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
       {/* Courier Detail Modal */}
       <Dialog open={showCourierDetailModal} onOpenChange={setShowCourierDetailModal}>
-        <DialogContent className="w-[92vw] max-w-[360px] p-3 overflow-hidden">
-          <DialogHeader className="pb-1">
-            <DialogTitle className="text-base flex items-center gap-2">
-              <Bike className="w-4 h-4 flex-shrink-0" />
+        <DialogContent className="w-[92vw] max-w-[360px] sm:max-w-[500px] lg:max-w-[550px] p-3 sm:p-5 overflow-hidden">
+          <DialogHeader className="pb-1 sm:pb-2">
+            <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
+              <Bike className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
               <span className="truncate flex-1">{selectedCourier?.name}</span>
               <Select
                 value={selectedCourier?.availability_status || 'offline'}
                 onValueChange={(value) => handleUpdateCourierStatus(selectedCourier.id, value)}
               >
-                <SelectTrigger className={`h-6 w-auto text-[10px] px-2 gap-1 flex-shrink-0 ${
+                <SelectTrigger className={`h-6 sm:h-7 w-auto text-[10px] sm:text-xs px-2 gap-1 flex-shrink-0 ${
                   selectedCourier?.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
                   selectedCourier?.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                   'bg-slate-100 text-slate-600 border-slate-200'
@@ -2002,16 +2002,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           </DialogHeader>
           
           {selectedCourier && (
-            <div className="space-y-2 w-full overflow-hidden">
+            <div className="space-y-2 sm:space-y-3 w-full overflow-hidden">
               {/* Harita */}
               <div className="rounded-lg overflow-hidden border w-full">
-                <div ref={courierMapRef} className="h-[150px] w-full bg-slate-100" />
+                <div ref={courierMapRef} className="h-[150px] sm:h-[200px] w-full bg-slate-100" />
               </div>
               
               {/* Son Konum */}
-              <div className="flex items-center justify-between px-2 py-1.5 bg-slate-50 rounded text-xs">
+              <div className="flex items-center justify-between px-2 py-1.5 sm:py-2 bg-slate-50 rounded text-xs sm:text-sm">
                 <span className="text-muted-foreground">Son Konum</span>
-                <span className={`font-medium px-1.5 py-0.5 rounded ${
+                <span className={`font-medium px-1.5 sm:px-2 py-0.5 rounded text-xs ${
                   selectedCourier.current_location?.updated_at 
                     ? (() => {
                         const timeAgo = getLocationTimeAgo(selectedCourier.current_location.updated_at);
@@ -2029,12 +2029,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               
               {/* Sipariş Listesi */}
               <div className="w-full overflow-hidden">
-                <div className="text-xs text-muted-foreground mb-1 px-1">
+                <div className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2 px-1">
                   Siparişler ({selectedCourierOrders.length})
                 </div>
-                <div className="space-y-1.5 max-h-[180px] overflow-y-auto overflow-x-hidden w-full">
+                <div className="space-y-1.5 sm:space-y-2 max-h-[180px] sm:max-h-[250px] overflow-y-auto overflow-x-hidden w-full">
                   {selectedCourierOrders.length === 0 ? (
-                    <div className="text-center py-4 text-muted-foreground text-xs">
+                    <div className="text-center py-4 sm:py-6 text-muted-foreground text-xs sm:text-sm">
                       Aktif sipariş yok
                     </div>
                   ) : (
@@ -2043,18 +2043,18 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                       return (
                         <div 
                           key={order.id} 
-                          className={`p-2 rounded border ${statusInfo.bgLight} cursor-pointer w-full overflow-hidden`}
+                          className={`p-2 sm:p-3 rounded border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow w-full overflow-hidden`}
                           onClick={() => {
                             setSelectedOrder(order);
                             setShowCourierDetailModal(false);
                             setShowOrderDetailModal(true);
                           }}
                         >
-                          <div className="text-xs font-medium truncate w-full">{order.restaurant_name}</div>
-                          <div className="text-[10px] text-muted-foreground truncate w-full">{order.delivery_address}</div>
-                          <div className="flex items-center gap-2 text-[10px] mt-1">
+                          <div className="text-xs sm:text-sm font-medium truncate w-full">{order.restaurant_name}</div>
+                          <div className="text-[10px] sm:text-xs text-muted-foreground truncate w-full">{order.delivery_address}</div>
+                          <div className="flex items-center gap-2 text-[10px] sm:text-xs mt-1">
                             <span className="font-medium">{formatCurrency(order.total_amount)}</span>
-                            <span className={`px-1 rounded ${
+                            <span className={`px-1 sm:px-1.5 py-0.5 rounded ${
                               order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                             }`}>
                               {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
