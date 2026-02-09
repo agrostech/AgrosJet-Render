@@ -134,6 +134,27 @@ const getOrderDistance = (order) => {
   return `${distance.toFixed(1)} km`;
 };
 
+// Sipariş süresi hesapla (dakika cinsinden)
+const getOrderAge = (order) => {
+  if (!order.created_at) return null;
+  
+  try {
+    const createdAt = new Date(order.created_at);
+    const now = new Date();
+    const diffMs = now - createdAt;
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "Yeni";
+    if (diffMins < 60) return `${diffMins} dk`;
+    
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    return `${hours} sa ${mins} dk`;
+  } catch {
+    return null;
+  }
+};
+
 export default function CourierSiparisPage({ courierId, companyId }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
