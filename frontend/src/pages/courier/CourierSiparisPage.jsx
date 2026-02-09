@@ -795,7 +795,7 @@ function NewOrderCard({ order, onConfirm, loading }) {
 }
 
 // Aktif Sipariş Kartı - Yeni Tasarım
-function ActiveOrderCard({ order, onPickup, onDeliver, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading }) {
+function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading }) {
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
   const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
   const PaymentIcon = paymentInfo.icon;
