@@ -1449,30 +1449,61 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                           <span>{order.courier_name || "Kurye Ata"}</span>
                         </SelectTrigger>
                         <SelectContent>
-                          {couriersByStatus.active.length > 0 && (
-                            <>
-                              <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
-                              {couriersByStatus.active.map(c => (
-                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                              ))}
-                            </>
-                          )}
-                          {couriersByStatus.on_break.length > 0 && (
-                            <>
-                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
-                              {couriersByStatus.on_break.map(c => (
-                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                              ))}
-                            </>
-                          )}
-                          {couriersByStatus.offline.length > 0 && (
-                            <>
-                              <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">Çevrimdışı</div>
-                              {couriersByStatus.offline.map(c => (
-                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                              ))}
-                            </>
-                          )}
+                          {(() => {
+                            const sortedActive = sortCouriersByDistance(couriersByStatus.active, order.restaurant_location);
+                            const sortedOnBreak = sortCouriersByDistance(couriersByStatus.on_break, order.restaurant_location);
+                            const sortedOffline = sortCouriersByDistance(couriersByStatus.offline, order.restaurant_location);
+                            
+                            return (
+                              <>
+                                {sortedActive.length > 0 && (
+                                  <>
+                                    <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
+                                    {sortedActive.map(c => (
+                                      <SelectItem key={c.id} value={c.id}>
+                                        <div className="flex items-center justify-between w-full gap-2">
+                                          <span>{c.name}</span>
+                                          {formatCourierDistance(c.distanceToRestaurant) && (
+                                            <span className="text-xs text-muted-foreground">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </>
+                                )}
+                                {sortedOnBreak.length > 0 && (
+                                  <>
+                                    <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
+                                    {sortedOnBreak.map(c => (
+                                      <SelectItem key={c.id} value={c.id}>
+                                        <div className="flex items-center justify-between w-full gap-2">
+                                          <span>{c.name}</span>
+                                          {formatCourierDistance(c.distanceToRestaurant) && (
+                                            <span className="text-xs text-muted-foreground">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </>
+                                )}
+                                {sortedOffline.length > 0 && (
+                                  <>
+                                    <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">Çevrimdışı</div>
+                                    {sortedOffline.map(c => (
+                                      <SelectItem key={c.id} value={c.id}>
+                                        <div className="flex items-center justify-between w-full gap-2">
+                                          <span>{c.name}</span>
+                                          {formatCourierDistance(c.distanceToRestaurant) && (
+                                            <span className="text-xs text-muted-foreground">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </>
+                                )}
+                              </>
+                            );
+                          })()}
                           {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
                             <>
                               <div className="border-t my-1" />
