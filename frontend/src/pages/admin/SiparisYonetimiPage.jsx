@@ -127,6 +127,35 @@ const getOrderDistance = (order) => {
   return `${distance.toFixed(1)} km`;
 };
 
+// Kuryeleri restorana yakınlığa göre sırala
+const sortCouriersByDistance = (couriers, restaurantLocation) => {
+  if (!restaurantLocation?.latitude || !restaurantLocation?.longitude) {
+    return couriers;
+  }
+  
+  return [...couriers].map(courier => {
+    const distance = calculateDistance(
+      restaurantLocation.latitude,
+      restaurantLocation.longitude,
+      courier.current_location?.latitude,
+      courier.current_location?.longitude
+    );
+    return { ...courier, distanceToRestaurant: distance };
+  }).sort((a, b) => {
+    // Konumu olmayanları sona at
+    if (a.distanceToRestaurant === null) return 1;
+    if (b.distanceToRestaurant === null) return -1;
+    return a.distanceToRestaurant - b.distanceToRestaurant;
+  });
+};
+
+// Mesafeyi formatla
+const formatCourierDistance = (distance) => {
+  if (distance === null || distance === undefined) return null;
+  if (distance < 1) return `${Math.round(distance * 1000)} m`;
+  return `${distance.toFixed(1)} km`;
+};
+
 // Sipariş süresi hesapla (dakika cinsinden)
 const getOrderAge = (order) => {
   if (!order.created_at) return null;
