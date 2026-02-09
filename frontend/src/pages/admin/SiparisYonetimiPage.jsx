@@ -19,13 +19,13 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Sipariş durumları
 const ORDER_STATUSES = {
-  preparing: { label: "Hazırlanıyor", color: "bg-yellow-400/80", textColor: "text-yellow-700", bgLight: "bg-yellow-50" },
-  ready: { label: "Hazır", color: "bg-orange-400/80", textColor: "text-orange-700", bgLight: "bg-orange-50" },
-  assigned: { label: "Kurye Atandı", color: "bg-purple-400/80", textColor: "text-purple-700", bgLight: "bg-purple-50" },
-  confirmed: { label: "Onaylandı", color: "bg-blue-400/80", textColor: "text-blue-700", bgLight: "bg-blue-50" },
-  on_the_way: { label: "Yolda", color: "bg-cyan-400/80", textColor: "text-cyan-700", bgLight: "bg-cyan-50" },
-  delivered: { label: "Teslim Edildi", color: "bg-green-400/80", textColor: "text-green-700", bgLight: "bg-green-50" },
-  cancelled: { label: "İptal Edildi", color: "bg-red-400/80", textColor: "text-red-700", bgLight: "bg-red-50" }
+  preparing: { label: "Hazırlanıyor", color: "bg-yellow-300/50", textColor: "text-yellow-700", bgLight: "bg-yellow-50" },
+  ready: { label: "Hazır", color: "bg-orange-300/50", textColor: "text-orange-700", bgLight: "bg-orange-50" },
+  assigned: { label: "Kurye Atandı", color: "bg-purple-300/50", textColor: "text-purple-700", bgLight: "bg-purple-50" },
+  confirmed: { label: "Onaylandı", color: "bg-blue-300/50", textColor: "text-blue-700", bgLight: "bg-blue-50" },
+  on_the_way: { label: "Yolda", color: "bg-cyan-300/50", textColor: "text-cyan-700", bgLight: "bg-cyan-50" },
+  delivered: { label: "Teslim Edildi", color: "bg-green-300/50", textColor: "text-green-700", bgLight: "bg-green-50" },
+  cancelled: { label: "İptal Edildi", color: "bg-red-300/50", textColor: "text-red-700", bgLight: "bg-red-50" }
 };
 
 // Admin tarafından seçilemeyen durumlar (otomatik atanır veya kurye seçer)
