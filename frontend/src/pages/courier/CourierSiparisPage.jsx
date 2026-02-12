@@ -442,15 +442,52 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     if (courierId) {
       isInitialLoadRef.current = true;
       fetchOrders(false);
+      
+      // Wake Lock al - ekranın kapanmasını önle
+      requestWakeLock();
+      
       // Her 2 saniyede bir siparişleri güncelle
       const interval = setInterval(() => fetchOrders(false), 2000);
       
+      // Service Worker'ı kontrol et ve gerekirse yeniden başlat
+      const ensureServiceWorker = async () => {
+        if ('serviceWorker' in navigator) {
+          try {
+            const registration = await navigator.serviceWorker.ready;
+            console.log('Service Worker hazır:', registration.active?.state);
+          } catch (e) {
+            console.log('Service Worker bekleniyor...');
+          }
+        }
+      };
+      ensureServiceWorker();
+      
       // Sayfa tekrar görünür olduğunda hemen fetch yap (arka plandan dönünce)
-      const handleVisibilityChange = () => {
+      const handleVisibilityChange = async () => {
         if (document.visibilityState === 'visible') {
-          console.log("Sayfa görünür oldu, siparişler yenileniyor...");
+          console.log("Sayfa görünür oldu, siparişler ve konum yenileniyor...");
           isInitialLoadRef.current = false; // Arka plandan dönünce bildirim çalabilsin
           fetchOrders(false);
+          
+          // Wake Lock'ı yeniden al (arka plandan dönünce kaybolabilir)
+          await requestWakeLock();
+          
+          // Konum izlemeyi yeniden başlat (bazı tarayıcılarda arka planda durabilir)
+          if (navigator.geolocation && locationWatchIdRef.current === null) {
+            locationWatchIdRef.current = navigator.geolocation.watchPosition(
+              (pos) => {
+                setCurrentLocation({
+                  latitude: pos.coords.latitude,
+                  longitude: pos.coords.longitude
+                });
+              },
+              (err) => console.log("Konum izleme hatası:", err),
+              { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+            );
+          }
+        } else {
+          // Sayfa gizlendiğinde - arka plan işlemleri devam etsin
+          console.log("Sayfa gizlendi, arka plan görevleri devam ediyor...");
         }
       };
       document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -458,9 +495,10 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return () => {
         clearInterval(interval);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
+        releaseWakeLock();
       };
     }
-  }, [courierId, fetchOrders]);
+  }, [courierId, fetchOrders, requestWakeLock, releaseWakeLock]);
 
   // Request notification permission on button click
   const requestNotificationPermission = async () => {
