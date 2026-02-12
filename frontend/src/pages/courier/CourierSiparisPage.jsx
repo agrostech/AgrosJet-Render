@@ -171,24 +171,51 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const locationWatchIdRef = useRef(null);
   const locationIntervalRef = useRef(null);
 
-  // Kuryenin konumunu al
+  // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
+  const requestWakeLock = useCallback(async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+        console.log('Wake Lock aktif - ekran açık kalacak');
+        
+        wakeLockRef.current.addEventListener('release', () => {
+          console.log('Wake Lock serbest bırakıldı');
+        });
+      }
+    } catch (err) {
+      console.log('Wake Lock alınamadı:', err.message);
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  }, []);
+
+  // Kuryenin konumunu al - iyileştirilmiş versiyon
   useEffect(() => {
     if (!navigator.geolocation) return;
     
+    const getLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCurrentLocation({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          });
+        },
+        (err) => console.log("Konum alınamadı:", err),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    };
+    
     // İlk konum al
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCurrentLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
-        });
-      },
-      (err) => console.log("Konum alınamadı:", err),
-      { enableHighAccuracy: true }
-    );
+    getLocation();
     
     // Konum değişikliklerini izle
-    const watchId = navigator.geolocation.watchPosition(
+    locationWatchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         setCurrentLocation({
           latitude: pos.coords.latitude,
@@ -196,10 +223,20 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         });
       },
       (err) => console.log("Konum izleme hatası:", err),
-      { enableHighAccuracy: true, maximumAge: 30000 }
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
     
-    return () => navigator.geolocation.clearWatch(watchId);
+    // Yedek olarak her 10 saniyede manuel konum al (watchPosition bazen durabilir)
+    locationIntervalRef.current = setInterval(getLocation, 10000);
+    
+    return () => {
+      if (locationWatchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(locationWatchIdRef.current);
+      }
+      if (locationIntervalRef.current !== null) {
+        clearInterval(locationIntervalRef.current);
+      }
+    };
   }, []);
 
   // Rota oluştur - en yakından uzağa sırala ve Google Maps'te aç
