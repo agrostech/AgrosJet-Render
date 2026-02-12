@@ -1125,38 +1125,32 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-4 flex-wrap">
           <h2 className="font-heading text-xl font-bold tracking-tight">Sipariş Yönetimi</h2>
-          {/* Main Tabs */}
-          <div className="flex border rounded-lg overflow-hidden">
-            <button
-              onClick={() => setMainTab("active")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                mainTab === "active" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-background hover:bg-muted"
-              }`}
-            >
-              Aktif
-            </button>
-            <button
-              onClick={() => setMainTab("delivered")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors border-l ${
-                mainTab === "delivered" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-background hover:bg-muted"
-              }`}
-            >
-              Geçmiş
-            </button>
-            <button
-              onClick={() => setMainTab("cancelled")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors border-l ${
-                mainTab === "cancelled" 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-background hover:bg-muted"
-              }`}
-            >
-              İptal
-            </button>
+          {/* Inline Stats */}
+          <div className="flex items-center gap-3 text-sm">
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50/70 rounded-full">
+              <Package className="w-3.5 h-3.5 text-slate-500" />
+              <span className="font-semibold text-slate-600">{stats.total}</span>
+            </span>
+            {stats.unassigned > 0 && (
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-50/70 rounded-full text-orange-600">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span className="font-semibold">{stats.unassigned}</span>
+                <span className="text-xs">bekliyor</span>
+              </span>
+            )}
+            {stats.onTheWay > 0 && (
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-cyan-50/70 rounded-full text-cyan-600">
+                <Bike className="w-3.5 h-3.5" />
+                <span className="font-semibold">{stats.onTheWay}</span>
+                <span className="text-xs">yolda</span>
+              </span>
+            )}
+            {stats.delivered > 0 && (
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-green-50/70 rounded-full text-green-600">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span className="font-semibold">{stats.delivered}</span>
+              </span>
+            )}
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -1164,18 +1158,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             <RefreshCw className="w-4 h-4 mr-2" />
             Yenile
           </Button>
-          {mainTab === "active" && (
-            <>
-              <Button variant="outline" size="sm" onClick={handleGenerateMock}>
-                <Plus className="w-4 h-4 mr-2" />
-                Mock Sipariş
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleClearMock}>
-                <Trash2 className="w-4 h-4 mr-2" />
-                Mock Temizle
-              </Button>
-            </>
-          )}
+          <Button variant="outline" size="sm" onClick={handleGenerateMock}>
+            <Plus className="w-4 h-4 mr-2" />
+            Mock Sipariş
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleClearMock}>
+            <Trash2 className="w-4 h-4 mr-2" />
+            Mock Temizle
+          </Button>
         </div>
       </div>
 
@@ -1529,27 +1519,21 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       <Card>
         <CardHeader className="pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle className="text-base">
-              {mainTab === "active" && "Aktif Siparişler"}
-              {mainTab === "delivered" && "Geçmiş Siparişler (Teslim Edildi)"}
-              {mainTab === "cancelled" && "İptal Edilen Siparişler"}
-            </CardTitle>
-            {mainTab === "active" && (
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Aktif Siparişler</SelectItem>
-                  <SelectItem value="preparing">Hazırlanıyor</SelectItem>
-                  <SelectItem value="ready">Hazır</SelectItem>
-                  <SelectItem value="assigned">Kurye Atandı</SelectItem>
-                  <SelectItem value="confirmed">Onaylandı</SelectItem>
-                  <SelectItem value="on_the_way">Yolda</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
+            <CardTitle className="text-base">Siparişler</CardTitle>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Aktif Siparişler</SelectItem>
+                <SelectItem value="preparing">Hazırlanıyor</SelectItem>
+                <SelectItem value="ready">Hazır</SelectItem>
+                <SelectItem value="assigned">Kurye Atandı</SelectItem>
+                <SelectItem value="confirmed">Onaylandı</SelectItem>
+                <SelectItem value="on_the_way">Yolda</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
@@ -1560,16 +1544,10 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           ) : orders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>
-                {mainTab === "active" && "Aktif sipariş bulunamadı"}
-                {mainTab === "delivered" && "Geçmiş sipariş bulunamadı"}
-                {mainTab === "cancelled" && "İptal edilmiş sipariş bulunamadı"}
-              </p>
-              {mainTab === "active" && (
-                <Button variant="link" onClick={handleGenerateMock}>
-                  Test için mock sipariş oluştur
-                </Button>
-              )}
+              <p>Sipariş bulunamadı</p>
+              <Button variant="link" onClick={handleGenerateMock}>
+                Test için mock sipariş oluştur
+              </Button>
             </div>
           ) : (
             <div className="space-y-2">
