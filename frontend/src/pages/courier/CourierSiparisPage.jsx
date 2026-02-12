@@ -167,6 +167,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
   const isInitialLoadRef = useRef(true);
   const notifiedOrdersRef = useRef(new Set());
+  const wakeLockRef = useRef(null);
+  const locationWatchIdRef = useRef(null);
+  const locationIntervalRef = useRef(null);
 
   // Kuryenin konumunu al
   useEffect(() => {
