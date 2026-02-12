@@ -266,6 +266,46 @@ export default function RestoranlarPage({ companyId }) {
     }
   };
 
+  // Ücretlendirme modalını aç
+  const openPricingModal = async (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    try {
+      const res = await axios.get(`${API}/restaurants/${restaurant.id}/pricing`);
+      setPricingType(res.data.pricing_type || "per_package");
+      setPerPackagePrice(res.data.per_package_price?.toString() || "");
+      setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
+    } catch (err) {
+      setPricingType("per_package");
+      setPerPackagePrice("");
+      setKmRanges(DEFAULT_KM_RANGES);
+    }
+    setShowPricingModal(true);
+  };
+
+  // Ücretlendirme kaydet
+  const handleSavePricing = async () => {
+    try {
+      const payload = {
+        pricing_type: pricingType,
+        per_package_price: pricingType === "per_package" ? parseFloat(perPackagePrice) || 0 : null,
+        km_ranges: pricingType === "per_km" ? kmRanges : null
+      };
+      await axios.put(`${API}/restaurants/${selectedRestaurant.id}/pricing`, payload);
+      toast.success("Ücretlendirme kaydedildi");
+      setShowPricingModal(false);
+      fetchRestaurants();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Ücretlendirme kaydedilemedi");
+    }
+  };
+
+  // KM aralığı fiyat güncelle
+  const updateKmRangePrice = (index, price) => {
+    const newRanges = [...kmRanges];
+    newRanges[index].price = parseFloat(price) || 0;
+    setKmRanges(newRanges);
+  };
+
   const openEditModal = (restaurant) => {
     setSelectedRestaurant(restaurant);
     setFormData({
