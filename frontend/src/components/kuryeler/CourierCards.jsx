@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, DollarSign } from "lucide-react";
+import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge } from "lucide-react";
 
 export function CourierCards({ 
   couriers, 
