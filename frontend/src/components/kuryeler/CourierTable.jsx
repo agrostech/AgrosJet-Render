@@ -77,6 +77,11 @@ export function CourierTable({
                     <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="h-8 px-3 border-2">
                       Detaylar
                     </Button>
+                    {onPricing && (
+                      <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+                        <DollarSign className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600">
                       <Pencil className="w-4 h-4" />
                     </Button>
