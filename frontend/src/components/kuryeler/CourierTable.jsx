@@ -78,39 +78,40 @@ export function CourierTable({
                       Detaylar
                     </Button>
                     {onPricing && (
-                      <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+                      <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="h-8 px-3 border-2" title="Ücretlendirme">
                         <span className="font-bold">₺</span>
+                        <span className="ml-1 text-xs">Ücretlendirme</span>
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600">
+                    <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2">
                       <Pencil className="w-4 h-4" />
                     </Button>
                     {c.is_ghost && onMerge && (
-                      <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="h-8 px-3 border-2 hover:bg-purple-50 hover:text-purple-600" title="Birleştir">
+                      <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="h-8 px-3 border-2" title="Birleştir">
                         <Merge className="w-4 h-4" />
                       </Button>
                     )}
                     {activeTab === "active" ? (
                       <>
                         {c.termination_start_date ? (
-                          <Button size="sm" variant="outline" onClick={() => onCancelTermination(c.id)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Fesih İptal">
+                          <Button size="sm" variant="outline" onClick={() => onCancelTermination(c.id)} className="h-8 px-3 border-2" title="Fesih İptal">
                             <XCircle className="w-4 h-4" />
                           </Button>
                         ) : (
-                          <Button size="sm" variant="outline" onClick={() => onStartTermination(c.id)} className="h-8 px-3 border-2 hover:bg-orange-50 hover:text-orange-600" title="Fesih Başlat">
+                          <Button size="sm" variant="outline" onClick={() => onStartTermination(c.id)} className="h-8 px-3 border-2" title="Fesih Başlat">
                             <AlertTriangle className="w-4 h-4" />
                           </Button>
                         )}
-                        <Button size="sm" variant="outline" onClick={() => onDeactivate(c.id)} className="h-8 px-3 border-2 hover:bg-slate-100 hover:text-slate-700" title="Pasife Al">
+                        <Button size="sm" variant="outline" onClick={() => onDeactivate(c.id)} className="h-8 px-3 border-2" title="Pasife Al">
                           <PowerOff className="w-4 h-4" />
                         </Button>
                       </>
                     ) : (
-                      <Button size="sm" variant="outline" onClick={() => onActivate(c.id)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Aktife Al">
+                      <Button size="sm" variant="outline" onClick={() => onActivate(c.id)} className="h-8 px-3 border-2" title="Aktife Al">
                         <Power className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => onRemove(c.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600">
+                    <Button size="sm" variant="outline" onClick={() => onRemove(c.id)} className="h-8 px-3 border-2">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
