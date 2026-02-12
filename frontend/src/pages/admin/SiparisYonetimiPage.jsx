@@ -1059,9 +1059,11 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   }, []);
 
   const handleCourierClick = (courier) => {
-    // Önce haritayı odakla
-    focusMapOnCourier(courier);
-    // Sonra modal aç
+    // Çevrimdışı kuryeler için haritada zoom yapma
+    if (courier.availability_status !== 'offline') {
+      focusMapOnCourier(courier);
+    }
+    // Modal her durumda açılsın
     setSelectedCourier(courier);
     setShowCourierDetailModal(true);
   };
