@@ -310,7 +310,8 @@ export default function RestoranlarPage({ companyId }) {
       await axios.put(`${API}/restaurants/${selectedRestaurant.id}`, payload);
       toast.success("Entegrasyon ayarları kaydedildi");
       setShowIntegrationModal(false);
-      resetForm();
+      setSelectedRestaurant(null);
+      setFormData(prev => ({ ...prev, adisyo_api_key: "", adisyo_api_secret: "", adisyo_branch_id: "" }));
       fetchRestaurants();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Entegrasyon ayarları kaydedilemedi");
