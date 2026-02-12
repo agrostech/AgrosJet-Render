@@ -826,6 +826,108 @@ export default function RestoranlarPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Integration Modal */}
+      <Dialog open={showIntegrationModal} onOpenChange={setShowIntegrationModal}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plug className="w-5 h-5" />
+              Entegrasyonlar - {selectedRestaurant?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Adisyo Integration */}
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Store className="w-5 h-5 text-orange-500" />
+                  <span className="font-semibold">Adisyo</span>
+                </div>
+                {selectedRestaurant?.adisyo_connected ? (
+                  <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Bağlı
+                  </span>
+                ) : selectedRestaurant?.adisyo_api_key ? (
+                  <span className="flex items-center gap-1 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+                    <XCircle className="w-3.5 h-3.5" />
+                    Test Gerekli
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400">Ayarlanmadı</span>
+                )}
+              </div>
+              
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-muted-foreground">
+                  Adisyo POS sistemi entegrasyonu
+                </p>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowApiKeys(!showApiKeys)}
+                >
+                  {showApiKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs">API Key</Label>
+                  <Input
+                    type={showApiKeys ? "text" : "password"}
+                    value={formData.adisyo_api_key}
+                    onChange={(e) => setFormData({...formData, adisyo_api_key: e.target.value})}
+                    placeholder={selectedRestaurant?.adisyo_api_key ? "••••••••" : "API Key girin"}
+                    className="h-9"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">API Secret</Label>
+                  <Input
+                    type={showApiKeys ? "text" : "password"}
+                    value={formData.adisyo_api_secret}
+                    onChange={(e) => setFormData({...formData, adisyo_api_secret: e.target.value})}
+                    placeholder={selectedRestaurant?.adisyo_api_key ? "••••••••" : "API Secret girin"}
+                    className="h-9"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Branch ID</Label>
+                  <Input
+                    value={formData.adisyo_branch_id}
+                    onChange={(e) => setFormData({...formData, adisyo_branch_id: e.target.value})}
+                    placeholder="Şube ID"
+                    className="h-9"
+                  />
+                </div>
+                
+                {selectedRestaurant?.adisyo_api_key && !selectedRestaurant?.adisyo_connected && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleTestAdisyo(selectedRestaurant)}
+                    className="w-full"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Bağlantıyı Test Et
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowIntegrationModal(false); resetForm(); }}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveIntegration}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
