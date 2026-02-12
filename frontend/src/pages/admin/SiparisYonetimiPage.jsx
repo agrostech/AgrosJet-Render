@@ -12,8 +12,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { 
   RefreshCw, MapPin, Phone, Clock, User, Bike, Store, Package,
   ChevronRight, ChevronDown, Navigation, CheckCircle2, XCircle, AlertCircle,
-  Plus, Trash2, Filter, Users, Timer, Map
+  Plus, Trash2, Filter, Users, Timer, Map, History, ClipboardX
 } from "lucide-react";
+import GecmisSiparislerPage from "./GecmisSiparislerPage";
+import IptalSiparislerPage from "./IptalSiparislerPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
