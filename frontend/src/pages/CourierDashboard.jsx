@@ -61,6 +61,34 @@ export default function CourierDashboard() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [breakStatus, setBreakStatus] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  
+  // Refs for background task management
+  const wakeLockRef = useRef(null);
+  const locationWatchIdRef = useRef(null);
+  const locationIntervalRef = useRef(null);
+
+  // Wake Lock API - ekranın kapanmasını önle
+  const requestWakeLock = useCallback(async () => {
+    try {
+      if ('wakeLock' in navigator && availabilityStatus !== 'offline') {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+        console.log('Wake Lock aktif - kurye paneli ekran açık kalacak');
+        
+        wakeLockRef.current.addEventListener('release', () => {
+          console.log('Wake Lock serbest bırakıldı');
+        });
+      }
+    } catch (err) {
+      console.log('Wake Lock alınamadı:', err.message);
+    }
+  }, [availabilityStatus]);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  }, []);
 
   // Check notification permission on mount
   useEffect(() => {
