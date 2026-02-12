@@ -989,7 +989,8 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   const handleUpdateCourierStatus = async (courierId, newStatus) => {
     try {
       await axios.put(`${API}/couriers/${courierId}/availability`, {
-        availability_status: newStatus
+        availability_status: newStatus,
+        force: true  // Admin limit kontrolünü bypass eder
       });
       // Kurye listesini yenile
       fetchCouriers();
