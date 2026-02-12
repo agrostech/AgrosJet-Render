@@ -654,9 +654,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
             icon: L.divIcon({
               className: 'order-marker',
-              html: `<div style="background: ${hexColor}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 9px; font-weight: bold;">${idx + 1}</div>`,
-              iconSize: [20, 20],
-              iconAnchor: [10, 10]
+              html: `<div style="background: ${hexColor}; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 7px; font-weight: bold;">${idx + 1}</div>`,
+              iconSize: [15, 15],
+              iconAnchor: [7.5, 7.5]
             })
           }).addTo(map)
             .bindPopup(`<strong>${order.order_number}</strong><br/>${order.restaurant_name}<br/>${order.delivery_address}`);
