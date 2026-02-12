@@ -515,91 +515,81 @@ export default function RestoranlarPage({ companyId }) {
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden divide-y">
+            <div className="md:hidden space-y-4 p-4">
               {filteredRestaurants.map((restaurant) => (
                 <div 
                   key={restaurant.id}
-                  className="p-3 hover:bg-slate-50 transition-colors"
+                  className="border-2 border-border p-4 bg-white"
                   data-testid={`restaurant-card-${restaurant.id}`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                        <Store className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm">{restaurant.name}</p>
-                        {restaurant.address && (
-                          <p className="text-xs text-muted-foreground truncate">{restaurant.address}</p>
-                        )}
-                        <div className="flex items-center gap-3 mt-2">
-                          {restaurant.phone && (
-                            <span className="text-xs text-slate-500 flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {restaurant.phone}
-                            </span>
-                          )}
-                          <span className="text-xs text-slate-500 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {restaurant.preparation_time || 15} dk
-                          </span>
-                          {restaurant.adisyo_connected ? (
-                            <span className="text-xs text-green-600 flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              Adisyo
-                            </span>
-                          ) : restaurant.adisyo_api_key ? (
-                            <span className="text-xs text-yellow-600 flex items-center gap-1">
-                              <XCircle className="w-3 h-3" />
-                              Test
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => openPricingModal(restaurant)}
-                      >
-                        <span className="text-green-600 font-bold">₺</span>
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => openEditModal(restaurant)}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleArchive(restaurant)}
-                      >
-                        {restaurant.is_archived ? (
-                          <ArchiveRestore className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <Archive className="w-4 h-4 text-slate-500" />
-                        )}
-                      </Button>
-                      {restaurant.is_archived && (
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-8 w-8 p-0 text-destructive"
-                          onClick={() => {
-                            setSelectedRestaurant(restaurant);
-                            setShowDeleteModal(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                  <div className="mb-3">
+                    <p className="font-bold">{restaurant.name}</p>
+                    {restaurant.address && (
+                      <p className="text-sm text-muted-foreground">{restaurant.address}</p>
+                    )}
+                  </div>
+                  
+                  <div className="text-sm mb-3 space-y-1">
+                    {restaurant.phone && (
+                      <p>
+                        <span className="text-muted-foreground">Telefon:</span> <span className="font-mono">{restaurant.phone}</span>
+                      </p>
+                    )}
+                    <p>
+                      <span className="text-muted-foreground">Hazırlık:</span> <span>{restaurant.preparation_time || 15} dk</span>
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Adisyo:</span>{' '}
+                      {restaurant.adisyo_connected ? (
+                        <span className="text-green-600 font-medium">Bağlı</span>
+                      ) : restaurant.adisyo_api_key ? (
+                        <span className="text-yellow-600 font-medium">Test Gerekli</span>
+                      ) : (
+                        <span className="text-slate-400">Ayarlanmadı</span>
                       )}
-                    </div>
+                    </p>
+                  </div>
+                  
+                  {/* Row 1: Düzenle, Ücretlendirme */}
+                  <div className="flex gap-2 mb-2">
+                    <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">
+                      Düzenle
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+                      <span className="font-bold">₺</span>
+                    </Button>
+                    {restaurant.adisyo_api_key && !restaurant.adisyo_connected && (
+                      <Button size="sm" variant="outline" onClick={() => handleTestAdisyo(restaurant)} className="flex-1 border-2 hover:bg-yellow-50 hover:text-yellow-600">
+                        Test
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Row 2: Arşiv, Sil */}
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleArchive(restaurant)} 
+                      className="flex-1 border-2 hover:bg-slate-100 hover:text-slate-700"
+                    >
+                      <Archive className="w-4 h-4 mr-1" />
+                      <span className="text-xs">{restaurant.is_archived ? 'Arşivden Çıkar' : 'Arşivle'}</span>
+                    </Button>
+                    {restaurant.is_archived && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => {
+                          setSelectedRestaurant(restaurant);
+                          setShowDeleteModal(true);
+                        }}
+                        className="flex-1 border-2 hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        <span className="text-xs">Sil</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
