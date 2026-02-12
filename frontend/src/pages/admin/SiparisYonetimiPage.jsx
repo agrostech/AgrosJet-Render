@@ -836,7 +836,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
               iconAnchor: [6, 6]
             })
           }).addTo(map);
-          marker.bindPopup(`<strong>${r.name}</strong><br/>${r.address || ''}`);
+          marker.bindPopup(`<strong>${r.name}</strong>`);
           markersRef.current.push(marker);
         } catch (e) {
           console.error("Restaurant marker error:", e);
