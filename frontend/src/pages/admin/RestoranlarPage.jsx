@@ -927,7 +927,7 @@ export default function RestoranlarPage({ companyId }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowIntegrationModal(false); resetForm(); }}>
+            <Button variant="outline" onClick={() => { setShowIntegrationModal(false); setSelectedRestaurant(null); }}>
               İptal
             </Button>
             <Button onClick={handleSaveIntegration}>
