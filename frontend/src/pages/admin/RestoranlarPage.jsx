@@ -412,7 +412,6 @@ export default function RestoranlarPage({ companyId }) {
               <tr className="border-b-2 border-primary">
                 <th className="text-left p-3 font-bold text-xs">Restoran</th>
                 <th className="text-left p-3 font-bold text-xs">Hazırlık</th>
-                <th className="text-left p-3 font-bold text-xs">Adisyo</th>
                 <th className="text-right p-3 font-bold text-xs">İşlemler</th>
               </tr>
             </thead>
@@ -430,28 +429,14 @@ export default function RestoranlarPage({ companyId }) {
                     <span className="text-sm">{restaurant.preparation_time || 15} dk</span>
                   </td>
                   <td className="p-3">
-                    {restaurant.adisyo_connected ? (
-                      <span className="flex items-center gap-1 text-xs text-green-600">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Bağlı
-                      </span>
-                    ) : restaurant.adisyo_api_key ? (
-                      <button 
-                        onClick={() => handleTestAdisyo(restaurant)}
-                        className="flex items-center gap-1 text-xs text-yellow-600 hover:text-yellow-700"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
-                        Test Et
-                      </button>
-                    ) : (
-                      <span className="text-xs text-slate-400">Ayarlanmadı</span>
-                    )}
-                  </td>
-                  <td className="p-3">
                     <div className="flex items-center justify-end gap-2">
                       <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="h-8 px-3 border-2" title="Ücretlendirme">
                         <span className="font-bold">₺</span>
                         <span className="ml-1 text-xs">Ücretlendirme</span>
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="h-8 px-3 border-2" title="Entegrasyonlar">
+                        <Plug className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Entegrasyonlar</span>
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="h-8 px-3 border-2" data-testid={`edit-restaurant-${restaurant.id}`}>
                         <Edit2 className="w-4 h-4" />
