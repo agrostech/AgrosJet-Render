@@ -306,12 +306,19 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   const fetchOrders = useCallback(async () => {
     if (!companyId) return;
     try {
-      const res = await axios.get(`${API}/orders/${companyId}?status=${statusFilter}`);
+      // mainTab'e göre farklı siparişler çek
+      let queryStatus = statusFilter;
+      if (mainTab === "delivered") {
+        queryStatus = "delivered";
+      } else if (mainTab === "cancelled") {
+        queryStatus = "cancelled";
+      }
+      const res = await axios.get(`${API}/orders/${companyId}?status=${queryStatus}`);
       setOrders(res.data);
     } catch (err) {
       console.error("Orders fetch error:", err);
     }
-  }, [companyId, statusFilter]);
+  }, [companyId, statusFilter, mainTab]);
 
   const fetchCouriers = useCallback(async () => {
     if (!companyId) return;
