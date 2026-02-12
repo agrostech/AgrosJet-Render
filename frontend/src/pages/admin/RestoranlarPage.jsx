@@ -40,6 +40,7 @@ export default function RestoranlarPage({ companyId }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showIntegrationModal, setShowIntegrationModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   
   // Pricing state
