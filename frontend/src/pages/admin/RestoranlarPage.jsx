@@ -517,7 +517,7 @@ export default function RestoranlarPage({ companyId }) {
           </CardContent>
         </Card>
         
-        {/* Mobile Cards - Card dışında */}
+        {/* Mobile Cards */}
         <div className="md:hidden space-y-4">
           {filteredRestaurants.map((restaurant) => (
             <div 
@@ -598,6 +598,7 @@ export default function RestoranlarPage({ companyId }) {
             </div>
           ))}
         </div>
+        </>
       )}
 
       {/* Add Modal */}
