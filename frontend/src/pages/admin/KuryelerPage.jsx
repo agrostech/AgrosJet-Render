@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Search, UserPlus, UserCheck, UserX } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, DollarSign, Package, Route } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
@@ -13,6 +17,23 @@ import { CourierEditModal } from "@/components/kuryeler/CourierEditModal";
 import { CourierAddModal } from "@/components/kuryeler/CourierAddModal";
 import { CourierDetailModal } from "@/components/kuryeler/CourierDetailModal";
 import { CourierMergeModal } from "@/components/kuryeler/CourierMergeModal";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Varsayılan KM aralıkları
+const DEFAULT_KM_RANGES = [
+  { min_km: 0, max_km: 1, price: 0 },
+  { min_km: 1, max_km: 2, price: 0 },
+  { min_km: 2, max_km: 3, price: 0 },
+  { min_km: 3, max_km: 4, price: 0 },
+  { min_km: 4, max_km: 5, price: 0 },
+  { min_km: 5, max_km: 6, price: 0 },
+  { min_km: 6, max_km: 7, price: 0 },
+  { min_km: 7, max_km: 8, price: 0 },
+  { min_km: 8, max_km: 9, price: 0 },
+  { min_km: 9, max_km: 10, price: 0 },
+  { min_km: 10, max_km: null, price: 0 }  // 10+ km
+];
 
 export default function KuryelerPage({ companyId }) {
   const {
