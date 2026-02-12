@@ -533,10 +533,10 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         [deliveryLat + radiusInDegrees, deliveryLng + radiusInDegrees]
       ]);
       
-      // Teslimat noktası marker (mavi, numaralı - kurye modalıyla aynı stil)
+      // Teslimat noktası marker (mavi - kurye modalıyla aynı stil)
       const deliveryIcon = L.divIcon({
         className: 'order-marker',
-        html: `<div style="background: #3b82f6; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 7px; font-weight: bold;">1</div>`,
+        html: `<div style="background: #3b82f6; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3);"></div>`,
         iconSize: [15, 15],
         iconAnchor: [7.5, 7.5]
       });
