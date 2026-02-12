@@ -562,6 +562,14 @@ export default function RestoranlarPage({ companyId }) {
                         size="sm" 
                         variant="ghost" 
                         className="h-8 w-8 p-0"
+                        onClick={() => openPricingModal(restaurant)}
+                      >
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0"
                         onClick={() => openEditModal(restaurant)}
                       >
                         <Edit2 className="w-4 h-4" />
