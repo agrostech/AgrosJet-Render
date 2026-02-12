@@ -456,3 +456,61 @@ async def delete_courier_push_subscription(courier_id: str):
     """Delete push notification subscription for courier"""
     await db.push_subscriptions.delete_one({"courier_id": courier_id})
     return {"message": "Push subscription silindi"}
+
+
+
+# --- Kurye Ücretlendirme ---
+class KmRange(BaseModel):
+    min_km: float
+    max_km: Optional[float] = None  # None = sınırsız (10+ km gibi)
+    price: float
+
+class CourierPricingUpdate(BaseModel):
+    pricing_type: str  # "per_package" veya "per_km"
+    per_package_price: Optional[float] = None
+    km_ranges: Optional[List[KmRange]] = None
+
+
+@router.put("/couriers/{courier_id}/pricing")
+async def update_courier_pricing(courier_id: str, data: CourierPricingUpdate):
+    """Kurye ücretlendirme ayarlarını güncelle"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    if data.pricing_type not in ["per_package", "per_km"]:
+        raise HTTPException(status_code=400, detail="Geçersiz ücretlendirme tipi")
+    
+    update_data = {"pricing_type": data.pricing_type}
+    
+    if data.pricing_type == "per_package":
+        if data.per_package_price is None:
+            raise HTTPException(status_code=400, detail="Paket başı fiyat gerekli")
+        update_data["per_package_price"] = data.per_package_price
+        update_data["km_ranges"] = None
+    else:
+        if not data.km_ranges or len(data.km_ranges) == 0:
+            raise HTTPException(status_code=400, detail="KM aralıkları gerekli")
+        update_data["km_ranges"] = [r.dict() for r in data.km_ranges]
+        update_data["per_package_price"] = None
+    
+    await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Ücretlendirme güncellendi"}
+
+
+@router.get("/couriers/{courier_id}/pricing")
+async def get_courier_pricing(courier_id: str):
+    """Kurye ücretlendirme ayarlarını getir"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    return {
+        "pricing_type": courier.get("pricing_type"),
+        "per_package_price": courier.get("per_package_price"),
+        "km_ranges": courier.get("km_ranges")
+    }
