@@ -554,8 +554,9 @@ export default function RestoranlarPage({ companyId }) {
                     <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">
                       Düzenle
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+                    <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="flex-1 border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
                       <span className="font-bold">₺</span>
+                      <span className="text-xs ml-1">Ücretlendirme</span>
                     </Button>
                     {restaurant.adisyo_api_key && !restaurant.adisyo_connected && (
                       <Button size="sm" variant="outline" onClick={() => handleTestAdisyo(restaurant)} className="flex-1 border-2 hover:bg-yellow-50 hover:text-yellow-600">

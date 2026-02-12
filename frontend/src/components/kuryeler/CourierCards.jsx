@@ -68,8 +68,9 @@ export function CourierCards({
               Detaylar
             </Button>
             {onPricing && (
-              <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+              <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="flex-1 border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
                 <span className="font-bold">₺</span>
+                <span className="text-xs ml-1">Ücretlendirme</span>
               </Button>
             )}
             <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">
