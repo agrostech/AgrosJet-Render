@@ -1124,52 +1124,97 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
   return (
     <div data-testid="siparis-yonetimi-page" className="space-y-4">
-      {/* Header with inline stats */}
+      {/* Header with tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-4 flex-wrap">
           <h2 className="font-heading text-xl font-bold tracking-tight">Sipariş Yönetimi</h2>
-          {/* Inline Stats */}
-          <div className="flex items-center gap-3 text-sm">
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50/70 rounded-full">
-              <Package className="w-3.5 h-3.5 text-slate-500" />
-              <span className="font-semibold text-slate-600">{stats.total}</span>
-            </span>
-            {stats.unassigned > 0 && (
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-50/70 rounded-full text-orange-600">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span className="font-semibold">{stats.unassigned}</span>
-                <span className="text-xs">bekliyor</span>
-              </span>
-            )}
-            {stats.onTheWay > 0 && (
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-cyan-50/70 rounded-full text-cyan-600">
-                <Bike className="w-3.5 h-3.5" />
-                <span className="font-semibold">{stats.onTheWay}</span>
-                <span className="text-xs">yolda</span>
-              </span>
-            )}
-            {stats.delivered > 0 && (
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-green-50/70 rounded-full text-green-600">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span className="font-semibold">{stats.delivered}</span>
-              </span>
-            )}
+          {/* Sub Tabs */}
+          <div className="flex border-2 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setMainTab("active")}
+              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                mainTab === "active" 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-background hover:bg-muted"
+              }`}
+            >
+              Aktif
+            </button>
+            <button
+              onClick={() => setMainTab("delivered")}
+              className={`px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center gap-1.5 ${
+                mainTab === "delivered" 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-background hover:bg-muted"
+              }`}
+            >
+              <History className="w-3.5 h-3.5" />
+              Geçmiş
+            </button>
+            <button
+              onClick={() => setMainTab("cancelled")}
+              className={`px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center gap-1.5 ${
+                mainTab === "cancelled" 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-background hover:bg-muted"
+              }`}
+            >
+              <ClipboardX className="w-3.5 h-3.5" />
+              İptal
+            </button>
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={fetchAll}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Yenile
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleGenerateMock}>
-            <Plus className="w-4 h-4 mr-2" />
-            Mock Sipariş
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleClearMock}>
-            <Trash2 className="w-4 h-4 mr-2" />
-            Mock Temizle
-          </Button>
-        </div>
+        {mainTab === "active" && (
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={fetchAll}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Yenile
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleGenerateMock}>
+              <Plus className="w-4 h-4 mr-2" />
+              Mock Sipariş
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleClearMock}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Mock Temizle
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Render sub-pages based on tab */}
+      {mainTab === "delivered" ? (
+        <GecmisSiparislerPage companyId={companyId} />
+      ) : mainTab === "cancelled" ? (
+        <IptalSiparislerPage companyId={companyId} />
+      ) : (
+      <>
+      {/* Inline Stats - only for active tab */}
+      <div className="flex items-center gap-3 text-sm">
+        <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50/70 rounded-full">
+          <Package className="w-3.5 h-3.5 text-slate-500" />
+          <span className="font-semibold text-slate-600">{stats.total}</span>
+        </span>
+        {stats.unassigned > 0 && (
+          <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-50/70 rounded-full text-orange-600">
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span className="font-semibold">{stats.unassigned}</span>
+            <span className="text-xs">bekliyor</span>
+          </span>
+        )}
+        {stats.onTheWay > 0 && (
+          <span className="flex items-center gap-1.5 px-2 py-1 bg-cyan-50/70 rounded-full text-cyan-600">
+            <Bike className="w-3.5 h-3.5" />
+            <span className="font-semibold">{stats.onTheWay}</span>
+            <span className="text-xs">yolda</span>
+          </span>
+        )}
+        {stats.delivered > 0 && (
+          <span className="flex items-center gap-1.5 px-2 py-1 bg-green-50/70 rounded-full text-green-600">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span className="font-semibold">{stats.delivered}</span>
+          </span>
+        )}
       </div>
 
       {/* Mobile Courier Status List */}
