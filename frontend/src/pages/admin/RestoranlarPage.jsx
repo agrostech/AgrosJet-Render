@@ -532,15 +532,15 @@ export default function RestoranlarPage({ companyId }) {
               
               {/* Row 1: Düzenle, Ücretlendirme */}
               <div className="flex gap-2 mb-2">
-                <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">
+                <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2">
                   Düzenle
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="flex-1 border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+                <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="flex-1 border-2" title="Ücretlendirme">
                   <span className="font-bold">₺</span>
                   <span className="text-xs ml-1">Ücretlendirme</span>
                 </Button>
                 {restaurant.adisyo_api_key && !restaurant.adisyo_connected && (
-                  <Button size="sm" variant="outline" onClick={() => handleTestAdisyo(restaurant)} className="flex-1 border-2 hover:bg-yellow-50 hover:text-yellow-600">
+                  <Button size="sm" variant="outline" onClick={() => handleTestAdisyo(restaurant)} className="flex-1 border-2">
                     Test
                   </Button>
                 )}
@@ -552,7 +552,7 @@ export default function RestoranlarPage({ companyId }) {
                   size="sm" 
                   variant="outline" 
                   onClick={() => handleArchive(restaurant)} 
-                  className="flex-1 border-2 hover:bg-slate-100 hover:text-slate-700"
+                  className="flex-1 border-2"
                 >
                   <Archive className="w-4 h-4 mr-1" />
                   <span className="text-xs">{restaurant.is_archived ? 'Arşivden Çıkar' : 'Arşivle'}</span>
@@ -565,7 +565,7 @@ export default function RestoranlarPage({ companyId }) {
                       setSelectedRestaurant(restaurant);
                       setShowDeleteModal(true);
                     }}
-                    className="flex-1 border-2 hover:bg-red-50 hover:text-red-600"
+                    className="flex-1 border-2"
                   >
                     <Trash2 className="w-4 h-4 mr-1" />
                     <span className="text-xs">Sil</span>
