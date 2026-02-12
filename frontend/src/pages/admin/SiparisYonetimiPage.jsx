@@ -271,6 +271,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState("active");
+  const [mainTab, setMainTab] = useState("active"); // active, delivered, cancelled
   const [, setTick] = useState(0); // Geri sayım için re-render
   
   // Modal states
