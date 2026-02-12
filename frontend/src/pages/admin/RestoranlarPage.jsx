@@ -479,29 +479,11 @@ export default function RestoranlarPage({ companyId }) {
             >
               <div className="mb-3">
                 <p className="font-bold">{restaurant.name}</p>
-                {restaurant.address && (
-                  <p className="text-sm text-muted-foreground">{restaurant.address}</p>
-                )}
               </div>
               
               <div className="text-sm mb-3 space-y-1">
-                {restaurant.phone && (
-                  <p>
-                    <span className="text-muted-foreground">Telefon:</span> <span className="font-mono">{restaurant.phone}</span>
-                  </p>
-                )}
                 <p>
                   <span className="text-muted-foreground">Hazırlık:</span> <span>{restaurant.preparation_time || 15} dk</span>
-                </p>
-                <p>
-                  <span className="text-muted-foreground">Adisyo:</span>{' '}
-                  {restaurant.adisyo_connected ? (
-                    <span className="text-green-600 font-medium">Bağlı</span>
-                  ) : restaurant.adisyo_api_key ? (
-                    <span className="text-yellow-600 font-medium">Test Gerekli</span>
-                  ) : (
-                    <span className="text-slate-400">Ayarlanmadı</span>
-                  )}
                 </p>
               </div>
               
@@ -514,15 +496,14 @@ export default function RestoranlarPage({ companyId }) {
                   <span className="font-bold">₺</span>
                   <span className="text-xs ml-1">Ücretlendirme</span>
                 </Button>
-                {restaurant.adisyo_api_key && !restaurant.adisyo_connected && (
-                  <Button size="sm" variant="outline" onClick={() => handleTestAdisyo(restaurant)} className="flex-1 border-2">
-                    Test
-                  </Button>
-                )}
               </div>
               
-              {/* Row 2: Arşiv, Sil */}
-              <div className="flex gap-2">
+              {/* Row 2: Entegrasyonlar, Arşiv */}
+              <div className="flex gap-2 mb-2">
+                <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="flex-1 border-2">
+                  <Plug className="w-4 h-4 mr-1" />
+                  <span className="text-xs">Entegrasyonlar</span>
+                </Button>
                 <Button 
                   size="sm" 
                   variant="outline" 
@@ -532,7 +513,11 @@ export default function RestoranlarPage({ companyId }) {
                   <Archive className="w-4 h-4 mr-1" />
                   <span className="text-xs">{restaurant.is_archived ? 'Arşivden Çıkar' : 'Arşivle'}</span>
                 </Button>
-                {restaurant.is_archived && (
+              </div>
+              
+              {/* Row 3: Sil (only for archived) */}
+              {restaurant.is_archived && (
+                <div className="flex gap-2">
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -545,8 +530,8 @@ export default function RestoranlarPage({ companyId }) {
                     <Trash2 className="w-4 h-4 mr-1" />
                     <span className="text-xs">Sil</span>
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
