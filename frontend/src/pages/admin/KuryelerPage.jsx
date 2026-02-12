@@ -277,6 +277,7 @@ export default function KuryelerPage({ companyId }) {
         onDeactivate={handleDeactivate}
         onActivate={handleActivate}
         onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
+        onPricing={openPricingModal}
       />
 
       {/* Mobile Cards */}
@@ -292,6 +293,7 @@ export default function KuryelerPage({ companyId }) {
         onDeactivate={handleDeactivate}
         onActivate={handleActivate}
         onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
+        onPricing={openPricingModal}
       />
 
       {/* Modals */}
