@@ -598,7 +598,7 @@ export default function RestoranlarPage({ companyId }) {
             </div>
           </CardContent>
         </Card>
-      )}
+        )}
 
       {/* Add Modal */}
       <Dialog open={showAddModal} onOpenChange={(open) => { setShowAddModal(open); if (!open) resetForm(); }}>
