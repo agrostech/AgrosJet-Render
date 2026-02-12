@@ -6,13 +6,29 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Phone, Link2, CheckCircle2, XCircle, Eye, EyeOff,
-  Store, RefreshCw, Navigation, Clock, ChevronRight
+  Store, RefreshCw, Navigation, Clock, ChevronRight, DollarSign, Package, Route
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Varsayılan KM aralıkları
+const DEFAULT_KM_RANGES = [
+  { min_km: 0, max_km: 1, price: 0 },
+  { min_km: 1, max_km: 2, price: 0 },
+  { min_km: 2, max_km: 3, price: 0 },
+  { min_km: 3, max_km: 4, price: 0 },
+  { min_km: 4, max_km: 5, price: 0 },
+  { min_km: 5, max_km: 6, price: 0 },
+  { min_km: 6, max_km: 7, price: 0 },
+  { min_km: 7, max_km: 8, price: 0 },
+  { min_km: 8, max_km: 9, price: 0 },
+  { min_km: 9, max_km: 10, price: 0 },
+  { min_km: 10, max_km: null, price: 0 }  // 10+ km
+];
 
 export default function RestoranlarPage({ companyId }) {
   const [restaurants, setRestaurants] = useState([]);
@@ -24,7 +40,13 @@ export default function RestoranlarPage({ companyId }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  
+  // Pricing state
+  const [pricingType, setPricingType] = useState("per_package");
+  const [perPackagePrice, setPerPackagePrice] = useState("");
+  const [kmRanges, setKmRanges] = useState(DEFAULT_KM_RANGES);
   
   // Map refs for location picker
   const mapContainerRef = useRef(null);
