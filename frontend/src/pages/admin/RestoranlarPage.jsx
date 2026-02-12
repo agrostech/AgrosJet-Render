@@ -299,6 +299,24 @@ export default function RestoranlarPage({ companyId }) {
     }
   };
 
+  // Entegrasyon kaydet
+  const handleSaveIntegration = async () => {
+    try {
+      const payload = {};
+      if (formData.adisyo_api_key) payload.adisyo_api_key = formData.adisyo_api_key;
+      if (formData.adisyo_api_secret) payload.adisyo_api_secret = formData.adisyo_api_secret;
+      if (formData.adisyo_branch_id) payload.adisyo_branch_id = formData.adisyo_branch_id;
+      
+      await axios.put(`${API}/restaurants/${selectedRestaurant.id}`, payload);
+      toast.success("Entegrasyon ayarları kaydedildi");
+      setShowIntegrationModal(false);
+      resetForm();
+      fetchRestaurants();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Entegrasyon ayarları kaydedilemedi");
+    }
+  };
+
   // KM aralığı fiyat güncelle
   const updateKmRangePrice = (index, price) => {
     const newRanges = [...kmRanges];
