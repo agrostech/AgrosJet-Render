@@ -404,118 +404,95 @@ export default function RestoranlarPage({ companyId }) {
       ) : (
         <>
         {/* Desktop Card */}
-        <Card className="hidden md:block">
-          <CardContent className="p-0">
-            {/* Desktop Table */}
-            <div>
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-slate-50">
-                    <th className="text-left p-3 font-semibold text-sm">Restoran</th>
-                    <th className="text-left p-3 font-semibold text-sm">Telefon</th>
-                    <th className="text-left p-3 font-semibold text-sm">Hazırlık</th>
-                    <th className="text-left p-3 font-semibold text-sm">Adisyo</th>
-                    <th className="text-right p-3 font-semibold text-sm">İşlemler</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRestaurants.map((restaurant) => (
-                    <tr 
-                      key={restaurant.id} 
-                      className="border-b hover:bg-slate-50 transition-colors"
-                      data-testid={`restaurant-row-${restaurant.id}`}
-                    >
-                      <td className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-                            <Store className="w-4 h-4 text-orange-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{restaurant.name}</p>
-                            {restaurant.address && (
-                              <p className="text-xs text-muted-foreground truncate max-w-[250px]">{restaurant.address}</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <span className="text-sm text-slate-600">{restaurant.phone || "-"}</span>
-                      </td>
-                      <td className="p-3">
-                        <span className="text-xs px-2 py-1 bg-slate-100 rounded-full text-slate-600">
-                          <Clock className="w-3 h-3 inline mr-1" />
-                          {restaurant.preparation_time || 15} dk
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        {restaurant.adisyo_connected ? (
-                          <span className="flex items-center gap-1 text-xs text-green-600">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Bağlı
-                          </span>
-                        ) : restaurant.adisyo_api_key ? (
-                          <button 
-                            onClick={() => handleTestAdisyo(restaurant)}
-                            className="flex items-center gap-1 text-xs text-yellow-600 hover:text-yellow-700"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                            Test Et
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-400">Ayarlanmadı</span>
+        <div className="hidden md:block border-2 border-border bg-white overflow-x-auto">
+          {/* Desktop Table */}
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-primary">
+                <th className="text-left p-3 font-bold text-xs">Restoran</th>
+                <th className="text-left p-3 font-bold text-xs">Telefon</th>
+                <th className="text-left p-3 font-bold text-xs">Hazırlık</th>
+                <th className="text-left p-3 font-bold text-xs">Adisyo</th>
+                <th className="text-right p-3 font-bold text-xs">İşlemler</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRestaurants.map((restaurant) => (
+                <tr 
+                  key={restaurant.id} 
+                  className="border-b border-border hover:bg-slate-50 transition-colors"
+                  data-testid={`restaurant-row-${restaurant.id}`}
+                >
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="font-medium text-sm">{restaurant.name}</p>
+                        {restaurant.address && (
+                          <p className="text-xs text-muted-foreground truncate max-w-[250px]">{restaurant.address}</p>
                         )}
-                      </td>
-                      <td className="p-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => openPricingModal(restaurant)}
-                            title="Ücretlendirme"
-                          >
-                            <span className="text-green-600 font-bold">₺</span>
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => openEditModal(restaurant)}
-                            data-testid={`edit-restaurant-${restaurant.id}`}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => handleArchive(restaurant)}
-                          >
-                            {restaurant.is_archived ? (
-                              <ArchiveRestore className="w-4 h-4 text-green-600" />
-                            ) : (
-                              <Archive className="w-4 h-4 text-slate-500" />
-                            )}
-                          </Button>
-                          {restaurant.is_archived && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => {
-                                setSelectedRestaurant(restaurant);
-                                setShowDeleteModal(true);
-                              }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <span className="font-mono text-sm">{restaurant.phone || "-"}</span>
+                  </td>
+                  <td className="p-3">
+                    <span className="text-sm">{restaurant.preparation_time || 15} dk</span>
+                  </td>
+                  <td className="p-3">
+                    {restaurant.adisyo_connected ? (
+                      <span className="flex items-center gap-1 text-xs text-green-600">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Bağlı
+                      </span>
+                    ) : restaurant.adisyo_api_key ? (
+                      <button 
+                        onClick={() => handleTestAdisyo(restaurant)}
+                        className="flex items-center gap-1 text-xs text-yellow-600 hover:text-yellow-700"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Test Et
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate-400">Ayarlanmadı</span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="h-8 px-3 border-2" title="Ücretlendirme">
+                        <span className="font-bold">₺</span>
+                        <span className="ml-1 text-xs">Ücretlendirme</span>
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="h-8 px-3 border-2" data-testid={`edit-restaurant-${restaurant.id}`}>
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleArchive(restaurant)} className="h-8 px-3 border-2">
+                        {restaurant.is_archived ? (
+                          <ArchiveRestore className="w-4 h-4" />
+                        ) : (
+                          <Archive className="w-4 h-4" />
+                        )}
+                      </Button>
+                      {restaurant.is_archived && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="h-8 px-3 border-2"
+                          onClick={() => {
+                            setSelectedRestaurant(restaurant);
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         
         {/* Mobile Cards */}
         <div className="md:hidden space-y-4">
