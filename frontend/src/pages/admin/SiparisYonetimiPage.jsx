@@ -991,10 +991,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       await axios.put(`${API}/couriers/${courierId}/availability`, {
         availability_status: newStatus
       });
-      toast.success(`Kurye durumu güncellendi: ${
-        newStatus === 'active' ? 'Aktif' : 
-        newStatus === 'on_break' ? 'Molada' : 'Çevrimdışı'
-      }`);
       // Kurye listesini yenile
       fetchCouriers();
       // Modal'daki kurye bilgisini güncelle
