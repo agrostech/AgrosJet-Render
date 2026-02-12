@@ -269,7 +269,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [statusFilter, setStatusFilter] = useState("active");
-  const [mainTab, setMainTab] = useState("active"); // active, delivered, cancelled
   const [, setTick] = useState(0); // Geri sayım için re-render
   
   // Modal states
@@ -306,19 +305,12 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   const fetchOrders = useCallback(async () => {
     if (!companyId) return;
     try {
-      // mainTab'e göre farklı siparişler çek
-      let queryStatus = statusFilter;
-      if (mainTab === "delivered") {
-        queryStatus = "delivered";
-      } else if (mainTab === "cancelled") {
-        queryStatus = "cancelled";
-      }
-      const res = await axios.get(`${API}/orders/${companyId}?status=${queryStatus}`);
+      const res = await axios.get(`${API}/orders/${companyId}?status=${statusFilter}`);
       setOrders(res.data);
     } catch (err) {
       console.error("Orders fetch error:", err);
     }
-  }, [companyId, statusFilter, mainTab]);
+  }, [companyId, statusFilter]);
 
   const fetchCouriers = useCallback(async () => {
     if (!companyId) return;
