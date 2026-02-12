@@ -402,10 +402,12 @@ export default function RestoranlarPage({ companyId }) {
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <>
+        {/* Desktop Card */}
+        <Card className="hidden md:block">
           <CardContent className="p-0">
             {/* Desktop Table */}
-            <div className="hidden md:block">
+            <div>
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-slate-50">
