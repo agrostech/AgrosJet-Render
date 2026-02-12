@@ -864,6 +864,84 @@ export default function RestoranlarPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Pricing Modal */}
+      <Dialog open={showPricingModal} onOpenChange={setShowPricingModal}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-green-600" />
+              Ücretlendirme - {selectedRestaurant?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <RadioGroup value={pricingType} onValueChange={setPricingType}>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                <RadioGroupItem value="per_package" id="per_package" />
+                <Label htmlFor="per_package" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Package className="w-4 h-4 text-blue-600" />
+                  Paket Başı
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                <RadioGroupItem value="per_km" id="per_km" />
+                <Label htmlFor="per_km" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Route className="w-4 h-4 text-purple-600" />
+                  KM Aralığı
+                </Label>
+              </div>
+            </RadioGroup>
+
+            {pricingType === "per_package" && (
+              <div className="space-y-2 p-4 bg-blue-50 rounded-lg">
+                <Label>Paket Başı Fiyat (₺)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={perPackagePrice}
+                  onChange={(e) => setPerPackagePrice(e.target.value)}
+                  placeholder="0.00"
+                  className="bg-white"
+                />
+              </div>
+            )}
+
+            {pricingType === "per_km" && (
+              <div className="space-y-2 p-4 bg-purple-50 rounded-lg">
+                <Label className="mb-3 block">KM Aralıkları (₺)</Label>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {kmRanges.map((range, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <span className="text-xs text-slate-600 w-16">
+                        {range.max_km === null ? `${range.min_km}+ km` : `${range.min_km}-${range.max_km} km`}
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={range.price || ""}
+                        onChange={(e) => updateKmRangePrice(idx, e.target.value)}
+                        placeholder="0.00"
+                        className="bg-white h-8 text-sm"
+                      />
+                      <span className="text-xs text-slate-500">₺</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPricingModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSavePricing}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
