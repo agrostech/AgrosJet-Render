@@ -1,8 +1,40 @@
 # ShiftJet - Kurye Takip Sistemi PRD
 
-## Son Güncelleme: 8 Şubat 2026
+## Son Güncelleme: 12 Şubat 2026
 
-### ✅ Bu Oturumda Tamamlanan Değişiklikler
+### ✅ Bu Oturumda Tamamlanan Değişiklikler (12 Şubat 2026)
+
+#### 🔧 Mobil Sidebar Collapsible Bug - ÇÖZÜLDÜ
+Kurye listesi collapsible'ları mobil görünümde düzgün çalışıyor:
+- Aktif, Dağıtımda, Molada, Çevrimdışı bölümleri açılıp kapanabiliyor
+- Önceki oturumda belirtilen hata mevcut değil
+
+#### ⚡ Arka Plan Görev Güvenilirliği İyileştirmeleri
+Kurye panelinde bildirim ve konum izleme güvenilirliği artırıldı:
+
+**Wake Lock API:**
+- Kurye aktifken ekran açık kalır (pil tasarrufu modunda konum/bildirim kesilmez)
+- Arka plandan dönüşte otomatik yeniden etkinleştirme
+
+**Konum İzleme İyileştirmeleri:**
+- `watchPosition` + 10 saniyelik yedek interval
+- Arka plandan dönüşte konum izleme yeniden başlatılır
+- Daha agresif konum parametreleri (timeout: 15s, maximumAge: 5s)
+
+**Service Worker İyileştirmeleri:**
+- Cache versiyonu v2'ye yükseltildi
+- Keepalive mekanizması eklendi
+- API çağrıları cache'den hariç tutuldu
+- Bildirim vibrasyon desteği
+
+**Dosyalar:**
+- `/app/frontend/src/pages/courier/CourierSiparisPage.jsx`
+- `/app/frontend/src/pages/CourierDashboard.jsx`
+- `/app/frontend/public/sw.js`
+
+---
+
+### Önceki Oturum Değişiklikleri
 
 #### 🗺️ Rota Optimizasyonu (YENİ - 8 Şubat 2026)
 Kurye 2+ siparişi yola çıkardığında tek tuşla optimum rotayı Google Maps'te açar:
