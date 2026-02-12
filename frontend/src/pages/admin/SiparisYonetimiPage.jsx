@@ -1679,7 +1679,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             const sortedOffline = sortCouriersByDistanceAndLoad(couriersByStatus.offline, order.restaurant_location, orders);
                             
                             const renderCourierItem = (c) => (
-                              <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white [&>span]:w-full">
+                              <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white pr-10">
                                 <div className="flex items-center justify-between w-full gap-2">
                                   <span className="font-medium">{c.name}</span>
                                   <div className="flex items-center gap-1 flex-shrink-0">
