@@ -67,6 +67,11 @@ export function CourierCards({
             <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="flex-1 border-2">
               Detaylar
             </Button>
+            {onPricing && (
+              <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+                <DollarSign className="w-4 h-4" />
+              </Button>
+            )}
             <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">
               Düzenle
             </Button>
