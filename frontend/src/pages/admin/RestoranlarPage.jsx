@@ -423,10 +423,7 @@ export default function RestoranlarPage({ companyId }) {
                   data-testid={`restaurant-row-${restaurant.id}`}
                 >
                   <td className="p-3">
-                    <div>
-                      <p className="font-medium text-sm">{restaurant.name}</p>
-                      <p className="font-mono text-sm text-muted-foreground">{restaurant.phone || "-"}</p>
-                    </div>
+                    <p className="font-medium text-sm">{restaurant.name}</p>
                   </td>
                   <td className="p-3">
                     <span className="text-sm">{restaurant.preparation_time || 15} dk</span>
