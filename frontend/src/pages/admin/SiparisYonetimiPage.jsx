@@ -1094,7 +1094,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       }
       
       await axios.post(`${API}/orders/${companyId}/${orderId}/status`, payload);
-      toast.success(`Durum güncellendi: ${ORDER_STATUSES[newStatus]?.label || newStatus}`);
       fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Durum güncellenemedi");
