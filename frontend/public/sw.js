@@ -112,23 +112,31 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'NEW_ORDER') {
     const data = event.data.payload;
     
-    // Sadece bildirim göster - ses ana uygulamadan çalacak
+    // Bildirim göster - vibrasyon ile
     self.registration.showNotification('🔔 YENİ SİPARİŞ!', {
       body: `${data.restaurantName}\n${data.orderNumber}`,
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       tag: `order-${data.orderId}`,
       requireInteraction: true,
-      silent: true,
+      silent: false, // Sistem sesi çalsın
+      vibrate: [500, 200, 500, 200, 500],
       data: data
     });
+  }
+  
+  // Keepalive mesajı - SW'ı aktif tut
+  if (event.data && event.data.type === 'KEEPALIVE') {
+    console.log('SW keepalive received');
   }
 });
 
 // Fetch event - network first, fallback to cache
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests and Chrome extensions
-  if (event.request.method !== 'GET' || event.request.url.includes('chrome-extension')) {
+  // Skip non-GET requests, Chrome extensions, and API calls
+  if (event.request.method !== 'GET' || 
+      event.request.url.includes('chrome-extension') ||
+      event.request.url.includes('/api/')) {
     return;
   }
 
