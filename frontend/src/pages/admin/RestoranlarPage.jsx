@@ -469,6 +469,14 @@ export default function RestoranlarPage({ companyId }) {
                           <Button 
                             size="sm" 
                             variant="ghost" 
+                            onClick={() => openPricingModal(restaurant)}
+                            title="Ücretlendirme"
+                          >
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
                             onClick={() => openEditModal(restaurant)}
                             data-testid={`edit-restaurant-${restaurant.id}`}
                           >
