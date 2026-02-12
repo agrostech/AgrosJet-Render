@@ -472,7 +472,7 @@ export default function RestoranlarPage({ companyId }) {
                             onClick={() => openPricingModal(restaurant)}
                             title="Ücretlendirme"
                           >
-                            <DollarSign className="w-4 h-4 text-green-600" />
+                            <span className="text-green-600 font-bold">₺</span>
                           </Button>
                           <Button 
                             size="sm" 
@@ -564,7 +564,7 @@ export default function RestoranlarPage({ companyId }) {
                         className="h-8 w-8 p-0"
                         onClick={() => openPricingModal(restaurant)}
                       >
-                        <DollarSign className="w-4 h-4 text-green-600" />
+                        <span className="text-green-600 font-bold">₺</span>
                       </Button>
                       <Button 
                         size="sm" 
