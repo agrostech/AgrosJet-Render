@@ -41,6 +41,18 @@ class RestaurantUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
+# Ücretlendirme modelleri
+class KmRange(BaseModel):
+    min_km: float
+    max_km: Optional[float] = None  # None = sınırsız (10+ km gibi)
+    price: float
+
+class PricingUpdate(BaseModel):
+    pricing_type: str  # "per_package" veya "per_km"
+    per_package_price: Optional[float] = None
+    km_ranges: Optional[List[KmRange]] = None
+
+
 # --- CRUD Endpoints ---
 
 @router.get("/{company_id}")
