@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
-  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, Clock, CheckCircle2, XCircle
+  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
