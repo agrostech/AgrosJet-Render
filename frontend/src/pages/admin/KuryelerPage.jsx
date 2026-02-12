@@ -61,6 +61,12 @@ export default function KuryelerPage({ companyId }) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showMergeModal, setShowMergeModal] = useState(false);
   
+  // Pricing Modal State
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [pricingType, setPricingType] = useState("per_package");
+  const [perPackagePrice, setPerPackagePrice] = useState("");
+  const [kmRanges, setKmRanges] = useState(DEFAULT_KM_RANGES);
+  
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
