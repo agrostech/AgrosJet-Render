@@ -1904,7 +1904,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
                 {/* Delivery Address */}
                 <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                  <MapPin className="w-5 h-5 text-orange-500 mt-0.5" />
+                  <MapPin className="w-3 h-3 text-orange-500 mt-0.5" />
                   <div className="flex-1">
                     <p className="font-medium">{selectedOrder.delivery_address}</p>
                     {selectedOrder.notes && (() => {
