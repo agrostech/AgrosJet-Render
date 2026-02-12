@@ -68,12 +68,12 @@ export function CourierCards({
               Detaylar
             </Button>
             {onPricing && (
-              <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="flex-1 border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
+              <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="flex-1 border-2" title="Ücretlendirme">
                 <span className="font-bold">₺</span>
                 <span className="text-xs ml-1">Ücretlendirme</span>
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="flex-1 border-2 hover:bg-blue-50 hover:text-blue-600">
+            <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="flex-1 border-2">
               Düzenle
             </Button>
           </div>
@@ -81,7 +81,7 @@ export function CourierCards({
           {/* Row 2: Merge button for ghost couriers */}
           {c.is_ghost && onMerge && (
             <div className="mb-2">
-              <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="w-full border-2 hover:bg-purple-50 hover:text-purple-600">
+              <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="w-full border-2">
                 <Merge className="w-4 h-4 mr-1" />
                 <span className="text-xs">Gerçek Kurye ile Birleştir</span>
               </Button>
@@ -93,28 +93,28 @@ export function CourierCards({
             {activeTab === "active" ? (
               <>
                 {c.termination_start_date ? (
-                  <Button size="sm" variant="outline" onClick={() => onCancelTermination(c.id)} className="flex-1 border-2 hover:bg-green-50 hover:text-green-600">
+                  <Button size="sm" variant="outline" onClick={() => onCancelTermination(c.id)} className="flex-1 border-2">
                     <XCircle className="w-4 h-4 mr-1" />
                     <span className="text-xs">Fesih İptal</span>
                   </Button>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => onStartTermination(c.id)} className="flex-1 border-2 hover:bg-orange-50 hover:text-orange-600">
+                  <Button size="sm" variant="outline" onClick={() => onStartTermination(c.id)} className="flex-1 border-2">
                     <AlertTriangle className="w-4 h-4 mr-1" />
                     <span className="text-xs">Fesih</span>
                   </Button>
                 )}
-                <Button size="sm" variant="outline" onClick={() => onDeactivate(c.id)} className="flex-1 border-2 hover:bg-slate-100 hover:text-slate-700">
+                <Button size="sm" variant="outline" onClick={() => onDeactivate(c.id)} className="flex-1 border-2">
                   <PowerOff className="w-4 h-4 mr-1" />
                   <span className="text-xs">Pasif</span>
                 </Button>
               </>
             ) : (
-              <Button size="sm" variant="outline" onClick={() => onActivate(c.id)} className="flex-1 border-2 hover:bg-green-50 hover:text-green-600">
+              <Button size="sm" variant="outline" onClick={() => onActivate(c.id)} className="flex-1 border-2">
                 <Power className="w-4 h-4 mr-1" />
                 <span className="text-xs">Aktif Yap</span>
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={() => onRemove(c.id)} className="flex-1 border-2 hover:bg-red-50 hover:text-red-600">
+            <Button size="sm" variant="outline" onClick={() => onRemove(c.id)} className="flex-1 border-2">
               <Trash2 className="w-4 h-4 mr-1" />
               <span className="text-xs">Çıkar</span>
             </Button>
