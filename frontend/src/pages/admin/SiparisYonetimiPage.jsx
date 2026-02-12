@@ -1537,21 +1537,27 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       <Card>
         <CardHeader className="pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle className="text-base">Siparişler</CardTitle>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Aktif Siparişler</SelectItem>
-                <SelectItem value="preparing">Hazırlanıyor</SelectItem>
-                <SelectItem value="ready">Hazır</SelectItem>
-                <SelectItem value="assigned">Kurye Atandı</SelectItem>
-                <SelectItem value="confirmed">Onaylandı</SelectItem>
-                <SelectItem value="on_the_way">Yolda</SelectItem>
-              </SelectContent>
-            </Select>
+            <CardTitle className="text-base">
+              {mainTab === "active" && "Aktif Siparişler"}
+              {mainTab === "delivered" && "Geçmiş Siparişler (Teslim Edildi)"}
+              {mainTab === "cancelled" && "İptal Edilen Siparişler"}
+            </CardTitle>
+            {mainTab === "active" && (
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Aktif Siparişler</SelectItem>
+                  <SelectItem value="preparing">Hazırlanıyor</SelectItem>
+                  <SelectItem value="ready">Hazır</SelectItem>
+                  <SelectItem value="assigned">Kurye Atandı</SelectItem>
+                  <SelectItem value="confirmed">Onaylandı</SelectItem>
+                  <SelectItem value="on_the_way">Yolda</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -1562,10 +1568,16 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           ) : orders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Sipariş bulunamadı</p>
-              <Button variant="link" onClick={handleGenerateMock}>
-                Test için mock sipariş oluştur
-              </Button>
+              <p>
+                {mainTab === "active" && "Aktif sipariş bulunamadı"}
+                {mainTab === "delivered" && "Geçmiş sipariş bulunamadı"}
+                {mainTab === "cancelled" && "İptal edilmiş sipariş bulunamadı"}
+              </p>
+              {mainTab === "active" && (
+                <Button variant="link" onClick={handleGenerateMock}>
+                  Test için mock sipariş oluştur
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
