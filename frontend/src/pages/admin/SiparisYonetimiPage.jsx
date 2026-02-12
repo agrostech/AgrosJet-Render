@@ -998,7 +998,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         setSelectedCourier({...selectedCourier, availability_status: newStatus});
       }
     } catch (err) {
-      toast.error("Kurye durumu güncellenemedi");
+      toast.error(err.response?.data?.detail || "Kurye durumu güncellenemedi");
     }
   };
 
