@@ -1525,8 +1525,6 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                 <SelectItem value="assigned">Kurye Atandı</SelectItem>
                 <SelectItem value="confirmed">Onaylandı</SelectItem>
                 <SelectItem value="on_the_way">Yolda</SelectItem>
-                <SelectItem value="delivered">Teslim Edildi</SelectItem>
-                <SelectItem value="cancelled">İptal Edildi</SelectItem>
               </SelectContent>
             </Select>
           </div>
