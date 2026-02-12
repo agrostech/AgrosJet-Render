@@ -32,7 +32,7 @@ export function MissingInvoicesCard({ missingInvoices }) {
       courierMap[tx.courier_id].total_amount += Math.abs(displayAmount);
       courierMap[tx.courier_id].count += 1;
     });
-    return Object.values(courierMap).sort((a, b) => a.courier_name.localeCompare(b.courier_name, 'tr'));
+    return Object.values(courierMap).sort((a, b) => (a.courier_name || '').localeCompare(b.courier_name || '', 'tr'));
   }, [missingInvoices]);
 
   // Filter invoices by selected courier
