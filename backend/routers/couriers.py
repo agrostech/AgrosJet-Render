@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from typing import Optional, List
 
 from services import courier_service
 from utils.database import db
