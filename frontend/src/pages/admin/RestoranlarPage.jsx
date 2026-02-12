@@ -849,8 +849,7 @@ export default function RestoranlarPage({ companyId }) {
       <Dialog open={showIntegrationModal} onOpenChange={setShowIntegrationModal}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plug className="w-5 h-5" />
+            <DialogTitle>
               Entegrasyonlar - {selectedRestaurant?.name}
             </DialogTitle>
           </DialogHeader>
@@ -858,22 +857,13 @@ export default function RestoranlarPage({ companyId }) {
             {/* Adisyo Integration */}
             <div className="border rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Store className="w-5 h-5 text-orange-500" />
-                  <span className="font-semibold">Adisyo</span>
-                </div>
+                <span className="font-semibold">Adisyo</span>
                 {selectedRestaurant?.adisyo_connected ? (
-                  <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Bağlı
-                  </span>
+                  <span className="text-xs border px-2 py-1 rounded">Bağlı</span>
                 ) : selectedRestaurant?.adisyo_api_key ? (
-                  <span className="flex items-center gap-1 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
-                    <XCircle className="w-3.5 h-3.5" />
-                    Test Gerekli
-                  </span>
+                  <span className="text-xs border px-2 py-1 rounded">Test Gerekli</span>
                 ) : (
-                  <span className="text-xs text-slate-400">Ayarlanmadı</span>
+                  <span className="text-xs text-muted-foreground">Ayarlanmadı</span>
                 )}
               </div>
               
