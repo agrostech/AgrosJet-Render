@@ -2173,7 +2173,14 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                             <div className="flex-1 min-w-0 overflow-hidden">
                               <div className="flex items-center justify-between">
                                 <div className="text-xs sm:text-sm font-medium truncate">{order.restaurant_name}</div>
-                                <span className="text-[10px] sm:text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
+                                <div className="flex flex-col items-end text-[10px] sm:text-xs text-muted-foreground">
+                                  <span>{formatTime(order.created_at)}</span>
+                                  {getOrderAge(order) && (
+                                    <span className={getOrderAge(order).mins > 35 ? 'text-red-600 font-medium' : ''}>
+                                      {getOrderAge(order).text}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                               <div className="text-[10px] sm:text-xs text-muted-foreground truncate">{order.customer_name}</div>
                               <div className="text-[10px] sm:text-xs text-slate-600 truncate">{order.delivery_address}</div>
