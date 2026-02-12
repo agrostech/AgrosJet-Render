@@ -17,6 +17,8 @@ import JetPuanMarketPage from "./JetPuanMarketPage";
 import AkademiPage from "./admin/AkademiPage";
 import RestoranlarPage from "./admin/RestoranlarPage";
 import SiparisYonetimiPage from "./admin/SiparisYonetimiPage";
+import GecmisSiparislerPage from "./admin/GecmisSiparislerPage";
+import IptalSiparislerPage from "./admin/IptalSiparislerPage";
 
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
