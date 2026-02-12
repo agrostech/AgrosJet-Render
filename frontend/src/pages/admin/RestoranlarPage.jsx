@@ -718,50 +718,6 @@ export default function RestoranlarPage({ companyId }) {
                 </p>
               )}
             </div>
-
-            <div className="border-t pt-4 mt-4">
-              <div className="flex items-center justify-between mb-3">
-                <Label className="text-base font-semibold">Adisyo API Entegrasyonu</Label>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setShowApiKeys(!showApiKeys)}
-                >
-                  {showApiKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                API bilgilerini değiştirmek için yeni değer girin. Boş bırakırsanız mevcut değer korunur.
-              </p>
-              <div className="space-y-3">
-                <div>
-                  <Label>API Key</Label>
-                  <Input
-                    type={showApiKeys ? "text" : "password"}
-                    value={formData.adisyo_api_key}
-                    onChange={(e) => setFormData({...formData, adisyo_api_key: e.target.value})}
-                    placeholder="Yeni API Key (opsiyonel)"
-                  />
-                </div>
-                <div>
-                  <Label>API Secret</Label>
-                  <Input
-                    type={showApiKeys ? "text" : "password"}
-                    value={formData.adisyo_api_secret}
-                    onChange={(e) => setFormData({...formData, adisyo_api_secret: e.target.value})}
-                    placeholder="Yeni API Secret (opsiyonel)"
-                  />
-                </div>
-                <div>
-                  <Label>Branch ID</Label>
-                  <Input
-                    value={formData.adisyo_branch_id}
-                    onChange={(e) => setFormData({...formData, adisyo_branch_id: e.target.value})}
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowEditModal(false); resetForm(); }}>
