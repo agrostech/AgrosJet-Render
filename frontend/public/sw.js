@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shiftjet-v1';
+const CACHE_NAME = 'shiftjet-v2';
 const urlsToCache = [
   '/',
   '/index.html'
@@ -30,6 +30,13 @@ self.addEventListener('activate', event => {
     })
   );
   self.clients.claim();
+});
+
+// Keep Service Worker alive - periodic sync (if supported)
+self.addEventListener('periodicsync', event => {
+  if (event.tag === 'keepalive') {
+    console.log('Periodic sync - keeping SW alive');
+  }
 });
 
 // Push notification event - BACKGROUND NOTIFICATIONS
