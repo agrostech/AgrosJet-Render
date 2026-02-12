@@ -342,7 +342,7 @@ export default function KuryelerPage({ companyId }) {
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-600" />
+              <span className="text-green-600 font-bold text-xl">₺</span>
               Ücretlendirme - {selectedCourier?.name}
             </DialogTitle>
           </DialogHeader>
@@ -350,15 +350,13 @@ export default function KuryelerPage({ companyId }) {
             <RadioGroup value={pricingType} onValueChange={setPricingType}>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
                 <RadioGroupItem value="per_package" id="courier_per_package" />
-                <Label htmlFor="courier_per_package" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <Package className="w-4 h-4 text-blue-600" />
+                <Label htmlFor="courier_per_package" className="cursor-pointer flex-1">
                   Paket Başı
                 </Label>
               </div>
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
                 <RadioGroupItem value="per_km" id="courier_per_km" />
-                <Label htmlFor="courier_per_km" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <Route className="w-4 h-4 text-purple-600" />
+                <Label htmlFor="courier_per_km" className="cursor-pointer flex-1">
                   KM Aralığı
                 </Label>
               </div>
