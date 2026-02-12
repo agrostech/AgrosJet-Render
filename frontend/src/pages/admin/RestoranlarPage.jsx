@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Phone, Link2, CheckCircle2, XCircle, Eye, EyeOff,
-  Store, RefreshCw, Navigation, Clock, ChevronRight, DollarSign, Package, Route
+  Store, RefreshCw, Navigation, Clock, ChevronRight
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
