@@ -79,7 +79,7 @@ export function CourierTable({
                     </Button>
                     {onPricing && (
                       <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Ücretlendirme">
-                        <DollarSign className="w-4 h-4" />
+                        <span className="font-bold">₺</span>
                       </Button>
                     )}
                     <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600">
