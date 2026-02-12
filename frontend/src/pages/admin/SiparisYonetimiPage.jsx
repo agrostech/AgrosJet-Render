@@ -694,13 +694,13 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
                   align-items: center;
                   justify-content: center;
                   color: white;
-                  font-size: 8px;
+                  font-size: 6px;
                   font-weight: 700;
                 ">${initials}</div>
               </div>
             `,
-            iconSize: [22, 22],
-            iconAnchor: [11, 11]
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
           })
         }).addTo(map)
           .bindPopup(`<strong>🛵 ${selectedCourier.name}</strong><br/>${isOnBreak ? 'Molada' : 'Aktif'}`);
