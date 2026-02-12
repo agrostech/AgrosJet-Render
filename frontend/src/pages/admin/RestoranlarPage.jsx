@@ -512,15 +512,17 @@ export default function RestoranlarPage({ companyId }) {
                 </tbody>
               </table>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Mobile Cards */}
-            <div className="md:hidden space-y-4 p-4">
-              {filteredRestaurants.map((restaurant) => (
-                <div 
-                  key={restaurant.id}
-                  className="border-2 border-border p-4 bg-white"
-                  data-testid={`restaurant-card-${restaurant.id}`}
-                >
+        {/* Mobile Cards - Card dışında */}
+        <div className="md:hidden space-y-4">
+          {filteredRestaurants.map((restaurant) => (
+            <div 
+              key={restaurant.id}
+              className="border-2 border-border p-4 bg-white"
+              data-testid={`restaurant-card-${restaurant.id}`}
+            >
                   <div className="mb-3">
                     <p className="font-bold">{restaurant.name}</p>
                     {restaurant.address && (
