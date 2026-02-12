@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge } from "lucide-react";
+import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, DollarSign } from "lucide-react";
 
 export function CourierTable({ 
   couriers, 
@@ -20,7 +20,8 @@ export function CourierTable({
   onCancelTermination,
   onDeactivate,
   onActivate,
-  onMerge
+  onMerge,
+  onPricing
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
