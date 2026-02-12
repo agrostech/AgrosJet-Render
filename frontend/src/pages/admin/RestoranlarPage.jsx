@@ -410,7 +410,6 @@ export default function RestoranlarPage({ companyId }) {
             <thead>
               <tr className="border-b-2 border-primary">
                 <th className="text-left p-3 font-bold text-xs">Restoran</th>
-                <th className="text-left p-3 font-bold text-xs">Telefon</th>
                 <th className="text-left p-3 font-bold text-xs">Hazırlık</th>
                 <th className="text-left p-3 font-bold text-xs">Adisyo</th>
                 <th className="text-right p-3 font-bold text-xs">İşlemler</th>
@@ -424,17 +423,10 @@ export default function RestoranlarPage({ companyId }) {
                   data-testid={`restaurant-row-${restaurant.id}`}
                 >
                   <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <p className="font-medium text-sm">{restaurant.name}</p>
-                        {restaurant.address && (
-                          <p className="text-xs text-muted-foreground truncate max-w-[250px]">{restaurant.address}</p>
-                        )}
-                      </div>
+                    <div>
+                      <p className="font-medium text-sm">{restaurant.name}</p>
+                      <p className="font-mono text-sm text-muted-foreground">{restaurant.phone || "-"}</p>
                     </div>
-                  </td>
-                  <td className="p-3">
-                    <span className="font-mono text-sm">{restaurant.phone || "-"}</span>
                   </td>
                   <td className="p-3">
                     <span className="text-sm">{restaurant.preparation_time || 15} dk</span>
