@@ -255,6 +255,7 @@ async def get_termination_status(courier_id: str, company_id: str):
 # --- Kurye Availability Status (Aktif/Molada/Çevrimdışı) ---
 class AvailabilityStatusUpdate(BaseModel):
     availability_status: str  # active, on_break, offline
+    force: bool = False  # Admin için limit kontrolünü bypass et
 
 
 @router.put("/couriers/{courier_id}/availability")
@@ -278,16 +279,17 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     
     # Molaya çıkış kontrolü
     if data.availability_status == "on_break" and current_status != "on_break":
-        # Mola limitini kontrol et
-        daily_break_limit = courier.get("daily_break_limit", 30)  # Varsayılan 30dk
-        used_break_time = courier.get("used_break_time", 0)
-        remaining = daily_break_limit - used_break_time
-        
-        if remaining <= 0:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Günlük mola süreniz doldu. Limit: {daily_break_limit} dakika"
-            )
+        # Mola limitini kontrol et (force=True ise admin atlaması)
+        if not data.force:
+            daily_break_limit = courier.get("daily_break_limit", 30)  # Varsayılan 30dk
+            used_break_time = courier.get("used_break_time", 0)
+            remaining = daily_break_limit - used_break_time
+            
+            if remaining <= 0:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Günlük mola süreniz doldu. Limit: {daily_break_limit} dakika"
+                )
         
         # Mola başlangıç zamanını kaydet
         update_data["break_start_time"] = now.isoformat()
