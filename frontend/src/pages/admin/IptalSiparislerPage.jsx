@@ -360,11 +360,11 @@ export default function IptalSiparislerPage({ companyId }) {
                       <th className="text-left p-2 font-bold text-xs">Restoran</th>
                       <th className="text-left p-2 font-bold text-xs">Müşteri</th>
                       <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
-                      <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                      <th className="text-left p-2 font-bold text-xs">Ücret</th>
-                      <th className="text-left p-2 font-bold text-xs">Durum</th>
                       <th className="text-left p-2 font-bold text-xs">Adres</th>
                       <th className="text-left p-2 font-bold text-xs">Mesafe</th>
+                      <th className="text-left p-2 font-bold text-xs">Ücret</th>
+                      <th className="text-left p-2 font-bold text-xs">Ödeme</th>
+                      <th className="text-left p-2 font-bold text-xs">Durum</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -391,6 +391,18 @@ export default function IptalSiparislerPage({ companyId }) {
                         <td className="p-2 text-xs">
                           {formatDate(order.created_at)}
                         </td>
+                        <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
+                          <div className="line-clamp-3">{order.delivery_address || "-"}</div>
+                        </td>
+                        <td className="p-2 text-xs whitespace-nowrap">
+                          {(() => {
+                            const dist = calculateDistance(order);
+                            return dist ? `${dist.toFixed(1)} km` : "-";
+                          })()}
+                        </td>
+                        <td className="p-2 font-semibold line-through text-muted-foreground">
+                          {order.total_amount?.toFixed(2) || "0.00"} ₺
+                        </td>
                         <td className="p-2">
                           <span className={`px-2 py-0.5 text-xs rounded ${
                             order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
@@ -400,23 +412,11 @@ export default function IptalSiparislerPage({ companyId }) {
                             {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
                           </span>
                         </td>
-                        <td className="p-2 font-semibold line-through text-muted-foreground">
-                          {order.total_amount?.toFixed(2) || "0.00"} ₺
-                        </td>
                         <td className="p-2">
                           <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700 flex items-center gap-1 w-fit">
                             <XCircle className="w-3 h-3" />
                             İptal
                           </span>
-                        </td>
-                        <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
-                          <div className="line-clamp-3">{order.delivery_address || "-"}</div>
-                        </td>
-                        <td className="p-2 text-xs whitespace-nowrap">
-                          {(() => {
-                            const dist = calculateDistance(order);
-                            return dist ? `${dist.toFixed(1)} km` : "-";
-                          })()}
                         </td>
                       </tr>
                     ))}
