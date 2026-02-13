@@ -110,7 +110,7 @@ export default function IptalSiparislerPage({ companyId }) {
       try {
         const [restaurantsRes, couriersRes] = await Promise.all([
           axios.get(`${API}/restaurants/${companyId}`),
-          axios.get(`${API}/couriers/${companyId}`)
+          axios.get(`${API}/companies/${companyId}/couriers`)
         ]);
         console.log("Restaurants loaded:", restaurantsRes.data);
         console.log("Couriers loaded:", couriersRes.data);
