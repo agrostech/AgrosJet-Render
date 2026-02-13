@@ -106,10 +106,7 @@ export default function IptalSiparislerPage({ companyId }) {
   // Initial load: fetch company, then set defaults and auto-filter
   useEffect(() => {
     const initializeData = async () => {
-      if (!companyId) return;
-      
-      // Skip if already loaded for this company
-      if (initialLoadDone.current === companyId) return;
+      if (!companyId || initialized) return;
       
       try {
         // Fetch company first
@@ -138,7 +135,7 @@ export default function IptalSiparislerPage({ companyId }) {
           endDateTime: defaults.endDateTime
         });
         
-        initialLoadDone.current = companyId;
+        setInitialized(true);
       } catch (err) {
         console.error("Initialization error:", err);
         setLoading(false);
@@ -146,7 +143,7 @@ export default function IptalSiparislerPage({ companyId }) {
     };
     
     initializeData();
-  }, [companyId, getDefaultDates, fetchAndFilterOrders]);
+  }, [companyId, initialized, getDefaultDates, fetchAndFilterOrders]);
 
   // Mesafe hesaplama (Haversine formula)
   const calculateDistance = (order) => {
