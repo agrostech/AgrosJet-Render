@@ -10,11 +10,9 @@ import { RefreshCw, Package, XCircle, Search, ChevronLeft, ChevronRight } from "
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function IptalSiparislerPage({ companyId }) {
+export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperAdmin = false }) {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [initialized, setInitialized] = useState(false);
   
   // Pagination states
