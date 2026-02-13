@@ -2199,7 +2199,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         await axios.post(`${API}/orders/${companyId}/${selectedOrder.id}/status`, {
                           status: newStatus,
                           actor_type: 'admin',
-                          actor_name: adminName
+                          actor_name: adminName,
+                          is_super_admin: true
                         });
                         fetchOrders();
                         setShowOrderDetailModal(false);
