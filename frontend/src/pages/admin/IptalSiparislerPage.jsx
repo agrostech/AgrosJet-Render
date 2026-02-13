@@ -367,21 +367,33 @@ export default function IptalSiparislerPage({ companyId }) {
 
       {/* Orders List */}
       <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-base">İptal Edilen Siparişler ({filteredOrders.length})</CardTitle>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Göster:</span>
-            <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="h-7 w-[80px] text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-                <SelectItem value="all">Tümü</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardHeader className="pb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <CardTitle className="text-base">İptal Edilen Siparişler ({searchedOrders.length})</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Ara..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="h-7 w-[150px] pl-7 text-xs"
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">Göster:</span>
+              <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+                <SelectTrigger className="h-7 w-[80px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                  <SelectItem value="all">Tümü</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -389,10 +401,10 @@ export default function IptalSiparislerPage({ companyId }) {
             <div className="flex justify-center py-8">
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : filteredOrders.length === 0 ? (
+          ) : searchedOrders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>İptal edilmiş sipariş bulunamadı</p>
+              <p>{searchQuery ? "Aramayla eşleşen sipariş bulunamadı" : "İptal edilmiş sipariş bulunamadı"}</p>
             </div>
           ) : (
             <>
