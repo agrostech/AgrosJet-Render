@@ -2196,7 +2196,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     value={selectedOrder.status}
                     onValueChange={async (newStatus) => {
                       try {
-                        await axios.put(`${API}/orders/${companyId}/${selectedOrder.id}/status`, {
+                        await axios.post(`${API}/orders/${companyId}/${selectedOrder.id}/status`, {
                           status: newStatus,
                           actor_type: 'admin',
                           actor_name: adminName
@@ -2205,7 +2205,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         setShowOrderDetailModal(false);
                       } catch (err) {
                         console.error("Status update error:", err);
-                        alert("Durum güncellenirken hata oluştu");
+                        alert(err.response?.data?.detail || "Durum güncellenirken hata oluştu");
                       }
                     }}
                   >
