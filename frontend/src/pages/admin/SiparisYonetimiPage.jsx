@@ -1711,7 +1711,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                           </div>
                         </td>
                         <td className="p-2">
-                          <span className="font-medium">{order.restaurant_name || "-"}</span>
+                          <span className="px-2 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded border border-slate-200">
+                            {order.restaurant_name || "-"}
+                          </span>
                         </td>
                         <td className="p-2">
                           <div>
