@@ -808,6 +808,19 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           mapInstanceRef.current.invalidateSize();
         }
       }, 500);
+      // Ekstra güvenlik için daha uzun süre sonra da dene
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+          // Marker'ları da güncelle
+          updateMapMarkers();
+        }
+      }, 800);
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 1200);
     }
   }, [mainTab]);
 
@@ -819,6 +832,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     const centerMap = () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.setView([company.city_lat, company.city_lng], 13);
+        mapInstanceRef.current.invalidateSize();
       } else {
         // Harita henüz yüklenmemişse tekrar dene
         setTimeout(centerMap, 300);
