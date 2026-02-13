@@ -1163,17 +1163,18 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
           <div className="flex border-2 rounded-lg overflow-hidden">
             <button
               onClick={() => setMainTab("active")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                 mainTab === "active" 
                   ? "bg-primary text-primary-foreground" 
                   : "bg-background hover:bg-muted"
               }`}
             >
+              <ListChecks className="w-3.5 h-3.5" />
               Aktif
             </button>
             <button
               onClick={() => setMainTab("delivered")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center gap-1.5 ${
+              className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center justify-center gap-1.5 ${
                 mainTab === "delivered" 
                   ? "bg-primary text-primary-foreground" 
                   : "bg-background hover:bg-muted"
@@ -1184,7 +1185,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
             </button>
             <button
               onClick={() => setMainTab("cancelled")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center gap-1.5 ${
+              className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center justify-center gap-1.5 ${
                 mainTab === "cancelled" 
                   ? "bg-primary text-primary-foreground" 
                   : "bg-background hover:bg-muted"
