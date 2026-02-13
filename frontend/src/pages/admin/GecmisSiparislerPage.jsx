@@ -1,23 +1,93 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { RefreshCw, Package, MapPin, Phone, Clock, User, Store } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RefreshCw, Package, MapPin, Clock, User, Store, Filter, CreditCard, Bike, Calendar } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function GecmisSiparislerPage({ companyId }) {
   const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // Filter states
+  const [restaurants, setRestaurants] = useState([]);
+  const [couriers, setCouriers] = useState([]);
+  const [company, setCompany] = useState(null);
+  
+  const [restaurantFilter, setRestaurantFilter] = useState("all");
+  const [courierFilter, setCourierFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
+  
+  // Date filters with defaults
+  const getDefaultDates = useCallback(() => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const openingTime = company?.opening_time || "09:00";
+    const closingTime = company?.closing_time || "23:00";
+    
+    return {
+      startDate: today.toISOString().split('T')[0],
+      startTime: openingTime,
+      endDate: tomorrow.toISOString().split('T')[0],
+      endTime: closingTime
+    };
+  }, [company]);
+  
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
 
+  // Fetch company info
+  const fetchCompany = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}`);
+      setCompany(res.data);
+    } catch (err) {
+      console.error("Company fetch error:", err);
+    }
+  }, [companyId]);
+
+  // Fetch restaurants
+  const fetchRestaurants = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/restaurants/${companyId}`);
+      setRestaurants(res.data);
+    } catch (err) {
+      console.error("Restaurants fetch error:", err);
+    }
+  }, [companyId]);
+
+  // Fetch couriers
+  const fetchCouriers = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/couriers/${companyId}`);
+      setCouriers(res.data);
+    } catch (err) {
+      console.error("Couriers fetch error:", err);
+    }
+  }, [companyId]);
+
+  // Fetch orders
   const fetchOrders = useCallback(async () => {
     if (!companyId) return;
     setLoading(true);
     try {
       const res = await axios.get(`${API}/orders/${companyId}?status=delivered`);
+      setAllOrders(res.data);
       setOrders(res.data);
     } catch (err) {
       console.error("Orders fetch error:", err);
@@ -26,9 +96,56 @@ export default function GecmisSiparislerPage({ companyId }) {
     }
   }, [companyId]);
 
+  // Set default dates when company is loaded
   useEffect(() => {
+    if (company) {
+      const defaults = getDefaultDates();
+      if (!startDate) setStartDate(defaults.startDate);
+      if (!startTime) setStartTime(defaults.startTime);
+      if (!endDate) setEndDate(defaults.endDate);
+      if (!endTime) setEndTime(defaults.endTime);
+    }
+  }, [company, getDefaultDates, startDate, startTime, endDate, endTime]);
+
+  useEffect(() => {
+    fetchCompany();
+    fetchRestaurants();
+    fetchCouriers();
     fetchOrders();
-  }, [fetchOrders]);
+  }, [fetchCompany, fetchRestaurants, fetchCouriers, fetchOrders]);
+
+  // Apply filters
+  const filteredOrders = useMemo(() => {
+    let result = [...allOrders];
+    
+    // Restaurant filter
+    if (restaurantFilter !== "all") {
+      result = result.filter(o => o.restaurant_id === restaurantFilter);
+    }
+    
+    // Courier filter
+    if (courierFilter !== "all") {
+      result = result.filter(o => o.courier_id === courierFilter);
+    }
+    
+    // Payment method filter
+    if (paymentFilter !== "all") {
+      result = result.filter(o => o.payment_method === paymentFilter);
+    }
+    
+    // Date range filter
+    if (startDate && startTime && endDate && endTime) {
+      const startDateTime = new Date(`${startDate}T${startTime}`);
+      const endDateTime = new Date(`${endDate}T${endTime}`);
+      
+      result = result.filter(o => {
+        const orderDate = new Date(o.delivered_at || o.updated_at || o.created_at);
+        return orderDate >= startDateTime && orderDate <= endDateTime;
+      });
+    }
+    
+    return result;
+  }, [allOrders, restaurantFilter, courierFilter, paymentFilter, startDate, startTime, endDate, endTime]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
@@ -42,25 +159,166 @@ export default function GecmisSiparislerPage({ companyId }) {
     });
   };
 
+  const clearFilters = () => {
+    setRestaurantFilter("all");
+    setCourierFilter("all");
+    setPaymentFilter("all");
+    const defaults = getDefaultDates();
+    setStartDate(defaults.startDate);
+    setStartTime(defaults.startTime);
+    setEndDate(defaults.endDate);
+    setEndTime(defaults.endTime);
+  };
+
   return (
     <div className="space-y-4">
+      {/* Filters */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Teslim Edilen Siparişler ({orders.length})</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            Filtreler
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Restaurant Filter */}
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Store className="w-3 h-3" />
+                Restoran
+              </Label>
+              <Select value={restaurantFilter} onValueChange={setRestaurantFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  {restaurants.map(r => (
+                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Courier Filter */}
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Bike className="w-3 h-3" />
+                Kurye
+              </Label>
+              <Select value={courierFilter} onValueChange={setCourierFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  {couriers.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Payment Method Filter */}
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <CreditCard className="w-3 h-3" />
+                Ödeme Yöntemi
+              </Label>
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  <SelectItem value="cash">Nakit</SelectItem>
+                  <SelectItem value="card">Kredi Kartı</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Clear Filters */}
+            <div className="flex items-end">
+              <Button variant="outline" size="sm" onClick={clearFilters} className="h-9 w-full">
+                Filtreleri Temizle
+              </Button>
+            </div>
+          </div>
+          
+          {/* Date Range */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 pt-3 border-t">
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Calendar className="w-3 h-3" />
+                Başlangıç Tarih
+              </Label>
+              <Input 
+                type="date" 
+                value={startDate} 
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Clock className="w-3 h-3" />
+                Başlangıç Saat
+              </Label>
+              <Input 
+                type="time" 
+                value={startTime} 
+                onChange={(e) => setStartTime(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Calendar className="w-3 h-3" />
+                Bitiş Tarih
+              </Label>
+              <Input 
+                type="date" 
+                value={endDate} 
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div>
+              <Label className="text-xs flex items-center gap-1 mb-1">
+                <Clock className="w-3 h-3" />
+                Bitiş Saat
+              </Label>
+              <Input 
+                type="time" 
+                value={endTime} 
+                onChange={(e) => setEndTime(e.target.value)}
+                className="h-9"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Orders List */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Teslim Edilen Siparişler ({filteredOrders.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex justify-center py-8">
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : orders.length === 0 ? (
+          ) : filteredOrders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Teslim edilmiş sipariş bulunamadı</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <div 
                   key={order.id}
                   className="p-3 rounded-lg border bg-white cursor-pointer hover:shadow-md transition-shadow"
@@ -75,6 +333,11 @@ export default function GecmisSiparislerPage({ companyId }) {
                         <span className="font-semibold text-sm">{order.order_number || order.id?.slice(0, 8)}</span>
                         <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-700">
                           Teslim Edildi
+                        </span>
+                        <span className={`px-2 py-0.5 text-xs rounded ${
+                          order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -145,6 +408,12 @@ export default function GecmisSiparislerPage({ companyId }) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Adres:</span>
                   <span className="font-medium text-right max-w-[200px]">{selectedOrder.delivery_address || "-"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Ödeme:</span>
+                  <span className="font-medium">
+                    {selectedOrder.payment_method === 'cash' ? 'Nakit' : selectedOrder.payment_method === 'card' ? 'Kredi Kartı' : 'Online'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tutar:</span>
