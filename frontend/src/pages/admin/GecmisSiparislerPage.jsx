@@ -147,6 +147,27 @@ export default function GecmisSiparislerPage({ companyId }) {
     return result;
   }, [allOrders, restaurantFilter, courierFilter, paymentFilter, startDate, startTime, endDate, endTime]);
 
+  // Mesafe hesaplama (Haversine formula)
+  const calculateDistance = (order) => {
+    if (!order.restaurant_location || !order.delivery_location) return null;
+    
+    const R = 6371; // Dünya yarıçapı km
+    const lat1 = order.restaurant_location.latitude || order.restaurant_location.lat;
+    const lon1 = order.restaurant_location.longitude || order.restaurant_location.lng;
+    const lat2 = order.delivery_location.latitude || order.delivery_location.lat;
+    const lon2 = order.delivery_location.longitude || order.delivery_location.lng;
+    
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
