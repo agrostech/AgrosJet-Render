@@ -2296,8 +2296,7 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
         </DialogContent>
       </Dialog>
 
-      </>
-      )}
+      </div>
     </div>
   );
 }
