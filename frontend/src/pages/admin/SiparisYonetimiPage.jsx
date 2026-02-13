@@ -792,30 +792,40 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   // mainTab değiştiğinde haritayı yeniden boyutlandır
   useEffect(() => {
     if (mainTab === "active" && mapInstanceRef.current) {
-      // Sekme değişikliğinden sonra haritayı yeniden boyutlandır
+      // Container'ın görünür olmasını bekle
+      const mapContainer = mapRef.current;
+      if (!mapContainer) return;
+      
       const invalidateMap = () => {
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
+          // Force reflow
+          mapContainer.style.display = 'none';
+          mapContainer.offsetHeight; // Force reflow
+          mapContainer.style.display = '';
+          
+          mapInstanceRef.current.invalidateSize({ animate: false, pan: false });
         }
       };
       
-      // Çoklu invalidateSize çağrısı ile haritanın kesinlikle render olmasını sağla
-      setTimeout(invalidateMap, 50);
-      setTimeout(invalidateMap, 150);
-      setTimeout(invalidateMap, 300);
-      setTimeout(invalidateMap, 500);
-      setTimeout(invalidateMap, 800);
-      setTimeout(invalidateMap, 1000);
-      
-      // Şirket konumuna tekrar ortala
-      if (company?.city_lat && company?.city_lng) {
-        setTimeout(() => {
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.setView([company.city_lat, company.city_lng], 13);
-            mapInstanceRef.current.invalidateSize();
-          }
-        }, 600);
-      }
+      // requestAnimationFrame kullanarak render döngüsüne uygun zamanda çalıştır
+      requestAnimationFrame(() => {
+        invalidateMap();
+        
+        // Ek güvenlik için birkaç kez daha çağır
+        setTimeout(invalidateMap, 100);
+        setTimeout(invalidateMap, 300);
+        setTimeout(invalidateMap, 600);
+        
+        // Şirket konumuna tekrar ortala
+        if (company?.city_lat && company?.city_lng) {
+          setTimeout(() => {
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.setView([company.city_lat, company.city_lng], 13);
+              mapInstanceRef.current.invalidateSize({ animate: false, pan: false });
+            }
+          }, 400);
+        }
+      });
     }
   }, [mainTab, company]);
 
