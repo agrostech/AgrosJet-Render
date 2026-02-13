@@ -184,6 +184,7 @@ export default function GecmisSiparislerPage({ companyId }) {
     const defaults = getDefaultDates(company);
     setStartDateTime(defaults.startDateTime);
     setEndDateTime(defaults.endDateTime);
+    setCurrentPage(1);
     // Auto-filter with cleared defaults
     fetchAndFilterOrders({
       restaurant: "all",
@@ -192,6 +193,26 @@ export default function GecmisSiparislerPage({ companyId }) {
       startDateTime: defaults.startDateTime,
       endDateTime: defaults.endDateTime
     });
+  };
+
+  // Pagination logic
+  const totalItems = filteredOrders.length;
+  const totalPages = itemsPerPage === "all" ? 1 : Math.ceil(totalItems / itemsPerPage);
+  
+  const paginatedOrders = useMemo(() => {
+    if (itemsPerPage === "all") return filteredOrders;
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredOrders.slice(start, end);
+  }, [filteredOrders, currentPage, itemsPerPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(value === "all" ? "all" : parseInt(value));
+    setCurrentPage(1);
   };
 
   return (
