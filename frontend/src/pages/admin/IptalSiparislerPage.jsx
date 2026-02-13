@@ -15,7 +15,7 @@ export default function IptalSiparislerPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const initialLoadDone = useRef(false);
+  const [initialized, setInitialized] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
