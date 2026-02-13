@@ -33,11 +33,13 @@ class OrderStatusUpdate(BaseModel):
 
 # --- Sipariş Durumları ---
 ORDER_STATUSES = {
+    "pending": {"label": "Beklemede", "color": "gray"},
     "preparing": {"label": "Hazırlanıyor", "color": "yellow"},
     "ready": {"label": "Hazır", "color": "orange"},
     "assigned": {"label": "Kurye Atandı", "color": "purple"},
     "confirmed": {"label": "Onaylandı", "color": "blue"},  # Kurye siparişi onayladı
     "on_the_way": {"label": "Yolda", "color": "cyan"},
+    "picked_up": {"label": "Yolda", "color": "cyan"},  # alias for on_the_way
     "delivered": {"label": "Teslim Edildi", "color": "green"},
     "cancelled": {"label": "İptal Edildi", "color": "red"}
 }
