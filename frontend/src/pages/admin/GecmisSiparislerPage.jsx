@@ -192,24 +192,15 @@ export default function GecmisSiparislerPage({ companyId }) {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Compact Filters */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Filter className="w-4 h-4" />
-            Filtreler
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Restaurant Filter */}
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Store className="w-3 h-3" />
-                Restoran
-              </Label>
+        <CardContent className="p-3">
+          <div className="flex flex-wrap items-end gap-2">
+            {/* Restaurant */}
+            <div className="min-w-[120px] flex-1 max-w-[180px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Restoran</Label>
               <Select value={restaurantFilter} onValueChange={setRestaurantFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Tümü" />
                 </SelectTrigger>
                 <SelectContent>
@@ -221,14 +212,11 @@ export default function GecmisSiparislerPage({ companyId }) {
               </Select>
             </div>
             
-            {/* Courier Filter */}
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Bike className="w-3 h-3" />
-                Kurye
-              </Label>
+            {/* Courier */}
+            <div className="min-w-[120px] flex-1 max-w-[180px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Kurye</Label>
               <Select value={courierFilter} onValueChange={setCourierFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Tümü" />
                 </SelectTrigger>
                 <SelectContent>
@@ -240,76 +228,70 @@ export default function GecmisSiparislerPage({ companyId }) {
               </Select>
             </div>
             
-            {/* Payment Method Filter */}
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <CreditCard className="w-3 h-3" />
-                Ödeme Yöntemi
-              </Label>
+            {/* Payment */}
+            <div className="min-w-[100px] flex-1 max-w-[140px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Ödeme</Label>
               <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Tümü" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tümü</SelectItem>
                   <SelectItem value="cash">Nakit</SelectItem>
-                  <SelectItem value="card">Kredi Kartı</SelectItem>
+                  <SelectItem value="card">Kart</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            {/* Clear Filters */}
-            <div className="flex items-end">
-              <Button variant="outline" size="sm" onClick={clearFilters} className="h-9 w-full">
-                Filtreleri Temizle
-              </Button>
-            </div>
-          </div>
-          
-          {/* Date Range */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t">
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Calendar className="w-3 h-3" />
-                Başlangıç
-              </Label>
+            {/* Start Date */}
+            <div className="min-w-[140px] flex-1 max-w-[180px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
               <Input 
                 type="datetime-local" 
                 value={startDateTime} 
                 onChange={(e) => setStartDateTime(e.target.value)}
-                className="h-9"
+                className="h-8 text-xs"
               />
             </div>
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Calendar className="w-3 h-3" />
-                Bitiş
-              </Label>
+            
+            {/* End Date */}
+            <div className="min-w-[140px] flex-1 max-w-[180px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Bitiş</Label>
               <Input 
                 type="datetime-local" 
                 value={endDateTime} 
                 onChange={(e) => setEndDateTime(e.target.value)}
-                className="h-9"
+                className="h-8 text-xs"
               />
             </div>
-          </div>
-          
-          {/* Filter Button */}
-          <div className="mt-3 pt-3 border-t flex justify-end">
-            <Button 
-              onClick={handleFilter} 
-              disabled={loading}
-              className="gap-2"
-              data-testid="filter-orders-btn"
-            >
-              {loading ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <Search className="w-4 h-4" />
-              )}
-              Filtrele
-            </Button>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-1.5">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearFilters}
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                title="Temizle"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </Button>
+              <Button 
+                onClick={handleFilter} 
+                disabled={loading}
+                size="sm"
+                className="h-8 px-3 text-xs gap-1.5"
+                data-testid="filter-orders-btn"
+              >
+                {loading ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Search className="w-3.5 h-3.5" />
+                )}
+                Filtrele
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
