@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,16 +6,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Package, Filter, CreditCard, Bike, Calendar, Store } from "lucide-react";
+import { RefreshCw, Package, Filter, CreditCard, Bike, Calendar, Store, Search } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function GecmisSiparislerPage({ companyId }) {
-  const [orders, setOrders] = useState([]);
-  const [allOrders, setAllOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const initialLoadDone = useRef(false);
   
   // Filter states
   const [restaurants, setRestaurants] = useState([]);
@@ -27,20 +27,20 @@ export default function GecmisSiparislerPage({ companyId }) {
   const [paymentFilter, setPaymentFilter] = useState("all");
   
   // Date filters with defaults
-  const getDefaultDates = useCallback(() => {
+  const getDefaultDates = useCallback((companyData) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    const openingTime = company?.opening_time || "09:00";
-    const closingTime = company?.closing_time || "23:00";
+    const openingTime = companyData?.opening_time || "09:00";
+    const closingTime = companyData?.closing_time || "23:00";
     
     // Format: YYYY-MM-DDTHH:MM
     const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
     const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
     
     return { startDateTime, endDateTime };
-  }, [company]);
+  }, []);
   
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
@@ -78,14 +78,41 @@ export default function GecmisSiparislerPage({ companyId }) {
     }
   }, [companyId]);
 
-  // Fetch orders
-  const fetchOrders = useCallback(async () => {
+  // Fetch and filter orders - called on button click or initial load
+  const fetchAndFilterOrders = useCallback(async (filters) => {
     if (!companyId) return;
     setLoading(true);
     try {
       const res = await axios.get(`${API}/orders/${companyId}?status=delivered`);
-      setAllOrders(res.data);
-      setOrders(res.data);
+      let result = res.data;
+      
+      // Restaurant filter
+      if (filters.restaurant !== "all") {
+        result = result.filter(o => o.restaurant_id === filters.restaurant);
+      }
+      
+      // Courier filter
+      if (filters.courier !== "all") {
+        result = result.filter(o => o.courier_id === filters.courier);
+      }
+      
+      // Payment method filter
+      if (filters.payment !== "all") {
+        result = result.filter(o => o.payment_method === filters.payment);
+      }
+      
+      // Date range filter
+      if (filters.startDateTime && filters.endDateTime) {
+        const start = new Date(filters.startDateTime);
+        const end = new Date(filters.endDateTime);
+        
+        result = result.filter(o => {
+          const orderDate = new Date(o.delivered_at || o.updated_at || o.created_at);
+          return orderDate >= start && orderDate <= end;
+        });
+      }
+      
+      setFilteredOrders(result);
     } catch (err) {
       console.error("Orders fetch error:", err);
     } finally {
@@ -93,54 +120,58 @@ export default function GecmisSiparislerPage({ companyId }) {
     }
   }, [companyId]);
 
-  // Set default dates when company is loaded
-  useEffect(() => {
-    if (company) {
-      const defaults = getDefaultDates();
-      if (!startDateTime) setStartDateTime(defaults.startDateTime);
-      if (!endDateTime) setEndDateTime(defaults.endDateTime);
-    }
-  }, [company, getDefaultDates, startDateTime, endDateTime]);
+  // Handle filter button click
+  const handleFilter = () => {
+    fetchAndFilterOrders({
+      restaurant: restaurantFilter,
+      courier: courierFilter,
+      payment: paymentFilter,
+      startDateTime,
+      endDateTime
+    });
+  };
 
+  // Initial load: fetch company, then set defaults and auto-filter
   useEffect(() => {
-    fetchCompany();
-    fetchRestaurants();
-    fetchCouriers();
-    fetchOrders();
-  }, [fetchCompany, fetchRestaurants, fetchCouriers, fetchOrders]);
-
-  // Apply filters
-  const filteredOrders = useMemo(() => {
-    let result = [...allOrders];
-    
-    // Restaurant filter
-    if (restaurantFilter !== "all") {
-      result = result.filter(o => o.restaurant_id === restaurantFilter);
-    }
-    
-    // Courier filter
-    if (courierFilter !== "all") {
-      result = result.filter(o => o.courier_id === courierFilter);
-    }
-    
-    // Payment method filter
-    if (paymentFilter !== "all") {
-      result = result.filter(o => o.payment_method === paymentFilter);
-    }
-    
-    // Date range filter
-    if (startDateTime && endDateTime) {
-      const start = new Date(startDateTime);
-      const end = new Date(endDateTime);
+    const initializeData = async () => {
+      if (!companyId || initialLoadDone.current) return;
       
-      result = result.filter(o => {
-        const orderDate = new Date(o.delivered_at || o.updated_at || o.created_at);
-        return orderDate >= start && orderDate <= end;
-      });
-    }
+      try {
+        // Fetch company first
+        const companyRes = await axios.get(`${API}/companies/${companyId}`);
+        setCompany(companyRes.data);
+        
+        // Set default dates
+        const defaults = getDefaultDates(companyRes.data);
+        setStartDateTime(defaults.startDateTime);
+        setEndDateTime(defaults.endDateTime);
+        
+        // Fetch restaurants and couriers
+        const [restaurantsRes, couriersRes] = await Promise.all([
+          axios.get(`${API}/restaurants/${companyId}`),
+          axios.get(`${API}/couriers/${companyId}`)
+        ]);
+        setRestaurants(restaurantsRes.data);
+        setCouriers(couriersRes.data);
+        
+        // Auto-filter with defaults on first load
+        await fetchAndFilterOrders({
+          restaurant: "all",
+          courier: "all",
+          payment: "all",
+          startDateTime: defaults.startDateTime,
+          endDateTime: defaults.endDateTime
+        });
+        
+        initialLoadDone.current = true;
+      } catch (err) {
+        console.error("Initialization error:", err);
+        setLoading(false);
+      }
+    };
     
-    return result;
-  }, [allOrders, restaurantFilter, courierFilter, paymentFilter, startDateTime, endDateTime]);
+    initializeData();
+  }, [companyId, getDefaultDates, fetchAndFilterOrders]);
 
   // Mesafe hesaplama (Haversine formula)
   const calculateDistance = (order) => {
