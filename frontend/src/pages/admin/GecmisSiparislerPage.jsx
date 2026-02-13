@@ -211,16 +211,38 @@ export default function GecmisSiparislerPage({ companyId }) {
     });
   };
 
-  // Pagination logic
-  const totalItems = filteredOrders.length;
+  // Pagination logic with search
+  const searchedOrders = useMemo(() => {
+    if (!searchQuery.trim()) return filteredOrders;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return filteredOrders.filter(order => {
+      const searchableFields = [
+        order.restaurant_name,
+        order.customer_name,
+        order.customer_phone,
+        order.courier_name,
+        order.delivery_address,
+        order.payment_method === 'cash' ? 'nakit' : order.payment_method === 'card' ? 'kart' : 'online',
+        order.total_amount?.toString(),
+        order.order_number
+      ].filter(Boolean);
+      
+      return searchableFields.some(field => 
+        field.toLowerCase().includes(query)
+      );
+    });
+  }, [filteredOrders, searchQuery]);
+
+  const totalItems = searchedOrders.length;
   const totalPages = itemsPerPage === "all" ? 1 : Math.ceil(totalItems / itemsPerPage);
   
   const paginatedOrders = useMemo(() => {
-    if (itemsPerPage === "all") return filteredOrders;
+    if (itemsPerPage === "all") return searchedOrders;
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
-    return filteredOrders.slice(start, end);
-  }, [filteredOrders, currentPage, itemsPerPage]);
+    return searchedOrders.slice(start, end);
+  }, [searchedOrders, currentPage, itemsPerPage]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -228,6 +250,11 @@ export default function GecmisSiparislerPage({ companyId }) {
 
   const handleItemsPerPageChange = (value) => {
     setItemsPerPage(value === "all" ? "all" : parseInt(value));
+    setCurrentPage(1);
+  };
+  
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
     setCurrentPage(1);
   };
 
