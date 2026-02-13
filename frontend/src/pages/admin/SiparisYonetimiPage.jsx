@@ -1225,12 +1225,15 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
       </div>
 
       {/* Render sub-pages based on tab */}
-      {mainTab === "delivered" ? (
+      {mainTab === "delivered" && (
         <GecmisSiparislerPage key="gecmis" companyId={companyId} />
-      ) : mainTab === "cancelled" ? (
+      )}
+      {mainTab === "cancelled" && (
         <IptalSiparislerPage key="iptal" companyId={companyId} />
-      ) : (
-      <>
+      )}
+      
+      {/* Active tab content - always in DOM but hidden when not active */}
+      <div style={{ display: mainTab === "active" ? "block" : "none" }}>
       {/* Inline Stats - only for active tab */}
       <div className="flex items-center gap-3 text-sm">
         <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50/70 rounded-full">
