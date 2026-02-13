@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Package, XCircle, Search } from "lucide-react";
+import { RefreshCw, Package, XCircle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -16,6 +16,10 @@ export default function IptalSiparislerPage({ companyId }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const initialLoadDone = useRef(false);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   // Filter states
   const [restaurants, setRestaurants] = useState([]);
@@ -89,6 +93,7 @@ export default function IptalSiparislerPage({ companyId }) {
 
   // Handle filter button click
   const handleFilter = () => {
+    setCurrentPage(1);
     fetchAndFilterOrders({
       restaurant: restaurantFilter,
       courier: courierFilter,
@@ -180,6 +185,7 @@ export default function IptalSiparislerPage({ companyId }) {
     const defaults = getDefaultDates(company);
     setStartDateTime(defaults.startDateTime);
     setEndDateTime(defaults.endDateTime);
+    setCurrentPage(1);
     // Auto-filter with cleared defaults
     fetchAndFilterOrders({
       restaurant: "all",
@@ -188,6 +194,26 @@ export default function IptalSiparislerPage({ companyId }) {
       startDateTime: defaults.startDateTime,
       endDateTime: defaults.endDateTime
     });
+  };
+
+  // Pagination logic
+  const totalItems = filteredOrders.length;
+  const totalPages = itemsPerPage === "all" ? 1 : Math.ceil(totalItems / itemsPerPage);
+  
+  const paginatedOrders = useMemo(() => {
+    if (itemsPerPage === "all") return filteredOrders;
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredOrders.slice(start, end);
+  }, [filteredOrders, currentPage, itemsPerPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(value === "all" ? "all" : parseInt(value));
+    setCurrentPage(1);
   };
 
   return (
@@ -298,8 +324,22 @@ export default function IptalSiparislerPage({ companyId }) {
 
       {/* Orders List */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-base">İptal Edilen Siparişler ({filteredOrders.length})</CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Göster:</span>
+            <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="h-7 w-[80px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="all">Tümü</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -312,76 +352,130 @@ export default function IptalSiparislerPage({ companyId }) {
               <p>İptal edilmiş sipariş bulunamadı</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b-2 border-primary">
-                    <th className="text-left p-2 font-bold text-xs">Restoran</th>
-                    <th className="text-left p-2 font-bold text-xs">Müşteri</th>
-                    <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
-                    <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                    <th className="text-left p-2 font-bold text-xs">Ücret</th>
-                    <th className="text-left p-2 font-bold text-xs">Durum</th>
-                    <th className="text-left p-2 font-bold text-xs">Adres</th>
-                    <th className="text-left p-2 font-bold text-xs">Mesafe</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.map((order) => (
-                    <tr 
-                      key={order.id}
-                      className="border-b hover:bg-slate-50 cursor-pointer transition-colors"
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setShowDetailModal(true);
-                      }}
-                    >
-                      <td className="p-2">
-                        <span className="font-medium">{order.restaurant_name || "-"}</span>
-                      </td>
-                      <td className="p-2">
-                        <div>
-                          <span>{order.customer_name || "-"}</span>
-                          {order.customer_phone && (
-                            <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-2 text-xs">
-                        {formatDate(order.created_at)}
-                      </td>
-                      <td className="p-2">
-                        <span className={`px-2 py-0.5 text-xs rounded ${
-                          order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
-                          order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
-                          'bg-purple-100 text-purple-700'
-                        }`}>
-                          {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
-                        </span>
-                      </td>
-                      <td className="p-2 font-semibold line-through text-muted-foreground">
-                        {order.total_amount?.toFixed(2) || "0.00"} ₺
-                      </td>
-                      <td className="p-2">
-                        <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700 flex items-center gap-1 w-fit">
-                          <XCircle className="w-3 h-3" />
-                          İptal
-                        </span>
-                      </td>
-                      <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
-                        <div className="line-clamp-3">{order.delivery_address || "-"}</div>
-                      </td>
-                      <td className="p-2 text-xs whitespace-nowrap">
-                        {(() => {
-                          const dist = calculateDistance(order);
-                          return dist ? `${dist.toFixed(1)} km` : "-";
-                        })()}
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-primary">
+                      <th className="text-left p-2 font-bold text-xs">Restoran</th>
+                      <th className="text-left p-2 font-bold text-xs">Müşteri</th>
+                      <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
+                      <th className="text-left p-2 font-bold text-xs">Ödeme</th>
+                      <th className="text-left p-2 font-bold text-xs">Ücret</th>
+                      <th className="text-left p-2 font-bold text-xs">Durum</th>
+                      <th className="text-left p-2 font-bold text-xs">Adres</th>
+                      <th className="text-left p-2 font-bold text-xs">Mesafe</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {paginatedOrders.map((order) => (
+                      <tr 
+                        key={order.id}
+                        className="border-b hover:bg-slate-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setShowDetailModal(true);
+                        }}
+                      >
+                        <td className="p-2">
+                          <span className="font-medium">{order.restaurant_name || "-"}</span>
+                        </td>
+                        <td className="p-2">
+                          <div>
+                            <span>{order.customer_name || "-"}</span>
+                            {order.customer_phone && (
+                              <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-2 text-xs">
+                          {formatDate(order.created_at)}
+                        </td>
+                        <td className="p-2">
+                          <span className={`px-2 py-0.5 text-xs rounded ${
+                            order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                            order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
+                            'bg-purple-100 text-purple-700'
+                          }`}>
+                            {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
+                          </span>
+                        </td>
+                        <td className="p-2 font-semibold line-through text-muted-foreground">
+                          {order.total_amount?.toFixed(2) || "0.00"} ₺
+                        </td>
+                        <td className="p-2">
+                          <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700 flex items-center gap-1 w-fit">
+                            <XCircle className="w-3 h-3" />
+                            İptal
+                          </span>
+                        </td>
+                        <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
+                          <div className="line-clamp-3">{order.delivery_address || "-"}</div>
+                        </td>
+                        <td className="p-2 text-xs whitespace-nowrap">
+                          {(() => {
+                            const dist = calculateDistance(order);
+                            return dist ? `${dist.toFixed(1)} km` : "-";
+                          })()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="text-xs text-muted-foreground">
+                    {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} / {totalItems} sipariş
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="h-7 w-7 p-0"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className="h-7 w-7 p-0 text-xs"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="h-7 w-7 p-0"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
