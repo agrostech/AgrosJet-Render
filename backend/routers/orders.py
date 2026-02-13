@@ -523,15 +523,15 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
     if data.status not in ORDER_STATUSES:
         raise HTTPException(status_code=400, detail="Geçersiz durum")
     
-    # Admin sadece kurye onaylayabileceği durumları seçemez
-    if data.status in COURIER_ONLY_STATUSES:
+    # Admin sadece kurye onaylayabileceği durumları seçemez (super admin hariç)
+    if data.status in COURIER_ONLY_STATUSES and not data.is_super_admin:
         raise HTTPException(
             status_code=400, 
             detail=f"'{ORDER_STATUSES[data.status]['label']}' durumu sadece kurye tarafından seçilebilir"
         )
     
-    # Hazırlanıyor durumuna geçişte süre zorunlu
-    if data.status == "preparing" and not data.preparation_time:
+    # Hazırlanıyor durumuna geçişte süre zorunlu (super admin hariç)
+    if data.status == "preparing" and not data.preparation_time and not data.is_super_admin:
         raise HTTPException(
             status_code=400,
             detail="Hazırlanıyor durumu için süre belirtilmeli"
