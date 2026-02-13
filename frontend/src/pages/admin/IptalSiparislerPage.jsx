@@ -394,11 +394,14 @@ export default function IptalSiparislerPage({ companyId }) {
                           İptal
                         </span>
                       </td>
-                      <td className="p-2 text-xs max-w-[200px] truncate" title={order.delivery_address}>
-                        {order.delivery_address || "-"}
+                      <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
+                        <div className="line-clamp-3">{order.delivery_address || "-"}</div>
                       </td>
-                      <td className="p-2 text-xs">
-                        {order.distance ? `${order.distance.toFixed(1)} km` : "-"}
+                      <td className="p-2 text-xs whitespace-nowrap">
+                        {(() => {
+                          const dist = calculateDistance(order);
+                          return dist ? `${dist.toFixed(1)} km` : "-";
+                        })()}
                       </td>
                     </tr>
                   ))}
