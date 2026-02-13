@@ -262,7 +262,7 @@ const parseOrderNotes = (notes) => {
   return result;
 };
 
-export default function SiparisYonetimiPage({ companyId, adminName }) {
+export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin = false }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [couriersByStatus, setCouriersByStatus] = useState({ active: [], on_break: [], offline: [] });
