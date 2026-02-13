@@ -1663,7 +1663,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b-2 border-primary">
-                    <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
+                    <th className="text-left p-2 font-bold text-xs whitespace-nowrap">Zaman</th>
                     <th className="text-left p-2 font-bold text-xs">Restoran</th>
                     <th className="text-left p-2 font-bold text-xs">Müşteri</th>
                     <th className="text-left p-2 font-bold text-xs">Adres</th>
