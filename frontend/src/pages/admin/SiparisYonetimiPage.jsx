@@ -1216,9 +1216,9 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
 
       {/* Render sub-pages based on tab */}
       {mainTab === "delivered" ? (
-        <GecmisSiparislerPage companyId={companyId} />
+        <GecmisSiparislerPage key="gecmis" companyId={companyId} />
       ) : mainTab === "cancelled" ? (
-        <IptalSiparislerPage companyId={companyId} />
+        <IptalSiparislerPage key="iptal" companyId={companyId} />
       ) : (
       <>
       {/* Inline Stats - only for active tab */}
