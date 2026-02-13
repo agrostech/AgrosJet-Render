@@ -530,65 +530,6 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
           )}
         </CardContent>
       </Card>
-
-      {/* Order Detail Modal */}
-      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sipariş Detayı</DialogTitle>
-          </DialogHeader>
-          {selectedOrder && (
-            <div className="space-y-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sipariş No:</span>
-                  <span className="font-medium">{selectedOrder.order_number || selectedOrder.id?.slice(0, 8)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Restoran:</span>
-                  <span className="font-medium">{selectedOrder.restaurant_name || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Kurye:</span>
-                  <span className="font-medium">{selectedOrder.courier_name || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Müşteri:</span>
-                  <span className="font-medium">{selectedOrder.customer_name || "-"}</span>
-                </div>
-                {selectedOrder.customer_phone && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Telefon:</span>
-                    <span className="font-medium font-mono">{selectedOrder.customer_phone}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Adres:</span>
-                  <span className="font-medium text-right max-w-[200px]">{selectedOrder.delivery_address || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ödeme:</span>
-                  <span className="font-medium">
-                    {selectedOrder.payment_method === 'cash' ? 'Nakit' : selectedOrder.payment_method === 'card' ? 'Kredi Kartı' : 'Online'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tutar:</span>
-                  <span className="font-medium">{selectedOrder.total_amount?.toFixed(2) || "0.00"} ₺</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Oluşturulma:</span>
-                  <span className="font-medium">{formatDate(selectedOrder.created_at)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Teslim:</span>
-                  <span className="font-medium">{formatDate(selectedOrder.delivered_at || selectedOrder.updated_at)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
