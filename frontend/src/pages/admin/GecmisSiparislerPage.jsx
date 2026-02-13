@@ -262,52 +262,28 @@ export default function GecmisSiparislerPage({ companyId }) {
           </div>
           
           {/* Date Range */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 pt-3 border-t">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t">
             <div>
               <Label className="text-xs flex items-center gap-1 mb-1">
                 <Calendar className="w-3 h-3" />
-                Başlangıç Tarih
+                Başlangıç
               </Label>
               <Input 
-                type="date" 
-                value={startDate} 
-                onChange={(e) => setStartDate(e.target.value)}
-                className="h-9"
-              />
-            </div>
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Clock className="w-3 h-3" />
-                Başlangıç Saat
-              </Label>
-              <Input 
-                type="time" 
-                value={startTime} 
-                onChange={(e) => setStartTime(e.target.value)}
+                type="datetime-local" 
+                value={startDateTime} 
+                onChange={(e) => setStartDateTime(e.target.value)}
                 className="h-9"
               />
             </div>
             <div>
               <Label className="text-xs flex items-center gap-1 mb-1">
                 <Calendar className="w-3 h-3" />
-                Bitiş Tarih
+                Bitiş
               </Label>
               <Input 
-                type="date" 
-                value={endDate} 
-                onChange={(e) => setEndDate(e.target.value)}
-                className="h-9"
-              />
-            </div>
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Clock className="w-3 h-3" />
-                Bitiş Saat
-              </Label>
-              <Input 
-                type="time" 
-                value={endTime} 
-                onChange={(e) => setEndTime(e.target.value)}
+                type="datetime-local" 
+                value={endDateTime} 
+                onChange={(e) => setEndDateTime(e.target.value)}
                 className="h-9"
               />
             </div>
