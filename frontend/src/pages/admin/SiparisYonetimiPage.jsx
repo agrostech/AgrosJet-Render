@@ -793,36 +793,31 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
   useEffect(() => {
     if (mainTab === "active" && mapInstanceRef.current) {
       // Sekme değişikliğinden sonra haritayı yeniden boyutlandır
-      setTimeout(() => {
+      const invalidateMap = () => {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.invalidateSize();
         }
-      }, 100);
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 300);
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 500);
-      // Ekstra güvenlik için daha uzun süre sonra da dene
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-          // Marker'ları da güncelle
-          updateMapMarkers();
-        }
-      }, 800);
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 1200);
+      };
+      
+      // Çoklu invalidateSize çağrısı ile haritanın kesinlikle render olmasını sağla
+      setTimeout(invalidateMap, 50);
+      setTimeout(invalidateMap, 150);
+      setTimeout(invalidateMap, 300);
+      setTimeout(invalidateMap, 500);
+      setTimeout(invalidateMap, 800);
+      setTimeout(invalidateMap, 1000);
+      
+      // Şirket konumuna tekrar ortala
+      if (company?.city_lat && company?.city_lng) {
+        setTimeout(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.setView([company.city_lat, company.city_lng], 13);
+            mapInstanceRef.current.invalidateSize();
+          }
+        }, 600);
+      }
     }
-  }, [mainTab]);
+  }, [mainTab, company]);
 
   // Şirket verisi yüklenince haritayı şirketin iline ortala
   useEffect(() => {
