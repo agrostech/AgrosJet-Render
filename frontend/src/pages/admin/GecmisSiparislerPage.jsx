@@ -317,58 +317,71 @@ export default function GecmisSiparislerPage({ companyId }) {
               <p>Teslim edilmiş sipariş bulunamadı</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {filteredOrders.map((order) => (
-                <div 
-                  key={order.id}
-                  className="p-3 rounded-lg border bg-white cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => {
-                    setSelectedOrder(order);
-                    setShowDetailModal(true);
-                  }}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-sm">{order.order_number || order.id?.slice(0, 8)}</span>
-                        <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-700">
-                          Teslim Edildi
-                        </span>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b-2 border-primary">
+                    <th className="text-left p-2 font-bold text-xs">Restoran</th>
+                    <th className="text-left p-2 font-bold text-xs">Müşteri</th>
+                    <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
+                    <th className="text-left p-2 font-bold text-xs">Ödeme</th>
+                    <th className="text-left p-2 font-bold text-xs">Ücret</th>
+                    <th className="text-left p-2 font-bold text-xs">Durum</th>
+                    <th className="text-left p-2 font-bold text-xs">Adres</th>
+                    <th className="text-left p-2 font-bold text-xs">Mesafe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map((order) => (
+                    <tr 
+                      key={order.id}
+                      className="border-b hover:bg-slate-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowDetailModal(true);
+                      }}
+                    >
+                      <td className="p-2">
+                        <span className="font-medium">{order.restaurant_name || "-"}</span>
+                      </td>
+                      <td className="p-2">
+                        <div>
+                          <span>{order.customer_name || "-"}</span>
+                          {order.customer_phone && (
+                            <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-2 text-xs">
+                        {formatDate(order.created_at)}
+                      </td>
+                      <td className="p-2">
                         <span className={`px-2 py-0.5 text-xs rounded ${
-                          order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                          order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                          order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
+                          'bg-purple-100 text-purple-700'
                         }`}>
                           {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
                         </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Store className="w-3 h-3" />
-                        <span>{order.restaurant_name || "Restoran"}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        <MapPin className="w-3 h-3" />
-                        <span className="truncate">{order.delivery_address || "-"}</span>
-                      </div>
-                      {order.courier_name && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                          <User className="w-3 h-3" />
-                          <span>{order.courier_name}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(order.delivered_at || order.updated_at)}
-                      </div>
-                      {order.total_amount && (
-                        <div className="font-semibold text-sm mt-1">
-                          {order.total_amount.toFixed(2)} ₺
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td className="p-2 font-semibold">
+                        {order.total_amount?.toFixed(2) || "0.00"} ₺
+                      </td>
+                      <td className="p-2">
+                        <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-700">
+                          Teslim Edildi
+                        </span>
+                      </td>
+                      <td className="p-2 text-xs max-w-[200px] truncate" title={order.delivery_address}>
+                        {order.delivery_address || "-"}
+                      </td>
+                      <td className="p-2 text-xs">
+                        {order.distance ? `${order.distance.toFixed(1)} km` : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
