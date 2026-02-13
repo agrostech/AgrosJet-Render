@@ -103,7 +103,27 @@ export default function IptalSiparislerPage({ companyId }) {
     });
   };
 
-  // Initial load: fetch company, then set defaults and auto-filter
+  // Fetch restaurants and couriers separately 
+  useEffect(() => {
+    const fetchFiltersData = async () => {
+      if (!companyId) return;
+      try {
+        const [restaurantsRes, couriersRes] = await Promise.all([
+          axios.get(`${API}/restaurants/${companyId}`),
+          axios.get(`${API}/couriers/${companyId}`)
+        ]);
+        console.log("Restaurants loaded:", restaurantsRes.data);
+        console.log("Couriers loaded:", couriersRes.data);
+        setRestaurants(restaurantsRes.data || []);
+        setCouriers(couriersRes.data || []);
+      } catch (err) {
+        console.error("Filters data fetch error:", err);
+      }
+    };
+    fetchFiltersData();
+  }, [companyId]);
+
+  // Initial load: fetch company and orders
   useEffect(() => {
     const initializeData = async () => {
       if (!companyId || initialized) return;
@@ -117,14 +137,6 @@ export default function IptalSiparislerPage({ companyId }) {
         const defaults = getDefaultDates(companyRes.data);
         setStartDateTime(defaults.startDateTime);
         setEndDateTime(defaults.endDateTime);
-        
-        // Fetch restaurants and couriers
-        const [restaurantsRes, couriersRes] = await Promise.all([
-          axios.get(`${API}/restaurants/${companyId}`),
-          axios.get(`${API}/couriers/${companyId}`)
-        ]);
-        setRestaurants(restaurantsRes.data || []);
-        setCouriers(couriersRes.data || []);
         
         // Auto-filter with defaults on first load
         await fetchAndFilterOrders({
