@@ -10,11 +10,9 @@ import { RefreshCw, Package, Search, ChevronLeft, ChevronRight } from "lucide-re
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function GecmisSiparislerPage({ companyId }) {
+export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuperAdmin = false }) {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [initialized, setInitialized] = useState(false);
   
   // Pagination states
