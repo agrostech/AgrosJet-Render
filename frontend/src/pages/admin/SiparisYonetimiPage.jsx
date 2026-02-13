@@ -2187,6 +2187,43 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                   )}
                 </div>
               </TabsContent>
+              
+              {/* Super Admin için Durum Değiştirme */}
+              {isSuperAdmin && (selectedOrder.status === 'delivered' || selectedOrder.status === 'cancelled') && (
+                <div className="mt-4 pt-4 border-t">
+                  <Label className="text-xs text-muted-foreground mb-2 block">Sipariş Durumunu Değiştir (Süper Admin)</Label>
+                  <Select
+                    value={selectedOrder.status}
+                    onValueChange={async (newStatus) => {
+                      try {
+                        await axios.put(`${API}/orders/${companyId}/${selectedOrder.id}/status`, {
+                          status: newStatus,
+                          actor_type: 'admin',
+                          actor_name: adminName
+                        });
+                        fetchOrders();
+                        setShowOrderDetailModal(false);
+                      } catch (err) {
+                        console.error("Status update error:", err);
+                        alert("Durum güncellenirken hata oluştu");
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Beklemede</SelectItem>
+                      <SelectItem value="preparing">Hazırlanıyor</SelectItem>
+                      <SelectItem value="ready">Hazır</SelectItem>
+                      <SelectItem value="assigned">Atandı</SelectItem>
+                      <SelectItem value="picked_up">Yolda</SelectItem>
+                      <SelectItem value="delivered">Teslim Edildi</SelectItem>
+                      <SelectItem value="cancelled">İptal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </Tabs>
           )}
         </DialogContent>
