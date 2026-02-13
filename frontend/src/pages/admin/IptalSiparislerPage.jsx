@@ -21,6 +21,9 @@ export default function IptalSiparislerPage({ companyId }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  
   // Filter states
   const [restaurants, setRestaurants] = useState([]);
   const [couriers, setCouriers] = useState([]);
