@@ -425,10 +425,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
                       <tr 
                         key={order.id}
                         className="border-b hover:bg-slate-50 cursor-pointer transition-colors"
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setShowDetailModal(true);
-                        }}
+                        onClick={() => onOrderSelect && onOrderSelect(order)}
                       >
                         <td className="p-2">
                           <span className="font-medium">{order.restaurant_name || "-"}</span>
