@@ -1723,8 +1723,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             )}
                           </div>
                         </td>
-                        <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
-                          <div className="line-clamp-2">{order.delivery_address || "-"}</div>
+                        <td className="p-2 text-xs max-w-[200px] align-top" title={order.delivery_address}>
+                          <div className="line-clamp-3 leading-relaxed">{order.delivery_address || "-"}</div>
                         </td>
                         <td className="p-2 text-xs whitespace-nowrap">
                           {getOrderDistance(order) || "-"}
