@@ -97,12 +97,10 @@ export default function GecmisSiparislerPage({ companyId }) {
   useEffect(() => {
     if (company) {
       const defaults = getDefaultDates();
-      if (!startDate) setStartDate(defaults.startDate);
-      if (!startTime) setStartTime(defaults.startTime);
-      if (!endDate) setEndDate(defaults.endDate);
-      if (!endTime) setEndTime(defaults.endTime);
+      if (!startDateTime) setStartDateTime(defaults.startDateTime);
+      if (!endDateTime) setEndDateTime(defaults.endDateTime);
     }
-  }, [company, getDefaultDates, startDate, startTime, endDate, endTime]);
+  }, [company, getDefaultDates, startDateTime, endDateTime]);
 
   useEffect(() => {
     fetchCompany();
