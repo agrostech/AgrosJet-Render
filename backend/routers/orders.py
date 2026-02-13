@@ -27,6 +27,8 @@ class OrderStatusUpdate(BaseModel):
     courier_id: Optional[str] = None
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
+    actor_type: Optional[str] = None  # admin, courier, system
+    is_super_admin: Optional[bool] = False  # Super admin bypass
 
 
 # --- Sipariş Durumları ---
