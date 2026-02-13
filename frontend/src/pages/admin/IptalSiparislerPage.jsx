@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,16 +6,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Package, Clock, XCircle, Filter, CreditCard, Bike, Calendar, Store } from "lucide-react";
+import { RefreshCw, Package, XCircle, Filter, CreditCard, Bike, Calendar, Store, Search } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function IptalSiparislerPage({ companyId }) {
-  const [orders, setOrders] = useState([]);
-  const [allOrders, setAllOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const initialLoadDone = useRef(false);
   
   // Filter states
   const [restaurants, setRestaurants] = useState([]);
@@ -27,65 +27,59 @@ export default function IptalSiparislerPage({ companyId }) {
   const [paymentFilter, setPaymentFilter] = useState("all");
   
   // Date filters with defaults
-  const getDefaultDates = useCallback(() => {
+  const getDefaultDates = useCallback((companyData) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    const openingTime = company?.opening_time || "09:00";
-    const closingTime = company?.closing_time || "23:00";
+    const openingTime = companyData?.opening_time || "09:00";
+    const closingTime = companyData?.closing_time || "23:00";
     
     // Format: YYYY-MM-DDTHH:MM
     const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
     const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
     
     return { startDateTime, endDateTime };
-  }, [company]);
+  }, []);
   
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
 
-  // Fetch company info
-  const fetchCompany = useCallback(async () => {
-    if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/companies/${companyId}`);
-      setCompany(res.data);
-    } catch (err) {
-      console.error("Company fetch error:", err);
-    }
-  }, [companyId]);
-
-  // Fetch restaurants
-  const fetchRestaurants = useCallback(async () => {
-    if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/restaurants/${companyId}`);
-      setRestaurants(res.data);
-    } catch (err) {
-      console.error("Restaurants fetch error:", err);
-    }
-  }, [companyId]);
-
-  // Fetch couriers
-  const fetchCouriers = useCallback(async () => {
-    if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/couriers/${companyId}`);
-      setCouriers(res.data);
-    } catch (err) {
-      console.error("Couriers fetch error:", err);
-    }
-  }, [companyId]);
-
-  // Fetch orders
-  const fetchOrders = useCallback(async () => {
+  // Fetch and filter orders - called on button click or initial load
+  const fetchAndFilterOrders = useCallback(async (filters) => {
     if (!companyId) return;
     setLoading(true);
     try {
       const res = await axios.get(`${API}/orders/${companyId}?status=cancelled`);
-      setAllOrders(res.data);
-      setOrders(res.data);
+      let result = res.data;
+      
+      // Restaurant filter
+      if (filters.restaurant !== "all") {
+        result = result.filter(o => o.restaurant_id === filters.restaurant);
+      }
+      
+      // Courier filter
+      if (filters.courier !== "all") {
+        result = result.filter(o => o.courier_id === filters.courier);
+      }
+      
+      // Payment method filter
+      if (filters.payment !== "all") {
+        result = result.filter(o => o.payment_method === filters.payment);
+      }
+      
+      // Date range filter
+      if (filters.startDateTime && filters.endDateTime) {
+        const start = new Date(filters.startDateTime);
+        const end = new Date(filters.endDateTime);
+        
+        result = result.filter(o => {
+          const orderDate = new Date(o.cancelled_at || o.updated_at || o.created_at);
+          return orderDate >= start && orderDate <= end;
+        });
+      }
+      
+      setFilteredOrders(result);
     } catch (err) {
       console.error("Orders fetch error:", err);
     } finally {
@@ -93,56 +87,58 @@ export default function IptalSiparislerPage({ companyId }) {
     }
   }, [companyId]);
 
-  // Set default dates when company is loaded
-  useEffect(() => {
-    if (company) {
-      const defaults = getDefaultDates();
-      if (!startDate) setStartDate(defaults.startDate);
-      if (!startTime) setStartTime(defaults.startTime);
-      if (!endDate) setEndDate(defaults.endDate);
-      if (!endTime) setEndTime(defaults.endTime);
-    }
-  }, [company, getDefaultDates, startDate, startTime, endDate, endTime]);
+  // Handle filter button click
+  const handleFilter = () => {
+    fetchAndFilterOrders({
+      restaurant: restaurantFilter,
+      courier: courierFilter,
+      payment: paymentFilter,
+      startDateTime,
+      endDateTime
+    });
+  };
 
+  // Initial load: fetch company, then set defaults and auto-filter
   useEffect(() => {
-    fetchCompany();
-    fetchRestaurants();
-    fetchCouriers();
-    fetchOrders();
-  }, [fetchCompany, fetchRestaurants, fetchCouriers, fetchOrders]);
-
-  // Apply filters
-  const filteredOrders = useMemo(() => {
-    let result = [...allOrders];
-    
-    // Restaurant filter
-    if (restaurantFilter !== "all") {
-      result = result.filter(o => o.restaurant_id === restaurantFilter);
-    }
-    
-    // Courier filter
-    if (courierFilter !== "all") {
-      result = result.filter(o => o.courier_id === courierFilter);
-    }
-    
-    // Payment method filter
-    if (paymentFilter !== "all") {
-      result = result.filter(o => o.payment_method === paymentFilter);
-    }
-    
-    // Date range filter
-    if (startDate && startTime && endDate && endTime) {
-      const startDateTime = new Date(`${startDate}T${startTime}`);
-      const endDateTime = new Date(`${endDate}T${endTime}`);
+    const initializeData = async () => {
+      if (!companyId || initialLoadDone.current) return;
       
-      result = result.filter(o => {
-        const orderDate = new Date(o.cancelled_at || o.updated_at || o.created_at);
-        return orderDate >= startDateTime && orderDate <= endDateTime;
-      });
-    }
+      try {
+        // Fetch company first
+        const companyRes = await axios.get(`${API}/companies/${companyId}`);
+        setCompany(companyRes.data);
+        
+        // Set default dates
+        const defaults = getDefaultDates(companyRes.data);
+        setStartDateTime(defaults.startDateTime);
+        setEndDateTime(defaults.endDateTime);
+        
+        // Fetch restaurants and couriers
+        const [restaurantsRes, couriersRes] = await Promise.all([
+          axios.get(`${API}/restaurants/${companyId}`),
+          axios.get(`${API}/couriers/${companyId}`)
+        ]);
+        setRestaurants(restaurantsRes.data);
+        setCouriers(couriersRes.data);
+        
+        // Auto-filter with defaults on first load
+        await fetchAndFilterOrders({
+          restaurant: "all",
+          courier: "all",
+          payment: "all",
+          startDateTime: defaults.startDateTime,
+          endDateTime: defaults.endDateTime
+        });
+        
+        initialLoadDone.current = true;
+      } catch (err) {
+        console.error("Initialization error:", err);
+        setLoading(false);
+      }
+    };
     
-    return result;
-  }, [allOrders, restaurantFilter, courierFilter, paymentFilter, startDate, startTime, endDate, endTime]);
+    initializeData();
+  }, [companyId, getDefaultDates, fetchAndFilterOrders]);
 
   // Mesafe hesaplama (Haversine formula)
   const calculateDistance = (order) => {
@@ -181,11 +177,17 @@ export default function IptalSiparislerPage({ companyId }) {
     setRestaurantFilter("all");
     setCourierFilter("all");
     setPaymentFilter("all");
-    const defaults = getDefaultDates();
-    setStartDate(defaults.startDate);
-    setStartTime(defaults.startTime);
-    setEndDate(defaults.endDate);
-    setEndTime(defaults.endTime);
+    const defaults = getDefaultDates(company);
+    setStartDateTime(defaults.startDateTime);
+    setEndDateTime(defaults.endDateTime);
+    // Auto-filter with cleared defaults
+    fetchAndFilterOrders({
+      restaurant: "all",
+      courier: "all",
+      payment: "all",
+      startDateTime: defaults.startDateTime,
+      endDateTime: defaults.endDateTime
+    });
   };
 
   return (
@@ -266,55 +268,48 @@ export default function IptalSiparislerPage({ companyId }) {
           </div>
           
           {/* Date Range */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 pt-3 border-t">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t">
             <div>
               <Label className="text-xs flex items-center gap-1 mb-1">
                 <Calendar className="w-3 h-3" />
-                Başlangıç Tarih
+                Başlangıç
               </Label>
               <Input 
-                type="date" 
-                value={startDate} 
-                onChange={(e) => setStartDate(e.target.value)}
-                className="h-9"
-              />
-            </div>
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Clock className="w-3 h-3" />
-                Başlangıç Saat
-              </Label>
-              <Input 
-                type="time" 
-                value={startTime} 
-                onChange={(e) => setStartTime(e.target.value)}
+                type="datetime-local" 
+                value={startDateTime} 
+                onChange={(e) => setStartDateTime(e.target.value)}
                 className="h-9"
               />
             </div>
             <div>
               <Label className="text-xs flex items-center gap-1 mb-1">
                 <Calendar className="w-3 h-3" />
-                Bitiş Tarih
+                Bitiş
               </Label>
               <Input 
-                type="date" 
-                value={endDate} 
-                onChange={(e) => setEndDate(e.target.value)}
+                type="datetime-local" 
+                value={endDateTime} 
+                onChange={(e) => setEndDateTime(e.target.value)}
                 className="h-9"
               />
             </div>
-            <div>
-              <Label className="text-xs flex items-center gap-1 mb-1">
-                <Clock className="w-3 h-3" />
-                Bitiş Saat
-              </Label>
-              <Input 
-                type="time" 
-                value={endTime} 
-                onChange={(e) => setEndTime(e.target.value)}
-                className="h-9"
-              />
-            </div>
+          </div>
+          
+          {/* Filter Button */}
+          <div className="mt-3 pt-3 border-t flex justify-end">
+            <Button 
+              onClick={handleFilter} 
+              disabled={loading}
+              className="gap-2"
+              data-testid="filter-cancelled-orders-btn"
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+              Filtrele
+            </Button>
           </div>
         </CardContent>
       </Card>
