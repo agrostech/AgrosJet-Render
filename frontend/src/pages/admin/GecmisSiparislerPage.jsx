@@ -327,6 +327,23 @@ export default function GecmisSiparislerPage({ companyId }) {
               />
             </div>
           </div>
+          
+          {/* Filter Button */}
+          <div className="mt-3 pt-3 border-t flex justify-end">
+            <Button 
+              onClick={handleFilter} 
+              disabled={loading}
+              className="gap-2"
+              data-testid="filter-orders-btn"
+            >
+              {loading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+              Filtrele
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
