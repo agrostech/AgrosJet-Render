@@ -1226,10 +1226,26 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
 
       {/* Render sub-pages based on tab */}
       {mainTab === "delivered" && (
-        <GecmisSiparislerPage key="gecmis" companyId={companyId} />
+        <GecmisSiparislerPage 
+          key="gecmis" 
+          companyId={companyId} 
+          onOrderSelect={(order) => {
+            setSelectedOrder(order);
+            setShowOrderDetailModal(true);
+          }}
+          isSuperAdmin={isSuperAdmin}
+        />
       )}
       {mainTab === "cancelled" && (
-        <IptalSiparislerPage key="iptal" companyId={companyId} />
+        <IptalSiparislerPage 
+          key="iptal" 
+          companyId={companyId}
+          onOrderSelect={(order) => {
+            setSelectedOrder(order);
+            setShowOrderDetailModal(true);
+          }}
+          isSuperAdmin={isSuperAdmin}
+        />
       )}
       
       {/* Active tab content - always in DOM but hidden when not active */}
