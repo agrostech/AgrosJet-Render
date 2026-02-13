@@ -180,10 +180,8 @@ export default function GecmisSiparislerPage({ companyId }) {
     setCourierFilter("all");
     setPaymentFilter("all");
     const defaults = getDefaultDates();
-    setStartDate(defaults.startDate);
-    setStartTime(defaults.startTime);
-    setEndDate(defaults.endDate);
-    setEndTime(defaults.endTime);
+    setStartDateTime(defaults.startDateTime);
+    setEndDateTime(defaults.endDateTime);
   };
 
   return (
