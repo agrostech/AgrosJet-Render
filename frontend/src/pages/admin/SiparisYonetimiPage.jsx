@@ -1663,15 +1663,15 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b-2 border-primary">
+                    <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
                     <th className="text-left p-2 font-bold text-xs">Restoran</th>
                     <th className="text-left p-2 font-bold text-xs">Müşteri</th>
-                    <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
                     <th className="text-left p-2 font-bold text-xs">Adres</th>
                     <th className="text-left p-2 font-bold text-xs">Mesafe</th>
                     <th className="text-left p-2 font-bold text-xs">Ücret</th>
                     <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                    <th className="text-left p-2 font-bold text-xs">Kurye</th>
                     <th className="text-left p-2 font-bold text-xs">Durum</th>
+                    <th className="text-left p-2 font-bold text-xs">Kurye</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1698,17 +1698,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         }}
                         data-testid={`order-row-${order.id}`}
                       >
-                        <td className="p-2">
-                          <span className="font-medium">{order.restaurant_name || "-"}</span>
-                        </td>
-                        <td className="p-2">
-                          <div>
-                            <span>{order.customer_name || "-"}</span>
-                            {order.customer_phone && (
-                              <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
-                            )}
-                          </div>
-                        </td>
                         <td className="p-2 text-xs">
                           <div className="flex flex-col">
                             <span>{formatTime(order.created_at)}</span>
@@ -1718,6 +1707,17 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               }`}>
                                 {getOrderAge(order).text}
                               </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-2">
+                          <span className="font-medium">{order.restaurant_name || "-"}</span>
+                        </td>
+                        <td className="p-2">
+                          <div>
+                            <span>{order.customer_name || "-"}</span>
+                            {order.customer_phone && (
+                              <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
                             )}
                           </div>
                         </td>
@@ -1738,6 +1738,40 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                           }`}>
                             {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
                           </span>
+                        </td>
+                        <td className="p-2" onClick={(e) => e.stopPropagation()}>
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(newValue) => {
+                              if (newValue.startsWith('preparing_')) {
+                                handleUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
+                              } else {
+                                handleUpdateStatus(order.id, newValue);
+                              }
+                            }}
+                          >
+                            <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
+                              <SelectValue>
+                                {order.status === 'preparing' && order.preparation_end_at
+                                  ? getCountdown(order.preparation_end_at)?.text
+                                  : statusInfo.label}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                              {PREPARATION_TIMES.map(time => (
+                                <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
+                                  {time.label}
+                                </SelectItem>
+                              ))}
+                              <div className="border-t my-1" />
+                              {Object.entries(ORDER_STATUSES)
+                                .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                                .map(([key, value]) => (
+                                <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </td>
                         <td className="p-2" onClick={(e) => e.stopPropagation()}>
                           <Select 
@@ -1811,40 +1845,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                   <SelectItem value="__remove__" className="text-red-600">Kaldır</SelectItem>
                                 </>
                               )}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="p-2" onClick={(e) => e.stopPropagation()}>
-                          <Select 
-                            value={order.status} 
-                            onValueChange={(newValue) => {
-                              if (newValue.startsWith('preparing_')) {
-                                handleUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
-                              } else {
-                                handleUpdateStatus(order.id, newValue);
-                              }
-                            }}
-                          >
-                            <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
-                              <SelectValue>
-                                {order.status === 'preparing' && order.preparation_end_at
-                                  ? getCountdown(order.preparation_end_at)?.text
-                                  : statusInfo.label}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                              {PREPARATION_TIMES.map(time => (
-                                <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
-                                  {time.label}
-                                </SelectItem>
-                              ))}
-                              <div className="border-t my-1" />
-                              {Object.entries(ORDER_STATUSES)
-                                .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                                .map(([key, value]) => (
-                                <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
-                              ))}
                             </SelectContent>
                           </Select>
                         </td>
