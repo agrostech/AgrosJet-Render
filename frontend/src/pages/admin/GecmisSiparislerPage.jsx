@@ -129,18 +129,18 @@ export default function GecmisSiparislerPage({ companyId }) {
     }
     
     // Date range filter
-    if (startDate && startTime && endDate && endTime) {
-      const startDateTime = new Date(`${startDate}T${startTime}`);
-      const endDateTime = new Date(`${endDate}T${endTime}`);
+    if (startDateTime && endDateTime) {
+      const start = new Date(startDateTime);
+      const end = new Date(endDateTime);
       
       result = result.filter(o => {
         const orderDate = new Date(o.delivered_at || o.updated_at || o.created_at);
-        return orderDate >= startDateTime && orderDate <= endDateTime;
+        return orderDate >= start && orderDate <= end;
       });
     }
     
     return result;
-  }, [allOrders, restaurantFilter, courierFilter, paymentFilter, startDate, startTime, endDate, endTime]);
+  }, [allOrders, restaurantFilter, courierFilter, paymentFilter, startDateTime, endDateTime]);
 
   // Mesafe hesaplama (Haversine formula)
   const calculateDistance = (order) => {
