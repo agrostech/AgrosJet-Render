@@ -106,7 +106,10 @@ export default function GecmisSiparislerPage({ companyId }) {
   // Initial load: fetch company, then set defaults and auto-filter
   useEffect(() => {
     const initializeData = async () => {
-      if (!companyId || initialLoadDone.current) return;
+      if (!companyId) return;
+      
+      // Skip if already loaded for this company
+      if (initialLoadDone.current === companyId) return;
       
       try {
         // Fetch company first
@@ -123,8 +126,8 @@ export default function GecmisSiparislerPage({ companyId }) {
           axios.get(`${API}/restaurants/${companyId}`),
           axios.get(`${API}/couriers/${companyId}`)
         ]);
-        setRestaurants(restaurantsRes.data);
-        setCouriers(couriersRes.data);
+        setRestaurants(restaurantsRes.data || []);
+        setCouriers(couriersRes.data || []);
         
         // Auto-filter with defaults on first load
         await fetchAndFilterOrders({
@@ -135,7 +138,7 @@ export default function GecmisSiparislerPage({ companyId }) {
           endDateTime: defaults.endDateTime
         });
         
-        initialLoadDone.current = true;
+        initialLoadDone.current = companyId;
       } catch (err) {
         console.error("Initialization error:", err);
         setLoading(false);
