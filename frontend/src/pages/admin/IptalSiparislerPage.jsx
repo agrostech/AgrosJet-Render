@@ -364,6 +364,7 @@ export default function IptalSiparislerPage({ companyId }) {
                       <th className="text-left p-2 font-bold text-xs">Mesafe</th>
                       <th className="text-left p-2 font-bold text-xs">Ücret</th>
                       <th className="text-left p-2 font-bold text-xs">Ödeme</th>
+                      <th className="text-left p-2 font-bold text-xs">Kurye</th>
                       <th className="text-left p-2 font-bold text-xs">Durum</th>
                     </tr>
                   </thead>
@@ -411,6 +412,9 @@ export default function IptalSiparislerPage({ companyId }) {
                           }`}>
                             {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
                           </span>
+                        </td>
+                        <td className="p-2 text-xs">
+                          {order.courier_name || "-"}
                         </td>
                         <td className="p-2">
                           <span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700 flex items-center gap-1 w-fit">
