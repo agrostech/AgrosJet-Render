@@ -35,18 +35,15 @@ export default function IptalSiparislerPage({ companyId }) {
     const openingTime = company?.opening_time || "09:00";
     const closingTime = company?.closing_time || "23:00";
     
-    return {
-      startDate: today.toISOString().split('T')[0],
-      startTime: openingTime,
-      endDate: tomorrow.toISOString().split('T')[0],
-      endTime: closingTime
-    };
+    // Format: YYYY-MM-DDTHH:MM
+    const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
+    const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
+    
+    return { startDateTime, endDateTime };
   }, [company]);
   
-  const [startDate, setStartDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
 
   // Fetch company info
   const fetchCompany = useCallback(async () => {
