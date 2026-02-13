@@ -44,14 +44,6 @@ export default function IptalSiparislerPage({ companyId }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-heading text-xl font-bold tracking-tight">İptal Siparişler</h2>
-        <Button variant="outline" size="sm" onClick={fetchOrders}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Yenile
-        </Button>
-      </div>
-
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">İptal Edilen Siparişler ({orders.length})</CardTitle>
