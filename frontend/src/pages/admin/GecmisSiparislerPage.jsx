@@ -210,9 +210,17 @@ export default function GecmisSiparislerPage({ companyId }) {
     setRestaurantFilter("all");
     setCourierFilter("all");
     setPaymentFilter("all");
-    const defaults = getDefaultDates();
+    const defaults = getDefaultDates(company);
     setStartDateTime(defaults.startDateTime);
     setEndDateTime(defaults.endDateTime);
+    // Auto-filter with cleared defaults
+    fetchAndFilterOrders({
+      restaurant: "all",
+      courier: "all",
+      payment: "all",
+      startDateTime: defaults.startDateTime,
+      endDateTime: defaults.endDateTime
+    });
   };
 
   return (
