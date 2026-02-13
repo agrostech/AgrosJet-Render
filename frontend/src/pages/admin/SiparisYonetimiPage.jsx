@@ -1681,7 +1681,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     return (
                       <tr 
                         key={order.id}
-                        className="border-b hover:bg-slate-50 cursor-pointer transition-colors"
+                        className="border-b hover:bg-slate-50 cursor-pointer transition-colors align-top"
                         onClick={(e) => {
                           const target = e.target;
                           if (
