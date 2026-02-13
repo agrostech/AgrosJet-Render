@@ -789,6 +789,28 @@ export default function SiparisYonetimiPage({ companyId, adminName }) {
     mapInstanceRef.current = map;
   };
 
+  // mainTab değiştiğinde haritayı yeniden boyutlandır
+  useEffect(() => {
+    if (mainTab === "active" && mapInstanceRef.current) {
+      // Sekme değişikliğinden sonra haritayı yeniden boyutlandır
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 100);
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 300);
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 500);
+    }
+  }, [mainTab]);
+
   // Şirket verisi yüklenince haritayı şirketin iline ortala
   useEffect(() => {
     if (!company?.city_lat || !company?.city_lng) return;
