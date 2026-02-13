@@ -1698,12 +1698,12 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         }}
                         data-testid={`order-row-${order.id}`}
                       >
-                        <td className="p-2 text-xs">
-                          <div className="flex flex-col">
+                        <td className="p-2 text-xs whitespace-nowrap">
+                          <div className="flex items-center gap-1">
                             <span>{formatTime(order.created_at)}</span>
                             {!['delivered', 'cancelled'].includes(order.status) && getOrderAge(order) && (
-                              <span className={`font-medium ${
-                                getOrderAge(order).mins > 35 ? 'text-red-600' : 'text-slate-500'
+                              <span className={`text-[10px] px-1 py-0.5 rounded ${
+                                getOrderAge(order).mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'
                               }`}>
                                 {getOrderAge(order).text}
                               </span>
