@@ -1715,15 +1715,15 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             {order.restaurant_name || "-"}
                           </span>
                         </td>
-                        <td className="p-2">
+                        <td className="p-2 max-w-[120px]">
                           <div>
-                            <span>{order.customer_name || "-"}</span>
+                            <span className="text-sm">{order.customer_name || "-"}</span>
                             {order.customer_phone && (
                               <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
                             )}
                           </div>
                         </td>
-                        <td className="p-2 text-xs max-w-[200px] align-top" title={order.delivery_address}>
+                        <td className="p-2 text-xs max-w-[280px] align-top" title={order.delivery_address}>
                           <div className="line-clamp-3 leading-relaxed">{order.delivery_address || "-"}</div>
                         </td>
                         <td className="p-2 text-xs whitespace-nowrap">
