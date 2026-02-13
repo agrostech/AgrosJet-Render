@@ -2180,9 +2180,42 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                       );
                     })
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Henüz geçmiş kaydı yok</p>
+                    // Geçmiş kaydı yoksa mevcut durumu göster
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3 p-3 border-l-2 border-slate-200 ml-2">
+                        <div className={`w-3 h-3 rounded-full ${ORDER_STATUSES[selectedOrder.status]?.color || 'bg-slate-500'} mt-1 flex-shrink-0 -ml-[19px]`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-medium text-sm">{ORDER_STATUSES[selectedOrder.status]?.label || selectedOrder.status}</p>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {selectedOrder.updated_at ? new Date(selectedOrder.updated_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '-'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-muted-foreground">
+                              {selectedOrder.updated_at ? new Date(selectedOrder.updated_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '-'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {selectedOrder.created_at && (
+                        <div className="flex items-start gap-3 p-3 border-l-2 border-slate-200 ml-2">
+                          <div className="w-3 h-3 rounded-full bg-slate-400 mt-1 flex-shrink-0 -ml-[19px]" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium text-sm">Sipariş Oluşturuldu</p>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {new Date(selectedOrder.created_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(selectedOrder.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
