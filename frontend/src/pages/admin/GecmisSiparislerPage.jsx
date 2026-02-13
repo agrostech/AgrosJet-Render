@@ -45,39 +45,6 @@ export default function GecmisSiparislerPage({ companyId }) {
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
 
-  // Fetch company info
-  const fetchCompany = useCallback(async () => {
-    if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/companies/${companyId}`);
-      setCompany(res.data);
-    } catch (err) {
-      console.error("Company fetch error:", err);
-    }
-  }, [companyId]);
-
-  // Fetch restaurants
-  const fetchRestaurants = useCallback(async () => {
-    if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/restaurants/${companyId}`);
-      setRestaurants(res.data);
-    } catch (err) {
-      console.error("Restaurants fetch error:", err);
-    }
-  }, [companyId]);
-
-  // Fetch couriers
-  const fetchCouriers = useCallback(async () => {
-    if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/couriers/${companyId}`);
-      setCouriers(res.data);
-    } catch (err) {
-      console.error("Couriers fetch error:", err);
-    }
-  }, [companyId]);
-
   // Fetch and filter orders - called on button click or initial load
   const fetchAndFilterOrders = useCallback(async (filters) => {
     if (!companyId) return;
