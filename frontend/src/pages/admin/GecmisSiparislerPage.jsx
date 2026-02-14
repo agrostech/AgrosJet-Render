@@ -464,16 +464,18 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                         <td className="p-2 text-xs">
                           {order.courier_name || "-"}
                         </td>
-                        <td className="p-2 text-right">
-                          <div className="text-xs space-y-0.5">
-                            <div className="text-blue-600 font-medium">
-                              K: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
+                        {isSuperAdmin && (
+                          <td className="p-2 text-right">
+                            <div className="text-xs space-y-0.5">
+                              <div className="text-blue-600 font-medium">
+                                K: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
+                              </div>
+                              <div className="text-orange-600 font-medium">
+                                R: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
+                              </div>
                             </div>
-                            <div className="text-orange-600 font-medium">
-                              R: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
-                            </div>
-                          </div>
-                        </td>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
