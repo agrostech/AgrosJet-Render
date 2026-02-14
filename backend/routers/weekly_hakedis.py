@@ -46,6 +46,7 @@ class RevertHakedisRequest(BaseModel):
     week_end: str
     admin_id: str
     admin_name: str
+    courier_ids: Optional[List[str]] = None  # Boşsa tümünü geri al
 
 
 class AutoSettingsUpdate(BaseModel):
@@ -379,7 +380,7 @@ async def apply_weekly_hakedis(company_id: str, data: ApplyHakedisRequest):
 
 @router.post("/revert/{company_id}")
 async def revert_weekly_hakedis(company_id: str, data: RevertHakedisRequest):
-    """Son hafta hakedişlerini geri al"""
+    """Son hafta hakedişlerini geri al (seçili kuryeler veya tümü)"""
     from routers.jetpuan import calculate_and_debit_points
     from routers.accounting import create_activity_log
     
@@ -393,15 +394,21 @@ async def revert_weekly_hakedis(company_id: str, data: RevertHakedisRequest):
     
     # Bu hafta için işlenmiş transaction'ları bul
     week_description_escaped = re.escape(week_description)
-    transactions = await db.transactions.find({
+    query = {
         "company_id": company_id,
         "entity_type": "courier",
         "is_hakedis": True,
         "description": {"$regex": week_description_escaped, "$options": "i"}
-    }).to_list(1000)
+    }
+    
+    # Eğer belirli kuryeler seçildiyse, sadece onları filtrele
+    if data.courier_ids and len(data.courier_ids) > 0:
+        query["entity_id"] = {"$in": data.courier_ids}
+    
+    transactions = await db.transactions.find(query).to_list(1000)
     
     if not transactions:
-        raise HTTPException(status_code=404, detail="Bu hafta için işlenmiş hakediş bulunamadı")
+        raise HTTPException(status_code=404, detail="Seçili kuryeler için işlenmiş hakediş bulunamadı")
     
     reverted = []
     
