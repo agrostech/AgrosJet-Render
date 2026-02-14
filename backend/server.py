@@ -109,8 +109,72 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # Add weekly hakedis auto-process job - runs every minute to check if 15 min past closing time
+    async def auto_process_weekly_hakedis():
+        """Haftalık hakediş otomatik işleme - bitiş saatinden 15 dk sonra"""
+        from datetime import datetime, timezone, timedelta
+        try:
+            now = datetime.now(timezone.utc)
+            current_hour = now.hour
+            current_minute = now.minute
+            
+            # Otomatik işleme aktif olan şirketleri bul
+            settings = await db.weekly_hakedis_settings.find(
+                {"enabled": True},
+                {"_id": 0, "company_id": 1, "last_auto_run": 1}
+            ).to_list(100)
+            
+            for setting in settings:
+                company_id = setting["company_id"]
+                
+                # Şirket bilgilerini al
+                company = await db.companies.find_one(
+                    {"id": company_id},
+                    {"_id": 0, "closing_time": 1, "opening_time": 1}
+                )
+                
+                if not company:
+                    continue
+                
+                closing_time = company.get("closing_time", "22:00")
+                close_h, close_m = map(int, closing_time.split(':'))
+                
+                # Kapanış saatinden 15 dk sonra mı?
+                target_minute = close_m + 15
+                target_hour = close_h
+                if target_minute >= 60:
+                    target_minute -= 60
+                    target_hour = (target_hour + 1) % 24
+                
+                if current_hour == target_hour and current_minute == target_minute:
+                    # Bugün zaten çalıştı mı?
+                    last_run = setting.get("last_auto_run")
+                    if last_run:
+                        last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
+                        if (now - last_run_dt).total_seconds() < 3600:  # Son 1 saat içinde çalıştıysa atla
+                            continue
+                    
+                    # Otomatik işleme yap
+                    from routers.weekly_hakedis import process_auto_weekly_hakedis
+                    try:
+                        result = await process_auto_weekly_hakedis(company_id)
+                        print(f"Auto weekly hakedis for {company_id}: {result}")
+                    except Exception as e:
+                        print(f"Auto weekly hakedis error for {company_id}: {e}")
+        except Exception as e:
+            print(f"Auto weekly hakedis job error: {e}")
+    
+    scheduler.add_job(
+        auto_process_weekly_hakedis,
+        'interval',
+        minutes=1,  # Her dakika kontrol et
+        id="auto_weekly_hakedis",
+        name="Auto Weekly Hakedis Process",
+        replace_existing=True
+    )
+    
     scheduler.start()
-    print("Schedulers started - backup (hourly), adisyo sync (30s), break reset (1m)")
+    print("Schedulers started - backup (hourly), adisyo sync (30s), break reset (1m), weekly hakedis (1m)")
     
     yield
     
