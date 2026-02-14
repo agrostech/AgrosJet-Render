@@ -197,6 +197,11 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
         {"_id": 0, "entity_id": 1, "amount": 1, "id": 1}
     ).to_list(1000)
     
+    print(f"[DEBUG] week_description_escaped: {week_description_escaped}")
+    print(f"[DEBUG] Found {len(processed_txs)} processed transactions")
+    for tx in processed_txs:
+        print(f"[DEBUG] TX: entity_id={tx.get('entity_id')}, amount={tx.get('amount')}")
+    
     processed_map = {}
     for tx in processed_txs:
         processed_map[tx["entity_id"]] = {
