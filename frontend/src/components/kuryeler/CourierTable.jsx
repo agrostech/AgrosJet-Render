@@ -78,6 +78,12 @@ export function CourierTable({
                     <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="h-8 px-3 border-2">
                       Detaylar
                     </Button>
+                    {onFinance && (
+                      <Button size="sm" variant="outline" onClick={() => onFinance(c)} className="h-8 px-3 border-2" title="Finans">
+                        <Wallet className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Finans</span>
+                      </Button>
+                    )}
                     {onPricing && (
                       <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="h-8 px-3 border-2" title="Ücretlendirme">
                         <span className="font-bold">₺</span>
