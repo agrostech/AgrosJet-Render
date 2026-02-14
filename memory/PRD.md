@@ -4,6 +4,31 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026)
 
+#### 🚀 Sipariş Durum Güncelleme Optimizasyonu - TAMAMLANDI
+Sipariş durum değişikliği mantığı kullanıcının isteğine göre düzenlendi:
+
+**Önceki Davranış (Optimistik Güncelleme):**
+- UI anında güncelleniyor, sonra API çağrısı yapılıyordu
+- Hata durumunda UI geri alınıyordu (fetchOrders ile)
+
+**Yeni Davranış (API Sonrası Güncelleme):**
+- Önce API çağrısı yapılıyor
+- API başarılı olduktan sonra sadece ilgili sipariş güncelleniyor
+- Tüm sipariş listesi yeniden çekilmiyor (performans korunuyor)
+
+**Güncellenen Fonksiyonlar (`SiparisYonetimiPage.jsx`):**
+1. `handleUpdateStatus()` - Durum değişikliği (zaten doğruydu)
+2. `handleAssignCourier()` - Kurye atama
+3. `handleUnassignCourier()` - Kurye kaldırma
+4. `handleReassignCourier()` - Kurye değiştirme
+
+**Avantajlar:**
+- UI her zaman backend durumunu yansıtıyor
+- Hata durumunda kullanıcı yanıltılmıyor
+- Performans korunuyor (fetchOrders yerine lokal güncelleme)
+
+---
+
 #### 📊 Haftalık Hakediş Sekmesi - Büyük Güncelleme
 Muhasebe sayfasında "Haftalık Hakediş" sekmesi tamamen yeniden tasarlandı:
 
