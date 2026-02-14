@@ -72,18 +72,19 @@ export default function HaftalikHakedisTab({ companyId }) {
   const [endDate, setEndDate] = useState("");
   const [systemHoursLoaded, setSystemHoursLoaded] = useState(false);
 
-  // Sistem açılış saatini al ve tarihleri ayarla
+  // Sistem açılış/kapanış saatini al ve tarihleri ayarla
   useEffect(() => {
     const fetchWorkingHours = async () => {
       try {
         const res = await axios.get(`${API}/companies/${companyId}/working-hours`);
         const openingTime = res.data.opening_time || "09:00";
-        setStartDate(getPreviousMonday(openingTime));
-        setEndDate(getNextMonday(openingTime));
+        const closingTime = res.data.closing_time || "22:00";
+        setStartDate(getThisMonday(openingTime));
+        setEndDate(getNextMonday(closingTime));
       } catch (err) {
-        // Hata durumunda varsayılan 09:00 kullan
-        setStartDate(getPreviousMonday("09:00"));
-        setEndDate(getNextMonday("09:00"));
+        // Hata durumunda varsayılan değerleri kullan
+        setStartDate(getThisMonday("09:00"));
+        setEndDate(getNextMonday("22:00"));
       } finally {
         setSystemHoursLoaded(true);
       }
