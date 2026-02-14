@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,27 +22,83 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL';
 };
 
-// Haftanın başlangıcını al (Pazartesi)
-const getWeekStart = () => {
+// Önceki Pazartesi'yi al (sistemin açılış saati ile)
+const getPreviousMonday = (openingTime = "09:00") => {
   const now = new Date();
   const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Pazartesi'ye git
-  const monday = new Date(now.setDate(diff));
-  monday.setHours(0, 0, 0, 0);
-  return monday.toISOString().slice(0, 16);
+  // Önceki pazartesiye git (eğer bugün pazartesi ise bu hafta değil geçen hafta)
+  const daysToSubtract = day === 0 ? 6 : (day === 1 ? 7 : day - 1 + 7);
+  const prevMonday = new Date(now);
+  prevMonday.setDate(now.getDate() - daysToSubtract + 7); // Bu haftanın pazartesi
+  
+  // Aslında "önceki pazartesi" = bu haftanın pazartesi (7 gün geriye)
+  const actualPrevMonday = new Date(now);
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  actualPrevMonday.setDate(now.getDate() + diffToMonday - 7);
+  
+  const [hours, minutes] = openingTime.split(':').map(Number);
+  actualPrevMonday.setHours(hours, minutes, 0, 0);
+  
+  // Local datetime-local format için
+  const year = actualPrevMonday.getFullYear();
+  const month = String(actualPrevMonday.getMonth() + 1).padStart(2, '0');
+  const date = String(actualPrevMonday.getDate()).padStart(2, '0');
+  const hour = String(actualPrevMonday.getHours()).padStart(2, '0');
+  const min = String(actualPrevMonday.getMinutes()).padStart(2, '0');
+  
+  return `${year}-${month}-${date}T${hour}:${min}`;
 };
 
-// Şu anki zamanı al
-const getNow = () => {
+// Sonraki Pazartesi'yi al (sistemin açılış saati ile)
+const getNextMonday = (openingTime = "09:00") => {
   const now = new Date();
-  return now.toISOString().slice(0, 16);
+  const day = now.getDay();
+  // Sonraki pazartesiye git
+  const daysToAdd = day === 0 ? 1 : (8 - day);
+  const nextMonday = new Date(now);
+  nextMonday.setDate(now.getDate() + daysToAdd);
+  
+  const [hours, minutes] = openingTime.split(':').map(Number);
+  nextMonday.setHours(hours, minutes, 0, 0);
+  
+  // Local datetime-local format için
+  const year = nextMonday.getFullYear();
+  const month = String(nextMonday.getMonth() + 1).padStart(2, '0');
+  const date = String(nextMonday.getDate()).padStart(2, '0');
+  const hour = String(nextMonday.getHours()).padStart(2, '0');
+  const min = String(nextMonday.getMinutes()).padStart(2, '0');
+  
+  return `${year}-${month}-${date}T${hour}:${min}`;
 };
 
 export default function HaftalikHakedisTab({ companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
-  const [startDate, setStartDate] = useState(getWeekStart());
-  const [endDate, setEndDate] = useState(getNow());
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [systemHoursLoaded, setSystemHoursLoaded] = useState(false);
+
+  // Sistem açılış saatini al ve tarihleri ayarla
+  useEffect(() => {
+    const fetchWorkingHours = async () => {
+      try {
+        const res = await axios.get(`${API}/companies/${companyId}/working-hours`);
+        const openingTime = res.data.opening_time || "09:00";
+        setStartDate(getPreviousMonday(openingTime));
+        setEndDate(getNextMonday(openingTime));
+      } catch (err) {
+        // Hata durumunda varsayılan 09:00 kullan
+        setStartDate(getPreviousMonday("09:00"));
+        setEndDate(getNextMonday("09:00"));
+      } finally {
+        setSystemHoursLoaded(true);
+      }
+    };
+    
+    if (companyId) {
+      fetchWorkingHours();
+    }
+  }, [companyId]);
 
   const fetchHakedis = useCallback(async () => {
     if (!startDate || !endDate) {
