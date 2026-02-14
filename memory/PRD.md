@@ -4,6 +4,25 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler (14 Şubat 2026)
 
+#### 🏗️ SiparisYonetimiPage Refactoring - TAMAMLANDI
+Ana sipariş yönetimi sayfası 2405 satırdan **944 satıra** düşürüldü (%60 azalma):
+
+**Çıkarılan Bileşenler:**
+- `/app/frontend/src/utils/orderUtils.js` (261 satır) - Yardımcı fonksiyonlar
+- `/app/frontend/src/components/siparis/CourierSidebar.jsx` (304 satır) - Desktop/Mobil kurye listesi
+- `/app/frontend/src/components/siparis/OrderDetailModal.jsx` (466 satır) - Sipariş detay modalı
+- `/app/frontend/src/components/siparis/CourierDetailModal.jsx` (273 satır) - Kurye detay modalı
+
+**Korunan Özellikler:**
+- ✅ Canlı harita ve kurye takibi
+- ✅ Sipariş tablosu ve filtreleme
+- ✅ Durum değiştirme dropdown'ları
+- ✅ Kurye atama/kaldırma
+- ✅ Sipariş detay modalı (3 sekme: Detaylar, Konum, Geçmiş)
+- ✅ Kurye detay modalı (harita + sipariş listesi)
+- ✅ Tab değişiminde harita düzgün çalışıyor (beyaz ekran bug'ı yok)
+- ✅ Mobil kurye sidebar collapsible
+
 #### 💰 Finans Özelliği - TAMAMLANDI
 Kurye ve Restoran için finansal log/özet görüntüleme modalı eklendi:
 
@@ -11,20 +30,12 @@ Kurye ve Restoran için finansal log/özet görüntüleme modalı eklendi:
 - Kuryeler sayfasında her kurye satırında "Finans" butonu
 - Restoranlar sayfasında her restoran satırında "Finans" butonu
 - Modal içinde 2 sekme:
-  - **Taşıma Finansı:** Teslim edilen siparişler listesi, paket başı kazanç (ücretlendirmeden)
+  - **Taşıma Finansı:** Teslim edilen siparişler listesi, paket başı kazanç
   - **Tahsilat Finansı:** Nakit/Online ödeme ayrımı, toplam tahsilat tutarları
-- Her sipariş için tarih, müşteri, restoran/kurye bilgisi
-- Özet kartlarında toplam sipariş sayısı ve tutar
 
 **API Endpoints:**
-- `GET /api/couriers/{courier_id}/finance-logs?company_id=X` - Kurye finans logları
-- `GET /api/restaurants/{restaurant_id}/finance-logs?company_id=X` - Restoran finans logları
-
-**Dosyalar:**
-- `/app/frontend/src/components/kuryeler/CourierFinanceModal.jsx`
-- `/app/frontend/src/components/restoranlar/RestaurantFinanceModal.jsx`
-- `/app/backend/routers/finance.py`
-- `/app/frontend/src/pages/admin/RestoranlarPage.jsx` (Finans butonu eklendi)
+- `GET /api/couriers/{courier_id}/finance-logs?company_id=X`
+- `GET /api/restaurants/{restaurant_id}/finance-logs?company_id=X`
 
 ---
 
