@@ -182,13 +182,17 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     # Hafta açıklaması
     week_description = get_week_description(start_dt, end_dt)
     
+    # Regex için özel karakterleri escape et (noktalar regex'te herhangi karakter anlamına gelir)
+    import re
+    week_description_escaped = re.escape(week_description)
+    
     # Bu hafta için işlenmiş kuryeleri kontrol et
     processed_txs = await db.transactions.find(
         {
             "company_id": company_id,
             "entity_type": "courier",
             "is_hakedis": True,
-            "description": {"$regex": week_description, "$options": "i"}
+            "description": {"$regex": week_description_escaped, "$options": "i"}
         },
         {"_id": 0, "entity_id": 1, "amount": 1, "id": 1}
     ).to_list(1000)
