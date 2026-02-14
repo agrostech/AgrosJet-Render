@@ -949,5 +949,6 @@ export default function RestoranlarPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Integration Modal */}
+    </div>
+  );
+}
