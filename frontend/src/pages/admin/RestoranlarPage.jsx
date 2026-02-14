@@ -515,7 +515,7 @@ export default function RestoranlarPage({ companyId }) {
                 <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2">
                   Düzenle
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowFinanceModal(true); }} className="flex-1 border-2" title="Finans">
+                <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); /* TODO: Yeni finans sistemi */ }} className="flex-1 border-2" title="Finans">
                   <Wallet className="w-4 h-4 mr-1" />
                   <span className="text-xs">Finans</span>
                 </Button>
