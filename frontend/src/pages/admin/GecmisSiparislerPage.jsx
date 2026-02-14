@@ -411,12 +411,12 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                       <th className="text-left p-2 font-bold text-xs">Restoran</th>
                       <th className="text-left p-2 font-bold text-xs">Müşteri</th>
                       <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
-                      <th className="text-left p-2 font-bold text-xs">Adres</th>
                       <th className="text-left p-2 font-bold text-xs">Mesafe</th>
                       <th className="text-left p-2 font-bold text-xs">Ücret</th>
                       <th className="text-left p-2 font-bold text-xs">Ödeme</th>
                       <th className="text-left p-2 font-bold text-xs">Kurye</th>
-                      <th className="text-left p-2 font-bold text-xs">Durum</th>
+                      <th className="text-right p-2 font-bold text-xs">Kurye Ücreti</th>
+                      <th className="text-right p-2 font-bold text-xs">Restoran Ücreti</th>
                     </tr>
                   </thead>
                   <tbody>
