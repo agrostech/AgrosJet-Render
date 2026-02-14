@@ -336,7 +336,7 @@ export default function HaftalikHakedisTab({ companyId }) {
             
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              {/* Revert Button - Only for current week with processed items */}
+              {/* Revert Button - Seçili işlenmiş kuryeler için */}
               {canRevert && (
                 <Button
                   variant="outline"
@@ -346,19 +346,19 @@ export default function HaftalikHakedisTab({ companyId }) {
                   data-testid="revert-btn"
                 >
                   <Undo2 className="w-4 h-4 mr-2" />
-                  Geri Al ({processedCouriers.length})
+                  Geri Al ({selectedProcessed.length})
                 </Button>
               )}
               
-              {/* Apply Button */}
+              {/* Apply Button - Seçili işlenmemiş kuryeler için */}
               <Button
                 onClick={() => setShowApplyModal(true)}
-                disabled={selectedIds.length === 0 || dataLoading}
+                disabled={selectedUnprocessed.length === 0 || dataLoading}
                 className="h-9"
                 data-testid="apply-btn"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Toplu Ekle ({selectedIds.length})
+                Toplu Ekle ({selectedUnprocessed.length})
               </Button>
               
               {/* Export Button */}
