@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge } from "lucide-react";
+import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, Wallet } from "lucide-react";
 
 export function CourierCards({ 
   couriers, 
@@ -13,7 +13,8 @@ export function CourierCards({
   onDeactivate,
   onActivate,
   onMerge,
-  onPricing
+  onPricing,
+  onFinance
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
