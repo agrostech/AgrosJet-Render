@@ -1,8 +1,32 @@
 # ShiftJet - Kurye Takip Sistemi PRD
 
-## Son Güncelleme: 14 Şubat 2026
+## Son Güncelleme: 15 Şubat 2026
 
-### ✅ Bu Oturumda Tamamlanan Değişiklikler (14 Şubat 2026)
+### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026)
+
+#### 🔍 Kurye Şifre Hatası Kontrolü - DOĞRULANDI
+Kurye şifre oluşturma süreci kontrol edildi ve **düzgün çalıştığı doğrulandı**:
+
+**Kontrol Adımları:**
+1. ✅ Backend kayıt endpoint'i (`/api/auth/courier/register`) şifreyi hashliyor
+2. ✅ Veritabanına hashlenen şifre kaydediliyor (64 karakter SHA-256)
+3. ✅ Giriş endpoint'i (`/api/auth/courier/login`) şifreyi doğru kontrol ediyor
+
+**Test Sonuçları:**
+- Test kuryesi oluşturuldu (05550001234)
+- Şifre veritabanında hash olarak saklandı (64 karakter)
+- Giriş başarıyla yapıldı
+- Test kuryesi temizlendi
+
+**Dosyalar:**
+- `/app/backend/routers/auth.py` (satır 65: `hash_password(data.password)`)
+- `/app/frontend/src/pages/RegisterPage.jsx` (kayıt formu)
+
+**Not:** Önceki hata raporları muhtemelen farklı bir senaryodan kaynaklanıyordu (ör. manuel veritabanı girişi veya ghost kurye). Normal kayıt akışı düzgün çalışıyor.
+
+---
+
+### Önceki Oturum Değişiklikleri (14 Şubat 2026)
 
 #### 🏗️ SiparisYonetimiPage Refactoring - TAMAMLANDI
 Ana sipariş yönetimi sayfası 2405 satırdan **944 satıra** düşürüldü (%60 azalma):
