@@ -659,6 +659,11 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
     
     if data.status == "delivered":
         update_fields["delivered_at"] = now.isoformat()
+        # Ücretleri hesapla
+        fees = await calculate_order_fees(order)
+        update_fields["courier_fee"] = fees["courier_fee"]
+        update_fields["restaurant_fee"] = fees["restaurant_fee"]
+        update_fields["distance_km"] = fees["distance_km"]
     
     # History'ye ekle
     history_entry = {
