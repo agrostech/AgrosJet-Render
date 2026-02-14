@@ -10,8 +10,98 @@ import uuid
 import random
 
 from utils.database import db
+import math
 
 router = APIRouter(prefix="/api/orders", tags=["Sipariş Yönetimi"])
+
+
+# --- Ücret Hesaplama Fonksiyonları ---
+def calculate_distance(restaurant_location: dict, delivery_location: dict) -> float:
+    """Haversine formula ile mesafe hesapla (km)"""
+    if not restaurant_location or not delivery_location:
+        return 0.0
+    
+    R = 6371  # Dünya yarıçapı km
+    lat1 = restaurant_location.get("latitude") or restaurant_location.get("lat") or 0
+    lon1 = restaurant_location.get("longitude") or restaurant_location.get("lng") or 0
+    lat2 = delivery_location.get("latitude") or delivery_location.get("lat") or 0
+    lon2 = delivery_location.get("longitude") or delivery_location.get("lng") or 0
+    
+    if not all([lat1, lon1, lat2, lon2]):
+        return 0.0
+    
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lon2 - lon1)
+    a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * c
+
+
+def calculate_fee_from_pricing(pricing_type: str, per_package_price: float, km_ranges: list, distance_km: float) -> float:
+    """Ücretlendirme ayarına göre ücret hesapla"""
+    if pricing_type == "per_package":
+        return per_package_price or 0.0
+    elif pricing_type == "per_km" and km_ranges:
+        for km_range in km_ranges:
+            min_km = km_range.get("min_km", 0)
+            max_km = km_range.get("max_km")
+            price = km_range.get("price", 0)
+            
+            # max_km None ise sınırsız (örn: 10+ km)
+            if max_km is None:
+                if distance_km >= min_km:
+                    return price
+            else:
+                if min_km <= distance_km < max_km:
+                    return price
+    return 0.0
+
+
+async def calculate_order_fees(order: dict) -> dict:
+    """Sipariş için kurye ve restoran ücretlerini hesapla"""
+    courier_fee = 0.0
+    restaurant_fee = 0.0
+    distance_km = 0.0
+    
+    # Mesafe hesapla
+    if order.get("restaurant_location") and order.get("delivery_location"):
+        distance_km = calculate_distance(order["restaurant_location"], order["delivery_location"])
+    
+    # Kurye ücret hesaplama
+    courier_id = order.get("courier_id")
+    if courier_id:
+        courier = await db.couriers.find_one(
+            {"id": courier_id}, 
+            {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+        )
+        if courier:
+            courier_fee = calculate_fee_from_pricing(
+                courier.get("pricing_type", "per_package"),
+                courier.get("per_package_price", 0),
+                courier.get("km_ranges", []),
+                distance_km
+            )
+    
+    # Restoran ücret hesaplama
+    restaurant_id = order.get("restaurant_id")
+    if restaurant_id:
+        restaurant = await db.restaurants.find_one(
+            {"id": restaurant_id}, 
+            {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+        )
+        if restaurant:
+            restaurant_fee = calculate_fee_from_pricing(
+                restaurant.get("pricing_type", "per_package"),
+                restaurant.get("per_package_price", 0),
+                restaurant.get("km_ranges", []),
+                distance_km
+            )
+    
+    return {
+        "courier_fee": round(courier_fee, 2),
+        "restaurant_fee": round(restaurant_fee, 2),
+        "distance_km": round(distance_km, 2)
+    }
 
 
 # --- Pydantic Models ---
