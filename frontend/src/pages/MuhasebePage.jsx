@@ -17,7 +17,7 @@ const TABS = [
   { key: "cariler", label: "Cariler", icon: Wallet },
   { key: "kurye-faturalari", label: "Kurye Faturaları", icon: FileText },
   { key: "isletme-faturalari", label: "İşletme Faturaları", icon: Receipt },
-  { key: "toplu-hakedis", label: "Toplu Hakediş", icon: FileSpreadsheet },
+  { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
   { key: "gunluk-tahsilat", label: "Günlük Tahsilat", icon: Banknote },
   { key: "mutabakat", label: "Mütabakat", icon: Scale },
   { key: "hareketler", label: "Hareketler", icon: History },
