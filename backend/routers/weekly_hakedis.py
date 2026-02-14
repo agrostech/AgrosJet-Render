@@ -285,7 +285,6 @@ async def apply_weekly_hakedis(company_id: str, data: ApplyHakedisRequest):
             continue
         
         # Daha önce işlenmiş mi kontrol et
-        import re
         week_description_escaped = re.escape(week_description)
         existing = await db.transactions.find_one({
             "company_id": company_id,
