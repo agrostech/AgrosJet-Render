@@ -63,15 +63,15 @@ export function CourierCards({
             </p>
           )}
           
-          {/* Row 1: Details, Pricing, Edit */}
+          {/* Row 1: Details, Finance, Edit */}
           <div className="flex gap-2 mb-2">
             <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="flex-1 border-2">
               Detaylar
             </Button>
-            {onPricing && (
-              <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="flex-1 border-2" title="Ücretlendirme">
-                <span className="font-bold">₺</span>
-                <span className="text-xs ml-1">Ücretlendirme</span>
+            {onFinance && (
+              <Button size="sm" variant="outline" onClick={() => onFinance(c)} className="flex-1 border-2" title="Finans">
+                <Wallet className="w-4 h-4 mr-1" />
+                <span className="text-xs">Finans</span>
               </Button>
             )}
             <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="flex-1 border-2">
