@@ -440,11 +440,8 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                         <td className="p-2 text-xs">
                           {formatDate(order.created_at)}
                         </td>
-                        <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
-                          <div className="line-clamp-3">{order.delivery_address || "-"}</div>
-                        </td>
                         <td className="p-2 text-xs whitespace-nowrap">
-                          {(() => {
+                          {order.distance_km ? `${order.distance_km.toFixed(1)} km` : (() => {
                             const dist = calculateDistance(order);
                             return dist ? `${dist.toFixed(1)} km` : "-";
                           })()}
@@ -464,9 +461,14 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                         <td className="p-2 text-xs">
                           {order.courier_name || "-"}
                         </td>
-                        <td className="p-2">
-                          <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-700">
-                            Teslim Edildi
+                        <td className="p-2 text-right">
+                          <span className="font-semibold text-blue-600">
+                            {order.courier_fee ? `${order.courier_fee.toFixed(2)} ₺` : "-"}
+                          </span>
+                        </td>
+                        <td className="p-2 text-right">
+                          <span className="font-semibold text-orange-600">
+                            {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)} ₺` : "-"}
                           </span>
                         </td>
                       </tr>
