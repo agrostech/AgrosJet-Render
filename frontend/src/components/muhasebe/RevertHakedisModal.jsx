@@ -28,7 +28,7 @@ export default function RevertHakedisModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-amber-600">
             <Undo2 className="w-5 h-5" />
-            Hakedişleri Geri Al
+            Seçili Hakedişleri Geri Al
           </DialogTitle>
           <DialogDescription>
             Bu işlem geri alınamaz. Dikkatli olun.
@@ -41,7 +41,7 @@ export default function RevertHakedisModal({
             <div className="flex gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-amber-800">
-                <p className="font-medium mb-1">Bu hafta için işlenmiş tüm hakedişler silinecek!</p>
+                <p className="font-medium mb-1">Seçili kuryelerin hakedişleri silinecek!</p>
                 <ul className="list-disc list-inside text-xs space-y-1">
                   <li>Kurye bakiyelerinden düşülecek</li>
                   <li>Kazanılan JetPuan'lar geri alınacak</li>
@@ -58,7 +58,7 @@ export default function RevertHakedisModal({
               <span className="font-medium">{weekLabel}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-600">Etkilenen Kurye:</span>
+              <span className="text-slate-600">Seçili Kurye:</span>
               <span className="font-medium">{processedCount}</span>
             </div>
             <div className="flex justify-between text-sm border-t pt-2 mt-2">
@@ -86,7 +86,7 @@ export default function RevertHakedisModal({
             ) : (
               <>
                 <Undo2 className="w-4 h-4 mr-2" />
-                Geri Al
+                Geri Al ({processedCount})
               </>
             )}
           </Button>
