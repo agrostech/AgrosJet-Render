@@ -29,6 +29,34 @@ Sipariş durum değişikliği mantığı kullanıcının isteğine göre düzenl
 
 ---
 
+#### 🔄 Haftalık Hakediş - Kurye Bazlı Geri Alma - TAMAMLANDI
+Haftalık Hakediş sekmesine kurye özelinde geri alma özelliği eklendi:
+
+**Önceki Davranış:**
+- Geri alma butonu tüm işlenmiş kuryeleri geri alıyordu
+
+**Yeni Davranış:**
+- İşlenmiş kuryeler de checkbox ile seçilebilir
+- Seçilen işlenmiş kuryeler için ayrı "Geri Al" butonu
+- İşlenmiş kuryelerin checkbox'ı turuncu renkte
+- Durum sütununda "Hepsini Seç/Kaldır" butonu
+
+**Backend Değişiklikleri (`weekly_hakedis.py`):**
+- `RevertHakedisRequest` modeline `courier_ids` parametresi eklendi
+- `revert_weekly_hakedis` endpoint'i seçili kuryeleri filtreliyor
+
+**Frontend Değişiklikleri:**
+- `HaftalikHakedisTab.jsx`: Ayrı seçim mantığı (işlenmemiş/işlenmiş)
+- `HakedisTable.jsx`: İşlenmiş kuryeler için checkbox ve "Hepsini Seç" butonu
+- `RevertHakedisModal.jsx`: Güncellenen metinler
+
+**UI Göstergeleri:**
+- Bekleyen seçili: mavi renk
+- İşlenmiş seçili: turuncu renk
+- Turuncu checkbox = geri alma için seçilmiş
+
+---
+
 #### 📊 Haftalık Hakediş Sekmesi - Büyük Güncelleme
 Muhasebe sayfasında "Haftalık Hakediş" sekmesi tamamen yeniden tasarlandı:
 
