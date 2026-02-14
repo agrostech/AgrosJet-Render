@@ -61,6 +61,7 @@ export default function KuryelerPage({ companyId }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showMergeModal, setShowMergeModal] = useState(false);
+  const [showFinanceModal, setShowFinanceModal] = useState(false);
   
   // Pricing Modal State
   const [showPricingModal, setShowPricingModal] = useState(false);
@@ -81,6 +82,11 @@ export default function KuryelerPage({ companyId }) {
     const plate = (c.plate || '').toLowerCase();
     return name.includes(query) || plate.includes(query);
   });
+
+  const openFinanceModal = (courier) => {
+    setSelectedCourier(courier);
+    setShowFinanceModal(true);
+  };
 
   const handleRemove = async (courierId) => {
     setConfirmConfig({
