@@ -136,8 +136,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
         {activeTab === "kurye-faturalari" && <FaturalarTab companyId={companyId} adminId={adminId} adminName={adminName} />}
         {activeTab === "isletme-faturalari" && <IsletmeFaturalariTab companyId={companyId} />}
         {activeTab === "haftalik-hakedis" && <HaftalikHakedisTab companyId={companyId} />}
-        {activeTab === "gunluk-tahsilat" && <GunlukTahsilatTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
-        {activeTab === "mutabakat" && <MutabakatTab companyId={companyId} adminId={adminId} adminName={adminName} />}
+        {activeTab === "gunluk-mutabakat" && <GunlukMutabakatTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
         {activeTab === "hareketler" && <HareketlerTab companyId={companyId} />}
       </div>
     </div>
