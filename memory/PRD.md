@@ -4,6 +4,23 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026)
 
+#### 📊 Haftalık Hakediş Sekmesi - YENİ
+Muhasebe sayfasında "Toplu Hakediş" sekmesi "Haftalık Hakediş" olarak yeniden tasarlandı:
+
+**Backend (`/app/backend/routers/hakedis.py`):**
+- `POST /api/hakedis/couriers/{company_id}` - Tarih aralığına göre kurye hakedişleri
+- Teslim edilen siparişlerden `courier_fee` toplamını hesaplıyor
+- Sipariş sayısı ve toplam mesafe bilgisi
+
+**Frontend (`/app/frontend/src/pages/muhasebe/HaftalikHakedisTab.jsx`):**
+- Başlangıç ve bitiş tarih/saat filtresi
+- Kurye listesi tablosu (isim, telefon, sipariş sayısı, mesafe, hakediş)
+- Özet kartları (aktif kurye, toplam sipariş, toplam hakediş)
+- CSV export özelliği
+
+**Silinen Dosyalar:**
+- `/app/frontend/src/pages/muhasebe/BonusTab.jsx` (eski Toplu Hakediş)
+
 #### 💰 Sipariş Ücret Sistemi - YENİ
 Her sipariş için kurye ve restoran ücreti otomatik hesaplanıyor:
 
