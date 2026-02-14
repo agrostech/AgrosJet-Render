@@ -11,7 +11,6 @@ import {
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Plug, Wallet
 } from "lucide-react";
-import { RestaurantFinanceModal } from "@/components/restoranlar/RestaurantFinanceModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
