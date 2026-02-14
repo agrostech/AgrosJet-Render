@@ -470,8 +470,8 @@ export default function HaftalikHakedisTab({ companyId }) {
       <ApplyHakedisModal
         open={showApplyModal}
         onOpenChange={setShowApplyModal}
-        selectedCount={selectedIds.length}
-        totalAmount={selectedTotal}
+        selectedCount={selectedUnprocessed.length}
+        totalAmount={selectedUnprocessedTotal}
         weekLabel={selectedWeek?.label}
         addHakedis={addHakedis}
         setAddHakedis={setAddHakedis}
@@ -486,8 +486,8 @@ export default function HaftalikHakedisTab({ companyId }) {
         open={showRevertModal}
         onOpenChange={setShowRevertModal}
         weekLabel={selectedWeek?.label}
-        processedCount={processedCouriers.length}
-        totalAmount={processedTotal}
+        processedCount={selectedProcessed.length}
+        totalAmount={selectedProcessedTotal}
         onConfirm={handleRevertHakedis}
         loading={revertLoading}
       />
