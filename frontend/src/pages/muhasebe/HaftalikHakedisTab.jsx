@@ -133,7 +133,7 @@ export default function HaftalikHakedisTab({ companyId }) {
     setSelectedWeek(week);
   };
 
-  // Toggle courier selection
+  // Toggle courier selection (hem işlenmemiş hem işlenmiş için)
   const handleToggleSelect = (courierId) => {
     setSelectedIds(prev => 
       prev.includes(courierId) 
@@ -142,15 +142,33 @@ export default function HaftalikHakedisTab({ companyId }) {
     );
   };
 
-  // Toggle select all
+  // Toggle select all (işlenmemişler için - hakediş ekleme)
   const handleToggleSelectAll = () => {
     const selectableCouriers = couriers.filter(c => !c.is_processed && c.amount > 0);
     const allSelected = selectableCouriers.every(c => selectedIds.includes(c.courier_id));
     
     if (allSelected) {
-      setSelectedIds([]);
+      // Sadece işlenmemişleri kaldır
+      setSelectedIds(prev => prev.filter(id => !selectableCouriers.map(c => c.courier_id).includes(id)));
     } else {
-      setSelectedIds(selectableCouriers.map(c => c.courier_id));
+      // İşlenmemişleri ekle
+      const newIds = [...new Set([...selectedIds, ...selectableCouriers.map(c => c.courier_id)])];
+      setSelectedIds(newIds);
+    }
+  };
+
+  // Toggle select all processed (işlenmiş kuryeler için - geri alma)
+  const handleToggleSelectAllProcessed = () => {
+    const processedCouriersList = couriers.filter(c => c.is_processed);
+    const allProcessedSelected = processedCouriersList.every(c => selectedIds.includes(c.courier_id));
+    
+    if (allProcessedSelected) {
+      // Sadece işlenmişleri kaldır
+      setSelectedIds(prev => prev.filter(id => !processedCouriersList.map(c => c.courier_id).includes(id)));
+    } else {
+      // İşlenmişleri ekle
+      const newIds = [...new Set([...selectedIds, ...processedCouriersList.map(c => c.courier_id)])];
+      setSelectedIds(newIds);
     }
   };
 
