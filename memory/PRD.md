@@ -4,24 +4,35 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026)
 
-#### 📊 Haftalık Hakediş Sekmesi - YENİ
-Muhasebe sayfasında "Toplu Hakediş" sekmesi "Haftalık Hakediş" olarak yeniden tasarlandı:
+#### 📊 Haftalık Hakediş Sekmesi - Büyük Güncelleme
+Muhasebe sayfasında "Haftalık Hakediş" sekmesi tamamen yeniden tasarlandı:
 
-**Backend (`/app/backend/routers/hakedis.py`):**
-- `POST /api/hakedis/couriers/{company_id}` - Tarih aralığına göre kurye hakedişleri
-- Teslim edilen siparişlerden `courier_fee` toplamını hesaplıyor
-- Sipariş sayısı ve toplam mesafe bilgisi
+**Yeni Özellikler:**
+1. **Hafta Seçici Dropdown**: Tarih seçimi yerine hafta bazlı görüntüleme (Pazartesi→Pazartesi)
+2. **Checkbox ile Kurye Seçimi**: Tek tek veya toplu kurye seçimi
+3. **Toplu Hakediş Ekleme**: Seçili kuryelerin hakedişi bakiyelerine eklenir
+4. **İşlem Geri Alma**: Sadece son hafta için geri alma imkanı
+5. **Otomatik İşleme**: Toggle ile açılır, kapanış saatinden 15 dk sonra otomatik işler
+6. **İşlenmiş Belirteci**: İşlenmiş kuryelerde yeşil "İşlendi" badge'i
 
-**Frontend (`/app/frontend/src/pages/muhasebe/HaftalikHakedisTab.jsx`):**
-- Başlangıç ve bitiş tarih/saat filtresi
-- Kurye listesi tablosu (isim, telefon, sipariş sayısı, mesafe, hakediş)
-- Özet kartları (aktif kurye, toplam sipariş, toplam hakediş)
-- CSV export özelliği
+**Backend (`/app/backend/routers/weekly_hakedis.py`):**
+- `GET /api/weekly-hakedis/weeks/{company_id}` - Hafta listesi
+- `POST /api/weekly-hakedis/data/{company_id}` - Hafta hakediş verileri
+- `POST /api/weekly-hakedis/apply/{company_id}` - Toplu hakediş ekleme
+- `POST /api/weekly-hakedis/revert/{company_id}` - Hakediş geri alma
+- `GET/PUT /api/weekly-hakedis/auto-settings/{company_id}` - Otomatik ayarlar
 
-**Silinen Dosyalar:**
-- `/app/frontend/src/pages/muhasebe/BonusTab.jsx` (eski Toplu Hakediş)
+**Frontend Bileşenleri:**
+- `/app/frontend/src/pages/muhasebe/HaftalikHakedisTab.jsx` - Ana sayfa
+- `/app/frontend/src/components/muhasebe/WeekSelector.jsx` - Hafta dropdown
+- `/app/frontend/src/components/muhasebe/HakedisTable.jsx` - Checkbox'lı tablo
+- `/app/frontend/src/components/muhasebe/HakedisAutoSettings.jsx` - Otomatik toggle
+- `/app/frontend/src/components/muhasebe/ApplyHakedisModal.jsx` - Uygulama modalı
+- `/app/frontend/src/components/muhasebe/RevertHakedisModal.jsx` - Geri alma modalı
 
-#### 💰 Sipariş Ücret Sistemi - YENİ
+**Scheduler:** Otomatik haftalık hakediş işleme APScheduler'a eklendi (her dakika kontrol)
+
+#### 💰 Sipariş Ücret Sistemi
 Her sipariş için kurye ve restoran ücreti otomatik hesaplanıyor:
 
 **Backend Değişiklikleri (`/app/backend/routers/orders.py`):**
