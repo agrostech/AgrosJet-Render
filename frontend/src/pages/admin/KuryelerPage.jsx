@@ -335,13 +335,6 @@ export default function KuryelerPage({ companyId }) {
         onMerge={mergeCouriers}
       />
 
-      <CourierFinanceModal
-        open={showFinanceModal}
-        onOpenChange={setShowFinanceModal}
-        courier={selectedCourier}
-        companyId={companyId}
-      />
-
       <ConfirmModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
