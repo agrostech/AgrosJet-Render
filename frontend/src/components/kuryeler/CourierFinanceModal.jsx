@@ -1,98 +1,32 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Truck, Banknote, Save, Wallet, ArrowDownCircle, History, Package } from "lucide-react";
+import { Truck, Banknote, Wallet, Package } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export function CourierFinanceModal({ open, onOpenChange, courier, companyId }) {
   const [activeTab, setActiveTab] = useState("delivery");
   const [loading, setLoading] = useState(false);
-  
-  // Taşıma Finansı
-  const [deliveryFee, setDeliveryFee] = useState("");
-  
-  // Tahsilat Finansı
+  const [deliveryData, setDeliveryData] = useState(null);
   const [collectionData, setCollectionData] = useState(null);
-  const [collectionAmount, setCollectionAmount] = useState("");
-  const [collectionNote, setCollectionNote] = useState("");
-  const [collectionLoading, setCollectionLoading] = useState(false);
   
-  // Load existing data
   useEffect(() => {
     if (open && courier) {
-      loadFinanceData();
-      loadCollectionData();
+      loadData();
     }
   }, [open, courier]);
 
-  const loadFinanceData = async () => {
+  const loadData = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(`${API}/couriers/${courier.id}/finance`);
-      if (res.data) {
-        setDeliveryFee(res.data.delivery_fee_per_package?.toString() || "");
-      }
+      const res = await axios.get(`${API}/couriers/${courier.id}/finance-logs?company_id=${companyId}`);
+      setDeliveryData(res.data.delivery);
+      setCollectionData(res.data.collection);
     } catch (err) {
-      setDeliveryFee("");
-    }
-  };
-
-  const loadCollectionData = async () => {
-    setCollectionLoading(true);
-    try {
-      const res = await axios.get(`${API}/couriers/${courier.id}/collections?company_id=${companyId}`);
-      setCollectionData(res.data);
-    } catch (err) {
+      setDeliveryData(null);
       setCollectionData(null);
-    } finally {
-      setCollectionLoading(false);
-    }
-  };
-
-  const handleSaveDeliveryFinance = async () => {
-    if (!deliveryFee || isNaN(parseFloat(deliveryFee))) {
-      toast.error("Geçerli bir ücret girin");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await axios.post(`${API}/couriers/${courier.id}/finance`, {
-        delivery_fee_per_package: parseFloat(deliveryFee),
-        company_id: companyId
-      });
-      toast.success("Taşıma ücreti kaydedildi");
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Kaydetme hatası");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddCollection = async () => {
-    if (!collectionAmount || isNaN(parseFloat(collectionAmount)) || parseFloat(collectionAmount) <= 0) {
-      toast.error("Geçerli bir tutar girin");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await axios.post(`${API}/couriers/${courier.id}/collections`, {
-        amount: parseFloat(collectionAmount),
-        note: collectionNote,
-        company_id: companyId
-      });
-      toast.success("Tahsilat kaydedildi");
-      setCollectionAmount("");
-      setCollectionNote("");
-      loadCollectionData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Tahsilat kaydedilemedi");
     } finally {
       setLoading(false);
     }
@@ -106,8 +40,7 @@ export function CourierFinanceModal({ open, onOpenChange, courier, companyId }) 
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleString('tr-TR', { 
       day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric',
+      month: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -117,7 +50,7 @@ export function CourierFinanceModal({ open, onOpenChange, courier, companyId }) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="w-5 h-5 text-green-600" />
@@ -137,148 +70,111 @@ export function CourierFinanceModal({ open, onOpenChange, courier, companyId }) 
             </TabsTrigger>
           </TabsList>
 
-          {/* Taşıma Finansı Sekmesi */}
+          {/* Taşıma Finansı - Teslim edilen siparişler ve kazançlar */}
           <TabsContent value="delivery" className="mt-4 space-y-4">
-            <div className="p-4 bg-slate-50 rounded-lg border">
-              <Label className="text-sm font-medium">Paket Başı Kurye Ücreti</Label>
-              <p className="text-xs text-muted-foreground mb-3">
-                Her teslim edilen paket için kuryeye ödenecek ücret
-              </p>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={deliveryFee}
-                  onChange={(e) => setDeliveryFee(e.target.value)}
-                  placeholder="0.00"
-                  className="flex-1"
-                  data-testid="courier-delivery-fee-input"
-                />
-                <span className="text-sm font-medium text-muted-foreground">₺</span>
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleSaveDeliveryFinance} 
-              disabled={loading}
-              className="w-full"
-              data-testid="save-courier-delivery-fee-btn"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {loading ? "Kaydediliyor..." : "Kaydet"}
-            </Button>
-          </TabsContent>
-
-          {/* Tahsilat Finansı Sekmesi */}
-          <TabsContent value="collection" className="mt-4 space-y-4">
-            {collectionLoading ? (
+            {loading ? (
               <div className="p-8 text-center text-muted-foreground">
                 <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
                 Yükleniyor...
               </div>
             ) : (
               <>
-                {/* Özet Kartları */}
+                {/* Özet */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-xs text-red-600 font-medium mb-1">Bekleyen Tahsilat</p>
-                    <p className="text-lg font-bold text-red-700">
-                      {formatCurrency(collectionData?.pending_total)}
-                    </p>
-                    <p className="text-xs text-red-500 mt-1">
-                      {collectionData?.pending_orders?.length || 0} sipariş
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-600 font-medium mb-1">Teslim Edilen</p>
+                    <p className="text-lg font-bold text-blue-700">
+                      {deliveryData?.total_orders || 0} sipariş
                     </p>
                   </div>
                   <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                    <p className="text-xs text-green-600 font-medium mb-1">Tahsil Edilen</p>
+                    <p className="text-xs text-green-600 font-medium mb-1">Toplam Kazanç</p>
                     <p className="text-lg font-bold text-green-700">
-                      {formatCurrency(collectionData?.collected_total)}
+                      {formatCurrency(deliveryData?.total_earning)}
                     </p>
                   </div>
                 </div>
 
-                {/* Tahsilat Formu */}
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <ArrowDownCircle className="w-4 h-4 text-blue-600" />
-                    <Label className="text-sm font-medium text-blue-800">Yeni Tahsilat</Label>
+                {/* Paket başı ücret bilgisi */}
+                {deliveryData?.fee_per_package > 0 && (
+                  <div className="p-2 bg-slate-100 rounded text-center text-sm">
+                    Paket başı: <strong>{formatCurrency(deliveryData.fee_per_package)}</strong>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={collectionAmount}
-                        onChange={(e) => setCollectionAmount(e.target.value)}
-                        placeholder="Tutar"
-                        className="flex-1 bg-white"
-                        data-testid="courier-collection-amount-input"
-                      />
-                      <span className="text-sm font-medium text-muted-foreground">₺</span>
-                    </div>
-                    <Input
-                      value={collectionNote}
-                      onChange={(e) => setCollectionNote(e.target.value)}
-                      placeholder="Not (opsiyonel)"
-                      className="bg-white"
-                      data-testid="courier-collection-note-input"
-                    />
-                    <Button 
-                      onClick={handleAddCollection}
-                      disabled={loading}
-                      className="w-full"
-                      data-testid="add-courier-collection-btn"
-                    >
-                      <Banknote className="w-4 h-4 mr-2" />
-                      {loading ? "Kaydediliyor..." : "Tahsilat Ekle"}
-                    </Button>
-                  </div>
-                </div>
+                )}
 
-                {/* Son İşlemler */}
-                {collectionData?.collected_transactions?.length > 0 && (
+                {/* Sipariş Listesi */}
+                {deliveryData?.orders?.length > 0 ? (
                   <div className="border rounded-lg">
                     <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
-                      <History className="w-4 h-4 text-slate-600" />
-                      <span className="text-sm font-medium">Son Tahsilatlar</span>
+                      <Package className="w-4 h-4 text-slate-600" />
+                      <span className="text-sm font-medium">Teslim Edilen Siparişler</span>
                     </div>
-                    <div className="max-h-[200px] overflow-y-auto">
-                      {collectionData.collected_transactions.slice(0, 10).map((t) => (
-                        <div key={t.id} className="p-3 border-b last:border-b-0 flex justify-between items-center">
+                    <div className="max-h-[300px] overflow-y-auto">
+                      {deliveryData.orders.map((o, idx) => (
+                        <div key={o.id || idx} className="p-3 border-b last:border-b-0 flex justify-between items-center">
                           <div>
-                            <p className="text-sm font-medium text-green-700">
-                              +{formatCurrency(t.amount)}
-                            </p>
-                            {t.note && (
-                              <p className="text-xs text-muted-foreground">{t.note}</p>
-                            )}
+                            <p className="text-sm font-medium">{o.restaurant_name}</p>
+                            <p className="text-xs text-muted-foreground">{o.customer_name}</p>
+                            <p className="text-xs text-muted-foreground">{formatDate(o.delivered_at)}</p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(t.created_at)}
+                          <p className="text-sm font-bold text-green-600">
+                            +{formatCurrency(o.courier_earning)}
                           </p>
                         </div>
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <div className="p-8 text-center text-muted-foreground border rounded-lg">
+                    <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Henüz teslim edilen sipariş yok</p>
+                  </div>
                 )}
+              </>
+            )}
+          </TabsContent>
 
-                {/* Bekleyen Siparişler */}
-                {collectionData?.pending_orders?.length > 0 && (
+          {/* Tahsilat Finansı - Nakit siparişler */}
+          <TabsContent value="collection" className="mt-4 space-y-4">
+            {loading ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                Yükleniyor...
+              </div>
+            ) : (
+              <>
+                {/* Özet */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-xs text-red-600 font-medium mb-1">Nakit Tahsilat</p>
+                    <p className="text-lg font-bold text-red-700">
+                      {formatCurrency(collectionData?.total_cash)}
+                    </p>
+                    <p className="text-xs text-red-500">{collectionData?.cash_orders || 0} sipariş</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <p className="text-xs text-purple-600 font-medium mb-1">Online Ödeme</p>
+                    <p className="text-lg font-bold text-purple-700">
+                      {formatCurrency(collectionData?.total_online)}
+                    </p>
+                    <p className="text-xs text-purple-500">{collectionData?.online_orders || 0} sipariş</p>
+                  </div>
+                </div>
+
+                {/* Nakit Sipariş Listesi */}
+                {collectionData?.orders?.length > 0 ? (
                   <div className="border rounded-lg">
                     <div className="flex items-center gap-2 p-3 border-b bg-slate-50">
-                      <Package className="w-4 h-4 text-slate-600" />
-                      <span className="text-sm font-medium">
-                        Bekleyen Nakit Siparişler ({collectionData.pending_orders.length})
-                      </span>
+                      <Banknote className="w-4 h-4 text-slate-600" />
+                      <span className="text-sm font-medium">Nakit Siparişler</span>
                     </div>
-                    <div className="max-h-[200px] overflow-y-auto">
-                      {collectionData.pending_orders.slice(0, 10).map((o) => (
-                        <div key={o.id} className="p-3 border-b last:border-b-0 flex justify-between items-center">
+                    <div className="max-h-[300px] overflow-y-auto">
+                      {collectionData.orders.map((o, idx) => (
+                        <div key={o.id || idx} className="p-3 border-b last:border-b-0 flex justify-between items-center">
                           <div>
-                            <p className="text-sm font-medium">{o.restaurant_name || "Restoran"}</p>
+                            <p className="text-sm font-medium">{o.restaurant_name}</p>
                             <p className="text-xs text-muted-foreground">{o.customer_name}</p>
+                            <p className="text-xs text-muted-foreground">{formatDate(o.delivered_at)}</p>
                           </div>
                           <p className="text-sm font-bold text-red-600">
                             {formatCurrency(o.total_amount)}
@@ -286,6 +182,11 @@ export function CourierFinanceModal({ open, onOpenChange, courier, companyId }) 
                         </div>
                       ))}
                     </div>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-muted-foreground border rounded-lg">
+                    <Banknote className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Nakit sipariş yok</p>
                   </div>
                 )}
               </>
