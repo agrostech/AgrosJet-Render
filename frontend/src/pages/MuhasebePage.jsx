@@ -7,7 +7,7 @@ import CarilerTab from "./muhasebe/CarilerTab";
 import HareketlerTab from "./muhasebe/HareketlerTab";
 import FaturalarTab from "./muhasebe/FaturalarTab";
 import IsletmeFaturalariTab from "./muhasebe/IsletmeFaturalariTab";
-import TopluHakedisTab from "./muhasebe/BonusTab";
+import HaftalikHakedisTab from "./muhasebe/HaftalikHakedisTab";
 import GunlukTahsilatTab from "./muhasebe/GunlukTahsilatTab";
 import MutabakatTab from "./muhasebe/ExcelKarsilastirmaTab";
 
