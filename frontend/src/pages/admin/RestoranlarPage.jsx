@@ -950,13 +950,4 @@ export default function RestoranlarPage({ companyId }) {
         </DialogContent>
       </Dialog>
 
-      {/* Finance Modal */}
-      <RestaurantFinanceModal
-        open={showFinanceModal}
-        onOpenChange={setShowFinanceModal}
-        restaurant={selectedRestaurant}
-        companyId={companyId}
-      />
-    </div>
-  );
-}
+      {/* Integration Modal */}
