@@ -186,27 +186,29 @@ export default function HaftalikHakedisTab({ companyId }) {
     }
   };
 
-  // Apply hakedis
+  // Apply hakedis (sadece işlenmemiş seçili kuryeler için)
   const handleApplyHakedis = async () => {
-    if (selectedIds.length === 0) return;
+    const selectedUnprocessedCouriers = couriers.filter(
+      c => selectedIds.includes(c.courier_id) && !c.is_processed && c.amount > 0
+    );
+    
+    if (selectedUnprocessedCouriers.length === 0) return;
     
     setApplyLoading(true);
     try {
-      const items = couriers
-        .filter(c => selectedIds.includes(c.courier_id))
-        .map(c => ({
-          courier_id: c.courier_id,
-          courier_name: c.courier_name,
-          amount: c.amount,
-          order_count: c.order_count,
-          distance_km: c.distance_km
-        }));
+      const items = selectedUnprocessedCouriers.map(c => ({
+        courier_id: c.courier_id,
+        courier_name: c.courier_name,
+        amount: c.amount,
+        order_count: c.order_count,
+        distance_km: c.distance_km
+      }));
       
       const res = await axios.post(`${API}/weekly-hakedis/apply/${companyId}`, {
         week_start: selectedWeek.week_start,
         week_end: selectedWeek.week_end,
         items,
-        admin_id: "manual", // Bu değer frontend'den alınabilir
+        admin_id: "manual",
         admin_name: "Admin",
         add_hakedis: addHakedis,
         add_jetpuan: addJetpuan
