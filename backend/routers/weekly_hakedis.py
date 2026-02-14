@@ -285,12 +285,14 @@ async def apply_weekly_hakedis(company_id: str, data: ApplyHakedisRequest):
             continue
         
         # Daha önce işlenmiş mi kontrol et
+        import re
+        week_description_escaped = re.escape(week_description)
         existing = await db.transactions.find_one({
             "company_id": company_id,
             "entity_type": "courier",
             "entity_id": item.courier_id,
             "is_hakedis": True,
-            "description": {"$regex": week_description, "$options": "i"}
+            "description": {"$regex": week_description_escaped, "$options": "i"}
         })
         
         if existing:
