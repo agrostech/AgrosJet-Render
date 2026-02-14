@@ -1797,14 +1797,14 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               {(() => {
                                 const sortedActive = sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders);
                                 const sortedOnBreak = sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders);
-                                const sortedOffline = sortCouriersByDistanceAndLoad(couriersByStatus.offline, order.restaurant_location, orders);
+                                const sortedOffline = couriersByStatus.offline || [];
                                 
-                                const renderCourierItem = (c) => (
+                                const renderCourierItem = (c, showDistance = true) => (
                                   <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white pr-10">
                                     <div className="flex items-center justify-between w-full gap-2">
                                       <span className="font-medium">{c.name}</span>
                                       <div className="flex items-center gap-1 flex-shrink-0">
-                                        {formatCourierDistance(c.distanceToRestaurant) && (
+                                        {showDistance && formatCourierDistance(c.distanceToRestaurant) && (
                                           <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">{formatCourierDistance(c.distanceToRestaurant)}</span>
                                         )}
                                         {c.assignedCount > 0 && (
@@ -1823,19 +1823,19 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                     {sortedActive.length > 0 && (
                                       <>
                                         <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
-                                        {sortedActive.map(renderCourierItem)}
+                                        {sortedActive.map(c => renderCourierItem(c, true))}
                                       </>
                                     )}
                                     {sortedOnBreak.length > 0 && (
                                       <>
                                         <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
-                                        {sortedOnBreak.map(renderCourierItem)}
+                                        {sortedOnBreak.map(c => renderCourierItem(c, true))}
                                       </>
                                     )}
                                     {sortedOffline.length > 0 && (
                                       <>
                                         <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">Çevrimdışı</div>
-                                        {sortedOffline.map(renderCourierItem)}
+                                        {sortedOffline.map(c => renderCourierItem(c, false))}
                                       </>
                                     )}
                                   </>
