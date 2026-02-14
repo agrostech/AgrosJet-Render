@@ -82,8 +82,8 @@ export default function KuryelerPage({ companyId }) {
   });
 
   const openFinanceModal = (courier) => {
+    // TODO: Yeni finans sistemi eklenecek
     setSelectedCourier(courier);
-    setShowFinanceModal(true);
   };
 
   const handleRemove = async (courierId) => {
