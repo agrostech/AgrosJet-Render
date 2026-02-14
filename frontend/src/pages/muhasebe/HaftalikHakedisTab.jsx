@@ -286,10 +286,21 @@ export default function HaftalikHakedisTab({ companyId }) {
 
   // Calculated values
   const selectedCouriers = couriers.filter(c => selectedIds.includes(c.courier_id));
-  const selectedTotal = selectedCouriers.reduce((sum, c) => sum + c.amount, 0);
+  
+  // İşlenmemiş seçili kuryeler (hakediş ekleme için)
+  const selectedUnprocessed = selectedCouriers.filter(c => !c.is_processed && c.amount > 0);
+  const selectedUnprocessedTotal = selectedUnprocessed.reduce((sum, c) => sum + c.amount, 0);
+  
+  // İşlenmiş seçili kuryeler (geri alma için)
+  const selectedProcessed = selectedCouriers.filter(c => c.is_processed);
+  const selectedProcessedTotal = selectedProcessed.reduce((sum, c) => sum + c.amount, 0);
+  
+  // Tüm işlenmiş kuryeler
   const processedCouriers = couriers.filter(c => c.is_processed);
   const processedTotal = processedCouriers.reduce((sum, c) => sum + c.amount, 0);
-  const canRevert = processedCouriers.length > 0 && selectedWeek?.is_current;
+  
+  // Geri alma butonu için: işlenmiş kurye seçili olmalı ve current week olmalı
+  const canRevert = selectedProcessed.length > 0 && selectedWeek?.is_current;
 
   if (initialLoading) {
     return <PageLoading />;
