@@ -204,41 +204,41 @@ export default function HaftalikHakedisTab({ companyId }) {
       {/* Sonuçlar */}
       {data && !loading && (
         <>
-          {/* Özet Kartları */}
+          {/* Özet Kartları - Daha Resmi */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="border-2">
+            <Card className="border bg-white shadow-sm">
               <CardContent className="p-4 text-center">
-                <Users className="w-6 h-6 mx-auto mb-2 text-slate-500" />
-                <p className="text-2xl font-bold">{data.couriers.filter(c => c.total_orders > 0).length}</p>
-                <p className="text-xs text-muted-foreground">Aktif Kurye</p>
+                <Users className="w-5 h-5 mx-auto mb-2 text-slate-500" />
+                <p className="text-2xl font-bold text-slate-800">{data.couriers.filter(c => c.total_orders > 0).length}</p>
+                <p className="text-xs text-slate-500">Aktif Kurye</p>
               </CardContent>
             </Card>
-            <Card className="border-2">
+            <Card className="border bg-white shadow-sm">
               <CardContent className="p-4 text-center">
-                <Package className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                <p className="text-2xl font-bold">{data.summary.total_orders}</p>
-                <p className="text-xs text-muted-foreground">Toplam Sipariş</p>
+                <Package className="w-5 h-5 mx-auto mb-2 text-slate-500" />
+                <p className="text-2xl font-bold text-slate-800">{data.summary.total_orders}</p>
+                <p className="text-xs text-slate-500">Toplam Sipariş</p>
               </CardContent>
             </Card>
-            <Card className="border-2 col-span-2">
+            <Card className="border bg-white shadow-sm col-span-2">
               <CardContent className="p-4 text-center">
-                <Wallet className="w-6 h-6 mx-auto mb-2 text-green-500" />
-                <p className="text-2xl font-bold text-green-600">{formatMoney(data.summary.total_courier_fee)}</p>
-                <p className="text-xs text-muted-foreground">Toplam Hakediş</p>
+                <Wallet className="w-5 h-5 mx-auto mb-2 text-slate-500" />
+                <p className="text-2xl font-bold text-slate-800">{formatMoney(data.summary.total_courier_fee)}</p>
+                <p className="text-xs text-slate-500">Toplam Hakediş</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Kurye Listesi */}
-          <Card className="border-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">
+          {/* Kurye Listesi - Daha Resmi Tablo */}
+          <Card className="border bg-white shadow-sm">
+            <CardHeader className="pb-2 border-b bg-slate-50">
+              <CardTitle className="text-sm font-semibold text-slate-700">
                 Kurye Hakedişleri ({data.couriers.length} kurye)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {data.couriers.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
+                <div className="p-8 text-center text-slate-500">
                   <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p>Bu tarih aralığında teslim edilmiş sipariş bulunamadı</p>
                 </div>
@@ -246,43 +246,41 @@ export default function HaftalikHakedisTab({ companyId }) {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b-2 border-primary bg-slate-50">
-                        <th className="text-left p-3 font-bold text-xs">Kurye</th>
-                        <th className="text-left p-3 font-bold text-xs hidden sm:table-cell">Telefon</th>
-                        <th className="text-center p-3 font-bold text-xs">Sipariş</th>
-                        <th className="text-center p-3 font-bold text-xs hidden md:table-cell">Mesafe</th>
-                        <th className="text-right p-3 font-bold text-xs">Hakediş</th>
+                      <tr className="border-b bg-slate-50">
+                        <th className="text-left p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Kurye</th>
+                        <th className="text-left p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider hidden sm:table-cell">Telefon</th>
+                        <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Sipariş</th>
+                        <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider hidden md:table-cell">Mesafe</th>
+                        <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Hakediş</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {data.couriers.map((courier) => (
+                      {data.couriers.map((courier, idx) => (
                         <tr 
                           key={courier.courier_id}
                           className={`border-b hover:bg-slate-50 transition-colors ${
                             courier.total_orders === 0 ? 'opacity-50' : ''
-                          }`}
+                          } ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}
                         >
                           <td className="p-3">
-                            <span className="font-medium">{courier.courier_name}</span>
+                            <span className="font-medium text-slate-800">{courier.courier_name}</span>
                           </td>
-                          <td className="p-3 text-xs text-muted-foreground font-mono hidden sm:table-cell">
+                          <td className="p-3 text-xs text-slate-500 font-mono hidden sm:table-cell">
                             {courier.courier_phone || "-"}
                           </td>
                           <td className="p-3 text-center">
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                            <span className="font-semibold text-slate-700">
                               {courier.total_orders}
                             </span>
                           </td>
                           <td className="p-3 text-center text-xs hidden md:table-cell">
-                            <span className="flex items-center justify-center gap-1">
-                              <MapPin className="w-3 h-3 text-muted-foreground" />
+                            <span className="flex items-center justify-center gap-1 text-slate-600">
+                              <MapPin className="w-3 h-3" />
                               {courier.total_distance.toFixed(1)} km
                             </span>
                           </td>
                           <td className="p-3 text-right">
-                            <span className={`font-bold font-mono ${
-                              courier.total_courier_fee > 0 ? 'text-green-600' : 'text-muted-foreground'
-                            }`}>
+                            <span className="font-semibold font-mono text-slate-800">
                               {formatMoney(courier.total_courier_fee)}
                             </span>
                           </td>
@@ -290,16 +288,14 @@ export default function HaftalikHakedisTab({ companyId }) {
                       ))}
                     </tbody>
                     <tfoot>
-                      <tr className="bg-slate-100 font-bold">
-                        <td className="p-3">Toplam</td>
+                      <tr className="bg-slate-100 font-semibold border-t-2">
+                        <td className="p-3 text-slate-700">Toplam</td>
                         <td className="p-3 hidden sm:table-cell"></td>
-                        <td className="p-3 text-center">
-                          <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs">
-                            {data.summary.total_orders}
-                          </span>
+                        <td className="p-3 text-center text-slate-700">
+                          {data.summary.total_orders}
                         </td>
                         <td className="p-3 hidden md:table-cell"></td>
-                        <td className="p-3 text-right text-green-600 font-mono">
+                        <td className="p-3 text-right font-mono text-slate-800">
                           {formatMoney(data.summary.total_courier_fee)}
                         </td>
                       </tr>
