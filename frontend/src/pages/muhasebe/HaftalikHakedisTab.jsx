@@ -22,53 +22,47 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL';
 };
 
-// Önceki Pazartesi'yi al (sistemin açılış saati ile)
-const getPreviousMonday = (openingTime = "09:00") => {
+// Bu haftanın Pazartesi'sini al (sistemin açılış saati ile)
+const getThisMonday = (openingTime = "09:00") => {
   const now = new Date();
-  const day = now.getDay();
-  // Önceki pazartesiye git (eğer bugün pazartesi ise bu hafta değil geçen hafta)
-  const daysToSubtract = day === 0 ? 6 : (day === 1 ? 7 : day - 1 + 7);
-  const prevMonday = new Date(now);
-  prevMonday.setDate(now.getDate() - daysToSubtract + 7); // Bu haftanın pazartesi
+  const day = now.getDay(); // 0=Pazar, 1=Pazartesi, ...
   
-  // Aslında "önceki pazartesi" = bu haftanın pazartesi (7 gün geriye)
-  const actualPrevMonday = new Date(now);
+  // Bu haftanın pazartesine git
   const diffToMonday = day === 0 ? -6 : 1 - day;
-  actualPrevMonday.setDate(now.getDate() + diffToMonday - 7);
+  const thisMonday = new Date(now);
+  thisMonday.setDate(now.getDate() + diffToMonday);
   
   const [hours, minutes] = openingTime.split(':').map(Number);
-  actualPrevMonday.setHours(hours, minutes, 0, 0);
+  thisMonday.setHours(hours, minutes, 0, 0);
   
-  // Local datetime-local format için
-  const year = actualPrevMonday.getFullYear();
-  const month = String(actualPrevMonday.getMonth() + 1).padStart(2, '0');
-  const date = String(actualPrevMonday.getDate()).padStart(2, '0');
-  const hour = String(actualPrevMonday.getHours()).padStart(2, '0');
-  const min = String(actualPrevMonday.getMinutes()).padStart(2, '0');
-  
-  return `${year}-${month}-${date}T${hour}:${min}`;
+  return formatDateTimeLocal(thisMonday);
 };
 
-// Sonraki Pazartesi'yi al (sistemin açılış saati ile)
-const getNextMonday = (openingTime = "09:00") => {
+// Sonraki Pazartesi'yi al (sistemin kapanış saati ile)
+const getNextMonday = (closingTime = "22:00") => {
   const now = new Date();
-  const day = now.getDay();
+  const day = now.getDay(); // 0=Pazar, 1=Pazartesi, ...
+  
   // Sonraki pazartesiye git
   const daysToAdd = day === 0 ? 1 : (8 - day);
   const nextMonday = new Date(now);
   nextMonday.setDate(now.getDate() + daysToAdd);
   
-  const [hours, minutes] = openingTime.split(':').map(Number);
+  const [hours, minutes] = closingTime.split(':').map(Number);
   nextMonday.setHours(hours, minutes, 0, 0);
   
-  // Local datetime-local format için
-  const year = nextMonday.getFullYear();
-  const month = String(nextMonday.getMonth() + 1).padStart(2, '0');
-  const date = String(nextMonday.getDate()).padStart(2, '0');
-  const hour = String(nextMonday.getHours()).padStart(2, '0');
-  const min = String(nextMonday.getMinutes()).padStart(2, '0');
+  return formatDateTimeLocal(nextMonday);
+};
+
+// Tarihi datetime-local format için formatla
+const formatDateTimeLocal = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
   
-  return `${year}-${month}-${date}T${hour}:${min}`;
+  return `${year}-${month}-${day}T${hour}:${min}`;
 };
 
 export default function HaftalikHakedisTab({ companyId }) {
