@@ -142,42 +142,42 @@ export default function HaftalikHakedisTab({ companyId }) {
     URL.revokeObjectURL(url);
   };
 
+  // Sistem saatleri yüklenene kadar bekle
+  if (!systemHoursLoaded) {
+    return <PageLoading />;
+  }
+
   return (
     <div className="space-y-4" data-testid="haftalik-hakedis-tab">
-      {/* Filtre Kartı */}
-      <Card className="border-2">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Tarih Aralığı Seç
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[180px]">
-              <Label className="text-xs font-semibold mb-1 block">Başlangıç</Label>
+      {/* Filtre Kartı - Compact Single Line */}
+      <Card className="border bg-white shadow-sm">
+        <CardContent className="py-3 px-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <Calendar className="w-4 h-4 text-slate-500" />
+              <span>Tarih Aralığı:</span>
+            </div>
+            <div className="flex items-center gap-2">
               <Input
                 type="datetime-local"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="h-10 border-2"
+                className="h-9 border text-sm w-[185px]"
                 data-testid="hakedis-start-date"
               />
-            </div>
-            <div className="flex-1 min-w-[180px]">
-              <Label className="text-xs font-semibold mb-1 block">Bitiş</Label>
+              <span className="text-slate-400">—</span>
               <Input
                 type="datetime-local"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="h-10 border-2"
+                className="h-9 border text-sm w-[185px]"
                 data-testid="hakedis-end-date"
               />
             </div>
             <Button 
               onClick={fetchHakedis} 
               disabled={loading}
-              className="h-10"
+              className="h-9"
               data-testid="hakedis-search-btn"
             >
               <Search className="w-4 h-4 mr-2" />
@@ -187,7 +187,7 @@ export default function HaftalikHakedisTab({ companyId }) {
               <Button 
                 variant="outline" 
                 onClick={handleExportCSV}
-                className="h-10 border-2"
+                className="h-9"
                 data-testid="hakedis-export-btn"
               >
                 <Download className="w-4 h-4 mr-2" />
