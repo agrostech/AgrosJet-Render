@@ -140,22 +140,62 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
     payment_name_lower = (payment_method_name or "").lower()
     external_app_lower = (external_app_name or "").lower()
     
-    # Yemeksepeti, Getir gibi platformlardan gelen siparişler online
+    # Debug log
+    print(f"[ADISYO PAYMENT] ID: {payment_method_id}, Name: '{payment_method_name}', External: '{external_app_name}'")
+    
+    # Yemeksepeti, Getir gibi platformlardan gelen siparişler - ödeme yöntemini kontrol et
     online_platforms = ["yemeksepeti", "getir", "trendyol", "migros"]
-    if any(platform in external_app_lower for platform in online_platforms):
+    is_external_platform = any(platform in external_app_lower for platform in online_platforms)
+    
+    # Nakit kontrolü - en önce kontrol et
+    if "nakit" in payment_name_lower or "cash" in payment_name_lower:
+        print(f"[ADISYO PAYMENT] -> cash (nakit keyword found)")
+        return "cash"
+    
+    # Kapıda ödeme kontrolü
+    if "kapıda" in payment_name_lower or "kapida" in payment_name_lower:
+        # Kapıda nakit mi kapıda kart mı?
+        if "kart" in payment_name_lower or "kredi" in payment_name_lower:
+            print(f"[ADISYO PAYMENT] -> card (kapıda kart)")
+            return "card"
+        else:
+            print(f"[ADISYO PAYMENT] -> cash (kapıda ödeme)")
+            return "cash"
+    
+    # Online ödeme kontrolü
+    if "online" in payment_name_lower or "çevrimiçi" in payment_name_lower or "cevrimici" in payment_name_lower:
+        print(f"[ADISYO PAYMENT] -> online (online keyword found)")
         return "online"
     
-    # Ödeme yöntemi adına göre kontrol
-    if "nakit" in payment_name_lower or "cash" in payment_name_lower:
-        return "cash"
-    elif "online" in payment_name_lower or "çevrimiçi" in payment_name_lower:
-        return "online"
-    elif payment_method_id == 1:
-        return "cash"
-    elif payment_method_id == 3:
-        return "online"
-    else:
+    # Kredi/Banka kartı kontrolü
+    if "kredi" in payment_name_lower or "banka" in payment_name_lower or "kart" in payment_name_lower:
+        # Online ödeme mi kapıda mı?
+        if is_external_platform:
+            print(f"[ADISYO PAYMENT] -> online (external platform with card)")
+            return "online"
+        print(f"[ADISYO PAYMENT] -> card (kart keyword found)")
         return "card"
+    
+    # ID bazlı kontrol - payment_method_name boş veya tanımsızsa
+    # Adisyo'da genellikle: 1=Nakit, 2=Kredi Kartı, 3=Online
+    if payment_method_id == 1:
+        print(f"[ADISYO PAYMENT] -> cash (ID=1)")
+        return "cash"
+    elif payment_method_id == 2:
+        print(f"[ADISYO PAYMENT] -> card (ID=2)")
+        return "card"
+    elif payment_method_id == 3:
+        print(f"[ADISYO PAYMENT] -> online (ID=3)")
+        return "online"
+    
+    # External platform ise ve yukarıdakilerden hiçbiri değilse online
+    if is_external_platform:
+        print(f"[ADISYO PAYMENT] -> online (external platform default)")
+        return "online"
+    
+    # Varsayılan olarak nakit (Türkiye'de yaygın)
+    print(f"[ADISYO PAYMENT] -> cash (default)")
+    return "cash"
 
 
 def parse_coordinate(coord) -> float:
