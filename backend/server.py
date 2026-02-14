@@ -295,6 +295,7 @@ app.include_router(orders_router)
 app.include_router(finance_router)
 app.include_router(hakedis_router)
 app.include_router(weekly_hakedis_router)
+app.include_router(daily_mutabakat_router)
 
 # Health check
 @api_router.get("/")
