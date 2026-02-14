@@ -225,19 +225,31 @@ export default function HaftalikHakedisTab({ companyId }) {
     }
   };
 
-  // Revert hakedis
+  // Revert hakedis (seçili işlenmiş kuryeler için)
   const handleRevertHakedis = async () => {
+    // Seçili işlenmiş kuryeleri bul
+    const selectedProcessedIds = couriers
+      .filter(c => c.is_processed && selectedIds.includes(c.courier_id))
+      .map(c => c.courier_id);
+    
+    if (selectedProcessedIds.length === 0) {
+      toast.error("Geri alınacak işlenmiş kurye seçilmedi");
+      return;
+    }
+    
     setRevertLoading(true);
     try {
       const res = await axios.post(`${API}/weekly-hakedis/revert/${companyId}`, {
         week_start: selectedWeek.week_start,
         week_end: selectedWeek.week_end,
         admin_id: "manual",
-        admin_name: "Admin"
+        admin_name: "Admin",
+        courier_ids: selectedProcessedIds
       });
       
       toast.success(res.data.message);
       setShowRevertModal(false);
+      setSelectedIds([]);
       
       // Refresh data
       fetchWeekData(selectedWeek);
