@@ -151,6 +151,8 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     courier_map = {c["id"]: c for c in couriers}
     courier_ids = list(courier_map.keys())
     
+    print(f"[DEBUG] courier_ids: {courier_ids}")
+    
     if not courier_ids:
         return {"couriers": [], "summary": {"total_amount": 0, "total_orders": 0}}
     
