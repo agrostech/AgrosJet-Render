@@ -424,23 +424,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const handleAssignCourier = async () => {
     if (!selectedOrder || !selectedCourierId) return;
     
-    // Seçilen kurye bilgisini bul
-    const courier = [...couriers.active, ...couriers.on_break, ...couriers.offline]
-      .find(c => c.id === selectedCourierId);
-    
-    // Optimistic update
-    setOrders(prev => prev.map(order => {
-      if (order.id === selectedOrder.id) {
-        return {
-          ...order,
-          status: 'assigned',
-          courier_id: selectedCourierId,
-          courier_name: courier?.name || '',
-          assigned_at: new Date().toISOString()
-        };
-      }
-      return order;
-    }));
+    const courier = couriers.find(c => c.id === selectedCourierId);
     
     setShowAssignModal(false);
     setSelectedCourierId("");
@@ -450,63 +434,72 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         courier_id: selectedCourierId,
         admin_name: adminName || "Admin"
       });
+      
+      // API başarılı - sadece bu siparişi güncelle
+      setOrders(prev => prev.map(order => {
+        if (order.id === selectedOrder.id) {
+          return {
+            ...order,
+            status: 'assigned',
+            courier_id: selectedCourierId,
+            courier_name: courier?.name || '',
+            assigned_at: new Date().toISOString()
+          };
+        }
+        return order;
+      }));
     } catch (err) {
       toast.error("Kurye atanamadı");
-      fetchOrders();
     }
   };
 
   const handleUnassignCourier = async (orderId) => {
-    // Optimistic update
-    setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
-        return {
-          ...order,
-          status: 'ready',
-          courier_id: null,
-          courier_name: null,
-          assigned_at: null,
-          confirmed_at: null
-        };
-      }
-      return order;
-    }));
-    
     try {
       await axios.delete(`${API}/orders/${companyId}/${orderId}/assign?admin_name=${encodeURIComponent(adminName || "Admin")}`);
+      
+      // API başarılı - sadece bu siparişi güncelle
+      setOrders(prev => prev.map(order => {
+        if (order.id === orderId) {
+          return {
+            ...order,
+            status: 'ready',
+            courier_id: null,
+            courier_name: null,
+            assigned_at: null,
+            confirmed_at: null
+          };
+        }
+        return order;
+      }));
     } catch (err) {
       toast.error(err.response?.data?.detail || "Kurye ataması kaldırılamadı");
-      fetchOrders();
     }
   };
 
   const handleReassignCourier = async (orderId, courierId) => {
-    // Seçilen kurye bilgisini bul
-    const courier = [...couriers.active, ...couriers.on_break, ...couriers.offline]
-      .find(c => c.id === courierId);
-    
-    // Optimistic update
-    setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
-        return {
-          ...order,
-          status: 'assigned',
-          courier_id: courierId,
-          courier_name: courier?.name || '',
-          assigned_at: new Date().toISOString()
-        };
-      }
-      return order;
-    }));
+    const courier = couriers.find(c => c.id === courierId);
     
     try {
       await axios.post(`${API}/orders/${companyId}/${orderId}/assign`, {
         courier_id: courierId,
         admin_name: adminName || "Admin"
       });
+      
+      // API başarılı - sadece bu siparişi güncelle
+      setOrders(prev => prev.map(order => {
+        if (order.id === orderId) {
+          return {
+            ...order,
+            status: 'assigned',
+            courier_id: courierId,
+            courier_name: courier?.name || '',
+            assigned_at: new Date().toISOString()
+          };
+        }
+        return order;
+      }));
     } catch (err) {
       toast.error("Kurye atanamadı");
-      fetchOrders();
     }
   };
 
