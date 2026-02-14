@@ -416,7 +416,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                       <th className="text-left p-2 font-bold text-xs">Tutar</th>
                       <th className="text-left p-2 font-bold text-xs">Ödeme</th>
                       <th className="text-left p-2 font-bold text-xs">Kurye</th>
-                      <th className="text-right p-2 font-bold text-xs">Ücretler</th>
+                      {isSuperAdmin && <th className="text-right p-2 font-bold text-xs">Ücretler</th>}
                     </tr>
                   </thead>
                   <tbody>
