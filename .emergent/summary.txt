@@ -1,97 +1,115 @@
 <analysis>**original_problem_statement:**
-The user is building a comprehensive, Adisyo-integrated order management system named ShiftJet. The project involves ongoing development of an admin panel with a focus on UI/UX improvements, bug fixes, and new feature implementations based on continuous user feedback.
+The user is building a comprehensive, Adisyo-integrated order management system named ShiftJet.
+
+Recent user requests implemented in this session:
+1.  **Muhasebe Hakediş Feature:**
+    *   Replace date filters with a week selector (Monday to Monday).
+    *   Default the week selector to the current week, using system open/close times.
+    *   Implement bulk processing to add weekly earnings () to courier balances.
+    *   Allow the bulk processing to be reversible for the most recent week.
+    *   Create a toggle to automate the weekly earnings processing.
+    *   Mark processed couriers with a visual indicator in the UI.
+    *   Redesign the UI for a more professional, less colorful appearance.
+2.  **Performance Optimization:**
+    *   Fix significant delays and errors when changing order statuses in quick succession on the Aktif Siparişler (Active Orders) page. The agent was asked to make this process much faster.
 
 PRODUCT REQUIREMENTS from previous sessions:
-1.  **Filter Logic & UI:** On History pages, fetch data only on button click with a compact, single-line filter UI.
-2.  **UI Redesigns:** Equal-width tab buttons with icons; convert active orders to a table view.
-3.  **Pagination & Search:** Add pagination and search to history tables.
-4.  **Table Enhancements:** Re-order columns, add a Courier column.
-5.  **Modal Unification:** Use a single, detailed order modal across all tabs.
-6.  **Super Admin Feature:** Allow super admins to change the status of any order.
-7.  **Bug Fixes:** Address map rendering issues, empty filter dropdowns, and failed status updates.
-8.  **Finance Feature (Phase 1):** Add a Finans button to  and  to open a modal showing delivery and collection finance summaries.
-9.  **Refactoring:** Refactor the overloaded  for better maintainability.
+*   Filter Logic & UI: Fetch data on button click with a compact filter UI.
+*   UI Redesigns: Equal-width tab buttons, table view for active orders.
+*   Pagination & Search for history tables.
+*   Table Enhancements: Re-order columns, add a Courier column.
+*   Modal Unification: Single, detailed order modal.
+*   Super Admin Feature: Allow status changes for any order.
+*   Bug Fixes: Map rendering, empty filter dropdowns.
+*   Finance Feature (Phase 1): Completed.
+*   Refactoring : Completed.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application's order management system is largely feature-complete based on recent requests. The Finans (Finance) feature has been implemented; it provides a modal on the Couriers and Restaurants pages that summarizes delivered orders and payment collections (online vs. cash). The massive  component has been successfully refactored into smaller, more manageable components, improving code structure without affecting functionality. All core order management features (active table, history/cancelled tables, unified modal, map) are functional and have been verified after the refactoring.
+A major feature, Haftalık Hakediş (Weekly Earnings), has been implemented in the accounting section. It allows admins to view, process, and automate weekly earnings for couriers via a new UI with a week selector. This includes backend logic for applying earnings, reversing them, and a scheduler for automation. Additionally, a critical performance issue with order status updates has been addressed. The system was optimized to prevent reloading the entire order list on every change, making the UI significantly more responsive. The user has requested a final tweak to this optimization.
 
 **Last working item**:
-- Last item agent was working: The user asked the agent to perform a mini check on the long-standing courier password creation bug before finishing the session. The agent acknowledged this but did not start the investigation. This is the immediate next task.
-- Status: NOT STARTED
+- Last item agent was working: The agent implemented an optimistic update for the order status change to make the UI feel instantaneous. However, the user expressed a preference for a more reliable approach where the UI updates only *after* the API call successfully completes. The agent was in the process of refactoring the code to meet this new requirement.
+- Status: IN PROGRESS
 - Agent Testing Done: N
-- Which testing method agent to use? both
+- Which testing method agent to use? frontend testing agent
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Root Cause of Courier Data Issues (P0)**
--   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
--   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
+-   **Issue 1: Finalize Order Status Update Logic (P0)**
+-   **Issue 2: Root Cause of Courier Data Issues (P0)**
+-   **Issue 3: Background Task Reliability (Notifications/Location) (P1)**
+-   **Issue 4: Mobile Sidebar Courier List Collapsible Bug (P1)**
 
 Issues Detail:
--   **Issue 1: Root Cause of Courier Data Issues (P0)**
-    -   **Description:** New couriers cannot log in because the courier creation process does not correctly hash and save their passwords. The user specifically asked for this to be checked at the end of the last session.
-    -   **Attempted fixes:** A password was manually set for one test courier in a previous session. The root cause has not been addressed.
+-   **Issue 1: Finalize Order Status Update Logic (P0)**
+    -   **Description:** The user wants the order status UI to update only after a successful API confirmation, not optimistically. The current task is to modify the existing optimization to reflect this.
+    -   **Attempted fixes:** The agent implemented an optimistic update in , which is now being reverted in favor of an update-after-success approach.
     -   **Next debug checklist:**
-        - Review the  endpoint in  to check the password hashing and saving logic.
-        - Review the courier creation form and its corresponding API call in .
-        - Create a new test courier via the UI and check the database to see if the  field is populated correctly.
-    -   **Why fix this issue and what will be achieved with the fix?** This is a critical bug that prevents the application from onboarding new couriers, which is a core business function.
+        - Modify the  function in .
+        - Ensure the function waits for the  API call to resolve successfully.
+        - On success, update only the specific order in the  state using , instead of refetching the whole list.
+    -   **Why fix this issue and what will be achieved with the fix?** To provide the user with a reliable UI that accurately reflects the backend state, preventing confusion if an API call fails.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on other issue:** None.
+-   **Issue 2: Root Cause of Courier Data Issues (P0)**
+    -   **Description:** New couriers cannot log in because the courier creation process does not correctly hash and save their passwords. This was the top priority from the last handoff but was deferred for new feature work.
+    -   **Attempted fixes:** None in this session.
+    -   **Next debug checklist:**
+        - Review the  endpoint in .
+        - Review the courier creation form in .
+        - Create a test courier and check the database  field.
+    -   **Why fix this issue and what will be achieved with the fix?** Critical business function; new couriers cannot be onboarded.
     -   **Status:** NOT STARTED
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** both
     -   **Blocked on other issue:** None.
--   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
+-   **Issue 3: Background Task Reliability (Notifications/Location) (P1)**
     -   **Description:** Location tracking and notifications may stop when the courier app is in the background.
-    -   **Attempted fixes:** Wake Lock API and a Service Worker were implemented. Awaiting user feedback from real-world testing.
-    -   **Next debug checklist:** Ask the user if they have had a chance to test this on a mobile device and if the issue persists.
-    -   **Why fix this issue and what will be achieved with the fix?** Live location tracking is a core feature for order management.
     -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on other issue:** None.
--   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
+-   **Issue 4: Mobile Sidebar Courier List Collapsible Bug (P1)**
     -   **Description:** The collapsible courier lists on the mobile sidebar may not expand on click.
-    -   **Attempted fixes:** Previous agent believed it was fixed, but it was never confirmed by the user.
-    -   **Next debug checklist:** Ask the user to verify if the bug still exists on mobile.
-    -   **Why fix this issue and what will be achieved with the fix?** It impacts the usability of the application on mobile devices.
     -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on other issue:** None.
 
 **In progress Task List**:
 -   **Task 1: Test and Finalize Payment Confirmation Modal (P1)**
-    -   **Where to resume:** This task is pending from a previous handoff. The user had stated they would handle the testing. The agent should confirm with the user if this is complete or if further work is needed.
-    -   **What will be achieved with this?** Enforces a critical business rule about payment confirmation.
+    -   **Where to resume:** Pending user testing and feedback from a previous session.
     -   **Status:** USER VERIFICATION PENDING
     -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0 - Implement Adisyo Webhooks:** Replace the inefficient polling mechanism with real-time order updates.
-    -   **P1 - Restrict Order Assignment:** Prevent admins from assigning orders to couriers who are Molada (On Break) or Çevrimdışı (Offline).
-    -   **P2 - Finance Reporting:** Create reports for the new finance system (e.g., how much does a courier owe?, how much is the company owed by a restaurant?).
+    -   **P0 - Implement Adisyo Webhooks:** Replace polling with real-time order updates.
+    -   **P1 - Restrict Order Assignment:** Prevent assigning orders to On Break or Offline couriers.
+    -   **P2 - Finance Reporting:** Create reports for the finance system.
 -   **Future Tasks:**
     -   **P1 - Re-enable & Enhance Chat System**
-    -   **P2 - Refactor Order History Pages:** Extract a reusable  component from  and .
+    -   **P2 - Refactor Order History Pages:** Create a reusable  component.
     -   **P2 - Dark Mode Implementation**
     -   **P3 - Motosikletim Feature Enhancements**
 
 **Completed work in this session**
--   **Feature: Finance Summary Modal (Phase 1):** Implemented a Finans feature as requested by the user. It adds a button to courier and restaurant lists, which opens a modal showing a summary of delivered orders and collected payments. This involved:
-    -   Creating backend endpoints in  to fetch relevant order data.
-    -   Building frontend modals  and  with tabs for Taşıma Finansı (Delivery Finance) and Tahsilat Finansı (Collection Finance).
-    -   Integrating the modals into  and .
--   **Refactoring:  Component:** Successfully refactored the monolithic 2400+ line  file.
-    -   Extracted logic into smaller, single-responsibility components: , , , , , and a utility file .
-    -   Reduced the main component's line count from ~2405 to ~944 lines.
-    -   Verified that all functionality (map, tables, modals, tab switching) remained intact after the refactor.
+-   **Feature: Haftalık Hakediş (Weekly Earnings) System:**
+    -   Built a new tab in the Muhasebe page.
+    -   Replaced date pickers with a dynamic week selector dropdown.
+    -   Implemented functionality to bulk-apply and revert weekly earnings for selected couriers, which updates their balances.
+    -   Added an automation toggle connected to a backend scheduler () to process earnings automatically.
+    -   Created new backend endpoints () and services to support this feature.
+    -   Refactored the UI for a more professional, monochrome look.
+    -   Successfully debugged an issue where processed status wasn't detected due to an incorrect regex pattern and mismatched database names during testing.
+-   **Performance: Order Status Update Optimization:**
+    -   Identified that calling  on every status change caused major slowdowns and race conditions.
+    -   Refactored  and  to update the state locally for a single order instead of refetching the entire list, dramatically improving UI responsiveness.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Courier Password on Creation:** The root cause of new couriers not having a password saved was not fixed. This is the top P0 issue in the Pending Issues list.
+-   **Issue 1: Courier Password on Creation:** The root cause of new couriers not having a password saved was not fixed. This is the P0 issue from the previous handoff.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork:** Mobile file upload issue.
@@ -102,48 +120,55 @@ Issues Detail:
 
 
 **Key Technical Concepts**
--   **Component Refactoring:** Breaking down a large, monolithic React component () into smaller, single-responsibility components to improve maintainability, readability, and separation of concerns.
--   **State Management in Refactoring:** Passing state and handler functions (e.g., , , ) as props from the parent container component () to the newly created child components.
--   **Backend Debugging:** Tracing a 404 error by identifying a missing API prefix on a router, and correcting it in .
--   **Clarifying User Requirements:** The agent initially misunderstood the Finance feature as a transaction system. After user correction, the agent successfully pivoted to building a simpler summary/log view, demonstrating the ability to adapt to feedback.
+-   **Frontend Performance Optimization:** Identified and resolved a major performance bottleneck by replacing a full data refetch () with a targeted local state update. This demonstrates a shift from naive data handling to more efficient state management in React.
+-   **API-Driven UI State:** Implemented a complex UI feature (Haftalık Hakediş) where the state (processed couriers, totals, button states) is derived from backend data and user interactions.
+-   **Backend Scheduled Jobs:** Used  within the FastAPI  to create a persistent, automated task for processing weekly earnings.
+-   **Complex State Management:** Managed interdependent state across multiple components, including selected items in a table, modal visibility, and data fetched from different API endpoints.
+-   **Database Debugging:** Successfully diagnosed a bug where  was always false by tracing the issue from the frontend state back through the API, to an incorrect regex pattern in a MongoDB query, and finally to using the wrong database name in a manual test script.
 
 **key DB schema**
--   No schema changes were made.
+-   No schema changes. The  collection is now used to store records for weekly earnings, identified by  and a formatted description.
 
 **All files of reference**
--    (The main container component after refactoring)
--   Files in  (The new, smaller components)
--    (The finalized backend logic for the finance summary)
 -   
 -   
--    (To be investigated for the password bug)
--    (To be investigated for the password bug)
+-   
+-   
+-   
+-    (For upcoming password bug fix)
 
 **Areas that need refactoring**:
--   ** & :** These two files share almost identical code for filtering, searching, and displaying a table. They should be refactored to use a single reusable  component.
+-   ** & :** These two files share nearly identical code and should be refactored to use a single reusable  component.
 
 **key api endpoints**
--   : **MODIFIED** - Fetches summary data (delivered order count, total earnings, payment breakdown) for a specific courier.
--   : **MODIFIED** - Fetches summary data for a specific restaurant.
+-   : Fetches a list of recent weeks for the selector.
+-   : Fetches earnings data for a selected week.
+-   : Applies earnings for selected couriers.
+-   : Reverts earnings for a given week.
+-   : Checks if automation is enabled.
+-   : Toggles the automation setting.
+-   : Reverts JetPuan based on the transaction description.
+-   : **OPTIMIZED** - Endpoint for status changes.
 
 **Critical Info for New Agent**
 -   **All communication must be in Turkish.**
--   The user's last request was to investigate the **courier password creation bug**. This is your **highest priority (P0)** task. The user is aware of this long-standing issue and wants it resolved.
--   The  refactoring is complete and was successful. You should feel confident working with the new, smaller components in .
--   The Finance feature is complete according to the user's clarified requirements (it's a logging/summary feature, not a complex accounting system). Do not try to add transactional logic to it unless requested.
+-   Your immediate task is to fix the order status update logic as per the user's latest request: **update the UI only after the API call is successful**. Do not use an optimistic update. The relevant files are  and .
+-   After completing the optimization tweak, your **highest priority (P0) is the courier password creation bug**. This is a long-standing critical issue that prevents new couriers from using the app.
+-   The Haftalık Hakediş feature is functionally complete and tested. Do not modify it unless requested.
 
 **documents and test reports created in this job**
 -   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User Request:** Check the courier password bug, then finish the task. **Status: PENDING (This is the next action)**
-2.  **User Request:** Refactor  but be very careful. **Status: COMPLETED**
-3.  **User Feedback (Clarification):** Corrected the agent's misunderstanding of the finance feature. Explained it should be a simple log/summary of existing pricing, not a new system for entering package fees. **Status: ADDRESSED**
-4.  **User Request:** Implement the Finance Feature. **Status: IN PROGRESS (at the time, now COMPLETED)**
+1.  **User Request:** The order status change is very slow and sometimes fails. Please speed it up. **Status: IN PROGRESS**
+2.  **User Feedback:** (After agent implemented optimistic update) I don't want the UI to update before the API call is successful. It's better to update it after confirming success. **Status: PENDING (This is the current task)**
+3.  **User Request:** Add a new feature: bulk add weekly earnings for couriers. **Status: COMPLETED**
+4.  **User Clarification:** Provided details for the earnings feature: checkbox selection, revert for the last week, automation toggle, and a week-selector instead of date-pickers. **Status: ADDRESSED**
+5.  **User Request:** For the Haftalık Hakediş tab, set default dates from the previous Monday to the next Monday and make the UI look more professional. **Status: COMPLETED**
+6.  **User Feedback:** The end time should be the system closing time, not opening time. **Status: ADDRESSED & COMPLETED**
 
 **Project Health Check:**
--   **Broken:** The courier creation process is fundamentally flawed as it does not save passwords, preventing any new courier from logging in. **This is the highest priority issue to fix.**
--   **Mocked:** The application still relies on some test data.
+-   **Broken:** The courier creation process remains broken as it does not save passwords correctly. This is a critical (P0) issue blocking a core business function.
 
 **3rd Party Integrations**
 -   : Integrated via a polling mechanism.
@@ -156,11 +181,11 @@ Issues Detail:
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
--   Known regressions: None. The agent successfully verified that the refactoring did not introduce regressions by manually testing the UI with screenshots.
+-   Known regressions: None.
 
 **Credentials to test flow:**
 -   **Multi-company Admin:** username: , password: 
--   **Courier:** , phone: , password:  (password was manually set in a previous session)
+-   **Courier:** , phone: , password: 
 
 **What agent forgot to execute**
--   The agent did not start the investigation into the courier password bug as requested by the user in the final message. This must be the immediate next step.</analysis>
+-   The agent deferred the **P0 courier password creation bug** investigation from the previous handoff to work on the user's new feature requests. This remains the most critical unresolved bug in the application.</analysis>
