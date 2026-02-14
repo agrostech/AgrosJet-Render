@@ -6,10 +6,8 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import db
+
+from utils.database import db
 
 router = APIRouter(tags=["Finance"])
 
