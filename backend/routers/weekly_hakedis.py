@@ -375,7 +375,7 @@ async def apply_weekly_hakedis(company_id: str, data: ApplyHakedisRequest):
 @router.post("/revert/{company_id}")
 async def revert_weekly_hakedis(company_id: str, data: RevertHakedisRequest):
     """Son hafta hakedişlerini geri al"""
-    from routers.jetpuan import deduct_points_for_reverted_hakedis
+    from routers.jetpuan import calculate_and_debit_points
     from routers.accounting import create_activity_log
     
     try:
