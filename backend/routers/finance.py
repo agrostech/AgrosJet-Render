@@ -9,7 +9,7 @@ import uuid
 
 from utils.database import db
 
-router = APIRouter(tags=["Finance"])
+router = APIRouter(prefix="/api", tags=["Finance"])
 
 
 class CourierFinanceUpdate(BaseModel):
