@@ -1,8 +1,34 @@
 # ShiftJet - Kurye Takip Sistemi PRD
 
-## Son Güncelleme: 12 Şubat 2026
+## Son Güncelleme: 14 Şubat 2026
 
-### ✅ Bu Oturumda Tamamlanan Değişiklikler (12 Şubat 2026)
+### ✅ Bu Oturumda Tamamlanan Değişiklikler (14 Şubat 2026)
+
+#### 💰 Finans Özelliği - TAMAMLANDI
+Kurye ve Restoran için finansal log/özet görüntüleme modalı eklendi:
+
+**Özellikler:**
+- Kuryeler sayfasında her kurye satırında "Finans" butonu
+- Restoranlar sayfasında her restoran satırında "Finans" butonu
+- Modal içinde 2 sekme:
+  - **Taşıma Finansı:** Teslim edilen siparişler listesi, paket başı kazanç (ücretlendirmeden)
+  - **Tahsilat Finansı:** Nakit/Online ödeme ayrımı, toplam tahsilat tutarları
+- Her sipariş için tarih, müşteri, restoran/kurye bilgisi
+- Özet kartlarında toplam sipariş sayısı ve tutar
+
+**API Endpoints:**
+- `GET /api/couriers/{courier_id}/finance-logs?company_id=X` - Kurye finans logları
+- `GET /api/restaurants/{restaurant_id}/finance-logs?company_id=X` - Restoran finans logları
+
+**Dosyalar:**
+- `/app/frontend/src/components/kuryeler/CourierFinanceModal.jsx`
+- `/app/frontend/src/components/restoranlar/RestaurantFinanceModal.jsx`
+- `/app/backend/routers/finance.py`
+- `/app/frontend/src/pages/admin/RestoranlarPage.jsx` (Finans butonu eklendi)
+
+---
+
+### Önceki Oturum Değişiklikleri (12 Şubat 2026)
 
 #### 🔧 Mobil Sidebar Collapsible Bug - ÇÖZÜLDÜ
 Kurye listesi collapsible'ları mobil görünümde düzgün çalışıyor:
