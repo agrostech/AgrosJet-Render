@@ -1,0 +1,273 @@
+import { useEffect, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bike } from "lucide-react";
+import { 
+  ORDER_STATUSES, 
+  getLocationTimeAgo, 
+  getCourierInitials,
+  formatTime,
+  formatCurrency,
+  getOrderAge
+} from "@/utils/orderUtils";
+
+export function CourierDetailModal({
+  open,
+  onOpenChange,
+  courier,
+  courierOrders,
+  company,
+  onUpdateStatus,
+  onOrderClick
+}) {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const ordersRef = useRef(courierOrders);
+  
+  useEffect(() => {
+    ordersRef.current = courierOrders;
+  }, [courierOrders]);
+
+  // Kurye haritası
+  useEffect(() => {
+    if (!open || !courier) return;
+    if (!window.L) return;
+    
+    const initCourierMap = () => {
+      if (!mapRef.current) {
+        setTimeout(initCourierMap, 100);
+        return;
+      }
+      
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+      
+      const L = window.L;
+      const centerLat = company?.city_lat || 39.0;
+      const centerLng = company?.city_lng || 35.0;
+      
+      const map = L.map(mapRef.current, {
+        scrollWheelZoom: false,
+        attributionControl: false
+      }).setView([centerLat, centerLng], 12);
+      
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+      
+      const allPoints = [];
+      const currentOrders = ordersRef.current;
+      
+      // Kurye siparişlerini haritada göster
+      currentOrders.forEach((order, idx) => {
+        if (order.delivery_location?.latitude && order.delivery_location?.longitude) {
+          const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+          const colorMap = {
+            'bg-yellow-500': '#eab308',
+            'bg-orange-500': '#f97316',
+            'bg-purple-500': '#a855f7',
+            'bg-blue-500': '#3b82f6',
+            'bg-cyan-500': '#06b6d4',
+            'bg-green-500': '#22c55e',
+            'bg-red-500': '#ef4444'
+          };
+          const hexColor = colorMap[statusInfo.color] || '#3b82f6';
+          
+          L.marker([order.delivery_location.latitude, order.delivery_location.longitude], {
+            icon: L.divIcon({
+              className: 'order-marker',
+              html: `<div style="background: ${hexColor}; width: 15px; height: 15px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 7px; font-weight: bold;">${idx + 1}</div>`,
+              iconSize: [15, 15],
+              iconAnchor: [7.5, 7.5]
+            })
+          }).addTo(map)
+            .bindPopup(`<strong>${order.order_number}</strong><br/>${order.restaurant_name}<br/>${order.delivery_address}`);
+          
+          allPoints.push([order.delivery_location.latitude, order.delivery_location.longitude]);
+        }
+      });
+      
+      // Kuryenin konumu
+      if (courier.current_location?.latitude && courier.current_location?.longitude) {
+        const isOnBreak = courier.availability_status === 'on_break';
+        const bgColor = isOnBreak ? '#eab308' : '#22c55e';
+        const initials = getCourierInitials(courier.name);
+        
+        L.marker([courier.current_location.latitude, courier.current_location.longitude], {
+          icon: L.divIcon({
+            className: 'courier-marker',
+            html: `
+              <div style="position: relative; width: 16px; height: 16px; border-radius: 50% !important; background: transparent !important;">
+                <div class="courier-pulse-ring" style="background: ${bgColor}; border-radius: 50% !important;"></div>
+                <div class="courier-pulse-ring-delayed" style="background: ${bgColor}; border-radius: 50% !important;"></div>
+                <div style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: ${bgColor};
+                  width: 15px;
+                  height: 15px;
+                  border-radius: 50% !important;
+                  -webkit-border-radius: 50% !important;
+                  border: 2px solid white;
+                  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  font-size: 6px;
+                  font-weight: 700;
+                ">${initials}</div>
+              </div>
+            `,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+          })
+        }).addTo(map)
+          .bindPopup(`<strong>${courier.name}</strong><br/>${isOnBreak ? 'Molada' : 'Aktif'}`);
+        
+        allPoints.push([courier.current_location.latitude, courier.current_location.longitude]);
+      }
+      
+      if (allPoints.length > 0) {
+        const bounds = L.latLngBounds(allPoints);
+        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+      }
+      
+      mapInstanceRef.current = map;
+      setTimeout(() => map.invalidateSize(), 200);
+    };
+    
+    const timer = setTimeout(initCourierMap, 150);
+    
+    return () => {
+      clearTimeout(timer);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [open, courier?.id, company?.city_lat, company?.city_lng]);
+
+  if (!courier) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[92vw] max-w-[360px] sm:max-w-[500px] lg:max-w-[550px] p-3 sm:p-5 overflow-hidden">
+        <DialogHeader className="pb-1 sm:pb-2 pr-8">
+          <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
+            <Bike className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+            <span className="truncate flex-1">{courier.name}</span>
+          </DialogTitle>
+          <div className="mt-2">
+            <Select
+              value={courier.availability_status || 'offline'}
+              onValueChange={(value) => onUpdateStatus(courier.id, value)}
+            >
+              <SelectTrigger className={`h-7 w-fit text-xs px-3 gap-1 ${
+                courier.availability_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
+                courier.availability_status === 'on_break' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                'bg-slate-100 text-slate-600 border-slate-200'
+              }`}>
+                <SelectValue>
+                  {courier.availability_status === 'active' ? 'Aktif' : 
+                   courier.availability_status === 'on_break' ? 'Molada' : 'Çevrimdışı'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active" className="text-xs">Aktif</SelectItem>
+                <SelectItem value="on_break" className="text-xs">Molada</SelectItem>
+                <SelectItem value="offline" className="text-xs">Çevrimdışı</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogHeader>
+        
+        <div className="space-y-2 sm:space-y-3 w-full overflow-hidden">
+          {/* Harita */}
+          <div className="rounded-lg overflow-hidden border w-full">
+            <div ref={mapRef} className="h-[150px] sm:h-[200px] w-full bg-slate-100" />
+          </div>
+          
+          {/* Son Konum */}
+          <div className="flex items-center justify-between px-2 py-1.5 sm:py-2 bg-slate-50 rounded text-xs sm:text-sm">
+            <span className="text-muted-foreground">Son Konum</span>
+            <span className={`font-medium px-1.5 sm:px-2 py-0.5 rounded text-xs ${
+              courier.current_location?.updated_at 
+                ? (() => {
+                    const timeAgo = getLocationTimeAgo(courier.current_location.updated_at);
+                    if (timeAgo === "Şimdi" || timeAgo?.includes("sn")) return "bg-green-100 text-green-700";
+                    if (timeAgo?.includes("dk") && parseInt(timeAgo) <= 5) return "bg-green-100 text-green-700";
+                    return "bg-yellow-100 text-yellow-700";
+                  })()
+                : "bg-slate-100 text-slate-600"
+            }`}>
+              {courier.current_location?.updated_at 
+                ? getLocationTimeAgo(courier.current_location.updated_at)
+                : "Yok"}
+            </span>
+          </div>
+          
+          {/* Sipariş Listesi */}
+          <div className="w-full overflow-hidden">
+            <div className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2 px-1">
+              Siparişler ({courierOrders.length})
+            </div>
+            <div className="space-y-1.5 sm:space-y-2 max-h-[180px] sm:max-h-[250px] overflow-y-auto overflow-x-hidden w-full">
+              {courierOrders.length === 0 ? (
+                <div className="text-center py-4 sm:py-6 text-muted-foreground text-xs sm:text-sm">
+                  Aktif sipariş yok
+                </div>
+              ) : (
+                courierOrders.map((order, idx) => {
+                  const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+                  const orderAge = getOrderAge(order);
+                  return (
+                    <div 
+                      key={order.id} 
+                      className={`p-2 sm:p-3 rounded border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow w-full overflow-hidden`}
+                      onClick={() => onOrderClick(order)}
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-[10px] sm:text-xs font-bold flex-shrink-0`}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <div className="flex items-center justify-between">
+                            <div className="text-xs sm:text-sm font-medium truncate">{order.restaurant_name}</div>
+                            <div className="flex flex-col items-end text-[10px] sm:text-xs text-muted-foreground">
+                              <span>{formatTime(order.created_at)}</span>
+                              {orderAge && (
+                                <span className={orderAge.mins > 35 ? 'text-red-600 font-medium' : ''}>
+                                  {orderAge.text}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-[10px] sm:text-xs text-muted-foreground truncate">{order.customer_name}</div>
+                          <div className="text-[10px] sm:text-xs text-slate-600 truncate">{order.delivery_address}</div>
+                          <div className="flex items-center gap-2 text-[10px] sm:text-xs mt-1">
+                            <span className="font-medium">{formatCurrency(order.total_amount)}</span>
+                            <span className={`px-1 sm:px-1.5 py-0.5 rounded ${
+                              order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
