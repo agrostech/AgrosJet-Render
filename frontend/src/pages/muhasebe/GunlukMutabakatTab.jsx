@@ -322,17 +322,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
         </div>
         
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchData}
-            disabled={loading}
-            className="h-9"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Yenile
-          </Button>
-          
           {/* Geri Al - Sadece SuperAdmin ve işlenmiş seçili varsa */}
           {isSuperAdmin && selectedProcessed.length > 0 && (
             <Button
@@ -405,11 +394,8 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
       {/* Kurye Tablosu */}
       <Card className="border bg-white shadow-sm overflow-hidden">
         <CardHeader className="pb-2 border-b bg-slate-50">
-          <CardTitle className="text-sm font-semibold text-slate-700 flex items-center justify-between">
-            <span>Kurye Listesi</span>
-            <span className="text-xs font-normal text-slate-500">
-              Sipariş = Sistemden, Tahsilat = Manuel Giriş
-            </span>
+          <CardTitle className="text-sm font-semibold text-slate-700">
+            Kurye Listesi
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
