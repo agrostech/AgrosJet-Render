@@ -435,9 +435,14 @@ export default function HaftalikHakedisTab({ companyId }) {
             <CardHeader className="pb-2 border-b bg-slate-50">
               <CardTitle className="text-sm font-semibold text-slate-700">
                 Kurye Hakedişleri ({couriers.length} kurye)
-                {selectedIds.length > 0 && (
+                {selectedUnprocessed.length > 0 && (
                   <span className="ml-2 text-primary">
-                    — {selectedIds.length} seçili, {formatMoney(selectedTotal)}
+                    — {selectedUnprocessed.length} bekleyen seçili, {formatMoney(selectedUnprocessedTotal)}
+                  </span>
+                )}
+                {selectedProcessed.length > 0 && (
+                  <span className="ml-2 text-amber-600">
+                    — {selectedProcessed.length} işlenmiş seçili, {formatMoney(selectedProcessedTotal)}
                   </span>
                 )}
               </CardTitle>
@@ -448,7 +453,9 @@ export default function HaftalikHakedisTab({ companyId }) {
                 selectedIds={selectedIds}
                 onToggleSelect={handleToggleSelect}
                 onToggleSelectAll={handleToggleSelectAll}
+                onToggleSelectAllProcessed={handleToggleSelectAllProcessed}
                 summary={summary}
+                isCurrentWeek={selectedWeek?.is_current}
               />
             </CardContent>
           </Card>
