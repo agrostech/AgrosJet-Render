@@ -310,10 +310,10 @@ export default function HaftalikHakedisTab({ companyId }) {
 
       {/* Başlangıç durumu */}
       {!data && !loading && (
-        <Card className="border-2 border-dashed">
-          <CardContent className="p-8 text-center text-muted-foreground">
+        <Card className="border bg-white shadow-sm">
+          <CardContent className="p-8 text-center text-slate-500">
             <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium mb-1">Tarih aralığı seçin</p>
+            <p className="font-medium mb-1 text-slate-700">Tarih aralığı seçin</p>
             <p className="text-sm">Kuryelerin teslim edilen siparişlerden kazandığı hakedişleri görüntüleyin</p>
           </CardContent>
         </Card>
