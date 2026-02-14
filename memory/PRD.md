@@ -4,25 +4,43 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026)
 
-#### 🔍 Kurye Şifre Hatası Kontrolü - DOĞRULANDI
-Kurye şifre oluşturma süreci kontrol edildi ve **düzgün çalıştığı doğrulandı**:
+#### 💰 Sipariş Ücret Sistemi - YENİ
+Her sipariş için kurye ve restoran ücreti otomatik hesaplanıyor:
 
-**Kontrol Adımları:**
-1. ✅ Backend kayıt endpoint'i (`/api/auth/courier/register`) şifreyi hashliyor
-2. ✅ Veritabanına hashlenen şifre kaydediliyor (64 karakter SHA-256)
-3. ✅ Giriş endpoint'i (`/api/auth/courier/login`) şifreyi doğru kontrol ediyor
+**Backend Değişiklikleri (`/app/backend/routers/orders.py`):**
+- `calculate_distance()` - Haversine formülü ile mesafe hesaplama
+- `calculate_fee_from_pricing()` - Paket başı veya KM aralığına göre ücret
+- `calculate_order_fees()` - Kurye ve restoran ücretlerini hesaplama
+- Sipariş teslim edildiğinde `courier_fee`, `restaurant_fee`, `distance_km` kaydediliyor
 
-**Test Sonuçları:**
-- Test kuryesi oluşturuldu (05550001234)
-- Şifre veritabanında hash olarak saklandı (64 karakter)
-- Giriş başarıyla yapıldı
-- Test kuryesi temizlendi
+**Frontend Değişiklikleri (`GecmisSiparislerPage.jsx`):**
+- "Ücretler" sütunu eklendi (K: X₺ / R: Y₺ formatında)
+- **Sadece Super Admin görebilir** (isSuperAdmin kontrolü)
+- Tablo kompakt hale getirildi
 
-**Dosyalar:**
-- `/app/backend/routers/auth.py` (satır 65: `hash_password(data.password)`)
-- `/app/frontend/src/pages/RegisterPage.jsx` (kayıt formu)
+**Silinen Dosyalar:**
+- `/app/frontend/src/components/kuryeler/CourierFinanceModal.jsx`
+- `/app/frontend/src/components/restoranlar/RestaurantFinanceModal.jsx`
 
-**Not:** Önceki hata raporları muhtemelen farklı bir senaryodan kaynaklanıyordu (ör. manuel veritabanı girişi veya ghost kurye). Normal kayıt akışı düzgün çalışıyor.
+#### 🔧 Adisyo Ödeme Yöntemi Düzeltmesi
+Ödeme yöntemi mapping mantığı güncellendi:
+
+**Yeni Mantık:**
+1. `paymentMethodId: 1` veya "Nakit" → **cash**
+2. External platform (Yemeksepeti, Getir, Migros, Trendyol) → **online**
+3. "Kapıda kart/kredi" → **card**
+4. "Online/Çevrimiçi" → **online**
+5. `paymentMethodId: 2` veya "Kredi Kartı" (Adisyo direkt) → **card**
+6. `paymentMethodId: 3+` → **online**
+7. Varsayılan → **cash**
+
+**Dosya:** `/app/backend/services/adisyo_service.py`
+
+#### ✅ Aktif Siparişler Sıralaması
+Kontrol edildi - Backend'de `created_at: -1` ile en yeni sipariş en üstte sıralanıyor. ✓
+
+#### 🔍 Kurye Şifre Kontrolü - DOĞRULANDI
+Kurye şifre oluşturma süreci kontrol edildi ve **düzgün çalıştığı doğrulandı**.
 
 ---
 
