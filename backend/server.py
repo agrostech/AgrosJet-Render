@@ -198,6 +198,7 @@ from routers.chat import router as chat_router
 from routers.restaurants import router as restaurants_router
 from routers.orders import router as orders_router
 from routers.finance import router as finance_router
+from routers.hakedis import router as hakedis_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
