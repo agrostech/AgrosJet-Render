@@ -6,9 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Search, UserPlus, UserCheck, UserX, Wallet, Truck, Banknote } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Wallet } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
@@ -18,6 +17,7 @@ import { CourierEditModal } from "@/components/kuryeler/CourierEditModal";
 import { CourierAddModal } from "@/components/kuryeler/CourierAddModal";
 import { CourierDetailModal } from "@/components/kuryeler/CourierDetailModal";
 import { CourierMergeModal } from "@/components/kuryeler/CourierMergeModal";
+import { CourierFinanceModal } from "@/components/kuryeler/CourierFinanceModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
