@@ -25,14 +25,45 @@ async def get_couriers_hakedis(company_id: str, filters: HakedisFilter):
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
-    # Şirkete ait kuryeleri getir
+    # Şirkete ait kuryeleri getir (company_ids array veya company_id string olabilir)
     couriers = await db.couriers.find(
-        {"company_ids": company_id, "is_archived": {"$ne": True}},
+        {
+            "$or": [
+                {"company_ids": company_id},
+                {"company_id": company_id}
+            ],
+            "is_archived": {"$ne": True}
+        },
         {"_id": 0, "id": 1, "name": 1, "phone": 1}
     ).to_list(1000)
     
     courier_map = {c["id"]: c for c in couriers}
     courier_ids = list(courier_map.keys())
+    
+    # Eğer kurye bulunamadıysa, siparişlerden kuryeleri al
+    if not courier_ids:
+        # Teslim edilmiş siparişlerdeki kuryeleri bul
+        delivered_orders = await db.orders.find(
+            {
+                "company_id": company_id,
+                "status": "delivered",
+                "courier_id": {"$exists": True, "$ne": None}
+            },
+            {"_id": 0, "courier_id": 1, "courier_name": 1}
+        ).to_list(1000)
+        
+        seen_ids = set()
+        for order in delivered_orders:
+            cid = order.get("courier_id")
+            if cid and cid not in seen_ids:
+                seen_ids.add(cid)
+                courier_map[cid] = {
+                    "id": cid,
+                    "name": order.get("courier_name", "Kurye"),
+                    "phone": ""
+                }
+        
+        courier_ids = list(courier_map.keys())
     
     if not courier_ids:
         return {"couriers": [], "summary": {"total_courier_fee": 0, "total_orders": 0}}
