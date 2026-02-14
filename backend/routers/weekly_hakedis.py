@@ -184,7 +184,6 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     week_description = get_week_description(start_dt, end_dt)
     
     # Regex için özel karakterleri escape et (noktalar regex'te herhangi karakter anlamına gelir)
-    import re
     week_description_escaped = re.escape(week_description)
     
     # Bu hafta için işlenmiş kuryeleri kontrol et
