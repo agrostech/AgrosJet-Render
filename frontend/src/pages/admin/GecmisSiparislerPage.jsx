@@ -410,13 +410,13 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                     <tr className="border-b-2 border-primary">
                       <th className="text-left p-2 font-bold text-xs">Restoran</th>
                       <th className="text-left p-2 font-bold text-xs">Müşteri</th>
-                      <th className="text-left p-2 font-bold text-xs">Sipariş Zamanı</th>
+                      <th className="text-left p-2 font-bold text-xs">Tarih</th>
+                      <th className="text-left p-2 font-bold text-xs">Adres</th>
                       <th className="text-left p-2 font-bold text-xs">Mesafe</th>
-                      <th className="text-left p-2 font-bold text-xs">Ücret</th>
+                      <th className="text-left p-2 font-bold text-xs">Tutar</th>
                       <th className="text-left p-2 font-bold text-xs">Ödeme</th>
                       <th className="text-left p-2 font-bold text-xs">Kurye</th>
-                      <th className="text-right p-2 font-bold text-xs">Kurye Ücreti</th>
-                      <th className="text-right p-2 font-bold text-xs">Restoran Ücreti</th>
+                      <th className="text-right p-2 font-bold text-xs">Ücretler</th>
                     </tr>
                   </thead>
                   <tbody>
