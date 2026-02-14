@@ -393,11 +393,13 @@ async def revert_weekly_hakedis(company_id: str, data: RevertHakedisRequest):
     week_description = get_week_description(start_dt, end_dt)
     
     # Bu hafta için işlenmiş transaction'ları bul
+    import re
+    week_description_escaped = re.escape(week_description)
     transactions = await db.transactions.find({
         "company_id": company_id,
         "entity_type": "courier",
         "is_hakedis": True,
-        "description": {"$regex": week_description, "$options": "i"}
+        "description": {"$regex": week_description_escaped, "$options": "i"}
     }).to_list(1000)
     
     if not transactions:
