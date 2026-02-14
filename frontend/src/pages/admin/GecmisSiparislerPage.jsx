@@ -427,18 +427,21 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                         onClick={() => onOrderSelect && onOrderSelect(order)}
                       >
                         <td className="p-2">
-                          <span className="font-medium">{order.restaurant_name || "-"}</span>
+                          <span className="font-medium text-xs">{order.restaurant_name || "-"}</span>
                         </td>
                         <td className="p-2">
                           <div>
-                            <span>{order.customer_name || "-"}</span>
+                            <span className="text-xs">{order.customer_name || "-"}</span>
                             {order.customer_phone && (
                               <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
                             )}
                           </div>
                         </td>
-                        <td className="p-2 text-xs">
+                        <td className="p-2 text-xs whitespace-nowrap">
                           {formatDate(order.created_at)}
+                        </td>
+                        <td className="p-2 text-xs max-w-[150px]" title={order.delivery_address}>
+                          <div className="line-clamp-2">{order.delivery_address || "-"}</div>
                         </td>
                         <td className="p-2 text-xs whitespace-nowrap">
                           {order.distance_km ? `${order.distance_km.toFixed(1)} km` : (() => {
@@ -446,11 +449,11 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                             return dist ? `${dist.toFixed(1)} km` : "-";
                           })()}
                         </td>
-                        <td className="p-2 font-semibold">
+                        <td className="p-2 text-xs font-semibold whitespace-nowrap">
                           {order.total_amount?.toFixed(2) || "0.00"} ₺
                         </td>
                         <td className="p-2">
-                          <span className={`px-2 py-0.5 text-xs rounded ${
+                          <span className={`px-1.5 py-0.5 text-xs rounded ${
                             order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
                             order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
                             'bg-purple-100 text-purple-700'
@@ -462,14 +465,14 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                           {order.courier_name || "-"}
                         </td>
                         <td className="p-2 text-right">
-                          <span className="font-semibold text-blue-600">
-                            {order.courier_fee ? `${order.courier_fee.toFixed(2)} ₺` : "-"}
-                          </span>
-                        </td>
-                        <td className="p-2 text-right">
-                          <span className="font-semibold text-orange-600">
-                            {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)} ₺` : "-"}
-                          </span>
+                          <div className="text-xs space-y-0.5">
+                            <div className="text-blue-600 font-medium">
+                              K: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
+                            </div>
+                            <div className="text-orange-600 font-medium">
+                              R: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     ))}
