@@ -220,9 +220,6 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
         is_processed = False
         transaction_id = None
         
-        if courier.get("name") == "Onur Ertaş":
-            print(f"[DEBUG] Onur Ertaş: amount={amount}, processed_info={processed_info}")
-        
         if processed_info:
             # Tutar eşleşiyor mu?
             if abs(processed_info["amount"] - amount) < 0.01:
