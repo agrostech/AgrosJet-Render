@@ -4,6 +4,54 @@
 
 ### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026)
 
+#### 📊 Günlük Mütabakat Sekmesi - YENİ ÖZELLİK
+İki eski sekme (Günlük Tahsilat + Mütabakat) birleştirildi ve yeniden yazıldı:
+
+**Silinen Dosyalar:**
+- `GunlukTahsilatTab.jsx`
+- `ExcelKarsilastirmaTab.jsx` (Excel yükleme özelliği kaldırıldı)
+
+**Yeni Dosyalar:**
+- `GunlukMutabakatTab.jsx` (Frontend)
+- `daily_mutabakat.py` (Backend Router)
+
+**Yeni Mantık:**
+1. **Gün Seçici**: Haftalık takvim görünümü
+   - Başlangıç: Seçilen gün + Şirket açılış saati
+   - Bitiş: Sonraki gün + Şirket kapanış saati
+
+2. **Sipariş Verileri (Otomatik)**:
+   - Kuryenin teslim ettiği siparişlerden nakit/kart toplamları
+   - Kredi kartı için restoran bazlı tax_bracket (%1, %10, %20) dikkate alınır
+
+3. **Tahsilat Girişi (Manuel)**:
+   - Nakit tutarı
+   - %1, %10, %20 kredi kartı tutarları
+   - Kurye bazlı kaydetme (Admin yapabilir)
+
+4. **Mütabakat İşleme**:
+   - Sipariş vs Tahsilat karşılaştırması
+   - Nakit farkı → Kuryenin bakiyesine eklenir
+   - Kart farkı → Kuryenin bakiyesine eklenir
+   - İşlem açıklaması: "X tarihli mütabakat - Nakit eksik teslim"
+
+5. **Yetki Kontrolleri**:
+   - Kaydetme: Admin yapabilir
+   - Geri Alma: Sadece SuperAdmin yapabilir
+
+**API Endpoints:**
+- `GET /api/daily-mutabakat/{company_id}/weekly-summary`
+- `GET /api/daily-mutabakat/{company_id}/couriers/{date}`
+- `POST /api/daily-mutabakat/{company_id}/save-collection`
+- `POST /api/daily-mutabakat/{company_id}/process`
+- `POST /api/daily-mutabakat/{company_id}/revert`
+
+**Veritabanı Koleksiyonları:**
+- `daily_mutabakat_collections`: Tahsilat kayıtları
+- `daily_mutabakat_processed`: İşlenmiş mütabakat kayıtları
+
+---
+
 #### 🚀 Sipariş Durum Güncelleme Optimizasyonu - TAMAMLANDI
 Sipariş durum değişikliği mantığı kullanıcının isteğine göre düzenlendi:
 
