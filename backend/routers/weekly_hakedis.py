@@ -209,6 +209,8 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
             "transaction_id": tx["id"]
         }
     
+    print(f"[DEBUG] processed_map: {processed_map}")
+    
     # Kurye listesini oluştur
     courier_list = []
     total_amount = 0
