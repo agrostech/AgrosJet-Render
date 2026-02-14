@@ -530,37 +530,37 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   }, [focusMapOnCourier]);
 
   const handleUpdateStatus = async (orderId, newStatus, preparationTime = null) => {
-    // Optimistic update - önce UI'ı güncelle
-    setOrders(prev => prev.map(order => {
-      if (order.id === orderId) {
-        const updatedOrder = { ...order, status: newStatus };
-        if (preparationTime) {
-          updatedOrder.preparation_time = parseInt(preparationTime);
-          const endAt = new Date(Date.now() + preparationTime * 60 * 1000);
-          updatedOrder.preparation_end_at = endAt.toISOString();
-        } else {
-          updatedOrder.preparation_time = null;
-          updatedOrder.preparation_end_at = null;
-        }
-        // Kurye ataması kaldırılacak durumlarda
-        if (['preparing', 'ready', 'cancelled'].includes(newStatus)) {
-          updatedOrder.courier_id = null;
-          updatedOrder.courier_name = null;
-        }
-        return updatedOrder;
-      }
-      return order;
-    }));
-
-    // API çağrısı arka planda yap
     try {
       const payload = { status: newStatus, admin_name: adminName || "Admin" };
       if (preparationTime) payload.preparation_time = parseInt(preparationTime);
+      
       await axios.post(`${API}/orders/${companyId}/${orderId}/status`, payload);
+      
+      // API başarılı - sadece bu siparişi güncelle
+      setOrders(prev => prev.map(order => {
+        if (order.id === orderId) {
+          const updatedOrder = { ...order, status: newStatus };
+          if (preparationTime) {
+            updatedOrder.preparation_time = parseInt(preparationTime);
+            const endAt = new Date(Date.now() + preparationTime * 60 * 1000);
+            updatedOrder.preparation_end_at = endAt.toISOString();
+          } else {
+            updatedOrder.preparation_time = null;
+            updatedOrder.preparation_end_at = null;
+          }
+          if (['preparing', 'ready', 'cancelled'].includes(newStatus)) {
+            updatedOrder.courier_id = null;
+            updatedOrder.courier_name = null;
+          }
+          if (newStatus === 'delivered') {
+            updatedOrder.delivered_at = new Date().toISOString();
+          }
+          return updatedOrder;
+        }
+        return order;
+      }));
     } catch (err) {
-      // Hata durumunda siparişleri yeniden yükle
       toast.error(err.response?.data?.detail || "Durum güncellenemedi");
-      fetchOrders();
     }
   };
 
