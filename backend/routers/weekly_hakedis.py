@@ -409,7 +409,7 @@ async def revert_weekly_hakedis(company_id: str, data: RevertHakedisRequest):
         
         # JetPuan'ı geri al
         try:
-            await deduct_points_for_reverted_hakedis(courier_id, amount)
+            await calculate_and_debit_points(courier_id, amount)
         except Exception as e:
             print(f"JetPuan deduction failed for {courier_id}: {e}")
         
