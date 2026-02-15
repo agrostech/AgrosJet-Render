@@ -51,6 +51,7 @@ class PricingUpdate(BaseModel):
     pricing_type: str  # "per_package" veya "per_km"
     per_package_price: Optional[float] = None
     km_ranges: Optional[List[KmRange]] = None
+    kdv_rate: Optional[float] = None  # KDV oranı (%), örn: 20 = %20
 
 
 # --- CRUD Endpoints ---
