@@ -39,6 +39,12 @@ export default function KazancRaporu({ courierId }) {
     }
   };
 
+  const getPaymentLabel = (method) => {
+    if (method === "cash") return "Nakit";
+    if (method === "card") return "Kart";
+    return method || "-";
+  };
+
   return (
     <div className="space-y-4">
       {/* Filtreler */}
@@ -65,34 +71,84 @@ export default function KazancRaporu({ courierId }) {
 
       {/* Sonuçlar */}
       {data && (
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="border-purple-200 bg-purple-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-purple-600" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-purple-200 bg-purple-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <Package className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-purple-600 font-medium">Paket Sayısı</p>
+                    <p className="text-xl font-bold text-purple-700">{data.package_count || 0}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-purple-600 font-medium">Paket Sayısı</p>
-                  <p className="text-xl font-bold text-purple-700">{data.package_count || 0}</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-orange-600 font-medium">Toplam Hakediş</p>
+                    <p className="text-xl font-bold text-orange-700">{formatMoney(data.total_earnings)}</p>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sipariş Listesi */}
+          {data.orders?.length > 0 && (
+            <div className="bg-gray-50 border rounded-lg p-3">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Sipariş Detayları</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b text-left text-gray-500">
+                      <th className="pb-2 pr-2">Restoran</th>
+                      <th className="pb-2 pr-2 text-right">Tutar</th>
+                      <th className="pb-2 pr-2 text-right">Hakediş</th>
+                      <th className="pb-2 text-center">Ödeme</th>
+                    </tr>
+                  </thead>
+                  <tbody className="max-h-64 overflow-y-auto">
+                    {data.orders.map((order, idx) => (
+                      <tr key={idx} className="border-b border-gray-100 last:border-0">
+                        <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.restaurant}>
+                          {order.restaurant}
+                        </td>
+                        <td className="py-1.5 pr-2 text-right text-gray-600">
+                          {formatMoney(order.total_amount)}
+                        </td>
+                        <td className="py-1.5 pr-2 text-right font-medium text-orange-600">
+                          {formatMoney(order.courier_fee)}
+                        </td>
+                        <td className="py-1.5 text-center">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            order.payment_method === "cash" 
+                              ? "bg-green-100 text-green-700" 
+                              : "bg-blue-100 text-blue-700"
+                          }`}>
+                            {getPaymentLabel(order.payment_method)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-orange-600 font-medium">Toplam Hakediş</p>
-                  <p className="text-xl font-bold text-orange-700">{formatMoney(data.total_earnings)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
+
+          {/* Boş durum */}
+          {data.orders?.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">Bu tarih aralığında sipariş bulunamadı</p>
+          )}
         </div>
       )}
 
