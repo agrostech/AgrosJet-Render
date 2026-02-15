@@ -152,61 +152,55 @@ export default function OdemeRaporu({ courierId, companyId }) {
       {/* Sonuçlar */}
       {data && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <Banknote className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-green-600 font-medium">Nakit ({data.cash_orders?.length || 0} sipariş)</p>
-                    <p className="text-xl font-bold text-green-700">{formatMoney(data.cash_total)}</p>
-                  </div>
+          {/* Nakit Kart - Özet ve Siparişler Birleşik */}
+          <Card className="border-green-200 overflow-hidden">
+            <CardContent className="p-0">
+              {/* Özet Başlık */}
+              <div className="bg-green-50 p-4 flex items-center gap-3 border-b border-green-200">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <Banknote className="w-5 h-5 text-green-600" />
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-blue-600 font-medium">Kredi Kartı ({data.card_orders?.length || 0} sipariş)</p>
-                    <p className="text-xl font-bold text-blue-700">{formatMoney(data.card_total)}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-green-600 font-medium">Nakit ({data.cash_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold text-green-700">{formatMoney(data.cash_total)}</p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Nakit Siparişler Tablosu */}
-          {data.cash_orders?.length > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <h4 className="text-sm font-semibold text-green-700 mb-3">Nakit Siparişler</h4>
-              <div className="max-h-64 overflow-y-auto">
-                <OrderTable 
-                  orders={data.cash_orders} 
-                  colorClass={{ text: "text-green-600", border: "border-green-100" }} 
-                />
               </div>
-            </div>
-          )}
-
-          {/* Kredi Kartı Siparişler Tablosu */}
-          {data.card_orders?.length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <h4 className="text-sm font-semibold text-blue-700 mb-3">Kredi Kartı Siparişler</h4>
-              <div className="max-h-64 overflow-y-auto">
-                <OrderTable 
-                  orders={data.card_orders} 
-                  colorClass={{ text: "text-blue-600", border: "border-blue-100" }} 
-                />
+              {/* Sipariş Tablosu */}
+              {data.cash_orders?.length > 0 && (
+                <div className="p-3 max-h-64 overflow-y-auto">
+                  <OrderTable 
+                    orders={data.cash_orders} 
+                    colorClass={{ text: "text-green-600", border: "border-green-100" }} 
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Kredi Kartı - Özet ve Siparişler Birleşik */}
+          <Card className="border-blue-200 overflow-hidden">
+            <CardContent className="p-0">
+              {/* Özet Başlık */}
+              <div className="bg-blue-50 p-4 flex items-center gap-3 border-b border-blue-200">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-blue-600 font-medium">Kredi Kartı ({data.card_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold text-blue-700">{formatMoney(data.card_total)}</p>
+                </div>
               </div>
-            </div>
-          )}
+              {/* Sipariş Tablosu */}
+              {data.card_orders?.length > 0 && (
+                <div className="p-3 max-h-64 overflow-y-auto">
+                  <OrderTable 
+                    orders={data.card_orders} 
+                    colorClass={{ text: "text-blue-600", border: "border-blue-100" }} 
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Boş durum */}
           {data.cash_orders?.length === 0 && data.card_orders?.length === 0 && (
