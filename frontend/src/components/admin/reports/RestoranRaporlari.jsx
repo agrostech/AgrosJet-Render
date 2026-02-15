@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Download, Filter } from "lucide-react";
+import { Loader2, Download, Filter, Search } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -12,6 +12,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [company, setCompany] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   
   // Date-time filters
   const [startDateTime, setStartDateTime] = useState("");
@@ -60,6 +61,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
 
   const handleGenerateReport = async () => {
     setLoading(true);
+    setSearchTerm("");
     try {
       const params = new URLSearchParams({
         company_id: companyId,
@@ -76,6 +78,16 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
       setLoading(false);
     }
   };
+
+  // Filtrelenmiş restoranlar
+  const filteredRestaurants = useMemo(() => {
+    if (!reportData?.restaurants) return [];
+    if (!searchTerm.trim()) return reportData.restaurants;
+    
+    return reportData.restaurants.filter(restaurant => 
+      restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [reportData?.restaurants, searchTerm]);
 
   return (
     <div className="space-y-4">
@@ -143,43 +155,60 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Toplam Sipariş</p>
-                <p className="text-xl font-bold">{reportData.summary?.totalOrders || 0}</p>
+            {/* Summary Stats - Text Format */}
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm mb-6 p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Toplam Sipariş:</span>
+                <span className="font-bold">{reportData.summary?.totalOrders || 0}</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Taşıma Ücreti</p>
-                <p className="text-xl font-bold">{(reportData.summary?.totalTransportFee || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Taşıma Ücreti:</span>
+                <span className="font-bold">{(reportData.summary?.totalTransportFee || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Taşıma KDV</p>
-                <p className="text-xl font-bold">{(reportData.summary?.totalTransportKdv || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Taşıma KDV:</span>
+                <span className="font-bold">{(reportData.summary?.totalTransportKdv || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground font-medium">Toplam Taşıma</p>
-                <p className="text-xl font-bold text-green-600">{(reportData.summary?.totalTransport || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground font-medium">Toplam Taşıma:</span>
+                <span className="font-bold text-green-600">{(reportData.summary?.totalTransport || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">POS Komisyonu</p>
-                <p className="text-xl font-bold text-green-600">{(reportData.summary?.totalPosCommission || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">POS Komisyonu:</span>
+                <span className="font-bold text-green-600">{(reportData.summary?.totalPosCommission || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Nakit Sipariş</p>
-                <p className="text-xl font-bold text-red-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Nakit:</span>
+                <span className="font-bold text-red-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Kredi Kartı</p>
-                <p className="text-xl font-bold text-red-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Kredi Kartı:</span>
+                <span className="font-bold text-red-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3 border-2 border-primary/30">
-                <p className="text-xs text-muted-foreground font-medium">Sonuç</p>
-                <p className={`text-xl font-bold ${(reportData.summary?.result || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="flex items-center gap-1 border-l pl-4 ml-2">
+                <span className="text-muted-foreground font-medium">Sonuç:</span>
+                <span className={`font-bold ${(reportData.summary?.result || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {(reportData.summary?.result || 0) >= 0 ? '+' : ''}{(reportData.summary?.result || 0).toFixed(2)}₺
-                </p>
+                </span>
               </div>
             </div>
+
+            {/* Search */}
+            {reportData.restaurants && reportData.restaurants.length > 0 && (
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Restoran ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                    data-testid="input-search-restaurant"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Empty State */}
             {(!reportData.restaurants || reportData.restaurants.length === 0) && (
@@ -189,7 +218,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
             )}
 
             {/* Restaurant List */}
-            {reportData.restaurants && reportData.restaurants.length > 0 && (
+            {filteredRestaurants.length > 0 && (
               <div className="border rounded-lg overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50">
@@ -206,7 +235,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {reportData.restaurants.map((restaurant, idx) => {
+                    {filteredRestaurants.map((restaurant, idx) => {
                       const toplamTasima = restaurant.transportFee + restaurant.transportKdv;
                       const sonuc = (toplamTasima + restaurant.posCommission) - (restaurant.cash + restaurant.card);
                       return (
@@ -227,6 +256,13 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                     })}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* No search results */}
+            {searchTerm && filteredRestaurants.length === 0 && reportData.restaurants?.length > 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>"{searchTerm}" için sonuç bulunamadı.</p>
               </div>
             )}
           </CardContent>
