@@ -198,23 +198,33 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                       <th className="text-right p-3 font-medium">Sipariş</th>
                       <th className="text-right p-3 font-medium">Taşıma Ücreti</th>
                       <th className="text-right p-3 font-medium">Taşıma KDV</th>
+                      <th className="text-right p-3 font-medium">Toplam Taşıma</th>
                       <th className="text-right p-3 font-medium">POS Kom.</th>
                       <th className="text-right p-3 font-medium">Nakit</th>
                       <th className="text-right p-3 font-medium">Kredi Kartı</th>
+                      <th className="text-right p-3 font-medium">Sonuç</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {reportData.restaurants.map((restaurant, idx) => (
-                      <tr key={idx} className="border-t">
-                        <td className="p-3">{restaurant.name}</td>
-                        <td className="p-3 text-right">{restaurant.orderCount}</td>
-                        <td className="p-3 text-right">{restaurant.transportFee.toFixed(2)}₺</td>
-                        <td className="p-3 text-right">{restaurant.transportKdv.toFixed(2)}₺</td>
-                        <td className="p-3 text-right text-green-600">{restaurant.posCommission.toFixed(2)}₺</td>
-                        <td className="p-3 text-right text-red-600">{restaurant.cash.toFixed(2)}₺</td>
-                        <td className="p-3 text-right text-red-600">{restaurant.card.toFixed(2)}₺</td>
-                      </tr>
-                    ))}
+                    {reportData.restaurants.map((restaurant, idx) => {
+                      const toplamTasima = restaurant.transportFee + restaurant.transportKdv;
+                      const sonuc = (toplamTasima + restaurant.posCommission) - (restaurant.cash + restaurant.card);
+                      return (
+                        <tr key={idx} className="border-t">
+                          <td className="p-3">{restaurant.name}</td>
+                          <td className="p-3 text-right">{restaurant.orderCount}</td>
+                          <td className="p-3 text-right">{restaurant.transportFee.toFixed(2)}₺</td>
+                          <td className="p-3 text-right">{restaurant.transportKdv.toFixed(2)}₺</td>
+                          <td className="p-3 text-right text-green-600 font-medium">{toplamTasima.toFixed(2)}₺</td>
+                          <td className="p-3 text-right text-green-600">{restaurant.posCommission.toFixed(2)}₺</td>
+                          <td className="p-3 text-right text-red-600">{restaurant.cash.toFixed(2)}₺</td>
+                          <td className="p-3 text-right text-red-600">{restaurant.card.toFixed(2)}₺</td>
+                          <td className={`p-3 text-right font-bold ${sonuc >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {sonuc >= 0 ? '+' : ''}{sonuc.toFixed(2)}₺
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
