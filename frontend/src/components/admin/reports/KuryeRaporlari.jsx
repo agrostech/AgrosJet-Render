@@ -140,7 +140,14 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                   <tbody>
                     {filteredCouriers.map((c, i) => (
                       <tr key={i} className="border-t">
-                        <td className="p-2">{c.name}</td>
+                        <td className="p-2">
+                          {c.name}
+                          {c.modified_count > 0 && (
+                            <span className="ml-1 text-[10px] text-amber-600" title="Ödeme yöntemi değiştirilen sipariş sayısı">
+                              ({c.modified_count} değ.)
+                            </span>
+                          )}
+                        </td>
                         <td className="p-2 text-right">{c.orderCount}</td>
                         <td className="p-2 text-right text-red-600">{c.earnings.toFixed(2)}₺</td>
                         <td className="p-2 text-right text-green-600">{c.cash.toFixed(2)}₺</td>
