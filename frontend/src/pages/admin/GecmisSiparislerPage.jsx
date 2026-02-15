@@ -215,6 +215,44 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
     });
   };
 
+  // Fee editing functions (Super Admin only)
+  const handleOpenFeeEdit = (order, e) => {
+    e.stopPropagation();
+    setEditingOrder(order);
+    setEditFees({
+      courier_fee: order.courier_fee || 0,
+      restaurant_fee: order.restaurant_fee || 0
+    });
+  };
+
+  const handleSaveFees = async () => {
+    if (!editingOrder) return;
+    
+    setSavingFees(true);
+    try {
+      await axios.put(`${API}/orders/${editingOrder.id}/fees`, {
+        courier_fee: parseFloat(editFees.courier_fee) || 0,
+        restaurant_fee: parseFloat(editFees.restaurant_fee) || 0,
+        admin_id: adminId,
+        admin_name: adminName
+      });
+      
+      // Update local state
+      setFilteredOrders(prev => prev.map(o => 
+        o.id === editingOrder.id 
+          ? { ...o, courier_fee: parseFloat(editFees.courier_fee), restaurant_fee: parseFloat(editFees.restaurant_fee) }
+          : o
+      ));
+      
+      toast.success("Ücretler güncellendi");
+      setEditingOrder(null);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    } finally {
+      setSavingFees(false);
+    }
+  };
+
   // Pagination logic with search
   const searchedOrders = useMemo(() => {
     if (!searchQuery.trim()) return filteredOrders;
