@@ -778,9 +778,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         <thead>
                           <tr className="border-b text-left text-green-600">
                             <th className="pb-2 pr-2">Tarih</th>
-                            <th className="pb-2 pr-2">Sipariş No</th>
                             <th className="pb-2 pr-2">Restoran</th>
                             <th className="pb-2 pr-2">Müşteri</th>
+                            <th className="pb-2 pr-2">Adres</th>
                             <th className="pb-2 text-right">Tutar</th>
                           </tr>
                         </thead>
@@ -788,9 +788,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           {courierOrders.cash_orders.map((order, idx) => (
                             <tr key={idx} className="border-b border-green-100 last:border-0">
                               <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.created_at}</td>
-                              <td className="py-1.5 pr-2">{order.order_number}</td>
                               <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant_name}>{order.restaurant_name}</td>
                               <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer_name}>{order.customer_name}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.delivery_address}>{order.delivery_address}</td>
                               <td className="py-1.5 text-right font-medium">
                                 <span className="inline-flex items-center gap-1">
                                   {formatMoney(order.amount)}
@@ -834,9 +834,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         <thead>
                           <tr className="border-b text-left text-blue-600">
                             <th className="pb-2 pr-2">Tarih</th>
-                            <th className="pb-2 pr-2">Sipariş No</th>
                             <th className="pb-2 pr-2">Restoran</th>
                             <th className="pb-2 pr-2">Müşteri</th>
+                            <th className="pb-2 pr-2">Adres</th>
                             <th className="pb-2 text-right">Tutar</th>
                           </tr>
                         </thead>
@@ -844,9 +844,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           {courierOrders.card_orders.map((order, idx) => (
                             <tr key={idx} className="border-b border-blue-100 last:border-0">
                               <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.created_at}</td>
-                              <td className="py-1.5 pr-2">{order.order_number}</td>
                               <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant_name}>{order.restaurant_name}</td>
                               <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer_name}>{order.customer_name}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.delivery_address}>{order.delivery_address}</td>
                               <td className="py-1.5 text-right font-medium">
                                 <span className="inline-flex items-center gap-1">
                                   {formatMoney(order.amount)}
