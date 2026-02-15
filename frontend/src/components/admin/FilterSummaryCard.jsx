@@ -60,6 +60,9 @@ export default function FilterSummaryCard({
   // Kurye adını bul
   const selectedCourier = couriers.find(c => c.id === courierFilter);
 
+  // Toplam Taşıma Ücreti (Taşıma Ücreti + KDV)
+  const toplamTasimaUcreti = totals.tasimaUcreti + totals.tasimaKdv;
+
   // Restoran filtrelemesi yapıldıysa
   if (restaurantFilter !== "all") {
     return (
@@ -73,7 +76,7 @@ export default function FilterSummaryCard({
             <span className="text-sm text-green-600">({orders.length} sipariş)</span>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <div className="bg-white rounded-lg p-3 border border-green-200">
               <p className="text-xs text-muted-foreground mb-1">Taşıma Ücreti</p>
               <p className="text-lg font-bold text-green-700">{totals.tasimaUcreti.toFixed(2)}₺</p>
@@ -82,6 +85,11 @@ export default function FilterSummaryCard({
             <div className="bg-white rounded-lg p-3 border border-green-200">
               <p className="text-xs text-muted-foreground mb-1">Taşıma Ücreti KDV</p>
               <p className="text-lg font-bold text-green-700">{totals.tasimaKdv.toFixed(2)}₺</p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-3 border border-green-300 border-2">
+              <p className="text-xs text-muted-foreground mb-1 font-medium">Toplam Taşıma Ücreti</p>
+              <p className="text-lg font-bold text-green-800">{toplamTasimaUcreti.toFixed(2)}₺</p>
             </div>
             
             <div className="bg-white rounded-lg p-3 border border-green-200">
