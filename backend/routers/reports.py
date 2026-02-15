@@ -17,11 +17,9 @@ async def get_courier_report(
     end_datetime: str = Query(...),
     courier_id: Optional[str] = Query(None)
 ):
-    """Kurye bazlı sipariş raporu"""
-    # Tarih formatını düzelt (datetime-local'dan gelen format: 2026-02-15T09:00)
-    # Veritabanındaki format: 2026-02-15T22:19:23.997
-    # Karşılaştırma için :00 ekle
-    if len(start_datetime) == 16:  # 2026-02-15T09:00
+    """Kurye bazlı sipariş raporu - parçalı ödeme desteği ile"""
+    # Tarih formatını düzelt
+    if len(start_datetime) == 16:
         start_datetime = start_datetime + ":00"
     if len(end_datetime) == 16:
         end_datetime = end_datetime + ":59"
@@ -36,67 +34,75 @@ async def get_courier_report(
         }
     }
     
-    # Kurye filtresi varsa ekle
     if courier_id:
         match_filter["courier_id"] = courier_id
     
-    # Kurye bazlı aggregation
-    pipeline = [
-        {"$match": match_filter},
+    # Siparişleri getir
+    orders = await db.orders.find(
+        match_filter,
         {
-            "$group": {
-                "_id": "$courier_id",
-                "courier_name": {"$first": "$courier_name"},
-                "orderCount": {"$sum": 1},
-                "earnings": {"$sum": {"$ifNull": ["$courier_fee", 0]}},
-                "cash": {
-                    "$sum": {
-                        "$cond": [
-                            {"$eq": ["$payment_method", "cash"]},
-                            {"$ifNull": ["$total_amount", 0]},
-                            0
-                        ]
-                    }
-                },
-                "card": {
-                    "$sum": {
-                        "$cond": [
-                            {"$eq": ["$payment_method", "card"]},
-                            {"$ifNull": ["$total_amount", 0]},
-                            0
-                        ]
-                    }
-                }
+            "_id": 0,
+            "courier_id": 1,
+            "courier_name": 1,
+            "courier_fee": 1,
+            "total_amount": 1,
+            "payment_method": 1,
+            "payment_details": 1
+        }
+    ).to_list(5000)
+    
+    # Kurye bazlı hesaplama
+    courier_data = {}
+    
+    for order in orders:
+        cid = order.get("courier_id")
+        if cid not in courier_data:
+            courier_data[cid] = {
+                "id": cid,
+                "name": order.get("courier_name") or "Bilinmiyor",
+                "orderCount": 0,
+                "earnings": 0,
+                "cash": 0,
+                "card": 0,
+                "modified_count": 0
             }
-        },
-        {"$sort": {"courier_name": 1}}  # Alfabetik sıralama
-    ]
+        
+        c = courier_data[cid]
+        c["orderCount"] += 1
+        c["earnings"] += order.get("courier_fee", 0) or 0
+        
+        payment_method = order.get("payment_method", "")
+        payment_details = order.get("payment_details", {})
+        
+        # Parçalı ödeme kontrolü
+        if payment_method == "mixed" or (payment_details.get("cash_amount", 0) > 0 and payment_details.get("card_amount", 0) > 0):
+            c["cash"] += payment_details.get("cash_amount", 0) or 0
+            c["card"] += payment_details.get("card_amount", 0) or 0
+            if payment_details.get("original_method"):
+                c["modified_count"] += 1
+        elif payment_method == "cash":
+            c["cash"] += order.get("total_amount", 0) or 0
+            if payment_details.get("original_method"):
+                c["modified_count"] += 1
+        elif payment_method == "card":
+            c["card"] += order.get("total_amount", 0) or 0
+            if payment_details.get("original_method"):
+                c["modified_count"] += 1
     
-    results = await db.orders.aggregate(pipeline).to_list(100)
+    # Kurye atanmamış olanları işaretle
+    if None in courier_data:
+        courier_data[None]["name"] = "Kurye Atanmamış"
     
-    # Toplam hesapla
-    total_orders = sum(r["orderCount"] for r in results)
-    total_earnings = sum(r["earnings"] for r in results)
-    total_cash = sum(r["cash"] for r in results)
-    total_card = sum(r["card"] for r in results)
-    
-    # Kurye listesi
-    couriers = []
-    for r in results:
-        courier_name = r["courier_name"]
-        if r["_id"] is None:
-            courier_name = "Kurye Atanmamış"
-        couriers.append({
-            "id": r["_id"],
-            "name": courier_name or "Bilinmiyor",
-            "orderCount": r["orderCount"],
-            "earnings": r["earnings"],
-            "cash": r["cash"],
-            "card": r["card"]
-        })
-    
-    # Alfabetik sırala (None olanları sona at)
+    # Listeye çevir ve sırala
+    couriers = list(courier_data.values())
     couriers.sort(key=lambda x: (x["name"] == "Kurye Atanmamış", x["name"].lower()))
+    
+    # Toplamlar
+    total_orders = sum(c["orderCount"] for c in couriers)
+    total_earnings = sum(c["earnings"] for c in couriers)
+    total_cash = sum(c["cash"] for c in couriers)
+    total_card = sum(c["card"] for c in couriers)
+    total_modified = sum(c["modified_count"] for c in couriers)
     
     return {
         "summary": {
