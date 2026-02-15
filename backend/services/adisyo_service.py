@@ -6,9 +6,12 @@ Adisyo API Entegrasyon Servisi
 """
 import httpx
 import uuid
+import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 from utils.database import db
+
+logger = logging.getLogger(__name__)
 
 ADISYO_BASE_URL = "https://ext.adisyo.com/api/External/v2"
 
