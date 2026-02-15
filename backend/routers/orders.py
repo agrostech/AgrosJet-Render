@@ -869,8 +869,17 @@ async def courier_order_not_ready(courier_id: str, order_id: str):
     return {"message": "Sipariş hazırlanıyor olarak işaretlendi ve atama kaldırıldı"}
 
 
+class PaymentDetails(BaseModel):
+    cash_amount: float = 0
+    card_amount: float = 0
+    payment_method: Optional[str] = None  # "cash", "card", "mixed"
+
 @router.post("/courier/{courier_id}/order/{order_id}/deliver")
-async def courier_deliver_order(courier_id: str, order_id: str):
+async def courier_deliver_order(
+    courier_id: str, 
+    order_id: str,
+    payment_details: Optional[PaymentDetails] = None
+):
     """Kurye siparişi teslim etti"""
     order = await db.orders.find_one({"id": order_id, "courier_id": courier_id})
     if not order:
@@ -888,6 +897,30 @@ async def courier_deliver_order(courier_id: str, order_id: str):
     # Ücretleri hesapla
     fees = await calculate_order_fees(order)
     
+    # Ödeme bilgilerini hazırla
+    update_data = {
+        "status": "delivered",
+        "delivered_at": now,
+        "updated_at": now,
+        "courier_fee": fees["courier_fee"],
+        "restaurant_fee": fees["restaurant_fee"],
+        "restaurant_kdv": fees["restaurant_kdv"],
+        "pos_commission": fees["pos_commission"],
+        "distance_km": fees["distance_km"]
+    }
+    
+    # Eğer ödeme detayları gönderildiyse güncelle
+    if payment_details:
+        if payment_details.payment_method:
+            update_data["payment_method"] = payment_details.payment_method
+        
+        # Parçalı ödeme detaylarını kaydet
+        update_data["payment_details"] = {
+            "cash_amount": payment_details.cash_amount,
+            "card_amount": payment_details.card_amount,
+            "original_method": order.get("payment_method", "unknown")
+        }
+    
     # History entry
     history_entry = {
         "status": "delivered",
@@ -901,16 +934,7 @@ async def courier_deliver_order(courier_id: str, order_id: str):
     await db.orders.update_one(
         {"id": order_id},
         {
-            "$set": {
-                "status": "delivered",
-                "delivered_at": now,
-                "updated_at": now,
-                "courier_fee": fees["courier_fee"],
-                "restaurant_fee": fees["restaurant_fee"],
-                "restaurant_kdv": fees["restaurant_kdv"],
-                "pos_commission": fees["pos_commission"],
-                "distance_km": fees["distance_km"]
-            },
+            "$set": update_data,
             "$push": {"status_history": history_entry}
         }
     )
