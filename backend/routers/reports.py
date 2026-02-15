@@ -69,7 +69,7 @@ async def get_courier_report(
                 }
             }
         },
-        {"$sort": {"orderCount": -1}}
+        {"$sort": {"courier_name": 1}}  # Alfabetik sıralama
     ]
     
     results = await db.orders.aggregate(pipeline).to_list(100)
@@ -94,6 +94,9 @@ async def get_courier_report(
             "cash": r["cash"],
             "card": r["card"]
         })
+    
+    # Alfabetik sırala (None olanları sona at)
+    couriers.sort(key=lambda x: (x["name"] == "Kurye Atanmamış", x["name"].lower()))
     
     return {
         "summary": {
