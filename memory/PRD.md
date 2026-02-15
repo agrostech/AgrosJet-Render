@@ -2,7 +2,43 @@
 
 ## Son Güncelleme: 15 Şubat 2026
 
-### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026)
+### ✅ Bu Oturumda Tamamlanan Değişiklikler (15 Şubat 2026 - Devam)
+
+#### 🐛 Günlük Mütabakat - Sipariş Veri Çekme Hatası Düzeltildi
+**Sorun:** Kuryenin teslim ettiği siparişlerde nakit ve kart toplamları 0 TL gösteriliyordu.
+
+**Kök Neden:** Backend'deki `daily_mutabakat.py` dosyasında MongoDB sorgusu yanlış alan adları kullanıyordu:
+- `price` yerine `total_amount` olmalıydı
+- `payment_type` yerine `payment_method` olmalıydı  
+- `delivered_at` alanı yoktu, `updated_at` kullanılmalıydı
+- Nakit kontrolünde `cash` eksikti, kart kontrolünde `online` eksikti
+
+**Düzeltme:** `get_order_totals_for_courier()` fonksiyonu tamamen yeniden yazıldı:
+- Doğru alan adları kullanılıyor
+- Tarih kontrolü `updated_at` üzerinden yapılıyor
+- Ödeme tipi kontrolü genişletildi (cash, nakit, online, card, kredi, kart)
+
+#### 📊 Günlük Mütabakat - UI İyileştirmeleri
+**Kullanıcı İstekleri:**
+1. %1, %10, %20 sütunlarını daralt
+2. Fark bölümünde nakit/kart/yüzde/toplam farkları ayrı göster
+
+**Değişiklikler (`GunlukMutabakatTab.jsx`):**
+- Input genişlikleri: w-18 → w-14 (daha kompakt)
+- Fark sütunları genişletildi: 1 → 4 sütun (Nakit, Kart, %Fark, Toplam)
+- Backend'den gelen detaylı fark verileri kullanılıyor
+- Yüzdesel fark hesaplanıyor: (kart farkı / kart toplamı) * 100
+
+**Backend Değişiklikleri (`daily_mutabakat.py`):**
+- `differences` objesi genişletildi:
+  - `cash`: Nakit farkı
+  - `card_1`, `card_10`, `card_20`: Detaylı kart farkları
+  - `card`: Toplam kart farkı
+  - `total`: Genel toplam fark
+
+---
+
+### ✅ Önceki Oturumda Tamamlanan (15 Şubat 2026)
 
 #### 📊 Günlük Mütabakat Sekmesi - YENİ ÖZELLİK
 İki eski sekme (Günlük Tahsilat + Mütabakat) birleştirildi ve yeniden yazıldı:
