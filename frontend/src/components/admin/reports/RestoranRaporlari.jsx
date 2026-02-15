@@ -66,9 +66,6 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
         start_datetime: startDateTime,
         end_datetime: endDateTime,
       });
-      if (selectedRestaurant !== "all") {
-        params.append("restaurant_id", selectedRestaurant);
-      }
       
       const res = await axios.get(`${API}/reports/restaurant?${params.toString()}`);
       setReportData(res.data);
@@ -91,22 +88,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Restoran</Label>
-              <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-                <SelectTrigger data-testid="select-restaurant">
-                  <SelectValue placeholder="Restoran seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tüm Restoranlar</SelectItem>
-                  {restaurants.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Başlangıç</Label>
               <Input
