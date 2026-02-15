@@ -257,8 +257,8 @@ async def get_courier_payment_report(
         "courier_id": courier_id,
         "status": "delivered",
         "created_at": {
-            "$gte": start_datetime,
-            "$lte": end_datetime
+            "$gte": start_dt,
+            "$lte": end_dt
         }
     }
     
