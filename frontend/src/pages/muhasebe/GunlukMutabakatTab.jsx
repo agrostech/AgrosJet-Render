@@ -37,6 +37,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   const [saving, setSaving] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [reverting, setReverting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   
   const [couriers, setCouriers] = useState([]);
   const [dateRange, setDateRange] = useState(null);
