@@ -659,7 +659,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
               </div>
               
               <div>
-                <Label htmlFor="restaurant_kdv" className="text-amber-600">KDV Tutarı (₺)</Label>
+                <Label htmlFor="restaurant_kdv" className="text-green-600">Taşıma Bedeli KDV (₺)</Label>
                 <Input
                   id="restaurant_kdv"
                   type="number"
@@ -671,12 +671,12 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                   data-testid="restaurant-kdv-input"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Restoran ücretine ek olarak hesaplanan KDV tutarı
+                  Taşıma bedeline ek olarak hesaplanan KDV tutarı
                 </p>
               </div>
               
               <div>
-                <Label htmlFor="pos_commission" className="text-indigo-600">POS Komisyonu (₺)</Label>
+                <Label htmlFor="pos_commission" className="text-green-600">POS Komisyonu (₺)</Label>
                 <Input
                   id="pos_commission"
                   type="number"
@@ -688,7 +688,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                   data-testid="pos-commission-input"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Kredi kartı/Online ödemeli siparişler için POS komisyonu
+                  Kredi kartı ödemeli siparişler için POS komisyonu
                 </p>
               </div>
               
