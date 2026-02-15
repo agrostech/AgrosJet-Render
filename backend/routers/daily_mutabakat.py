@@ -206,7 +206,8 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         "card_percent_1": card_percent_1,
         "card_percent_10": card_percent_10,
         "card_percent_20": card_percent_20,
-        "card_total": card_percent_1 + card_percent_10 + card_percent_20
+        "card_total": card_percent_1 + card_percent_10 + card_percent_20,
+        "modified_payment_count": modified_payment_count
     }
 
 
