@@ -616,10 +616,10 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   };
 
   // Gerçek teslim işlemi
-  const executeDelivery = async (orderId) => {
+  const executeDelivery = async (orderId, paymentDetails = null) => {
     setActionLoading(orderId);
     try {
-      await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/deliver`);
+      await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/deliver`, paymentDetails);
       toast.success("Sipariş teslim edildi");
       fetchOrders();
       setShowDetailModal(false);
@@ -633,9 +633,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   };
 
   // Ödeme onaylandı - teslim et
-  const handlePaymentConfirmed = () => {
+  const handlePaymentConfirmed = (paymentDetails) => {
     if (pendingDeliveryOrder) {
-      executeDelivery(pendingDeliveryOrder.id);
+      executeDelivery(pendingDeliveryOrder.id, paymentDetails);
     }
   };
 
