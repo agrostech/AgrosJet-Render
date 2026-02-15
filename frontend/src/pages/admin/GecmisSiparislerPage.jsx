@@ -631,7 +631,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="courier_fee" className="text-red-600">Kurye Hakediş (₺)</Label>
+                  <Label htmlFor="courier_fee" style={{color: '#dc2626'}}>Kurye Hakediş (₺)</Label>
                   <Input
                     id="courier_fee"
                     type="number"
@@ -644,7 +644,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                   />
                 </div>
                 <div>
-                  <Label htmlFor="restaurant_fee" className="text-green-600">Taşıma Bedeli (₺)</Label>
+                  <Label htmlFor="restaurant_fee" style={{color: '#16a34a'}}>Taşıma Bedeli (₺)</Label>
                   <Input
                     id="restaurant_fee"
                     type="number"
