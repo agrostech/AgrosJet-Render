@@ -52,6 +52,7 @@ class PricingUpdate(BaseModel):
     per_package_price: Optional[float] = None
     km_ranges: Optional[List[KmRange]] = None
     kdv_rate: Optional[float] = None  # KDV oranı (%), örn: 20 = %20
+    pos_commission_rate: Optional[float] = None  # POS komisyonu (%), kredi kartı siparişleri için
 
 
 # --- Ücretlendirme (Pricing) --- (Static paths must come before dynamic paths!)
@@ -82,6 +83,10 @@ async def update_restaurant_pricing(restaurant_id: str, data: PricingUpdate):
     if data.kdv_rate is not None:
         update_data["kdv_rate"] = data.kdv_rate
     
+    # POS komisyon oranını güncelle
+    if data.pos_commission_rate is not None:
+        update_data["pos_commission_rate"] = data.pos_commission_rate
+    
     await db.restaurants.update_one(
         {"id": restaurant_id},
         {"$set": update_data}
@@ -95,7 +100,7 @@ async def get_restaurant_pricing(restaurant_id: str):
     """Restoran ücretlendirme ayarlarını getir"""
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id}, 
-        {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
+        {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1, "pos_commission_rate": 1}
     )
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
@@ -104,7 +109,8 @@ async def get_restaurant_pricing(restaurant_id: str):
         "pricing_type": restaurant.get("pricing_type"),
         "per_package_price": restaurant.get("per_package_price"),
         "km_ranges": restaurant.get("km_ranges"),
-        "kdv_rate": restaurant.get("kdv_rate", 0)
+        "kdv_rate": restaurant.get("kdv_rate", 0),
+        "pos_commission_rate": restaurant.get("pos_commission_rate", 0)
     }
 
 
