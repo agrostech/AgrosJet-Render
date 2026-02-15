@@ -142,6 +142,22 @@ export default function HareketlerTab({ companyId }) {
         </span>
       );
     }
+    if (action === 'weekly_hakedis') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-blue-600" />
+          <span className="text-blue-700 font-medium">Haftalık Hakediş</span>
+        </span>
+      );
+    }
+    if (action === 'revert_weekly_hakedis') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-orange-600" />
+          <span className="text-orange-700 font-medium">Haftalık Hakediş Geri Al</span>
+        </span>
+      );
+    }
     return action;
   };
 
