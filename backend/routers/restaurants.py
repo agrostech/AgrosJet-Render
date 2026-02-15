@@ -312,6 +312,10 @@ async def update_restaurant_pricing(restaurant_id: str, data: PricingUpdate):
         update_data["km_ranges"] = [r.dict() for r in data.km_ranges]
         update_data["per_package_price"] = None
     
+    # KDV oranını güncelle
+    if data.kdv_rate is not None:
+        update_data["kdv_rate"] = data.kdv_rate
+    
     await db.restaurants.update_one(
         {"id": restaurant_id},
         {"$set": update_data}
@@ -323,12 +327,16 @@ async def update_restaurant_pricing(restaurant_id: str, data: PricingUpdate):
 @router.get("/{restaurant_id}/pricing")
 async def get_restaurant_pricing(restaurant_id: str):
     """Restoran ücretlendirme ayarlarını getir"""
-    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1})
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id}, 
+        {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
+    )
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     return {
         "pricing_type": restaurant.get("pricing_type"),
         "per_package_price": restaurant.get("per_package_price"),
-        "km_ranges": restaurant.get("km_ranges")
+        "km_ranges": restaurant.get("km_ranges"),
+        "kdv_rate": restaurant.get("kdv_rate", 0)
     }
