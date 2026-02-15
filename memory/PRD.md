@@ -56,10 +56,10 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 ## Veritabanı Şeması (Ana Koleksiyonlar)
 - `companies` - Şirketler
 - `couriers` - Kuryeler
-- `orders` - Siparişler (restaurant_kdv alanı eklendi)
+- `orders` - Siparişler (restaurant_kdv, pos_commission alanları)
 - `transactions` - Muhasebe hareketleri
 - `daily_collections` - Günlük tahsilatlar
-- `restaurants` - Restoranlar (kdv_rate alanı eklendi)
+- `restaurants` - Restoranlar (kdv_rate, pos_commission_rate alanları)
 - `admins` - Yöneticiler
 
 ## API Endpoints (Önemli)
@@ -76,10 +76,15 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 2. Geçmiş siparişlerde süperadmin ücret düzenleyebilir
 3. SuperAdmin kontrolü hem role hem is_super_admin field'ını kontrol ediyor
 4. **Restoran KDV Oranı:** Restoran ayarlarına KDV oranı eklendi, sipariş tesliminde otomatik hesaplanıyor
-5. **KDV Görüntüleme Düzeltmesi (15 Şubat 2026):**
+5. **KDV Görüntüleme Düzeltmesi:**
    - Admin tarafından yapılan teslim işleminde `restaurant_kdv` alanının kaydedilmemesi sorunu düzeltildi
-   - Mevcut teslim edilmiş siparişlerin KDV değerleri hesaplanarak güncellendi (11 sipariş)
+   - Mevcut teslim edilmiş siparişlerin KDV değerleri hesaplanarak güncellendi
    - SuperAdmin giriş mantığı düzeltildi: `role: superadmin` olan kullanıcılar için de `is_super_admin: true` döndürülüyor
+6. **POS Komisyonu Özelliği (15 Şubat 2026):**
+   - Restoran ücretlendirme modalına POS komisyon oranı (%) eklendi
+   - Sadece kredi kartı (card) ödemeli siparişlerde sipariş tutarı üzerinden POS komisyonu hesaplanıyor
+   - Geçmiş siparişler tablosunda POS komisyonu gösteriliyor
+   - SuperAdmin ücret düzenleme modalına POS komisyonu alanı eklendi
 
 ## Test Bilgileri
 - **Multi-company Admin:** username: `testadmin`, password: `123456`
