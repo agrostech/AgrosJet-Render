@@ -564,30 +564,28 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           />
                         </td>
                         <td className="p-2">
-                          <div className="font-medium text-slate-800">{courier.name}</div>
-                          <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                            {courier.order_data.order_count} sipariş
-                            {courier.order_data.modified_payment_count > 0 && (
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <button className="inline-flex items-center gap-0.5 text-amber-600 hover:text-amber-700">
-                                    <Info className="w-3 h-3" />
-                                    <span>({courier.order_data.modified_payment_count} değ.)</span>
-                                  </button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-56 p-2 text-xs" align="start">
-                                  <div className="space-y-1">
-                                    <div className="font-semibold text-amber-600 border-b pb-1">Ödeme Değişiklikleri</div>
-                                    <p className="text-muted-foreground">
-                                      Bu kuryenin <strong>{courier.order_data.modified_payment_count}</strong> siparişinde 
-                                      ödeme yöntemi teslim sırasında değiştirildi.
-                                    </p>
-                                    <p className="text-[10px] text-amber-600 bg-amber-50 p-1.5 rounded mt-1">
-                                      Nakit ve kart tutarları güncellenerek hesaplanmıştır.
-                                    </p>
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
+                          <div className="flex items-center gap-2">
+                            <div>
+                              <div className="font-medium text-slate-800">{courier.name}</div>
+                              <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                                {courier.order_data.order_count} sipariş
+                                {courier.order_data.modified_payment_count > 0 && (
+                                  <span className="text-amber-600">
+                                    ({courier.order_data.modified_payment_count} değiştirilmiş)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {courier.order_data.order_count > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => fetchCourierOrders(courier)}
+                              >
+                                <Eye className="w-3 h-3 mr-1" />
+                                Detay
+                              </Button>
                             )}
                           </div>
                         </td>
