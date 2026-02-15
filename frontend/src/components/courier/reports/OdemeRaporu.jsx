@@ -65,34 +65,74 @@ export default function OdemeRaporu({ courierId }) {
 
       {/* Sonuçlar */}
       {data && (
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <Banknote className="w-5 h-5 text-green-600" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 font-medium">Nakit ({data.cash_orders?.length || 0} sipariş)</p>
+                    <p className="text-xl font-bold text-green-700">{formatMoney(data.cash_total)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-green-600 font-medium">Nakit</p>
-                  <p className="text-xl font-bold text-green-700">{formatMoney(data.cash_total)}</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600 font-medium">Kredi Kartı ({data.card_orders?.length || 0} sipariş)</p>
+                    <p className="text-xl font-bold text-blue-700">{formatMoney(data.card_total)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sipariş Listeleri */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Nakit Siparişler */}
+            {data.cash_orders?.length > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <h4 className="text-sm font-semibold text-green-700 mb-2">Nakit Siparişler</h4>
+                <div className="space-y-1 max-h-48 overflow-y-auto text-xs">
+                  {data.cash_orders.map((order, idx) => (
+                    <div key={idx} className="flex justify-between text-green-800 py-1 border-b border-green-100 last:border-0">
+                      <span className="truncate flex-1">{order.restaurant}</span>
+                      <span className="font-medium ml-2">{formatMoney(order.amount)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-blue-600 font-medium">Kredi Kartı</p>
-                  <p className="text-xl font-bold text-blue-700">{formatMoney(data.card_total)}</p>
+            )}
+
+            {/* Kredi Kartı Siparişler */}
+            {data.card_orders?.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <h4 className="text-sm font-semibold text-blue-700 mb-2">Kredi Kartı Siparişler</h4>
+                <div className="space-y-1 max-h-48 overflow-y-auto text-xs">
+                  {data.card_orders.map((order, idx) => (
+                    <div key={idx} className="flex justify-between text-blue-800 py-1 border-b border-blue-100 last:border-0">
+                      <span className="truncate flex-1">{order.restaurant}</span>
+                      <span className="font-medium ml-2">{formatMoney(order.amount)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+
+          {/* Boş durum */}
+          {data.cash_orders?.length === 0 && data.card_orders?.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">Bu tarih aralığında sipariş bulunamadı</p>
+          )}
         </div>
       )}
 
