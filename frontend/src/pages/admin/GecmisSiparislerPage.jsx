@@ -39,6 +39,10 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [showSummaryCard, setShowSummaryCard] = useState(false);
   
+  // Applied filter values (set only when filter button is clicked)
+  const [appliedRestaurantFilter, setAppliedRestaurantFilter] = useState("all");
+  const [appliedCourierFilter, setAppliedCourierFilter] = useState("all");
+  
   // Date filters with defaults
   const getDefaultDates = useCallback((companyData) => {
     const today = new Date();
