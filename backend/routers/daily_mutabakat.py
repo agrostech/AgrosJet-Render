@@ -144,7 +144,7 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
                 
                 if not (start_dt <= order_dt < end_dt):
                     continue
-            except:
+            except Exception:
                 continue
         else:
             continue
