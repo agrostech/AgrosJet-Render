@@ -329,8 +329,8 @@ export default function AdminDashboard() {
               {/* Sipariş Yönetimi varsayılan sayfa */}
               <Route index element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} />} />
               <Route path="siparis-yonetimi" element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} />} />
-              <Route path="gecmis-siparisler" element={<GecmisSiparislerPage companyId={activeCompanyId} />} />
-              <Route path="iptal-siparisler" element={<IptalSiparislerPage companyId={activeCompanyId} />} />
+              <Route path="gecmis-siparisler" element={<GecmisSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} adminName={user.name || user.username} />} />
+              <Route path="iptal-siparisler" element={<IptalSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
               <Route path="guncel-durum" element={<GuncelDurumPage companyId={activeCompanyId} />} />
               <Route path="restoranlar" element={<RestoranlarPage companyId={activeCompanyId} />} />
               {(isSuperAdmin || permissions.vardiya) && (
