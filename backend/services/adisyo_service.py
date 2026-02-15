@@ -139,28 +139,24 @@ def map_adisyo_status(status_id: int, status_name: str) -> str:
 
 
 def map_adisyo_payment(payment_method_id: int, payment_method_name: str, external_app_name: str = "") -> str:
-    """Adisyo ödeme yöntemini ShiftJet'e çevir"""
+    """Adisyo ödeme yöntemini ShiftJet'e çevir
+    
+    Önemli: Platform ne olursa olsun (YemekSepeti, Getir vb.), asıl ödeme yöntemi ne ise o gösterilmeli.
+    - Nakit = cash
+    - Kredi/Banka Kartı = card  
+    - Online ödeme (platform üzerinden ödenmiş) = online
+    """
     payment_name_lower = (payment_method_name or "").lower()
-    external_app_lower = (external_app_name or "").lower()
     
     # Debug log - gelen ham verileri kaydet
     logger.info(f"[PAYMENT MAP] ID: {payment_method_id}, Name: '{payment_method_name}', External: '{external_app_name}'")
     
-    # External platform kontrolü
-    online_platforms = ["yemeksepeti", "getir", "trendyol", "migros"]
-    is_external_platform = any(platform in external_app_lower for platform in online_platforms)
-    
-    # 1. Nakit kontrolü - en önce
+    # 1. Nakit kontrolü
     if payment_method_id == 1 or "nakit" in payment_name_lower or "cash" in payment_name_lower:
         logger.info(f"[PAYMENT MAP] Result: cash (nakit match)")
         return "cash"
     
-    # 2. External platform siparişleri (Yemeksepeti, Getir vb.) - online ödeme
-    if is_external_platform:
-        logger.info(f"[PAYMENT MAP] Result: online (external platform)")
-        return "online"
-    
-    # 3. Kapıda ödeme kontrolü
+    # 2. Kapıda ödeme kontrolü
     if "kapıda" in payment_name_lower or "kapida" in payment_name_lower:
         if "kart" in payment_name_lower or "kredi" in payment_name_lower:
             logger.info(f"[PAYMENT MAP] Result: card (kapıda kart)")
@@ -169,19 +165,28 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
             logger.info(f"[PAYMENT MAP] Result: cash (kapıda nakit)")
             return "cash"
     
-    # 4. Online/Çevrimiçi kontrolü
+    # 3. Kredi/Banka kartı kontrolü (kapıda kart ödemesi)
+    if payment_method_id == 2 or "kredi" in payment_name_lower or "banka" in payment_name_lower:
+        # "Online Kredi Kartı" = online, sadece "Kredi Kartı" = card
+        if "online" in payment_name_lower or "çevrimiçi" in payment_name_lower:
+            logger.info(f"[PAYMENT MAP] Result: online (online kredi kartı)")
+            return "online"
+        logger.info(f"[PAYMENT MAP] Result: card (kredi/banka kartı)")
+        return "card"
+    
+    # 4. Online/Çevrimiçi ödeme kontrolü
     if "online" in payment_name_lower or "çevrimiçi" in payment_name_lower or "cevrimici" in payment_name_lower:
         logger.info(f"[PAYMENT MAP] Result: online (online keyword)")
         return "online"
     
-    # 5. Kredi/Banka kartı (Adisyo'dan direkt sipariş = kapıda kart)
-    if payment_method_id == 2 or "kredi" in payment_name_lower or "banka" in payment_name_lower or "kart" in payment_name_lower:
-        logger.info(f"[PAYMENT MAP] Result: card (kredi/kart match)")
+    # 5. Sadece "kart" kelimesi varsa (kredi/banka olmadan)
+    if "kart" in payment_name_lower:
+        logger.info(f"[PAYMENT MAP] Result: card (kart keyword)")
         return "card"
     
-    # 6. Online ID'ler (Adisyo'da 3 ve üzeri genellikle online)
+    # 6. ID bazlı fallback (Adisyo'da 3+ genellikle online platform ödemeleri)
     if payment_method_id >= 3:
-        logger.info(f"[PAYMENT MAP] Result: online (ID >= 3)")
+        logger.info(f"[PAYMENT MAP] Result: online (ID >= 3 fallback)")
         return "online"
     
     # Varsayılan olarak nakit
