@@ -297,7 +297,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                   key={day.date}
                   onClick={() => setSelectedDate(day.date)}
                   disabled={day.status === 'future'}
-                  className={`flex-1 min-w-[50px] p-2 rounded-lg text-center transition-all ${
+                  className={`flex-1 min-w-[70px] p-2 rounded-lg text-center transition-all ${
                     day.date === selectedDate
                       ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
                       : day.status === 'future'
@@ -314,15 +314,16 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                 >
                   <div className="text-xs font-medium">{day.day_name}</div>
                   <div className="text-lg font-bold">{day.day_number}</div>
-                  <div className="text-[10px]">
-                    {day.status === 'processed' ? (
-                      <span className="text-green-600">{day.processed}/{day.total}</span>
-                    ) : day.status !== 'future' ? (
-                      <span>{day.completed}/{day.total}</span>
-                    ) : (
-                      '-'
-                    )}
-                  </div>
+                  {day.status !== 'future' && day.total_with_orders > 0 ? (
+                    <div className="text-[9px] space-y-0.5">
+                      <div className="text-blue-600">T: {day.completed}/{day.total_with_orders}</div>
+                      <div className="text-green-600">M: {day.processed}/{day.total_with_orders}</div>
+                    </div>
+                  ) : day.status !== 'future' ? (
+                    <div className="text-[10px] text-slate-400">0 kurye</div>
+                  ) : (
+                    <div className="text-[10px]">-</div>
+                  )}
                 </button>
               ))}
             </div>
