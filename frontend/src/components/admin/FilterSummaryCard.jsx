@@ -104,6 +104,12 @@ export default function FilterSummaryCard({
               <span className="text-muted-foreground">Kredi Kartı Toplam:</span>
               <span className="font-medium text-red-600">{totals.kartToplam.toFixed(2)}₺</span>
             </div>
+            <div className="flex items-center gap-1 border-l pl-4 ml-2">
+              <span className="text-muted-foreground font-medium">Sonuç:</span>
+              <span className={`font-bold ${sonuc >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {sonuc >= 0 ? '+' : ''}{sonuc.toFixed(2)}₺
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
