@@ -143,38 +143,49 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
     payment_name_lower = (payment_method_name or "").lower()
     external_app_lower = (external_app_name or "").lower()
     
+    # Debug log - gelen ham verileri kaydet
+    logger.info(f"[PAYMENT MAP] ID: {payment_method_id}, Name: '{payment_method_name}', External: '{external_app_name}'")
+    
     # External platform kontrolü
     online_platforms = ["yemeksepeti", "getir", "trendyol", "migros"]
     is_external_platform = any(platform in external_app_lower for platform in online_platforms)
     
     # 1. Nakit kontrolü - en önce
     if payment_method_id == 1 or "nakit" in payment_name_lower or "cash" in payment_name_lower:
+        logger.info(f"[PAYMENT MAP] Result: cash (nakit match)")
         return "cash"
     
     # 2. External platform siparişleri (Yemeksepeti, Getir vb.) - online ödeme
     if is_external_platform:
+        logger.info(f"[PAYMENT MAP] Result: online (external platform)")
         return "online"
     
     # 3. Kapıda ödeme kontrolü
     if "kapıda" in payment_name_lower or "kapida" in payment_name_lower:
         if "kart" in payment_name_lower or "kredi" in payment_name_lower:
+            logger.info(f"[PAYMENT MAP] Result: card (kapıda kart)")
             return "card"
         else:
+            logger.info(f"[PAYMENT MAP] Result: cash (kapıda nakit)")
             return "cash"
     
     # 4. Online/Çevrimiçi kontrolü
     if "online" in payment_name_lower or "çevrimiçi" in payment_name_lower or "cevrimici" in payment_name_lower:
+        logger.info(f"[PAYMENT MAP] Result: online (online keyword)")
         return "online"
     
     # 5. Kredi/Banka kartı (Adisyo'dan direkt sipariş = kapıda kart)
     if payment_method_id == 2 or "kredi" in payment_name_lower or "banka" in payment_name_lower or "kart" in payment_name_lower:
+        logger.info(f"[PAYMENT MAP] Result: card (kredi/kart match)")
         return "card"
     
     # 6. Online ID'ler (Adisyo'da 3 ve üzeri genellikle online)
     if payment_method_id >= 3:
+        logger.info(f"[PAYMENT MAP] Result: online (ID >= 3)")
         return "online"
     
     # Varsayılan olarak nakit
+    logger.info(f"[PAYMENT MAP] Result: cash (default)")
     return "cash"
 
 
