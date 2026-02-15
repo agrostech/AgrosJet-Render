@@ -907,6 +907,7 @@ async def courier_deliver_order(courier_id: str, order_id: str):
                 "courier_fee": fees["courier_fee"],
                 "restaurant_fee": fees["restaurant_fee"],
                 "restaurant_kdv": fees["restaurant_kdv"],
+                "pos_commission": fees["pos_commission"],
                 "distance_km": fees["distance_km"]
             },
             "$push": {"status_history": history_entry}
