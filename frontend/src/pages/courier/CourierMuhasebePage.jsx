@@ -298,38 +298,18 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
           </div>
         </div>
 
-        {/* Eksik Fatura Uyarısı */}
+        {/* Eksik Fatura Uyarısı - Minimal */}
         {shortfalls.length > 0 && (
-          <div className="m-3 sm:m-4 border-2 border-amber-300 bg-amber-50 rounded-lg overflow-hidden">
-            <div className="p-3 border-b border-amber-200 flex items-center gap-2 bg-amber-100">
-              <AlertTriangle className="w-5 h-5 text-amber-600" />
-              <span className="font-semibold text-amber-800">Eksik Fatura ({shortfalls.length})</span>
-            </div>
-            <div className="divide-y divide-amber-200">
-              {shortfalls.map((shortfall) => (
-                <div key={shortfall.id} className="p-3 flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-amber-900 truncate">
-                      Eksik fatura bekleniyor
-                    </p>
-                    <p className="text-xs text-amber-700">
-                      Hakediş: {formatMoney(shortfall.expected_amount)} → 
-                      Kesilen: {formatMoney(shortfall.total_invoiced || shortfall.invoice_amount || 0)}
-                    </p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-lg font-bold font-mono text-amber-700">
-                      {formatMoney(shortfall.shortfall_amount)}
-                    </p>
-                    <p className="text-[10px] text-amber-600">eksik</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="p-3 bg-amber-100 border-t border-amber-200">
-              <p className="text-xs text-amber-700 text-center">
-                Aşağıdaki işlem geçmişinde sarı renkli hakedişlerde &quot;Eksik Yükle&quot; butonuna tıklayarak eksik faturalarınızı yükleyebilirsiniz.
-              </p>
+          <div className="mx-3 sm:mx-4 mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <span className="text-sm text-amber-700">
+                  <span className="font-medium">{shortfalls.length} eksik fatura</span>
+                  <span className="text-amber-600"> • Toplam: {formatMoney(shortfalls.reduce((sum, s) => sum + s.shortfall_amount, 0))}</span>
+                </span>
+              </div>
+              <span className="text-xs text-amber-600 flex-shrink-0">Sarı satırlarda "Eksik Yükle"</span>
             </div>
           </div>
         )}
