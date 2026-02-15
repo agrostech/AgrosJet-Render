@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,38 +14,65 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
   const [selectedCourier, setSelectedCourier] = useState("all");
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
+  const [company, setCompany] = useState(null);
   
-  // Date filters
-  const [startDate, setStartDate] = useState(() => {
-    const today = new Date();
-    today.setDate(1); // Ayın ilk günü
-    return today.toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  // Date-time filters
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
 
+  // Varsayılan tarih/saat hesaplama
+  const getDefaultDateTimes = useCallback((companyData) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const openingTime = companyData?.opening_time || "09:00";
+    const closingTime = companyData?.closing_time || "23:00";
+    
+    // Format: YYYY-MM-DDTHH:MM
+    const formatDate = (d) => d.toISOString().split('T')[0];
+    
+    return {
+      start: `${formatDate(today)}T${openingTime}`,
+      end: `${formatDate(tomorrow)}T${closingTime}`
+    };
+  }, []);
+
+  // Şirket ve kurye bilgilerini yükle
   useEffect(() => {
-    const fetchCouriers = async () => {
+    const fetchData = async () => {
       if (!companyId) return;
       try {
-        const res = await axios.get(`${API}/companies/${companyId}/couriers`);
-        setCouriers(res.data || []);
+        const [companyRes, couriersRes] = await Promise.all([
+          axios.get(`${API}/companies/${companyId}`),
+          axios.get(`${API}/companies/${companyId}/couriers`)
+        ]);
+        
+        setCompany(companyRes.data);
+        setCouriers(couriersRes.data || []);
+        
+        // Varsayılan tarihleri ayarla
+        const defaults = getDefaultDateTimes(companyRes.data);
+        setStartDateTime(defaults.start);
+        setEndDateTime(defaults.end);
       } catch (err) {
-        console.error("Kuryeler yüklenemedi:", err);
+        console.error("Veri yüklenemedi:", err);
+        // Fallback varsayılan değerler
+        const defaults = getDefaultDateTimes(null);
+        setStartDateTime(defaults.start);
+        setEndDateTime(defaults.end);
       }
     };
-    fetchCouriers();
-  }, [companyId]);
+    fetchData();
+  }, [companyId, getDefaultDateTimes]);
 
   const handleGenerateReport = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         company_id: companyId,
-        start_date: startDate,
-        end_date: endDate,
+        start_datetime: startDateTime,
+        end_datetime: endDateTime,
       });
       if (selectedCourier !== "all") {
         params.append("courier_id", selectedCourier);
@@ -55,16 +82,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
       setReportData(res.data);
     } catch (err) {
       console.error("Rapor oluşturulamadı:", err);
-      // Mock data for now
-      setReportData({
-        summary: {
-          totalOrders: 0,
-          totalEarnings: 0,
-          totalCash: 0,
-          totalCard: 0,
-        },
-        couriers: []
-      });
+      setReportData(null);
     } finally {
       setLoading(false);
     }
@@ -98,22 +116,22 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
             </div>
             
             <div className="space-y-2">
-              <Label>Başlangıç Tarihi</Label>
+              <Label>Başlangıç</Label>
               <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                data-testid="input-start-date"
+                type="datetime-local"
+                value={startDateTime}
+                onChange={(e) => setStartDateTime(e.target.value)}
+                data-testid="input-start-datetime"
               />
             </div>
             
             <div className="space-y-2">
-              <Label>Bitiş Tarihi</Label>
+              <Label>Bitiş</Label>
               <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                data-testid="input-end-date"
+                type="datetime-local"
+                value={endDateTime}
+                onChange={(e) => setEndDateTime(e.target.value)}
+                data-testid="input-end-datetime"
               />
             </div>
             
