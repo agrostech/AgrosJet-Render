@@ -52,6 +52,12 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   
   const [selectedIds, setSelectedIds] = useState([]);
   const [editedCollections, setEditedCollections] = useState({});
+  
+  // Sipariş detay modal state
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState(null);
+  const [courierOrders, setCourierOrders] = useState(null);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   // Veri çekme
   const fetchData = useCallback(async () => {
