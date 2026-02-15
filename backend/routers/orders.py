@@ -61,6 +61,7 @@ async def calculate_order_fees(order: dict) -> dict:
     """Sipariş için kurye ve restoran ücretlerini hesapla"""
     courier_fee = 0.0
     restaurant_fee = 0.0
+    restaurant_kdv = 0.0
     distance_km = 0.0
     
     # Mesafe hesapla
@@ -87,7 +88,7 @@ async def calculate_order_fees(order: dict) -> dict:
     if restaurant_id:
         restaurant = await db.restaurants.find_one(
             {"id": restaurant_id}, 
-            {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+            {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
         )
         if restaurant:
             restaurant_fee = calculate_fee_from_pricing(
@@ -96,10 +97,15 @@ async def calculate_order_fees(order: dict) -> dict:
                 restaurant.get("km_ranges", []),
                 distance_km
             )
+            # KDV hesapla
+            kdv_rate = restaurant.get("kdv_rate", 0)
+            if kdv_rate > 0:
+                restaurant_kdv = restaurant_fee * (kdv_rate / 100)
     
     return {
         "courier_fee": round(courier_fee, 2),
         "restaurant_fee": round(restaurant_fee, 2),
+        "restaurant_kdv": round(restaurant_kdv, 2),
         "distance_km": round(distance_km, 2)
     }
 
