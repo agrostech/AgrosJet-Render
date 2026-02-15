@@ -224,6 +224,21 @@ async def get_courier_payment_report(
     end_date: str = Query(...)
 ):
     """Kurye ödeme raporu - Nakit ve Kredi Kartı toplamları + sipariş listesi"""
+    import math
+    
+    def calculate_distance(lat1, lon1, lat2, lon2):
+        """Haversine formülü ile mesafe hesapla (km)"""
+        if not all([lat1, lon1, lat2, lon2]):
+            return None
+        R = 6371  # Dünya yarıçapı (km)
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        delta_phi = math.radians(lat2 - lat1)
+        delta_lambda = math.radians(lon2 - lon1)
+        a = math.sin(delta_phi/2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return round(R * c, 1)
+    
     # Tarih aralığı için filtre
     start_datetime = f"{start_date}T00:00:00"
     end_datetime = f"{end_date}T23:59:59"
@@ -244,7 +259,12 @@ async def get_courier_payment_report(
         {
             "_id": 0,
             "order_no": 1,
+            "order_number": 1,
             "restaurant_name": 1,
+            "restaurant_location": 1,
+            "customer_name": 1,
+            "delivery_address": 1,
+            "delivery_location": 1,
             "total_amount": 1,
             "payment_method": 1,
             "created_at": 1
@@ -258,9 +278,22 @@ async def get_courier_payment_report(
     card_total = 0
     
     for order in orders:
+        # Mesafe hesapla
+        distance = None
+        rest_loc = order.get("restaurant_location", {})
+        del_loc = order.get("delivery_location", {})
+        if rest_loc and del_loc:
+            distance = calculate_distance(
+                rest_loc.get("latitude"), rest_loc.get("longitude"),
+                del_loc.get("latitude"), del_loc.get("longitude")
+            )
+        
         order_data = {
-            "order_no": order.get("order_no", "-"),
+            "order_no": order.get("order_number") or order.get("order_no", "-"),
             "restaurant": order.get("restaurant_name", "-"),
+            "customer": order.get("customer_name", "-"),
+            "address": order.get("delivery_address", "-"),
+            "distance_km": distance,
             "amount": order.get("total_amount", 0),
             "date": order.get("created_at", "")[:10] if order.get("created_at") else ""
         }
