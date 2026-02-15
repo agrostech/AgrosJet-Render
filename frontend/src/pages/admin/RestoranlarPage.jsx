@@ -271,7 +271,7 @@ export default function RestoranlarPage({ companyId }) {
   const openPricingModal = async (restaurant) => {
     setSelectedRestaurant(restaurant);
     try {
-      const res = await axios.get(`${API}/restaurants/${restaurant.id}/pricing`);
+      const res = await axios.get(`${API}/restaurants/pricing/${restaurant.id}`);
       setPricingType(res.data.pricing_type || "per_package");
       setPerPackagePrice(res.data.per_package_price?.toString() || "");
       setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
@@ -294,7 +294,7 @@ export default function RestoranlarPage({ companyId }) {
         km_ranges: pricingType === "per_km" ? kmRanges : null,
         kdv_rate: parseFloat(kdvRate) || 0
       };
-      await axios.put(`${API}/restaurants/${selectedRestaurant.id}/pricing`, payload);
+      await axios.put(`${API}/restaurants/pricing/${selectedRestaurant.id}`, payload);
       toast.success("Ücretlendirme kaydedildi");
       setShowPricingModal(false);
       fetchRestaurants();
