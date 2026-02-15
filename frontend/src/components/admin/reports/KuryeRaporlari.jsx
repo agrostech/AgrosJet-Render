@@ -142,12 +142,29 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                     {filteredCouriers.map((c, i) => (
                       <tr key={i} className="border-t">
                         <td className="p-2">
-                          {c.name}
-                          {c.modified_count > 0 && (
-                            <span className="ml-1 text-[10px] text-amber-600" title="Ödeme yöntemi değiştirilen sipariş sayısı">
-                              ({c.modified_count} değ.)
-                            </span>
-                          )}
+                          <span className="inline-flex items-center gap-1">
+                            {c.name}
+                            {c.modified_count > 0 && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button className="text-amber-500 hover:text-amber-600" onClick={(e) => e.stopPropagation()}>
+                                    <Info className="w-3 h-3" />
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-56 p-2 text-xs" align="start">
+                                  <div className="space-y-1">
+                                    <div className="font-semibold text-amber-600 border-b pb-1">Ödeme Değişiklikleri</div>
+                                    <p className="text-muted-foreground">
+                                      <strong>{c.modified_count}</strong> siparişte ödeme yöntemi teslim sırasında değiştirildi.
+                                    </p>
+                                    <p className="text-[10px] text-amber-600 bg-amber-50 p-1.5 rounded mt-1">
+                                      Nakit ve kart tutarları güncellenerek hesaplanmıştır.
+                                    </p>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </span>
                         </td>
                         <td className="p-2 text-right">{c.orderCount}</td>
                         <td className="p-2 text-right text-red-600">{c.earnings.toFixed(2)}₺</td>
