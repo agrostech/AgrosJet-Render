@@ -100,6 +100,9 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
               <span>Hakediş: <strong className="text-red-600">{(reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong></span>
               <span>Nakit: <strong className="text-green-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</strong></span>
               <span>Kart: <strong className="text-green-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</strong></span>
+              {reportData.summary?.totalModified > 0 && (
+                <span className="text-amber-600">Ödeme Değ.: <strong>{reportData.summary.totalModified}</strong></span>
+              )}
             </div>
 
             {/* Search */}
