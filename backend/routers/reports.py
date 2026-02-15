@@ -109,7 +109,8 @@ async def get_courier_report(
             "totalOrders": total_orders,
             "totalEarnings": total_earnings,
             "totalCash": total_cash,
-            "totalCard": total_card
+            "totalCard": total_card,
+            "totalModified": total_modified
         },
         "couriers": couriers
     }
