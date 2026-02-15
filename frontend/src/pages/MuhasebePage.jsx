@@ -140,6 +140,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
         {activeTab === "haftalik-hakedis" && <HaftalikHakedisTab companyId={companyId} />}
         {activeTab === "gunluk-mutabakat" && <GunlukMutabakatTab companyId={companyId} adminId={adminId} adminName={adminName} isSuperAdmin={isSuperAdmin} />}
         {activeTab === "hareketler" && <HareketlerTab companyId={companyId} />}
+        {activeTab === "raporlar" && isSuperAdmin && <RaporlarTab companyId={companyId} isSuperAdmin={isSuperAdmin} />}
       </div>
     </div>
   );
