@@ -223,7 +223,7 @@ async def get_courier_payment_report(
     start_date: str = Query(...),
     end_date: str = Query(...)
 ):
-    """Kurye ödeme raporu - Nakit ve Kredi Kartı toplamları"""
+    """Kurye ödeme raporu - Nakit ve Kredi Kartı toplamları + sipariş listesi"""
     # Tarih aralığı için filtre
     start_datetime = f"{start_date}T00:00:00"
     end_datetime = f"{end_date}T23:59:59"
@@ -238,44 +238,44 @@ async def get_courier_payment_report(
         }
     }
     
-    pipeline = [
-        {"$match": match_filter},
+    # Sipariş listesini al
+    orders = await db.orders.find(
+        match_filter,
         {
-            "$group": {
-                "_id": None,
-                "cash_total": {
-                    "$sum": {
-                        "$cond": [
-                            {"$eq": ["$payment_method", "cash"]},
-                            "$total_amount",
-                            0
-                        ]
-                    }
-                },
-                "card_total": {
-                    "$sum": {
-                        "$cond": [
-                            {"$eq": ["$payment_method", "card"]},
-                            "$total_amount",
-                            0
-                        ]
-                    }
-                }
-            }
+            "_id": 0,
+            "order_no": 1,
+            "restaurant_name": 1,
+            "total_amount": 1,
+            "payment_method": 1,
+            "created_at": 1
         }
-    ]
+    ).sort("created_at", -1).to_list(500)
     
-    results = await db.orders.aggregate(pipeline).to_list(1)
+    # Nakit ve kart siparişlerini ayır
+    cash_orders = []
+    card_orders = []
+    cash_total = 0
+    card_total = 0
     
-    if results:
-        return {
-            "cash_total": results[0].get("cash_total", 0),
-            "card_total": results[0].get("card_total", 0)
+    for order in orders:
+        order_data = {
+            "order_no": order.get("order_no", "-"),
+            "restaurant": order.get("restaurant_name", "-"),
+            "amount": order.get("total_amount", 0),
+            "date": order.get("created_at", "")[:10] if order.get("created_at") else ""
         }
+        if order.get("payment_method") == "cash":
+            cash_orders.append(order_data)
+            cash_total += order.get("total_amount", 0) or 0
+        elif order.get("payment_method") == "card":
+            card_orders.append(order_data)
+            card_total += order.get("total_amount", 0) or 0
     
     return {
-        "cash_total": 0,
-        "card_total": 0
+        "cash_total": cash_total,
+        "card_total": card_total,
+        "cash_orders": cash_orders,
+        "card_orders": card_orders
     }
 
 
