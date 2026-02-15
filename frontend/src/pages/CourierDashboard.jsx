@@ -30,6 +30,7 @@ const BASE_NAV_ITEMS = [
   { path: "/courier", label: "Siparişler", icon: ClipboardList, key: "siparis" },
   { path: "/courier/vardiyalar", label: "Vardiyalarım", icon: Clock, key: "vardiya" },
   { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
+  { path: "/courier/raporlar", label: "Raporlar", icon: BarChart3, key: "raporlar" },
   { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package, key: "zimmet" },
   { path: "/courier/motosikletim", label: "Motosikletim", icon: Bike, key: "motosikletim" },
   { path: "/courier/akademi", label: "Akademi", icon: GraduationCap, key: "akademi" },
