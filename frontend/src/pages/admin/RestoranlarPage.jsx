@@ -850,6 +850,28 @@ export default function RestoranlarPage({ companyId }) {
                 </div>
               </div>
             )}
+
+            {/* KDV Oranı */}
+            <div className="space-y-2 p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <Label className="text-amber-800">KDV Oranı (%)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={kdvRate}
+                  onChange={(e) => setKdvRate(e.target.value)}
+                  placeholder="0"
+                  className="bg-white"
+                  data-testid="kdv-rate-input"
+                />
+                <span className="text-amber-700 font-medium">%</span>
+              </div>
+              <p className="text-xs text-amber-600">
+                Restoran ücretine ek olarak hesaplanacak KDV oranı
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPricingModal(false)}>
