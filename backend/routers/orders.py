@@ -677,6 +677,7 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
         fees = await calculate_order_fees(order)
         update_fields["courier_fee"] = fees["courier_fee"]
         update_fields["restaurant_fee"] = fees["restaurant_fee"]
+        update_fields["restaurant_kdv"] = fees["restaurant_kdv"]
         update_fields["distance_km"] = fees["distance_km"]
     
     # History'ye ekle
