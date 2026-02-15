@@ -297,19 +297,39 @@ async def get_courier_payment_report(
                 del_loc.get("latitude"), del_loc.get("longitude")
             )
         
-        order_data = {
+        base_order_data = {
             "order_no": order.get("order_number") or order.get("order_no", "-"),
             "restaurant": order.get("restaurant_name", "-"),
             "customer": order.get("customer_name", "-"),
             "address": order.get("delivery_address", "-"),
             "distance_km": distance,
-            "amount": order.get("total_amount", 0),
             "date": order.get("created_at", "")[:16].replace("T", " ") if order.get("created_at") else ""
         }
-        if order.get("payment_method") == "cash":
+        
+        # Parçalı ödeme kontrolü
+        payment_details = order.get("payment_details", {})
+        payment_method = order.get("payment_method")
+        
+        if payment_method == "mixed" or (payment_details.get("cash_amount", 0) > 0 and payment_details.get("card_amount", 0) > 0):
+            # Parçalı ödeme - her iki listeye de ekle
+            cash_amt = payment_details.get("cash_amount", 0)
+            card_amt = payment_details.get("card_amount", 0)
+            
+            if cash_amt > 0:
+                cash_order = {**base_order_data, "amount": cash_amt}
+                cash_orders.append(cash_order)
+                cash_total += cash_amt
+            
+            if card_amt > 0:
+                card_order = {**base_order_data, "amount": card_amt}
+                card_orders.append(card_order)
+                card_total += card_amt
+        elif payment_method == "cash":
+            order_data = {**base_order_data, "amount": order.get("total_amount", 0)}
             cash_orders.append(order_data)
             cash_total += order.get("total_amount", 0) or 0
-        elif order.get("payment_method") == "card":
+        elif payment_method == "card":
+            order_data = {**base_order_data, "amount": order.get("total_amount", 0)}
             card_orders.append(order_data)
             card_total += order.get("total_amount", 0) or 0
     
