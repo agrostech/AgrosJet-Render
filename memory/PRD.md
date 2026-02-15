@@ -25,9 +25,9 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 - [x] Restoran KDV Oranı Özelliği (15 Şubat 2026)
 
 ### Devam Eden/Bekleyen
-- [ ] **P0:** Kurye şifre oluşturma sorunu araştırması
 - [ ] **P1:** Adisyo Webhook entegrasyonu
-- [ ] **P1:** Molada/çevrimdışı kuryelere atama engeli
+- [ ] **P1:** Arka plan görev güvenilirliği (bildirimler/konum)
+- [ ] **P1:** Mobil sidebar kurye listesi açılma sorunu
 - [ ] **P2:** Finans raporlaması
 
 ### Gelecek Özellikler
