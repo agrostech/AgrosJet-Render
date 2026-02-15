@@ -88,17 +88,17 @@ export default function KazancRaporu({ courierId, companyId }) {
       {/* Filtreler */}
       <div className="flex flex-wrap items-center gap-2">
         <Input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
+          type="datetime-local"
+          value={startDateTime}
+          onChange={(e) => setStartDateTime(e.target.value)}
           className="h-9 w-auto"
           data-testid="earnings-start-date"
         />
         <span className="text-muted-foreground">-</span>
         <Input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
+          type="datetime-local"
+          value={endDateTime}
+          onChange={(e) => setEndDateTime(e.target.value)}
           className="h-9 w-auto"
           data-testid="earnings-end-date"
         />
