@@ -1,18 +1,25 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Package, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, Pencil, Loader2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuperAdmin = false }) {
+export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuperAdmin = false, adminId, adminName }) {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  
+  // Fee edit modal state
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [editFees, setEditFees] = useState({ courier_fee: 0, restaurant_fee: 0 });
+  const [savingFees, setSavingFees] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
