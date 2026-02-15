@@ -709,7 +709,7 @@ async def reset_collection(company_id: str, data: ResetCollectionRequest):
 @router.get("/{company_id}/weekly-summary")
 async def get_weekly_summary(company_id: str, week_start: str = None):
     """
-    Haftalık mütabakat özeti - her gün için tamamlanan/toplam kurye sayısı
+    Haftalık mütabakat özeti - her gün için tahsilat/mütabakat sayıları
     """
     if week_start:
         start_date = datetime.strptime(week_start, "%Y-%m-%d")
@@ -719,14 +719,23 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
     
     start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Toplam aktif kurye sayısı
+    # Aktif kurye ID'lerini al
     query = {"company_id": company_id, "is_archived": {"$ne": True}, "is_active": {"$ne": False}}
     relations = await db.company_couriers.find(query, {"_id": 0, "courier_id": 1}).to_list(1000)
-    total_couriers = len(set([rel["courier_id"] for rel in relations]))
+    courier_ids = list(set([rel["courier_id"] for rel in relations]))
     
-    if total_couriers == 0:
+    if not courier_ids:
         relations = await db.company_couriers.find({"company_id": company_id}, {"_id": 0, "courier_id": 1}).to_list(1000)
-        total_couriers = len(set([rel["courier_id"] for rel in relations]))
+        courier_ids = list(set([rel["courier_id"] for rel in relations]))
+    
+    # Şirket ayarlarını al (açılış/kapanış saatleri)
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "settings": 1})
+    settings = company.get("settings", {}) if company else {}
+    open_time = settings.get("open_time", "06:00")
+    close_time = settings.get("close_time", "05:59")
+    
+    open_hour, open_min = map(int, open_time.split(":"))
+    close_hour, close_min = map(int, close_time.split(":"))
     
     days = []
     day_names_tr = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
@@ -736,14 +745,53 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         day_date = start_date + timedelta(days=i)
         date_str = day_date.strftime("%Y-%m-%d")
         
-        # O gün tahsilat yapılan kurye sayısı
+        # Gün aralığını hesapla
+        start_dt = day_date.replace(hour=open_hour, minute=open_min, second=0, microsecond=0, tzinfo=timezone.utc)
+        if close_hour < open_hour:
+            end_dt = (day_date + timedelta(days=1)).replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=timezone.utc)
+        else:
+            end_dt = day_date.replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=timezone.utc)
+        
+        # O gün siparişi olan kurye sayısını hesapla
+        couriers_with_orders = set()
+        for courier_id in courier_ids:
+            orders = await db.orders.find({
+                "company_id": company_id,
+                "courier_id": courier_id,
+                "status": "delivered"
+            }, {"_id": 0, "updated_at": 1, "total_amount": 1, "payment_method": 1}).to_list(500)
+            
+            has_orders = False
+            for order in orders:
+                updated_at = order.get("updated_at")
+                if updated_at:
+                    try:
+                        if isinstance(updated_at, str):
+                            order_dt = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+                        elif isinstance(updated_at, datetime):
+                            order_dt = updated_at
+                        else:
+                            continue
+                        
+                        if start_dt <= order_dt < end_dt:
+                            has_orders = True
+                            break
+                    except:
+                        continue
+            
+            if has_orders:
+                couriers_with_orders.add(courier_id)
+        
+        total_with_orders = len(couriers_with_orders)
+        
+        # O gün tahsilat kaydı olan kurye sayısı
         completed_couriers = await db.daily_mutabakat_collections.distinct(
             "courier_id",
             {"company_id": company_id, "date": date_str}
         )
         completed_count = len(completed_couriers)
         
-        # O gün işlenen kurye sayısı
+        # O gün mütabakat yapılan kurye sayısı
         processed_couriers = await db.daily_mutabakat_processed.distinct(
             "courier_id",
             {"company_id": company_id, "date": date_str}
@@ -755,11 +803,11 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         
         if is_future:
             status = "future"
-        elif processed_count > 0:
+        elif processed_count >= total_with_orders and total_with_orders > 0:
             status = "processed"
-        elif completed_count >= total_couriers and total_couriers > 0:
+        elif completed_count >= total_with_orders and total_with_orders > 0:
             status = "complete"
-        elif completed_count > 0:
+        elif completed_count > 0 or processed_count > 0:
             status = "partial"
         else:
             status = "empty"
@@ -768,15 +816,14 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
             "date": date_str,
             "day_name": day_names_tr[i],
             "day_number": day_date.day,
-            "completed": completed_count,
-            "processed": processed_count,
-            "total": total_couriers,
+            "total_with_orders": total_with_orders,  # Siparişi olan kurye sayısı
+            "completed": completed_count,  # Tahsilat kaydı yapılan
+            "processed": processed_count,  # Mütabakat yapılan
             "status": status,
             "is_today": is_today
         })
     
     return {
         "week_start": start_date.strftime("%Y-%m-%d"),
-        "total_couriers": total_couriers,
         "days": days
     }
