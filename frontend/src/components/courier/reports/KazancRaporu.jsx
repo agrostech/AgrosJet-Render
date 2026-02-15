@@ -52,6 +52,12 @@ export default function KazancRaporu({ courierId }) {
     return "bg-gray-100 text-gray-700";
   };
 
+  const formatDistance = (km) => {
+    if (!km) return "-";
+    if (km < 1) return `${Math.round(km * 1000)}m`;
+    return `${km} km`;
+  };
+
   return (
     <div className="space-y-4">
       {/* Filtreler */}
