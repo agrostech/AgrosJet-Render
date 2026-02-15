@@ -182,8 +182,44 @@ export default function KazancRaporu({ courierId, companyId }) {
                           {formatMoney(order.courier_fee)}
                         </td>
                         <td className="py-1.5 text-center">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getPaymentColor(order.payment_method)}`}>
-                            {getPaymentLabel(order.payment_method)}
+                          <span className="inline-flex items-center gap-1">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getPaymentColor(order.payment_method)}`}>
+                              {getPaymentLabel(order.payment_method)}
+                            </span>
+                            {order.payment_details?.original_method && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button className="text-amber-500 hover:text-amber-600" onClick={(e) => e.stopPropagation()}>
+                                    <Info className="w-3 h-3" />
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-52 p-2 text-xs" align="end">
+                                  <div className="space-y-1">
+                                    <div className="font-semibold text-amber-600 border-b pb-1">Ödeme Değişikliği</div>
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">Orijinal:</span>
+                                      <span>{getPaymentLabel(order.payment_details.original_method)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">Yeni:</span>
+                                      <span>{getPaymentLabel(order.payment_method)}</span>
+                                    </div>
+                                    {order.payment_method === "mixed" && (
+                                      <div className="border-t pt-1 mt-1">
+                                        <div className="flex justify-between text-green-600">
+                                          <span>Nakit:</span>
+                                          <span>{formatMoney(order.payment_details.cash_amount || 0)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-blue-600">
+                                          <span>Kart:</span>
+                                          <span>{formatMoney(order.payment_details.card_amount || 0)}</span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
                           </span>
                         </td>
                       </tr>
