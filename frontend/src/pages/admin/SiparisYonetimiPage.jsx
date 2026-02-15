@@ -618,6 +618,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
           companyId={companyId} 
           onOrderSelect={(order) => { setSelectedOrder(order); setShowOrderDetailModal(true); }}
           isSuperAdmin={isSuperAdmin}
+          adminName={adminName}
         />
       )}
       {mainTab === "cancelled" && (
