@@ -211,6 +211,97 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     }
 
 
+async def get_courier_orders_detail(company_id: str, courier_id: str, start_dt: datetime, end_dt: datetime):
+    """
+    Kuryenin belirli tarih aralığındaki siparişlerinin detaylı listesini getir
+    """
+    orders = await db.orders.find({
+        "company_id": company_id,
+        "courier_id": courier_id,
+        "status": "delivered"
+    }, {
+        "_id": 0, 
+        "id": 1,
+        "order_number": 1,
+        "restaurant_name": 1,
+        "customer_name": 1,
+        "delivery_address": 1,
+        "total_amount": 1,
+        "payment_method": 1, 
+        "payment_details": 1,
+        "updated_at": 1,
+        "created_at": 1
+    }).to_list(1000)
+    
+    cash_orders = []
+    card_orders = []
+    
+    for order in orders:
+        # Tarih kontrolü
+        updated_at = order.get("updated_at")
+        if not updated_at:
+            continue
+        try:
+            if isinstance(updated_at, str):
+                order_dt = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+            elif isinstance(updated_at, datetime):
+                order_dt = updated_at
+            else:
+                continue
+            
+            if not (start_dt <= order_dt < end_dt):
+                continue
+        except Exception:
+            continue
+        
+        payment_method = (order.get("payment_method", "") or "").lower()
+        payment_details = order.get("payment_details") or {}
+        total_amount = order.get("total_amount", 0) or 0
+        
+        base_data = {
+            "order_number": order.get("order_number", "-"),
+            "restaurant_name": order.get("restaurant_name", "-"),
+            "customer_name": order.get("customer_name", "-"),
+            "delivery_address": order.get("delivery_address", "-"),
+            "total_amount": total_amount,
+            "payment_method": payment_method,
+            "original_method": payment_details.get("original_method"),
+            "is_modified": bool(payment_details.get("original_method")),
+            "created_at": order.get("created_at", "")[:16].replace("T", " ") if order.get("created_at") else ""
+        }
+        
+        cash_amt = payment_details.get("cash_amount", 0) or 0
+        card_amt = payment_details.get("card_amount", 0) or 0
+        
+        # Parçalı ödeme
+        if payment_method == "mixed" or (cash_amt > 0 and card_amt > 0):
+            if cash_amt > 0:
+                cash_orders.append({
+                    **base_data,
+                    "amount": cash_amt,
+                    "is_split": True,
+                    "split_details": {"cash": cash_amt, "card": card_amt}
+                })
+            if card_amt > 0:
+                card_orders.append({
+                    **base_data,
+                    "amount": card_amt,
+                    "is_split": True,
+                    "split_details": {"cash": cash_amt, "card": card_amt}
+                })
+        elif "cash" in payment_method or "nakit" in payment_method:
+            cash_orders.append({**base_data, "amount": total_amount, "is_split": False})
+        elif "online" in payment_method or "card" in payment_method or "kart" in payment_method:
+            card_orders.append({**base_data, "amount": total_amount, "is_split": False})
+    
+    return {
+        "cash_orders": cash_orders,
+        "card_orders": card_orders,
+        "cash_total": sum(o["amount"] for o in cash_orders),
+        "card_total": sum(o["amount"] for o in card_orders)
+    }
+
+
 # ============ ENDPOINTS ============
 
 @router.get("/{company_id}/date-range/{date}")
