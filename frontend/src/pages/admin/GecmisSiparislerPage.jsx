@@ -528,13 +528,40 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                           {order.total_amount?.toFixed(2) || "0.00"} ₺
                         </td>
                         <td className="p-2">
-                          <span className={`px-1.5 py-0.5 text-xs rounded ${
-                            order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
-                            order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
-                            'bg-purple-100 text-purple-700'
-                          }`}>
-                            {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
-                          </span>
+                          <div className="space-y-0.5">
+                            {order.payment_method === 'mixed' || (order.payment_details?.cash_amount > 0 && order.payment_details?.card_amount > 0) ? (
+                              <>
+                                <div className="flex gap-1">
+                                  <span className="px-1 py-0.5 text-[10px] rounded bg-emerald-100 text-emerald-700">
+                                    N: {order.payment_details?.cash_amount?.toFixed(0) || 0}₺
+                                  </span>
+                                  <span className="px-1 py-0.5 text-[10px] rounded bg-blue-100 text-blue-700">
+                                    K: {order.payment_details?.card_amount?.toFixed(0) || 0}₺
+                                  </span>
+                                </div>
+                                {order.payment_details?.original_method && (
+                                  <div className="text-[9px] text-amber-600">
+                                    Orijinal: {order.payment_details.original_method === 'cash' ? 'Nakit' : order.payment_details.original_method === 'card' ? 'Kart' : 'Online'}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <span className={`px-1.5 py-0.5 text-xs rounded ${
+                                  order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                                  order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
+                                  'bg-purple-100 text-purple-700'
+                                }`}>
+                                  {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
+                                </span>
+                                {order.payment_details?.original_method && order.payment_details.original_method !== order.payment_method && (
+                                  <div className="text-[9px] text-amber-600">
+                                    Orijinal: {order.payment_details.original_method === 'cash' ? 'Nakit' : order.payment_details.original_method === 'card' ? 'Kart' : 'Online'}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </td>
                         <td className="p-2 text-xs">
                           {order.courier_name || "-"}
