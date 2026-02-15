@@ -275,10 +275,12 @@ export default function RestoranlarPage({ companyId }) {
       setPricingType(res.data.pricing_type || "per_package");
       setPerPackagePrice(res.data.per_package_price?.toString() || "");
       setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
+      setKdvRate(res.data.kdv_rate?.toString() || "");
     } catch (err) {
       setPricingType("per_package");
       setPerPackagePrice("");
       setKmRanges(DEFAULT_KM_RANGES);
+      setKdvRate("");
     }
     setShowPricingModal(true);
   };
@@ -289,7 +291,8 @@ export default function RestoranlarPage({ companyId }) {
       const payload = {
         pricing_type: pricingType,
         per_package_price: pricingType === "per_package" ? parseFloat(perPackagePrice) || 0 : null,
-        km_ranges: pricingType === "per_km" ? kmRanges : null
+        km_ranges: pricingType === "per_km" ? kmRanges : null,
+        kdv_rate: parseFloat(kdvRate) || 0
       };
       await axios.put(`${API}/restaurants/${selectedRestaurant.id}/pricing`, payload);
       toast.success("Ücretlendirme kaydedildi");
