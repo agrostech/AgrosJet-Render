@@ -40,10 +40,26 @@ function OrderTable({ orders, colorClass }) {
               <td className="py-1.5 pr-2 truncate max-w-[180px]" title={order.address}>{order.address}</td>
               <td className="py-1.5 pr-2 text-center">{formatDistance(order.distance_km)}</td>
               <td className="py-1.5 text-right font-medium">
-                {formatMoney(order.amount)}
-                {order.is_split && (
-                  <span className="ml-1 text-[9px] text-amber-500" title="Parçalı ödeme">*</span>
-                )}
+                <span className="inline-flex items-center gap-1">
+                  {formatMoney(order.amount)}
+                  {(order.is_split || order.is_modified) && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="text-amber-500 hover:text-amber-600" onClick={(e) => e.stopPropagation()}>
+                          <Info className="w-3 h-3" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-2 text-xs" align="end">
+                        {order.is_split && (
+                          <div className="text-amber-600">Parçalı ödeme - bu tutar siparişin bir kısmıdır</div>
+                        )}
+                        {order.is_modified && (
+                          <div className="text-amber-600">Ödeme yöntemi teslim sırasında değiştirildi</div>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </span>
               </td>
             </tr>
           ))}
