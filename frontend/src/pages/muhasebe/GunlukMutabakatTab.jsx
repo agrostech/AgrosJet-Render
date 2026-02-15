@@ -86,6 +86,23 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
     }
   }, [companyId]);
 
+  // Kurye siparişlerini getir
+  const fetchCourierOrders = async (courier) => {
+    setSelectedCourier(courier);
+    setShowOrdersModal(true);
+    setLoadingOrders(true);
+    setCourierOrders(null);
+    
+    try {
+      const res = await axios.get(`${API}/daily-mutabakat/${companyId}/courier/${courier.id}/orders/${selectedDate}`);
+      setCourierOrders(res.data);
+    } catch (err) {
+      toast.error("Siparişler yüklenemedi");
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
     fetchWeeklySummary();
