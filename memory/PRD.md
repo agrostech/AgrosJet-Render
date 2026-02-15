@@ -22,6 +22,7 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 - [x] Push Bildirimler
 - [x] Dinamik Filtre Saatleri (Şirket ayarlarından)
 - [x] Sipariş Ücret Düzenleme (Süperadmin)
+- [x] Restoran KDV Oranı Özelliği (15 Şubat 2026)
 
 ### Devam Eden/Bekleyen
 - [ ] **P0:** Kurye şifre oluşturma sorunu araştırması
@@ -55,16 +56,18 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 ## Veritabanı Şeması (Ana Koleksiyonlar)
 - `companies` - Şirketler
 - `couriers` - Kuryeler
-- `orders` - Siparişler
+- `orders` - Siparişler (restaurant_kdv alanı eklendi)
 - `transactions` - Muhasebe hareketleri
 - `daily_collections` - Günlük tahsilatlar
-- `restaurants` - Restoranlar
+- `restaurants` - Restoranlar (kdv_rate alanı eklendi)
 - `admins` - Yöneticiler
 
 ## API Endpoints (Önemli)
 - `POST /api/auth/admin/login` - Admin girişi
 - `GET /api/orders/{company_id}` - Sipariş listesi
 - `PUT /api/orders/{order_id}/fees` - Ücret güncelleme (Süperadmin)
+- `GET /api/restaurants/pricing/{restaurant_id}` - Restoran ücretlendirme bilgisi
+- `PUT /api/restaurants/pricing/{restaurant_id}` - Restoran ücretlendirme güncelleme
 - `POST /api/mutabakat/*` - Mütabakat işlemleri
 - `POST /api/weekly-hakedis/*` - Hakediş işlemleri
 
@@ -72,6 +75,7 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 1. Varsayılan filtre saatleri şirket ayarlarından dinamik olarak çekiliyor
 2. Geçmiş siparişlerde süperadmin ücret düzenleyebilir
 3. SuperAdmin kontrolü hem role hem is_super_admin field'ını kontrol ediyor
+4. **Restoran KDV Oranı:** Restoran ayarlarına KDV oranı eklendi, sipariş tesliminde otomatik hesaplanıyor
 
 ## Test Bilgileri
 - **Multi-company Admin:** username: `testadmin`, password: `123456`
