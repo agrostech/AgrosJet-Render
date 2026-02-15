@@ -659,7 +659,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
               </div>
               
               <div>
-                <Label htmlFor="restaurant_kdv" className="text-green-600">Taşıma Bedeli KDV (₺)</Label>
+                <Label htmlFor="restaurant_kdv" style={{color: '#16a34a'}}>Taşıma Bedeli KDV (₺)</Label>
                 <Input
                   id="restaurant_kdv"
                   type="number"
@@ -676,7 +676,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
               </div>
               
               <div>
-                <Label htmlFor="pos_commission" className="text-green-600">POS Komisyonu (₺)</Label>
+                <Label htmlFor="pos_commission" style={{color: '#16a34a'}}>POS Komisyonu (₺)</Label>
                 <Input
                   id="pos_commission"
                   type="number"
