@@ -446,7 +446,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     const hasOrders = courier.order_data.order_count > 0;
                     const cashDiff = courier.differences?.cash || 0;
                     const cardDiff = courier.differences?.card || 0;
-                    const totalDiff = courier.differences?.total || 0;
                     
                     // Komisyon farkı hesapla (yanlış yüzde ile tahsil edilen tutar)
                     // Sistem komisyonu (olması gereken)
@@ -463,6 +462,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     
                     // Komisyon farkı (pozitif = kurye fazla komisyon çekmiş, ceza)
                     const commissionPenalty = collectionCommission - systemCommission;
+                    
+                    // Toplam fark = nakit + kart + komisyon
+                    const totalDiff = cashDiff + cardDiff + commissionPenalty;
                     
                     return (
                       <tr 
