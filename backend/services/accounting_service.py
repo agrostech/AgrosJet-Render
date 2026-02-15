@@ -58,12 +58,14 @@ async def calculate_total_balance(entity_type: str, entity_ids: list) -> float:
     if not entity_ids:
         return 0
     
+    # payment_out/given = borç artırır (pozitif bakiye)
+    # payment_in/received = borç azaltır (negatif bakiye)
     pipeline = [
         {"$match": {"entity_type": entity_type, "entity_id": {"$in": entity_ids}}},
         {"$group": {
             "_id": None,
-            "total_out": {"$sum": {"$cond": [{"$eq": ["$type", "payment_out"]}, "$amount", 0]}},
-            "total_in": {"$sum": {"$cond": [{"$eq": ["$type", "payment_in"]}, "$amount", 0]}}
+            "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
         }}
     ]
     result = await db.transactions.aggregate(pipeline).to_list(1)
