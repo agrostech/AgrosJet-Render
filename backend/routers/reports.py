@@ -5,7 +5,6 @@ Raporlar API Router
 """
 from fastapi import APIRouter, Query
 from typing import Optional
-from datetime import datetime, timezone
 from utils.database import db
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
