@@ -578,15 +578,15 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           )}
                         </td>
                         
-                        {/* Farklar - Yüzde */}
+                        {/* Farklar - Yüzde Komisyon Cezası */}
                         <td className="p-1 text-center">
-                          {courier.has_collection && cardTotal > 0 ? (
+                          {courier.has_collection ? (
                             <span className={`font-mono text-[10px] font-medium ${
-                              percentDiff > 0 ? 'text-red-600' : 
-                              percentDiff < 0 ? 'text-blue-600' : 
+                              commissionPenalty > 0.01 ? 'text-red-600' : 
+                              commissionPenalty < -0.01 ? 'text-blue-600' : 
                               'text-green-600'
                             }`}>
-                              {percentDiff !== 0 ? `%${percentDiff}` : '✓'}
+                              {Math.abs(commissionPenalty) > 0.01 ? formatMoney(commissionPenalty) : '✓'}
                             </span>
                           ) : (
                             <span className="text-slate-300 text-[10px]">-</span>
