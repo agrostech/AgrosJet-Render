@@ -901,6 +901,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
 // Yeni Sipariş Kartı (Onay Bekleyen) - Kompakt
 function NewOrderCard({ order, onConfirm, loading }) {
+  // Kurye kazancını formatla
+  const courierFee = order.courier_fee || 0;
+  
   return (
     <div
       className="bg-purple-50 rounded-xl shadow-lg border-l-4 border-purple-500"
@@ -934,6 +937,18 @@ function NewOrderCard({ order, onConfirm, loading }) {
             </span>
           )}
         </div>
+
+        {/* Kazanç Bilgisi */}
+        {courierFee > 0 && (
+          <div className="bg-green-100 border border-green-300 rounded-lg p-2 mb-2">
+            <div className="flex items-center justify-center gap-1.5 text-green-700">
+              <Banknote className="w-4 h-4" />
+              <span className="text-sm font-semibold">
+                Bu siparişten {formatCurrency(courierFee)} kazanacaksınız
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Sipariş özeti (gizli) */}
         <div className="bg-white/50 rounded p-2 mb-2 border border-purple-200">
