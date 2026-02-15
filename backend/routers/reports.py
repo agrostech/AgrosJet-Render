@@ -324,8 +324,10 @@ async def get_courier_payment_report(
 @router.get("/courier/earnings")
 async def get_courier_earnings_report(
     courier_id: str = Query(...),
-    start_date: str = Query(...),
-    end_date: str = Query(...)
+    start_datetime: str = Query(None),
+    end_datetime: str = Query(None),
+    start_date: str = Query(None),
+    end_date: str = Query(None)
 ):
     """Kurye kazanç raporu - Paket sayısı, hakediş toplamı + sipariş listesi"""
     import math
@@ -343,9 +345,16 @@ async def get_courier_earnings_report(
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
         return round(R * c, 1)
     
-    # Tarih aralığı için filtre
-    start_datetime = f"{start_date}T00:00:00"
-    end_datetime = f"{end_date}T23:59:59"
+    # Tarih aralığı için filtre (datetime veya date formatını destekle)
+    if start_datetime and end_datetime:
+        start_dt = start_datetime.replace("T", " ") + ":00" if len(start_datetime) == 16 else start_datetime
+        end_dt = end_datetime.replace("T", " ") + ":59" if len(end_datetime) == 16 else end_datetime
+    else:
+        start_dt = f"{start_date}T00:00:00" if start_date else None
+        end_dt = f"{end_date}T23:59:59" if end_date else None
+    
+    if not start_dt or not end_dt:
+        return {"package_count": 0, "total_earnings": 0, "orders": []}
     
     # Teslim edilmiş siparişleri al (kazanç detaylarıyla)
     orders = await db.orders.find(
