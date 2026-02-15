@@ -127,3 +127,27 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
   - `components/courier/reports/utils.js` - Ortak yardımcı fonksiyonlar (formatMoney)
   - `components/courier/reports/index.js` - Export barrel dosyası
 - Tasarım dili ve mevcut component yapısıyla uyumlu hale getirildi
+
+## Son Güncellemeler (15 Şubat 2026 - Split Payment & Mutabakat Modal)
+
+### 1. Parçalı Ödeme Bug Fix (P0 - Tamamlandı)
+**Sorun:** Kurye "Ödeme Raporu" sayfasında parçalı (mixed) ödemeler görünmüyordu.
+**Çözüm:** `backend/routers/reports.py` - `get_courier_payment_report` fonksiyonundaki MongoDB query projection'a `payment_details` field'ı eklendi.
+- Parçalı ödemeler artık hem nakit hem kart listesinde `[SPLIT]` etiketi ile görünüyor
+- Aynı sipariş her iki listeye de ilgili tutarlarla ekleniyor
+- Info icon ile popover'da "Parçalı ödeme" açıklaması gösteriliyor
+
+### 2. Günlük Mütabakat Sipariş Modal'ı (P0 - Tamamlandı)
+**Özellik:** Günlük Mütabakat sayfasında her kurye için "Detay" butonu eklendi.
+**Uygulama:**
+- `frontend/src/pages/muhasebe/GunlukMutabakatTab.jsx` dosyasına Dialog/Modal eklendi
+- "Detay" butonuna tıklanınca modal açılıyor
+- Modal'da kuryenin o günkü nakit ve kredi kartı siparişleri ayrı tablolarda gösteriliyor
+- Özet kartlarda toplam nakit ve kart tutarları gösteriliyor
+- Backend endpoint: `GET /api/daily-mutabakat/{company_id}/courier/{courier_id}/orders/{date}` zaten mevcut ve çalışıyor
+
+### Test Raporu
+- Test dosyası: `/app/test_reports/iteration_27.json`
+- Backend testleri: 100% (12/12)
+- Frontend testleri: 100%
+- Tüm özellikler başarıyla test edildi
