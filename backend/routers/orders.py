@@ -939,3 +939,49 @@ async def courier_reject_order(courier_id: str, order_id: str, reason: Optional[
     )
     
     return {"message": "Sipariş reddedildi, başka kuryeye atanabilir"}
+
+
+# --- Sipariş Ücret Güncelleme (Sadece Super Admin) ---
+@router.put("/{order_id}/fees")
+async def update_order_fees(order_id: str, data: OrderFeesUpdate):
+    """Sipariş ücretlerini güncelle (sadece super admin)"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    # Sadece teslim edilmiş siparişlerin ücreti değiştirilebilir
+    if order.get("status") != "delivered":
+        raise HTTPException(status_code=400, detail="Sadece teslim edilmiş siparişlerin ücreti değiştirilebilir")
+    
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if data.courier_fee is not None:
+        update_data["courier_fee"] = round(data.courier_fee, 2)
+    
+    if data.restaurant_fee is not None:
+        update_data["restaurant_fee"] = round(data.restaurant_fee, 2)
+    
+    # History entry for audit trail
+    history_entry = {
+        "status": "fee_updated",
+        "label": "Ücret Güncellendi",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "note": f"Kurye: {data.courier_fee}₺, Restoran: {data.restaurant_fee}₺",
+        "actor_type": "super_admin",
+        "actor_name": data.admin_name or "Admin"
+    }
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": update_data,
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    return {
+        "message": "Ücretler güncellendi",
+        "courier_fee": update_data.get("courier_fee", order.get("courier_fee")),
+        "restaurant_fee": update_data.get("restaurant_fee", order.get("restaurant_fee"))
+    }
+
