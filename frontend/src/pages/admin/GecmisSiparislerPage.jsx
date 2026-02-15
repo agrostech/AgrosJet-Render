@@ -673,6 +673,23 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                 </p>
               </div>
               
+              <div>
+                <Label htmlFor="pos_commission" className="text-indigo-600">POS Komisyonu (₺)</Label>
+                <Input
+                  id="pos_commission"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editFees.pos_commission}
+                  onChange={(e) => setEditFees(prev => ({ ...prev, pos_commission: e.target.value }))}
+                  className="mt-1"
+                  data-testid="pos-commission-input"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Kredi kartı/Online ödemeli siparişler için POS komisyonu
+                </p>
+              </div>
+              
               <p className="text-xs text-muted-foreground">
                 * Bu değişiklik haftalık hakediş hesaplamalarına yansıyacaktır.
               </p>
