@@ -295,7 +295,8 @@ export default function RestoranlarPage({ companyId }) {
         pricing_type: pricingType,
         per_package_price: pricingType === "per_package" ? parseFloat(perPackagePrice) || 0 : null,
         km_ranges: pricingType === "per_km" ? kmRanges : null,
-        kdv_rate: parseFloat(kdvRate) || 0
+        kdv_rate: parseFloat(kdvRate) || 0,
+        pos_commission_rate: parseFloat(posCommissionRate) || 0
       };
       await axios.put(`${API}/restaurants/pricing/${selectedRestaurant.id}`, payload);
       toast.success("Ücretlendirme kaydedildi");
