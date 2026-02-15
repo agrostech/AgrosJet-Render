@@ -277,11 +277,13 @@ export default function RestoranlarPage({ companyId }) {
       setPerPackagePrice(res.data.per_package_price?.toString() || "");
       setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
       setKdvRate(res.data.kdv_rate?.toString() || "");
+      setPosCommissionRate(res.data.pos_commission_rate?.toString() || "");
     } catch (err) {
       setPricingType("per_package");
       setPerPackagePrice("");
       setKmRanges(DEFAULT_KM_RANGES);
       setKdvRate("");
+      setPosCommissionRate("");
     }
     setShowPricingModal(true);
   };
