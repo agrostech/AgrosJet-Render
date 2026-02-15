@@ -137,18 +137,17 @@ export default function KazancRaporu({ courierId }) {
                     {data.orders.map((order, idx) => (
                       <tr key={idx} className="border-b border-gray-100 last:border-0 hover:bg-gray-100">
                         <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.date}</td>
-                        <td className="py-1.5 pr-2 font-medium">{order.order_no}</td>
-                        <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.restaurant}>
+                        <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant}>
                           {order.restaurant}
                         </td>
                         <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer}>
                           {order.customer}
                         </td>
-                        <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.address}>
+                        <td className="py-1.5 pr-2 truncate max-w-[180px]" title={order.address}>
                           {order.address}
                         </td>
                         <td className="py-1.5 pr-2 text-center">
-                          {order.distance_km ? `${order.distance_km}` : "-"}
+                          {formatDistance(order.distance_km)}
                         </td>
                         <td className="py-1.5 pr-2 text-right text-gray-600">
                           {formatMoney(order.total_amount)}
