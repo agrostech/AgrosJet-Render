@@ -430,6 +430,7 @@ async def get_courier_earnings_report(
                 del_loc.get("latitude"), del_loc.get("longitude")
             )
         
+        payment_details = order.get("payment_details", {})
         order_list.append({
             "order_no": order.get("order_number") or order.get("order_no", "-"),
             "restaurant": order.get("restaurant_name", "-"),
@@ -439,6 +440,11 @@ async def get_courier_earnings_report(
             "total_amount": order.get("total_amount", 0),
             "courier_fee": courier_fee,
             "payment_method": order.get("payment_method", "-"),
+            "payment_details": {
+                "cash_amount": payment_details.get("cash_amount"),
+                "card_amount": payment_details.get("card_amount"),
+                "original_method": payment_details.get("original_method")
+            } if payment_details else None,
             "date": order.get("created_at", "")[:16].replace("T", " ") if order.get("created_at") else ""
         })
     
