@@ -110,30 +110,28 @@ export default function FilterSummaryCard({
   // Kurye filtrelemesi yapıldıysa
   if (courierFilter !== "all") {
     return (
-      <Card className="mb-4 border-2 border-red-200 bg-red-50">
+      <Card className="mb-4 border bg-muted/30">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Bike className="w-5 h-5 text-red-600" />
-            <h3 className="font-bold text-red-800">
+            <Bike className="w-4 h-4 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground">
               {selectedCourier?.name || "Kurye"} - Özet
             </h3>
-            <span className="text-sm text-red-600">({orders.length} sipariş)</span>
+            <span className="text-sm text-muted-foreground">({orders.length} sipariş)</span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-3 border border-red-200">
-              <p className="text-xs text-muted-foreground mb-1">Toplam Hakediş</p>
-              <p className="text-lg font-bold text-red-700">{totals.kuryeHakedis.toFixed(2)}₺</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Toplam Hakediş:</span>
+              <span className="font-medium">{totals.kuryeHakedis.toFixed(2)}₺</span>
             </div>
-            
-            <div className="bg-white rounded-lg p-3 border border-red-200">
-              <p className="text-xs text-muted-foreground mb-1">Toplam Nakit</p>
-              <p className="text-lg font-bold text-emerald-600">{totals.nakitToplam.toFixed(2)}₺</p>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Toplam Nakit:</span>
+              <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
             </div>
-            
-            <div className="bg-white rounded-lg p-3 border border-red-200">
-              <p className="text-xs text-muted-foreground mb-1">Toplam Kredi Kartı</p>
-              <p className="text-lg font-bold text-blue-600">{totals.kartToplam.toFixed(2)}₺</p>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Toplam Kredi Kartı:</span>
+              <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
             </div>
           </div>
         </CardContent>
