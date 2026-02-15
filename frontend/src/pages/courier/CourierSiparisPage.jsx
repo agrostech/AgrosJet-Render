@@ -1307,10 +1307,60 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
 
 // Ödeme Onay Modalı
 function PaymentConfirmModal({ order, open, onConfirm, onCancel, loading }) {
+  const [paymentMode, setPaymentMode] = useState("single"); // "single" veya "split"
+  const [selectedMethod, setSelectedMethod] = useState(null);
+  const [cashAmount, setCashAmount] = useState("");
+  const [cardAmount, setCardAmount] = useState("");
+
+  // Modal açıldığında değerleri sıfırla
+  useEffect(() => {
+    if (open && order) {
+      setPaymentMode("single");
+      setSelectedMethod(order.payment_method);
+      setCashAmount("");
+      setCardAmount("");
+    }
+  }, [open, order]);
+
   if (!order) return null;
 
+  const totalAmount = order.total_amount || 0;
   const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
   const PaymentIcon = paymentInfo.icon;
+
+  // Parçalı ödeme toplamı kontrolü
+  const cashNum = parseFloat(cashAmount) || 0;
+  const cardNum = parseFloat(cardAmount) || 0;
+  const splitTotal = cashNum + cardNum;
+  const isSplitValid = paymentMode === "split" && Math.abs(splitTotal - totalAmount) < 0.01;
+
+  const handleConfirm = () => {
+    let paymentDetails = null;
+
+    if (paymentMode === "split") {
+      // Parçalı ödeme
+      let method = "mixed";
+      if (cashNum > 0 && cardNum === 0) method = "cash";
+      else if (cardNum > 0 && cashNum === 0) method = "card";
+
+      paymentDetails = {
+        cash_amount: cashNum,
+        card_amount: cardNum,
+        payment_method: method
+      };
+    } else if (selectedMethod !== order.payment_method) {
+      // Tek ödeme ama yöntem değişti
+      paymentDetails = {
+        cash_amount: selectedMethod === "cash" ? totalAmount : 0,
+        card_amount: selectedMethod === "card" ? totalAmount : 0,
+        payment_method: selectedMethod
+      };
+    }
+
+    onConfirm(paymentDetails);
+  };
+
+  const canConfirm = paymentMode === "single" || isSplitValid;
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
@@ -1328,43 +1378,125 @@ function PaymentConfirmModal({ order, open, onConfirm, onCancel, loading }) {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">{order.order_number}</span>
               <span className={`text-sm font-bold ${paymentInfo.color}`}>
-                {formatCurrency(order.total_amount)}
+                {formatCurrency(totalAmount)}
               </span>
             </div>
             <p className="text-xs text-muted-foreground">{order.customer_name}</p>
           </div>
 
-          {/* Soru */}
-          <div className="text-center py-2">
-            <p className="text-sm font-medium text-foreground">
-              Siparişin ödemesi alındı mı?
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {paymentInfo.label} ödeme ({formatCurrency(order.total_amount)})
-            </p>
+          {/* Ödeme Modu Seçimi */}
+          <div className="flex gap-2">
+            <Button
+              variant={paymentMode === "single" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setPaymentMode("single")}
+            >
+              Tek Ödeme
+            </Button>
+            <Button
+              variant={paymentMode === "split" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setPaymentMode("split")}
+            >
+              Parçalı Ödeme
+            </Button>
           </div>
 
+          {/* Tek Ödeme Modu */}
+          {paymentMode === "single" && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Ödeme yöntemi:</p>
+              <div className="flex gap-2">
+                <Button
+                  variant={selectedMethod === "cash" ? "default" : "outline"}
+                  size="sm"
+                  className={`flex-1 ${selectedMethod === "cash" ? "bg-green-600 hover:bg-green-700" : ""}`}
+                  onClick={() => setSelectedMethod("cash")}
+                >
+                  <Banknote className="w-4 h-4 mr-1" />
+                  Nakit
+                </Button>
+                <Button
+                  variant={selectedMethod === "card" ? "default" : "outline"}
+                  size="sm"
+                  className={`flex-1 ${selectedMethod === "card" ? "bg-blue-600 hover:bg-blue-700" : ""}`}
+                  onClick={() => setSelectedMethod("card")}
+                >
+                  <CreditCard className="w-4 h-4 mr-1" />
+                  Kredi Kartı
+                </Button>
+              </div>
+              {selectedMethod !== order.payment_method && (
+                <p className="text-xs text-amber-600">
+                  Orijinal: {PAYMENT_METHODS[order.payment_method]?.label || order.payment_method}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Parçalı Ödeme Modu */}
+          {paymentMode === "split" && (
+            <div className="space-y-3">
+              <div className="flex gap-2 items-center">
+                <div className="flex-1">
+                  <label className="text-xs text-green-600 font-medium flex items-center gap-1 mb-1">
+                    <Banknote className="w-3 h-3" /> Nakit
+                  </label>
+                  <input
+                    type="number"
+                    value={cashAmount}
+                    onChange={(e) => setCashAmount(e.target.value)}
+                    placeholder="0"
+                    className="w-full h-9 px-2 border rounded text-sm"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-blue-600 font-medium flex items-center gap-1 mb-1">
+                    <CreditCard className="w-3 h-3" /> Kredi Kartı
+                  </label>
+                  <input
+                    type="number"
+                    value={cardAmount}
+                    onChange={(e) => setCardAmount(e.target.value)}
+                    placeholder="0"
+                    className="w-full h-9 px-2 border rounded text-sm"
+                  />
+                </div>
+              </div>
+              
+              {/* Toplam gösterimi */}
+              <div className={`text-xs p-2 rounded ${isSplitValid ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                Girilen: {formatCurrency(splitTotal)} / Sipariş: {formatCurrency(totalAmount)}
+                {!isSplitValid && splitTotal > 0 && (
+                  <span className="block mt-1">Tutarlar eşleşmiyor!</span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Butonlar */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
               className="flex-1 h-10"
               onClick={onCancel}
               disabled={loading}
             >
-              Hayır
+              İptal
             </Button>
             <Button
               className="flex-1 h-10 bg-green-600 hover:bg-green-700"
-              onClick={onConfirm}
-              disabled={loading}
+              onClick={handleConfirm}
+              disabled={loading || !canConfirm}
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
               ) : (
                 <CheckCircle className="w-4 h-4 mr-2" />
               )}
-              Evet, Alındı
+              Teslim Et
             </Button>
           </div>
         </div>
