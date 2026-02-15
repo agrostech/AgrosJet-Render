@@ -328,10 +328,20 @@ async def get_couriers_with_data(company_id: str, date: str):
                 "total": cash_diff + card_diff
             }
         }
+        
+        # Nakit ve kart toplamı 0 olan kuryeler gösterilmez
+        # Ancak tahsilat kaydı veya mütabakat işlemi varsa gösterilir
+        if order_totals["cash_total"] == 0 and order_totals["card_total"] == 0:
+            if not has_collection and not is_processed:
+                continue
+        
         result.append(courier_data)
     
     # Sırala: Önce siparişi olanlar
     result.sort(key=lambda x: (-x["order_data"]["order_count"], x["name"]))
+    
+    # Summary'de filtered count göster
+    couriers_with_orders = len(result)
     
     return {
         "date": date,
@@ -341,7 +351,7 @@ async def get_couriers_with_data(company_id: str, date: str):
         },
         "couriers": result,
         "summary": {
-            "total_couriers": len(couriers),
+            "total_couriers": couriers_with_orders,
             "completed_couriers": completed_count,
             "processed_couriers": processed_count
         }
