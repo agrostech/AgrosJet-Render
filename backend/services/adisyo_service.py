@@ -301,6 +301,14 @@ def parse_and_categorize_notes(raw_notes: str) -> str:
 
 async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict) -> dict:
     """Adisyo sipariş formatını ShiftJet formatına çevir"""
+    
+    # Debug: Raw payment data log
+    logger.info(f"[ADISYO RAW] Order ID: {adisyo_order.get('id')}, "
+                f"Customer: {adisyo_order.get('customer', {}).get('name', 'N/A')}, "
+                f"PaymentMethodId: {adisyo_order.get('paymentMethodId')}, "
+                f"PaymentMethodName: {adisyo_order.get('paymentMethodName')}, "
+                f"ExternalAppName: {adisyo_order.get('externalAppName')}")
+    
     customer = adisyo_order.get("customer", {})
     products = adisyo_order.get("products", [])
     
