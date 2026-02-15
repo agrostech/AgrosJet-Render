@@ -221,7 +221,8 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
     setEditingOrder(order);
     setEditFees({
       courier_fee: order.courier_fee || 0,
-      restaurant_fee: order.restaurant_fee || 0
+      restaurant_fee: order.restaurant_fee || 0,
+      restaurant_kdv: order.restaurant_kdv || 0
     });
   };
 
@@ -233,6 +234,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
       await axios.put(`${API}/orders/${editingOrder.id}/fees`, {
         courier_fee: parseFloat(editFees.courier_fee) || 0,
         restaurant_fee: parseFloat(editFees.restaurant_fee) || 0,
+        restaurant_kdv: parseFloat(editFees.restaurant_kdv) || 0,
         admin_id: adminId,
         admin_name: adminName
       });
@@ -240,7 +242,12 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
       // Update local state
       setFilteredOrders(prev => prev.map(o => 
         o.id === editingOrder.id 
-          ? { ...o, courier_fee: parseFloat(editFees.courier_fee), restaurant_fee: parseFloat(editFees.restaurant_fee) }
+          ? { 
+              ...o, 
+              courier_fee: parseFloat(editFees.courier_fee), 
+              restaurant_fee: parseFloat(editFees.restaurant_fee),
+              restaurant_kdv: parseFloat(editFees.restaurant_kdv)
+            }
           : o
       ));
       
