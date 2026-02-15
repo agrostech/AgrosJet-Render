@@ -323,20 +323,22 @@ async def get_courier_payment_report(
             card_amt = payment_details.get("card_amount", 0)
             
             if cash_amt > 0:
-                cash_order = {**base_order_data, "amount": cash_amt}
+                cash_order = {**base_order_data, "amount": cash_amt, "is_split": True}
                 cash_orders.append(cash_order)
                 cash_total += cash_amt
             
             if card_amt > 0:
-                card_order = {**base_order_data, "amount": card_amt}
+                card_order = {**base_order_data, "amount": card_amt, "is_split": True}
                 card_orders.append(card_order)
                 card_total += card_amt
         elif payment_method == "cash":
-            order_data = {**base_order_data, "amount": order.get("total_amount", 0)}
+            is_modified = payment_details.get("original_method") and payment_details.get("original_method") != "cash"
+            order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
             cash_orders.append(order_data)
             cash_total += order.get("total_amount", 0) or 0
         elif payment_method == "card":
-            order_data = {**base_order_data, "amount": order.get("total_amount", 0)}
+            is_modified = payment_details.get("original_method") and payment_details.get("original_method") != "card"
+            order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
             card_orders.append(order_data)
             card_total += order.get("total_amount", 0) or 0
     
