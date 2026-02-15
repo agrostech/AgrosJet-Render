@@ -124,11 +124,10 @@ export default function KazancRaporu({ courierId }) {
                   <thead className="sticky top-0 bg-gray-50">
                     <tr className="border-b text-left text-gray-500">
                       <th className="pb-2 pr-2">Tarih</th>
-                      <th className="pb-2 pr-2">Sipariş</th>
                       <th className="pb-2 pr-2">Restoran</th>
                       <th className="pb-2 pr-2">Müşteri</th>
                       <th className="pb-2 pr-2">Adres</th>
-                      <th className="pb-2 pr-2 text-center">KM</th>
+                      <th className="pb-2 pr-2 text-center">Mesafe</th>
                       <th className="pb-2 pr-2 text-right">Tutar</th>
                       <th className="pb-2 pr-2 text-right">Hakediş</th>
                       <th className="pb-2 text-center">Ödeme</th>
