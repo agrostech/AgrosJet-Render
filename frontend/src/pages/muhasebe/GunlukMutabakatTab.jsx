@@ -7,10 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calendar, 
-  RefreshCw, 
   Save, 
   CheckCircle2, 
-  AlertTriangle,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -428,13 +426,13 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                   <tr className="border-b bg-slate-50 text-[10px] text-slate-500">
                     <th></th>
                     <th></th>
-                    <th className="p-1">Nakit</th>
-                    <th className="p-1">Kart</th>
-                    <th className="p-1">Nakit</th>
-                    <th className="p-1">%1</th>
-                    <th className="p-1">%10</th>
-                    <th className="p-1">%20</th>
-                    <th className="p-1">Toplam</th>
+                    <th className="p-1 text-center">Nakit</th>
+                    <th className="p-1 text-center">Kart</th>
+                    <th className="p-1 text-center w-20">Nakit</th>
+                    <th className="p-1 text-center w-18">%1</th>
+                    <th className="p-1 text-center w-18">%10</th>
+                    <th className="p-1 text-center w-18">%20</th>
+                    <th className="p-1 text-center">Toplam</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -484,7 +482,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         </td>
                         
                         {/* Tahsilat Girişleri (Editable) */}
-                        <td className="p-1">
+                        <td className="p-1 text-center">
                           <Input
                             type="number"
                             min="0"
@@ -492,11 +490,11 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'cash_amount') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'cash_amount', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-20"
+                            className="h-7 text-xs text-center w-20 mx-auto"
                             placeholder="0"
                           />
                         </td>
-                        <td className="p-1">
+                        <td className="p-1 text-center">
                           <Input
                             type="number"
                             min="0"
@@ -504,11 +502,11 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'card_percent_1') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_1', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-16"
+                            className="h-7 text-xs text-center w-18 mx-auto"
                             placeholder="0"
                           />
                         </td>
-                        <td className="p-1">
+                        <td className="p-1 text-center">
                           <Input
                             type="number"
                             min="0"
@@ -516,11 +514,11 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'card_percent_10') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_10', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-16"
+                            className="h-7 text-xs text-center w-18 mx-auto"
                             placeholder="0"
                           />
                         </td>
-                        <td className="p-1">
+                        <td className="p-1 text-center">
                           <Input
                             type="number"
                             min="0"
@@ -528,7 +526,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'card_percent_20') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_20', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-16"
+                            className="h-7 text-xs text-center w-18 mx-auto"
                             placeholder="0"
                           />
                         </td>
