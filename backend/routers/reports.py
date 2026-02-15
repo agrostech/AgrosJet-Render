@@ -168,7 +168,7 @@ async def get_restaurant_report(
                 }
             }
         },
-        {"$sort": {"orderCount": -1}}
+        {"$sort": {"restaurant_name": 1}}  # Alfabetik sıralama
     ]
     
     results = await db.orders.aggregate(pipeline).to_list(100)
@@ -194,6 +194,9 @@ async def get_restaurant_report(
             "cash": r["cash"],
             "card": r["card"]
         })
+    
+    # Alfabetik sırala
+    restaurants.sort(key=lambda x: x["name"].lower())
     
     return {
         "summary": {
