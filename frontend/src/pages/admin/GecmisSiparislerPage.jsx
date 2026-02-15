@@ -525,6 +525,9 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                                 </div>
                                 <div className="text-orange-600 font-medium">
                                   R: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
+                                  {order.restaurant_kdv > 0 && (
+                                    <span className="text-amber-600 ml-1">(+{order.restaurant_kdv.toFixed(2)}₺ KDV)</span>
+                                  )}
                                 </div>
                               </div>
                               <Button
