@@ -563,7 +563,8 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
             "differences": {
                 "cash": cash_diff,
                 "card": card_diff,
-                "total": cash_diff + card_diff
+                "commission": commission_penalty,
+                "total": cash_diff + card_diff + commission_penalty
             },
             "admin_id": data.admin_id,
             "admin_name": data.admin_name,
