@@ -222,7 +222,8 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
     setEditFees({
       courier_fee: order.courier_fee || 0,
       restaurant_fee: order.restaurant_fee || 0,
-      restaurant_kdv: order.restaurant_kdv || 0
+      restaurant_kdv: order.restaurant_kdv || 0,
+      pos_commission: order.pos_commission || 0
     });
   };
 
@@ -235,6 +236,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
         courier_fee: parseFloat(editFees.courier_fee) || 0,
         restaurant_fee: parseFloat(editFees.restaurant_fee) || 0,
         restaurant_kdv: parseFloat(editFees.restaurant_kdv) || 0,
+        pos_commission: parseFloat(editFees.pos_commission) || 0,
         admin_id: adminId,
         admin_name: adminName
       });
@@ -246,7 +248,8 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
               ...o, 
               courier_fee: parseFloat(editFees.courier_fee), 
               restaurant_fee: parseFloat(editFees.restaurant_fee),
-              restaurant_kdv: parseFloat(editFees.restaurant_kdv)
+              restaurant_kdv: parseFloat(editFees.restaurant_kdv),
+              pos_commission: parseFloat(editFees.pos_commission)
             }
           : o
       ));
