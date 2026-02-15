@@ -22,6 +22,7 @@ function OrderTable({ orders, colorClass }) {
       <table className="w-full text-xs">
         <thead>
           <tr className={`border-b text-left ${colorClass.text}`}>
+            <th className="pb-2 pr-2">Tarih</th>
             <th className="pb-2 pr-2">Restoran</th>
             <th className="pb-2 pr-2">Müşteri</th>
             <th className="pb-2 pr-2">Adres</th>
@@ -32,6 +33,7 @@ function OrderTable({ orders, colorClass }) {
         <tbody>
           {orders.map((order, idx) => (
             <tr key={idx} className={`border-b ${colorClass.border} last:border-0`}>
+              <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.date}</td>
               <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant}>{order.restaurant}</td>
               <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer}>{order.customer}</td>
               <td className="py-1.5 pr-2 truncate max-w-[180px]" title={order.address}>{order.address}</td>
