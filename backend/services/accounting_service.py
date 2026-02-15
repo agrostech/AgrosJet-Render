@@ -80,12 +80,14 @@ async def calculate_balance_breakdown(entity_type: str, entity_ids: list) -> dic
         return {"positive": 0, "negative": 0, "balance": 0}
     
     # Calculate individual balances for each entity
+    # payment_out/given = borç artırır (pozitif bakiye)
+    # payment_in/received = borç azaltır (negatif bakiye)
     pipeline = [
         {"$match": {"entity_type": entity_type, "entity_id": {"$in": entity_ids}}},
         {"$group": {
             "_id": "$entity_id",
-            "total_out": {"$sum": {"$cond": [{"$eq": ["$type", "payment_out"]}, "$amount", 0]}},
-            "total_in": {"$sum": {"$cond": [{"$eq": ["$type", "payment_in"]}, "$amount", 0]}}
+            "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
         }},
         {"$project": {
             "_id": 1,
