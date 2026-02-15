@@ -87,6 +87,7 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     """
     Belirli tarih aralığında kuryenin teslim ettiği siparişlerin nakit ve kart toplamlarını hesapla
     Kredi kartı için restoran bazlı tax_bracket dikkate alınır
+    Parçalı ödemeler (mixed) de desteklenir
     """
     # Teslim edilmiş siparişleri getir
     # updated_at alanı hem ISO string hem de datetime olabilir
@@ -94,16 +95,40 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         "company_id": company_id,
         "courier_id": courier_id,
         "status": "delivered"
-    }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "updated_at": 1}).to_list(1000)
+    }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "updated_at": 1, "payment_details": 1}).to_list(1000)
     
     cash_total = 0
     card_percent_1 = 0
     card_percent_10 = 0
     card_percent_20 = 0
     order_count = 0
+    modified_payment_count = 0  # Ödeme yöntemi değiştirilen sipariş sayısı
     
     # Restoran tax_bracket'lerini cache'le
     restaurant_tax_cache = {}
+    
+    async def get_restaurant_tax_bracket(restaurant_id, restaurant_name):
+        """Restoran tax_bracket'ini bul"""
+        cache_key = restaurant_id or restaurant_name
+        if cache_key in restaurant_tax_cache:
+            return restaurant_tax_cache[cache_key]
+        
+        business = None
+        if restaurant_id:
+            business = await db.businesses.find_one(
+                {"id": restaurant_id},
+                {"_id": 0, "tax_bracket": 1}
+            )
+        
+        if not business and restaurant_name:
+            business = await db.businesses.find_one(
+                {"company_id": company_id, "name": {"$regex": f"^{restaurant_name}$", "$options": "i"}},
+                {"_id": 0, "tax_bracket": 1}
+            )
+        
+        tax_bracket = business.get("tax_bracket") if business else 1
+        restaurant_tax_cache[cache_key] = tax_bracket
+        return tax_bracket
     
     for order in orders:
         # Tarih kontrolü - updated_at alanını parse et
@@ -111,14 +136,12 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         if updated_at:
             try:
                 if isinstance(updated_at, str):
-                    # ISO string formatında
                     order_dt = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
                 elif isinstance(updated_at, datetime):
                     order_dt = updated_at
                 else:
                     continue
                 
-                # Tarih aralığı kontrolü
                 if not (start_dt <= order_dt < end_dt):
                     continue
             except:
@@ -126,56 +149,56 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         else:
             continue
         
-        price = order.get("total_amount", 0) or 0
-        payment_method = (order.get("payment_method", "") or "").lower()
         order_count += 1
+        payment_method = (order.get("payment_method", "") or "").lower()
+        payment_details = order.get("payment_details", {})
         
-        # Nakit: "cash" veya "nakit"
-        if "cash" in payment_method or "nakit" in payment_method:
+        # Parçalı ödeme kontrolü
+        if payment_method == "mixed" or (payment_details.get("cash_amount", 0) > 0 and payment_details.get("card_amount", 0) > 0):
+            # Parçalı ödeme
+            cash_amt = payment_details.get("cash_amount", 0) or 0
+            card_amt = payment_details.get("card_amount", 0) or 0
+            
+            cash_total += cash_amt
+            
+            if card_amt > 0:
+                tax_bracket = await get_restaurant_tax_bracket(
+                    order.get("restaurant_id"),
+                    order.get("restaurant_name", "")
+                )
+                if tax_bracket == 10:
+                    card_percent_10 += card_amt
+                elif tax_bracket == 20:
+                    card_percent_20 += card_amt
+                else:
+                    card_percent_1 += card_amt
+            
+            if payment_details.get("original_method"):
+                modified_payment_count += 1
+        
+        # Tek ödeme - Nakit
+        elif "cash" in payment_method or "nakit" in payment_method:
+            price = order.get("total_amount", 0) or 0
             cash_total += price
-        # Kart/Online: "online", "card", "kredi", "kart"
+            if payment_details.get("original_method"):
+                modified_payment_count += 1
+        
+        # Tek ödeme - Kart/Online
         elif "online" in payment_method or "card" in payment_method or "kredi" in payment_method or "kart" in payment_method:
-            # Restoran tax_bracket'ini bul
-            restaurant_id = order.get("restaurant_id")
-            restaurant_name = order.get("restaurant_name", "")
-            
-            tax_bracket = None
-            
-            # Cache'den kontrol et
-            cache_key = restaurant_id or restaurant_name
-            if cache_key in restaurant_tax_cache:
-                tax_bracket = restaurant_tax_cache[cache_key]
-            else:
-                # DB'den bul - önce ID ile, sonra isimle
-                business = None
-                if restaurant_id:
-                    business = await db.businesses.find_one(
-                        {"id": restaurant_id},
-                        {"_id": 0, "tax_bracket": 1}
-                    )
-                
-                if not business and restaurant_name:
-                    # İsimle ara (normalize edilmiş)
-                    business = await db.businesses.find_one(
-                        {"company_id": company_id, "name": {"$regex": f"^{restaurant_name}$", "$options": "i"}},
-                        {"_id": 0, "tax_bracket": 1}
-                    )
-                
-                if business:
-                    tax_bracket = business.get("tax_bracket")
-                
-                restaurant_tax_cache[cache_key] = tax_bracket
-            
-            # Tax bracket'e göre kategorize et
-            if tax_bracket == 1:
-                card_percent_1 += price
-            elif tax_bracket == 10:
+            price = order.get("total_amount", 0) or 0
+            tax_bracket = await get_restaurant_tax_bracket(
+                order.get("restaurant_id"),
+                order.get("restaurant_name", "")
+            )
+            if tax_bracket == 10:
                 card_percent_10 += price
             elif tax_bracket == 20:
                 card_percent_20 += price
             else:
-                # Varsayılan %1
                 card_percent_1 += price
+            
+            if payment_details.get("original_method"):
+                modified_payment_count += 1
     
     return {
         "order_count": order_count,
