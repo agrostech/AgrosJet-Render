@@ -745,6 +745,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
               <Eye className="w-5 h-5" />
               {selectedCourier?.name} - Sipariş Detayları
             </DialogTitle>
+            <p className="text-sm text-muted-foreground">Seçilen tarih için nakit ve kredi kartı siparişleri</p>
           </DialogHeader>
           
           {loadingOrders ? (
