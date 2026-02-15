@@ -753,131 +753,118 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
           ) : courierOrders ? (
-            <div className="space-y-6">
-              {/* Özet Kartları */}
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="border-green-200 bg-green-50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                        <Banknote className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-green-600 font-medium">
-                          Nakit ({courierOrders.cash_orders?.length || 0} sipariş)
-                        </p>
-                        <p className="text-xl font-bold text-green-700">
-                          {formatMoney(courierOrders.cash_total)}
-                        </p>
-                      </div>
+            <div className="space-y-4">
+              {/* Nakit Kart - Özet ve Siparişler Birleşik */}
+              <Card className="border-green-200 overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Özet Başlık */}
+                  <div className="bg-green-50 p-4 flex items-center gap-3 border-b border-green-200">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <Banknote className="w-5 h-5 text-green-600" />
                     </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-blue-600 font-medium">
-                          Kredi Kartı ({courierOrders.card_orders?.length || 0} sipariş)
-                        </p>
-                        <p className="text-xl font-bold text-blue-700">
-                          {formatMoney(courierOrders.card_total)}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-xs text-green-600 font-medium">
+                        Nakit ({courierOrders.cash_orders?.length || 0} sipariş)
+                      </p>
+                      <p className="text-xl font-bold text-green-700">
+                        {formatMoney(courierOrders.cash_total)}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Nakit Siparişler Tablosu */}
-              {courierOrders.cash_orders?.length > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
-                    <Banknote className="w-4 h-4" />
-                    Nakit Siparişler
-                  </h4>
-                  <div className="overflow-x-auto max-h-64">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="border-b text-left text-green-600">
-                          <th className="pb-2 pr-2">Tarih</th>
-                          <th className="pb-2 pr-2">Sipariş No</th>
-                          <th className="pb-2 pr-2">Restoran</th>
-                          <th className="pb-2 pr-2">Müşteri</th>
-                          <th className="pb-2 text-right">Tutar</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {courierOrders.cash_orders.map((order, idx) => (
-                          <tr key={idx} className="border-b border-green-100 last:border-0">
-                            <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.created_at}</td>
-                            <td className="py-1.5 pr-2">{order.order_number}</td>
-                            <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant_name}>{order.restaurant_name}</td>
-                            <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer_name}>{order.customer_name}</td>
-                            <td className="py-1.5 text-right font-medium">
-                              <span className="inline-flex items-center gap-1">
-                                {formatMoney(order.amount)}
-                                {(order.is_split || order.is_modified) && (
-                                  <span className="text-amber-500" title={order.is_split ? "Parçalı ödeme" : "Ödeme değiştirildi"}>
-                                    <AlertCircle className="w-3 h-3" />
-                                  </span>
-                                )}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
                   </div>
-                </div>
-              )}
-
-              {/* Kredi Kartı Siparişler Tablosu */}
-              {courierOrders.card_orders?.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold text-blue-700 mb-3 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Kredi Kartı Siparişler
-                  </h4>
-                  <div className="overflow-x-auto max-h-64">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="border-b text-left text-blue-600">
-                          <th className="pb-2 pr-2">Tarih</th>
-                          <th className="pb-2 pr-2">Sipariş No</th>
-                          <th className="pb-2 pr-2">Restoran</th>
-                          <th className="pb-2 pr-2">Müşteri</th>
-                          <th className="pb-2 text-right">Tutar</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {courierOrders.card_orders.map((order, idx) => (
-                          <tr key={idx} className="border-b border-blue-100 last:border-0">
-                            <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.created_at}</td>
-                            <td className="py-1.5 pr-2">{order.order_number}</td>
-                            <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant_name}>{order.restaurant_name}</td>
-                            <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer_name}>{order.customer_name}</td>
-                            <td className="py-1.5 text-right font-medium">
-                              <span className="inline-flex items-center gap-1">
-                                {formatMoney(order.amount)}
-                                {(order.is_split || order.is_modified) && (
-                                  <span className="text-amber-500" title={order.is_split ? "Parçalı ödeme" : "Ödeme değiştirildi"}>
-                                    <AlertCircle className="w-3 h-3" />
-                                  </span>
-                                )}
-                              </span>
-                            </td>
+                  {/* Sipariş Tablosu */}
+                  {courierOrders.cash_orders?.length > 0 && (
+                    <div className="p-3 max-h-48 overflow-y-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b text-left text-green-600">
+                            <th className="pb-2 pr-2">Tarih</th>
+                            <th className="pb-2 pr-2">Sipariş No</th>
+                            <th className="pb-2 pr-2">Restoran</th>
+                            <th className="pb-2 pr-2">Müşteri</th>
+                            <th className="pb-2 text-right">Tutar</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {courierOrders.cash_orders.map((order, idx) => (
+                            <tr key={idx} className="border-b border-green-100 last:border-0">
+                              <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.created_at}</td>
+                              <td className="py-1.5 pr-2">{order.order_number}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant_name}>{order.restaurant_name}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer_name}>{order.customer_name}</td>
+                              <td className="py-1.5 text-right font-medium">
+                                <span className="inline-flex items-center gap-1">
+                                  {formatMoney(order.amount)}
+                                  {(order.is_split || order.is_modified) && (
+                                    <span className="text-amber-500" title={order.is_split ? "Parçalı ödeme" : "Ödeme değiştirildi"}>
+                                      <AlertCircle className="w-3 h-3" />
+                                    </span>
+                                  )}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Kredi Kartı - Özet ve Siparişler Birleşik */}
+              <Card className="border-blue-200 overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Özet Başlık */}
+                  <div className="bg-blue-50 p-4 flex items-center gap-3 border-b border-blue-200">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-blue-600 font-medium">
+                        Kredi Kartı ({courierOrders.card_orders?.length || 0} sipariş)
+                      </p>
+                      <p className="text-xl font-bold text-blue-700">
+                        {formatMoney(courierOrders.card_total)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                  {/* Sipariş Tablosu */}
+                  {courierOrders.card_orders?.length > 0 && (
+                    <div className="p-3 max-h-48 overflow-y-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b text-left text-blue-600">
+                            <th className="pb-2 pr-2">Tarih</th>
+                            <th className="pb-2 pr-2">Sipariş No</th>
+                            <th className="pb-2 pr-2">Restoran</th>
+                            <th className="pb-2 pr-2">Müşteri</th>
+                            <th className="pb-2 text-right">Tutar</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {courierOrders.card_orders.map((order, idx) => (
+                            <tr key={idx} className="border-b border-blue-100 last:border-0">
+                              <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.created_at}</td>
+                              <td className="py-1.5 pr-2">{order.order_number}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant_name}>{order.restaurant_name}</td>
+                              <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer_name}>{order.customer_name}</td>
+                              <td className="py-1.5 text-right font-medium">
+                                <span className="inline-flex items-center gap-1">
+                                  {formatMoney(order.amount)}
+                                  {(order.is_split || order.is_modified) && (
+                                    <span className="text-amber-500" title={order.is_split ? "Parçalı ödeme" : "Ödeme değiştirildi"}>
+                                      <AlertCircle className="w-3 h-3" />
+                                    </span>
+                                  )}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Boş Durum */}
               {(!courierOrders.cash_orders?.length && !courierOrders.card_orders?.length) && (
