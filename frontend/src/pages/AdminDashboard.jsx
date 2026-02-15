@@ -342,6 +342,9 @@ export default function AdminDashboard() {
               {(isSuperAdmin || permissions.muhasebe) && (
                 <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
               )}
+              {isSuperAdmin && (
+                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
+              )}
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />
               )}
