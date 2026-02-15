@@ -198,14 +198,20 @@ async def get_restaurant_report(
     # Alfabetik sırala
     restaurants.sort(key=lambda x: x["name"].lower())
     
+    # Sonuç hesapla: (Toplam Taşıma Ücreti + POS Komisyonu) - (Nakit + Kredi Kartı)
+    total_transport = total_transport_fee + total_transport_kdv
+    result = (total_transport + total_pos_commission) - (total_cash + total_card)
+    
     return {
         "summary": {
             "totalOrders": total_orders,
             "totalTransportFee": total_transport_fee,
             "totalTransportKdv": total_transport_kdv,
+            "totalTransport": total_transport,
             "totalPosCommission": total_pos_commission,
             "totalCash": total_cash,
-            "totalCard": total_card
+            "totalCard": total_card,
+            "result": result
         },
         "restaurants": restaurants
     }
