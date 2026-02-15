@@ -283,6 +283,7 @@ async def get_courier_payment_report(
             "delivery_location": 1,
             "total_amount": 1,
             "payment_method": 1,
+            "payment_details": 1,
             "created_at": 1
         }
     ).sort("created_at", -1).to_list(500)
