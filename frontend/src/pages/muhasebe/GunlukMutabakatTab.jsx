@@ -539,6 +539,11 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           <div className="font-medium text-slate-800">{courier.name}</div>
                           <div className="text-[10px] text-slate-500">
                             {courier.order_data.order_count} sipariş
+                            {courier.order_data.modified_payment_count > 0 && (
+                              <span className="ml-1 text-amber-600">
+                                ({courier.order_data.modified_payment_count} ödeme değ.)
+                              </span>
+                            )}
                           </div>
                         </td>
                         
