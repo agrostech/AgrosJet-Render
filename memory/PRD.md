@@ -95,5 +95,24 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
    - Sadece SuperAdmin için görünür
 
 ## Test Bilgileri
+- **Super Admin:** username: `onurertas`, password: `123456`
 - **Multi-company Admin:** username: `testadmin`, password: `123456`
 - **Kurye:** phone: `05527370032`, password: `123456`
+
+## Son Güncellemeler (15 Şubat 2026 - Devam)
+
+### Raporlar Sayfası UI Yenileme
+- Filtre bölümü kompakt hale getirildi (tek satır)
+- Tablo satırları daha ince yapıldı (`p-2` padding)
+- Özet bilgileri tek satırda metin formatında gösteriliyor
+- Hem `KuryeRaporlari.jsx` hem `RestoranRaporlari.jsx` güncellendi
+
+### Muhasebe Hareketler İşlem Tipi Etiketleri
+- `weekly_hakedis` → "Haftalık Hakediş" (mavi, + işareti)
+- `revert_weekly_hakedis` → "Haftalık Hakediş Geri Al" (turuncu, - işareti)
+- `HareketlerTab.jsx` dosyasındaki `getActionLabel` fonksiyonu güncellendi
+
+### Bekleyen Sorunlar
+- **P1:** Adisyo Ödeme Eşleme Hatası - "Kredi Kartı" ödemeleri "online" olarak kaydediliyor (loglar eklendi, yeni sipariş bekliyor)
+- **P1:** Arka Plan Görev Güvenilirliği - Konum takibi ve bildirimler background'da durabilir
+- **P1:** Mobil Sidebar Kurye Listesi - Açılır menü sorunu
