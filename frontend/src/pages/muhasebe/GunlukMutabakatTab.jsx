@@ -369,6 +369,21 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
             </Button>
           )}
           
+          {/* Sıfırla - Sadece SuperAdmin, kaydedilmiş ama işlenmemiş seçili varsa */}
+          {isSuperAdmin && selectedResettable.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetCollection}
+              disabled={resetting}
+              className="h-9 text-red-600 border-red-300 hover:bg-red-50"
+              data-testid="reset-btn"
+            >
+              {resetting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-2" />}
+              Sıfırla ({selectedResettable.length})
+            </Button>
+          )}
+          
           {/* Kaydet */}
           <Button
             variant="outline"
