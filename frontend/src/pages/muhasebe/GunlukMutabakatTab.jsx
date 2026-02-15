@@ -426,15 +426,15 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                   <tr className="border-b bg-slate-50 text-[10px] text-slate-500">
                     <th></th>
                     <th></th>
-                    <th className="p-1 text-center w-16">Nakit</th>
-                    <th className="p-1 text-center w-16">Kart</th>
-                    <th className="p-1 text-center w-20">Nakit</th>
-                    <th className="p-1 text-center w-20">%1</th>
-                    <th className="p-1 text-center w-20">%10</th>
-                    <th className="p-1 text-center w-20">%20</th>
+                    <th className="p-1 text-center w-14">Nakit</th>
+                    <th className="p-1 text-center w-14">Kart</th>
+                    <th className="p-1 text-center w-24">Nakit</th>
+                    <th className="p-1 text-center w-24">%1</th>
+                    <th className="p-1 text-center w-24">%10</th>
+                    <th className="p-1 text-center w-24">%20</th>
                     <th className="p-1 text-center">Nakit</th>
                     <th className="p-1 text-center">Kart</th>
-                    <th className="p-1 text-center">%Fark</th>
+                    <th className="p-1 text-center">Kom.</th>
                     <th className="p-1 text-center">Toplam</th>
                     <th></th>
                   </tr>
