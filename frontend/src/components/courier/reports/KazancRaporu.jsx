@@ -42,7 +42,14 @@ export default function KazancRaporu({ courierId }) {
   const getPaymentLabel = (method) => {
     if (method === "cash") return "Nakit";
     if (method === "card") return "Kart";
+    if (method === "online") return "Online";
     return method || "-";
+  };
+
+  const getPaymentColor = (method) => {
+    if (method === "cash") return "bg-green-100 text-green-700";
+    if (method === "card") return "bg-blue-100 text-blue-700";
+    return "bg-gray-100 text-gray-700";
   };
 
   return (
@@ -102,25 +109,41 @@ export default function KazancRaporu({ courierId }) {
             </Card>
           </div>
 
-          {/* Sipariş Listesi */}
+          {/* Sipariş Listesi Tablosu */}
           {data.orders?.length > 0 && (
             <div className="bg-gray-50 border rounded-lg p-3">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Sipariş Detayları</h4>
-              <div className="overflow-x-auto">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">Sipariş Detayları</h4>
+              <div className="overflow-x-auto max-h-96 overflow-y-auto">
                 <table className="w-full text-xs">
-                  <thead>
+                  <thead className="sticky top-0 bg-gray-50">
                     <tr className="border-b text-left text-gray-500">
+                      <th className="pb-2 pr-2">Tarih</th>
+                      <th className="pb-2 pr-2">Sipariş</th>
                       <th className="pb-2 pr-2">Restoran</th>
+                      <th className="pb-2 pr-2">Müşteri</th>
+                      <th className="pb-2 pr-2">Adres</th>
+                      <th className="pb-2 pr-2 text-center">KM</th>
                       <th className="pb-2 pr-2 text-right">Tutar</th>
                       <th className="pb-2 pr-2 text-right">Hakediş</th>
                       <th className="pb-2 text-center">Ödeme</th>
                     </tr>
                   </thead>
-                  <tbody className="max-h-64 overflow-y-auto">
+                  <tbody>
                     {data.orders.map((order, idx) => (
-                      <tr key={idx} className="border-b border-gray-100 last:border-0">
-                        <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.restaurant}>
+                      <tr key={idx} className="border-b border-gray-100 last:border-0 hover:bg-gray-100">
+                        <td className="py-1.5 pr-2 text-gray-500 whitespace-nowrap">{order.date}</td>
+                        <td className="py-1.5 pr-2 font-medium">{order.order_no}</td>
+                        <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.restaurant}>
                           {order.restaurant}
+                        </td>
+                        <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer}>
+                          {order.customer}
+                        </td>
+                        <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.address}>
+                          {order.address}
+                        </td>
+                        <td className="py-1.5 pr-2 text-center">
+                          {order.distance_km ? `${order.distance_km}` : "-"}
                         </td>
                         <td className="py-1.5 pr-2 text-right text-gray-600">
                           {formatMoney(order.total_amount)}
@@ -129,11 +152,7 @@ export default function KazancRaporu({ courierId }) {
                           {formatMoney(order.courier_fee)}
                         </td>
                         <td className="py-1.5 text-center">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                            order.payment_method === "cash" 
-                              ? "bg-green-100 text-green-700" 
-                              : "bg-blue-100 text-blue-700"
-                          }`}>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getPaymentColor(order.payment_method)}`}>
                             {getPaymentLabel(order.payment_method)}
                           </span>
                         </td>
