@@ -986,13 +986,17 @@ async def update_order_fees(order_id: str, data: OrderFeesUpdate):
     if data.restaurant_kdv is not None:
         update_data["restaurant_kdv"] = round(data.restaurant_kdv, 2)
     
+    if data.pos_commission is not None:
+        update_data["pos_commission"] = round(data.pos_commission, 2)
+    
     # History entry for audit trail
     kdv_info = f", KDV: {data.restaurant_kdv}₺" if data.restaurant_kdv else ""
+    pos_info = f", POS: {data.pos_commission}₺" if data.pos_commission else ""
     history_entry = {
         "status": "fee_updated",
         "label": "Ücret Güncellendi",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "note": f"Kurye: {data.courier_fee}₺, Restoran: {data.restaurant_fee}₺{kdv_info}",
+        "note": f"Kurye: {data.courier_fee}₺, Restoran: {data.restaurant_fee}₺{kdv_info}{pos_info}",
         "actor_type": "super_admin",
         "actor_name": data.admin_name or "Admin"
     }
@@ -1009,6 +1013,7 @@ async def update_order_fees(order_id: str, data: OrderFeesUpdate):
         "message": "Ücretler güncellendi",
         "courier_fee": update_data.get("courier_fee", order.get("courier_fee")),
         "restaurant_fee": update_data.get("restaurant_fee", order.get("restaurant_fee")),
-        "restaurant_kdv": update_data.get("restaurant_kdv", order.get("restaurant_kdv"))
+        "restaurant_kdv": update_data.get("restaurant_kdv", order.get("restaurant_kdv")),
+        "pos_commission": update_data.get("pos_commission", order.get("pos_commission"))
     }
 
