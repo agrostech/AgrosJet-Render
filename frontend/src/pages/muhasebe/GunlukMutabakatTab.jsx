@@ -495,7 +495,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'cash_amount') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'cash_amount', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-20 mx-auto"
+                            className="h-7 text-xs text-center w-16 mx-auto"
                             placeholder="0"
                           />
                         </td>
@@ -507,7 +507,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'card_percent_1') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_1', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-18 mx-auto"
+                            className="h-7 text-xs text-center w-14 mx-auto"
                             placeholder="0"
                           />
                         </td>
@@ -519,7 +519,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'card_percent_10') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_10', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-18 mx-auto"
+                            className="h-7 text-xs text-center w-14 mx-auto"
                             placeholder="0"
                           />
                         </td>
@@ -531,15 +531,60 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             value={getCollectionValue(courier, 'card_percent_20') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_20', e.target.value)}
                             disabled={isProcessed}
-                            className="h-7 text-xs text-center w-18 mx-auto"
+                            className="h-7 text-xs text-center w-14 mx-auto"
                             placeholder="0"
                           />
                         </td>
                         
-                        {/* Fark */}
-                        <td className="p-2 text-center">
+                        {/* Farklar - Nakit */}
+                        <td className="p-1 text-center">
                           {courier.has_collection ? (
-                            <span className={`font-mono text-xs font-semibold ${
+                            <span className={`font-mono text-[10px] font-medium ${
+                              cashDiff > 0 ? 'text-red-600' : 
+                              cashDiff < 0 ? 'text-blue-600' : 
+                              'text-green-600'
+                            }`}>
+                              {cashDiff !== 0 ? formatMoney(cashDiff) : '✓'}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 text-[10px]">-</span>
+                          )}
+                        </td>
+                        
+                        {/* Farklar - Kart */}
+                        <td className="p-1 text-center">
+                          {courier.has_collection ? (
+                            <span className={`font-mono text-[10px] font-medium ${
+                              cardDiff > 0 ? 'text-red-600' : 
+                              cardDiff < 0 ? 'text-blue-600' : 
+                              'text-green-600'
+                            }`}>
+                              {cardDiff !== 0 ? formatMoney(cardDiff) : '✓'}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 text-[10px]">-</span>
+                          )}
+                        </td>
+                        
+                        {/* Farklar - Yüzde */}
+                        <td className="p-1 text-center">
+                          {courier.has_collection && cardTotal > 0 ? (
+                            <span className={`font-mono text-[10px] font-medium ${
+                              percentDiff > 0 ? 'text-red-600' : 
+                              percentDiff < 0 ? 'text-blue-600' : 
+                              'text-green-600'
+                            }`}>
+                              {percentDiff !== 0 ? `%${percentDiff}` : '✓'}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 text-[10px]">-</span>
+                          )}
+                        </td>
+                        
+                        {/* Farklar - Toplam */}
+                        <td className="p-1 text-center">
+                          {courier.has_collection ? (
+                            <span className={`font-mono text-[10px] font-semibold ${
                               totalDiff > 0 ? 'text-red-600' : 
                               totalDiff < 0 ? 'text-blue-600' : 
                               'text-green-600'
@@ -547,7 +592,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                               {totalDiff !== 0 ? formatMoney(totalDiff) : '✓'}
                             </span>
                           ) : (
-                            <span className="text-slate-300">-</span>
+                            <span className="text-slate-300 text-[10px]">-</span>
                           )}
                         </td>
                         
