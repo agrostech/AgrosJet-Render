@@ -101,7 +101,7 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
           className="overflow-x-auto scrollbar-hide scroll-smooth"
         >
           <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
-            {TABS.map((tab) => (
+            {TABS.filter(tab => !tab.superAdminOnly || isSuperAdmin).map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
