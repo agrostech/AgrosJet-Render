@@ -511,13 +511,24 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                         </td>
                         {isSuperAdmin && (
                           <td className="p-2 text-right">
-                            <div className="text-xs space-y-0.5">
-                              <div className="text-blue-600 font-medium">
-                                K: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
+                            <div className="flex items-center justify-end gap-2">
+                              <div className="text-xs space-y-0.5">
+                                <div className="text-blue-600 font-medium">
+                                  K: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
+                                </div>
+                                <div className="text-orange-600 font-medium">
+                                  R: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
+                                </div>
                               </div>
-                              <div className="text-orange-600 font-medium">
-                                R: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
-                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-slate-100"
+                                onClick={(e) => handleOpenFeeEdit(order, e)}
+                                data-testid={`edit-fees-btn-${order.id}`}
+                              >
+                                <Pencil className="w-3 h-3 text-slate-500" />
+                              </Button>
                             </div>
                           </td>
                         )}
