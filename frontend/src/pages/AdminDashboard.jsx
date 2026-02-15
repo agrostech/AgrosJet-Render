@@ -19,6 +19,7 @@ import RestoranlarPage from "./admin/RestoranlarPage";
 import SiparisYonetimiPage from "./admin/SiparisYonetimiPage";
 import GecmisSiparislerPage from "./admin/GecmisSiparislerPage";
 import IptalSiparislerPage from "./admin/IptalSiparislerPage";
+import RaporlarPage from "./admin/RaporlarPage";
 
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
