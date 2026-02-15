@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, Pencil, Loader2 } from "lucide-react";
 import FilterSummaryCard from "@/components/admin/FilterSummaryCard";
+import { PaymentBadge } from "@/components/shared/PaymentDetailPopover";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
