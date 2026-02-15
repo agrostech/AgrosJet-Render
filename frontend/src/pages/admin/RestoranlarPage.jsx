@@ -876,6 +876,28 @@ export default function RestoranlarPage({ companyId }) {
                 Restoran ücretine ek olarak hesaplanacak KDV oranı
               </p>
             </div>
+
+            {/* POS Komisyonu */}
+            <div className="space-y-2 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+              <Label className="text-indigo-800">POS Komisyonu (%)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={posCommissionRate}
+                  onChange={(e) => setPosCommissionRate(e.target.value)}
+                  placeholder="0"
+                  className="bg-white"
+                  data-testid="pos-commission-rate-input"
+                />
+                <span className="text-indigo-700 font-medium">%</span>
+              </div>
+              <p className="text-xs text-indigo-600">
+                Kredi kartı/Online ödemeli siparişlerde sipariş tutarı üzerinden hesaplanacak komisyon
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPricingModal(false)}>
