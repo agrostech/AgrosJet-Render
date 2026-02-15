@@ -46,6 +46,8 @@ class CompanyResponse(BaseModel):
     city: Optional[str] = ""
     city_lat: Optional[float] = None
     city_lng: Optional[float] = None
+    opening_time: Optional[str] = "09:00"
+    closing_time: Optional[str] = "22:00"
     created_at: str
 
 
