@@ -773,6 +773,18 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           {/* Yoldaki Siparişler Tab */}
           {activeTab === "ontheway" && (
             <div className="space-y-4">
+              {/* Toplam Kazanç Bilgisi */}
+              {onTheWayOrders.length > 0 && (
+                <div className="bg-green-100 border border-green-300 rounded-lg p-3">
+                  <div className="flex items-center justify-center gap-2 text-green-700">
+                    <Banknote className="w-5 h-5" />
+                    <span className="text-sm font-semibold">
+                      Bu rotadan {formatCurrency(onTheWayOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0))} kazanacaksınız
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Rota Oluştur Butonu */}
               {onTheWayOrders.length >= 2 && (
                 <Button
@@ -797,7 +809,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                     order={order}
                     onPickup={() => handlePickupOrder(order.id)}
                     onDeliver={() => handleDeliverOrder(order.id)}
-                    onNotReady={() => {}}
+                    onNotReady={() => {}}}
                     onViewDetails={() => {
                       setSelectedOrder(order);
                       setShowDetailModal(true);
