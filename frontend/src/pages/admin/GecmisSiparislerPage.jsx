@@ -108,6 +108,8 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
   const handleFilter = () => {
     setCurrentPage(1);
     setShowSummaryCard(true);
+    setAppliedRestaurantFilter(restaurantFilter);
+    setAppliedCourierFilter(courierFilter);
     fetchAndFilterOrders({
       restaurant: restaurantFilter,
       courier: courierFilter,
