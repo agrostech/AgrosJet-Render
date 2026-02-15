@@ -11,27 +11,31 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 function OrderTable({ orders, colorClass }) {
   if (!orders || orders.length === 0) return null;
   
+  const formatDistance = (km) => {
+    if (!km) return "-";
+    if (km < 1) return `${Math.round(km * 1000)}m`;
+    return `${km} km`;
+  };
+  
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
           <tr className={`border-b text-left ${colorClass.text}`}>
-            <th className="pb-2 pr-2">Sipariş</th>
             <th className="pb-2 pr-2">Restoran</th>
             <th className="pb-2 pr-2">Müşteri</th>
             <th className="pb-2 pr-2">Adres</th>
-            <th className="pb-2 pr-2 text-center">KM</th>
+            <th className="pb-2 pr-2 text-center">Mesafe</th>
             <th className="pb-2 text-right">Tutar</th>
           </tr>
         </thead>
         <tbody>
           {orders.map((order, idx) => (
             <tr key={idx} className={`border-b ${colorClass.border} last:border-0`}>
-              <td className="py-1.5 pr-2 font-medium">{order.order_no}</td>
-              <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.restaurant}>{order.restaurant}</td>
+              <td className="py-1.5 pr-2 truncate max-w-[120px]" title={order.restaurant}>{order.restaurant}</td>
               <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer}>{order.customer}</td>
-              <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.address}>{order.address}</td>
-              <td className="py-1.5 pr-2 text-center">{order.distance_km ? `${order.distance_km}` : "-"}</td>
+              <td className="py-1.5 pr-2 truncate max-w-[180px]" title={order.address}>{order.address}</td>
+              <td className="py-1.5 pr-2 text-center">{formatDistance(order.distance_km)}</td>
               <td className="py-1.5 text-right font-medium">{formatMoney(order.amount)}</td>
             </tr>
           ))}
