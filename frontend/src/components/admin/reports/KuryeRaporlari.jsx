@@ -10,8 +10,6 @@ import { Loader2, Download, Filter } from "lucide-react";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
-  const [couriers, setCouriers] = useState([]);
-  const [selectedCourier, setSelectedCourier] = useState("all");
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [company, setCompany] = useState(null);
@@ -38,18 +36,13 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
     };
   }, []);
 
-  // Şirket ve kurye bilgilerini yükle
+  // Şirket bilgilerini yükle
   useEffect(() => {
     const fetchData = async () => {
       if (!companyId) return;
       try {
-        const [companyRes, couriersRes] = await Promise.all([
-          axios.get(`${API}/companies/${companyId}`),
-          axios.get(`${API}/companies/${companyId}/couriers`)
-        ]);
-        
+        const companyRes = await axios.get(`${API}/companies/${companyId}`);
         setCompany(companyRes.data);
-        setCouriers(couriersRes.data || []);
         
         // Varsayılan tarihleri ayarla
         const defaults = getDefaultDateTimes(companyRes.data);
