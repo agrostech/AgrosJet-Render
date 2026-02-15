@@ -173,7 +173,6 @@ export default function AdminDashboard() {
     if (!item.permKey) return true; // Sipariş Yönetimi ve Güncel Durum herkese açık
     if (isSuperAdmin) return true; // Superadmin her şeyi görür
     if (item.permKey === "yoneticiler") return false; // Yöneticiler sadece superadmin
-    if (item.permKey === "raporlar") return false; // Raporlar sadece superadmin
     // Restoranlar tüm adminlere açık
     if (item.permKey === "restoranlar") return true;
     return permissions[item.permKey] === true;
