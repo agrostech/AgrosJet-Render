@@ -285,47 +285,51 @@ async def get_courier_earnings_report(
     start_date: str = Query(...),
     end_date: str = Query(...)
 ):
-    """Kurye kazanç raporu - Paket sayısı ve hakediş toplamı"""
+    """Kurye kazanç raporu - Paket sayısı, hakediş toplamı + sipariş listesi"""
     # Tarih aralığı için filtre
     start_datetime = f"{start_date}T00:00:00"
     end_datetime = f"{end_date}T23:59:59"
     
-    # Teslim edilmiş siparişleri say
-    order_count = await db.orders.count_documents({
-        "courier_id": courier_id,
-        "status": "delivered",
-        "created_at": {
-            "$gte": start_datetime,
-            "$lte": end_datetime
-        }
-    })
-    
-    # Hakediş toplamını hesapla (transactions'dan)
-    pipeline = [
+    # Teslim edilmiş siparişleri al (kazanç detaylarıyla)
+    orders = await db.orders.find(
         {
-            "$match": {
-                "courier_id": courier_id,
-                "type": "payment_in",
-                "description": {"$regex": "hakediş", "$options": "i"},
-                "created_at": {
-                    "$gte": start_datetime,
-                    "$lte": end_datetime
-                }
+            "courier_id": courier_id,
+            "status": "delivered",
+            "created_at": {
+                "$gte": start_datetime,
+                "$lte": end_datetime
             }
         },
         {
-            "$group": {
-                "_id": None,
-                "total": {"$sum": "$amount"}
-            }
+            "_id": 0,
+            "order_no": 1,
+            "restaurant_name": 1,
+            "courier_fee": 1,
+            "total_amount": 1,
+            "payment_method": 1,
+            "created_at": 1
         }
-    ]
+    ).sort("created_at", -1).to_list(500)
     
-    results = await db.transactions.aggregate(pipeline).to_list(1)
-    total_earnings = results[0].get("total", 0) if results else 0
+    # Sipariş listesini oluştur
+    order_list = []
+    total_courier_fee = 0
+    
+    for order in orders:
+        courier_fee = order.get("courier_fee", 0) or 0
+        total_courier_fee += courier_fee
+        order_list.append({
+            "order_no": order.get("order_no", "-"),
+            "restaurant": order.get("restaurant_name", "-"),
+            "total_amount": order.get("total_amount", 0),
+            "courier_fee": courier_fee,
+            "payment_method": order.get("payment_method", "-"),
+            "date": order.get("created_at", "")[:10] if order.get("created_at") else ""
+        })
     
     return {
-        "package_count": order_count,
-        "total_earnings": total_earnings
+        "package_count": len(orders),
+        "total_earnings": total_courier_fee,
+        "orders": order_list
     }
 
