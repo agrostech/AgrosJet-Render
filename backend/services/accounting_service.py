@@ -30,12 +30,14 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
     ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     # Calculate balance using aggregation (optimized)
+    # payment_out/given = borç artırır (pozitif bakiye)
+    # payment_in/received = borç azaltır (negatif bakiye)
     pipeline = [
         {"$match": {"entity_type": entity_type, "entity_id": entity_id}},
         {"$group": {
             "_id": None,
-            "total_out": {"$sum": {"$cond": [{"$eq": ["$type", "payment_out"]}, "$amount", 0]}},
-            "total_in": {"$sum": {"$cond": [{"$eq": ["$type", "payment_in"]}, "$amount", 0]}}
+            "total_out": {"$sum": {"$cond": [{"$in": ["$type", ["payment_out", "given"]]}, "$amount", 0]}},
+            "total_in": {"$sum": {"$cond": [{"$in": ["$type", ["payment_in", "received"]]}, "$amount", 0]}}
         }}
     ]
     balance_result = await db.transactions.aggregate(pipeline).to_list(1)
