@@ -523,18 +523,20 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                           <td className="p-2 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <div className="text-xs space-y-0.5">
-                                <div className="text-blue-600 font-medium">
-                                  K: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
+                                <div className="text-red-600 font-medium">
+                                  Kurye Hakediş: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
                                 </div>
-                                <div className="text-orange-600 font-medium">
-                                  R: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
-                                  {order.restaurant_kdv > 0 && (
-                                    <span className="text-amber-600 ml-1">(+{order.restaurant_kdv.toFixed(2)}₺ KDV)</span>
-                                  )}
+                                <div className="text-green-600 font-medium">
+                                  Taşıma Bedeli: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
                                 </div>
+                                {order.restaurant_kdv > 0 && (
+                                  <div className="text-green-600 font-medium">
+                                    Taşıma Bedeli KDV: {order.restaurant_kdv.toFixed(2)}₺
+                                  </div>
+                                )}
                                 {order.pos_commission > 0 && (
-                                  <div className="text-indigo-600 font-medium">
-                                    POS: {order.pos_commission.toFixed(2)}₺
+                                  <div className="text-green-600 font-medium">
+                                    POS Komisyonu: {order.pos_commission.toFixed(2)}₺
                                   </div>
                                 )}
                               </div>
