@@ -295,7 +295,7 @@ async def get_courier_payment_report(
             "address": order.get("delivery_address", "-"),
             "distance_km": distance,
             "amount": order.get("total_amount", 0),
-            "date": order.get("created_at", "")[:10] if order.get("created_at") else ""
+            "date": order.get("created_at", "")[:16].replace("T", " ") if order.get("created_at") else ""
         }
         if order.get("payment_method") == "cash":
             cash_orders.append(order_data)
