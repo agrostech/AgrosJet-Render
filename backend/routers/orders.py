@@ -105,7 +105,7 @@ async def calculate_order_fees(order: dict) -> dict:
             
             # POS komisyonu hesapla (sadece kredi kartı ödemeleri için)
             payment_method = order.get("payment_method", "").lower()
-            if payment_method in ["card", "credit_card", "kredi_karti", "online"]:
+            if payment_method == "card":
                 pos_rate = restaurant.get("pos_commission_rate", 0)
                 if pos_rate > 0:
                     total_amount = order.get("total_amount", 0)
