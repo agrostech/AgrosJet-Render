@@ -66,45 +66,40 @@ export default function FilterSummaryCard({
   // Restoran filtrelemesi yapıldıysa
   if (restaurantFilter !== "all") {
     return (
-      <Card className="mb-4 border-2 border-green-200 bg-green-50">
+      <Card className="mb-4 border bg-muted/30">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Store className="w-5 h-5 text-green-600" />
-            <h3 className="font-bold text-green-800">
+            <Store className="w-4 h-4 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground">
               {selectedRestaurant?.name || "Restoran"} - Özet
             </h3>
-            <span className="text-sm text-green-600">({orders.length} sipariş)</span>
+            <span className="text-sm text-muted-foreground">({orders.length} sipariş)</span>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            <div className="bg-white rounded-lg p-3 border border-green-200">
-              <p className="text-xs text-muted-foreground mb-1">Taşıma Ücreti</p>
-              <p className="text-lg font-bold text-green-700">{totals.tasimaUcreti.toFixed(2)}₺</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Taşıma Ücreti:</span>
+              <span className="font-medium">{totals.tasimaUcreti.toFixed(2)}₺</span>
             </div>
-            
-            <div className="bg-white rounded-lg p-3 border border-green-200">
-              <p className="text-xs text-muted-foreground mb-1">Taşıma Ücreti KDV</p>
-              <p className="text-lg font-bold text-green-700">{totals.tasimaKdv.toFixed(2)}₺</p>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Taşıma Ücreti KDV:</span>
+              <span className="font-medium">{totals.tasimaKdv.toFixed(2)}₺</span>
             </div>
-            
-            <div className="bg-white rounded-lg p-3 border border-green-300 border-2">
-              <p className="text-xs text-muted-foreground mb-1 font-medium">Toplam Taşıma Ücreti</p>
-              <p className="text-lg font-bold text-green-800">{toplamTasimaUcreti.toFixed(2)}₺</p>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground font-medium">Toplam Taşıma Ücreti:</span>
+              <span className="font-bold">{toplamTasimaUcreti.toFixed(2)}₺</span>
             </div>
-            
-            <div className="bg-white rounded-lg p-3 border border-green-200">
-              <p className="text-xs text-muted-foreground mb-1">POS Komisyonu</p>
-              <p className="text-lg font-bold text-green-700">{totals.posKomisyonu.toFixed(2)}₺</p>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">POS Komisyonu:</span>
+              <span className="font-medium">{totals.posKomisyonu.toFixed(2)}₺</span>
             </div>
-            
-            <div className="bg-white rounded-lg p-3 border border-green-200">
-              <p className="text-xs text-muted-foreground mb-1">Nakit Sipariş Toplamı</p>
-              <p className="text-lg font-bold text-emerald-600">{totals.nakitToplam.toFixed(2)}₺</p>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Nakit Toplam:</span>
+              <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
             </div>
-            
-            <div className="bg-white rounded-lg p-3 border border-green-200">
-              <p className="text-xs text-muted-foreground mb-1">Kredi Kartı Sipariş Toplamı</p>
-              <p className="text-lg font-bold text-blue-600">{totals.kartToplam.toFixed(2)}₺</p>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Kredi Kartı Toplam:</span>
+              <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
             </div>
           </div>
         </CardContent>
