@@ -8,6 +8,39 @@ import { formatMoney } from "./utils";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+function OrderTable({ orders, colorClass }) {
+  if (!orders || orders.length === 0) return null;
+  
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className={`border-b text-left ${colorClass.text}`}>
+            <th className="pb-2 pr-2">Sipariş</th>
+            <th className="pb-2 pr-2">Restoran</th>
+            <th className="pb-2 pr-2">Müşteri</th>
+            <th className="pb-2 pr-2">Adres</th>
+            <th className="pb-2 pr-2 text-center">KM</th>
+            <th className="pb-2 text-right">Tutar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order, idx) => (
+            <tr key={idx} className={`border-b ${colorClass.border} last:border-0`}>
+              <td className="py-1.5 pr-2 font-medium">{order.order_no}</td>
+              <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.restaurant}>{order.restaurant}</td>
+              <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer}>{order.customer}</td>
+              <td className="py-1.5 pr-2 truncate max-w-[150px]" title={order.address}>{order.address}</td>
+              <td className="py-1.5 pr-2 text-center">{order.distance_km ? `${order.distance_km}` : "-"}</td>
+              <td className="py-1.5 text-right font-medium">{formatMoney(order.amount)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function OdemeRaporu({ courierId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
@@ -96,38 +129,31 @@ export default function OdemeRaporu({ courierId }) {
             </Card>
           </div>
 
-          {/* Sipariş Listeleri */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Nakit Siparişler */}
-            {data.cash_orders?.length > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <h4 className="text-sm font-semibold text-green-700 mb-2">Nakit Siparişler</h4>
-                <div className="space-y-1 max-h-48 overflow-y-auto text-xs">
-                  {data.cash_orders.map((order, idx) => (
-                    <div key={idx} className="flex justify-between text-green-800 py-1 border-b border-green-100 last:border-0">
-                      <span className="truncate flex-1">{order.restaurant}</span>
-                      <span className="font-medium ml-2">{formatMoney(order.amount)}</span>
-                    </div>
-                  ))}
-                </div>
+          {/* Nakit Siparişler Tablosu */}
+          {data.cash_orders?.length > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <h4 className="text-sm font-semibold text-green-700 mb-3">Nakit Siparişler</h4>
+              <div className="max-h-64 overflow-y-auto">
+                <OrderTable 
+                  orders={data.cash_orders} 
+                  colorClass={{ text: "text-green-600", border: "border-green-100" }} 
+                />
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Kredi Kartı Siparişler */}
-            {data.card_orders?.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <h4 className="text-sm font-semibold text-blue-700 mb-2">Kredi Kartı Siparişler</h4>
-                <div className="space-y-1 max-h-48 overflow-y-auto text-xs">
-                  {data.card_orders.map((order, idx) => (
-                    <div key={idx} className="flex justify-between text-blue-800 py-1 border-b border-blue-100 last:border-0">
-                      <span className="truncate flex-1">{order.restaurant}</span>
-                      <span className="font-medium ml-2">{formatMoney(order.amount)}</span>
-                    </div>
-                  ))}
-                </div>
+          {/* Kredi Kartı Siparişler Tablosu */}
+          {data.card_orders?.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <h4 className="text-sm font-semibold text-blue-700 mb-3">Kredi Kartı Siparişler</h4>
+              <div className="max-h-64 overflow-y-auto">
+                <OrderTable 
+                  orders={data.card_orders} 
+                  colorClass={{ text: "text-blue-600", border: "border-blue-100" }} 
+                />
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Boş durum */}
           {data.cash_orders?.length === 0 && data.card_orders?.length === 0 && (
