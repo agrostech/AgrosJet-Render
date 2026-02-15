@@ -149,7 +149,7 @@ export default function AdminDashboard() {
 
   if (!user) return null;
 
-  const isSuperAdmin = user.role === "superadmin";
+  const isSuperAdmin = user.role === "superadmin" || user.is_super_admin === true;
   const permissions = user.permissions || {};
   const company = user.company;
 
