@@ -893,6 +893,7 @@ async def courier_deliver_order(courier_id: str, order_id: str):
                 "updated_at": now,
                 "courier_fee": fees["courier_fee"],
                 "restaurant_fee": fees["restaurant_fee"],
+                "restaurant_kdv": fees["restaurant_kdv"],
                 "distance_km": fees["distance_km"]
             },
             "$push": {"status_history": history_entry}
