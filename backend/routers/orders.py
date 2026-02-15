@@ -130,6 +130,7 @@ class OrderStatusUpdate(BaseModel):
 class OrderFeesUpdate(BaseModel):
     courier_fee: Optional[float] = None
     restaurant_fee: Optional[float] = None
+    restaurant_kdv: Optional[float] = None
     admin_id: Optional[str] = None
     admin_name: Optional[str] = None
 
