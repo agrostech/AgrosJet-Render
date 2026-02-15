@@ -286,6 +286,9 @@ async def get_couriers_with_data(company_id: str, date: str):
         
         # Farkları hesapla
         cash_diff = 0
+        card_diff_1 = 0
+        card_diff_10 = 0
+        card_diff_20 = 0
         card_diff = 0
         
         if collection:
@@ -315,9 +318,12 @@ async def get_couriers_with_data(company_id: str, date: str):
             },
             "has_collection": has_collection,
             "is_processed": is_processed,
-            # Farklar
+            # Farklar - detaylı
             "differences": {
                 "cash": cash_diff,
+                "card_1": card_diff_1,
+                "card_10": card_diff_10,
+                "card_20": card_diff_20,
                 "card": card_diff,
                 "total": cash_diff + card_diff
             }
