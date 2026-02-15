@@ -19,8 +19,8 @@ const TABS = [
   { key: "isletme-faturalari", label: "İşletme Faturaları", icon: Receipt },
   { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
   { key: "gunluk-mutabakat", label: "Günlük Mütabakat", icon: Scale },
-  { key: "hareketler", label: "Hareketler", icon: History },
   { key: "raporlar", label: "Raporlar", icon: BarChart3, superAdminOnly: true },
+  { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
 const TAB_KEYS = TABS.map(t => t.key);
