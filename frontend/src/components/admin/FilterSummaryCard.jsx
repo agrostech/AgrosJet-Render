@@ -132,15 +132,15 @@ export default function FilterSummaryCard({
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Toplam Hakediş:</span>
-              <span className="font-medium">{totals.kuryeHakedis.toFixed(2)}₺</span>
+              <span className="font-medium text-red-600">{totals.kuryeHakedis.toFixed(2)}₺</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Toplam Nakit:</span>
-              <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
+              <span className="font-medium text-green-600">{totals.nakitToplam.toFixed(2)}₺</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Toplam Kredi Kartı:</span>
-              <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
+              <span className="font-medium text-green-600">{totals.kartToplam.toFixed(2)}₺</span>
             </div>
           </div>
         </CardContent>
