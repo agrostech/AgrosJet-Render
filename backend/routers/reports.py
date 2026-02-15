@@ -314,14 +314,14 @@ async def get_courier_payment_report(
         }
         
         # Parçalı ödeme kontrolü
-        payment_details = order.get("payment_details", {})
-        payment_method = order.get("payment_method")
+        payment_details = order.get("payment_details") or {}
+        payment_method = order.get("payment_method", "")
         
-        if payment_method == "mixed" or (payment_details.get("cash_amount", 0) > 0 and payment_details.get("card_amount", 0) > 0):
+        cash_amt = payment_details.get("cash_amount", 0) or 0
+        card_amt = payment_details.get("card_amount", 0) or 0
+        
+        if payment_method == "mixed" or (cash_amt > 0 and card_amt > 0):
             # Parçalı ödeme - her iki listeye de ekle
-            cash_amt = payment_details.get("cash_amount", 0)
-            card_amt = payment_details.get("card_amount", 0)
-            
             if cash_amt > 0:
                 cash_order = {**base_order_data, "amount": cash_amt, "is_split": True}
                 cash_orders.append(cash_order)
