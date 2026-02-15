@@ -457,10 +457,6 @@ export default function RestoranlarPage({ companyId }) {
                   </td>
                   <td className="p-3">
                     <div className="flex items-center justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); /* TODO: Yeni finans sistemi */ }} className="h-8 px-3 border-2" title="Finans">
-                        <Wallet className="w-4 h-4" />
-                        <span className="ml-1 text-xs">Finans</span>
-                      </Button>
                       <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="h-8 px-3 border-2" title="Ücretlendirme">
                         <span className="font-bold">₺</span>
                         <span className="ml-1 text-xs">Ücretlendirme</span>
