@@ -434,7 +434,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     <th className="p-1 text-center w-14">%20</th>
                     <th className="p-1 text-center">Nakit</th>
                     <th className="p-1 text-center">Kart</th>
-                    <th className="p-1 text-center">%</th>
+                    <th className="p-1 text-center">%Fark</th>
                     <th className="p-1 text-center">Toplam</th>
                     <th></th>
                   </tr>
