@@ -79,11 +79,11 @@ export default function FilterSummaryCard({
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Taşıma Ücreti:</span>
-              <span className="font-medium text-green-600">{totals.tasimaUcreti.toFixed(2)}₺</span>
+              <span className="font-medium">{totals.tasimaUcreti.toFixed(2)}₺</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Taşıma Ücreti KDV:</span>
-              <span className="font-medium text-green-600">{totals.tasimaKdv.toFixed(2)}₺</span>
+              <span className="font-medium">{totals.tasimaKdv.toFixed(2)}₺</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground font-medium">Toplam Taşıma Ücreti:</span>
