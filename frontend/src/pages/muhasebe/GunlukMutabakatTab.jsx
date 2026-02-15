@@ -539,12 +539,29 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         </td>
                         <td className="p-2">
                           <div className="font-medium text-slate-800">{courier.name}</div>
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-[10px] text-slate-500 flex items-center gap-1">
                             {courier.order_data.order_count} sipariş
                             {courier.order_data.modified_payment_count > 0 && (
-                              <span className="ml-1 text-amber-600">
-                                ({courier.order_data.modified_payment_count} ödeme değ.)
-                              </span>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button className="inline-flex items-center gap-0.5 text-amber-600 hover:text-amber-700">
+                                    <Info className="w-3 h-3" />
+                                    <span>({courier.order_data.modified_payment_count} değ.)</span>
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-56 p-2 text-xs" align="start">
+                                  <div className="space-y-1">
+                                    <div className="font-semibold text-amber-600 border-b pb-1">Ödeme Değişiklikleri</div>
+                                    <p className="text-muted-foreground">
+                                      Bu kuryenin <strong>{courier.order_data.modified_payment_count}</strong> siparişinde 
+                                      ödeme yöntemi teslim sırasında değiştirildi.
+                                    </p>
+                                    <p className="text-[10px] text-amber-600 bg-amber-50 p-1.5 rounded mt-1">
+                                      Nakit ve kart tutarları güncellenerek hesaplanmıştır.
+                                    </p>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
                             )}
                           </div>
                         </td>
