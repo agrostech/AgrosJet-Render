@@ -144,7 +144,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
           </CardHeader>
           <CardContent>
             {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
               <div className="bg-muted/30 rounded-lg p-3">
                 <p className="text-xs text-muted-foreground">Toplam Sipariş</p>
                 <p className="text-xl font-bold">{reportData.summary?.totalOrders || 0}</p>
@@ -158,6 +158,10 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                 <p className="text-xl font-bold">{(reportData.summary?.totalTransportKdv || 0).toFixed(2)}₺</p>
               </div>
               <div className="bg-muted/30 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground font-medium">Toplam Taşıma</p>
+                <p className="text-xl font-bold text-green-600">{(reportData.summary?.totalTransport || 0).toFixed(2)}₺</p>
+              </div>
+              <div className="bg-muted/30 rounded-lg p-3">
                 <p className="text-xs text-muted-foreground">POS Komisyonu</p>
                 <p className="text-xl font-bold text-green-600">{(reportData.summary?.totalPosCommission || 0).toFixed(2)}₺</p>
               </div>
@@ -168,6 +172,12 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
               <div className="bg-muted/30 rounded-lg p-3">
                 <p className="text-xs text-muted-foreground">Kredi Kartı</p>
                 <p className="text-xl font-bold text-red-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</p>
+              </div>
+              <div className="bg-muted/30 rounded-lg p-3 border-2 border-primary/30">
+                <p className="text-xs text-muted-foreground font-medium">Sonuç</p>
+                <p className={`text-xl font-bold ${(reportData.summary?.result || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {(reportData.summary?.result || 0) >= 0 ? '+' : ''}{(reportData.summary?.result || 0).toFixed(2)}₺
+                </p>
               </div>
             </div>
 
