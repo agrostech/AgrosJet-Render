@@ -89,15 +89,12 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     Kredi kartı için restoran bazlı tax_bracket dikkate alınır
     """
     # Teslim edilmiş siparişleri getir
+    # updated_at alanı hem ISO string hem de datetime olabilir
     orders = await db.orders.find({
         "company_id": company_id,
         "courier_id": courier_id,
-        "status": "delivered",
-        "delivered_at": {
-            "$gte": start_dt.isoformat(),
-            "$lt": end_dt.isoformat()
-        }
-    }, {"_id": 0, "id": 1, "payment_type": 1, "price": 1, "restaurant_name": 1, "restaurant_id": 1}).to_list(1000)
+        "status": "delivered"
+    }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "updated_at": 1}).to_list(1000)
     
     cash_total = 0
     card_percent_1 = 0
@@ -109,13 +106,35 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     restaurant_tax_cache = {}
     
     for order in orders:
-        price = order.get("price", 0) or 0
-        payment_type = order.get("payment_type", "").lower()
+        # Tarih kontrolü - updated_at alanını parse et
+        updated_at = order.get("updated_at")
+        if updated_at:
+            try:
+                if isinstance(updated_at, str):
+                    # ISO string formatında
+                    order_dt = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+                elif isinstance(updated_at, datetime):
+                    order_dt = updated_at
+                else:
+                    continue
+                
+                # Tarih aralığı kontrolü
+                if not (start_dt <= order_dt < end_dt):
+                    continue
+            except:
+                continue
+        else:
+            continue
+        
+        price = order.get("total_amount", 0) or 0
+        payment_method = (order.get("payment_method", "") or "").lower()
         order_count += 1
         
-        if "nakit" in payment_type or "cash" in payment_type:
+        # Nakit: "cash" veya "nakit"
+        if "cash" in payment_method or "nakit" in payment_method:
             cash_total += price
-        elif "kredi" in payment_type or "kart" in payment_type or "card" in payment_type:
+        # Kart/Online: "online", "card", "kredi", "kart"
+        elif "online" in payment_method or "card" in payment_method or "kredi" in payment_method or "kart" in payment_method:
             # Restoran tax_bracket'ini bul
             restaurant_id = order.get("restaurant_id")
             restaurant_name = order.get("restaurant_name", "")
