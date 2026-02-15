@@ -3,7 +3,8 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Package, TrendingUp } from "lucide-react";
+import { Loader2, Package, TrendingUp, Info } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatMoney } from "./utils";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
