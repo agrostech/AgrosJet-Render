@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { OdemeRaporu, KazancRaporu } from "@/components/courier/reports";
 
-export default function CourierRaporlarPage({ courierId }) {
+export default function CourierRaporlarPage({ courierId, companyId }) {
   const [activeTab, setActiveTab] = useState("odeme");
 
   return (
@@ -30,8 +30,8 @@ export default function CourierRaporlarPage({ courierId }) {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "odeme" && <OdemeRaporu courierId={courierId} />}
-      {activeTab === "kazanc" && <KazancRaporu courierId={courierId} />}
+      {activeTab === "odeme" && <OdemeRaporu courierId={courierId} companyId={companyId} />}
+      {activeTab === "kazanc" && <KazancRaporu courierId={courierId} companyId={companyId} />}
     </div>
   );
 }
