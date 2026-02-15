@@ -514,23 +514,19 @@ export default function RestoranlarPage({ companyId }) {
                 </p>
               </div>
               
-              {/* Row 1: Düzenle, Finans */}
+              {/* Row 1: Düzenle, Ücretlendirme */}
               <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2">
                   Düzenle
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); /* TODO: Yeni finans sistemi */ }} className="flex-1 border-2" title="Finans">
-                  <Wallet className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Finans</span>
-                </Button>
-              </div>
-              
-              {/* Row 2: Ücretlendirme, Entegrasyonlar */}
-              <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="flex-1 border-2" title="Ücretlendirme">
                   <span className="font-bold">₺</span>
                   <span className="text-xs ml-1">Ücretlendirme</span>
                 </Button>
+              </div>
+              
+              {/* Row 2: Entegrasyonlar */}
+              <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="flex-1 border-2">
                   <Plug className="w-4 h-4 mr-1" />
                   <span className="text-xs">Entegrasyonlar</span>
