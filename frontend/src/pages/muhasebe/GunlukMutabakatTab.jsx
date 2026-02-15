@@ -448,9 +448,21 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     const cardDiff = courier.differences?.card || 0;
                     const totalDiff = courier.differences?.total || 0;
                     
-                    // Yüzdesel fark hesapla (kart farkı / kart toplamı)
-                    const cardTotal = courier.order_data?.card_total || 0;
-                    const percentDiff = cardTotal > 0 ? ((cardDiff / cardTotal) * 100).toFixed(1) : 0;
+                    // Komisyon farkı hesapla (yanlış yüzde ile tahsil edilen tutar)
+                    // Sistem komisyonu (olması gereken)
+                    const systemCommission = 
+                      (courier.order_data.card_percent_1 * 0.01) +
+                      (courier.order_data.card_percent_10 * 0.10) +
+                      (courier.order_data.card_percent_20 * 0.20);
+                    
+                    // Tahsilat komisyonu (kuryenin girdiği)
+                    const collectionCommission = 
+                      (getCollectionValue(courier, 'card_percent_1') * 0.01) +
+                      (getCollectionValue(courier, 'card_percent_10') * 0.10) +
+                      (getCollectionValue(courier, 'card_percent_20') * 0.20);
+                    
+                    // Komisyon farkı (pozitif = kurye fazla komisyon çekmiş, ceza)
+                    const commissionPenalty = collectionCommission - systemCommission;
                     
                     return (
                       <tr 
