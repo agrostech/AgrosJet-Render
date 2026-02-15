@@ -523,19 +523,19 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                           <td className="p-2 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <div className="text-xs space-y-0.5">
-                                <div className="text-red-600 font-medium">
+                                <div className="font-medium" style={{color: '#dc2626'}}>
                                   Kurye Hakediş: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
                                 </div>
-                                <div className="text-green-600 font-medium">
+                                <div className="font-medium" style={{color: '#16a34a'}}>
                                   Taşıma Bedeli: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
                                 </div>
                                 {order.restaurant_kdv > 0 && (
-                                  <div className="text-green-600 font-medium">
+                                  <div className="font-medium" style={{color: '#16a34a'}}>
                                     Taşıma Bedeli KDV: {order.restaurant_kdv.toFixed(2)}₺
                                   </div>
                                 )}
                                 {order.pos_commission > 0 && (
-                                  <div className="text-green-600 font-medium">
+                                  <div className="font-medium" style={{color: '#16a34a'}}>
                                     POS Komisyonu: {order.pos_commission.toFixed(2)}₺
                                   </div>
                                 )}
