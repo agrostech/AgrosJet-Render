@@ -420,18 +420,21 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     <th className="text-left p-2 font-semibold text-xs text-slate-600">Kurye</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={2}>Sipariş (Sistem)</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={4}>Tahsilat (Giriş)</th>
-                    <th className="text-center p-2 font-semibold text-xs text-slate-600">Fark</th>
-                    <th className="text-center p-2 font-semibold text-xs text-slate-600 w-20">Durum</th>
+                    <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={4}>Fark</th>
+                    <th className="text-center p-2 font-semibold text-xs text-slate-600 w-16">Durum</th>
                   </tr>
                   <tr className="border-b bg-slate-50 text-[10px] text-slate-500">
                     <th></th>
                     <th></th>
                     <th className="p-1 text-center">Nakit</th>
                     <th className="p-1 text-center">Kart</th>
-                    <th className="p-1 text-center w-20">Nakit</th>
-                    <th className="p-1 text-center w-18">%1</th>
-                    <th className="p-1 text-center w-18">%10</th>
-                    <th className="p-1 text-center w-18">%20</th>
+                    <th className="p-1 text-center w-16">Nakit</th>
+                    <th className="p-1 text-center w-14">%1</th>
+                    <th className="p-1 text-center w-14">%10</th>
+                    <th className="p-1 text-center w-14">%20</th>
+                    <th className="p-1 text-center">Nakit</th>
+                    <th className="p-1 text-center">Kart</th>
+                    <th className="p-1 text-center">%</th>
                     <th className="p-1 text-center">Toplam</th>
                     <th></th>
                   </tr>
