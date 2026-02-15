@@ -47,27 +47,52 @@ function OrderTable({ orders, colorClass }) {
   );
 }
 
-export default function OdemeRaporu({ courierId }) {
+export default function OdemeRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
 
   useEffect(() => {
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    setStartDate(firstDay.toISOString().split('T')[0]);
-    setEndDate(today.toISOString().split('T')[0]);
-  }, []);
+    const initDates = async () => {
+      let openingTime = "06:00";
+      let closingTime = "05:59";
+      
+      // Şirket bilgilerini al
+      if (companyId) {
+        try {
+          const res = await axios.get(`${API}/companies/${companyId}`);
+          if (res.data) {
+            openingTime = res.data.opening_time || "06:00";
+            closingTime = res.data.closing_time || "05:59";
+          }
+        } catch (err) {
+          console.error("Şirket bilgisi alınamadı:", err);
+        }
+      }
+      
+      // Bugün ve yarın tarihlerini oluştur
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const formatDate = (d) => d.toISOString().split('T')[0];
+      
+      setStartDateTime(`${formatDate(today)}T${openingTime}`);
+      setEndDateTime(`${formatDate(tomorrow)}T${closingTime}`);
+    };
+    
+    initDates();
+  }, [companyId]);
 
   const handleGenerate = async () => {
-    if (!startDate || !endDate) return;
+    if (!startDateTime || !endDateTime) return;
     setLoading(true);
     try {
       const params = new URLSearchParams({
         courier_id: courierId,
-        start_date: startDate,
-        end_date: endDate
+        start_datetime: startDateTime,
+        end_datetime: endDateTime
       });
       const res = await axios.get(`${API}/reports/courier/payments?${params.toString()}`);
       setData(res.data);
@@ -83,17 +108,17 @@ export default function OdemeRaporu({ courierId }) {
       {/* Filtreler */}
       <div className="flex flex-wrap items-center gap-2">
         <Input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
+          type="datetime-local"
+          value={startDateTime}
+          onChange={(e) => setStartDateTime(e.target.value)}
           className="h-9 w-auto"
           data-testid="payment-start-date"
         />
         <span className="text-muted-foreground">-</span>
         <Input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
+          type="datetime-local"
+          value={endDateTime}
+          onChange={(e) => setEndDateTime(e.target.value)}
           className="h-9 w-auto"
           data-testid="payment-end-date"
         />
