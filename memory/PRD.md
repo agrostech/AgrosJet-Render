@@ -113,6 +113,17 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 - `HareketlerTab.jsx` dosyasındaki `getActionLabel` fonksiyonu güncellendi
 
 ### Bekleyen Sorunlar
-- **P1:** Adisyo Ödeme Eşleme Hatası - "Kredi Kartı" ödemeleri "online" olarak kaydediliyor (loglar eklendi, yeni sipariş bekliyor)
+- **P1:** Adisyo Ödeme Eşleme Hatası - "Kredi Kartı" ödemeleri "online" olarak kaydediliyor (fix yapıldı, doğrulama bekliyor - `adisyo_raw` alanı eklendi)
 - **P1:** Arka Plan Görev Güvenilirliği - Konum takibi ve bildirimler background'da durabilir
 - **P1:** Mobil Sidebar Kurye Listesi - Açılır menü sorunu
+
+## Son Güncellemeler (15 Şubat 2026 - En Son)
+
+### Kurye Raporları Refactoring (Tamamlandı)
+- `CourierRaporlarPage.jsx` 238 satırdan 37 satıra indirildi
+- Modüler component yapısı oluşturuldu:
+  - `components/courier/reports/OdemeRaporu.jsx` - Ödeme raporu
+  - `components/courier/reports/KazancRaporu.jsx` - Kazanç raporu
+  - `components/courier/reports/utils.js` - Ortak yardımcı fonksiyonlar (formatMoney)
+  - `components/courier/reports/index.js` - Export barrel dosyası
+- Tasarım dili ve mevcut component yapısıyla uyumlu hale getirildi
