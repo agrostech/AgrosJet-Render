@@ -452,7 +452,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "entity_type": "courier",
                 "entity_id": courier_id,
                 "entity_name": courier_name,
-                "type": "given" if cash_diff > 0 else "received",  # Eksik = borç (given)
+                "type": "payment_out" if cash_diff > 0 else "payment_in",  # Eksik = borç (payment_out)
                 "amount": abs(cash_diff),
                 "description": description,
                 "admin_id": data.admin_id,
@@ -482,7 +482,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "entity_type": "courier",
                 "entity_id": courier_id,
                 "entity_name": courier_name,
-                "type": "given" if card_diff > 0 else "received",
+                "type": "payment_out" if card_diff > 0 else "payment_in",
                 "amount": abs(card_diff),
                 "description": description,
                 "admin_id": data.admin_id,
@@ -501,7 +501,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
             
             transactions_created += 1
         
-        # Komisyon farkı işlemi (yanlış yüzde ile tahsil edilen tutar)
+        # Yanlış yüzde farkı işlemi (yanlış yüzde ile tahsil edilen tutar)
         # Sistem komisyonu: restoran tax_bracket'ine göre olması gereken
         system_commission = (
             order_totals["card_percent_1"] * 0.01 +
@@ -514,7 +514,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
             collection.get("card_percent_10", 0) * 0.10 +
             collection.get("card_percent_20", 0) * 0.20
         )
-        # Komisyon farkı (pozitif = kurye yüksek yüzdeyle tahsil etmiş, ceza)
+        # Yüzde farkı (pozitif = kurye yüksek yüzdeyle tahsil etmiş, ceza)
         commission_penalty = collection_commission - system_commission
         
         if abs(commission_penalty) > 0.01:
@@ -526,7 +526,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "entity_type": "courier",
                 "entity_id": courier_id,
                 "entity_name": courier_name,
-                "type": "given" if commission_penalty > 0 else "received",  # Fazla tahsil = borç
+                "type": "payment_out" if commission_penalty > 0 else "payment_in",  # Fazla tahsil = borç
                 "amount": abs(commission_penalty),
                 "description": description,
                 "admin_id": data.admin_id,
