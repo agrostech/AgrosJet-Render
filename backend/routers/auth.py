@@ -187,12 +187,15 @@ async def login_admin(data: AdminLogin):
                 "kuryeler": True, "market": True, "akademi": True, "sistem": False
             }
     
+    # Determine super admin status: either is_super_admin flag or role is superadmin
+    is_super = admin.get("is_super_admin", False) or admin.get("role") == "superadmin"
+    
     return {
         "id": admin["id"],
         "name": admin["name"],
         "username": admin["username"],
-        "role": "superadmin" if admin.get("is_super_admin") else admin["role"],
-        "is_super_admin": admin.get("is_super_admin", False),
+        "role": "superadmin" if is_super else admin["role"],
+        "is_super_admin": is_super,
         "permissions": permissions,
         "permissions_updated_at": admin.get("permissions_updated_at"),
         "company_id": primary_company_id,
