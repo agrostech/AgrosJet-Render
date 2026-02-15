@@ -444,11 +444,13 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     const isSelected = selectedIds.includes(courier.id);
                     const isProcessed = courier.is_processed;
                     const hasOrders = courier.order_data.order_count > 0;
-                    const totalDiff = courier.differences.total;
+                    const cashDiff = courier.differences?.cash || 0;
+                    const cardDiff = courier.differences?.card || 0;
+                    const totalDiff = courier.differences?.total || 0;
                     
-                    const cardTotal = getCollectionValue(courier, 'card_percent_1') + 
-                                     getCollectionValue(courier, 'card_percent_10') + 
-                                     getCollectionValue(courier, 'card_percent_20');
+                    // Yüzdesel fark hesapla (kart farkı / kart toplamı)
+                    const cardTotal = courier.order_data?.card_total || 0;
+                    const percentDiff = cardTotal > 0 ? ((cardDiff / cardTotal) * 100).toFixed(1) : 0;
                     
                     return (
                       <tr 
