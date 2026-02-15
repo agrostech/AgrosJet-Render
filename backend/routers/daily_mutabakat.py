@@ -321,6 +321,18 @@ async def get_date_range(company_id: str, date: str):
     }
 
 
+@router.get("/{company_id}/courier/{courier_id}/orders/{date}")
+async def get_courier_orders_for_date(company_id: str, courier_id: str, date: str):
+    """
+    Belirli bir tarih için kuryenin sipariş detaylarını getir
+    """
+    settings = await get_company_settings(company_id)
+    start_dt, end_dt = calculate_date_range(date, settings["opening_time"], settings["closing_time"])
+    
+    result = await get_courier_orders_detail(company_id, courier_id, start_dt, end_dt)
+    return result
+
+
 @router.get("/{company_id}/couriers/{date}")
 async def get_couriers_with_data(company_id: str, date: str):
     """
