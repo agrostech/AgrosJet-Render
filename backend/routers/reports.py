@@ -123,7 +123,7 @@ async def get_restaurant_report(
     end_datetime: str = Query(...),
     restaurant_id: Optional[str] = Query(None)
 ):
-    """Restoran bazlı sipariş raporu"""
+    """Restoran bazlı sipariş raporu - parçalı ödeme desteği ile"""
     # Tarih formatını düzelt
     if len(start_datetime) == 16:
         start_datetime = start_datetime + ":00"
@@ -144,68 +144,83 @@ async def get_restaurant_report(
     if restaurant_id:
         match_filter["restaurant_id"] = restaurant_id
     
-    # Restoran bazlı aggregation
-    pipeline = [
-        {"$match": match_filter},
+    # Siparişleri getir (aggregation yerine find kullanarak payment_details'i işleyebiliriz)
+    orders = await db.orders.find(
+        match_filter,
         {
-            "$group": {
-                "_id": "$restaurant_id",
-                "restaurant_name": {"$first": "$restaurant_name"},
-                "orderCount": {"$sum": 1},
-                "transportFee": {"$sum": {"$ifNull": ["$restaurant_fee", 0]}},
-                "transportKdv": {"$sum": {"$ifNull": ["$restaurant_kdv", 0]}},
-                "posCommission": {"$sum": {"$ifNull": ["$pos_commission", 0]}},
-                "cash": {
-                    "$sum": {
-                        "$cond": [
-                            {"$eq": ["$payment_method", "cash"]},
-                            {"$ifNull": ["$total_amount", 0]},
-                            0
-                        ]
-                    }
-                },
-                "card": {
-                    "$sum": {
-                        "$cond": [
-                            {"$eq": ["$payment_method", "card"]},
-                            {"$ifNull": ["$total_amount", 0]},
-                            0
-                        ]
-                    }
-                }
+            "_id": 0,
+            "restaurant_id": 1,
+            "restaurant_name": 1,
+            "restaurant_fee": 1,
+            "restaurant_kdv": 1,
+            "pos_commission": 1,
+            "total_amount": 1,
+            "payment_method": 1,
+            "payment_details": 1
+        }
+    ).to_list(5000)
+    
+    # Restoran bazlı hesaplama
+    restaurant_data = {}
+    
+    for order in orders:
+        rid = order.get("restaurant_id")
+        if rid not in restaurant_data:
+            restaurant_data[rid] = {
+                "id": rid,
+                "name": order.get("restaurant_name") or "Bilinmiyor",
+                "orderCount": 0,
+                "transportFee": 0,
+                "transportKdv": 0,
+                "posCommission": 0,
+                "cash": 0,
+                "card": 0,
+                "modified_count": 0
             }
-        },
-        {"$sort": {"restaurant_name": 1}}  # Alfabetik sıralama
-    ]
+        
+        r = restaurant_data[rid]
+        r["orderCount"] += 1
+        r["transportFee"] += order.get("restaurant_fee", 0) or 0
+        r["transportKdv"] += order.get("restaurant_kdv", 0) or 0
+        r["posCommission"] += order.get("pos_commission", 0) or 0
+        
+        payment_method = (order.get("payment_method") or "").lower()
+        payment_details = order.get("payment_details") or {}
+        total_amount = order.get("total_amount", 0) or 0
+        
+        # Parçalı ödeme kontrolü
+        cash_amt = payment_details.get("cash_amount", 0) or 0
+        card_amt = payment_details.get("card_amount", 0) or 0
+        
+        if payment_method == "mixed" or (cash_amt > 0 and card_amt > 0):
+            # Parçalı ödeme - her iki tutarı da ekle
+            r["cash"] += cash_amt
+            r["card"] += card_amt
+            if payment_details.get("original_method") or payment_details.get("original_payment_method"):
+                r["modified_count"] += 1
+        elif "cash" in payment_method or "nakit" in payment_method:
+            r["cash"] += total_amount
+            if payment_details.get("original_method") or payment_details.get("original_payment_method"):
+                r["modified_count"] += 1
+        elif "card" in payment_method or "kart" in payment_method or "online" in payment_method:
+            r["card"] += total_amount
+            if payment_details.get("original_method") or payment_details.get("original_payment_method"):
+                r["modified_count"] += 1
     
-    results = await db.orders.aggregate(pipeline).to_list(100)
-    
-    # Toplam hesapla
-    total_orders = sum(r["orderCount"] for r in results)
-    total_transport_fee = sum(r["transportFee"] for r in results)
-    total_transport_kdv = sum(r["transportKdv"] for r in results)
-    total_pos_commission = sum(r["posCommission"] for r in results)
-    total_cash = sum(r["cash"] for r in results)
-    total_card = sum(r["card"] for r in results)
-    
-    # Restoran listesi
-    restaurants = []
-    for r in results:
-        restaurants.append({
-            "id": r["_id"],
-            "name": r["restaurant_name"] or "Bilinmiyor",
-            "orderCount": r["orderCount"],
-            "transportFee": r["transportFee"],
-            "transportKdv": r["transportKdv"],
-            "posCommission": r["posCommission"],
-            "cash": r["cash"],
-            "card": r["card"]
-        })
-    
-    # Alfabetik sırala
+    # Listeye çevir ve sırala
+    restaurants = list(restaurant_data.values())
     restaurants.sort(key=lambda x: x["name"].lower())
     
-    # Sonuç hesapla: (Toplam Taşıma Ücreti + POS Komisyonu) - (Nakit + Kredi Kartı)
+    # Toplamlar
+    total_orders = sum(r["orderCount"] for r in restaurants)
+    total_transport_fee = sum(r["transportFee"] for r in restaurants)
+    total_transport_kdv = sum(r["transportKdv"] for r in restaurants)
+    total_pos_commission = sum(r["posCommission"] for r in restaurants)
+    total_cash = sum(r["cash"] for r in restaurants)
+    total_card = sum(r["card"] for r in restaurants)
+    total_modified = sum(r["modified_count"] for r in restaurants)
+    
+    # Sonuç hesapla
     total_transport = total_transport_fee + total_transport_kdv
     result = (total_transport + total_pos_commission) - (total_cash + total_card)
     
@@ -218,6 +233,7 @@ async def get_restaurant_report(
             "totalPosCommission": total_pos_commission,
             "totalCash": total_cash,
             "totalCard": total_card,
+            "totalModified": total_modified,
             "result": result
         },
         "restaurants": restaurants
