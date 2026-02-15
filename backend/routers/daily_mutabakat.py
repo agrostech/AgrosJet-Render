@@ -442,9 +442,9 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
         # Bakiye işlemleri oluştur
         date_label = datetime.strptime(data.date, "%Y-%m-%d").strftime("%d.%m.%Y")
         
-        # Nakit farkı işlemi
-        if abs(cash_diff) > 0.01:
-            description = f"{date_label} tarihli mütabakat - Nakit {'eksik' if cash_diff > 0 else 'fazla'} teslim"
+        # Nakit farkı işlemi - Sadece kurye borçluysa işle
+        if cash_diff > 0.01:  # Pozitif = kurye eksik teslim etmiş = kurye borçlu
+            description = f"{date_label} tarihli mütabakat - Nakit eksik teslim"
             
             await db.transactions.insert_one({
                 "id": str(uuid.uuid4()),
@@ -452,8 +452,8 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "entity_type": "courier",
                 "entity_id": courier_id,
                 "entity_name": courier_name,
-                "type": "payment_out" if cash_diff > 0 else "payment_in",  # Eksik = borç (payment_out)
-                "amount": abs(cash_diff),
+                "type": "payment_out",  # Kurye borçlu
+                "amount": cash_diff,
                 "description": description,
                 "admin_id": data.admin_id,
                 "admin_name": data.admin_name,
@@ -464,17 +464,17 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
             })
             
             # Kurye bakiyesini güncelle
-            balance_change = cash_diff if cash_diff > 0 else -abs(cash_diff)
             await db.couriers.update_one(
                 {"id": courier_id},
-                {"$inc": {"balance": balance_change}}
+                {"$inc": {"balance": cash_diff}}
             )
             
             transactions_created += 1
+        # Negatif fark (kurye fazla teslim etmiş) işlenmez - biz borçlu oluyoruz
         
-        # Kart farkı işlemi
-        if abs(card_diff) > 0.01:
-            description = f"{date_label} tarihli mütabakat - Kredi kartı {'eksik' if card_diff > 0 else 'fazla'} teslim"
+        # Kart farkı işlemi - Sadece kurye borçluysa işle
+        if card_diff > 0.01:  # Pozitif = kurye eksik teslim etmiş = kurye borçlu
+            description = f"{date_label} tarihli mütabakat - Kredi kartı eksik teslim"
             
             await db.transactions.insert_one({
                 "id": str(uuid.uuid4()),
@@ -482,8 +482,8 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "entity_type": "courier",
                 "entity_id": courier_id,
                 "entity_name": courier_name,
-                "type": "payment_out" if card_diff > 0 else "payment_in",
-                "amount": abs(card_diff),
+                "type": "payment_out",  # Kurye borçlu
+                "amount": card_diff,
                 "description": description,
                 "admin_id": data.admin_id,
                 "admin_name": data.admin_name,
@@ -493,15 +493,15 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
             
-            balance_change = card_diff if card_diff > 0 else -abs(card_diff)
             await db.couriers.update_one(
                 {"id": courier_id},
-                {"$inc": {"balance": balance_change}}
+                {"$inc": {"balance": card_diff}}
             )
             
             transactions_created += 1
+        # Negatif fark (kurye fazla teslim etmiş) işlenmez - biz borçlu oluyoruz
         
-        # Yanlış yüzde farkı işlemi (yanlış yüzde ile tahsil edilen tutar)
+        # Yanlış yüzde farkı işlemi - Sadece kurye borçluysa işle
         # Sistem komisyonu: restoran tax_bracket'ine göre olması gereken
         system_commission = (
             order_totals["card_percent_1"] * 0.01 +
@@ -514,11 +514,11 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
             collection.get("card_percent_10", 0) * 0.10 +
             collection.get("card_percent_20", 0) * 0.20
         )
-        # Yüzde farkı (pozitif = kurye yüksek yüzdeyle tahsil etmiş, ceza)
+        # Yüzde farkı (pozitif = kurye yüksek yüzdeyle tahsil etmiş = kurye borçlu)
         commission_penalty = collection_commission - system_commission
         
-        if abs(commission_penalty) > 0.01:
-            description = f"{date_label} tarihli mütabakat - Yanlış yüzde farkı ({'fazla' if commission_penalty > 0 else 'eksik'} tahsil)"
+        if commission_penalty > 0.01:  # Pozitif = kurye fazla komisyon almış = kurye borçlu
+            description = f"{date_label} tarihli mütabakat - Yanlış yüzde farkı (fazla tahsil)"
             
             await db.transactions.insert_one({
                 "id": str(uuid.uuid4()),
@@ -526,8 +526,8 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "entity_type": "courier",
                 "entity_id": courier_id,
                 "entity_name": courier_name,
-                "type": "payment_out" if commission_penalty > 0 else "payment_in",  # Fazla tahsil = borç
-                "amount": abs(commission_penalty),
+                "type": "payment_out",  # Kurye borçlu
+                "amount": commission_penalty,
                 "description": description,
                 "admin_id": data.admin_id,
                 "admin_name": data.admin_name,
@@ -537,13 +537,13 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
             
-            balance_change = commission_penalty if commission_penalty > 0 else -abs(commission_penalty)
             await db.couriers.update_one(
                 {"id": courier_id},
-                {"$inc": {"balance": balance_change}}
+                {"$inc": {"balance": commission_penalty}}
             )
             
             transactions_created += 1
+        # Negatif fark (kurye düşük komisyon almış) işlenmez - biz borçlu oluyoruz
         
         # İşlenmiş olarak kaydet
         await db.daily_mutabakat_processed.insert_one({
