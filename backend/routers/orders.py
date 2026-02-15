@@ -121,6 +121,13 @@ class OrderStatusUpdate(BaseModel):
     is_super_admin: Optional[bool] = False  # Super admin bypass
 
 
+class OrderFeesUpdate(BaseModel):
+    courier_fee: Optional[float] = None
+    restaurant_fee: Optional[float] = None
+    admin_id: Optional[str] = None
+    admin_name: Optional[str] = None
+
+
 # --- Sipariş Durumları ---
 ORDER_STATUSES = {
     "pending": {"label": "Beklemede", "color": "gray"},
