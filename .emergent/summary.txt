@@ -1,155 +1,152 @@
 <analysis>**original_problem_statement:**
-The user is building a comprehensive, Adisyo-integrated order management system named ShiftJet.
+The user is building an Adisyo-integrated order management system, ShiftJet.
 
-The primary goals for this session evolved through several user requests:
-1.  **Bug Fix:** Resolve an issue where the calculated KDV (VAT) amount was not visible for completed orders in the Geçmiş Siparişler (Past Orders) table for super admins.
-2.  **Feature Request:** Introduce a POS (Point of Sale) commission system. This involved adding a  to restaurant settings, calculating a  fee for completed orders paid by Kredi Kartı (Credit Card), and displaying this new fee in the past orders table.
-3.  **UI/UX Improvement:** Refine the Ücretler (Fees) column display in the Geçmiş Siparişler table with specific labels (Kurye Hakediş, Taşıma Bedeli, etc.) and colors.
-4.  **UI/UX Improvement:** Conditionally hide the Kurye Hakediş (Courier Fee) for orders that do not have an assigned courier.
-5.  **Feature Request:** Implement a summary card on the Geçmiş Siparişler page. This card should appear when filtering by a specific restaurant or courier and display aggregated financial data (total fees, totals by payment method, etc.) for the filtered orders.
-6.  **Feature Request:** Add a Toplam Taşıma Ücreti (Total Transport Fee), which is the sum of Taşıma Bedeli and Taşıma Bedeli KDV, to the restaurant summary card.
+In this session, the user's requests evolved from the initial plan. The key objectives accomplished and requested were:
+1.  **Admin Panel UI Refinement:** The user requested and the agent completed a UI redesign of the Raporlar (Reports) pages to make them more minimal and compact.
+2.  **Admin Panel Data Display:** Added Turkish translations for  (Haftalık Hakediş) and  (Haftalık Hakediş Geri Al) in the Muhasebe Fatura (Missing Invoice) warning on the courier dashboard to be a more subtle, single-line alert.
+5.  **New Feature: Courier Reports:** Implemented a new Raporlar section in the *courier* dashboard, placed under Muhasebe. This new section contains two sub-tabs:
+    *   **Ödeme Raporu (Payment Report):** Shows total cash and card balances with date filtering.
+    *   **Kazanç Raporu (Earnings Report):** Shows total package count and earnings with date filtering.
+6.  **Bug Investigation: Adisyo Payment Method Mapping:** Investigated why orders paid by card were saved as online. The agent identified that the raw Adisyo payload was not being saved, preventing proper debugging. A fix was implemented to save this data () and refine the payment mapping logic.
+7.  **Task Deprioritization:** The user explicitly requested to **cancel** the previously planned task of preventing order assignments to couriers who are On Break or Offline.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The agent successfully resolved the KDV visibility bug. This involved fixing the backend to save the  field when an admin updates an order's status and running a script to backfill this data for existing orders. The  logic in the login endpoint was also corrected to ensure the frontend renders protected columns correctly.
+The application is a comprehensive full-stack order management system. The admin and courier panels have received significant updates.
 
-The agent fully implemented the POS commission feature. This included updating the database models, modifying the backend  to calculate the commission *only* for credit card payments, adding a new input to the restaurant pricing modal, and updating the past orders table to display the calculated commission. A script was run to backfill this data.
-
-The agent also implemented several UI/UX improvements, including relabeling the fees in the past orders table, applying conditional colors, and hiding the courier fee for unassigned orders.
-
-Most recently, the agent created a new  component that displays aggregated financial data when the user filters the past orders list by a specific restaurant or courier. The component correctly calculates and shows different summaries for each filter type.
+-   **Admin Panel:** Features a redesigned and compact Reports section. The Couriers and Restaurants pages have been cleaned up by removing unnecessary finance buttons. The accounting movements tab now displays correct Turkish labels.
+-   **Courier Panel:** Features a new Raporlar (Reports) section with Payment and Earnings reports, complete with date filtering and backend data aggregation. The missing invoice warning has been made more minimal.
+-   **Backend:** The logic for mapping Adisyo payment methods has been improved, and a crucial fix has been implemented to save the raw Adisyo order data () to the database for all incoming orders, which will aid in future debugging.
 
 **Last working item**:
-- Last item agent was working: The user requested an addition to the restaurant summary card: to show the Toplam Taşıma Ücreti (Total Transport Fee), which is the sum of the transport fee and its VAT. The agent has acknowledged the request and is about to start implementation.
+- Last item agent was working: The user's final request was to review the newly created Courier Reports feature to ensure it aligns with the project's existing design language and file structure best practices (e.g., splitting large components). The agent was about to start this review and potential refactoring.
 - Status: NOT STARTED
-- Agent Testing Done: N
-- Which testing method agent to use? frontend testing agent. The agent should modify  to calculate and display the new total. After the change, the agent must use the screenshot tool to log in, navigate to Geçmiş Siparişler, filter by a restaurant, and verify the new total appears correctly in the summary card.
+- Agent Testing Done: Y (for the feature functionality itself)
+- Which testing method agent to use? screenshot tool. After refactoring, the agent should take a screenshot of the courier's Raporlar page to confirm the UI remains correct and functional.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Background Task Reliability (Notifications/Location) (P1)**
-- **Issue 2: Mobile Sidebar Courier List Collapsible Bug (P1)**
+-   **Issue 1: Adisyo Payment Method Mapping Bug (P1)**
+-   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
+-   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
 
 Issues Detail:
-- **Issue 1: Background Task Reliability (Notifications/Location) (P1)**
-    - **Description:** Location tracking and notifications may stop when the courier app is in the background. This issue was not addressed in the current session.
-    - **Status:** USER VERIFICATION PENDING
-    - **Is recurring issue?** Y
-    - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on other issue:** None.
-- **Issue 2: Mobile Sidebar Courier List Collapsible Bug (P1)**
-    - **Description:** The collapsible courier lists on the mobile sidebar may not expand on click. This issue was not addressed in the current session.
-    - **Status:** USER VERIFICATION PENDING
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** frontend
-    - **Blocked on other issue:** None.
+-   **Issue 1: Adisyo Payment Method Mapping Bug (P1)**
+    -   **Description:** Orders from external platforms (like YemekSepeti) paid by card were sometimes incorrectly saved as online.
+    -   **Attempted fixes:** The agent correctly identified that the raw Adisyo payload was not being saved to the database. A fix was implemented in  to store the payload in an  field and to simplify the payment mapping logic to rely solely on .
+    -   **Next debug checklist:** The Adisyo API was returning a  error in the preview environment, preventing new orders from being processed and the fix from being verified. The next agent should first check if the Adisyo integration is working. If so, monitor new orders and inspect the  field in the database for any orders with incorrect payment methods to validate the fix.
+    -   **Why fix this issue and what will be achieved with the fix?** Ensures financial data accuracy, which is critical for all accounting and reporting features.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** backend
+    -   **Blocked on other issue:** The Adisyo API endpoint appears to be non-functional in the preview environment.
+-   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
+    -   **Description:** Location tracking and notifications may stop when the courier app is in the background. Not addressed in this session.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** both
+-   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
+    -   **Description:** The collapsible courier lists on the mobile sidebar may not expand on click. Not addressed in this session.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** frontend
 
 **In progress Task List**:
-- **Task 1: Add Total Transport Fee to Summary Card (P0)**
-    - **Where to resume:** Modify the  component.
-    - **What will be achieved with this?** Fulfills the user's latest feature request by adding a new aggregated value to the restaurant filter summary.
-    - **Status:** NOT STARTED
-    - **Should Test frontend/backend/both after fix?** frontend
-    - **Blocked on something:** None.
+-   **Task 1: Refactor Courier Reports Feature (P0)**
+    -   **Where to resume:** Examine . Based on the user's request, consider splitting the logic for the Ödeme Raporu and Kazanç Raporu tabs into separate, smaller components within a new  directory to improve code organization and maintainability.
+    -   **What will be achieved with this?** The code will be cleaner, more modular, and consistent with the project's overall architecture.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0 - Implement Adisyo Webhooks:** Replace polling with real-time order updates to improve efficiency and reduce server load.
-    -   **P1 - Restrict Order Assignment:** Prevent assigning orders to couriers whose status is On Break or Offline.
-    -   **P2 - Finance Reporting:** Create comprehensive reports for the finance system.
-    -   **P2 - Full Regression Test:** Perform a full regression test of the Günlük Mütabakat (Daily Reconciliation) workflow, as many dependent features have been added or changed.
+    -   **P0 - Implement Adisyo Webhooks:** Replace polling with real-time order updates to improve efficiency.
+    -   **P1 - Full Regression Test:** Perform a full regression test of the Günlük Mütabakat (Daily Reconciliation) workflow.
 -   **Future Tasks:**
     -   **P1 - Re-enable & Enhance Chat System**
-    -   **P2 - Refactor Order History Pages:** Create a reusable  component from the code in  and  to reduce code duplication.
+    -   **P2 - Refactor Order History Pages:** Create a reusable  component from the code in  and .
     -   **P2 - Dark Mode Implementation**
     -   **P3 - Motosikletim Feature Enhancements**
 
 **Completed work in this session**
-- **Bug Fix: KDV (VAT) Visibility**
-  - Fixed logic in  to save  on admin status updates.
-  - Corrected  logic in .
-  - Ran a script to backfill  for 11 existing orders.
-- **Feature: POS Commission System**
-  - Updated  and  models to include  and .
-  - Implemented calculation logic in  to apply commission only for card payments.
-  - Updated UI in  and  to manage and display the commission.
-  - Ran scripts to backfill POS commission data for 42 orders.
-- **Feature: Filter-Based Summary Card**
-  - Created a new component .
-  - Integrated it into  to show dynamic financial summaries when filtering by courier or restaurant.
-- **UI/UX Improvements:**
-  - Relabeled fees and applied conditional coloring in .
-  - Implemented logic in  to hide Kurye Hakediş if no courier is assigned.
+-   **Feature: Courier Reports Section (Implemented)**
+    -   Created  with Ödeme Raporu and Kazanç Raporu tabs.
+    -   Added backend endpoints  and  in .
+-   **Bug Fix: Adisyo Payment Mapping (Implemented, Verification Pending)**
+    -   Modified  to save the raw Adisyo payload () to the database.
+    -   Updated the  function to be more reliable.
+-   **UI Refinement: Admin & Courier Panels (Completed)**
+    -   Redesigned the filter/summary sections of the admin report pages (, ) to be more compact.
+    -   Simplified the Eksik Fatura warning on the courier's accounting page ().
+-   **UI Cleanup (Completed)**
+    -   Removed Finans buttons from  and .
+    -   Added Turkish translations to  for accounting actions.
+-   **Technical Debt (Resolved)**
+    -   Fixed a login issue by identifying a password hash mismatch (SHA256 vs. bcrypt) and updating the user's password in the database.
 
 **Earlier issues found/mentioned but not fixed**
-- The critical courier login/password issue was explicitly dismissed by the user (kurye şifre sorunu diye bir şey yok...artık bunu unut lütfen) and should no longer be tracked.
+-   The two issues from the previous fork (Background Task Reliability, Mobile Sidebar Bug) remain pending and are tracked in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
-- **Issue recurrence in previous fork:** Mobile file upload issue.
-- **Recurrence count:** 5+
-- **Status:** NOT STARTED (Not addressed in this session).
+-   **Issue recurrence in previous fork:** Mobile file upload issue.
+-   **Recurrence count:** 5+
+-   **Status:** NOT STARTED (Not addressed in this session).
 
 **Code Architecture**
-
+adisyo_raw
 
 **Key Technical Concepts**
-- **Conditional Rendering (React):** Extensively used to show UI elements based on user role (), filter state (), and order data (, ).
-- **Data Aggregation (JavaScript):** The  method was key to calculating the financial summaries displayed in the  component.
-- **Backend Data Migration:** Python scripts using  were created and executed to backfill new fields (, ) for existing orders in the database after schema changes.
-- **State Management (React):** Filtered data () and user selections () were passed down as props from  to the  component.
+-   **Defensive Programming:** Saving the  payload is a key defensive measure to ensure that even if the mapping logic fails, the original data from the third-party API is preserved for future debugging.
+-   **Component Refactoring:** The user's final request highlights the importance of not just implementing features, but also structuring them correctly for long-term maintainability by breaking down large components.
+-   **Debugging Authentication:** The agent successfully debugged a login failure by investigating the full authentication flow from frontend to backend, identifying a password hashing algorithm mismatch, and correcting the data in the database.
 
 **key DB schema**
--   :  object now contains an optional .
--   : Now contains an optional .
--   : Logic now correctly handles  and  for super admin permissions.
+-   **orders collection:** A new field, , is now saved with each order document originating from Adisyo. This field stores the complete, unmodified JSON payload from the Adisyo API.
 
 **All files of reference**
--    (Newly created component for the summary feature)
--    (Heavily modified for all new features and UI changes)
--    (Modified to save KDV and POS commission on updates)
--    (Modified to calculate POS commission)
--    (Modified to store POS commission rate)
--    (Modified for super admin login logic)
+-    (New feature to be refactored)
+-    (Contains the critical payment mapping fix)
+-    (Contains the new courier report endpoints)
+-    (Entry point for the new courier feature)
+-    (Contains the updated UI for the invoice warning)
 
 **Areas that need refactoring**:
--   ** & :** These two files still share nearly identical code. They should be refactored to use a single reusable  component to reduce duplication and improve maintainability.
+-   **:** The immediate task is to refactor this new page into smaller, more reusable components as per the user's request.
+-   ** & :** These two pages still share significant duplicate code and should be refactored to use a common, reusable table component.
 
 **key api endpoints**
--   No new endpoints were created, but the logic of several existing endpoints was modified:
--   **Modified:**  (Logic now saves  and )
--   **Modified:**  (Logic updated to handle  in manual edits)
--   **Modified:**  (Request body now accepts )
--   **Modified:**  (Response body now correctly derives )
+-   **CREATED:** 
+-   **CREATED:** 
 
 **Critical Info for New Agent**
--   **All communication must be in Turkish.**
--   Your immediate P0 task is to modify the  component to add the Toplam Taşıma Ücreti (Total Transport Fee) to the restaurant summary view.
--   The user has explicitly stated that the previously reported courier password issue is not a problem and should be ignored.
--   POS commission is only applicable to orders with . The backend logic already enforces this.
--   Super admin status is determined by the frontend logic: . The backend was fixed to support this.
+-   **You must communicate in Turkish.**
+-   Your first task (P0) is to act on the user's last request: **refactor the new courier reports page ()**. Split it into smaller, well-structured components to align with the project's design standards.
+-   The task to prevent order assignment to offline/on-break couriers was **explicitly cancelled by the user**. Do not add it to your plan.
+-   The Adisyo payment mapping fix has been implemented but not verified due to API errors in the preview environment. Don't try to fix the mapping again. Instead, if the Adisyo integration works, focus on verifying if the  data is being saved correctly on new orders.
 
 **documents and test reports created in this job**
-- /app/memory/PRD.md
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1. **User:** Add the total of Taşıma Ücreti and Taşıma Ücreti KDV to the restaurant filter summary. (Status: **PENDING - Current Task**)
-2. **Agent:** Confirmed the filter summary feature is working for both restaurants and couriers.
-3. **User:** A new feature for Geçmiş Siparişler: Show a summary box at the top with aggregated data when filtering by a restaurant or a courier. (Status: Implemented)
-4. **User:** If a courier is not assigned to an order, the Kurye Hakediş (Courier Fee) should not be shown. (Status: Implemented)
-5. **User:** Change the labels and colors in the Ücretler (Fees) column to specific values like Kurye Hakediş (Red) and Taşıma Bedeli (Green). (Status: Implemented)
-6. **Agent:** Confirmed that the POS commission is now correctly calculated only for 'card' payments and not 'online' payments.
-7. **User:** This is wrong. POS commission should only apply to 'Kredi Kartı' (credit card) payments, not 'Online' payments. (Status: Implemented)
-8. **Agent:** Confirmed the POS commission feature is working and visible in the table.
-9. **User:** New feature: Add a POS Komisyonu (POS Commission) to the restaurant pricing modal. This percentage should be applied as a fee to the restaurant's credit card orders and shown in the past orders table. (Status: Implemented)
-10. **Agent:** Confirmed the KDV visibility bug is fixed.
+1.  **User (Latest):** I forgot to ask you to preserve the design language and use separate files for the new courier reports. Is there anything that needs to be done? (Status: **PENDING - Current Task**)
+2.  **User:** New task: add a Reports tab to the *courier* dashboard with Payment Report and Earnings Report sub-tabs, including date filtering and specific data points. (Status: **Completed**)
+3.  **User:** The text Sarı satırlarda Eksik Yükle (On yellow rows, click 'Upload Missing') is unnecessary in the invoice warning. (Status: **Completed**)
+4.  **User:** The missing invoice warning on the courier panel is too crude and should be more minimal. (Status: **Completed**)
+5.  **User:** Regarding the Adisyo payment issue: I want to update existing incorrect orders. (Status: **Addressed** - Agent explained it's not possible without the original data).
+6.  **User:** Platform shouldn't matter; if the payment is card, it should show as card. Check the Furkan Oruç order specifically. (Status: **Addressed** - This led the agent to find the root cause: the raw Adisyo data wasn't being saved).
+7.  **User:** I see the online vs card issue. Can you explain the data? (Status: **Addressed** - Agent provided an initial analysis).
+8.  **User:** Ok, forget about blocking assignments to offline couriers. Let's investigate the Adisyo payment mapping bug. Check the logs for new orders. (Status: **Addressed**)
+9.  **User:** Remove the Finans buttons from the couriers and restaurants pages. (Status: **Completed**)
+10. **User:** The translations for  and  are missing on the Accounting > Movements tab. (Status: **Completed**)
 
 **Project Health Check:**
-- **Broken:** None. The major bugs from this session have been resolved.
-- **Mocked:** None.
+-   **Broken:** The Adisyo API integration is returning  in the preview environment, which blocks new orders from being fetched and prevents verification of the payment mapping fix.
+-   **Mocked:** None.
 
 **3rd Party Integrations**
--   : Integrated via a polling mechanism for order retrieval.
+-   : Integrated via a polling mechanism. Currently experiencing  errors in the preview environment.
 -   
 -   
 -   
@@ -159,10 +156,11 @@ Issues Detail:
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
--   Known regressions: None identified, but a full regression test on core financial features is recommended.
+-   Known regressions: None identified. The agent used screenshots and manual UI interaction to test all changes.
 
 **Credentials to test flow:**
 -   **Super Admin:** username: , password: 
+-   **Courier:** The agent tested with a user named  after resetting its password to .
 
 **What agent forgot to execute**
-- The agent successfully implemented all of the user's direct requests in this session. The long-term tasks like refactoring and full regression testing were not forgotten but rather remain on the upcoming/future task list.</analysis>
+-   The agent was about to fulfill the user's final request (refactor the courier reports page) before the session ended. No other tasks were forgotten.</analysis>
