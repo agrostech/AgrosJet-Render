@@ -501,6 +501,50 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
             
             transactions_created += 1
         
+        # Komisyon farkı işlemi (yanlış yüzde ile tahsil edilen tutar)
+        # Sistem komisyonu: restoran tax_bracket'ine göre olması gereken
+        system_commission = (
+            order_totals["card_percent_1"] * 0.01 +
+            order_totals["card_percent_10"] * 0.10 +
+            order_totals["card_percent_20"] * 0.20
+        )
+        # Tahsilat komisyonu: kuryenin girdiği yüzdelere göre
+        collection_commission = (
+            collection.get("card_percent_1", 0) * 0.01 +
+            collection.get("card_percent_10", 0) * 0.10 +
+            collection.get("card_percent_20", 0) * 0.20
+        )
+        # Komisyon farkı (pozitif = kurye yüksek yüzdeyle tahsil etmiş, ceza)
+        commission_penalty = collection_commission - system_commission
+        
+        if abs(commission_penalty) > 0.01:
+            description = f"{date_label} tarihli mütabakat - Komisyon farkı ({'fazla' if commission_penalty > 0 else 'eksik'} tahsil)"
+            
+            await db.transactions.insert_one({
+                "id": str(uuid.uuid4()),
+                "company_id": company_id,
+                "entity_type": "courier",
+                "entity_id": courier_id,
+                "entity_name": courier_name,
+                "type": "given" if commission_penalty > 0 else "received",  # Fazla tahsil = borç
+                "amount": abs(commission_penalty),
+                "description": description,
+                "admin_id": data.admin_id,
+                "admin_name": data.admin_name,
+                "is_mutabakat": True,
+                "mutabakat_date": data.date,
+                "mutabakat_type": "commission",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            
+            balance_change = commission_penalty if commission_penalty > 0 else -abs(commission_penalty)
+            await db.couriers.update_one(
+                {"id": courier_id},
+                {"$inc": {"balance": balance_change}}
+            )
+            
+            transactions_created += 1
+        
         # İşlenmiş olarak kaydet
         await db.daily_mutabakat_processed.insert_one({
             "id": str(uuid.uuid4()),
