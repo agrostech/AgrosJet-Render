@@ -113,14 +113,11 @@ async def get_restaurant_report(
     restaurant_id: Optional[str] = Query(None)
 ):
     """Restoran bazlı sipariş raporu"""
-    try:
-        # Tarih filtreleme için ISO format'a çevir
-        start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
-    except:
-        # Fallback - direkt string karşılaştırma
-        start_dt = start_datetime
-        end_dt = end_datetime
+    # Tarih formatını düzelt
+    if len(start_datetime) == 16:
+        start_datetime = start_datetime + ":00"
+    if len(end_datetime) == 16:
+        end_datetime = end_datetime + ":59"
     
     # Temel filtre
     match_filter = {
