@@ -593,6 +593,68 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
           )}
         </CardContent>
       </Card>
+
+      {/* Fee Edit Modal - Super Admin Only */}
+      <Dialog open={!!editingOrder} onOpenChange={(open) => !open && setEditingOrder(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sipariş Ücretlerini Düzenle</DialogTitle>
+          </DialogHeader>
+          
+          {editingOrder && (
+            <div className="space-y-4 py-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                <div><strong>Restoran:</strong> {editingOrder.restaurant_name}</div>
+                <div><strong>Kurye:</strong> {editingOrder.courier_name || "-"}</div>
+                <div><strong>Sipariş Tutarı:</strong> {editingOrder.total_amount?.toFixed(2)}₺</div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="courier_fee" className="text-blue-600">Kurye Ücreti (₺)</Label>
+                  <Input
+                    id="courier_fee"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editFees.courier_fee}
+                    onChange={(e) => setEditFees(prev => ({ ...prev, courier_fee: e.target.value }))}
+                    className="mt-1"
+                    data-testid="courier-fee-input"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="restaurant_fee" className="text-orange-600">Restoran Ücreti (₺)</Label>
+                  <Input
+                    id="restaurant_fee"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editFees.restaurant_fee}
+                    onChange={(e) => setEditFees(prev => ({ ...prev, restaurant_fee: e.target.value }))}
+                    className="mt-1"
+                    data-testid="restaurant-fee-input"
+                  />
+                </div>
+              </div>
+              
+              <p className="text-xs text-muted-foreground">
+                * Bu değişiklik haftalık hakediş hesaplamalarına yansıyacaktır.
+              </p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingOrder(null)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveFees} disabled={savingFees} data-testid="save-fees-btn">
+              {savingFees ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
