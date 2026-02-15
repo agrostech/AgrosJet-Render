@@ -18,7 +18,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
   
   // Fee edit modal state
   const [editingOrder, setEditingOrder] = useState(null);
-  const [editFees, setEditFees] = useState({ courier_fee: 0, restaurant_fee: 0, restaurant_kdv: 0 });
+  const [editFees, setEditFees] = useState({ courier_fee: 0, restaurant_fee: 0, restaurant_kdv: 0, pos_commission: 0 });
   const [savingFees, setSavingFees] = useState(false);
   
   // Pagination states
