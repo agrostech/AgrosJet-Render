@@ -419,8 +419,8 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
         </CardContent>
       </Card>
 
-      {/* Filter Summary Card - SuperAdmin Only */}
-      {isSuperAdmin && (
+      {/* Filter Summary Card - SuperAdmin Only, after filter button clicked */}
+      {isSuperAdmin && showSummaryCard && (
         <FilterSummaryCard
           orders={filteredOrders}
           restaurantFilter={restaurantFilter}
