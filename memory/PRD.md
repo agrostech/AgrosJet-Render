@@ -76,6 +76,10 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
 2. Geçmiş siparişlerde süperadmin ücret düzenleyebilir
 3. SuperAdmin kontrolü hem role hem is_super_admin field'ını kontrol ediyor
 4. **Restoran KDV Oranı:** Restoran ayarlarına KDV oranı eklendi, sipariş tesliminde otomatik hesaplanıyor
+5. **KDV Görüntüleme Düzeltmesi (15 Şubat 2026):**
+   - Admin tarafından yapılan teslim işleminde `restaurant_kdv` alanının kaydedilmemesi sorunu düzeltildi
+   - Mevcut teslim edilmiş siparişlerin KDV değerleri hesaplanarak güncellendi (11 sipariş)
+   - SuperAdmin giriş mantığı düzeltildi: `role: superadmin` olan kullanıcılar için de `is_super_admin: true` döndürülüyor
 
 ## Test Bilgileri
 - **Multi-company Admin:** username: `testadmin`, password: `123456`
