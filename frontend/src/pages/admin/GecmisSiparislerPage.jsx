@@ -544,21 +544,25 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                             <div className="flex items-center justify-end gap-2">
                               <div className="text-xs space-y-0.5">
                                 {order.courier_id && (
-                                  <div className="font-medium" style={{color: '#dc2626'}}>
-                                    Kurye Hakediş: {order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}
+                                  <div className="font-medium">
+                                    <span className="text-foreground">Kurye Hakediş:</span>{" "}
+                                    <span style={{color: '#dc2626'}}>{order.courier_fee ? `${order.courier_fee.toFixed(2)}₺` : "-"}</span>
                                   </div>
                                 )}
-                                <div className="font-medium" style={{color: '#16a34a'}}>
-                                  Taşıma Bedeli: {order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}
+                                <div className="font-medium">
+                                  <span className="text-foreground">Taşıma Bedeli:</span>{" "}
+                                  <span style={{color: '#16a34a'}}>{order.restaurant_fee ? `${order.restaurant_fee.toFixed(2)}₺` : "-"}</span>
                                 </div>
                                 {order.restaurant_kdv > 0 && (
-                                  <div className="font-medium" style={{color: '#16a34a'}}>
-                                    Taşıma Bedeli KDV: {order.restaurant_kdv.toFixed(2)}₺
+                                  <div className="font-medium">
+                                    <span className="text-foreground">Taşıma Bedeli KDV:</span>{" "}
+                                    <span style={{color: '#16a34a'}}>{order.restaurant_kdv.toFixed(2)}₺</span>
                                   </div>
                                 )}
                                 {order.pos_commission > 0 && (
-                                  <div className="font-medium" style={{color: '#16a34a'}}>
-                                    POS Komisyonu: {order.pos_commission.toFixed(2)}₺
+                                  <div className="font-medium">
+                                    <span className="text-foreground">POS Komisyonu:</span>{" "}
+                                    <span style={{color: '#16a34a'}}>{order.pos_commission.toFixed(2)}₺</span>
                                   </div>
                                 )}
                               </div>
