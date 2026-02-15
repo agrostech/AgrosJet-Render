@@ -225,6 +225,37 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
     }
   };
 
+  // Tahsilat sıfırlama (sadece süper admin, mütabakat yapılmamışsa)
+  const handleResetCollection = async () => {
+    const resettableIds = selectedIds.filter(id => {
+      const courier = couriers.find(c => c.id === id);
+      return courier && courier.has_collection && !courier.is_processed;
+    });
+
+    if (resettableIds.length === 0) {
+      toast.error("Sıfırlanacak tahsilat yok veya mütabakat yapılmış");
+      return;
+    }
+
+    setResetting(true);
+    try {
+      const res = await axios.post(`${API}/daily-mutabakat/${companyId}/reset-collection`, {
+        date: selectedDate,
+        courier_ids: resettableIds,
+        admin_id: adminId,
+        admin_name: adminName
+      });
+
+      toast.success(res.data.message);
+      fetchData();
+      fetchWeeklySummary();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Sıfırlama başarısız");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   // Hesaplamalar
   const selectableCouriers = couriers.filter(c => !c.is_processed && c.order_data.order_count > 0);
   const allSelectableSelected = selectableCouriers.length > 0 && selectableCouriers.every(c => selectedIds.includes(c.id));
@@ -232,6 +263,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   const selectedCouriers = couriers.filter(c => selectedIds.includes(c.id));
   const selectedWithCollection = selectedCouriers.filter(c => c.has_collection && !c.is_processed);
   const selectedProcessed = selectedCouriers.filter(c => c.is_processed);
+  const selectedResettable = selectedCouriers.filter(c => c.has_collection && !c.is_processed);
 
   // Hafta navigasyonu
   const navigateWeek = (direction) => {
