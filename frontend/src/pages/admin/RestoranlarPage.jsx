@@ -47,6 +47,7 @@ export default function RestoranlarPage({ companyId }) {
   const [pricingType, setPricingType] = useState("per_package");
   const [perPackagePrice, setPerPackagePrice] = useState("");
   const [kmRanges, setKmRanges] = useState(DEFAULT_KM_RANGES);
+  const [kdvRate, setKdvRate] = useState("");
   
   // Map refs for location picker
   const mapContainerRef = useRef(null);
