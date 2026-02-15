@@ -518,7 +518,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
         commission_penalty = collection_commission - system_commission
         
         if abs(commission_penalty) > 0.01:
-            description = f"{date_label} tarihli mütabakat - Komisyon farkı ({'fazla' if commission_penalty > 0 else 'eksik'} tahsil)"
+            description = f"{date_label} tarihli mütabakat - Yanlış yüzde farkı ({'fazla' if commission_penalty > 0 else 'eksik'} tahsil)"
             
             await db.transactions.insert_one({
                 "id": str(uuid.uuid4()),
