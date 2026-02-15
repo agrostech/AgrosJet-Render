@@ -19,14 +19,13 @@ async def get_courier_report(
     courier_id: Optional[str] = Query(None)
 ):
     """Kurye bazlı sipariş raporu"""
-    try:
-        # Tarih filtreleme için ISO format'a çevir
-        start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
-    except:
-        # Fallback - direkt string karşılaştırma
-        start_dt = start_datetime
-        end_dt = end_datetime
+    # Tarih formatını düzelt (datetime-local'dan gelen format: 2026-02-15T09:00)
+    # Veritabanındaki format: 2026-02-15T22:19:23.997
+    # Karşılaştırma için :00 ekle
+    if len(start_datetime) == 16:  # 2026-02-15T09:00
+        start_datetime = start_datetime + ":00"
+    if len(end_datetime) == 16:
+        end_datetime = end_datetime + ":59"
     
     # Temel filtre
     match_filter = {
