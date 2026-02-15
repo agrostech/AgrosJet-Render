@@ -636,18 +636,63 @@ async def revert_mutabakat(company_id: str, data: RevertMutabakatRequest):
             "date": data.date
         })
         
-        # Tahsilat kaydını da sil
-        await db.daily_mutabakat_collections.delete_one({
-            "company_id": company_id,
-            "courier_id": courier_id,
-            "date": data.date
-        })
+        # NOT: Tahsilat kaydı silinmez, sadece mütabakat geri alınır
+        # Tahsilat değerleri korunur
         
         reverted_count += 1
     
     return {
         "message": f"{reverted_count} kurye mütabakatı geri alındı",
         "reverted_count": reverted_count
+    }
+
+
+class ResetCollectionRequest(BaseModel):
+    date: str
+    courier_ids: List[str]
+    admin_id: str
+    admin_name: str
+
+
+@router.post("/{company_id}/reset-collection")
+async def reset_collection(company_id: str, data: ResetCollectionRequest):
+    """
+    Tahsilat değerlerini sıfırla (Sadece SuperAdmin)
+    Mütabakat yapılmış kuryeler için sıfırlama yapılamaz
+    """
+    reset_count = 0
+    skipped_processed = 0
+    
+    for courier_id in data.courier_ids:
+        # Mütabakat yapılmış mı kontrol et
+        processed = await db.daily_mutabakat_processed.find_one({
+            "company_id": company_id,
+            "courier_id": courier_id,
+            "date": data.date
+        })
+        
+        if processed:
+            skipped_processed += 1
+            continue
+        
+        # Tahsilat kaydını sil
+        result = await db.daily_mutabakat_collections.delete_one({
+            "company_id": company_id,
+            "courier_id": courier_id,
+            "date": data.date
+        })
+        
+        if result.deleted_count > 0:
+            reset_count += 1
+    
+    message = f"{reset_count} kurye tahsilatı sıfırlandı"
+    if skipped_processed > 0:
+        message += f" ({skipped_processed} kurye mütabakatı yapılmış, önce geri alın)"
+    
+    return {
+        "message": message,
+        "reset_count": reset_count,
+        "skipped_processed": skipped_processed
     }
 
 
