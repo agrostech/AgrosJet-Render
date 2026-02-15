@@ -38,7 +38,12 @@ function OrderTable({ orders, colorClass }) {
               <td className="py-1.5 pr-2 truncate max-w-[100px]" title={order.customer}>{order.customer}</td>
               <td className="py-1.5 pr-2 truncate max-w-[180px]" title={order.address}>{order.address}</td>
               <td className="py-1.5 pr-2 text-center">{formatDistance(order.distance_km)}</td>
-              <td className="py-1.5 text-right font-medium">{formatMoney(order.amount)}</td>
+              <td className="py-1.5 text-right font-medium">
+                {formatMoney(order.amount)}
+                {order.is_split && (
+                  <span className="ml-1 text-[9px] text-amber-500" title="Parçalı ödeme">*</span>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
