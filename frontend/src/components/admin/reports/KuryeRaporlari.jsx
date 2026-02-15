@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Download, Filter } from "lucide-react";
+import { Loader2, Download, Filter, Search } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -12,6 +12,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [company, setCompany] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   
   // Date-time filters
   const [startDateTime, setStartDateTime] = useState("");
@@ -60,6 +61,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
 
   const handleGenerateReport = async () => {
     setLoading(true);
+    setSearchTerm("");
     try {
       const params = new URLSearchParams({
         company_id: companyId,
@@ -76,6 +78,16 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
       setLoading(false);
     }
   };
+
+  // Filtrelenmiş kuryeler
+  const filteredCouriers = useMemo(() => {
+    if (!reportData?.couriers) return [];
+    if (!searchTerm.trim()) return reportData.couriers;
+    
+    return reportData.couriers.filter(courier => 
+      courier.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [reportData?.couriers, searchTerm]);
 
   return (
     <div className="space-y-4">
@@ -143,25 +155,42 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Toplam Sipariş</p>
-                <p className="text-xl font-bold">{reportData.summary?.totalOrders || 0}</p>
+            {/* Summary Stats - Text Format */}
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm mb-6 p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Toplam Sipariş:</span>
+                <span className="font-bold">{reportData.summary?.totalOrders || 0}</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Toplam Hakediş</p>
-                <p className="text-xl font-bold text-red-600">{(reportData.summary?.totalEarnings || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Toplam Hakediş:</span>
+                <span className="font-bold text-red-600">{(reportData.summary?.totalEarnings || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Nakit Tahsilat</p>
-                <p className="text-xl font-bold text-green-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Nakit Tahsilat:</span>
+                <span className="font-bold text-green-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</span>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground">Kredi Kartı</p>
-                <p className="text-xl font-bold text-green-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</p>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Kredi Kartı:</span>
+                <span className="font-bold text-green-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</span>
               </div>
             </div>
+
+            {/* Search */}
+            {reportData.couriers && reportData.couriers.length > 0 && (
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Kurye ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                    data-testid="input-search-courier"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Empty State */}
             {(!reportData.couriers || reportData.couriers.length === 0) && (
@@ -171,7 +200,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
             )}
 
             {/* Courier List */}
-            {reportData.couriers && reportData.couriers.length > 0 && (
+            {filteredCouriers.length > 0 && (
               <div className="border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50">
@@ -184,7 +213,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {reportData.couriers.map((courier, idx) => (
+                    {filteredCouriers.map((courier, idx) => (
                       <tr key={idx} className="border-t">
                         <td className="p-3">{courier.name}</td>
                         <td className="p-3 text-right">{courier.orderCount}</td>
@@ -195,6 +224,13 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* No search results */}
+            {searchTerm && filteredCouriers.length === 0 && reportData.couriers?.length > 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>"{searchTerm}" için sonuç bulunamadı.</p>
               </div>
             )}
           </CardContent>
