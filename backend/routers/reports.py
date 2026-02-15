@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query
 from typing import Optional
 from utils.database import db
 
-router = APIRouter(prefix="/reports", tags=["Reports"])
+router = APIRouter(prefix="/api/reports", tags=["Reports"])
 
 
 @router.get("/courier")
