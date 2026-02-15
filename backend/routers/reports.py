@@ -83,9 +83,12 @@ async def get_courier_report(
     # Kurye listesi
     couriers = []
     for r in results:
+        courier_name = r["courier_name"]
+        if r["_id"] is None:
+            courier_name = "Kurye Atanmamış"
         couriers.append({
             "id": r["_id"],
-            "name": r["courier_name"] or "Bilinmiyor",
+            "name": courier_name or "Bilinmiyor",
             "orderCount": r["orderCount"],
             "earnings": r["earnings"],
             "cash": r["cash"],
