@@ -215,3 +215,117 @@ async def get_restaurant_report(
         },
         "restaurants": restaurants
     }
+
+
+@router.get("/courier/payments")
+async def get_courier_payment_report(
+    courier_id: str = Query(...),
+    start_date: str = Query(...),
+    end_date: str = Query(...)
+):
+    """Kurye ödeme raporu - Nakit ve Kredi Kartı toplamları"""
+    # Tarih aralığı için filtre
+    start_datetime = f"{start_date}T00:00:00"
+    end_datetime = f"{end_date}T23:59:59"
+    
+    # Teslim edilmiş siparişleri al
+    match_filter = {
+        "courier_id": courier_id,
+        "status": "delivered",
+        "created_at": {
+            "$gte": start_datetime,
+            "$lte": end_datetime
+        }
+    }
+    
+    pipeline = [
+        {"$match": match_filter},
+        {
+            "$group": {
+                "_id": None,
+                "cash_total": {
+                    "$sum": {
+                        "$cond": [
+                            {"$eq": ["$payment_method", "cash"]},
+                            "$total_amount",
+                            0
+                        ]
+                    }
+                },
+                "card_total": {
+                    "$sum": {
+                        "$cond": [
+                            {"$eq": ["$payment_method", "card"]},
+                            "$total_amount",
+                            0
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+    
+    results = await db.orders.aggregate(pipeline).to_list(1)
+    
+    if results:
+        return {
+            "cash_total": results[0].get("cash_total", 0),
+            "card_total": results[0].get("card_total", 0)
+        }
+    
+    return {
+        "cash_total": 0,
+        "card_total": 0
+    }
+
+
+@router.get("/courier/earnings")
+async def get_courier_earnings_report(
+    courier_id: str = Query(...),
+    start_date: str = Query(...),
+    end_date: str = Query(...)
+):
+    """Kurye kazanç raporu - Paket sayısı ve hakediş toplamı"""
+    # Tarih aralığı için filtre
+    start_datetime = f"{start_date}T00:00:00"
+    end_datetime = f"{end_date}T23:59:59"
+    
+    # Teslim edilmiş siparişleri say
+    order_count = await db.orders.count_documents({
+        "courier_id": courier_id,
+        "status": "delivered",
+        "created_at": {
+            "$gte": start_datetime,
+            "$lte": end_datetime
+        }
+    })
+    
+    # Hakediş toplamını hesapla (transactions'dan)
+    pipeline = [
+        {
+            "$match": {
+                "courier_id": courier_id,
+                "type": "payment_in",
+                "description": {"$regex": "hakediş", "$options": "i"},
+                "created_at": {
+                    "$gte": start_datetime,
+                    "$lte": end_datetime
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total": {"$sum": "$amount"}
+            }
+        }
+    ]
+    
+    results = await db.transactions.aggregate(pipeline).to_list(1)
+    total_earnings = results[0].get("total", 0) if results else 0
+    
+    return {
+        "package_count": order_count,
+        "total_earnings": total_earnings
+    }
+
