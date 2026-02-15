@@ -800,7 +800,7 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
                         if start_dt <= order_dt < end_dt:
                             has_orders = True
                             break
-                    except:
+                    except Exception:
                         continue
             
             if has_orders:
