@@ -534,7 +534,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           {formatMoney(courier.order_data.card_total)}
                         </td>
                         
-                        {/* Tahsilat Girişleri (Editable) - Genişletilmiş */}
+                        {/* Tahsilat Girişleri (Editable) - Kaydedildikten sonra düzenlenemez */}
                         <td className="p-1 text-center">
                           <Input
                             type="number"
@@ -542,7 +542,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'cash_amount') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'cash_amount', e.target.value)}
-                            disabled={isProcessed}
+                            disabled={courier.has_collection}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
@@ -554,7 +554,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'card_percent_1') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_1', e.target.value)}
-                            disabled={isProcessed}
+                            disabled={courier.has_collection}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
@@ -566,7 +566,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'card_percent_10') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_10', e.target.value)}
-                            disabled={isProcessed}
+                            disabled={courier.has_collection}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
@@ -578,7 +578,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'card_percent_20') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_20', e.target.value)}
-                            disabled={isProcessed}
+                            disabled={courier.has_collection}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
