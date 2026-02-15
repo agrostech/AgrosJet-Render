@@ -85,6 +85,14 @@ Adisyo entegrasyonlu, kapsamlı sipariş yönetim sistemi. Kurye takibi, muhaseb
    - Sadece kredi kartı (card) ödemeli siparişlerde sipariş tutarı üzerinden POS komisyonu hesaplanıyor
    - Geçmiş siparişler tablosunda POS komisyonu gösteriliyor
    - SuperAdmin ücret düzenleme modalına POS komisyonu alanı eklendi
+7. **Ücretlendirme Gösterim Formatı:**
+   - Kurye Hakediş (kırmızı), Taşıma Bedeli/KDV/POS (yeşil) olarak yeniden adlandırıldı
+   - Kurye atanmamış siparişlerde Kurye Hakediş gösterilmiyor
+8. **Filtre Özet Kartı (15 Şubat 2026):**
+   - Yeni component: `FilterSummaryCard.jsx`
+   - Restoran filtrelemesinde: Taşıma Ücreti, KDV, POS, Nakit/Kredi Kartı Toplamları
+   - Kurye filtrelemesinde: Toplam Hakediş, Nakit/Kredi Kartı Toplamları
+   - Sadece SuperAdmin için görünür
 
 ## Test Bilgileri
 - **Multi-company Admin:** username: `testadmin`, password: `123456`
