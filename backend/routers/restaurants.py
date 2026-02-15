@@ -289,7 +289,7 @@ async def get_restaurant_stats(company_id: str):
 
 
 # --- Ücretlendirme ---
-@router.put("/{restaurant_id}/pricing")
+@router.put("/pricing/{restaurant_id}")
 async def update_restaurant_pricing(restaurant_id: str, data: PricingUpdate):
     """Restoran ücretlendirme ayarlarını güncelle"""
     restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
@@ -324,7 +324,7 @@ async def update_restaurant_pricing(restaurant_id: str, data: PricingUpdate):
     return {"message": "Ücretlendirme güncellendi"}
 
 
-@router.get("/{restaurant_id}/pricing")
+@router.get("/pricing/{restaurant_id}")
 async def get_restaurant_pricing(restaurant_id: str):
     """Restoran ücretlendirme ayarlarını getir"""
     restaurant = await db.restaurants.find_one(
