@@ -301,15 +301,12 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
         {/* Eksik Fatura Uyarısı - Minimal */}
         {shortfalls.length > 0 && (
           <div className="mx-3 sm:mx-4 mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-amber-700">
-                  <span className="font-medium">{shortfalls.length} eksik fatura</span>
-                  <span className="text-amber-600"> • Toplam: {formatMoney(shortfalls.reduce((sum, s) => sum + s.shortfall_amount, 0))}</span>
-                </span>
-              </div>
-              <span className="text-xs text-amber-600 flex-shrink-0">Sarı satırlarda "Eksik Yükle"</span>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <span className="text-sm text-amber-700">
+                <span className="font-medium">{shortfalls.length} eksik fatura</span>
+                <span className="text-amber-600"> • Toplam: {formatMoney(shortfalls.reduce((sum, s) => sum + s.shortfall_amount, 0))}</span>
+              </span>
             </div>
           </div>
         )}
