@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Scale, Receipt } from "lucide-react";
+import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Scale, Receipt, BarChart3 } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
@@ -9,6 +9,7 @@ import FaturalarTab from "./muhasebe/FaturalarTab";
 import IsletmeFaturalariTab from "./muhasebe/IsletmeFaturalariTab";
 import HaftalikHakedisTab from "./muhasebe/HaftalikHakedisTab";
 import GunlukMutabakatTab from "./muhasebe/GunlukMutabakatTab";
+import RaporlarTab from "./muhasebe/RaporlarTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
@@ -19,6 +20,7 @@ const TABS = [
   { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
   { key: "gunluk-mutabakat", label: "Günlük Mütabakat", icon: Scale },
   { key: "hareketler", label: "Hareketler", icon: History },
+  { key: "raporlar", label: "Raporlar", icon: BarChart3, superAdminOnly: true },
 ];
 
 const TAB_KEYS = TABS.map(t => t.key);
