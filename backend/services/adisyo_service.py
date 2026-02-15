@@ -424,7 +424,17 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         "created_at": adisyo_order.get("insertDate") or datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "courier_id": None,
-        "courier_name": None
+        "courier_name": None,
+        # Ham Adisyo verisini debug için sakla
+        "adisyo_raw": {
+            "paymentMethodId": adisyo_order.get("paymentMethodId"),
+            "paymentMethodName": adisyo_order.get("paymentMethodName"),
+            "externalAppName": adisyo_order.get("externalAppName"),
+            "statusId": adisyo_order.get("statusId"),
+            "status": adisyo_order.get("status"),
+            "orderNote": adisyo_order.get("orderNote"),
+            "orderExplanation": adisyo_order.get("orderExplanation")
+        }
     }
 
 
