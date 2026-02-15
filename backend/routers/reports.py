@@ -69,7 +69,6 @@ async def get_courier_report(
                 }
             }
         },
-        {"$match": {"_id": {"$ne": None}}},  # Kurye atanmamış siparişleri hariç tut
         {"$sort": {"orderCount": -1}}
     ]
     
