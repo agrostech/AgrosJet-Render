@@ -648,6 +648,23 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                 </div>
               </div>
               
+              <div>
+                <Label htmlFor="restaurant_kdv" className="text-amber-600">KDV Tutarı (₺)</Label>
+                <Input
+                  id="restaurant_kdv"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editFees.restaurant_kdv}
+                  onChange={(e) => setEditFees(prev => ({ ...prev, restaurant_kdv: e.target.value }))}
+                  className="mt-1"
+                  data-testid="restaurant-kdv-input"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Restoran ücretine ek olarak hesaplanan KDV tutarı
+                </p>
+              </div>
+              
               <p className="text-xs text-muted-foreground">
                 * Bu değişiklik haftalık hakediş hesaplamalarına yansıyacaktır.
               </p>
