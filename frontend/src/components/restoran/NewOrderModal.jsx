@@ -64,15 +64,36 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
   // Google Places Autocomplete ref
   const autocompleteRef = useRef(null);
-  const inputRef = useRef(null);
+  const addressInputId = "delivery-address-autocomplete";
 
   // Initialize Google Places Autocomplete when modal opens
   useEffect(() => {
-    if (open && inputRef.current && window.google && window.google.maps) {
-      // Autocomplete zaten oluşturulmuşsa tekrar oluşturma
-      if (autocompleteRef.current) return;
+    if (!open) {
+      // Cleanup when modal closes
+      if (autocompleteRef.current) {
+        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
+      }
+      return;
+    }
 
-      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+    // Wait for DOM to be ready
+    const initAutocomplete = () => {
+      const inputElement = document.getElementById(addressInputId);
+      
+      if (!inputElement || !window.google?.maps?.places) {
+        console.log("Waiting for input or Google Maps...");
+        return false;
+      }
+
+      // Already initialized
+      if (autocompleteRef.current) {
+        return true;
+      }
+
+      console.log("Initializing Google Places Autocomplete...");
+      
+      const autocomplete = new window.google.maps.places.Autocomplete(inputElement, {
         componentRestrictions: { country: "tr" },
         types: ["geocode", "establishment"],
         fields: ["formatted_address", "geometry", "name"],
@@ -80,6 +101,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
+        console.log("Place selected:", place);
         if (place.geometry && place.geometry.location) {
           const lat = place.geometry.location.lat();
           const lng = place.geometry.location.lng();
@@ -89,15 +111,15 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       });
 
       autocompleteRef.current = autocomplete;
-    }
-
-    // Cleanup
-    return () => {
-      if (!open && autocompleteRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
-        autocompleteRef.current = null;
-      }
+      console.log("Autocomplete initialized successfully");
+      return true;
     };
+
+    // Try to initialize immediately, or retry after a delay
+    if (!initAutocomplete()) {
+      const timer = setTimeout(initAutocomplete, 500);
+      return () => clearTimeout(timer);
+    }
   }, [open]);
 
   // Load products when modal opens
