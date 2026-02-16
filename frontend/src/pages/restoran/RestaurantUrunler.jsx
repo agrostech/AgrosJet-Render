@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Link, Download, Trash2, Package, FolderOpen, Check, AlertCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Loader2, Link, Download, Trash2, Package, FolderOpen, Check, AlertCircle,
+  Plus, Pencil, X, ChevronDown, ChevronRight
+} from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import {
@@ -22,13 +26,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -41,6 +51,16 @@ export default function RestaurantUrunler({ restaurantId }) {
   const [savedProducts, setSavedProducts] = useState({ categories: [], products: [] });
   const [confirmDialog, setConfirmDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
+  
+  // CRUD States
+  const [categoryDialog, setCategoryDialog] = useState({ open: false, mode: 'create', data: null });
+  const [productDialog, setProductDialog] = useState({ open: false, mode: 'create', data: null });
+  const [deleteItemDialog, setDeleteItemDialog] = useState({ open: false, type: null, item: null });
+  const [expandedCategories, setExpandedCategories] = useState({});
+
+  // Form States
+  const [categoryForm, setCategoryForm] = useState({ name: '' });
+  const [productForm, setProductForm] = useState({ name: '', description: '', price: '', category_id: '' });
 
   // Kayıtlı ürünleri yükle
   const loadSavedProducts = useCallback(async () => {
@@ -49,6 +69,10 @@ export default function RestaurantUrunler({ restaurantId }) {
     try {
       const res = await axios.get(`${API}/products/restaurant/${restaurantId}`);
       setSavedProducts(res.data);
+      // Tüm kategorileri genişlet
+      const expanded = {};
+      res.data.categories.forEach(c => { expanded[c.id] = true; });
+      setExpandedCategories(expanded);
     } catch (err) {
       console.error("Ürünler yüklenemedi:", err);
     } finally {
@@ -125,13 +149,125 @@ export default function RestaurantUrunler({ restaurantId }) {
     }
   };
 
+  // =====================
+  // CATEGORY CRUD
+  // =====================
+  
+  const openCategoryDialog = (mode, category = null) => {
+    setCategoryForm({ name: category?.name || '' });
+    setCategoryDialog({ open: true, mode, data: category });
+  };
+
+  const handleCategorySubmit = async () => {
+    if (!categoryForm.name.trim()) {
+      toast.error("Kategori adı gerekli");
+      return;
+    }
+
+    try {
+      if (categoryDialog.mode === 'create') {
+        await axios.post(`${API}/products/categories`, {
+          name: categoryForm.name.trim(),
+          restaurant_id: restaurantId
+        });
+        toast.success("Kategori oluşturuldu");
+      } else {
+        await axios.put(`${API}/products/categories/${categoryDialog.data.id}`, {
+          name: categoryForm.name.trim()
+        });
+        toast.success("Kategori güncellendi");
+      }
+      setCategoryDialog({ open: false, mode: 'create', data: null });
+      loadSavedProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    try {
+      await axios.delete(`${API}/products/categories/${deleteItemDialog.item.id}`);
+      toast.success("Kategori silindi");
+      setDeleteItemDialog({ open: false, type: null, item: null });
+      loadSavedProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Silinemedi");
+    }
+  };
+
+  // =====================
+  // PRODUCT CRUD
+  // =====================
+  
+  const openProductDialog = (mode, product = null, categoryId = null) => {
+    setProductForm({
+      name: product?.name || '',
+      description: product?.description || '',
+      price: product?.price?.toString() || '',
+      category_id: product?.category_id || categoryId || ''
+    });
+    setProductDialog({ open: true, mode, data: product });
+  };
+
+  const handleProductSubmit = async () => {
+    if (!productForm.name.trim()) {
+      toast.error("Ürün adı gerekli");
+      return;
+    }
+    if (!productForm.price || isNaN(parseFloat(productForm.price))) {
+      toast.error("Geçerli bir fiyat girin");
+      return;
+    }
+    if (!productForm.category_id) {
+      toast.error("Kategori seçin");
+      return;
+    }
+
+    try {
+      if (productDialog.mode === 'create') {
+        await axios.post(`${API}/products/items`, {
+          name: productForm.name.trim(),
+          description: productForm.description.trim() || null,
+          price: parseFloat(productForm.price),
+          category_id: productForm.category_id,
+          restaurant_id: restaurantId
+        });
+        toast.success("Ürün oluşturuldu");
+      } else {
+        await axios.put(`${API}/products/items/${productDialog.data.id}`, {
+          name: productForm.name.trim(),
+          description: productForm.description.trim() || null,
+          price: parseFloat(productForm.price),
+          category_id: productForm.category_id
+        });
+        toast.success("Ürün güncellendi");
+      }
+      setProductDialog({ open: false, mode: 'create', data: null });
+      loadSavedProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    try {
+      await axios.delete(`${API}/products/items/${deleteItemDialog.item.id}`);
+      toast.success("Ürün silindi");
+      setDeleteItemDialog({ open: false, type: null, item: null });
+      loadSavedProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Silinemedi");
+    }
+  };
+
   // Kategoriye göre ürünleri grupla
-  const groupProductsByCategory = (products) => {
+  const groupProductsByCategory = (products, categories) => {
     const groups = {};
-    products.forEach(p => {
-      const cat = p.category_name || p.category || "Diğer";
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(p);
+    categories.forEach(cat => {
+      groups[cat.id] = {
+        category: cat,
+        products: products.filter(p => p.category_id === cat.id)
+      };
     });
     return groups;
   };
@@ -144,16 +280,35 @@ export default function RestaurantUrunler({ restaurantId }) {
     }).format(price);
   };
 
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
   return (
     <div className="space-y-6" data-testid="restaurant-urunler">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Ürünler</h1>
-        <p className="text-sm text-muted-foreground">Menü ve ürün yönetimi</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Ürünler</h1>
+          <p className="text-sm text-muted-foreground">Menü ve ürün yönetimi</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => openCategoryDialog('create')} data-testid="add-category-btn">
+            <Plus className="w-4 h-4 mr-2" />
+            Kategori Ekle
+          </Button>
+          <Button onClick={() => openProductDialog('create')} data-testid="add-product-btn">
+            <Plus className="w-4 h-4 mr-2" />
+            Ürün Ekle
+          </Button>
+        </div>
       </div>
 
       {/* URL Import Card */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Download className="w-5 h-5" />
             TGO Yemek'ten Menü Çek
@@ -162,9 +317,7 @@ export default function RestaurantUrunler({ restaurantId }) {
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
-              <Label htmlFor="url" className="sr-only">TGO Yemek URL</Label>
               <Input
-                id="url"
                 placeholder="https://tgoyemek.com/restoranlar/..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -212,46 +365,33 @@ export default function RestaurantUrunler({ restaurantId }) {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Accordion type="multiple" className="w-full" defaultValue={scrapedData.categories}>
+            <div className="max-h-96 overflow-y-auto">
               {scrapedData.categories.map((category) => {
                 const categoryProducts = scrapedData.products.filter(p => p.category === category);
                 return (
-                  <AccordionItem key={category} value={category}>
-                    <AccordionTrigger className="text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <FolderOpen className="w-4 h-4" />
-                        {category}
-                        <Badge variant="outline" className="ml-2">{categoryProducts.length}</Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Ürün Adı</TableHead>
-                            <TableHead>Açıklama</TableHead>
-                            <TableHead className="text-right">Fiyat</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {categoryProducts.map((product, idx) => (
-                            <TableRow key={idx}>
-                              <TableCell className="font-medium">{product.name}</TableCell>
-                              <TableCell className="text-muted-foreground text-sm max-w-xs truncate">
-                                {product.description || "-"}
-                              </TableCell>
-                              <TableCell className="text-right font-semibold">
-                                {formatPrice(product.price)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </AccordionContent>
-                  </AccordionItem>
+                  <div key={category} className="mb-4">
+                    <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                      <FolderOpen className="w-4 h-4" />
+                      {category}
+                      <Badge variant="outline">{categoryProducts.length}</Badge>
+                    </h4>
+                    <div className="pl-6 space-y-1">
+                      {categoryProducts.slice(0, 3).map((product, idx) => (
+                        <div key={idx} className="text-sm flex justify-between">
+                          <span>{product.name}</span>
+                          <span className="font-medium">{formatPrice(product.price)}</span>
+                        </div>
+                      ))}
+                      {categoryProducts.length > 3 && (
+                        <div className="text-xs text-muted-foreground">
+                          +{categoryProducts.length - 3} ürün daha...
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
-            </Accordion>
+            </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setScrapedData(null)}>
@@ -292,12 +432,12 @@ export default function RestaurantUrunler({ restaurantId }) {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
-          ) : savedProducts.products.length === 0 ? (
+          ) : savedProducts.products.length === 0 && savedProducts.categories.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Package className="w-12 h-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Henüz ürün yok</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
-                Yukarıdaki alandan TGO Yemek linki ile menünüzü içe aktarabilirsiniz.
+                Yukarıdaki butonlarla manuel ürün ekleyebilir veya TGO Yemek'ten menü çekebilirsiniz.
               </p>
             </div>
           ) : (
@@ -307,27 +447,64 @@ export default function RestaurantUrunler({ restaurantId }) {
                 <Badge variant="secondary">{savedProducts.products_count} Ürün</Badge>
               </div>
               
-              <Accordion type="multiple" className="w-full">
-                {Object.entries(groupProductsByCategory(savedProducts.products)).map(([category, products]) => (
-                  <AccordionItem key={category} value={category}>
-                    <AccordionTrigger className="text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <FolderOpen className="w-4 h-4" />
-                        {category}
-                        <Badge variant="outline" className="ml-2">{products.length}</Badge>
+              {Object.entries(groupProductsByCategory(savedProducts.products, savedProducts.categories)).map(([catId, group]) => (
+                <Collapsible 
+                  key={catId} 
+                  open={expandedCategories[catId]} 
+                  onOpenChange={() => toggleCategory(catId)}
+                >
+                  <div className="border rounded-lg">
+                    <CollapsibleTrigger asChild>
+                      <div className="flex items-center justify-between p-3 hover:bg-slate-50 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          {expandedCategories[catId] ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                          <FolderOpen className="w-4 h-4" />
+                          <span className="font-medium">{group.category.name}</span>
+                          <Badge variant="outline">{group.products.length}</Badge>
+                        </div>
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openProductDialog('create', null, catId)}
+                            title="Bu kategoriye ürün ekle"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openCategoryDialog('edit', group.category)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => setDeleteItemDialog({ open: true, type: 'category', item: group.category })}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
                       <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Ürün Adı</TableHead>
                             <TableHead>Açıklama</TableHead>
                             <TableHead className="text-right">Fiyat</TableHead>
+                            <TableHead className="w-24"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {products.map((product) => (
+                          {group.products.map((product) => (
                             <TableRow key={product.id}>
                               <TableCell className="font-medium">{product.name}</TableCell>
                               <TableCell className="text-muted-foreground text-sm max-w-xs truncate">
@@ -336,14 +513,40 @@ export default function RestaurantUrunler({ restaurantId }) {
                               <TableCell className="text-right font-semibold">
                                 {formatPrice(product.price)}
                               </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1 justify-end">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openProductDialog('edit', product)}
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => setDeleteItemDialog({ open: true, type: 'product', item: product })}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
                             </TableRow>
                           ))}
+                          {group.products.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                                Bu kategoride ürün yok
+                              </TableCell>
+                            </TableRow>
+                          )}
                         </TableBody>
                       </Table>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              ))}
             </div>
           )}
         </CardContent>
@@ -388,7 +591,7 @@ export default function RestaurantUrunler({ restaurantId }) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm Dialog */}
+      {/* Delete All Confirm Dialog */}
       <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
         <DialogContent>
           <DialogHeader>
@@ -406,6 +609,144 @@ export default function RestaurantUrunler({ restaurantId }) {
             </Button>
             <Button variant="destructive" onClick={handleDeleteAll}>
               Evet, Sil
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Dialog */}
+      <Dialog open={categoryDialog.open} onOpenChange={(open) => setCategoryDialog({ ...categoryDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {categoryDialog.mode === 'create' ? 'Yeni Kategori' : 'Kategori Düzenle'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="category-name">Kategori Adı</Label>
+              <Input
+                id="category-name"
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm({ name: e.target.value })}
+                placeholder="Örn: Tatlılar, İçecekler"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCategoryDialog({ open: false, mode: 'create', data: null })}>
+              İptal
+            </Button>
+            <Button onClick={handleCategorySubmit}>
+              {categoryDialog.mode === 'create' ? 'Oluştur' : 'Kaydet'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Dialog */}
+      <Dialog open={productDialog.open} onOpenChange={(open) => setProductDialog({ ...productDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {productDialog.mode === 'create' ? 'Yeni Ürün' : 'Ürün Düzenle'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="product-name">Ürün Adı *</Label>
+              <Input
+                id="product-name"
+                value={productForm.name}
+                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                placeholder="Örn: Waffle"
+              />
+            </div>
+            <div>
+              <Label htmlFor="product-description">Açıklama</Label>
+              <Textarea
+                id="product-description"
+                value={productForm.description}
+                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                placeholder="Örn: Çikolata, muz, çilek ile"
+                rows={2}
+              />
+            </div>
+            <div>
+              <Label htmlFor="product-price">Fiyat (TL) *</Label>
+              <Input
+                id="product-price"
+                type="number"
+                step="0.01"
+                value={productForm.price}
+                onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="product-category">Kategori *</Label>
+              <Select
+                value={productForm.category_id}
+                onValueChange={(value) => setProductForm({ ...productForm, category_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Kategori seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  {savedProducts.categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {savedProducts.categories.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Önce bir kategori oluşturmalısınız
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProductDialog({ open: false, mode: 'create', data: null })}>
+              İptal
+            </Button>
+            <Button onClick={handleProductSubmit} disabled={savedProducts.categories.length === 0}>
+              {productDialog.mode === 'create' ? 'Oluştur' : 'Kaydet'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Item Dialog */}
+      <Dialog open={deleteItemDialog.open} onOpenChange={(open) => setDeleteItemDialog({ ...deleteItemDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="w-5 h-5" />
+              {deleteItemDialog.type === 'category' ? 'Kategori Sil' : 'Ürün Sil'}
+            </DialogTitle>
+            <DialogDescription>
+              {deleteItemDialog.type === 'category' ? (
+                <>
+                  <strong>"{deleteItemDialog.item?.name}"</strong> kategorisi ve içindeki tüm ürünler silinecek. Bu işlem geri alınamaz.
+                </>
+              ) : (
+                <>
+                  <strong>"{deleteItemDialog.item?.name}"</strong> ürünü silinecek. Bu işlem geri alınamaz.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteItemDialog({ open: false, type: null, item: null })}>
+              İptal
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={deleteItemDialog.type === 'category' ? handleDeleteCategory : handleDeleteProduct}
+            >
+              Sil
             </Button>
           </DialogFooter>
         </DialogContent>
