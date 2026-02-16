@@ -93,10 +93,11 @@ export default function RestoranlarPage({ companyId }) {
   const fetchAllCouriers = useCallback(async () => {
     if (!companyId) return;
     try {
-      const res = await axios.get(`${API}/couriers/companies/${companyId}/couriers`);
+      const res = await axios.get(`${API}/companies/${companyId}/couriers`);
       setAllCouriers(res.data);
     } catch (err) {
-      console.error("Kuryeler yüklenemedi");
+      console.error("Kuryeler yüklenemedi:", err);
+      toast.error("Kuryeler yüklenemedi");
     }
   }, [companyId]);
 
