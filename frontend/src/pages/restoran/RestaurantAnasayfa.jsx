@@ -329,14 +329,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                   <table className="w-full text-sm table-fixed">
                     <thead>
                       <tr className="border-b-2 border-primary">
-                        <th className="text-left p-2 font-bold text-xs whitespace-nowrap w-[70px]">Zaman</th>
-                        <th className="text-left p-2 font-bold text-xs w-[100px]">Müşteri</th>
-                        <th className="text-left p-2 font-bold text-xs">Adres</th>
-                        <th className="text-left p-2 font-bold text-xs w-[60px]">Mesafe</th>
-                        <th className="text-left p-2 font-bold text-xs w-[70px]">Ücret</th>
-                        <th className="text-left p-2 font-bold text-xs w-[60px]">Ödeme</th>
-                        <th className="text-left p-2 font-bold text-xs w-[100px]">Durum</th>
-                        <th className="text-left p-2 font-bold text-xs w-[140px]">Kurye</th>
+                        <th className="text-left p-2 font-bold text-xs w-[60px]">Zaman</th>
+                        <th className="text-left p-2 font-bold text-xs w-[120px]">Müşteri</th>
+                        <th className="text-left p-2 font-bold text-xs w-[200px]">Adres</th>
+                        <th className="text-left p-2 font-bold text-xs w-[70px]">Mesafe</th>
+                        <th className="text-left p-2 font-bold text-xs w-[90px]">Ücret</th>
+                        <th className="text-left p-2 font-bold text-xs w-[70px]">Ödeme</th>
+                        <th className="text-left p-2 font-bold text-xs w-[110px]">Durum</th>
+                        <th className="text-left p-2 font-bold text-xs w-[130px]">Kurye</th>
                       </tr>
                     </thead>
                     <tbody>
