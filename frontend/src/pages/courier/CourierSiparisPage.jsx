@@ -779,7 +779,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                   <div className="flex items-center justify-center gap-2 text-green-700">
                     <Banknote className="w-5 h-5" />
                     <span className="text-sm font-semibold">
-                      Bu rotadan {formatCurrency(onTheWayOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0))} kazanacaksınız
+                      Bu {onTheWayOrders.length} siparişten {formatCurrency(onTheWayOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0))} kazanacaksınız
                     </span>
                   </div>
                 </div>
