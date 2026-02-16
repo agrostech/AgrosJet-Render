@@ -330,38 +330,18 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                 <MapPin className="w-4 h-4" />
                 Teslimat Adresi *
               </Label>
-              {GOOGLE_MAPS_API_KEY ? (
-                <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={libraries}>
-                  <Autocomplete
-                    onLoad={onAutocompleteLoad}
-                    onPlaceChanged={onPlaceChanged}
-                    options={{
-                      componentRestrictions: { country: "tr" },
-                      types: ["geocode", "establishment"],
-                    }}
-                  >
-                    <Input
-                      id="delivery-address"
-                      value={deliveryAddress}
-                      onChange={(e) => {
-                        setDeliveryAddress(e.target.value);
-                        setDeliveryLocation(null); // Clear location when manually typing
-                      }}
-                      placeholder="Adres aramak için yazmaya başlayın..."
-                      data-testid="delivery-address-input"
-                    />
-                  </Autocomplete>
-                </LoadScript>
-              ) : (
-                <Textarea
-                  id="delivery-address"
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  placeholder="Mahalle, sokak, bina no, daire..."
-                  rows={2}
-                  data-testid="delivery-address-input"
-                />
-              )}
+              <Input
+                ref={inputRef}
+                id="delivery-address"
+                value={deliveryAddress}
+                onChange={(e) => {
+                  setDeliveryAddress(e.target.value);
+                  setDeliveryLocation(null);
+                }}
+                placeholder="Adres aramak için yazmaya başlayın..."
+                data-testid="delivery-address-input"
+                autoComplete="off"
+              />
               {deliveryLocation && (
                 <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
                   <CheckCircle2 className="w-3 h-3" />
