@@ -326,15 +326,23 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                         <TableHead className="text-right">Tutar</TableHead>
                         <TableHead>Ödeme</TableHead>
                         <TableHead>Kurye</TableHead>
-                        <TableHead>Saat</TableHead>
+                        <TableHead>{activeTab === "scheduled" ? "Teslimat Zamanı" : "Saat"}</TableHead>
                         <TableHead>Durum</TableHead>
-                        {activeTab === "pending" && <TableHead className="text-right">İşlem</TableHead>}
+                        {(activeTab === "pending" || activeTab === "scheduled") && <TableHead className="text-right">İşlem</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredOrders.map((order) => (
                         <TableRow key={order.id}>
-                          <TableCell className="font-mono text-sm">{order.order_number}</TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {order.order_number}
+                            {order.source === "manual" && (
+                              <Badge variant="outline" className="ml-1 text-xs bg-blue-50">
+                                <Phone className="w-3 h-3 mr-1" />
+                                Tel
+                              </Badge>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <div>
                               <p className="font-medium">{order.customer_name || "-"}</p>
@@ -353,7 +361,20 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                           <TableCell>
                             {order.courier_name || <span className="text-muted-foreground">-</span>}
                           </TableCell>
-                          <TableCell className="text-sm">{formatTime(order.created_at)}</TableCell>
+                          <TableCell className="text-sm">
+                            {order.is_scheduled && order.scheduled_time ? (
+                              <div className="flex flex-col">
+                                <span className="font-medium text-indigo-600">
+                                  {new Date(order.scheduled_time).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" })}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(order.scheduled_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              </div>
+                            ) : (
+                              formatTime(order.created_at)
+                            )}
+                          </TableCell>
                           <TableCell>{getStatusBadge(order.status)}</TableCell>
                           {activeTab === "pending" && (
                             <TableCell className="text-right">
@@ -382,6 +403,18 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                   )}
                                 </div>
                               )}
+                            </TableCell>
+                          )}
+                          {activeTab === "scheduled" && (
+                            <TableCell className="text-right">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => onUpdateStatus(order.id, "preparing")}
+                                data-testid={`btn-start-preparing-${order.id}`}
+                              >
+                                Hazırlamaya Başla
+                              </Button>
                             </TableCell>
                           )}
                         </TableRow>
