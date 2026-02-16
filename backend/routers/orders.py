@@ -456,6 +456,46 @@ async def get_orders_by_restaurant(restaurant_id: str, limit: int = 100):
     return orders
 
 
+@router.put("/{order_id}/status")
+async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
+    """Sipariş durumunu güncelle - Restoran paneli için basit endpoint"""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    # Kurye atandıysa restoran değişiklik yapamaz
+    if order.get("courier_id"):
+        raise HTTPException(
+            status_code=403, 
+            detail="Kurye atandıktan sonra sipariş durumu restoran tarafından değiştirilemez"
+        )
+    
+    # Sadece belirli durumlar değiştirilebilir
+    allowed_statuses = ["pending", "preparing", "ready"]
+    if data.status not in allowed_statuses:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Bu durum restoran tarafından seçilemez. İzin verilen durumlar: {', '.join(allowed_statuses)}"
+        )
+    
+    now = datetime.now(timezone.utc)
+    
+    update_fields = {
+        "status": data.status,
+        "updated_at": now.isoformat()
+    }
+    
+    # Hazırlanıyor durumuna geçişte geri sayım
+    if data.status == "preparing" and data.preparation_time:
+        preparation_end_at = now + timedelta(minutes=data.preparation_time)
+        update_fields["preparation_time"] = data.preparation_time
+        update_fields["preparation_end_at"] = preparation_end_at.isoformat()
+    
+    await db.orders.update_one({"id": order_id}, {"$set": update_fields})
+    
+    return {"message": "Sipariş durumu güncellendi", "status": data.status}
+
+
 # --- Mock Data Endpoints (order_id'den önce olmalı) ---
 
 @router.post("/{company_id}/generate-mock")
