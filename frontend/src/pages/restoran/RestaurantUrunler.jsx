@@ -525,20 +525,20 @@ export default function RestaurantUrunler({ restaurantId }) {
                       </div>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <Table>
+                      <Table className="table-fixed w-full">
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Ürün Adı</TableHead>
-                            <TableHead className="text-left">Açıklama</TableHead>
-                            <TableHead className="text-right">Fiyat</TableHead>
-                            <TableHead className="w-24"></TableHead>
+                            <TableHead className="w-[30%]">Ürün Adı</TableHead>
+                            <TableHead className="w-[40%] text-left">Açıklama</TableHead>
+                            <TableHead className="w-[15%] text-right">Fiyat</TableHead>
+                            <TableHead className="w-[15%]"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {group.products.map((product) => (
                             <TableRow key={product.id}>
-                              <TableCell className="font-medium">{product.name}</TableCell>
-                              <TableCell className="text-left text-muted-foreground text-sm max-w-xs truncate">
+                              <TableCell className="font-medium truncate">{product.name}</TableCell>
+                              <TableCell className="text-left text-muted-foreground text-sm truncate">
                                 {product.description || "-"}
                               </TableCell>
                               <TableCell className="text-right font-semibold">
