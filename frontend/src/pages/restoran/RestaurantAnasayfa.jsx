@@ -109,7 +109,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   }, [orders, activeTab]);
 
   // Format time
-  const formatTime = (dateString) => {
+  const formatTimeLocal = (dateString) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleTimeString("tr-TR", { 
       hour: "2-digit", 
@@ -117,30 +117,23 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     });
   };
 
-  // Get status badge
-  const getStatusBadge = (status) => {
-    const statusMap = {
-      pending: { label: "Bekliyor", className: "bg-yellow-100 text-yellow-800" },
-      scheduled: { label: "Programlı", className: "bg-indigo-100 text-indigo-800" },
-      preparing: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800" },
-      ready: { label: "Hazır", className: "bg-green-100 text-green-800" },
-      assigned: { label: "Kurye Atandı", className: "bg-purple-100 text-purple-800" },
-      on_the_way: { label: "Yolda", className: "bg-cyan-100 text-cyan-800" },
-      delivered: { label: "Teslim Edildi", className: "bg-emerald-100 text-emerald-800" },
-      cancelled: { label: "İptal", className: "bg-red-100 text-red-800" }
+  // Get payment badge
+  const getPaymentBadge = (method) => {
+    const styles = {
+      cash: 'bg-emerald-100 text-emerald-700',
+      card: 'bg-blue-100 text-blue-700',
+      online: 'bg-purple-100 text-purple-700'
     };
-    const s = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" };
-    return <Badge className={s.className}>{s.label}</Badge>;
-  };
-
-  // Get payment method label
-  const getPaymentLabel = (method) => {
-    const map = {
-      cash: "Nakit",
-      card: "Kredi Kartı",
-      online: "Online"
+    const labels = {
+      cash: 'Nakit',
+      card: 'Kart',
+      online: 'Online'
     };
-    return map[method] || method;
+    return (
+      <span className={`px-2 py-0.5 text-xs rounded ${styles[method] || 'bg-gray-100 text-gray-700'}`}>
+        {labels[method] || method}
+      </span>
+    );
   };
 
   return (
