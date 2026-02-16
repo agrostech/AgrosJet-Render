@@ -7,8 +7,11 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
 import { 
-  ClipboardList, Truck, CheckCircle, XCircle, Clock, RefreshCw, 
-  Package, Timer, TrendingUp 
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { 
+  ClipboardList, Truck, CheckCircle, XCircle, RefreshCw, 
+  Package, Timer, TrendingUp, Info
 } from "lucide-react";
 
 export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onRefresh }) {
@@ -19,24 +22,27 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     const today = new Date().toISOString().split('T')[0];
     const todayOrders = orders.filter(o => o.created_at?.startsWith(today));
     
-    // Calculate average preparation time (from pending to on_the_way)
+    // Ortalama Hazırlık Süresi: Sipariş sisteme düştükten sonra YOLA ÇIKARILANA kadar
+    // picked_up_at veya on_the_way status zamanı kullanılır
     let totalPrepTime = 0;
     let prepCount = 0;
     
-    // Calculate average delivery time (from on_the_way to delivered)
+    // Ortalama Teslimat Süresi: Sipariş sisteme düştükten sonra TESLİM EDİLENE kadar (TOPLAM)
     let totalDeliveryTime = 0;
     let deliveryCount = 0;
     
     todayOrders.forEach(order => {
-      if (order.courier_assigned_at && order.created_at) {
-        const prepTime = new Date(order.courier_assigned_at) - new Date(order.created_at);
+      // Hazırlık süresi: created_at -> picked_up_at (yola çıkış)
+      if (order.picked_up_at && order.created_at) {
+        const prepTime = new Date(order.picked_up_at) - new Date(order.created_at);
         if (prepTime > 0) {
           totalPrepTime += prepTime;
           prepCount++;
         }
       }
-      if (order.delivered_at && order.courier_assigned_at) {
-        const deliveryTime = new Date(order.delivered_at) - new Date(order.courier_assigned_at);
+      // Teslimat süresi: created_at -> delivered_at (baştan sona toplam süre)
+      if (order.delivered_at && order.created_at) {
+        const deliveryTime = new Date(order.delivered_at) - new Date(order.created_at);
         if (deliveryTime > 0) {
           totalDeliveryTime += deliveryTime;
           deliveryCount++;
