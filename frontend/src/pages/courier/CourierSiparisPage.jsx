@@ -641,6 +641,22 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   };
 
+  // Toplu yola çıkarma - aynı restorandan siparişler için
+  const handleBulkPickup = async (orderIds) => {
+    setActionLoading("bulk");
+    try {
+      await axios.post(`${API}/orders/courier/${courierId}/bulk-pickup`, {
+        order_ids: orderIds
+      });
+      toast.success(`${orderIds.length} sipariş yola çıktı`);
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Sipariş hazır değil - önce onay al
   const handleNotReady = (orderId) => {
     const order = orders.find(o => o.id === orderId);
