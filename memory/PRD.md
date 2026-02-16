@@ -34,7 +34,24 @@ A comprehensive delivery management platform with three main panels:
   - Stats cards: Today's orders, Pending, On The Way, Delivered, Avg Prep Time, Avg Delivery Time
   - Order tabs: Bekleyen, Yolda, Teslim, İptal
   - Order status updates (only before courier assignment)
-- **Placeholder Pages**: Muhasebe, Raporlar, Entegrasyonlar, Ürünler (to be developed)
+- **Placeholder Pages**: Muhasebe, Raporlar, Entegrasyonlar (to be developed)
+
+#### Web Scraping - Ürünler Modülü (NEW - COMPLETED - Feb 2026)
+- **TGO Yemek'ten Menü İçe Aktarma**:
+  - Restaurant panel > Ürünler sayfası
+  - TGO Yemek URL'si girerek otomatik menü çekme
+  - BeautifulSoup ile web scraping (74 ürün, 13 kategori test edildi)
+- **Backend**: `/app/backend/routers/products.py`
+  - `POST /api/products/scrape` - URL'den menü çek
+  - `POST /api/products/save` - Ürünleri kaydet
+  - `GET /api/products/restaurant/{id}` - Kayıtlı ürünleri getir
+  - `DELETE /api/products/restaurant/{id}` - Tüm ürünleri sil
+- **Frontend**: `/app/frontend/src/pages/restoran/RestaurantUrunler.jsx`
+  - URL girişi + "Menü Çek" butonu
+  - Çekilen ürünlerin önizlemesi (accordion ile kategoriler)
+  - "Ürünleri Kaydet" butonu ile veritabanına kayıt
+  - "Tümünü Sil" özelliği
+- **Database Collections**: `products`, `product_categories`
 
 ---
 
@@ -45,6 +62,7 @@ A comprehensive delivery management platform with three main panels:
 - `/app/backend/routers/restaurants.py` - Restaurant management + courier blocking
 - `/app/backend/routers/orders.py` - Order management + restaurant-specific endpoints
 - `/app/backend/routers/couriers.py` - Courier management + payment methods
+- `/app/backend/routers/products.py` - Product scraping and management (NEW)
 
 ### Frontend (React)
 - `/app/frontend/src/pages/LoginPage.jsx` - 3-tab login (Kurye, Yönetici, Restoran)
@@ -59,6 +77,10 @@ A comprehensive delivery management platform with three main panels:
 - `GET /api/orders/restaurant/{id}` - Get orders for restaurant
 - `PUT /api/orders/{id}/status` - Update order status (restaurant panel)
 - `GET/PUT /api/couriers/{id}/payment-methods` - Manage courier payment methods
+- `POST /api/products/scrape` - Scrape menu from TGO Yemek URL
+- `POST /api/products/save` - Save scraped products to database
+- `GET /api/products/restaurant/{id}` - Get saved products
+- `DELETE /api/products/restaurant/{id}` - Delete all products
 
 ---
 
@@ -67,6 +89,7 @@ A comprehensive delivery management platform with three main panels:
 ### P0 (Critical)
 - [x] Courier blocking feature
 - [x] Restaurant panel MVP
+- [x] Web scraping - Ürünler modülü
 - [ ] Adisyo Webhook implementation
 
 ### P1 (High)
@@ -78,7 +101,6 @@ A comprehensive delivery management platform with three main panels:
 
 ### P2 (Medium)
 - [ ] Restaurant panel - Entegrasyonlar module
-- [ ] Restaurant panel - Ürünler module
 - [ ] Refactor order history pages
 - [ ] Dark mode implementation
 
@@ -91,7 +113,7 @@ A comprehensive delivery management platform with three main panels:
 ## Test Credentials
 - **Super Admin**: onurertas / 123456
 - **Courier**: 05527370032 / 123456
-- **Restaurant (Dipsoss Döner)**: dipsoss / 123456
+- **Restaurant (Boston D&D)**: bostonddisparta / password
 
 ---
 
@@ -99,3 +121,5 @@ A comprehensive delivery management platform with three main panels:
 - `restaurant_users` - Restaurant panel user accounts
 - `restaurants.blocked_couriers` - Array of blocked courier IDs
 - `couriers.allowed_payment_methods` - Array of payment methods ["cash", "card", "online"]
+- `products` - Product items with category_id, name, description, price
+- `product_categories` - Product categories for each restaurant
