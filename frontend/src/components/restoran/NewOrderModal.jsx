@@ -50,6 +50,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryLocation, setDeliveryLocation] = useState(null); // {lat, lng}
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [isScheduled, setIsScheduled] = useState(false);
@@ -63,6 +64,9 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
+
+  // Google Places Autocomplete ref
+  const autocompleteRef = useRef(null);
 
   // Load products when modal opens
   useEffect(() => {
