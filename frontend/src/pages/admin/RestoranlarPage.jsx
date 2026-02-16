@@ -1068,6 +1068,86 @@ export default function RestoranlarPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Blocked Couriers Modal */}
+      <Dialog open={showBlockedModal} onOpenChange={(open) => { setShowBlockedModal(open); if (!open) { setSelectedRestaurant(null); setBlockedCouriers([]); setSelectedCourierToBlock(""); } }}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserX className="w-5 h-5 text-red-600" />
+              Engellenen Kuryeler - {selectedRestaurant?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Kurye Ekleme */}
+            <div className="flex gap-2">
+              <select
+                value={selectedCourierToBlock}
+                onChange={(e) => setSelectedCourierToBlock(e.target.value)}
+                className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Kurye seçin...</option>
+                {allCouriers
+                  .filter(c => !blockedCouriers.find(b => b.id === c.id))
+                  .map(courier => (
+                    <option key={courier.id} value={courier.id}>
+                      {courier.name}
+                    </option>
+                  ))
+                }
+              </select>
+              <Button 
+                onClick={handleBlockCourier}
+                disabled={!selectedCourierToBlock}
+                size="sm"
+                className="h-10"
+              >
+                <UserX className="w-4 h-4 mr-1" />
+                Engelle
+              </Button>
+            </div>
+
+            {/* Engellenen Kuryeler Listesi */}
+            <div className="border rounded-lg">
+              {loadingBlocked ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
+                  Yükleniyor...
+                </div>
+              ) : blockedCouriers.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  <UserPlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Engellenen kurye yok</p>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {blockedCouriers.map(courier => (
+                    <div key={courier.id} className="flex items-center justify-between p-3">
+                      <div>
+                        <p className="font-medium text-sm">{courier.name}</p>
+                        <p className="text-xs text-muted-foreground">{courier.phone}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUnblockCourier(courier.id)}
+                        className="h-8 text-green-600 border-green-300 hover:bg-green-50"
+                      >
+                        <UserPlus className="w-4 h-4 mr-1" />
+                        Engeli Kaldır
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Engellenen kuryeler bu restorandan sipariş alamaz.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
