@@ -57,7 +57,13 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     
     return {
       todayTotal: todayOrders.length,
-      pending: orders.filter(o => o.status === "pending" || o.status === "preparing").length,
+      pending: orders.filter(o => 
+        o.status === "pending" || 
+        o.status === "preparing" || 
+        o.status === "ready" || 
+        o.status === "assigned" || 
+        o.status === "confirmed"
+      ).length,
       scheduled: orders.filter(o => o.status === "scheduled").length,
       onTheWay: orders.filter(o => o.status === "on_the_way").length,
       delivered: todayOrders.filter(o => o.status === "delivered").length,
