@@ -74,7 +74,17 @@ export function CourierCards({
             </Button>
           </div>
           
-          {/* Row 2: Merge button for ghost couriers */}
+          {/* Row 2: Payment Methods */}
+          {onPaymentMethods && (
+            <div className="mb-2">
+              <Button size="sm" variant="outline" onClick={() => onPaymentMethods(c)} className="w-full border-2">
+                <CreditCard className="w-4 h-4 mr-1" />
+                <span className="text-xs">Ödeme Yöntemleri</span>
+              </Button>
+            </div>
+          )}
+          
+          {/* Row 3: Merge button for ghost couriers */}
           {c.is_ghost && onMerge && (
             <div className="mb-2">
               <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="w-full border-2">
