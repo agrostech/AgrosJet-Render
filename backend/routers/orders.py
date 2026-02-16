@@ -554,6 +554,21 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
+    # Restoran engel kontrolü
+    restaurant_id = order.get("restaurant_id")
+    if restaurant_id:
+        restaurant = await db.restaurants.find_one(
+            {"id": restaurant_id},
+            {"_id": 0, "blocked_couriers": 1, "name": 1}
+        )
+        if restaurant:
+            blocked_couriers = restaurant.get("blocked_couriers", [])
+            if data.courier_id in blocked_couriers:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"{courier['name']} bu restoran için engellenmiş"
+                )
+    
     now = datetime.now(timezone.utc).isoformat()
     
     # Kurye ücretini hesapla
