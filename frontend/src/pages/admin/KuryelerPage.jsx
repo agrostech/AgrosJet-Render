@@ -327,6 +327,7 @@ export default function KuryelerPage({ companyId }) {
         onActivate={handleActivate}
         onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
         onPricing={openPricingModal}
+        onPaymentMethods={openPaymentMethodsModal}
         onFinance={openFinanceModal}
       />
 
@@ -344,6 +345,7 @@ export default function KuryelerPage({ companyId }) {
         onActivate={handleActivate}
         onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
         onPricing={openPricingModal}
+        onPaymentMethods={openPaymentMethodsModal}
         onFinance={openFinanceModal}
       />
 
