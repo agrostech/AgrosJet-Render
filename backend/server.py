@@ -304,6 +304,7 @@ app.include_router(weekly_hakedis_router)
 app.include_router(daily_mutabakat_router)
 app.include_router(reports_router)
 app.include_router(restaurant_users_router)
+app.include_router(products_router)
 
 # Health check
 @api_router.get("/")
