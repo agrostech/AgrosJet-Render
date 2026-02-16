@@ -542,12 +542,29 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
-    # Kurye bilgisini al
-    courier = await db.couriers.find_one({"id": data.courier_id}, {"_id": 0, "name": 1})
+    # Kurye bilgisini al (ücretlendirme dahil)
+    courier = await db.couriers.find_one(
+        {"id": data.courier_id}, 
+        {"_id": 0, "name": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+    )
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Kurye ücretini hesapla
+    courier_fee = 0.0
+    distance_km = 0.0
+    
+    if order.get("restaurant_location") and order.get("delivery_location"):
+        distance_km = calculate_distance(order["restaurant_location"], order["delivery_location"])
+    
+    courier_fee = calculate_fee_from_pricing(
+        courier.get("pricing_type", "per_package"),
+        courier.get("per_package_price", 0),
+        courier.get("km_ranges", []),
+        distance_km
+    )
     
     # History'ye ekle
     history_entry = {
@@ -565,6 +582,7 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
             "$set": {
                 "courier_id": data.courier_id,
                 "courier_name": courier["name"],
+                "courier_fee": round(courier_fee, 2),
                 "status": "assigned",
                 "assigned_at": now,
                 "updated_at": now
