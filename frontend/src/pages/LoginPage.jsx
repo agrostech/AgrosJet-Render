@@ -90,6 +90,20 @@ export default function LoginPage() {
     }
   };
 
+  const handleRestaurantLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API}/restaurant-users/login`, restaurantData);
+      saveSession(res.data, rememberRestaurant);
+      navigate("/restoran");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Giriş başarısız");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Left - Form */}
