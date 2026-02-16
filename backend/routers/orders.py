@@ -172,6 +172,7 @@ class ManualOrderCreate(BaseModel):
 # --- Sipariş Durumları ---
 ORDER_STATUSES = {
     "pending": {"label": "Beklemede", "color": "gray"},
+    "scheduled": {"label": "Programlı", "color": "indigo"},
     "preparing": {"label": "Hazırlanıyor", "color": "yellow"},
     "ready": {"label": "Hazır", "color": "orange"},
     "assigned": {"label": "Kurye Atandı", "color": "purple"},
