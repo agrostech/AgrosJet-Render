@@ -15,6 +15,20 @@ A comprehensive delivery management platform with three main panels:
 
 ### February 2026 Updates
 
+#### Google Places Autocomplete - Adres Geocoding (P0 - COMPLETED)
+- **API Key Entegrasyonu**: `AIzaSyDGDqxbHb9Oh6jtDXohRlFisr8JqkR7Vz4`
+- **Özellikler**:
+  - Adres yazılırken Google Places önerileri
+  - Öneri seçildiğinde koordinatlar (lat/lng) otomatik alınıyor
+  - "Konum alındı" yeşil göstergesi
+  - "Haritada Gör" linki (Google Maps'te açılıyor)
+- **Teknik Detaylar**:
+  - Google Maps script `index.html`'e eklendi
+  - Native HTML input kullanıldı (shadcn Input ref sorunu çözüldü)
+  - Input ID: `delivery-address-autocomplete`
+  - CSS z-index: 99999 (modal üstünde görünmesi için)
+- **Test Durumu**: %100 başarılı (iteration_29.json)
+
 #### Manuel Telefon Siparişi Özelliği (P0 - COMPLETED)
 - **Yeni Sipariş Butonu**: Restoran Anasayfasında sağ üstte görünür
 - **NewOrderModal Component**: Ayrı dosyada oluşturuldu (`/app/frontend/src/components/restoran/NewOrderModal.jsx`)
@@ -26,6 +40,7 @@ A comprehensive delivery management platform with three main panels:
   - Sipariş notu
   - **Programlı Teslimat**: Checkbox ile aktifleşir, tarih ve saat seçimi
   - 30 dakikalık hazırlık tamponu otomatik uygulanır
+  - **Google Places Autocomplete** ile adres ve koordinat yakalama
 - **Backend Endpoint**: `POST /api/orders/manual`
 - **Sipariş Durumları**:
   - Normal sipariş: `preparing` durumunda başlar
