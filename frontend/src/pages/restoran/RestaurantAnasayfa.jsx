@@ -351,11 +351,6 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                           >
                             <td className="p-2 text-xs">
                               <div>{formatTimeLocal(order.created_at)}</div>
-                              {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
-                                <span className={`text-[10px] px-1 py-0.5 rounded inline-block mt-0.5 ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
-                                  {orderAge.text}
-                                </span>
-                              )}
                               {order.source === "manual" && (
                                 <span className="text-[10px] text-blue-600 flex items-center gap-0.5 mt-0.5">
                                   <Phone className="w-2.5 h-2.5" />Tel
