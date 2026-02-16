@@ -846,12 +846,21 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                   const restaurant = restaurants.find(r => r.id === order.restaurant_id);
                                   const blockedCourierIds = new Set(restaurant?.blocked_couriers || []);
                                   
-                                  // Filter out blocked couriers
-                                  const filterBlocked = (courierList) => courierList.filter(c => !blockedCourierIds.has(c.id));
+                                  // Get order payment method
+                                  const orderPaymentMethod = order.payment_method || "cash";
                                   
-                                  const sortedActive = filterBlocked(sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders));
-                                  const sortedOnBreak = filterBlocked(sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders));
-                                  const sortedOffline = filterBlocked(couriersByStatus.offline || []);
+                                  // Filter out blocked couriers and couriers who don't accept this payment method
+                                  const filterCouriers = (courierList) => courierList.filter(c => {
+                                    // Check if blocked
+                                    if (blockedCourierIds.has(c.id)) return false;
+                                    // Check if courier accepts this payment method
+                                    const allowedMethods = c.allowed_payment_methods || ["cash", "card", "online"];
+                                    return allowedMethods.includes(orderPaymentMethod);
+                                  });
+                                  
+                                  const sortedActive = filterCouriers(sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders));
+                                  const sortedOnBreak = filterCouriers(sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders));
+                                  const sortedOffline = filterCouriers(couriersByStatus.offline || []);
                                   
                                   const renderCourierItem = (c, showDistance = true) => (
                                     <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white pr-10">
