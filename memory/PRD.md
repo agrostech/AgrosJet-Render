@@ -41,16 +41,27 @@ A comprehensive delivery management platform with three main panels:
   - Restaurant panel > Ürünler sayfası
   - TGO Yemek URL'si girerek otomatik menü çekme
   - BeautifulSoup ile web scraping (74 ürün, 13 kategori test edildi)
+- **Tam CRUD İşlemleri**:
+  - **Kategoriler:** Ekle, Düzenle, Sil (içindeki ürünlerle birlikte)
+  - **Ürünler:** Ekle, Düzenle, Sil
+  - Her satırda kalem (düzenle) ve çöp kutusu (sil) ikonları
+  - Kategori yanında + butonu ile o kategoriye hızlı ürün ekleme
 - **Backend**: `/app/backend/routers/products.py`
   - `POST /api/products/scrape` - URL'den menü çek
   - `POST /api/products/save` - Ürünleri kaydet
   - `GET /api/products/restaurant/{id}` - Kayıtlı ürünleri getir
   - `DELETE /api/products/restaurant/{id}` - Tüm ürünleri sil
+  - `POST /api/products/categories` - Yeni kategori oluştur
+  - `PUT /api/products/categories/{id}` - Kategori güncelle
+  - `DELETE /api/products/categories/{id}` - Kategori sil
+  - `POST /api/products/items` - Yeni ürün oluştur
+  - `PUT /api/products/items/{id}` - Ürün güncelle
+  - `DELETE /api/products/items/{id}` - Ürün sil
 - **Frontend**: `/app/frontend/src/pages/restoran/RestaurantUrunler.jsx`
   - URL girişi + "Menü Çek" butonu
-  - Çekilen ürünlerin önizlemesi (accordion ile kategoriler)
-  - "Ürünleri Kaydet" butonu ile veritabanına kayıt
-  - "Tümünü Sil" özelliği
+  - "Kategori Ekle" ve "Ürün Ekle" butonları
+  - Düzenleme ve silme modalleri
+  - Accordion ile kategorilere göre gruplandırılmış ürün listesi
 - **Database Collections**: `products`, `product_categories`
 
 ---
