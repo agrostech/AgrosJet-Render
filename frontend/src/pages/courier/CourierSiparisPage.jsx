@@ -808,6 +808,50 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           {/* Atanmış Siparişler Tab */}
           {activeTab === "assigned" && (
             <div className="space-y-4">
+              {/* Toplu Yola Çıkar Butonu - Aynı restorandan onaylanmış siparişler varsa */}
+              {(() => {
+                const confirmedOrders = assignedOrders.filter(o => o.status === "confirmed");
+                if (confirmedOrders.length >= 2) {
+                  const restaurantIds = [...new Set(confirmedOrders.map(o => o.restaurant_id))];
+                  if (restaurantIds.length === 1) {
+                    const restaurantName = confirmedOrders[0].restaurant_name;
+                    const totalFee = confirmedOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0);
+                    return (
+                      <div className="bg-orange-50 border border-orange-300 rounded-xl p-4">
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center gap-2 text-orange-700">
+                            <Store className="w-5 h-5" />
+                            <span className="font-semibold text-sm">
+                              {restaurantName} - {confirmedOrders.length} sipariş hazır
+                            </span>
+                          </div>
+                          {totalFee > 0 && (
+                            <div className="flex items-center gap-1.5 text-green-700 text-sm">
+                              <Banknote className="w-4 h-4" />
+                              <span>Bu {confirmedOrders.length} siparişten {formatCurrency(totalFee)} kazanacaksınız</span>
+                            </div>
+                          )}
+                          <Button
+                            onClick={() => handleBulkPickup(confirmedOrders.map(o => o.id))}
+                            disabled={actionLoading === "bulk"}
+                            className="w-full bg-orange-600 hover:bg-orange-700"
+                            data-testid="bulk-pickup-btn"
+                          >
+                            {actionLoading === "bulk" ? (
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <Truck className="w-4 h-4 mr-2" />
+                            )}
+                            Tümünü Yola Çıkar ({confirmedOrders.length} sipariş)
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
+
               {assignedOrders.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
