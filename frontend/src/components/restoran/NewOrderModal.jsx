@@ -246,7 +246,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       return;
     }
     if (isScheduled && (!scheduledDate || !scheduledTime)) {
-      toast.error("Programlı teslimat için tarih ve saat seçmelisiniz");
+      toast.error("İleri tarihli teslimat için tarih ve saat seçmelisiniz");
       return;
     }
 
