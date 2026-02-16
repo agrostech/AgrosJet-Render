@@ -104,6 +104,7 @@ A comprehensive delivery management platform with three main panels:
 - [x] Restaurant panel MVP
 - [x] Web scraping - Ürünler modülü
 - [x] Manuel telefon siparişi oluşturma
+- [x] Google Places Autocomplete - Adres geocoding
 
 ### P1 (High)
 - [ ] Adisyo Webhook implementation
