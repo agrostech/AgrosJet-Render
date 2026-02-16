@@ -1263,8 +1263,7 @@ async def create_manual_order(data: ManualOrderCreate):
             scheduled_dt = datetime.fromisoformat(data.scheduled_time.replace('Z', '+00:00'))
             # 30 dakikalık tampon ekle (kullanıcı istediği için)
             buffer_minutes = 30
-            # Hazırlık başlangıç zamanı = scheduled_time - prep_time - buffer
-            prep_start = scheduled_dt - timedelta(minutes=prep_time + buffer_minutes)
+            # Hazırlık bitiş zamanı = scheduled_time - buffer (kurye teslim zamanı)
             preparation_end_at = scheduled_dt - timedelta(minutes=buffer_minutes)
             
             initial_status = "scheduled"
