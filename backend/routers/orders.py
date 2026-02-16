@@ -1281,7 +1281,7 @@ async def create_manual_order(data: ManualOrderCreate):
     # Restoran bilgisini al
     restaurant = await db.restaurants.find_one(
         {"id": data.restaurant_id},
-        {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1, "company_id": 1, "preparation_time": 1}
+        {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1, "company_id": 1, "preparation_time": 1, "product_preparation_times": 1}
     )
     
     if not restaurant:
