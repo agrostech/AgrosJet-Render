@@ -1306,8 +1306,8 @@ async def create_manual_order(data: ManualOrderCreate):
         for item in data.items
     ]
     
-    # Hazırlık süresini belirle
-    prep_time = restaurant.get("preparation_time", 15)
+    # Hazırlık süresini hesapla (standart + ürün bazlı ekstra)
+    prep_time = calculate_preparation_time(restaurant, items)
     
     # Programlı sipariş kontrolü
     if data.is_scheduled and data.scheduled_time:
