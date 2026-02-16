@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
 
-export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onRefresh }) {
+export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onRefresh, restaurantId }) {
   const [activeTab, setActiveTab] = useState("pending");
+  const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
 
   // Calculate stats
   const stats = useMemo(() => {
