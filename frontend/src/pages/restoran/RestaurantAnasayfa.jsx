@@ -359,13 +359,13 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             </td>
                             <td className="p-2 max-w-[120px]">
                               <div>
-                                <span className="text-sm font-medium">{order.customer_name || "-"}</span>
+                                <span className="text-sm">{order.customer_name || "-"}</span>
                                 {order.customer_phone && (
                                   <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
                                 )}
                               </div>
                             </td>
-                            <td className="p-2 text-xs max-w-[280px] align-top" title={order.delivery_address}>
+                            <td className="p-2 text-xs align-top" title={order.delivery_address}>
                               <div className="line-clamp-3 leading-relaxed">{order.delivery_address || "-"}</div>
                             </td>
                             <td className="p-2 text-xs whitespace-nowrap">{getOrderDistance(order) || "-"}</td>
@@ -374,7 +374,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             <td className="p-2">
                               {/* Kurye atandıysa veya teslim/iptal ise dropdown pasif */}
                               {order.courier_id || order.status === 'delivered' || order.status === 'cancelled' ? (
-                                <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-1.5 py-1 rounded border border-slate-300/50 inline-block text-center opacity-70 whitespace-nowrap`}>
+                                <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center opacity-70 whitespace-nowrap`}>
                                   {statusInfo.label}
                                 </span>
                               ) : (
