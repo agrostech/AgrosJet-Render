@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
-  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Plug, Wallet, UserX, UserPlus
+  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Plug, Wallet, UserX, UserPlus, Users
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -42,6 +42,7 @@ export default function RestoranlarPage({ companyId }) {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showIntegrationModal, setShowIntegrationModal] = useState(false);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
+  const [showUsersModal, setShowUsersModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   
   // Blocked couriers state
@@ -49,6 +50,11 @@ export default function RestoranlarPage({ companyId }) {
   const [allCouriers, setAllCouriers] = useState([]);
   const [loadingBlocked, setLoadingBlocked] = useState(false);
   const [selectedCourierToBlock, setSelectedCourierToBlock] = useState("");
+  
+  // Restaurant users state
+  const [restaurantUsers, setRestaurantUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [newUserData, setNewUserData] = useState({ username: "", password: "", name: "" });
   
   // Pricing state
   const [pricingType, setPricingType] = useState("per_package");
