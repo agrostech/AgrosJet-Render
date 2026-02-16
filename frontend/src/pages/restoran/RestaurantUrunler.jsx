@@ -529,7 +529,7 @@ export default function RestaurantUrunler({ restaurantId }) {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Ürün Adı</TableHead>
-                            <TableHead>Açıklama</TableHead>
+                            <TableHead className="text-left">Açıklama</TableHead>
                             <TableHead className="text-right">Fiyat</TableHead>
                             <TableHead className="w-24"></TableHead>
                           </TableRow>
@@ -538,7 +538,7 @@ export default function RestaurantUrunler({ restaurantId }) {
                           {group.products.map((product) => (
                             <TableRow key={product.id}>
                               <TableCell className="font-medium">{product.name}</TableCell>
-                              <TableCell className="text-muted-foreground text-sm max-w-xs truncate">
+                              <TableCell className="text-left text-muted-foreground text-sm max-w-xs truncate">
                                 {product.description || "-"}
                               </TableCell>
                               <TableCell className="text-right font-semibold">
