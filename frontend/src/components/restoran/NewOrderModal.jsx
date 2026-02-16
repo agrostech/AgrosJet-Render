@@ -153,6 +153,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setCustomerName("");
     setCustomerPhone("");
     setDeliveryAddress("");
+    setAddressDetails("");
     setDeliveryLocation(null);
     setNotes("");
     setPaymentMethod("cash");
