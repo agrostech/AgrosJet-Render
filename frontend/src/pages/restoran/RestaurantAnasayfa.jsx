@@ -71,7 +71,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const filteredOrders = useMemo(() => {
     switch (activeTab) {
       case "pending":
-        return orders.filter(o => o.status === "pending" || o.status === "preparing");
+        // Bekleyen sekmesi: pending, preparing, ready, assigned, confirmed
+        return orders.filter(o => 
+          o.status === "pending" || 
+          o.status === "preparing" || 
+          o.status === "ready" || 
+          o.status === "assigned" || 
+          o.status === "confirmed"
+        );
       case "scheduled":
         return orders.filter(o => o.status === "scheduled");
       case "on_the_way":
