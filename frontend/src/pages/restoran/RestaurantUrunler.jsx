@@ -307,48 +307,78 @@ export default function RestaurantUrunler({ restaurantId }) {
         </div>
       </div>
 
-      {/* URL Import Card */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Download className="w-5 h-5" />
-            TGO Yemek'ten Menü Çek
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <Input
-                placeholder="https://tgoyemek.com/restoranlar/..."
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                disabled={scraping}
-                data-testid="scrape-url-input"
-              />
-            </div>
-            <Button 
-              onClick={handleScrape} 
-              disabled={scraping || !url.trim()}
-              data-testid="scrape-button"
-            >
-              {scraping ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Çekiliyor...
-                </>
-              ) : (
-                <>
-                  <Link className="w-4 h-4 mr-2" />
+      {/* URL Import Card - Collapsible */}
+      <Collapsible open={menuImportOpen} onOpenChange={setMenuImportOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-3 cursor-pointer hover:bg-slate-50">
+              <CardTitle className="flex items-center justify-between text-lg">
+                <div className="flex items-center gap-2">
+                  <Download className="w-5 h-5" />
                   Menü Çek
-                </>
-              )}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            TGO Yemek restoran sayfası URL'sini girin. Örnek: https://tgoyemek.com/restoranlar/125594
-          </p>
-        </CardContent>
-      </Card>
+                </div>
+                {menuImportOpen ? (
+                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                )}
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-0">
+              {/* TGO Yemek Alt Kartı */}
+              <Card className="border-dashed">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium">TGO Yemek</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                      <Input
+                        placeholder="https://tgoyemek.com/restoranlar/..."
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        disabled={scraping}
+                        data-testid="scrape-url-input"
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleScrape} 
+                      disabled={scraping || !url.trim()}
+                      data-testid="scrape-button"
+                    >
+                      {scraping ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Çekiliyor...
+                        </>
+                      ) : (
+                        <>
+                          <Link className="w-4 h-4 mr-2" />
+                          Menü Çek
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    TGO Yemek restoran sayfası URL'sini girin. Örnek: https://tgoyemek.com/restoranlar/XXXXXX
+                  </p>
+                </CardContent>
+              </Card>
+              
+              {/* İleride eklenecek platformlar için yer tutucu */}
+              {/* 
+              <Card className="border-dashed opacity-50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium">Yemeksepeti (Yakında)</CardTitle>
+                </CardHeader>
+              </Card>
+              */}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Scraped Results */}
       {scrapedData && (
