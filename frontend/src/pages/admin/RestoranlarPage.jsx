@@ -112,7 +112,7 @@ export default function RestoranlarPage({ companyId }) {
     setShowBlockedModal(true);
     setLoadingBlocked(true);
     try {
-      const res = await axios.get(`${API}/restaurants/${restaurant.id}/blocked-couriers`);
+      const res = await axios.get(`${API}/restaurants/blocked/${restaurant.id}`);
       setBlockedCouriers(res.data);
     } catch (err) {
       // Restoran bulunamadı demek DB'de sorun var, ama modal açılsın
@@ -127,12 +127,12 @@ export default function RestoranlarPage({ companyId }) {
   const handleBlockCourier = async () => {
     if (!selectedCourierToBlock || !selectedRestaurant) return;
     try {
-      await axios.post(`${API}/restaurants/${selectedRestaurant.id}/block-courier`, {
+      await axios.post(`${API}/restaurants/block/${selectedRestaurant.id}`, {
         courier_id: selectedCourierToBlock
       });
       toast.success("Kurye engellendi");
       // Refresh blocked list
-      const res = await axios.get(`${API}/restaurants/${selectedRestaurant.id}/blocked-couriers`);
+      const res = await axios.get(`${API}/restaurants/blocked/${selectedRestaurant.id}`);
       setBlockedCouriers(res.data);
       setSelectedCourierToBlock("");
     } catch (err) {
@@ -144,12 +144,12 @@ export default function RestoranlarPage({ companyId }) {
   const handleUnblockCourier = async (courierId) => {
     if (!selectedRestaurant) return;
     try {
-      await axios.post(`${API}/restaurants/${selectedRestaurant.id}/unblock-courier`, {
+      await axios.post(`${API}/restaurants/unblock/${selectedRestaurant.id}`, {
         courier_id: courierId
       });
       toast.success("Engel kaldırıldı");
       // Refresh blocked list
-      const res = await axios.get(`${API}/restaurants/${selectedRestaurant.id}/blocked-couriers`);
+      const res = await axios.get(`${API}/restaurants/blocked/${selectedRestaurant.id}`);
       setBlockedCouriers(res.data);
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
