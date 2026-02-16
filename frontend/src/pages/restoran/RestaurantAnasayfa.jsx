@@ -333,110 +333,108 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[100px]">Sipariş No</TableHead>
-                        <TableHead>Müşteri</TableHead>
-                        <TableHead>Adres</TableHead>
-                        <TableHead className="text-right">Tutar</TableHead>
-                        <TableHead>Ödeme</TableHead>
-                        <TableHead>Kurye</TableHead>
-                        <TableHead>{activeTab === "scheduled" ? "Teslimat Zamanı" : "Saat"}</TableHead>
-                        <TableHead>Durum</TableHead>
-                        {(activeTab === "pending" || activeTab === "scheduled") && <TableHead className="text-right">İşlem</TableHead>}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-mono text-sm">
-                            {order.order_number}
-                            {order.source === "manual" && (
-                              <Badge variant="outline" className="ml-1 text-xs bg-blue-50">
-                                <Phone className="w-3 h-3 mr-1" />
-                                Tel
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{order.customer_name || "-"}</p>
-                              <p className="text-xs text-muted-foreground">{order.customer_phone || "-"}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="max-w-[200px] truncate" title={order.delivery_address}>
-                            {order.delivery_address || "-"}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {order.total_amount?.toFixed(2)} ₺
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{getPaymentLabel(order.payment_method)}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            {order.courier_name || <span className="text-muted-foreground">-</span>}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {order.is_scheduled && order.scheduled_time ? (
-                              <div className="flex flex-col">
-                                <span className="font-medium text-indigo-600">
-                                  {new Date(order.scheduled_time).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" })}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {new Date(order.scheduled_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
-                                </span>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-primary">
+                        <th className="text-left p-2 font-bold text-xs whitespace-nowrap">Zaman</th>
+                        <th className="text-left p-2 font-bold text-xs">Müşteri</th>
+                        <th className="text-left p-2 font-bold text-xs">Adres</th>
+                        <th className="text-left p-2 font-bold text-xs">Mesafe</th>
+                        <th className="text-left p-2 font-bold text-xs">Ücret</th>
+                        <th className="text-left p-2 font-bold text-xs">Ödeme</th>
+                        <th className="text-left p-2 font-bold text-xs">Durum</th>
+                        <th className="text-left p-2 font-bold text-xs">Kurye</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredOrders.map((order) => {
+                        const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+                        const orderAge = getOrderAge(order);
+                        
+                        return (
+                          <tr 
+                            key={order.id}
+                            className="border-b hover:bg-slate-50 transition-colors align-top"
+                          >
+                            <td className="p-2 text-xs whitespace-nowrap">
+                              <div className="flex items-center gap-1">
+                                <span>{formatTimeLocal(order.created_at)}</span>
+                                {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
+                                  <span className={`text-[10px] px-1 py-0.5 rounded ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
+                                    {orderAge.text}
+                                  </span>
+                                )}
                               </div>
-                            ) : (
-                              formatTime(order.created_at)
-                            )}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(order.status)}</TableCell>
-                          {activeTab === "pending" && (
-                            <TableCell className="text-right">
-                              {!order.courier_id && (
-                                <div className="flex gap-1 justify-end">
-                                  {order.status === "pending" && (
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      onClick={() => onUpdateStatus(order.id, "preparing")}
-                                      data-testid={`btn-preparing-${order.id}`}
-                                    >
-                                      Hazırlanıyor
-                                    </Button>
-                                  )}
-                                  {order.status === "preparing" && (
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      className="bg-green-50 text-green-700 border-green-200"
-                                      onClick={() => onUpdateStatus(order.id, "ready")}
-                                      data-testid={`btn-ready-${order.id}`}
-                                    >
-                                      Hazır
-                                    </Button>
-                                  )}
-                                </div>
+                              {order.source === "manual" && (
+                                <Badge variant="outline" className="mt-1 text-[10px] bg-blue-50 px-1 py-0">
+                                  <Phone className="w-2.5 h-2.5 mr-0.5" />
+                                  Tel
+                                </Badge>
                               )}
-                            </TableCell>
-                          )}
-                          {activeTab === "scheduled" && (
-                            <TableCell className="text-right">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => onUpdateStatus(order.id, "preparing")}
-                                data-testid={`btn-start-preparing-${order.id}`}
+                            </td>
+                            <td className="p-2 max-w-[120px]">
+                              <div>
+                                <span className="text-sm font-medium">{order.customer_name || "-"}</span>
+                                {order.customer_phone && (
+                                  <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-2 text-xs max-w-[280px] align-top" title={order.delivery_address}>
+                              <div className="line-clamp-3 leading-relaxed">{order.delivery_address || "-"}</div>
+                            </td>
+                            <td className="p-2 text-xs whitespace-nowrap">{getOrderDistance(order) || "-"}</td>
+                            <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
+                            <td className="p-2">{getPaymentBadge(order.payment_method)}</td>
+                            <td className="p-2">
+                              <Select 
+                                value={order.status} 
+                                onValueChange={(newValue) => {
+                                  if (newValue.startsWith('preparing_')) {
+                                    onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
+                                  } else {
+                                    onUpdateStatus(order.id, newValue);
+                                  }
+                                }}
                               >
-                                Hazırlamaya Başla
-                              </Button>
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                                <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
+                                  <SelectValue>
+                                    {order.status === 'preparing' && order.preparation_end_at
+                                      ? getCountdown(order.preparation_end_at)?.text
+                                      : statusInfo.label}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                                  {PREPARATION_TIMES.map(time => (
+                                    <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
+                                      {time.label}
+                                    </SelectItem>
+                                  ))}
+                                  <div className="border-t my-1" />
+                                  {Object.entries(ORDER_STATUSES)
+                                    .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                                    .map(([key, value]) => (
+                                    <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="p-2">
+                              {order.courier_name ? (
+                                <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded font-medium flex items-center gap-1 w-fit">
+                                  <Bike className="w-3 h-3" />
+                                  {order.courier_name}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </TabsContent>
