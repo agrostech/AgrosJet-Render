@@ -811,21 +811,6 @@ export default function RestoranlarPage({ companyId }) {
             </div>
             
             <div>
-              <Label>Hazırlık Süresi (Dakika)</Label>
-              <Input
-                type="number"
-                min="1"
-                max="120"
-                value={formData.preparation_time}
-                onChange={(e) => setFormData({...formData, preparation_time: e.target.value})}
-                placeholder="15"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Sipariş geldiğinde bu süre kadar "Hazırlanıyor" durumunda kalır
-              </p>
-            </div>
-            
-            <div>
               <Label className="flex items-center gap-2 mb-2">
                 <MapPin className="w-4 h-4" />
                 Konum (Haritadan İşaretle)
