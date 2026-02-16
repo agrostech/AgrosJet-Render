@@ -638,10 +638,10 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
-    # Kurye bilgisini al (ücretlendirme dahil)
+    # Kurye bilgisini al (ücretlendirme ve telefon dahil)
     courier = await db.couriers.find_one(
         {"id": data.courier_id}, 
-        {"_id": 0, "name": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+        {"_id": 0, "name": 1, "phone": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
     )
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
@@ -693,6 +693,7 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
             "$set": {
                 "courier_id": data.courier_id,
                 "courier_name": courier["name"],
+                "courier_phone": courier.get("phone"),
                 "courier_fee": round(courier_fee, 2),
                 "status": "assigned",
                 "assigned_at": now,
