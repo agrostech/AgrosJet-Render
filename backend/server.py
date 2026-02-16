@@ -266,6 +266,7 @@ from routers.hakedis import router as hakedis_router
 from routers.weekly_hakedis import router as weekly_hakedis_router
 from routers.daily_mutabakat import router as daily_mutabakat_router
 from routers.reports import router as reports_router
+from routers.restaurant_users import router as restaurant_users_router
 
 app.include_router(auth_router)
 app.include_router(companies_router)
