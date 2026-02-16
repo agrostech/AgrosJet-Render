@@ -714,35 +714,43 @@ export default function RestoranlarPage({ companyId }) {
                 </p>
               </div>
               
-              {/* Row 1: Düzenle, Ücretlendirme */}
+              {/* Row 1: Düzenle, Hazırlık */}
               <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2">
                   Düzenle
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => openPreparationModal(restaurant)} className="flex-1 border-2" title="Hazırlık Süreleri">
+                  <Clock className="w-4 h-4 mr-1" />
+                  <span className="text-xs">Hazırlık</span>
+                </Button>
+              </div>
+              
+              {/* Row 2: Ücretlendirme, Kullanıcılar */}
+              <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="flex-1 border-2" title="Ücretlendirme">
                   <span className="font-bold">₺</span>
                   <span className="text-xs ml-1">Ücretlendirme</span>
                 </Button>
-              </div>
-              
-              {/* Row 2: Kullanıcılar, Engellenenler */}
-              <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => openUsersModal(restaurant)} className="flex-1 border-2">
                   <Users className="w-4 h-4 mr-1" />
                   <span className="text-xs">Kullanıcılar</span>
                 </Button>
+              </div>
+              
+              {/* Row 3: Engellenenler, Entegrasyonlar */}
+              <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => openBlockedModal(restaurant)} className="flex-1 border-2">
                   <UserX className="w-4 h-4 mr-1" />
                   <span className="text-xs">Engellenenler</span>
                 </Button>
-              </div>
-              
-              {/* Row 3: Entegrasyonlar, Arşiv */}
-              <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="flex-1 border-2">
                   <Plug className="w-4 h-4 mr-1" />
                   <span className="text-xs">Entegrasyonlar</span>
                 </Button>
+              </div>
+              
+              {/* Row 4: Arşiv */}
+              <div className="flex gap-2">
                 <Button 
                   size="sm" 
                   variant="outline" 
