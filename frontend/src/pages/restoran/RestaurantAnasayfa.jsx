@@ -419,14 +419,28 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             </td>
                             <td className="p-2">
                               {order.courier_name ? (
-                                <div className="text-xs">
+                                <div className="text-xs space-y-1">
                                   <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium flex items-center gap-1 w-fit">
                                     <Bike className="w-3 h-3" />
                                     {order.courier_name}
                                   </span>
                                   {order.courier_phone && (
-                                    <div className="text-muted-foreground font-mono mt-1 pl-1">{order.courier_phone}</div>
+                                    <div className="text-muted-foreground font-mono pl-1">
+                                      <a href={`tel:${order.courier_phone}`} className="hover:text-primary">
+                                        {order.courier_phone}
+                                      </a>
+                                    </div>
                                   )}
+                                  {/* Tahmini varış süresi - sadece kurye atandıysa ve yolda değilse */}
+                                  {order.courier_location && !['on_the_way', 'delivered', 'cancelled'].includes(order.status) && (() => {
+                                    const eta = getEstimatedArrival(order.courier_location, order.restaurant_location);
+                                    return eta ? (
+                                      <div className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 w-fit">
+                                        <Timer className="w-2.5 h-2.5" />
+                                        {eta.text}
+                                      </div>
+                                    ) : null;
+                                  })()}
                                 </div>
                               ) : (
                                 <span className="text-xs text-muted-foreground">-</span>
