@@ -324,3 +324,180 @@ async def delete_restaurant_products(restaurant_id: str):
         "deleted_categories": cat_result.deleted_count,
         "deleted_products": prod_result.deleted_count
     }
+
+
+# =====================
+# CATEGORY CRUD
+# =====================
+
+@router.post("/categories")
+async def create_category(data: CategoryCreate):
+    """Yeni kategori oluştur"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
+    
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one({"id": data.restaurant_id})
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # Aynı isimde kategori var mı kontrol et
+    existing = await db.product_categories.find_one({
+        "restaurant_id": data.restaurant_id,
+        "name": data.name
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu isimde bir kategori zaten var")
+    
+    category = {
+        "id": str(uuid.uuid4()),
+        "name": data.name,
+        "restaurant_id": data.restaurant_id,
+        "company_id": restaurant.get("company_id"),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.product_categories.insert_one(category)
+    
+    return {"success": True, "category": {k: v for k, v in category.items() if k != "_id"}}
+
+
+@router.put("/categories/{category_id}")
+async def update_category(category_id: str, data: CategoryUpdate):
+    """Kategori güncelle"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
+    
+    category = await db.product_categories.find_one({"id": category_id})
+    if not category:
+        raise HTTPException(status_code=404, detail="Kategori bulunamadı")
+    
+    # Aynı isimde başka kategori var mı kontrol et
+    existing = await db.product_categories.find_one({
+        "restaurant_id": category["restaurant_id"],
+        "name": data.name,
+        "id": {"$ne": category_id}
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu isimde bir kategori zaten var")
+    
+    # Kategoriyi güncelle
+    await db.product_categories.update_one(
+        {"id": category_id},
+        {"$set": {"name": data.name, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Bu kategorideki ürünlerin category_name'ini de güncelle
+    await db.products.update_many(
+        {"category_id": category_id},
+        {"$set": {"category_name": data.name}}
+    )
+    
+    return {"success": True, "message": "Kategori güncellendi"}
+
+
+@router.delete("/categories/{category_id}")
+async def delete_category(category_id: str):
+    """Kategori sil (içindeki ürünlerle birlikte)"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
+    
+    category = await db.product_categories.find_one({"id": category_id})
+    if not category:
+        raise HTTPException(status_code=404, detail="Kategori bulunamadı")
+    
+    # Kategorideki ürünleri sil
+    products_result = await db.products.delete_many({"category_id": category_id})
+    
+    # Kategoriyi sil
+    await db.product_categories.delete_one({"id": category_id})
+    
+    return {
+        "success": True,
+        "message": f"Kategori ve {products_result.deleted_count} ürün silindi"
+    }
+
+
+# =====================
+# PRODUCT CRUD
+# =====================
+
+@router.post("/items")
+async def create_product(data: ProductCreate):
+    """Yeni ürün oluştur"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
+    
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one({"id": data.restaurant_id})
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # Kategori bilgisini al
+    category = await db.product_categories.find_one({"id": data.category_id})
+    if not category:
+        raise HTTPException(status_code=404, detail="Kategori bulunamadı")
+    
+    product = {
+        "id": str(uuid.uuid4()),
+        "name": data.name,
+        "description": data.description,
+        "price": data.price,
+        "category_id": data.category_id,
+        "category_name": category["name"],
+        "restaurant_id": data.restaurant_id,
+        "company_id": restaurant.get("company_id"),
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.products.insert_one(product)
+    
+    return {"success": True, "product": {k: v for k, v in product.items() if k != "_id"}}
+
+
+@router.put("/items/{product_id}")
+async def update_product(product_id: str, data: ProductUpdate):
+    """Ürün güncelle"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
+    
+    product = await db.products.find_one({"id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail="Ürün bulunamadı")
+    
+    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if data.name is not None:
+        update_fields["name"] = data.name
+    if data.description is not None:
+        update_fields["description"] = data.description
+    if data.price is not None:
+        update_fields["price"] = data.price
+    if data.is_active is not None:
+        update_fields["is_active"] = data.is_active
+    if data.category_id is not None:
+        # Yeni kategori bilgisini al
+        category = await db.product_categories.find_one({"id": data.category_id})
+        if not category:
+            raise HTTPException(status_code=404, detail="Kategori bulunamadı")
+        update_fields["category_id"] = data.category_id
+        update_fields["category_name"] = category["name"]
+    
+    await db.products.update_one({"id": product_id}, {"$set": update_fields})
+    
+    return {"success": True, "message": "Ürün güncellendi"}
+
+
+@router.delete("/items/{product_id}")
+async def delete_product(product_id: str):
+    """Ürün sil"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
+    
+    result = await db.products.delete_one({"id": product_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Ürün bulunamadı")
+    
+    return {"success": True, "message": "Ürün silindi"}
