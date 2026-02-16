@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/tooltip";
 import { 
   ClipboardList, Truck, CheckCircle, XCircle, RefreshCw, 
-  Package, Timer, TrendingUp, Info
+  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar
 } from "lucide-react";
+import NewOrderModal from "@/components/restoran/NewOrderModal";
 
 export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onRefresh }) {
   const [activeTab, setActiveTab] = useState("pending");
