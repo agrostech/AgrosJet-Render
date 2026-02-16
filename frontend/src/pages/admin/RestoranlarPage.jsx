@@ -89,9 +89,69 @@ export default function RestoranlarPage({ companyId }) {
     }
   }, [companyId]);
 
+  // Fetch all couriers for blocking
+  const fetchAllCouriers = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/couriers/${companyId}`);
+      setAllCouriers(res.data);
+    } catch (err) {
+      console.error("Kuryeler yüklenemedi");
+    }
+  }, [companyId]);
+
   useEffect(() => {
     fetchRestaurants();
-  }, [fetchRestaurants]);
+    fetchAllCouriers();
+  }, [fetchRestaurants, fetchAllCouriers]);
+
+  // Open blocked couriers modal
+  const openBlockedModal = async (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setShowBlockedModal(true);
+    setLoadingBlocked(true);
+    try {
+      const res = await axios.get(`${API}/restaurants/${restaurant.id}/blocked-couriers`);
+      setBlockedCouriers(res.data);
+    } catch (err) {
+      toast.error("Engellenen kuryeler yüklenemedi");
+    } finally {
+      setLoadingBlocked(false);
+    }
+  };
+
+  // Block courier
+  const handleBlockCourier = async () => {
+    if (!selectedCourierToBlock || !selectedRestaurant) return;
+    try {
+      await axios.post(`${API}/restaurants/${selectedRestaurant.id}/block-courier`, {
+        courier_id: selectedCourierToBlock
+      });
+      toast.success("Kurye engellendi");
+      // Refresh blocked list
+      const res = await axios.get(`${API}/restaurants/${selectedRestaurant.id}/blocked-couriers`);
+      setBlockedCouriers(res.data);
+      setSelectedCourierToBlock("");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  // Unblock courier
+  const handleUnblockCourier = async (courierId) => {
+    if (!selectedRestaurant) return;
+    try {
+      await axios.post(`${API}/restaurants/${selectedRestaurant.id}/unblock-courier`, {
+        courier_id: courierId
+      });
+      toast.success("Engel kaldırıldı");
+      // Refresh blocked list
+      const res = await axios.get(`${API}/restaurants/${selectedRestaurant.id}/blocked-couriers`);
+      setBlockedCouriers(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
 
   // Filtered restaurants by tab
   const activeRestaurants = restaurants.filter(r => !r.is_archived);
