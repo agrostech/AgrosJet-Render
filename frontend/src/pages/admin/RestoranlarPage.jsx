@@ -1109,6 +1109,12 @@ export default function RestoranlarPage({ companyId }) {
               </Button>
             </div>
 
+            {allCouriers.length === 0 && (
+              <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                Şirkete kayıtlı kurye bulunamadı. Önce kurye ekleyin.
+              </p>
+            )}
+
             {/* Engellenen Kuryeler Listesi */}
             <div className="border rounded-lg">
               {loadingBlocked ? (
