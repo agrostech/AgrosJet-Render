@@ -844,6 +844,60 @@ async def courier_pickup_order(courier_id: str, order_id: str):
     return {"message": "Sipariş yola çıktı"}
 
 
+@router.post("/courier/{courier_id}/bulk-pickup")
+async def courier_bulk_pickup(courier_id: str, data: BulkPickupRequest):
+    """Kurye birden fazla siparişi toplu yola çıkarır - Aynı restorandan siparişler için"""
+    if not data.order_ids or len(data.order_ids) == 0:
+        raise HTTPException(status_code=400, detail="Sipariş seçilmedi")
+    
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    courier_name = courier.get("name", "Kurye")
+    
+    # Siparişleri kontrol et
+    orders = await db.orders.find({
+        "id": {"$in": data.order_ids},
+        "courier_id": courier_id,
+        "status": "confirmed"
+    }).to_list(100)
+    
+    if len(orders) == 0:
+        raise HTTPException(status_code=400, detail="Yola çıkarılacak onaylanmış sipariş bulunamadı")
+    
+    # Aynı restorandan olduğunu kontrol et
+    restaurant_ids = set(o.get("restaurant_id") for o in orders)
+    if len(restaurant_ids) > 1:
+        raise HTTPException(status_code=400, detail="Toplu yola çıkarma sadece aynı restorandan siparişler için geçerlidir")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Tüm siparişleri güncelle
+    history_entry = {
+        "status": "on_the_way",
+        "label": "Yolda",
+        "timestamp": now,
+        "note": f"Kurye {len(orders)} siparişle yola çıktı",
+        "actor_type": "courier",
+        "actor_name": courier_name
+    }
+    
+    result = await db.orders.update_many(
+        {"id": {"$in": [o["id"] for o in orders]}},
+        {
+            "$set": {
+                "status": "on_the_way",
+                "picked_up_at": now,
+                "updated_at": now
+            },
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    return {"message": f"{result.modified_count} sipariş yola çıktı"}
+
+
 @router.post("/courier/{courier_id}/order/{order_id}/not-ready")
 async def courier_order_not_ready(courier_id: str, order_id: str):
     """Sipariş henüz hazır değil - 5dk hazırlık süresi ekle ve atamayı kaldır"""
