@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,11 +34,16 @@ import {
   Loader2,
   ShoppingBag,
   Package,
+  Navigation,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { LoadScript, Autocomplete } from "@react-google-maps/api";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+const libraries = ["places"];
 
 export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrderCreated }) {
   // Form state
