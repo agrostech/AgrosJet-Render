@@ -261,7 +261,7 @@ async def save_products(request: SaveProductsRequest):
 async def get_restaurant_products(restaurant_id: str):
     """Restoranın ürünlerini getir"""
     
-    if not db:
+    if db is None:
         raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
     
     # Kategorileri getir
