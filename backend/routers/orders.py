@@ -1212,3 +1212,116 @@ async def update_order_fees(order_id: str, data: OrderFeesUpdate):
         "pos_commission": update_data.get("pos_commission", order.get("pos_commission"))
     }
 
+
+# --- Manuel Sipariş Oluşturma (Restoran Paneli) ---
+
+@router.post("/manual")
+async def create_manual_order(data: ManualOrderCreate):
+    """Restoran panelinden manuel sipariş oluştur (telefon siparişleri için)"""
+    
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": data.restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1, "company_id": 1, "preparation_time": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    now = datetime.now(timezone.utc)
+    
+    # Sipariş numarası oluştur
+    order_number = f"TEL-{random.randint(1000, 9999)}"
+    
+    # Toplam tutarı hesapla
+    total_amount = sum(item.price * item.quantity for item in data.items)
+    
+    # Items listesi oluştur
+    items = [
+        {
+            "product_id": item.product_id,
+            "name": item.name,
+            "quantity": item.quantity,
+            "price": item.price
+        }
+        for item in data.items
+    ]
+    
+    # Hazırlık süresini belirle
+    prep_time = restaurant.get("preparation_time", 15)
+    
+    # Programlı sipariş kontrolü
+    if data.is_scheduled and data.scheduled_time:
+        # Scheduled time'ı parse et
+        try:
+            scheduled_dt = datetime.fromisoformat(data.scheduled_time.replace('Z', '+00:00'))
+            # 30 dakikalık tampon ekle (kullanıcı istediği için)
+            buffer_minutes = 30
+            # Hazırlık başlangıç zamanı = scheduled_time - prep_time - buffer
+            prep_start = scheduled_dt - timedelta(minutes=prep_time + buffer_minutes)
+            preparation_end_at = scheduled_dt - timedelta(minutes=buffer_minutes)
+            
+            initial_status = "scheduled"
+            history_note = f"Programlı teslimat: {scheduled_dt.strftime('%d.%m.%Y %H:%M')}"
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Geçersiz tarih formatı: {str(e)}")
+    else:
+        preparation_end_at = now + timedelta(minutes=prep_time)
+        initial_status = "preparing"
+        history_note = f"Hazırlık süresi: {prep_time} dakika"
+    
+    # Sipariş oluştur
+    order = {
+        "id": str(uuid.uuid4()),
+        "order_number": order_number,
+        "company_id": restaurant.get("company_id"),
+        "restaurant_id": data.restaurant_id,
+        "restaurant_name": restaurant.get("name"),
+        "restaurant_location": {
+            "latitude": restaurant.get("latitude"),
+            "longitude": restaurant.get("longitude")
+        },
+        "customer_name": data.customer_name,
+        "customer_phone": data.customer_phone or "",
+        "delivery_address": data.delivery_address,
+        "delivery_location": None,  # Manuel siparişlerde koordinat olmayabilir
+        "items": items,
+        "total_amount": total_amount,
+        "payment_method": data.payment_method,
+        "status": initial_status,
+        "preparation_time": prep_time,
+        "preparation_end_at": preparation_end_at.isoformat(),
+        "courier_id": None,
+        "courier_name": None,
+        "assigned_at": None,
+        "confirmed_at": None,
+        "delivered_at": None,
+        "notes": data.notes or "",
+        "source": "manual",  # manuel, adisyo, mock gibi
+        "is_scheduled": data.is_scheduled,
+        "scheduled_time": data.scheduled_time if data.is_scheduled else None,
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat(),
+        "status_history": [
+            {
+                "status": initial_status,
+                "label": "Programlı Sipariş" if data.is_scheduled else "Sipariş Alındı",
+                "timestamp": now.isoformat(),
+                "note": history_note,
+                "actor_type": "restaurant",
+                "actor_name": "Restoran Paneli"
+            }
+        ]
+    }
+    
+    # Veritabanına kaydet
+    await db.orders.insert_one(order)
+    
+    # _id'yi kaldır
+    order.pop("_id", None)
+    
+    return {
+        "message": "Sipariş başarıyla oluşturuldu",
+        "order": order
+    }
+
