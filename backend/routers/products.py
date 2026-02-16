@@ -199,7 +199,7 @@ async def scrape_menu(request: ScrapeRequest):
 async def save_products(request: SaveProductsRequest):
     """Çekilen ürünleri veritabanına kaydet"""
     
-    if not db:
+    if db is None:
         raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
     
     # Restoran bilgisini al
