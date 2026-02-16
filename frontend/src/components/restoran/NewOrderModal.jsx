@@ -225,6 +225,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim() || null,
         delivery_address: deliveryAddress.trim(),
+        delivery_location: deliveryLocation, // Koordinatlar
         items: selectedItems,
         payment_method: paymentMethod,
         notes: notes.trim() || null,
