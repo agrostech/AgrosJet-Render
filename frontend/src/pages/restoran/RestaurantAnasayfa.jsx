@@ -128,11 +128,27 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           <h1 className="text-2xl font-bold text-slate-900">Anasayfa</h1>
           <p className="text-sm text-muted-foreground">Güncel sipariş durumu</p>
         </div>
-        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Yenile
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setNewOrderModalOpen(true)} data-testid="new-order-btn">
+            <Plus className="w-4 h-4 mr-2" />
+            Yeni Sipariş
+          </Button>
+          <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Yenile
+          </Button>
+        </div>
       </div>
+
+      {/* New Order Modal */}
+      <NewOrderModal
+        open={newOrderModalOpen}
+        onOpenChange={setNewOrderModalOpen}
+        restaurantId={restaurantId}
+        onOrderCreated={() => {
+          onRefresh();
+        }}
+      />
 
       {/* Stats Cards */}
       <TooltipProvider>
