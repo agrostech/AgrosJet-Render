@@ -1,0 +1,68 @@
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, LogOut } from "lucide-react";
+
+export default function RestaurantMobileNav({ 
+  user, 
+  restaurant,
+  navItems, 
+  onLogout,
+  badges = {}
+}) {
+  const location = useLocation();
+
+  return (
+    <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-primary text-white flex items-center justify-between px-4 z-50">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" data-testid="mobile-menu-btn">
+            <Menu className="w-6 h-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-72 p-0 bg-primary text-white border-none">
+          <div className="p-4 border-b border-white/20">
+            <h1 className="font-heading text-lg font-bold truncate">{restaurant?.name || "Restoran"}</h1>
+            <p className="text-white/60 text-xs mt-1">Restoran Paneli</p>
+            <p className="text-white/80 text-xs font-mono mt-1 truncate">{user?.name}</p>
+          </div>
+          
+          <nav className="flex-1 py-2">
+            {navItems.map((item) => (
+              <Link 
+                key={item.path} 
+                to={item.path} 
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors relative ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`} 
+                data-testid={`restaurant-mobile-nav-${item.key}`}
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <span>{item.label}</span>
+                {badges[item.key] > 0 && (
+                  <span className="ml-auto bg-orange-500 text-white text-xs font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center">
+                    {badges[item.key] > 99 ? '99+' : badges[item.key]}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </nav>
+          
+          <div className="absolute bottom-0 left-0 right-0 border-t border-white/20 p-2">
+            <Button 
+              variant="ghost" 
+              onClick={onLogout} 
+              className="w-full text-white hover:bg-white/10 font-semibold text-sm py-3 justify-start px-4" 
+              data-testid="restaurant-mobile-logout-btn"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Çıkış Yap
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+      
+      <h1 className="font-heading text-lg font-bold">{restaurant?.name || "Restoran"}</h1>
+      
+      <div className="w-10" /> {/* Spacer for balance */}
+    </header>
+  );
+}
