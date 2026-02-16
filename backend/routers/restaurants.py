@@ -55,6 +55,75 @@ class PricingUpdate(BaseModel):
     pos_commission_rate: Optional[float] = None  # POS komisyonu (%), kredi kartı siparişleri için
 
 
+# --- Kurye Engelleme --- (Static paths must come before dynamic paths!)
+class BlockCourierRequest(BaseModel):
+    courier_id: str
+
+
+@router.get("/blocked/{restaurant_id}")
+async def get_blocked_couriers(restaurant_id: str):
+    """Restoranda engellenen kuryeleri getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "blocked_couriers": 1}
+    )
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    blocked_ids = restaurant.get("blocked_couriers", [])
+    
+    if not blocked_ids:
+        return []
+    
+    # Kurye bilgilerini getir
+    couriers = await db.couriers.find(
+        {"id": {"$in": blocked_ids}},
+        {"_id": 0, "id": 1, "name": 1, "phone": 1}
+    ).to_list(100)
+    
+    return couriers
+
+
+@router.post("/block/{restaurant_id}")
+async def block_courier(restaurant_id: str, data: BlockCourierRequest):
+    """Restorana kurye engelle"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id})
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    courier = await db.couriers.find_one({"id": data.courier_id}, {"_id": 0, "name": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Engellenen kuryelere ekle
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$addToSet": {"blocked_couriers": data.courier_id}}
+    )
+    
+    return {"message": f"{courier['name']} bu restoran için engellendi"}
+
+
+@router.post("/unblock/{restaurant_id}")
+async def unblock_courier(restaurant_id: str, data: BlockCourierRequest):
+    """Restorandan kurye engelini kaldır"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id})
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    courier = await db.couriers.find_one({"id": data.courier_id}, {"_id": 0, "name": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Engellenen kuryelerden çıkar
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$pull": {"blocked_couriers": data.courier_id}}
+    )
+    
+    return {"message": f"{courier['name']} için engel kaldırıldı"}
+
+
 # --- Ücretlendirme (Pricing) --- (Static paths must come before dynamic paths!)
 @router.put("/pricing/{restaurant_id}")
 async def update_restaurant_pricing(restaurant_id: str, data: PricingUpdate):
