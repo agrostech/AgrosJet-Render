@@ -142,4 +142,5 @@ A comprehensive delivery management platform with three main panels:
 ---
 
 ## Recent Test Reports
+- `/app/test_reports/iteration_29.json` - Google Places Autocomplete testi (100% passed)
 - `/app/test_reports/iteration_28.json` - Manuel Sipariş testi (100% passed)
