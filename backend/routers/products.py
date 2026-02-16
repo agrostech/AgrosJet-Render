@@ -288,7 +288,7 @@ async def get_restaurant_products(restaurant_id: str):
 async def delete_restaurant_products(restaurant_id: str):
     """Restoranın tüm ürünlerini sil"""
     
-    if not db:
+    if db is None:
         raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
     
     cat_result = await db.product_categories.delete_many({"restaurant_id": restaurant_id})
