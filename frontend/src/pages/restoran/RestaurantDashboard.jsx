@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { Home, Calculator, FileText, Link2, Package, ClipboardList, Truck, CheckCircle, XCircle } from "lucide-react";
@@ -25,13 +25,22 @@ const NAV_ITEMS = [
 
 export default function RestaurantDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [currentPage, setCurrentPage] = useState("anasayfa");
   const [badges, setBadges] = useState({});
+
+  // Derive currentPage from location
+  const getCurrentPage = () => {
+    const path = location.pathname;
+    const item = NAV_ITEMS.find(n => n.path === path);
+    return item?.key || "anasayfa";
+  };
+  
+  const currentPage = getCurrentPage();
 
   // Get user from localStorage
   useEffect(() => {
