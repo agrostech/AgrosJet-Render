@@ -596,8 +596,12 @@ export default function RestoranlarPage({ companyId }) {
                 </Button>
               </div>
               
-              {/* Row 2: Entegrasyonlar */}
+              {/* Row 2: Engellenenler, Entegrasyonlar */}
               <div className="flex gap-2 mb-2">
+                <Button size="sm" variant="outline" onClick={() => openBlockedModal(restaurant)} className="flex-1 border-2">
+                  <UserX className="w-4 h-4 mr-1" />
+                  <span className="text-xs">Engellenenler</span>
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="flex-1 border-2">
                   <Plug className="w-4 h-4 mr-1" />
                   <span className="text-xs">Entegrasyonlar</span>
