@@ -326,17 +326,17 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm table-fixed">
                     <thead>
                       <tr className="border-b-2 border-primary">
-                        <th className="text-left p-2 font-bold text-xs whitespace-nowrap">Zaman</th>
-                        <th className="text-left p-2 font-bold text-xs">Müşteri</th>
+                        <th className="text-left p-2 font-bold text-xs whitespace-nowrap w-[70px]">Zaman</th>
+                        <th className="text-left p-2 font-bold text-xs w-[100px]">Müşteri</th>
                         <th className="text-left p-2 font-bold text-xs">Adres</th>
-                        <th className="text-left p-2 font-bold text-xs">Mesafe</th>
-                        <th className="text-left p-2 font-bold text-xs">Ücret</th>
-                        <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                        <th className="text-left p-2 font-bold text-xs">Durum</th>
-                        <th className="text-left p-2 font-bold text-xs">Kurye</th>
+                        <th className="text-left p-2 font-bold text-xs w-[60px]">Mesafe</th>
+                        <th className="text-left p-2 font-bold text-xs w-[70px]">Ücret</th>
+                        <th className="text-left p-2 font-bold text-xs w-[60px]">Ödeme</th>
+                        <th className="text-left p-2 font-bold text-xs w-[100px]">Durum</th>
+                        <th className="text-left p-2 font-bold text-xs w-[140px]">Kurye</th>
                       </tr>
                     </thead>
                     <tbody>
