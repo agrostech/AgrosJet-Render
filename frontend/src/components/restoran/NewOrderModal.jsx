@@ -309,20 +309,59 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
               />
             </div>
 
-            {/* Delivery Address */}
+            {/* Delivery Address with Google Places Autocomplete */}
             <div className="space-y-2">
               <Label htmlFor="delivery-address" className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
                 Teslimat Adresi *
               </Label>
-              <Textarea
-                id="delivery-address"
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-                placeholder="Mahalle, sokak, bina no, daire..."
-                rows={2}
-                data-testid="delivery-address-input"
-              />
+              {GOOGLE_MAPS_API_KEY ? (
+                <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={libraries}>
+                  <Autocomplete
+                    onLoad={onAutocompleteLoad}
+                    onPlaceChanged={onPlaceChanged}
+                    options={{
+                      componentRestrictions: { country: "tr" },
+                      types: ["geocode", "establishment"],
+                    }}
+                  >
+                    <Input
+                      id="delivery-address"
+                      value={deliveryAddress}
+                      onChange={(e) => {
+                        setDeliveryAddress(e.target.value);
+                        setDeliveryLocation(null); // Clear location when manually typing
+                      }}
+                      placeholder="Adres aramak için yazmaya başlayın..."
+                      data-testid="delivery-address-input"
+                    />
+                  </Autocomplete>
+                </LoadScript>
+              ) : (
+                <Textarea
+                  id="delivery-address"
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  placeholder="Mahalle, sokak, bina no, daire..."
+                  rows={2}
+                  data-testid="delivery-address-input"
+                />
+              )}
+              {deliveryLocation && (
+                <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Konum alındı</span>
+                  <a
+                    href={`https://www.google.com/maps?q=${deliveryLocation.lat},${deliveryLocation.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-auto flex items-center gap-1 text-blue-600 hover:underline"
+                  >
+                    <Navigation className="w-3 h-3" />
+                    Haritada Gör
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Payment Method */}
