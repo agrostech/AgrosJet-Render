@@ -183,6 +183,55 @@ async def get_restaurant_pricing(restaurant_id: str):
     }
 
 
+# --- Hazırlık Süreleri ---
+class PreparationTimesUpdate(BaseModel):
+    preparation_time: int  # Standart hazırlık süresi (dakika)
+    product_preparation_times: Optional[dict] = None  # Ürün bazlı ekstra süreler {product_id: dakika}
+
+
+@router.put("/{restaurant_id}/preparation-times")
+async def update_preparation_times(restaurant_id: str, data: PreparationTimesUpdate):
+    """Restoran hazırlık sürelerini güncelle"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "id": 1})
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    update_data = {
+        "preparation_time": data.preparation_time,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Ürün bazlı süreleri kaydet (sadece 0'dan büyük olanları)
+    if data.product_preparation_times:
+        filtered_times = {k: v for k, v in data.product_preparation_times.items() if v and v > 0}
+        update_data["product_preparation_times"] = filtered_times
+    else:
+        update_data["product_preparation_times"] = {}
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Hazırlık süreleri güncellendi"}
+
+
+@router.get("/{restaurant_id}/preparation-times")
+async def get_preparation_times(restaurant_id: str):
+    """Restoran hazırlık sürelerini getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id}, 
+        {"_id": 0, "preparation_time": 1, "product_preparation_times": 1}
+    )
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    return {
+        "preparation_time": restaurant.get("preparation_time", 15),
+        "product_preparation_times": restaurant.get("product_preparation_times", {})
+    }
+
+
 # --- CRUD Endpoints ---
 
 @router.get("/{company_id}")
