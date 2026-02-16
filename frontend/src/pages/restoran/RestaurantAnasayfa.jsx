@@ -349,21 +349,21 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             key={order.id}
                             className="border-b hover:bg-slate-50 transition-colors align-top"
                           >
-                            <td className="p-2 text-xs whitespace-nowrap">
-                              <div className="flex items-center gap-1">
-                                <span>{formatTimeLocal(order.created_at)}</span>
+                            <td className="p-2 text-xs">
+                              <div>{formatTimeLocal(order.created_at)}</div>
+                              <div className="flex items-center gap-1 mt-0.5">
                                 {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
                                   <span className={`text-[10px] px-1 py-0.5 rounded ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
                                     {orderAge.text}
                                   </span>
                                 )}
+                                {order.source === "manual" && (
+                                  <Badge variant="outline" className="text-[10px] bg-blue-50 px-1 py-0">
+                                    <Phone className="w-2.5 h-2.5 mr-0.5" />
+                                    Tel
+                                  </Badge>
+                                )}
                               </div>
-                              {order.source === "manual" && (
-                                <Badge variant="outline" className="mt-1 text-[10px] bg-blue-50 px-1 py-0">
-                                  <Phone className="w-2.5 h-2.5 mr-0.5" />
-                                  Tel
-                                </Badge>
-                              )}
                             </td>
                             <td className="p-2 max-w-[120px]">
                               <div>
