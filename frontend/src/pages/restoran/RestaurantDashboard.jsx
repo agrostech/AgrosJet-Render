@@ -88,22 +88,6 @@ export default function RestaurantDashboard() {
     }
   }, [user?.restaurant_id, fetchOrders]);
 
-  // Handle page navigation
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/restoran" || path === "/restoran/") {
-      setCurrentPage("anasayfa");
-    } else if (path.includes("/muhasebe")) {
-      setCurrentPage("muhasebe");
-    } else if (path.includes("/raporlar")) {
-      setCurrentPage("raporlar");
-    } else if (path.includes("/entegrasyonlar")) {
-      setCurrentPage("entegrasyonlar");
-    } else if (path.includes("/urunler")) {
-      setCurrentPage("urunler");
-    }
-  }, []);
-
   const handleLogout = () => {
     localStorage.removeItem("user");
     navigate("/");
