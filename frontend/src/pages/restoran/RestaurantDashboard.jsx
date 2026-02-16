@@ -82,8 +82,8 @@ export default function RestaurantDashboard() {
   useEffect(() => {
     if (user?.restaurant_id) {
       fetchOrders();
-      // Polling every 15 seconds for near real-time updates
-      const interval = setInterval(fetchOrders, 15000);
+      // Polling every 5 seconds for real-time updates
+      const interval = setInterval(fetchOrders, 5000);
       return () => clearInterval(interval);
     }
   }, [user?.restaurant_id, fetchOrders]);
