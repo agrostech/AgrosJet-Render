@@ -43,6 +43,7 @@ export default function RestoranlarPage({ companyId }) {
   const [showIntegrationModal, setShowIntegrationModal] = useState(false);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
+  const [showPreparationModal, setShowPreparationModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   
   // Blocked couriers state
@@ -55,6 +56,14 @@ export default function RestoranlarPage({ companyId }) {
   const [restaurantUsers, setRestaurantUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [newUserData, setNewUserData] = useState({ username: "", password: "", name: "" });
+  
+  // Preparation time state
+  const [preparationData, setPreparationData] = useState({
+    standard_time: 15,
+    product_times: {}
+  });
+  const [restaurantProducts, setRestaurantProducts] = useState([]);
+  const [loadingPreparation, setLoadingPreparation] = useState(false);
   
   // Pricing state
   const [pricingType, setPricingType] = useState("per_package");
