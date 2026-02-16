@@ -465,6 +465,82 @@ export default function KuryelerPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Methods Modal */}
+      <Dialog open={showPaymentMethodsModal} onOpenChange={setShowPaymentMethodsModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-blue-600" />
+              Ödeme Yöntemleri - {selectedCourier?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Bu kuryenin taşıyabileceği ödeme yöntemlerini seçin. Kapalı olan yöntemlerdeki siparişler bu kuryeye atanamaz.
+            </p>
+            
+            {/* Nakit */}
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <Banknote className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Nakit</p>
+                  <p className="text-xs text-muted-foreground">Kapıda nakit ödeme</p>
+                </div>
+              </div>
+              <Switch
+                checked={allowedPaymentMethods.includes("cash")}
+                onCheckedChange={() => togglePaymentMethod("cash")}
+              />
+            </div>
+
+            {/* Kredi Kartı */}
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Kredi Kartı</p>
+                  <p className="text-xs text-muted-foreground">Kapıda kart ile ödeme</p>
+                </div>
+              </div>
+              <Switch
+                checked={allowedPaymentMethods.includes("card")}
+                onCheckedChange={() => togglePaymentMethod("card")}
+              />
+            </div>
+
+            {/* Online */}
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Online</p>
+                  <p className="text-xs text-muted-foreground">Online ödeme yapılmış</p>
+                </div>
+              </div>
+              <Switch
+                checked={allowedPaymentMethods.includes("online")}
+                onCheckedChange={() => togglePaymentMethod("online")}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPaymentMethodsModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSavePaymentMethods}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
