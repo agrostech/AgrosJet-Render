@@ -171,3 +171,32 @@ body {
     animation-delay: 0.5s;
 }
 
+
+/* Google Places Autocomplete dropdown - high z-index for modal */
+.pac-container {
+    z-index: 100000 !important;
+    font-family: "Inter", sans-serif;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    margin-top: 4px;
+}
+
+.pac-item {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.pac-item:hover {
+    background-color: #f5f5f5;
+}
+
+.pac-item-query {
+    font-weight: 500;
+    color: #1a1a1a;
+}
+
+.pac-matched {
+    font-weight: 600;
+}
+
