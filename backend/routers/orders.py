@@ -491,7 +491,7 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
         )
     
     # Sadece belirli durumlar değiştirilebilir
-    allowed_statuses = ["pending", "preparing", "ready"]
+    allowed_statuses = ["pending", "preparing", "ready", "scheduled"]
     if data.status not in allowed_statuses:
         raise HTTPException(
             status_code=400, 
@@ -506,10 +506,15 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
     }
     
     # Hazırlanıyor durumuna geçişte geri sayım
-    if data.status == "preparing" and data.preparation_time:
-        preparation_end_at = now + timedelta(minutes=data.preparation_time)
-        update_fields["preparation_time"] = data.preparation_time
+    if data.status == "preparing":
+        # Eğer scheduled siparişse, restoran hazırlık süresini kullan
+        prep_time = data.preparation_time or order.get("preparation_time") or 15
+        preparation_end_at = now + timedelta(minutes=prep_time)
+        update_fields["preparation_time"] = prep_time
         update_fields["preparation_end_at"] = preparation_end_at.isoformat()
+        # Scheduled durumundan çıkıyorsa is_scheduled'ı false yap
+        if order.get("status") == "scheduled":
+            update_fields["is_scheduled"] = False
     
     await db.orders.update_one({"id": order_id}, {"$set": update_fields})
     
