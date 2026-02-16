@@ -15,9 +15,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [rememberCourier, setRememberCourier] = useState(false);
   const [rememberAdmin, setRememberAdmin] = useState(false);
+  const [rememberRestaurant, setRememberRestaurant] = useState(false);
   
   const [courierData, setCourierData] = useState({ phone: "", password: "" });
   const [adminData, setAdminData] = useState({ username: "", password: "" });
+  const [restaurantData, setRestaurantData] = useState({ username: "", password: "" });
 
   // Zaten giriş yapılmışsa panele yönlendir
   useEffect(() => {
@@ -33,6 +35,8 @@ export default function LoginPage() {
         navigate("/courier");
       } else if (user.role === "systemadmin") {
         navigate("/system");
+      } else if (user.role === "restaurant") {
+        navigate("/restoran");
       } else {
         navigate("/admin");
       }
