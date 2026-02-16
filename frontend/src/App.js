@@ -7,6 +7,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import CourierDashboard from "@/pages/CourierDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import SystemDashboard from "@/pages/SystemDashboard";
+import RestaurantDashboard from "@/pages/restoran/RestaurantDashboard";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 // Initialize axios interceptors for permission headers
 import "@/utils/axiosConfig";
@@ -37,6 +38,7 @@ function App() {
           <Route path="/courier/*" element={<CourierDashboard />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/system/*" element={<SystemDashboard />} />
+          <Route path="/restoran/*" element={<RestaurantDashboard />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
