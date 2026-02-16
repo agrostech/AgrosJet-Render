@@ -157,11 +157,17 @@ class ManualOrderItem(BaseModel):
     price: float
 
 
+class DeliveryLocation(BaseModel):
+    lat: float
+    lng: float
+
+
 class ManualOrderCreate(BaseModel):
     restaurant_id: str
     customer_name: str
     customer_phone: Optional[str] = None
     delivery_address: str
+    delivery_location: Optional[DeliveryLocation] = None  # Koordinatlar
     items: List[ManualOrderItem]
     payment_method: str  # cash, card, online
     notes: Optional[str] = None
