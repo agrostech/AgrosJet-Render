@@ -21,6 +21,7 @@ import {
   getCountdown,
   getOrderDistance,
   getOrderAge,
+  getEstimatedArrival,
   formatTime,
   formatCurrency
 } from "@/utils/orderUtils";
