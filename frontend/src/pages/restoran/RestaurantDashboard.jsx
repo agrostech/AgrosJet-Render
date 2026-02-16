@@ -117,6 +117,7 @@ export default function RestaurantDashboard() {
             loading={loading}
             onUpdateStatus={handleUpdateOrderStatus}
             onRefresh={fetchOrders}
+            restaurantId={user?.restaurant_id}
           />
         );
       case "muhasebe":
