@@ -87,114 +87,67 @@ def scrape_tgo_menu(html_content: str) -> dict:
     products = []
     categories = set()
     
-    # Her kategori başlığını bul (h3 etiketleri)
-    category_sections = soup.find_all('h3')
+    # Tüm h6 etiketlerini (ürün başlıkları) bul
+    all_h6 = soup.find_all('h6')
+    current_category = "Genel"
     
-    for section in category_sections:
-        category_name = section.get_text(strip=True)
-        
-        # "Kategoriler" veya "Kampanyalar" gibi bölümleri atla
-        if category_name in ['Kategoriler', 'Kampanyalar & Kuponlar']:
+    for h6 in all_h6:
+        product_name = h6.get_text(strip=True)
+        if not product_name:
             continue
         
-        # Ürün sayısı parantezi varsa kaldır: "Pastalar (4 Ürün)" -> "Pastalar"
-        category_name = re.sub(r'\s*\(\d+\s*Ürün\)', '', category_name).strip()
-        
-        if not category_name:
-            continue
-            
-        categories.add(category_name)
-        
-        # Bu kategorinin altındaki ürünleri bul
-        # h3'ten sonraki sibling elementleri tara
-        next_element = section.find_next_sibling()
-        
-        while next_element:
-            # Yeni bir kategori başlığına geldiysek dur
-            if next_element.name == 'h3':
-                break
-            
-            # Ürün kartlarını bul
-            product_cards = next_element.find_all('h6') if next_element else []
-            
-            for product_title in product_cards:
-                product_name = product_title.get_text(strip=True)
-                
-                # Ürün açıklaması ve fiyatını bul
-                parent = product_title.find_parent()
-                if parent:
-                    # Tüm metni al ve ürün adını çıkar
-                    full_text = parent.get_text(separator='|', strip=True)
-                    parts = full_text.split('|')
-                    
-                    description = ""
-                    price = 0.0
-                    
-                    for part in parts:
-                        part = part.strip()
-                        # Fiyat kontrolü
-                        if 'TL' in part or re.match(r'^[\d.,]+$', part):
-                            extracted_price = extract_price(part)
-                            if extracted_price > 0:
-                                price = extracted_price
-                        # Beğeni oranı veya ürün adı değilse açıklama
-                        elif part != product_name and 'Beğenildi' not in part and 'Sepete Ekle' not in part:
-                            if len(part) > 5:  # Çok kısa metinleri atla
-                                description = part
-                    
-                    if product_name and price > 0:
-                        products.append(ScrapedProduct(
-                            name=product_name,
-                            description=description if description else None,
-                            price=price,
-                            category=category_name
-                        ))
-            
-            next_element = next_element.find_next_sibling() if next_element else None
-    
-    # Eğer yukarıdaki yöntem çalışmazsa, alternatif yöntem dene
-    if not products:
-        # Tüm h6 etiketlerini (ürün başlıkları) bul
-        all_h6 = soup.find_all('h6')
-        current_category = "Genel"
-        
-        for h6 in all_h6:
-            product_name = h6.get_text(strip=True)
-            
-            # Üst elementten kategori ve fiyat bilgisini al
-            container = h6.find_parent()
+        # Fiyatı bulmak için parent'lara çık (level 2 genellikle doğru)
+        container = h6
+        text = ""
+        for _ in range(3):
+            container = container.find_parent()
             if container:
-                # Fiyatı bul
-                text = container.get_text(separator='|', strip=True)
-                price_match = re.search(r'([\d.,]+)\s*TL', text)
-                price = extract_price(price_match.group(1)) if price_match else 0.0
-                
-                # Açıklamayı bul (ürün adından sonraki, fiyattan önceki metin)
-                parts = text.split('|')
-                description = ""
-                for part in parts:
-                    part = part.strip()
-                    if part != product_name and 'TL' not in part and 'Beğenildi' not in part and 'Sepete Ekle' not in part:
-                        if len(part) > 10:
-                            description = part
-                            break
-                
-                # En yakın h3'ü bul (kategori)
-                prev_h3 = h6.find_previous('h3')
-                if prev_h3:
-                    cat_name = prev_h3.get_text(strip=True)
-                    cat_name = re.sub(r'\s*\(\d+\s*Ürün\)', '', cat_name).strip()
-                    if cat_name and cat_name not in ['Kategoriler', 'Kampanyalar & Kuponlar']:
-                        current_category = cat_name
-                
-                if product_name and price > 0:
-                    categories.add(current_category)
-                    products.append(ScrapedProduct(
-                        name=product_name,
-                        description=description if description else None,
-                        price=price,
-                        category=current_category
-                    ))
+                text = container.get_text(separator=' | ', strip=True)
+                if 'TL' in text:
+                    break
+        
+        if not text or 'TL' not in text:
+            continue
+        
+        # Fiyatı bul
+        price_match = re.search(r'([\d.,]+)\s*TL', text)
+        price = extract_price(price_match.group(1)) if price_match else 0.0
+        
+        if price <= 0:
+            continue
+        
+        # Açıklamayı bul
+        parts = text.split(' | ')
+        description = ""
+        for part in parts:
+            part = part.strip()
+            # Ürün adı, fiyat, beğeni oranı veya buton değilse açıklama
+            if (part != product_name and 
+                'TL' not in part and 
+                'Beğenildi' not in part and 
+                'Sepete Ekle' not in part and
+                'Değerlendirme' not in part and
+                part not in ['(', ')'] and
+                len(part) > 5):
+                description = part
+                break
+        
+        # En yakın h3'ü bul (kategori)
+        prev_h3 = h6.find_previous('h3')
+        if prev_h3:
+            cat_name = prev_h3.get_text(strip=True)
+            # Ürün sayısı parantezi varsa kaldır
+            cat_name = re.sub(r'\s*\(\d+\s*Ürün\)', '', cat_name).strip()
+            if cat_name and cat_name not in ['Kategoriler', 'Kampanyalar & Kuponlar', 'Sepet']:
+                current_category = cat_name
+        
+        categories.add(current_category)
+        products.append(ScrapedProduct(
+            name=product_name,
+            description=description if description else None,
+            price=price,
+            category=current_category
+        ))
     
     # Tekrar eden ürünleri kaldır
     seen = set()
