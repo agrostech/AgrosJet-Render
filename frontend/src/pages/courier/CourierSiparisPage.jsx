@@ -817,12 +817,12 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                     const restaurantName = confirmedOrders[0].restaurant_name;
                     const totalFee = confirmedOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0);
                     return (
-                      <div className="bg-orange-50 border border-orange-300 rounded-xl p-4">
+                      <div className="bg-cyan-50 border border-cyan-300 rounded-xl p-4">
                         <div className="flex flex-col gap-3">
-                          <div className="flex items-center gap-2 text-orange-700">
+                          <div className="flex items-center gap-2 text-cyan-700">
                             <Store className="w-5 h-5" />
                             <span className="font-semibold text-sm">
-                              {restaurantName} - {confirmedOrders.length} sipariş hazır
+                              {restaurantName} - {confirmedOrders.length} sipariş
                             </span>
                           </div>
                           {totalFee > 0 && (
@@ -834,7 +834,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                           <Button
                             onClick={() => handleBulkPickup(confirmedOrders.map(o => o.id))}
                             disabled={actionLoading === "bulk"}
-                            className="w-full bg-orange-600 hover:bg-orange-700"
+                            className="w-full bg-cyan-600 hover:bg-cyan-700"
                             data-testid="bulk-pickup-btn"
                           >
                             {actionLoading === "bulk" ? (
