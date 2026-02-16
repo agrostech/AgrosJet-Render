@@ -357,10 +357,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                 </span>
                               )}
                               {order.source === "manual" && (
-                                <Badge variant="outline" className="text-[10px] bg-blue-50 px-1 py-0 block mt-0.5 w-fit">
-                                  <Phone className="w-2.5 h-2.5 mr-0.5" />
-                                  Tel
-                                </Badge>
+                                <span className="text-[10px] text-blue-600 flex items-center gap-0.5 mt-0.5">
+                                  <Phone className="w-2.5 h-2.5" />Tel
+                                </span>
                               )}
                             </td>
                             <td className="p-2 max-w-[120px]">
