@@ -1221,6 +1221,100 @@ export default function RestoranlarPage({ companyId }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Restaurant Users Modal */}
+      <Dialog open={showUsersModal} onOpenChange={setShowUsersModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              Restoran Kullanıcıları - {selectedRestaurant?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Add new user form */}
+            <div className="p-4 bg-slate-50 rounded-lg border">
+              <h4 className="font-semibold text-sm mb-3">Yeni Kullanıcı Ekle</h4>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs">Kullanıcı Adı</Label>
+                  <Input
+                    placeholder="kullaniciadi"
+                    value={newUserData.username}
+                    onChange={(e) => setNewUserData({ ...newUserData, username: e.target.value })}
+                    className="h-9 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Ad Soyad</Label>
+                  <Input
+                    placeholder="Ad Soyad"
+                    value={newUserData.name}
+                    onChange={(e) => setNewUserData({ ...newUserData, name: e.target.value })}
+                    className="h-9 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Şifre</Label>
+                  <Input
+                    type="password"
+                    placeholder="******"
+                    value={newUserData.password}
+                    onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                    className="h-9 text-sm"
+                  />
+                </div>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={handleCreateUser}
+                className="mt-3 w-full"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Kullanıcı Oluştur
+              </Button>
+            </div>
+
+            {/* Existing users list */}
+            <div>
+              <h4 className="font-semibold text-sm mb-2">Mevcut Kullanıcılar</h4>
+              {loadingUsers ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Yükleniyor...</p>
+              ) : restaurantUsers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Henüz kullanıcı eklenmemiş.</p>
+              ) : (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {restaurantUsers.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                      <div>
+                        <p className="font-medium text-sm">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">@{user.username}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2 py-1 rounded ${user.is_active !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {user.is_active !== false ? 'Aktif' : 'Pasif'}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="h-8 text-red-600 border-red-300 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Restoran kullanıcıları bu restoran için sipariş takibi yapabilir.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
