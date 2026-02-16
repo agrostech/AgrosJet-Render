@@ -259,11 +259,16 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
     setSubmitting(true);
     try {
+      // Tam adresi oluştur (Google Places + Detaylar)
+      const fullAddress = addressDetails.trim() 
+        ? `${deliveryAddress.trim()}, ${addressDetails.trim()}`
+        : deliveryAddress.trim();
+
       const res = await axios.post(`${API}/orders/manual`, {
         restaurant_id: restaurantId,
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim() || null,
-        delivery_address: deliveryAddress.trim(),
+        delivery_address: fullAddress,
         delivery_location: deliveryLocation, // Koordinatlar
         items: selectedItems,
         payment_method: paymentMethod,
