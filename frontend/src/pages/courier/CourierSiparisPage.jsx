@@ -255,7 +255,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       startLat = currentLocation.latitude;
       startLng = currentLocation.longitude;
     } else {
-      // Konum yoksa ilk siparişin restoran konumunu kullan
       const firstOrder = onTheWayOrders[0];
       if (firstOrder.restaurant_location?.latitude) {
         startLat = firstOrder.restaurant_location.latitude;
@@ -266,31 +265,128 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       }
     }
     
-    // Teslimat noktalarını topla
-    const deliveryPoints = onTheWayOrders
-      .filter(o => o.delivery_location?.latitude && o.delivery_location?.longitude)
-      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`);
+    // Geçerli konum bilgisi olan siparişleri filtrele
+    const validOrders = onTheWayOrders.filter(
+      o => o.delivery_location?.latitude && o.delivery_location?.longitude
+    );
     
-    if (deliveryPoints.length < 2) {
+    if (validOrders.length < 2) {
       toast.error("Yeterli konum bilgisi yok");
       return;
     }
     
-    // Google Maps URL oluştur
-    // optimize:true ile Google en kısa rotayı hesaplar
-    const origin = `${startLat},${startLng}`;
-    const destination = deliveryPoints[deliveryPoints.length - 1];
+    // Toplam rota mesafesini hesapla
+    const calculateTotalDistance = (route, sLat, sLng) => {
+      let total = 0;
+      let prevLat = sLat;
+      let prevLng = sLng;
+      
+      for (const order of route) {
+        const dist = calculateDistance(prevLat, prevLng, 
+          order.delivery_location.latitude, order.delivery_location.longitude);
+        total += dist || 0;
+        prevLat = order.delivery_location.latitude;
+        prevLng = order.delivery_location.longitude;
+      }
+      return total;
+    };
     
-    // Ara noktalar - Google'a optimize ettir
-    const waypoints = deliveryPoints.slice(0, -1).join("|");
+    // Az sipariş varsa (≤6) tüm kombinasyonları dene (brute force)
+    let bestRoute;
+    
+    if (validOrders.length <= 6) {
+      // Tüm permütasyonları oluştur
+      const permute = (arr) => {
+        if (arr.length <= 1) return [arr];
+        const result = [];
+        for (let i = 0; i < arr.length; i++) {
+          const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+          const perms = permute(rest);
+          for (const perm of perms) {
+            result.push([arr[i], ...perm]);
+          }
+        }
+        return result;
+      };
+      
+      const allRoutes = permute(validOrders);
+      let bestDistance = Infinity;
+      
+      for (const route of allRoutes) {
+        const dist = calculateTotalDistance(route, startLat, startLng);
+        if (dist < bestDistance) {
+          bestDistance = dist;
+          bestRoute = route;
+        }
+      }
+    } else {
+      // Çok sipariş varsa Nearest Neighbor + 2-opt
+      // 1. Nearest Neighbor ile başlangıç rotası
+      const remaining = [...validOrders];
+      bestRoute = [];
+      let currentLat = startLat;
+      let currentLng = startLng;
+      
+      while (remaining.length > 0) {
+        let nearestIdx = 0;
+        let nearestDist = Infinity;
+        
+        remaining.forEach((order, idx) => {
+          const dist = calculateDistance(currentLat, currentLng,
+            order.delivery_location.latitude, order.delivery_location.longitude);
+          if (dist !== null && dist < nearestDist) {
+            nearestDist = dist;
+            nearestIdx = idx;
+          }
+        });
+        
+        const nearest = remaining.splice(nearestIdx, 1)[0];
+        bestRoute.push(nearest);
+        currentLat = nearest.delivery_location.latitude;
+        currentLng = nearest.delivery_location.longitude;
+      }
+      
+      // 2. 2-opt ile iyileştir
+      let improved = true;
+      while (improved) {
+        improved = false;
+        const n = bestRoute.length;
+        
+        for (let i = 0; i < n - 1; i++) {
+          for (let j = i + 2; j < n; j++) {
+            // i ve j arasını ters çevir
+            const newRoute = [
+              ...bestRoute.slice(0, i + 1),
+              ...bestRoute.slice(i + 1, j + 1).reverse(),
+              ...bestRoute.slice(j + 1)
+            ];
+            
+            const currentDist = calculateTotalDistance(bestRoute, startLat, startLng);
+            const newDist = calculateTotalDistance(newRoute, startLat, startLng);
+            
+            if (newDist < currentDist) {
+              bestRoute = newRoute;
+              improved = true;
+            }
+          }
+        }
+      }
+    }
+    
+    // Google Maps URL oluştur
+    const origin = `${startLat},${startLng}`;
+    const destination = `${bestRoute[bestRoute.length - 1].delivery_location.latitude},${bestRoute[bestRoute.length - 1].delivery_location.longitude}`;
+    
+    const waypoints = bestRoute
+      .slice(0, -1)
+      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`)
+      .join("|");
     
     let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
     if (waypoints) {
-      // optimize:true - Google Maps rotayı optimize eder
-      mapsUrl += `&waypoints=optimize:true|${waypoints}`;
+      mapsUrl += `&waypoints=${waypoints}`;
     }
     
-    // Google Maps'i aç
     window.open(mapsUrl, "_blank");
   }, [orders, currentLocation]);
 
