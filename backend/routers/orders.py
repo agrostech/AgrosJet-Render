@@ -1295,7 +1295,10 @@ async def create_manual_order(data: ManualOrderCreate):
         "customer_name": data.customer_name,
         "customer_phone": data.customer_phone or "",
         "delivery_address": data.delivery_address,
-        "delivery_location": None,  # Manuel siparişlerde koordinat olmayabilir
+        "delivery_location": {
+            "latitude": data.delivery_location.lat,
+            "longitude": data.delivery_location.lng
+        } if data.delivery_location else None,
         "items": items,
         "total_amount": total_amount,
         "payment_method": data.payment_method,
