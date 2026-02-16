@@ -150,6 +150,25 @@ class OrderFeesUpdate(BaseModel):
     admin_name: Optional[str] = None
 
 
+class ManualOrderItem(BaseModel):
+    product_id: str
+    name: str
+    quantity: int
+    price: float
+
+
+class ManualOrderCreate(BaseModel):
+    restaurant_id: str
+    customer_name: str
+    customer_phone: Optional[str] = None
+    delivery_address: str
+    items: List[ManualOrderItem]
+    payment_method: str  # cash, card, online
+    notes: Optional[str] = None
+    is_scheduled: bool = False
+    scheduled_time: Optional[str] = None  # ISO datetime string
+
+
 # --- Sipariş Durumları ---
 ORDER_STATUSES = {
     "pending": {"label": "Beklemede", "color": "gray"},
