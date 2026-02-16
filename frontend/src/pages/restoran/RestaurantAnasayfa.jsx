@@ -129,91 +129,123 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Package className="w-5 h-5 text-blue-600" />
+      <TooltipProvider>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.todayTotal}</p>
+                  <p className="text-xs text-muted-foreground">Bugün Toplam</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.todayTotal}</p>
-                <p className="text-xs text-muted-foreground">Bugün Toplam</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                <ClipboardList className="w-5 h-5 text-yellow-600" />
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <ClipboardList className="w-5 h-5 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.pending}</p>
+                  <p className="text-xs text-muted-foreground">Bekleyen</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.pending}</p>
-                <p className="text-xs text-muted-foreground">Bekleyen</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
-                <Truck className="w-5 h-5 text-cyan-600" />
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
+                  <Truck className="w-5 h-5 text-cyan-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.onTheWay}</p>
+                  <p className="text-xs text-muted-foreground">Yolda</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.onTheWay}</p>
-                <p className="text-xs text-muted-foreground">Yolda</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.delivered}</p>
+                  <p className="text-xs text-muted-foreground">Teslim</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.delivered}</p>
-                <p className="text-xs text-muted-foreground">Teslim</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                <Timer className="w-5 h-5 text-orange-600" />
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <Timer className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.avgPrepTime} dk</p>
+                    <p className="text-xs text-muted-foreground">Ort. Hazırlık</p>
+                  </div>
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                      <Info className="w-3 h-3 text-slate-500" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[250px]">
+                    <p className="text-sm font-medium">Ortalama Hazırlık Süresi</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Sipariş sisteme düştükten sonra kurye yola çıkana kadar geçen ortalama süre.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.avgPrepTime} dk</p>
-                <p className="text-xs text-muted-foreground">Ort. Hazırlık</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.avgDeliveryTime} dk</p>
+                    <p className="text-xs text-muted-foreground">Ort. Teslimat</p>
+                  </div>
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                      <Info className="w-3 h-3 text-slate-500" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[250px]">
+                    <p className="text-sm font-medium">Ortalama Teslimat Süresi</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Sipariş sisteme düştükten sonra müşteriye teslim edilene kadar geçen toplam ortalama süre.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.avgDeliveryTime} dk</p>
-                <p className="text-xs text-muted-foreground">Ort. Teslimat</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TooltipProvider>
 
       {/* Orders Tabs */}
       <Card>
