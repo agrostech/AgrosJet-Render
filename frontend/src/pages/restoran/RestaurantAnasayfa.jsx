@@ -374,7 +374,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             <td className="p-2">
                               {/* Kurye atandıysa veya teslim/iptal ise dropdown pasif */}
                               {order.courier_id || order.status === 'delivered' || order.status === 'cancelled' ? (
-                                <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center opacity-70 whitespace-nowrap min-w-[90px]`}>
+                                <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center opacity-70 whitespace-nowrap min-w-[110px]`}>
                                   {statusInfo.label}
                                 </span>
                               ) : (
@@ -388,7 +388,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     }
                                   }}
                                 >
-                                  <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] w-[90px] shadow-sm`}>
+                                  <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 w-[110px] shadow-sm`}>
                                     <SelectValue>
                                       {order.status === 'preparing' && order.preparation_end_at
                                         ? getCountdown(order.preparation_end_at)?.text
