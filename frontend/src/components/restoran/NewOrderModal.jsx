@@ -139,23 +139,6 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setSelectedItems([]);
   };
 
-  // Google Places Autocomplete handlers
-  const onAutocompleteLoad = useCallback((autocomplete) => {
-    autocompleteRef.current = autocomplete;
-  }, []);
-
-  const onPlaceChanged = useCallback(() => {
-    if (autocompleteRef.current) {
-      const place = autocompleteRef.current.getPlace();
-      if (place.geometry && place.geometry.location) {
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        setDeliveryAddress(place.formatted_address || place.name);
-        setDeliveryLocation({ lat, lng });
-      }
-    }
-  }, []);
-
   // Group products by category
   const groupedProducts = useMemo(() => {
     const groups = {};
