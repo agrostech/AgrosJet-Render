@@ -4,16 +4,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
-} from "@/components/ui/table";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "@/components/ui/select";
 import { 
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger 
 } from "@/components/ui/tooltip";
 import { 
   ClipboardList, Truck, CheckCircle, XCircle, RefreshCw, 
-  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar
+  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar, Bike
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
+import {
+  ORDER_STATUSES,
+  COURIER_ONLY_STATUSES,
+  PREPARATION_TIMES,
+  getCountdown,
+  getOrderDistance,
+  getOrderAge,
+  formatTime,
+  formatCurrency
+} from "@/utils/orderUtils";
 
 export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onRefresh, restaurantId }) {
   const [activeTab, setActiveTab] = useState("pending");
