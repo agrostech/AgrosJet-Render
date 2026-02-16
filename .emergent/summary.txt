@@ -1,166 +1,181 @@
 <analysis>**original_problem_statement:**
-The user is building an Adisyo-integrated order management system, ShiftJet.
+The user is building ShiftJet, an Adisyo-integrated order management system.
 
-In this session, the user's requests evolved from the initial plan. The key objectives accomplished and requested were:
-1.  **Admin Panel UI Refinement:** The user requested and the agent completed a UI redesign of the Raporlar (Reports) pages to make them more minimal and compact.
-2.  **Admin Panel Data Display:** Added Turkish translations for  (Haftalık Hakediş) and  (Haftalık Hakediş Geri Al) in the Muhasebe Fatura (Missing Invoice) warning on the courier dashboard to be a more subtle, single-line alert.
-5.  **New Feature: Courier Reports:** Implemented a new Raporlar section in the *courier* dashboard, placed under Muhasebe. This new section contains two sub-tabs:
-    *   **Ödeme Raporu (Payment Report):** Shows total cash and card balances with date filtering.
-    *   **Kazanç Raporu (Earnings Report):** Shows total package count and earnings with date filtering.
-6.  **Bug Investigation: Adisyo Payment Method Mapping:** Investigated why orders paid by card were saved as online. The agent identified that the raw Adisyo payload was not being saved, preventing proper debugging. A fix was implemented to save this data () and refine the payment mapping logic.
-7.  **Task Deprioritization:** The user explicitly requested to **cancel** the previously planned task of preventing order assignments to couriers who are On Break or Offline.
+The initial goal was to fix a bug where split (mixed) payments were not appearing in courier reports and to implement a View Orders modal in the admin Daily Reconciliation screen.
+
+After completing these tasks, the user requested several new features and improvements for the courier and admin panels:
+1.  **UI Refinement:** Combine the Cash and Card sections in the courier payment report and the daily reconciliation modal into a single unified list.
+2.  **Admin Report Fix:** Ensure restaurant financial reports correctly account for mixed and modified payments.
+3.  **Courier Earnings Visibility:** Display the potential earnings for a courier directly on the New Order and On The Way order cards in the courier panel.
+4.  **Route Optimization:** Improve the Create Route logic to generate more efficient delivery routes, as the previous Nearest Neighbor approach was suboptimal.
+5.  **Bulk Order Pickup:** Add a Pickup All button for couriers when they have multiple assigned orders from the same restaurant.
+6.  **Restaurant-Based Courier Blocking:** Implement a feature allowing admins to block specific couriers from receiving orders from certain restaurants.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application is a comprehensive full-stack order management system. The admin and courier panels have received significant updates.
-
--   **Admin Panel:** Features a redesigned and compact Reports section. The Couriers and Restaurants pages have been cleaned up by removing unnecessary finance buttons. The accounting movements tab now displays correct Turkish labels.
--   **Courier Panel:** Features a new Raporlar (Reports) section with Payment and Earnings reports, complete with date filtering and backend data aggregation. The missing invoice warning has been made more minimal.
--   **Backend:** The logic for mapping Adisyo payment methods has been improved, and a crucial fix has been implemented to save the raw Adisyo order data () to the database for all incoming orders, which will aid in future debugging.
+The application now includes a robust set of features for both couriers and admins.
+- **Payment Handling:** Split/modified payments are correctly calculated and displayed across all courier and admin reports. The UI for these reports has been streamlined.
+- **Courier Panel:**
+    - Couriers can see their potential earnings on each new order card (Bu siparişten X TL kazanacaksınız).
+    - A summary of total earnings is displayed for all On The Way orders (Bu X siparişten Y TL kazanacaksınız).
+    - A Tümünü Yola Çıkar (Pickup All) button appears when a courier has multiple orders assigned from the same restaurant, allowing for bulk status updates.
+    - The route generation logic has been significantly improved, using a hybrid algorithm (Brute Force for small sets, 2-opt for larger sets) to create more efficient routes.
+- **Admin Panel:**
+    - Restaurant reports now accurately reflect revenue from mixed and modified payments.
+    - A new feature allows admins to block/unblock couriers for specific restaurants via a modal on the restaurants page. The backend logic prevents blocked couriers from being assigned orders from that restaurant.
 
 **Last working item**:
-- Last item agent was working: The user's final request was to review the newly created Courier Reports feature to ensure it aligns with the project's existing design language and file structure best practices (e.g., splitting large components). The agent was about to start this review and potential refactoring.
-- Status: NOT STARTED
-- Agent Testing Done: Y (for the feature functionality itself)
-- Which testing method agent to use? screenshot tool. After refactoring, the agent should take a screenshot of the courier's Raporlar page to confirm the UI remains correct and functional.
+- Last item agent was working: The agent was debugging an issue with the newly implemented Restaurant-Based Courier Blocking feature. The user reported that the modal to select couriers for blocking was empty and displayed an error (Engellenen kuryeler yüklenemedi), even though couriers are registered in the company. The agent had just corrected an incorrect API endpoint path in the frontend ( to ) but the issue persists. The next step is to re-investigate why the frontend is failing to fetch the courier list.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? frontend testing agent. The test should verify that after logging in as an admin, navigating to the restaurants page, and clicking the Engellenenler button, the modal opens and successfully lists all available couriers for the company.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Adisyo Payment Method Mapping Bug (P1)**
--   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
--   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
+-   Issue 1: Block Courier modal does not load the list of couriers (P0)
+-   Issue 2: Adisyo Payment Method Mapping Bug (P1)
+-   Issue 3: Background Task Reliability (Notifications/Location) (P1)
+-   Issue 4: Mobile Sidebar Courier List Collapsible Bug (P1)
 
 Issues Detail:
--   **Issue 1: Adisyo Payment Method Mapping Bug (P1)**
-    -   **Description:** Orders from external platforms (like YemekSepeti) paid by card were sometimes incorrectly saved as online.
-    -   **Attempted fixes:** The agent correctly identified that the raw Adisyo payload was not being saved to the database. A fix was implemented in  to store the payload in an  field and to simplify the payment mapping logic to rely solely on .
-    -   **Next debug checklist:** The Adisyo API was returning a  error in the preview environment, preventing new orders from being processed and the fix from being verified. The next agent should first check if the Adisyo integration is working. If so, monitor new orders and inspect the  field in the database for any orders with incorrect payment methods to validate the fix.
-    -   **Why fix this issue and what will be achieved with the fix?** Ensures financial data accuracy, which is critical for all accounting and reporting features.
+-   **Issue 1: Block Courier modal does not load the list of couriers (P0)**
+    -   **Description:** On the , when an admin clicks Engellenenler, the modal opens but fails to load the list of company couriers to block, despite the user confirming that couriers exist.
+    -   **Attempted fixes:** The agent identified and corrected a wrong API endpoint in . The path was changed from  to the correct . However, the user reports the issue is still present.
+    -   **Next debug checklist:**
+        1.  Verify the corrected API endpoint  is being called correctly from the frontend using browser developer tools or logs.
+        2.  Test the endpoint directly with  using a valid  to ensure the backend returns the expected courier list.
+        3.  Check the component's state management in  to see how the fetched data is being stored and rendered.
+        4.  Confirm there are no data-related issues in the test environment's  collection that might be causing an empty response.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a core part of the new courier blocking feature. Without the ability to select couriers, the feature is unusable.
     -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None.
+-   **Issue 2: Adisyo Payment Method Mapping Bug (P1)**
+    -   **Description:** Orders from external platforms paid by card were sometimes saved as online.
+    -   **Status:** IN PROGRESS (Verification is blocked as the Adisyo API was returning  in the preview environment).
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on other issue:** The Adisyo API endpoint appears to be non-functional in the preview environment.
--   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
-    -   **Description:** Location tracking and notifications may stop when the courier app is in the background. Not addressed in this session.
-    -   **Status:** USER VERIFICATION PENDING
+-   **Issue 3: Background Task Reliability (Notifications/Location) (P1)**
+    -   **Description:** Location tracking and notifications may stop when the courier app is in the background.
+    -   **Status:** NOT STARTED
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** both
--   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
-    -   **Description:** The collapsible courier lists on the mobile sidebar may not expand on click. Not addressed in this session.
-    -   **Status:** USER VERIFICATION PENDING
+-   **Issue 4: Mobile Sidebar Courier List Collapsible Bug (P1)**
+    -   **Description:** The collapsible courier lists on the mobile sidebar may not expand on click.
+    -   **Status:** NOT STARTED
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** frontend
 
 **In progress Task List**:
--   **Task 1: Refactor Courier Reports Feature (P0)**
-    -   **Where to resume:** Examine . Based on the user's request, consider splitting the logic for the Ödeme Raporu and Kazanç Raporu tabs into separate, smaller components within a new  directory to improve code organization and maintainability.
-    -   **What will be achieved with this?** The code will be cleaner, more modular, and consistent with the project's overall architecture.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** frontend
-    -   **Blocked on something:** None.
+- None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P0 - Implement Adisyo Webhooks:** Replace polling with real-time order updates to improve efficiency.
-    -   **P1 - Full Regression Test:** Perform a full regression test of the Günlük Mütabakat (Daily Reconciliation) workflow.
+    -   **P0 - Implement Adisyo Webhooks:** Replace polling with real-time order updates.
+    -   **P1 - Full Regression Test:** Perform a full regression test of all new features (courier blocking, bulk pickup, route optimization, earnings display).
 -   **Future Tasks:**
     -   **P1 - Re-enable & Enhance Chat System**
-    -   **P2 - Refactor Order History Pages:** Create a reusable  component from the code in  and .
+    -   **P2 - Refactor Order History Pages:** Create a reusable  component.
     -   **P2 - Dark Mode Implementation**
     -   **P3 - Motosikletim Feature Enhancements**
 
 **Completed work in this session**
--   **Feature: Courier Reports Section (Implemented)**
-    -   Created  with Ödeme Raporu and Kazanç Raporu tabs.
-    -   Added backend endpoints  and  in .
--   **Bug Fix: Adisyo Payment Mapping (Implemented, Verification Pending)**
-    -   Modified  to save the raw Adisyo payload () to the database.
-    -   Updated the  function to be more reliable.
--   **UI Refinement: Admin & Courier Panels (Completed)**
-    -   Redesigned the filter/summary sections of the admin report pages (, ) to be more compact.
-    -   Simplified the Eksik Fatura warning on the courier's accounting page ().
--   **UI Cleanup (Completed)**
-    -   Removed Finans buttons from  and .
-    -   Added Turkish translations to  for accounting actions.
--   **Technical Debt (Resolved)**
-    -   Fixed a login issue by identifying a password hash mismatch (SHA256 vs. bcrypt) and updating the user's password in the database.
+- **Bug Fix:** Correctly calculated and displayed mixed (split) payments in the Courier Payment Report.
+- **Feature:** Implemented a View Orders modal in the Admin Daily Reconciliation page ().
+- **Bug Fix:** Fixed the Admin Restaurant Reports backend () to accurately process mixed and modified payments.
+- **Feature:** Added courier earnings display on New Order and On The Way sections of the courier panel ().
+- **Bug Fix:** Corrected backend logic () to calculate and save the  upon courier assignment.
+- **Feature:** Greatly improved the route optimization algorithm in  using a hybrid Brute-Force/2-opt approach.
+- **Feature:** Implemented a Bulk Pickup feature for couriers to start multiple orders from the same restaurant ( and ).
+- **Feature:** Implemented the full stack for restaurant-based courier blocking ( and ).
 
 **Earlier issues found/mentioned but not fixed**
--   The two issues from the previous fork (Background Task Reliability, Mobile Sidebar Bug) remain pending and are tracked in the All Pending/In progress Issue list.
+- None that are not already tracked in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork:** Mobile file upload issue.
 -   **Recurrence count:** 5+
--   **Status:** NOT STARTED (Not addressed in this session).
+-   **Status:** NOT STARTED
 
 **Code Architecture**
-adisyo_raw
+
 
 **Key Technical Concepts**
--   **Defensive Programming:** Saving the  payload is a key defensive measure to ensure that even if the mapping logic fails, the original data from the third-party API is preserved for future debugging.
--   **Component Refactoring:** The user's final request highlights the importance of not just implementing features, but also structuring them correctly for long-term maintainability by breaking down large components.
--   **Debugging Authentication:** The agent successfully debugged a login failure by investigating the full authentication flow from frontend to backend, identifying a password hashing algorithm mismatch, and correcting the data in the database.
+-   **Route Optimization:** Moved from a naive Nearest Neighbor algorithm to a more robust hybrid approach. For small order counts (<=6), it uses **Brute Force** to guarantee the optimal route. For larger counts, it uses **Nearest Neighbor + 2-opt** to find a good-enough solution quickly by correcting path crossovers.
+-   **Entity-Specific Access Control:** Implemented logic to block certain entities (couriers) from accessing resources related to another entity (restaurants). This is handled by storing  in the  collection and checking this list during order assignment.
+-   **Bulk Operations:** Created a  API endpoint to update the status of multiple orders in a single atomic transaction, improving efficiency and user experience.
+-   **Complex Data Aggregation (MongoDB):** Refined MongoDB aggregation pipelines in  to handle complex conditional logic, such as summing  and  from the  sub-document for mixed payments.
 
 **key DB schema**
--   **orders collection:** A new field, , is now saved with each order document originating from Adisyo. This field stores the complete, unmodified JSON payload from the Adisyo API.
+-   **restaurants:**
+    -   : (Array of ObjectIds) Stores the s of couriers who are blocked from this restaurant.
+-   **orders:**
+    -   : (Number) The calculated earnings for the courier for this specific order. Now saved upon assignment.
 
 **All files of reference**
--    (New feature to be refactored)
--    (Contains the critical payment mapping fix)
--    (Contains the new courier report endpoints)
--    (Entry point for the new courier feature)
--    (Contains the updated UI for the invoice warning)
+-    (Contains the bug in the courier blocking modal)
+-    (Backend for courier blocking)
+-    (Contains the endpoint for fetching couriers)
+-    (Contains route optimization and bulk pickup logic)
+-    (Contains courier fee calculation and bulk pickup endpoint)
+-    (Contains the fixed logic for all financial reports)
 
 **Areas that need refactoring**:
--   **:** The immediate task is to refactor this new page into smaller, more reusable components as per the user's request.
--   ** & :** These two pages still share significant duplicate code and should be refactored to use a common, reusable table component.
+-   ** & :** The previously identified task to refactor these pages into a common table component is still pending.
 
 **key api endpoints**
--   **CREATED:** 
--   **CREATED:** 
+-   **CREATED:** : Sets multiple orders to on_the_way.
+-   **CREATED:** : Lists blocked couriers for a restaurant.
+-   **CREATED:** : Blocks a courier.
+-   **CREATED:** : Unblocks a courier.
+-   **MODIFIED:** : Now calculates and saves the .
+-   **MODIFIED:** : Now correctly calculates totals for mixed/modified payments.
+-   **CONFIRMED CORRECT PATH:** : Fetches all couriers for a company.
 
 **Critical Info for New Agent**
 -   **You must communicate in Turkish.**
--   Your first task (P0) is to act on the user's last request: **refactor the new courier reports page ()**. Split it into smaller, well-structured components to align with the project's design standards.
--   The task to prevent order assignment to offline/on-break couriers was **explicitly cancelled by the user**. Do not add it to your plan.
--   The Adisyo payment mapping fix has been implemented but not verified due to API errors in the preview environment. Don't try to fix the mapping again. Instead, if the Adisyo integration works, focus on verifying if the  data is being saved correctly on new orders.
+-   Your immediate priority (P0) is to **fix the bug in the Block Courier modal**. The user states that couriers exist, but the modal's list is empty. The API endpoint path was just corrected in the frontend, but the problem persists. You need to debug why the courier data is not being fetched or displayed correctly in .
+-   **Be aware of the test environment's limitations.** The previous agent noted that collections like  and  might be empty in the preview environment. This could be the root cause of the current bug. You may need to verify data exists or add test data to properly debug the feature.
+-   The correct endpoint to get all couriers for a company is .
 
 **documents and test reports created in this job**
--   None.
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Latest):** I forgot to ask you to preserve the design language and use separate files for the new courier reports. Is there anything that needs to be done? (Status: **PENDING - Current Task**)
-2.  **User:** New task: add a Reports tab to the *courier* dashboard with Payment Report and Earnings Report sub-tabs, including date filtering and specific data points. (Status: **Completed**)
-3.  **User:** The text Sarı satırlarda Eksik Yükle (On yellow rows, click 'Upload Missing') is unnecessary in the invoice warning. (Status: **Completed**)
-4.  **User:** The missing invoice warning on the courier panel is too crude and should be more minimal. (Status: **Completed**)
-5.  **User:** Regarding the Adisyo payment issue: I want to update existing incorrect orders. (Status: **Addressed** - Agent explained it's not possible without the original data).
-6.  **User:** Platform shouldn't matter; if the payment is card, it should show as card. Check the Furkan Oruç order specifically. (Status: **Addressed** - This led the agent to find the root cause: the raw Adisyo data wasn't being saved).
-7.  **User:** I see the online vs card issue. Can you explain the data? (Status: **Addressed** - Agent provided an initial analysis).
-8.  **User:** Ok, forget about blocking assignments to offline couriers. Let's investigate the Adisyo payment mapping bug. Check the logs for new orders. (Status: **Addressed**)
-9.  **User:** Remove the Finans buttons from the couriers and restaurants pages. (Status: **Completed**)
-10. **User:** The translations for  and  are missing on the Accounting > Movements tab. (Status: **Completed**)
+1.  **User:** Improve the route optimization; the current one isn't smart. (Status: **Completed**)
+2.  **User:** The Google Maps  parameter is being treated as a waypoint. (Status: **Completed**, implemented custom 2-opt algorithm instead)
+3.  **User:** Add a Pickup All button if a courier has multiple orders from the same restaurant. (Status: **Completed**)
+4.  **User:** The Pickup All button is too colorful and says hazır. Change it to blue tones and remove the word hazır. (Status: **Completed**)
+5.  **User:** Add a feature to block couriers from specific restaurants. (Status: **In Progress**)
+6.  **User:** I'm getting an error Engellenen kuryeler yüklenemedi and the courier list is empty in the new modal. (Status: **In Progress**)
+7.  **User (LATEST & PENDING):** Şirkette kayıtlı kurye var. (There are couriers registered in the company.) (Status: **PENDING - This is the current debugging context.**)
 
 **Project Health Check:**
--   **Broken:** The Adisyo API integration is returning  in the preview environment, which blocks new orders from being fetched and prevents verification of the payment mapping fix.
+-   **Broken:**
+    -   The Adisyo API integration was returning  errors in a previous session, blocking verification of a related bug fix.
+    -   The preview environment may have inconsistent or missing data (e.g., empty  and  collections), which is likely causing the current bug with the Block Courier feature.
 -   **Mocked:** None.
 
 **3rd Party Integrations**
--   : Integrated via a polling mechanism. Currently experiencing  errors in the preview environment.
+-   : Integrated via a polling mechanism.
 -   
 -   
 -   
 -   
+-    (for routing via external URL)
 
 **Testing status**
--   Testing agent used after significant changes: NO
+-   Testing agent used after significant changes: YES (once, for the initial bug fix and modal feature)
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
--   Known regressions: None identified. The agent used screenshots and manual UI interaction to test all changes.
+-   Known regressions: None identified.
 
 **Credentials to test flow:**
 -   **Super Admin:** username: , password: 
--   **Courier:** The agent tested with a user named  after resetting its password to .
+-   **Courier:** phone: , password:  (and other couriers in DB)
 
 **What agent forgot to execute**
--   The agent was about to fulfill the user's final request (refactor the courier reports page) before the session ended. No other tasks were forgotten.</analysis>
+-   The agent did not forget any tasks but was in the middle of actively debugging a user-reported issue when the session concluded.</analysis>

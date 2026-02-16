@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mixed-payment-fix.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shiftjet-debug.preview.emergentagent.com')
 
 # Test credentials
 SUPER_ADMIN_USERNAME = "onurertas"
