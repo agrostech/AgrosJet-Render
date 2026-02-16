@@ -276,12 +276,19 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsList className="grid w-full grid-cols-5 mb-4">
               <TabsTrigger value="pending" className="flex items-center gap-2" data-testid="tab-pending">
                 <ClipboardList className="w-4 h-4" />
                 <span className="hidden sm:inline">Bekleyen</span>
                 {stats.pending > 0 && (
                   <Badge variant="secondary" className="ml-1">{stats.pending}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="scheduled" className="flex items-center gap-2" data-testid="tab-scheduled">
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">Programlı</span>
+                {stats.scheduled > 0 && (
+                  <Badge variant="secondary" className="ml-1">{stats.scheduled}</Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger value="on_the_way" className="flex items-center gap-2" data-testid="tab-on-the-way">
