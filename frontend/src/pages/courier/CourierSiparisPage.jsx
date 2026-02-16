@@ -266,54 +266,28 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       }
     }
     
-    // Siparişleri mesafeye göre sırala (Nearest Neighbor algoritması)
-    const sortedOrders = [];
-    const remaining = [...onTheWayOrders];
-    let currentLat = startLat;
-    let currentLng = startLng;
+    // Teslimat noktalarını topla
+    const deliveryPoints = onTheWayOrders
+      .filter(o => o.delivery_location?.latitude && o.delivery_location?.longitude)
+      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`);
     
-    while (remaining.length > 0) {
-      // En yakın siparişi bul
-      let nearestIdx = 0;
-      let nearestDist = Infinity;
-      
-      remaining.forEach((order, idx) => {
-        const orderLat = order.delivery_location?.latitude;
-        const orderLng = order.delivery_location?.longitude;
-        if (orderLat && orderLng) {
-          const dist = calculateDistance(currentLat, currentLng, orderLat, orderLng);
-          if (dist !== null && dist < nearestDist) {
-            nearestDist = dist;
-            nearestIdx = idx;
-          }
-        }
-      });
-      
-      // En yakını listeye ekle
-      const nearest = remaining.splice(nearestIdx, 1)[0];
-      sortedOrders.push(nearest);
-      
-      // Sonraki iterasyon için konumu güncelle
-      if (nearest.delivery_location?.latitude) {
-        currentLat = nearest.delivery_location.latitude;
-        currentLng = nearest.delivery_location.longitude;
-      }
+    if (deliveryPoints.length < 2) {
+      toast.error("Yeterli konum bilgisi yok");
+      return;
     }
     
     // Google Maps URL oluştur
-    // Format: https://www.google.com/maps/dir/?api=1&origin=LAT,LNG&destination=LAT,LNG&waypoints=LAT,LNG|LAT,LNG&travelmode=driving
+    // optimize:true ile Google en kısa rotayı hesaplar
     const origin = `${startLat},${startLng}`;
-    const destination = `${sortedOrders[sortedOrders.length - 1].delivery_location.latitude},${sortedOrders[sortedOrders.length - 1].delivery_location.longitude}`;
+    const destination = deliveryPoints[deliveryPoints.length - 1];
     
-    // Ara noktalar (son nokta hariç)
-    const waypoints = sortedOrders
-      .slice(0, -1)
-      .map(o => `${o.delivery_location.latitude},${o.delivery_location.longitude}`)
-      .join("|");
+    // Ara noktalar - Google'a optimize ettir
+    const waypoints = deliveryPoints.slice(0, -1).join("|");
     
     let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
     if (waypoints) {
-      mapsUrl += `&waypoints=${waypoints}`;
+      // optimize:true - Google Maps rotayı optimize eder
+      mapsUrl += `&waypoints=optimize:true|${waypoints}`;
     }
     
     // Google Maps'i aç
