@@ -484,7 +484,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                 />
                 <Label htmlFor="scheduled" className="flex items-center gap-2 cursor-pointer">
                   <Clock className="w-4 h-4" />
-                  Programlı Teslimat
+                  İleri Tarihli Teslimat
                 </Label>
               </div>
               
