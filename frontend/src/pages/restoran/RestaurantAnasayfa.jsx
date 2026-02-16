@@ -388,7 +388,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     }
                                   }}
                                 >
-                                  <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-1.5 py-0.5 h-7 border border-slate-300/50 shadow-sm w-full`}>
+                                  <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
                                     <SelectValue>
                                       {order.status === 'preparing' && order.preparation_end_at
                                         ? getCountdown(order.preparation_end_at)?.text
