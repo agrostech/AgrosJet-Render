@@ -300,7 +300,24 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="new-order-modal">
+      <DialogContent 
+        className="max-w-3xl max-h-[90vh] overflow-y-auto" 
+        data-testid="new-order-modal"
+        onInteractOutside={(e) => {
+          // Prevent modal close when clicking on Google Places autocomplete dropdown
+          const target = e.target;
+          if (target.closest('.pac-container') || target.classList.contains('pac-item') || target.classList.contains('pac-item-query')) {
+            e.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          // Also prevent on pointer down for pac-container clicks
+          const target = e.target;
+          if (target.closest('.pac-container') || target.classList.contains('pac-item') || target.classList.contains('pac-item-query')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Phone className="w-5 h-5" />
