@@ -842,9 +842,16 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               </SelectTrigger>
                               <SelectContent className="min-w-[280px]">
                                 {(() => {
-                                  const sortedActive = sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders);
-                                  const sortedOnBreak = sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders);
-                                  const sortedOffline = couriersByStatus.offline || [];
+                                  // Get blocked couriers for this restaurant
+                                  const restaurant = restaurants.find(r => r.id === order.restaurant_id);
+                                  const blockedCourierIds = new Set(restaurant?.blocked_couriers || []);
+                                  
+                                  // Filter out blocked couriers
+                                  const filterBlocked = (courierList) => courierList.filter(c => !blockedCourierIds.has(c.id));
+                                  
+                                  const sortedActive = filterBlocked(sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders));
+                                  const sortedOnBreak = filterBlocked(sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders));
+                                  const sortedOffline = filterBlocked(couriersByStatus.offline || []);
                                   
                                   const renderCourierItem = (c, showDistance = true) => (
                                     <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white pr-10">
