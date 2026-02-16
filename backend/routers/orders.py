@@ -497,7 +497,7 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
         )
     
     # Sadece belirli durumlar değiştirilebilir
-    allowed_statuses = ["pending", "preparing", "ready", "scheduled"]
+    allowed_statuses = ["pending", "preparing", "ready", "scheduled", "on_the_way", "delivered"]
     if data.status not in allowed_statuses:
         raise HTTPException(
             status_code=400, 
