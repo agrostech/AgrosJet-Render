@@ -424,11 +424,19 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     <Bike className="w-3 h-3" />
                                     {order.courier_name}
                                   </span>
-                                  {order.courier_phone && (
-                                    <a href={`tel:${order.courier_phone}`} className="text-muted-foreground font-mono hover:text-primary block mt-0.5 pl-1 text-[11px]">
-                                      {order.courier_phone}
-                                    </a>
-                                  )}
+                                  <div className="flex items-center gap-2 mt-0.5 pl-1">
+                                    {order.courier_phone && (
+                                      <a href={`tel:${order.courier_phone}`} className="text-muted-foreground font-mono hover:text-primary text-[11px]">
+                                        {order.courier_phone}
+                                      </a>
+                                    )}
+                                    {order.courier_location && !['on_the_way', 'delivered', 'cancelled'].includes(order.status) && (() => {
+                                      const eta = getEstimatedArrival(order.courier_location, order.restaurant_location);
+                                      return eta ? (
+                                        <span className="text-blue-600 text-[10px]">{eta.text}</span>
+                                      ) : null;
+                                    })()}
+                                  </div>
                                 </div>
                               ) : (
                                 <span className="text-xs text-muted-foreground">-</span>
