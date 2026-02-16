@@ -348,13 +348,13 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
             {/* Delivery Address with Google Places Autocomplete */}
             <div className="space-y-2">
-              <Label htmlFor="delivery-address" className="flex items-center gap-2">
+              <Label htmlFor={addressInputId} className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
                 Teslimat Adresi *
               </Label>
-              <Input
-                ref={inputRef}
-                id="delivery-address"
+              <input
+                id={addressInputId}
+                type="text"
                 value={deliveryAddress}
                 onChange={(e) => {
                   setDeliveryAddress(e.target.value);
@@ -363,6 +363,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                 placeholder="Adres aramak için yazmaya başlayın..."
                 data-testid="delivery-address-input"
                 autoComplete="off"
+                className="flex h-9 w-full border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               />
               {deliveryLocation && (
                 <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
