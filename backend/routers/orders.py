@@ -479,6 +479,23 @@ async def get_orders_by_restaurant(restaurant_id: str, limit: int = 100):
     
     orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
     
+    # Kurye bilgilerini zenginleştir (telefon ve konum)
+    courier_ids = list(set(o.get("courier_id") for o in orders if o.get("courier_id")))
+    
+    if courier_ids:
+        couriers = await db.couriers.find(
+            {"id": {"$in": courier_ids}},
+            {"_id": 0, "id": 1, "phone": 1, "current_location": 1}
+        ).to_list(100)
+        
+        courier_map = {c["id"]: c for c in couriers}
+        
+        for order in orders:
+            if order.get("courier_id") and order["courier_id"] in courier_map:
+                courier = courier_map[order["courier_id"]]
+                order["courier_phone"] = courier.get("phone")
+                order["courier_location"] = courier.get("current_location")
+    
     return orders
 
 
