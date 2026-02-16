@@ -435,6 +435,27 @@ async def get_orders(
     return orders
 
 
+@router.get("/restaurant/{restaurant_id}")
+async def get_orders_by_restaurant(restaurant_id: str, limit: int = 100):
+    """Restorana ait siparişleri getir - Restoran paneli için"""
+    # Today's start
+    from datetime import datetime, timezone, timedelta
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Bugünkü ve aktif siparişleri getir
+    query = {
+        "restaurant_id": restaurant_id,
+        "$or": [
+            {"status": {"$nin": ["delivered", "cancelled"]}},  # Aktif siparişler
+            {"created_at": {"$gte": today_start.isoformat()}}  # Bugün oluşturulanlar
+        ]
+    }
+    
+    orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
+    
+    return orders
+
+
 # --- Mock Data Endpoints (order_id'den önce olmalı) ---
 
 @router.post("/{company_id}/generate-mock")
