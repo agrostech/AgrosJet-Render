@@ -1,0 +1,122 @@
+{
+  "summary": "Tested Manuel Telefon Siparişi (Manual Order Creation) feature for ShiftJet Restoran Paneli. All features working correctly including normal order creation, scheduled order creation with 30-minute buffer, product selection, cart management, and order status tabs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_manual_orders.py",
+    "/app/test_reports/pytest/manual_orders_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_manual_orders.py"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100%"
+  },
+  "tested_features": {
+    "yeni_siparis_button": {
+      "status": "PASS",
+      "details": [
+        "✓ 'Yeni Sipariş' button visible at top-right of Anasayfa dashboard",
+        "✓ Button has correct data-testid='new-order-btn'",
+        "✓ Clicking opens NewOrderModal component"
+      ]
+    },
+    "new_order_modal": {
+      "status": "PASS",
+      "details": [
+        "✓ Modal opens with title 'Yeni Telefon Siparişi'",
+        "✓ Modal has data-testid='new-order-modal'",
+        "✓ All form fields present: Müşteri Adı, Telefon, Teslimat Adresi, Sipariş Notu",
+        "✓ Payment method buttons: Nakit, Kart, Online",
+        "✓ Product selection section with categories and products",
+        "✓ Cart (Sepet) with quantity controls (+/-) and delete"
+      ]
+    },
+    "product_loading": {
+      "status": "PASS",
+      "details": [
+        "✓ Products API /api/products/restaurant/{restaurant_id} returns correct data",
+        "✓ Products grouped by category (Ana Yemekler)",
+        "✓ Product 'Döner' with price ₺150 displayed correctly"
+      ]
+    },
+    "cart_management": {
+      "status": "PASS",
+      "details": [
+        "✓ Clicking product adds to cart",
+        "✓ Cart shows 'Sepet (n)' with item count",
+        "✓ Quantity can be increased/decreased",
+        "✓ Items can be removed from cart",
+        "✓ Total amount calculated correctly (e.g., ₺150 × 2 = ₺300)"
+      ]
+    },
+    "programli_teslimat_checkbox": {
+      "status": "PASS",
+      "details": [
+        "✓ 'Programlı Teslimat' checkbox with data-testid='scheduled-checkbox'",
+        "✓ When checked, Date (Tarih) and Time (Saat) fields appear",
+        "✓ Fields have correct data-testid: scheduled-date-input, scheduled-time-input",
+        "✓ Note displayed: 'Sipariş belirtilen saatten 30 dk önce hazırlanmaya başlar'"
+      ]
+    },
+    "normal_order_creation": {
+      "status": "PASS",
+      "details": [
+        "✓ POST /api/orders/manual creates order with status='preparing'",
+        "✓ Order appears in 'Bekleyen' tab immediately",
+        "✓ Order number format: TEL-XXXX",
+        "✓ Order marked with 'Tel' badge indicating phone order",
+        "✓ Toast notification: 'Sipariş başarıyla oluşturuldu'"
+      ]
+    },
+    "scheduled_order_creation": {
+      "status": "PASS",
+      "details": [
+        "✓ POST /api/orders/manual with is_scheduled=true creates order with status='scheduled'",
+        "✓ 30-minute buffer applied: preparation_end_at = scheduled_time - 30 minutes",
+        "✓ Order appears in 'Programlı' tab",
+        "✓ 'Teslimat Zamanı' column shows scheduled date/time",
+        "✓ 'Hazırlamaya Başla' button available in Programlı tab",
+        "✓ Status history shows 'Programlı Sipariş' label"
+      ]
+    },
+    "order_tabs": {
+      "status": "PASS",
+      "details": [
+        "✓ Bekleyen tab shows pending/preparing orders",
+        "✓ Programlı tab shows scheduled orders with scheduled_time column",
+        "✓ Tab badges show correct counts",
+        "✓ All tabs have correct data-testid attributes"
+      ]
+    }
+  },
+  "test_credentials": {
+    "restaurant_user": {
+      "username": "testrestaurant",
+      "password": "password123",
+      "restaurant_id": "rest_c9c5cb06"
+    },
+    "test_product": {
+      "product_id": "prod_e0442046",
+      "category_id": "cat_18d696d5"
+    }
+  },
+  "seed_data_creation": "Multiple test orders created during testing with prefix 'TEST_' in customer names. Manual orders created via API and UI.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Manuel sipariş oluşturma (Yeni Sipariş) özelliği tam olarak test edildi. Backend API (/api/orders/manual) ve Frontend modal (NewOrderModal.jsx) düzgün çalışıyor. Normal siparişler 'preparing' durumunda, programlı siparişler 'scheduled' durumunda oluşturuluyor. 30 dakikalık hazırlık tamponu doğru şekilde uygulanıyor.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
