@@ -379,7 +379,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                   setDeliveryAddress(e.target.value);
                   setDeliveryLocation(null);
                 }}
-                placeholder="Adres aramak için yazmaya başlayın..."
+                placeholder="Sokak ve bina numarası veya kurum/site adı girin"
                 data-testid="delivery-address-input"
                 autoComplete="off"
                 className="flex h-9 w-full border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
@@ -399,6 +399,20 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                   </a>
                 </div>
               )}
+            </div>
+
+            {/* Address Details */}
+            <div className="space-y-2">
+              <Label htmlFor="address-details">
+                Adres Detayları
+              </Label>
+              <Input
+                id="address-details"
+                value={addressDetails}
+                onChange={(e) => setAddressDetails(e.target.value)}
+                placeholder="Apartman / Site Adı, Kat ve Daire Girin"
+                data-testid="address-details-input"
+              />
             </div>
 
             {/* Payment Method */}
