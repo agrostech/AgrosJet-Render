@@ -255,6 +255,58 @@ export default function LoginPage() {
                 </div>
               </form>
             </TabsContent>
+
+            <TabsContent value="restaurant">
+              <form onSubmit={handleRestaurantLogin} className="space-y-4">
+                <div>
+                  <Label htmlFor="restaurant-username" className="text-sm font-semibold">
+                    Kullanıcı Adı
+                  </Label>
+                  <Input
+                    id="restaurant-username"
+                    data-testid="restaurant-username-input"
+                    type="text"
+                    value={restaurantData.username}
+                    onChange={(e) => setRestaurantData({ ...restaurantData, username: e.target.value })}
+                    className="mt-1 h-12 border-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="restaurant-password" className="text-sm font-semibold">
+                    Şifre
+                  </Label>
+                  <Input
+                    id="restaurant-password"
+                    data-testid="restaurant-password-input"
+                    type="password"
+                    value={restaurantData.password}
+                    onChange={(e) => setRestaurantData({ ...restaurantData, password: e.target.value })}
+                    className="mt-1 h-12 border-2"
+                    required
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  data-testid="restaurant-login-btn"
+                  className="w-full h-12 font-semibold"
+                  disabled={loading}
+                >
+                  {loading ? "Yükleniyor..." : "Giriş Yap"}
+                </Button>
+                <div className="flex items-center gap-2 mt-2">
+                  <Checkbox 
+                    id="rememberRestaurant" 
+                    checked={rememberRestaurant}
+                    onCheckedChange={setRememberRestaurant}
+                    data-testid="remember-restaurant-checkbox"
+                  />
+                  <Label htmlFor="rememberRestaurant" className="text-sm text-muted-foreground cursor-pointer">
+                    Beni Hatırla
+                  </Label>
+                </div>
+              </form>
+            </TabsContent>
           </Tabs>
 
           {/* Footer */}
