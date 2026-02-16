@@ -41,7 +41,14 @@ export default function RestoranlarPage({ companyId }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showIntegrationModal, setShowIntegrationModal] = useState(false);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  
+  // Blocked couriers state
+  const [blockedCouriers, setBlockedCouriers] = useState([]);
+  const [allCouriers, setAllCouriers] = useState([]);
+  const [loadingBlocked, setLoadingBlocked] = useState(false);
+  const [selectedCourierToBlock, setSelectedCourierToBlock] = useState("");
   
   // Pricing state
   const [pricingType, setPricingType] = useState("per_package");
