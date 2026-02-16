@@ -117,7 +117,7 @@ export default function LoginPage() {
           </p>
 
           <Tabs defaultValue="courier" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 bg-secondary">
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-secondary">
               <TabsTrigger 
                 value="courier" 
                 data-testid="courier-tab"
@@ -131,6 +131,13 @@ export default function LoginPage() {
                 className="font-semibold text-sm"
               >
                 Yönetici
+              </TabsTrigger>
+              <TabsTrigger 
+                value="restaurant" 
+                data-testid="restaurant-tab"
+                className="font-semibold text-sm"
+              >
+                Restoran
               </TabsTrigger>
             </TabsList>
 
