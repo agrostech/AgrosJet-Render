@@ -37,6 +37,35 @@ def calculate_distance(restaurant_location: dict, delivery_location: dict) -> fl
     return R * c
 
 
+def calculate_preparation_time(restaurant: dict, order_items: list) -> int:
+    """
+    Sipariş için toplam hazırlık süresini hesapla.
+    
+    Mantık:
+    - Standart hazırlık süresi + En uzun ürün bazlı ekstra süre
+    - Örnek: Standart 15 dk + max(Lahmacun 10 dk, Pide 8 dk) = 15 + 10 = 25 dk
+    """
+    standard_time = restaurant.get("preparation_time", 15)
+    product_times = restaurant.get("product_preparation_times", {})
+    
+    if not product_times or not order_items:
+        return standard_time
+    
+    # Siparişteki ürünlerin ekstra sürelerini topla
+    extra_times = []
+    for item in order_items:
+        product_id = item.get("product_id") or item.get("id")
+        if product_id and str(product_id) in product_times:
+            extra_time = product_times[str(product_id)]
+            if extra_time and extra_time > 0:
+                extra_times.append(extra_time)
+    
+    # En uzun ekstra süreyi ekle (birden fazla ürün varsa sadece en uzun olan)
+    max_extra = max(extra_times) if extra_times else 0
+    
+    return standard_time + max_extra
+
+
 def calculate_fee_from_pricing(pricing_type: str, per_package_price: float, km_ranges: list, distance_km: float) -> float:
     """Ücretlendirme ayarına göre ücret hesapla"""
     if pricing_type == "per_package":
