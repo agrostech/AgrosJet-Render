@@ -175,6 +175,31 @@ export const formatCourierDistance = (distance) => {
   return `${distance.toFixed(1)} km`;
 };
 
+// Kuryenin tahmini restoran varış süresini hesapla (dakika)
+export const getEstimatedArrival = (courierLocation, restaurantLocation) => {
+  if (!courierLocation || !restaurantLocation) return null;
+  
+  const courierLat = courierLocation.latitude || courierLocation.lat;
+  const courierLng = courierLocation.longitude || courierLocation.lng;
+  const restLat = restaurantLocation.latitude || restaurantLocation.lat;
+  const restLng = restaurantLocation.longitude || restaurantLocation.lng;
+  
+  if (!courierLat || !courierLng || !restLat || !restLng) return null;
+  
+  const distance = calculateDistance(courierLat, courierLng, restLat, restLng);
+  if (distance === null) return null;
+  
+  // Ortalama hız: 25 km/saat (şehir içi motorsiklet)
+  const avgSpeedKmH = 25;
+  const estimatedMinutes = Math.ceil((distance / avgSpeedKmH) * 60);
+  
+  return {
+    distance: distance,
+    minutes: estimatedMinutes,
+    text: estimatedMinutes <= 1 ? "~1 dk" : `~${estimatedMinutes} dk`
+  };
+};
+
 // Sipariş süresi hesapla (dakika cinsinden)
 export const getOrderAge = (order) => {
   if (!order.created_at) return null;
