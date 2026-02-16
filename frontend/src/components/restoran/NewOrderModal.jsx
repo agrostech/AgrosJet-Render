@@ -64,6 +64,41 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
   // Google Places Autocomplete ref
   const autocompleteRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Initialize Google Places Autocomplete when modal opens
+  useEffect(() => {
+    if (open && inputRef.current && window.google && window.google.maps) {
+      // Autocomplete zaten oluşturulmuşsa tekrar oluşturma
+      if (autocompleteRef.current) return;
+
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+        componentRestrictions: { country: "tr" },
+        types: ["geocode", "establishment"],
+        fields: ["formatted_address", "geometry", "name"],
+      });
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry && place.geometry.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          setDeliveryAddress(place.formatted_address || place.name);
+          setDeliveryLocation({ lat, lng });
+        }
+      });
+
+      autocompleteRef.current = autocomplete;
+    }
+
+    // Cleanup
+    return () => {
+      if (!open && autocompleteRef.current) {
+        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
+      }
+    };
+  }, [open]);
 
   // Load products when modal opens
   useEffect(() => {
