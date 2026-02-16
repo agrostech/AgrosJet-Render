@@ -94,9 +94,13 @@ export default function RestaurantDashboard() {
   };
 
   // Update order status
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+  const handleUpdateOrderStatus = async (orderId, newStatus, preparationTime = null) => {
     try {
-      await axios.put(`${API}/orders/${orderId}/status`, { status: newStatus });
+      const payload = { status: newStatus };
+      if (preparationTime) {
+        payload.preparation_time = preparationTime;
+      }
+      await axios.put(`${API}/orders/${orderId}/status`, payload);
       toast.success("Sipariş durumu güncellendi");
       fetchOrders();
     } catch (err) {
