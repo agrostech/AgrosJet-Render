@@ -41,6 +41,31 @@ class SaveProductsRequest(BaseModel):
     products: List[ScrapedProduct]
 
 
+class CategoryCreate(BaseModel):
+    name: str
+    restaurant_id: str
+
+
+class CategoryUpdate(BaseModel):
+    name: str
+
+
+class ProductCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float
+    category_id: str
+    restaurant_id: str
+
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    category_id: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
 class Category(BaseModel):
     id: str
     name: str
