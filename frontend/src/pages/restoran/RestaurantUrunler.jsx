@@ -57,6 +57,7 @@ export default function RestaurantUrunler({ restaurantId }) {
   const [productDialog, setProductDialog] = useState({ open: false, mode: 'create', data: null });
   const [deleteItemDialog, setDeleteItemDialog] = useState({ open: false, type: null, item: null });
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [menuImportOpen, setMenuImportOpen] = useState(false);
 
   // Form States
   const [categoryForm, setCategoryForm] = useState({ name: '' });
