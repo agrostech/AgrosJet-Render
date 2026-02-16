@@ -212,6 +212,45 @@ export default function KuryelerPage({ companyId }) {
     setKmRanges(newRanges);
   };
 
+  // Ödeme yöntemleri modalını aç
+  const openPaymentMethodsModal = async (courier) => {
+    setSelectedCourier(courier);
+    try {
+      const res = await axios.get(`${API}/couriers/${courier.id}/payment-methods`);
+      setAllowedPaymentMethods(res.data.allowed_payment_methods || ["cash", "card", "online"]);
+    } catch (err) {
+      setAllowedPaymentMethods(["cash", "card", "online"]);
+    }
+    setShowPaymentMethodsModal(true);
+  };
+
+  // Ödeme yöntemleri kaydet
+  const handleSavePaymentMethods = async () => {
+    try {
+      await axios.put(`${API}/couriers/${selectedCourier.id}/payment-methods`, {
+        allowed_payment_methods: allowedPaymentMethods
+      });
+      toast.success("Ödeme yöntemleri kaydedildi");
+      setShowPaymentMethodsModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Ödeme yöntemleri kaydedilemedi");
+    }
+  };
+
+  // Ödeme yöntemi toggle
+  const togglePaymentMethod = (method) => {
+    if (allowedPaymentMethods.includes(method)) {
+      // En az 1 yöntem açık kalmalı
+      if (allowedPaymentMethods.length > 1) {
+        setAllowedPaymentMethods(allowedPaymentMethods.filter(m => m !== method));
+      } else {
+        toast.error("En az bir ödeme yöntemi açık olmalı");
+      }
+    } else {
+      setAllowedPaymentMethods([...allowedPaymentMethods, method]);
+    }
+  };
+
   const handleEdit = async (courierId, data) => {
     try {
       await updateCourier(courierId, data);
