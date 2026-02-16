@@ -114,7 +114,9 @@ export default function RestoranlarPage({ companyId }) {
       const res = await axios.get(`${API}/restaurants/${restaurant.id}/blocked-couriers`);
       setBlockedCouriers(res.data);
     } catch (err) {
-      toast.error("Engellenen kuryeler yüklenemedi");
+      // Restoran bulunamadı demek DB'de sorun var, ama modal açılsın
+      console.error("Engellenen kuryeler yüklenemedi:", err);
+      setBlockedCouriers([]);
     } finally {
       setLoadingBlocked(false);
     }
