@@ -72,6 +72,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     switch (activeTab) {
       case "pending":
         return orders.filter(o => o.status === "pending" || o.status === "preparing");
+      case "scheduled":
+        return orders.filter(o => o.status === "scheduled");
       case "on_the_way":
         return orders.filter(o => o.status === "on_the_way");
       case "delivered":
