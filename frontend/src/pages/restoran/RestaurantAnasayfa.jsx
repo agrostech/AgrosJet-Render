@@ -379,45 +379,54 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
                             <td className="p-2">{getPaymentBadge(order.payment_method)}</td>
                             <td className="p-2">
-                              <Select 
-                                value={order.status} 
-                                onValueChange={(newValue) => {
-                                  if (newValue.startsWith('preparing_')) {
-                                    onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
-                                  } else {
-                                    onUpdateStatus(order.id, newValue);
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
-                                  <SelectValue>
-                                    {order.status === 'preparing' && order.preparation_end_at
-                                      ? getCountdown(order.preparation_end_at)?.text
-                                      : statusInfo.label}
-                                  </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                                  {PREPARATION_TIMES.map(time => (
-                                    <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
-                                      {time.label}
-                                    </SelectItem>
-                                  ))}
-                                  <div className="border-t my-1" />
-                                  {Object.entries(ORDER_STATUSES)
-                                    .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                                    .map(([key, value]) => (
-                                    <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              {/* Kurye atandıysa veya teslim/iptal ise dropdown pasif */}
+                              {order.courier_id || order.status === 'delivered' || order.status === 'cancelled' ? (
+                                <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 min-w-[90px] inline-block text-center opacity-70`}>
+                                  {statusInfo.label}
+                                </span>
+                              ) : (
+                                <Select 
+                                  value={order.status} 
+                                  onValueChange={(newValue) => {
+                                    if (newValue.startsWith('preparing_')) {
+                                      onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
+                                    } else {
+                                      onUpdateStatus(order.id, newValue);
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
+                                    <SelectValue>
+                                      {order.status === 'preparing' && order.preparation_end_at
+                                        ? getCountdown(order.preparation_end_at)?.text
+                                        : statusInfo.label}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                                    {PREPARATION_TIMES.map(time => (
+                                      <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
+                                        {time.label}
+                                      </SelectItem>
+                                    ))}
+                                    <div className="border-t my-1" />
+                                    <SelectItem value="on_the_way" className="text-xs">Yolda</SelectItem>
+                                    <SelectItem value="delivered" className="text-xs">Teslim Edildi</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
                             </td>
                             <td className="p-2">
                               {order.courier_name ? (
-                                <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded font-medium flex items-center gap-1 w-fit">
-                                  <Bike className="w-3 h-3" />
-                                  {order.courier_name}
-                                </span>
+                                <div className="text-xs">
+                                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium flex items-center gap-1 w-fit">
+                                    <Bike className="w-3 h-3" />
+                                    {order.courier_name}
+                                  </span>
+                                  {order.courier_phone && (
+                                    <div className="text-muted-foreground font-mono mt-1 pl-1">{order.courier_phone}</div>
+                                  )}
+                                </div>
                               ) : (
                                 <span className="text-xs text-muted-foreground">-</span>
                               )}
