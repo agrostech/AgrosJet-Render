@@ -331,11 +331,11 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                       <tr className="border-b-2 border-primary">
                         <th className="text-left p-2 font-bold text-xs w-[60px]">Zaman</th>
                         <th className="text-left p-2 font-bold text-xs w-[120px]">Müşteri</th>
-                        <th className="text-left p-2 font-bold text-xs w-[200px]">Adres</th>
+                        <th className="text-left p-2 font-bold text-xs w-[220px]">Adres</th>
                         <th className="text-left p-2 font-bold text-xs w-[70px]">Mesafe</th>
                         <th className="text-left p-2 font-bold text-xs w-[90px]">Ücret</th>
                         <th className="text-left p-2 font-bold text-xs w-[70px]">Ödeme</th>
-                        <th className="text-left p-2 font-bold text-xs w-[110px]">Durum</th>
+                        <th className="text-left p-2 font-bold text-xs w-[95px]">Durum</th>
                         <th className="text-left p-2 font-bold text-xs w-[130px]">Kurye</th>
                       </tr>
                     </thead>
