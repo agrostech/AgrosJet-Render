@@ -162,6 +162,56 @@ export default function RestoranlarPage({ companyId }) {
     }
   };
 
+  // Restaurant Users Management
+  const openUsersModal = async (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setShowUsersModal(true);
+    setLoadingUsers(true);
+    setNewUserData({ username: "", password: "", name: "" });
+    try {
+      const res = await axios.get(`${API}/restaurant-users/restaurant/${restaurant.id}`);
+      setRestaurantUsers(res.data);
+    } catch (err) {
+      console.error("Kullanıcılar yüklenemedi:", err);
+      setRestaurantUsers([]);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserData.username || !newUserData.password || !newUserData.name) {
+      toast.error("Tüm alanları doldurun");
+      return;
+    }
+    try {
+      await axios.post(`${API}/restaurant-users`, {
+        ...newUserData,
+        restaurant_id: selectedRestaurant.id
+      });
+      toast.success("Kullanıcı oluşturuldu");
+      // Refresh list
+      const res = await axios.get(`${API}/restaurant-users/restaurant/${selectedRestaurant.id}`);
+      setRestaurantUsers(res.data);
+      setNewUserData({ username: "", password: "", name: "" });
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kullanıcı oluşturulamadı");
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) return;
+    try {
+      await axios.delete(`${API}/restaurant-users/${userId}`);
+      toast.success("Kullanıcı silindi");
+      // Refresh list
+      const res = await axios.get(`${API}/restaurant-users/restaurant/${selectedRestaurant.id}`);
+      setRestaurantUsers(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kullanıcı silinemedi");
+    }
+  };
+
   // Filtered restaurants by tab
   const activeRestaurants = restaurants.filter(r => !r.is_archived);
   const archivedRestaurants = restaurants.filter(r => r.is_archived);
