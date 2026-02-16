@@ -127,6 +127,10 @@ class OrderAssign(BaseModel):
     admin_name: Optional[str] = None
 
 
+class BulkPickupRequest(BaseModel):
+    order_ids: List[str]
+
+
 class OrderStatusUpdate(BaseModel):
     status: str  # preparing, ready, assigned, on_the_way, delivered, cancelled
     preparation_time: Optional[int] = None  # Hazırlanıyor durumu için süre (dakika)
