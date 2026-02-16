@@ -514,3 +514,41 @@ async def get_courier_pricing(courier_id: str):
         "per_package_price": courier.get("per_package_price"),
         "km_ranges": courier.get("km_ranges")
     }
+
+
+
+# --- Kurye Ödeme Yöntemleri ---
+class PaymentMethodsUpdate(BaseModel):
+    allowed_payment_methods: List[str]  # ["cash", "card", "online"]
+
+
+@router.get("/couriers/{courier_id}/payment-methods")
+async def get_courier_payment_methods(courier_id: str):
+    """Kuryenin taşıyabileceği ödeme yöntemlerini getir"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "allowed_payment_methods": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Varsayılan olarak tüm ödeme yöntemleri açık
+    return {
+        "allowed_payment_methods": courier.get("allowed_payment_methods", ["cash", "card", "online"])
+    }
+
+
+@router.put("/couriers/{courier_id}/payment-methods")
+async def update_courier_payment_methods(courier_id: str, data: PaymentMethodsUpdate):
+    """Kuryenin taşıyabileceği ödeme yöntemlerini güncelle"""
+    valid_methods = ["cash", "card", "online"]
+    for method in data.allowed_payment_methods:
+        if method not in valid_methods:
+            raise HTTPException(status_code=400, detail=f"Geçersiz ödeme yöntemi: {method}")
+    
+    result = await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"allowed_payment_methods": data.allowed_payment_methods}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    return {"message": "Ödeme yöntemleri güncellendi"}
