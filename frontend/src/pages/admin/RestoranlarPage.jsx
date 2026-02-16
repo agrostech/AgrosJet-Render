@@ -659,20 +659,24 @@ export default function RestoranlarPage({ companyId }) {
                 </Button>
               </div>
               
-              {/* Row 2: Engellenenler, Entegrasyonlar */}
+              {/* Row 2: Kullanıcılar, Engellenenler */}
               <div className="flex gap-2 mb-2">
+                <Button size="sm" variant="outline" onClick={() => openUsersModal(restaurant)} className="flex-1 border-2">
+                  <Users className="w-4 h-4 mr-1" />
+                  <span className="text-xs">Kullanıcılar</span>
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => openBlockedModal(restaurant)} className="flex-1 border-2">
                   <UserX className="w-4 h-4 mr-1" />
                   <span className="text-xs">Engellenenler</span>
                 </Button>
+              </div>
+              
+              {/* Row 3: Entegrasyonlar, Arşiv */}
+              <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="flex-1 border-2">
                   <Plug className="w-4 h-4 mr-1" />
                   <span className="text-xs">Entegrasyonlar</span>
                 </Button>
-              </div>
-              
-              {/* Row 3: Arşiv */}
-              <div className="flex gap-2 mb-2">
                 <Button 
                   size="sm" 
                   variant="outline" 
@@ -684,7 +688,7 @@ export default function RestoranlarPage({ companyId }) {
                 </Button>
               </div>
               
-              {/* Row 3: Sil (only for archived) */}
+              {/* Row 4: Sil (only for archived) */}
               {restaurant.is_archived && (
                 <div className="flex gap-2">
                   <Button 
