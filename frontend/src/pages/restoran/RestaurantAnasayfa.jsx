@@ -98,6 +98,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const getStatusBadge = (status) => {
     const statusMap = {
       pending: { label: "Bekliyor", className: "bg-yellow-100 text-yellow-800" },
+      scheduled: { label: "Programlı", className: "bg-indigo-100 text-indigo-800" },
       preparing: { label: "Hazırlanıyor", className: "bg-blue-100 text-blue-800" },
       ready: { label: "Hazır", className: "bg-green-100 text-green-800" },
       assigned: { label: "Kurye Atandı", className: "bg-purple-100 text-purple-800" },
