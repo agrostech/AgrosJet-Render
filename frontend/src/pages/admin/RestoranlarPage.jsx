@@ -587,6 +587,10 @@ export default function RestoranlarPage({ companyId }) {
                         <span className="font-bold">₺</span>
                         <span className="ml-1 text-xs">Ücretlendirme</span>
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => openUsersModal(restaurant)} className="h-8 px-3 border-2" title="Kullanıcılar">
+                        <Users className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Kullanıcılar</span>
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => openBlockedModal(restaurant)} className="h-8 px-3 border-2" title="Engellenen Kuryeler">
                         <UserX className="w-4 h-4" />
                         <span className="ml-1 text-xs">Engellenenler</span>
