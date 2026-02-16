@@ -47,6 +47,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [addressDetails, setAddressDetails] = useState(""); // Apartman, kat, daire
   const [deliveryLocation, setDeliveryLocation] = useState(null); // {lat, lng}
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
