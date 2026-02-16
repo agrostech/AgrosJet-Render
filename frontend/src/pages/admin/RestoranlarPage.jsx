@@ -221,6 +221,59 @@ export default function RestoranlarPage({ companyId }) {
     }
   };
 
+  // Preparation Time Management
+  const openPreparationModal = async (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setShowPreparationModal(true);
+    setLoadingPreparation(true);
+    
+    try {
+      // Restoran ürünlerini çek
+      const productsRes = await axios.get(`${API}/restaurant-products/${restaurant.id}`);
+      const products = productsRes.data?.products || [];
+      setRestaurantProducts(products);
+      
+      // Mevcut hazırlık sürelerini yükle
+      setPreparationData({
+        standard_time: restaurant.preparation_time || 15,
+        product_times: restaurant.product_preparation_times || {}
+      });
+    } catch (err) {
+      console.error("Ürünler yüklenemedi:", err);
+      setRestaurantProducts([]);
+      setPreparationData({
+        standard_time: restaurant.preparation_time || 15,
+        product_times: {}
+      });
+    } finally {
+      setLoadingPreparation(false);
+    }
+  };
+
+  const handleSavePreparation = async () => {
+    try {
+      await axios.put(`${API}/restaurants/${selectedRestaurant.id}/preparation-times`, {
+        preparation_time: parseInt(preparationData.standard_time) || 15,
+        product_preparation_times: preparationData.product_times
+      });
+      toast.success("Hazırlık süreleri kaydedildi");
+      setShowPreparationModal(false);
+      fetchRestaurants();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    }
+  };
+
+  const updateProductTime = (productId, time) => {
+    setPreparationData(prev => ({
+      ...prev,
+      product_times: {
+        ...prev.product_times,
+        [productId]: time === "" ? null : parseInt(time) || 0
+      }
+    }));
+  };
+
   // Filtered restaurants by tab
   const activeRestaurants = restaurants.filter(r => !r.is_archived);
   const archivedRestaurants = restaurants.filter(r => r.is_archived);
