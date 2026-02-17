@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
-  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Plug, Wallet, UserX, UserPlus, Users, Clock
+  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Plug, Wallet, UserX, UserPlus, Users, Clock, Shield
 } from "lucide-react";
+import RestaurantPermissionsModal from "@/components/admin/RestaurantPermissionsModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
