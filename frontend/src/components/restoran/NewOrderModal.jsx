@@ -163,19 +163,41 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setScheduledDate("");
     setScheduledTime("");
     setSelectedItems([]);
+    setProductSearch("");
+    setSelectedCategory("all");
   };
 
-  // Group products by category
+  // Group products by category with search and filter
   const groupedProducts = useMemo(() => {
     const groups = {};
+    const searchLower = productSearch.toLowerCase().trim();
+    
     products.categories.forEach((cat) => {
-      groups[cat.id] = {
-        category: cat,
-        products: products.products.filter((p) => p.category_id === cat.id),
-      };
+      // Kategori filtresi
+      if (selectedCategory !== "all" && cat.id !== selectedCategory) {
+        return;
+      }
+      
+      // Bu kategorideki ürünleri filtrele
+      let categoryProducts = products.products.filter((p) => p.category_id === cat.id);
+      
+      // Arama filtresi
+      if (searchLower) {
+        categoryProducts = categoryProducts.filter((p) => 
+          p.name.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      // Sadece ürün varsa ekle
+      if (categoryProducts.length > 0) {
+        groups[cat.id] = {
+          category: cat,
+          products: categoryProducts,
+        };
+      }
     });
     return groups;
-  }, [products]);
+  }, [products, productSearch, selectedCategory]);
 
   // Add product to order
   const addProduct = (product) => {
