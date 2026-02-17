@@ -524,6 +524,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         open={detailModalOpen}
         onClose={setDetailModalOpen}
         canViewCourierPhone={canViewCourierPhone}
+        canViewCourierLocation={canViewCourierLocation}
       />
     </div>
   );
