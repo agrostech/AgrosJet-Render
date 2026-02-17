@@ -269,6 +269,7 @@ from routers.reports import router as reports_router
 from routers.restaurant_users import router as restaurant_users_router
 from routers.products import router as products_router, set_db as set_products_db
 from routers.restaurant_permissions import router as restaurant_permissions_router
+from routers.restaurant_integrations import router as restaurant_integrations_router
 
 # Set db for products router
 set_products_db(db)
