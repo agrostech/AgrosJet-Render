@@ -42,41 +42,39 @@ const formatDateTime = (dateStr) => {
   });
 };
 
-// İşlem tipleri - Restoran perspektifinden
-// Yönetici panelinde kırmızı olan (restoran borcu) -> Restoran için yeşil (alacak)
-// Yönetici panelinde yeşil olan (restorana ödeme) -> Restoran için kırmızı (borç)
+// İşlem tipleri - Restoran perspektifinden (Admin panelin TERSİ)
+// Admin "verilen" (yeşil) = Restorandan alındı = Restoran için KIRMIZİ
+// Admin "alınan" (kırmızı) = Restorana verildi = Restoran için YEŞİL
 const TRANSACTION_TYPES = {
-  // payment_out, given -> Yönetici panelinde KIRMIZI (kuryeye/restorana ödeme yapıldı)
-  // Restoran perspektifinden: Restorana ödeme yapıldı = YEŞİL (aldık)
-  payment_out: { 
-    label: "Ödeme Alındı", 
-    color: "text-green-600", 
-    bg: "bg-green-50",
-    icon: TrendingUp,
-    sign: "+"
-  },
+  // Admin panelde "given/verilen" yeşil = Restoran verdi = KIRMIZI
   given: { 
+    label: "Verilen", 
+    color: "text-red-600", 
+    bg: "bg-red-50",
+    icon: TrendingDown,
+    sign: "-"
+  },
+  payment_in: { 
+    label: "Verilen", 
+    color: "text-red-600", 
+    bg: "bg-red-50",
+    icon: TrendingDown,
+    sign: "-"
+  },
+  // Admin panelde "received/alınan" kırmızı = Restoran aldı = YEŞİL
+  received: { 
     label: "Alınan", 
     color: "text-green-600", 
     bg: "bg-green-50",
     icon: TrendingUp,
     sign: "+"
   },
-  // payment_in, received -> Yönetici panelinde YEŞİL (kuryeden/restorandan tahsilat)
-  // Restoran perspektifinden: Restorandan tahsilat = KIRMIZI (verdik)
-  payment_in: { 
-    label: "Ödeme Yapıldı", 
-    color: "text-red-600", 
-    bg: "bg-red-50",
-    icon: TrendingDown,
-    sign: "-"
-  },
-  received: { 
-    label: "Verilen", 
-    color: "text-red-600", 
-    bg: "bg-red-50",
-    icon: TrendingDown,
-    sign: "-"
+  payment_out: { 
+    label: "Alınan", 
+    color: "text-green-600", 
+    bg: "bg-green-50",
+    icon: TrendingUp,
+    sign: "+"
   }
 };
 
