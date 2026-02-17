@@ -109,7 +109,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     setEditBusinessLoading(true);
     try {
       await axios.put(`${API}/businesses/${editingBusiness.id}`, editBusinessForm);
-      toast.success("İşletme güncellendi");
+      toast.success("Restoran güncellendi");
       setEditingBusiness(null);
       fetchEntities();
     } catch (err) {
