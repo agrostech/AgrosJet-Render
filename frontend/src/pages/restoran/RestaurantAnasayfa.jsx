@@ -455,7 +455,35 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                   </div>
                                 </div>
                               ) : (
-                                <span className="text-xs text-muted-foreground">-</span>
+                                /* Kurye atanmamış - dropdown göster */
+                                availableCouriers.length > 0 ? (
+                                  <Select onValueChange={(courierId) => onAssignCourier(order.id, courierId)}>
+                                    <SelectTrigger className="h-7 text-xs w-[120px] border-dashed">
+                                      <SelectValue placeholder="Kurye Ata" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {courierRestrictionMode === "restricted" && (
+                                        <div className="px-2 py-1 text-[10px] text-amber-600 bg-amber-50 border-b">
+                                          Sadece paketi olan kuryeler
+                                        </div>
+                                      )}
+                                      {availableCouriers.map((courier) => (
+                                        <SelectItem key={courier.id} value={courier.id} className="text-xs">
+                                          <div className="flex items-center gap-2">
+                                            <span>{courier.name}</span>
+                                            {courier.package_count > 0 && (
+                                              <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                                                {courier.package_count} paket
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">-</span>
+                                )
                               )}
                             </td>
                           </tr>
