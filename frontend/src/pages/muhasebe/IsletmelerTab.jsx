@@ -615,7 +615,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
         </DialogContent>
       </Dialog>
 
-      {/* İşletme Düzenleme Modal */}
+      {/* Restoran Düzenleme Modal */}
       <Dialog open={!!editingBusiness} onOpenChange={(open) => !open && setEditingBusiness(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
