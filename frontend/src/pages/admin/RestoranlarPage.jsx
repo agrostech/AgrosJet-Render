@@ -445,18 +445,6 @@ export default function RestoranlarPage({ companyId }) {
     }
   };
 
-  const handleTestAdisyo = async (restaurant) => {
-    try {
-      const res = await axios.post(`${API}/restaurants/${restaurant.id}/test-adisyo`);
-      if (res.data.connected) {
-        toast.success("Adisyo bağlantısı başarılı!");
-        fetchRestaurants();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Adisyo bağlantı testi başarısız");
-    }
-  };
-
   // Ücretlendirme modalını aç
   const openPricingModal = async (restaurant) => {
     setSelectedRestaurant(restaurant);
