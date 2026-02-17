@@ -345,6 +345,11 @@ async def get_vendor_transactions(vendor_id: str, skip: int = 0, limit: int = 10
     """Get paginated transactions for a vendor"""
     return await get_entity_transactions("vendor", vendor_id, skip, limit)
 
+@router.get("/transactions/restaurant/{restaurant_id}")
+async def get_restaurant_transactions(restaurant_id: str, skip: int = 0, limit: int = 10):
+    """Get paginated transactions for a restaurant"""
+    return await get_entity_transactions("restaurant", restaurant_id, skip, limit)
+
 @router.delete("/transactions/{transaction_id}")
 async def delete_transaction(
     transaction_id: str, 
