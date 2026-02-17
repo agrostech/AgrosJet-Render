@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/tooltip";
 import { 
   ClipboardList, Truck, CheckCircle, XCircle, RefreshCw, 
-  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar, Bike, UserPlus
+  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar, Bike, UserPlus, Eye
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
+import OrderDetailModal from "@/components/restoran/OrderDetailModal";
 import {
   ORDER_STATUSES,
   COURIER_ONLY_STATUSES,
