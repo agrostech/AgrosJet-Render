@@ -448,7 +448,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     {order.courier_name}
                                   </span>
                                   <div className="flex items-center gap-2 mt-0.5 pl-1">
-                                    {order.courier_phone && (
+                                    {canViewCourierPhone && order.courier_phone && (
                                       <a href={`tel:${order.courier_phone}`} className="text-muted-foreground font-mono hover:text-primary text-[11px]">
                                         {order.courier_phone}
                                       </a>
