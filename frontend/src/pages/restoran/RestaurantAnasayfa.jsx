@@ -455,18 +455,16 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                   </div>
                                 </div>
                               ) : (
-                                /* Kurye atanmamış - dropdown göster */
-                                availableCouriers.length > 0 ? (
+                                /* Kurye atanmamış - dropdown göster (sadece paketi olan kurye varsa) */
+                                courierRestrictionMode === "restricted" && availableCouriers.length > 0 ? (
                                   <Select onValueChange={(courierId) => onAssignCourier(order.id, courierId)}>
                                     <SelectTrigger className="h-7 text-xs w-[120px] border-dashed">
                                       <SelectValue placeholder="Kurye Ata" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {courierRestrictionMode === "restricted" && (
-                                        <div className="px-2 py-1 text-[10px] text-amber-600 bg-amber-50 border-b">
-                                          Sadece paketi olan kuryeler
-                                        </div>
-                                      )}
+                                      <div className="px-2 py-1 text-[10px] text-amber-600 bg-amber-50 border-b">
+                                        Sadece paketi olan kuryeler
+                                      </div>
                                       {availableCouriers.map((courier) => (
                                         <SelectItem key={courier.id} value={courier.id} className="text-xs">
                                           <div className="flex items-center gap-2">
