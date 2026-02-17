@@ -202,21 +202,21 @@ export default function RestaurantMuhasebe({ restaurantId }) {
 
       {/* İşlem Geçmişi */}
       <Card>
-        <div className="p-4 border-b flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Calculator className="w-5 h-5 text-slate-500" />
+        <div className="px-4 py-3 border-b flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-slate-500" />
             <div>
-              <h2 className="font-semibold">İşlem Geçmişi</h2>
-              <p className="text-xs text-muted-foreground">{totalCount} işlem</p>
+              <h2 className="text-sm font-semibold">İşlem Geçmişi</h2>
+              <p className="text-[11px] text-muted-foreground">{totalCount} işlem</p>
             </div>
           </div>
         </div>
 
         <CardContent className="p-0">
           {transactions.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-              <p>Henüz işlem bulunmuyor</p>
+            <div className="p-6 text-center text-muted-foreground">
+              <FileText className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+              <p className="text-sm">Henüz işlem bulunmuyor</p>
             </div>
           ) : (
             <>
@@ -225,9 +225,9 @@ export default function RestaurantMuhasebe({ restaurantId }) {
                 <table className="w-full">
                   <thead className="bg-slate-50 border-b">
                     <tr>
-                      <th className="text-left p-3 text-xs font-semibold text-slate-600">Tarih</th>
-                      <th className="text-left p-3 text-xs font-semibold text-slate-600">Açıklama</th>
-                      <th className="text-right p-3 text-xs font-semibold text-slate-600">Tutar</th>
+                      <th className="text-left px-4 py-2 text-[11px] font-semibold text-slate-600">Tarih</th>
+                      <th className="text-left px-4 py-2 text-[11px] font-semibold text-slate-600">Açıklama</th>
+                      <th className="text-right px-4 py-2 text-[11px] font-semibold text-slate-600">Tutar</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -236,17 +236,17 @@ export default function RestaurantMuhasebe({ restaurantId }) {
                       
                       return (
                         <tr key={tx.id} className="border-b hover:bg-slate-50 transition-colors">
-                          <td className="p-3 text-sm text-slate-600">
+                          <td className="px-4 py-2.5 text-xs text-slate-600">
                             {formatDate(tx.date || tx.created_at)}
                           </td>
-                          <td className="p-3">
-                            <p className="text-sm font-medium text-slate-800">{tx.description}</p>
+                          <td className="px-4 py-2.5">
+                            <p className="text-xs font-medium text-slate-800">{tx.description}</p>
                             {tx.notes && (
-                              <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">{tx.notes}</p>
                             )}
                           </td>
-                          <td className="p-3 text-right">
-                            <span className={`font-mono font-semibold ${typeInfo.color}`}>
+                          <td className="px-4 py-2.5 text-right">
+                            <span className={`font-mono text-xs font-semibold ${typeInfo.color}`}>
                               {typeInfo.sign}{formatMoney(tx.amount)}
                             </span>
                           </td>
