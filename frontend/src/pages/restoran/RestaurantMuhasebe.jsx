@@ -230,14 +230,12 @@ export default function RestaurantMuhasebe({ restaurantId }) {
                     <tr>
                       <th className="text-left p-3 text-xs font-semibold text-slate-600">Tarih</th>
                       <th className="text-left p-3 text-xs font-semibold text-slate-600">Açıklama</th>
-                      <th className="text-left p-3 text-xs font-semibold text-slate-600">Tip</th>
                       <th className="text-right p-3 text-xs font-semibold text-slate-600">Tutar</th>
                     </tr>
                   </thead>
                   <tbody>
                     {transactions.map((tx) => {
                       const typeInfo = TRANSACTION_TYPES[tx.type] || TRANSACTION_TYPES.payment_in;
-                      const TypeIcon = typeInfo.icon;
                       
                       return (
                         <tr key={tx.id} className="border-b hover:bg-slate-50 transition-colors">
@@ -249,12 +247,6 @@ export default function RestaurantMuhasebe({ restaurantId }) {
                             {tx.notes && (
                               <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>
                             )}
-                          </td>
-                          <td className="p-3">
-                            <Badge variant="secondary" className={`${typeInfo.bg} ${typeInfo.color} border-0`}>
-                              <TypeIcon className="w-3 h-3 mr-1" />
-                              {typeInfo.label}
-                            </Badge>
                           </td>
                           <td className="p-3 text-right">
                             <span className={`font-mono font-semibold ${typeInfo.color}`}>
