@@ -264,22 +264,15 @@ export default function RestaurantMuhasebe({ restaurantId }) {
               <div className="md:hidden divide-y">
                 {transactions.map((tx) => {
                   const typeInfo = TRANSACTION_TYPES[tx.type] || TRANSACTION_TYPES.payment_in;
-                  const TypeIcon = typeInfo.icon;
                   
                   return (
                     <div key={tx.id} className="p-4 hover:bg-slate-50 transition-colors">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm text-slate-800 truncate">{tx.description}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary" className={`${typeInfo.bg} ${typeInfo.color} border-0 text-xs`}>
-                              <TypeIcon className="w-3 h-3 mr-1" />
-                              {typeInfo.label}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(tx.date || tx.created_at)}
-                            </span>
-                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(tx.date || tx.created_at)}
+                          </span>
                           {tx.notes && (
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{tx.notes}</p>
                           )}
