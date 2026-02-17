@@ -3,7 +3,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +10,6 @@ import {
   Package,
   MapPin,
   Phone,
-  Clock,
   CreditCard,
   Banknote,
   User,
@@ -20,7 +18,6 @@ import {
   Store,
   Bike,
   Calendar,
-  Hash,
 } from "lucide-react";
 
 // Sipariş durumları
