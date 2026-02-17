@@ -59,6 +59,8 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const [products, setProducts] = useState({ categories: [], products: [] });
   const [selectedItems, setSelectedItems] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
