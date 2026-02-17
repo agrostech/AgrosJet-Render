@@ -108,6 +108,21 @@ export default function RestaurantDashboard() {
     }
   };
 
+  // Assign courier to order
+  const handleAssignCourier = async (orderId, courierId) => {
+    if (!user?.restaurant_id) return;
+    
+    try {
+      await axios.post(`${API}/orders/restaurant/${user.restaurant_id}/assign/${orderId}`, {
+        courier_id: courierId
+      });
+      toast.success("Kurye atandı");
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kurye atanamadı");
+    }
+  };
+
   if (!user) {
     return null;
   }
