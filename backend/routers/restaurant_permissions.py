@@ -18,6 +18,11 @@ PERMISSION_DEFINITIONS = {
         "label": "Kurye Atama",
         "description": "Kurye atandıktan sonra yeni gelen siparişleri aynı kuryeye atayabilir",
         "default": False
+    },
+    "can_view_courier_phone": {
+        "label": "Kurye Telefonu Görüntüleme",
+        "description": "Atanan kuryenin telefon numarasını görüntüleyebilir",
+        "default": True
     }
 }
 
