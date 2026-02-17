@@ -513,7 +513,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <p>İşletme seçin</p>
+            <p>Restoran seçin</p>
           </div>
         )}
       </div>
