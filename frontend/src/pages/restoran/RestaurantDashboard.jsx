@@ -135,6 +135,7 @@ export default function RestaurantDashboard() {
             orders={orders} 
             loading={loading}
             onUpdateStatus={handleUpdateOrderStatus}
+            onAssignCourier={handleAssignCourier}
             onRefresh={fetchOrders}
             restaurantId={user?.restaurant_id}
           />
