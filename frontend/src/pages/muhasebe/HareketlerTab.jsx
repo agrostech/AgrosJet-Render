@@ -85,7 +85,7 @@ export default function HareketlerTab({ companyId }) {
   const getEntityTypeLabel = (type) => {
     switch (type) {
       case 'courier': return 'Kurye';
-      case 'business': return 'İşletme';
+      case 'business': return 'Restoran';
       case 'vendor': return 'Cari';
       default: return type;
     }
