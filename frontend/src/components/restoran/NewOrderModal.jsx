@@ -551,6 +551,38 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
               Ürün Seçimi
             </h3>
 
+            {/* Search and Category Filter */}
+            {products.products.length > 0 && (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Ürün ara..."
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    className="pl-8 h-9"
+                    data-testid="product-search"
+                  />
+                </div>
+                {products.categories.length > 1 && (
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Kategori seç" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                      {products.categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
+
             {loadingProducts ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
