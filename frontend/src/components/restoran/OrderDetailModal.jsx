@@ -237,7 +237,7 @@ export default function OrderDetailModal({ order, open, onClose, canViewCourierP
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">{order.courier_name}</span>
-                {order.courier_phone && (
+                {canViewCourierPhone && order.courier_phone && (
                   <Button
                     variant="ghost"
                     size="sm"
