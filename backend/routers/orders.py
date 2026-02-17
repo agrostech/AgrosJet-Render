@@ -759,19 +759,30 @@ async def get_available_couriers_for_restaurant(restaurant_id: str):
     Restoran için uygun kuryeleri getir.
     
     Mantık:
+    - Önce can_assign_courier izni kontrol edilir
     - Eğer restoranda atanmış sipariş varsa: Sadece o restorandan paketi olan kuryeler
-    - Eğer hiç atanmış sipariş yoksa: Tüm aktif kuryeler
+    - Eğer hiç atanmış sipariş yoksa: Boş liste (kurye ataması sadece paketi olan kuryeler için)
     
     Bu sayede aynı mahalleye birden fazla kurye gönderilmesi önlenir.
     """
     # Restoran bilgisini al
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "id": 1, "company_id": 1, "blocked_couriers": 1}
+        {"_id": 0, "id": 1, "company_id": 1, "blocked_couriers": 1, "permissions": 1}
     )
     
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # İzin kontrolü
+    permissions = restaurant.get("permissions", {})
+    if not permissions.get("can_assign_courier", False):
+        return {
+            "couriers": [],
+            "restriction_mode": "disabled",
+            "couriers_with_packages": [],
+            "message": "Kurye atama izni aktif değil"
+        }
     
     company_id = restaurant.get("company_id")
     blocked_couriers = restaurant.get("blocked_couriers", [])
