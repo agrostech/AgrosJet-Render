@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Scale, Receipt, BarChart3 } from "lucide-react";
+import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Scale, Receipt, BarChart3, Store } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
@@ -9,6 +9,7 @@ import FaturalarTab from "./muhasebe/FaturalarTab";
 import IsletmeFaturalariTab from "./muhasebe/IsletmeFaturalariTab";
 import HaftalikHakedisTab from "./muhasebe/HaftalikHakedisTab";
 import GunlukMutabakatTab from "./muhasebe/GunlukMutabakatTab";
+import RestoranMutabakatTab from "./muhasebe/RestoranMutabakatTab";
 import RaporlarTab from "./muhasebe/RaporlarTab";
 
 const TABS = [
@@ -16,9 +17,10 @@ const TABS = [
   { key: "isletmeler", label: "Restoranlar", icon: Building2 },
   { key: "cariler", label: "Cariler", icon: Wallet },
   { key: "kurye-faturalari", label: "Kurye Faturaları", icon: FileText },
-  { key: "isletme-faturalari", label: "İşletme Faturaları", icon: Receipt },
+  { key: "isletme-faturalari", label: "Restoran Faturaları", icon: Receipt },
   { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
-  { key: "gunluk-mutabakat", label: "Günlük Mütabakat", icon: Scale },
+  { key: "kurye-mutabakat", label: "Kurye Mütabakat", icon: Scale },
+  { key: "restoran-mutabakat", label: "Restoran Mütabakat", icon: Store },
   { key: "raporlar", label: "Raporlar", icon: BarChart3, superAdminOnly: true },
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
