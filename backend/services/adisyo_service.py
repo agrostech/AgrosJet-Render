@@ -496,8 +496,10 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
         # Yeni sipariş - dönüştür ve kaydet
         shiftjet_order = await convert_adisyo_order_to_shiftjet(adisyo_order, restaurant)
         
-        # Hazırlama süresini ekle (restoran ayarından)
-        prep_time = restaurant.get("preparation_time", 15)  # Varsayılan 15 dk
+        # Hazırlama süresini ürün bazlı hesapla
+        from routers.orders import calculate_preparation_time_async
+        prep_time = await calculate_preparation_time_async(restaurant_id, shiftjet_order.get("items", []))
+        
         prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
         shiftjet_order["preparation_time"] = prep_time
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
