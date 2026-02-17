@@ -229,7 +229,7 @@ export default function RestoranlarPage({ companyId }) {
     
     try {
       // Restoran ürünlerini çek
-      const productsRes = await axios.get(`${API}/restaurant-products/${restaurant.id}`);
+      const productsRes = await axios.get(`${API}/products/restaurant/${restaurant.id}`);
       const products = productsRes.data?.products || [];
       setRestaurantProducts(products);
       
