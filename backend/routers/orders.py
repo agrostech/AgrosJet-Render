@@ -38,8 +38,6 @@ def calculate_distance(restaurant_location: dict, delivery_location: dict) -> fl
     return R * c
 
 
-import re
-
 def normalize_product_name(name: str) -> str:
     """
     Ürün ismini normalize et - fuzzy matching için.
