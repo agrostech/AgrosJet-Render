@@ -80,14 +80,27 @@ export default function RestaurantDashboard() {
     }
   }, [user?.restaurant_id]);
 
+  // Fetch restaurant permissions
+  const fetchPermissions = useCallback(async () => {
+    if (!user?.restaurant_id) return;
+    
+    try {
+      const res = await axios.get(`${API}/restaurant-permissions/${user.restaurant_id}`);
+      setPermissions(res.data.permissions || {});
+    } catch (err) {
+      console.error("İzinler yüklenemedi:", err);
+    }
+  }, [user?.restaurant_id]);
+
   useEffect(() => {
     if (user?.restaurant_id) {
       fetchOrders();
+      fetchPermissions();
       // Polling every 2 seconds for real-time updates
       const interval = setInterval(fetchOrders, 2000);
       return () => clearInterval(interval);
     }
-  }, [user?.restaurant_id, fetchOrders]);
+  }, [user?.restaurant_id, fetchOrders, fetchPermissions]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
