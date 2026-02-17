@@ -1,146 +1,56 @@
-# ShiftJet PRD - Product Requirements Document
+# ShiftJet - Kurye ve Restoran Yönetim Sistemi
 
-## Original Problem Statement
-ShiftJet, an Adisyo-integrated order management system for courier and restaurant operations.
+## Problem Statement
+ShiftJet, restoranlar ve kurye şirketleri için kapsamlı bir sipariş ve teslimat yönetim sistemidir.
 
-## System Overview
-A comprehensive delivery management platform with three main panels:
-1. **Admin Panel** - Full system management
-2. **Courier Panel** - Courier operations and tracking
-3. **Restaurant Panel** - Restaurant-specific order management
+## Completed Features
 
----
+### Core Features
+- Admin Panel (Sipariş yönetimi, kurye atama, restoran yönetimi)
+- Restoran Panel (Sipariş görüntüleme, durum güncelleme, manuel sipariş)
+- Kurye Uygulaması (Sipariş kabul, konum takibi, teslimat)
+- Google Places entegrasyonu (adres autocomplete)
+- Web scraping (tgoyemek.com ürün import)
 
-## What's Been Implemented
+### Restaurant Panel (Son Güncellemeler - Şubat 2025)
+- ✅ Hazırlık süresi seçimi düzeltildi
+- ✅ 2 saniyelik polling ile gerçek zamanlı güncelleme
+- ✅ Kurye telefonu ve TVS (tahmini varış süresi) gösterimi
+- ✅ Sidebar default kapalı
+- ✅ Tablo düzeni admin paneli ile uyumlu
+- ✅ Durum badge'leri 135px sabit genişlik
 
-### February 2026 Updates
+### Ürün Bazlı Hazırlık Süreleri (Yeni - Şubat 2025)
+- Admin panelde "Hazırlık" butonu
+- Standart hazırlık süresi ayarlama
+- Ürün bazlı ekstra süreler (en uzun olanı 1 kez eklenir)
+- Hesaplama: Standart + max(Ürün Süreleri)
 
-#### Google Places Autocomplete - Adres Geocoding (P0 - COMPLETED)
-- **API Key Entegrasyonu**: `AIzaSyDGDqxbHb9Oh6jtDXohRlFisr8JqkR7Vz4`
-- **Özellikler**:
-  - Adres yazılırken Google Places önerileri
-  - Öneri seçildiğinde koordinatlar (lat/lng) otomatik alınıyor
-  - "Konum alındı" yeşil göstergesi
-  - "Haritada Gör" linki (Google Maps'te açılıyor)
-- **Teknik Detaylar**:
-  - Google Maps script `index.html`'e eklendi
-  - Native HTML input kullanıldı (shadcn Input ref sorunu çözüldü)
-  - Input ID: `delivery-address-autocomplete`
-  - CSS z-index: 99999 (modal üstünde görünmesi için)
-- **Test Durumu**: %100 başarılı (iteration_29.json)
+## API Endpoints
 
-#### Manuel Telefon Siparişi Özelliği (P0 - COMPLETED)
-- **Yeni Sipariş Butonu**: Restoran Anasayfasında sağ üstte görünür
-- **NewOrderModal Component**: Ayrı dosyada oluşturuldu (`/app/frontend/src/components/restoran/NewOrderModal.jsx`)
-- **Özellikler**:
-  - Müşteri Adı, Telefon, Teslimat Adresi girişi
-  - Ürün seçimi (kategorilere göre gruplanmış)
-  - Sepet yönetimi (ekle, çıkar, miktar artır/azalt)
-  - Ödeme yöntemi seçimi (Nakit/Kart/Online)
-  - Sipariş notu
-  - **Programlı Teslimat**: Checkbox ile aktifleşir, tarih ve saat seçimi
-  - 30 dakikalık hazırlık tamponu otomatik uygulanır
-  - **Google Places Autocomplete** ile adres ve koordinat yakalama
-- **Backend Endpoint**: `POST /api/orders/manual`
-- **Sipariş Durumları**:
-  - Normal sipariş: `preparing` durumunda başlar
-  - Programlı sipariş: `scheduled` durumunda başlar
-- **UI Güncellemeleri**:
-  - "Programlı" sekmesi eklendi (5 sekme: Bekleyen, Programlı, Yolda, Teslim, İptal)
-  - Telefon siparişleri "Tel" badge'i ile işaretlenir
-  - Programlı siparişlerde teslimat zamanı görüntülenir
+### Hazırlık Süreleri
+- `PUT /api/restaurants/{id}/preparation-times` - Güncelle
+- `GET /api/restaurants/{id}/preparation-times` - Getir
 
-### December 2025 Updates
+### Sipariş
+- `GET /api/orders/restaurant/{restaurant_id}` - Restoran siparişleri (kurye tel + konum dahil)
+- `PUT /api/orders/{id}/status` - Durum güncelle (preparation_time destekli)
+- `POST /api/orders/manual` - Manuel sipariş (ürün bazlı süre hesaplamalı)
 
-#### Web Scraping - Ürünler Modülü (COMPLETED)
-- **TGO Yemek'ten Menü İçe Aktarma**:
-  - Restaurant panel > Ürünler sayfası
-  - TGO Yemek URL'si girerek otomatik menü çekme
-  - BeautifulSoup ile web scraping (74 ürün, 13 kategori test edildi)
-- **Tam CRUD İşlemleri**:
-  - **Kategoriler:** Ekle, Düzenle, Sil (içindeki ürünlerle birlikte)
-  - **Ürünler:** Ekle, Düzenle, Sil
+## Tech Stack
+- Frontend: React, Tailwind CSS, Shadcn UI
+- Backend: FastAPI, Python
+- Database: MongoDB
+- Maps: Google Maps Platform (Places API)
 
-#### Courier Blocking Feature (COMPLETED)
-- Backend API endpoints for blocking/unblocking couriers from restaurants
-- Frontend modal in Admin Panel > Restoranlar > "Engellenenler" button
-- Blocked couriers are filtered out from order assignment dropdowns
+## Known Issues
+- Adisyo API entegrasyonu blocked (API 400 hatası)
+- Background task reliability (kurye app)
+- Mobile sidebar collapsible bug
 
-#### Courier Payment Methods Feature (COMPLETED)
-- Admin Panel > Kuryeler > "Ödeme" button
-- Each courier can have specific payment methods enabled/disabled
-
-#### Restaurant Panel (COMPLETED)
-- **Login System**: Added "Restoran" tab to login page
-- **Restaurant User Management**: Admin Panel > Restoranlar > "Kullanıcılar" button
-- **Dashboard Features**: Stats cards, Order tabs, Status updates
-
----
-
-## Technical Architecture
-
-### Backend (FastAPI)
-- `/app/backend/routers/orders.py` - Order management + manual order creation endpoint
-- `/app/backend/routers/products.py` - Product scraping and management
-- `/app/backend/routers/restaurant_users.py` - Restaurant user auth and CRUD
-
-### Frontend (React)
-- `/app/frontend/src/components/restoran/NewOrderModal.jsx` - **NEW** Manual order modal
-- `/app/frontend/src/pages/restoran/RestaurantAnasayfa.jsx` - Dashboard with "Yeni Sipariş" button
-- `/app/frontend/src/pages/restoran/RestaurantUrunler.jsx` - Product management
-
-### Key API Endpoints
-- `POST /api/orders/manual` - **NEW** Create manual order (phone orders)
-- `POST /api/restaurant-users/login` - Restaurant user login
-- `GET /api/products/restaurant/{id}` - Get products for modal
-- `PUT /api/orders/{id}/status` - Update order status (now supports scheduled)
-
----
-
-## Prioritized Backlog
-
-### P0 (Critical) - COMPLETED
-- [x] Courier blocking feature
-- [x] Restaurant panel MVP
-- [x] Web scraping - Ürünler modülü
-- [x] Manuel telefon siparişi oluşturma
-- [x] Google Places Autocomplete - Adres geocoding
-
-### P1 (High)
-- [ ] Adisyo Webhook implementation
-- [ ] Adisyo payment method mapping bug (BLOCKED - API access issue)
-- [ ] Background task reliability (notifications/location)
-- [ ] Mobile sidebar courier list bug
-- [ ] Restaurant panel - Muhasebe module
-- [ ] Restaurant panel - Raporlar module
-
-### P2 (Medium)
-- [ ] Restaurant panel - Entegrasyonlar module
-- [ ] Refactor order history pages
-- [ ] Dark mode implementation
-
-### P3 (Low)
-- [ ] Motosikletim feature enhancements
-- [ ] Chat system re-enablement
-
----
-
-## Test Credentials
-- **Restaurant User**: testrestaurant / password123
-- **Restaurant ID**: rest_c9c5cb06
-- **Super Admin**: onurertas / 123456
-- **Courier**: 05527370032 / 123456
-
----
-
-## Database Collections
-- `orders` - Now supports source="manual", status="scheduled", is_scheduled, scheduled_time fields
-- `products` - Product items with category_id, name, description, price
-- `product_categories` - Product categories for each restaurant
-- `restaurant_users` - Restaurant panel user accounts
-
----
-
-## Recent Test Reports
-- `/app/test_reports/iteration_29.json` - Google Places Autocomplete testi (100% passed)
-- `/app/test_reports/iteration_28.json` - Manuel Sipariş testi (100% passed)
+## Backlog
+- P1: Muhasebe, Raporlar, Entegrasyonlar sayfaları
+- P1: Adisyo Webhook entegrasyonu
+- P2: Chat sistemi
+- P2: Dark mode
+- P3: Motosikletim geliştirmeleri
