@@ -182,7 +182,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full">
-      {/* Sol Panel - İşletme Listesi (mobilde detay görünümünde gizle) */}
+      {/* Sol Panel - Restoran Listesi (mobilde detay görünümünde gizle) */}
       <div className={`w-full lg:w-80 flex-shrink-0 border-2 border-border bg-white flex flex-col ${mobileDetailView ? 'hidden' : 'flex'} lg:flex`} style={{ height: 'calc(100vh - 220px)' }}>
         <div className="p-3 border-b-2 border-border bg-slate-50 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
