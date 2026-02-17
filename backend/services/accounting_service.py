@@ -17,6 +17,9 @@ async def get_entity_name(entity_type: str, entity_id: str) -> str:
     elif entity_type == "vendor":
         vendor = await db.vendors.find_one({"id": entity_id}, {"_id": 0, "name": 1})
         return vendor["name"] if vendor else "Bilinmeyen Cari"
+    elif entity_type == "restaurant":
+        restaurant = await db.restaurants.find_one({"id": entity_id}, {"_id": 0, "name": 1})
+        return restaurant["name"] if restaurant else "Bilinmeyen Restoran"
     return "Bilinmeyen"
 
 
