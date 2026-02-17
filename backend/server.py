@@ -306,6 +306,7 @@ app.include_router(daily_mutabakat_router)
 app.include_router(reports_router)
 app.include_router(restaurant_users_router)
 app.include_router(products_router)
+app.include_router(restaurant_permissions_router)
 
 # Health check
 @api_router.get("/")
