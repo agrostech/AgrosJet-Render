@@ -347,7 +347,38 @@ async def get_vendor_transactions(vendor_id: str, skip: int = 0, limit: int = 10
 
 @router.get("/transactions/restaurant/{restaurant_id}")
 async def get_restaurant_transactions(restaurant_id: str, skip: int = 0, limit: int = 10):
-    """Get paginated transactions for a restaurant"""
+    """Get paginated transactions for a restaurant.
+    
+    Bu endpoint, restoran ID'si ile ilişkili business'ı bulur ve
+    o business'ın işlemlerini döndürür.
+    """
+    # Önce restaurant bilgisini al
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "name": 1, "company_id": 1, "business_id": 1})
+    
+    if not restaurant:
+        return {"transactions": [], "balance": 0, "total_count": 0, "has_more": False}
+    
+    # Restaurant'ın business_id'si varsa direkt kullan
+    if restaurant.get("business_id"):
+        return await get_entity_transactions("business", restaurant["business_id"], skip, limit)
+    
+    # Business_id yoksa, aynı şirketteki business'ları kontrol et ve isim eşleştirmesi yap
+    if restaurant.get("company_id") and restaurant.get("name"):
+        # Aynı isme sahip business'ı bul
+        business = await db.businesses.find_one({
+            "company_id": restaurant["company_id"],
+            "name": restaurant["name"]
+        }, {"_id": 0, "id": 1})
+        
+        if business:
+            # Business bulundu, restaurant'a business_id ekle (cache için)
+            await db.restaurants.update_one(
+                {"id": restaurant_id},
+                {"$set": {"business_id": business["id"]}}
+            )
+            return await get_entity_transactions("business", business["id"], skip, limit)
+    
+    # Hiçbir business bulunamadı, restaurant entity_type ile dene
     return await get_entity_transactions("restaurant", restaurant_id, skip, limit)
 
 @router.delete("/transactions/{transaction_id}")
