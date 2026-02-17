@@ -188,7 +188,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           <div className="flex items-center justify-between mb-2">
             <span className="font-heading font-bold text-sm flex items-center gap-2">
               <Building2 className="w-4 h-4" />
-              İşletmeler ({filteredDisplayList.length})
+              Restoranlar ({filteredDisplayList.length})
             </span>
             <div className="flex gap-1">
               <Button 
