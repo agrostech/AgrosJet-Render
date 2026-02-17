@@ -25,18 +25,11 @@ import {
   Eye,
   EyeOff,
   Utensils,
-  Store
+  Store,
+  ExternalLink
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-// Platform logoları ve renkleri
-const PLATFORM_STYLES = {
-  yemeksepeti: { bg: "bg-pink-50", border: "border-pink-200", text: "text-pink-700", icon: "🍔" },
-  trendyol: { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-700", icon: "🛒" },
-  getir: { bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-700", icon: "🚀" },
-  migros: { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-700", icon: "🛍️" }
-};
 
 export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [adisyoData, setAdisyoData] = useState(null);
@@ -181,7 +174,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   return (
     <div className="space-y-6" data-testid="restaurant-entegrasyonlar">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Entegrasyonlar</h1>
+        <h1 className="text-2xl font-bold">Entegrasyonlar</h1>
         <p className="text-sm text-muted-foreground">Sipariş platformları ve POS entegrasyonları</p>
       </div>
 
@@ -189,7 +182,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Utensils className="w-5 h-5 text-primary" />
+            <Utensils className="w-5 h-5" />
             <CardTitle className="text-lg">Yemek Platformu Entegrasyonları</CardTitle>
           </div>
           <CardDescription>
@@ -197,53 +190,49 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {platforms.map((platform) => {
-              const style = PLATFORM_STYLES[platform.id] || { bg: "bg-slate-50", border: "border-slate-200", text: "text-slate-700", icon: "📦" };
-              
-              return (
-                <div
-                  key={platform.id}
-                  className={`p-4 rounded-lg border-2 ${style.border} ${style.bg} transition-all hover:shadow-md`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{style.icon}</span>
-                      <div>
-                        <h3 className={`font-semibold ${style.text}`}>{platform.name}</h3>
-                        <p className="text-xs text-muted-foreground">{platform.description}</p>
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {platforms.map((platform) => (
+              <div
+                key={platform.id}
+                className="p-4 rounded-lg border hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                      <ExternalLink className="w-5 h-5 text-slate-600" />
                     </div>
-                    {platform.connected ? (
-                      <Badge variant="default" className="bg-green-500">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Bağlı
-                      </Badge>
-                    ) : platform.enabled ? (
-                      <Badge variant="secondary">
-                        Yapılandırılmamış
-                      </Badge>
-                    ) : null}
+                    <div>
+                      <h3 className="font-medium">{platform.name}</h3>
+                      <p className="text-xs text-muted-foreground">{platform.description}</p>
+                    </div>
                   </div>
-                  
-                  <div className="mt-4 flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => openPlatformModal(platform)}
-                      className="flex-1"
-                    >
-                      <Settings className="w-4 h-4 mr-1" />
-                      Ayarlar
-                    </Button>
-                  </div>
+                  {platform.connected ? (
+                    <Badge variant="outline" className="border-green-500 text-green-600">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Bağlı
+                    </Badge>
+                  ) : platform.enabled ? (
+                    <Badge variant="outline">Yapılandırılmamış</Badge>
+                  ) : null}
                 </div>
-              );
-            })}
+                
+                <div className="mt-3">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => openPlatformModal(platform)}
+                    className="w-full"
+                  >
+                    <Settings className="w-4 h-4 mr-1" />
+                    Ayarlar
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
           
           <p className="text-xs text-muted-foreground mt-4 text-center">
-            Platform entegrasyonları için API dökümanları incelendikten sonra detaylandırılacaktır.
+            Platform entegrasyonları API dökümanları incelendikten sonra detaylandırılacaktır.
           </p>
         </CardContent>
       </Card>
@@ -252,7 +241,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Store className="w-5 h-5 text-primary" />
+            <Store className="w-5 h-5" />
             <CardTitle className="text-lg">Diğer Entegrasyonlar</CardTitle>
           </div>
           <CardDescription>
@@ -261,24 +250,24 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </CardHeader>
         <CardContent>
           {/* Adisyo POS */}
-          <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50">
+          <div className="p-4 rounded-lg border">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">AD</span>
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                  <span className="font-bold text-sm text-slate-600">AD</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-blue-700">AdisyoPos Entegrasyonu</h3>
-                  <p className="text-xs text-blue-600">Adisyo POS sisteminden otomatik sipariş çekme</p>
+                  <h3 className="font-medium">AdisyoPos Entegrasyonu</h3>
+                  <p className="text-xs text-muted-foreground">Adisyo POS sisteminden otomatik sipariş çekme</p>
                 </div>
               </div>
               {adisyoData?.connected ? (
-                <Badge variant="default" className="bg-green-500">
+                <Badge variant="outline" className="border-green-500 text-green-600">
                   <CheckCircle2 className="w-3 h-3 mr-1" />
                   Bağlı
                 </Badge>
               ) : adisyoData?.has_credentials ? (
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+                <Badge variant="outline" className="border-yellow-500 text-yellow-600">
                   <XCircle className="w-3 h-3 mr-1" />
                   Bağlantı Yok
                 </Badge>
@@ -286,7 +275,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
             </div>
             
             {adisyoData?.has_credentials && (
-              <div className="mt-3 p-2 bg-white/50 rounded text-xs text-blue-700">
+              <div className="mt-3 p-2 bg-slate-50 rounded text-xs text-muted-foreground">
                 <span className="font-medium">API Key:</span> {adisyoData.api_key}
                 {adisyoData.branch_id && (
                   <span className="ml-3"><span className="font-medium">Branch ID:</span> {adisyoData.branch_id}</span>
@@ -294,12 +283,12 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
               </div>
             )}
             
-            <div className="mt-4 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <Button 
                 size="sm" 
                 variant="outline"
                 onClick={openAdisyoModal}
-                className="flex-1 bg-white hover:bg-blue-50"
+                className="flex-1"
               >
                 <Settings className="w-4 h-4 mr-1" />
                 {adisyoData?.has_credentials ? "Düzenle" : "Yapılandır"}
@@ -312,7 +301,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                     variant="outline"
                     onClick={handleTestAdisyo}
                     disabled={testing}
-                    className="bg-white hover:bg-blue-50"
                   >
                     {testing ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -325,7 +313,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                     size="sm" 
                     variant="outline"
                     onClick={handleDisconnectAdisyo}
-                    className="bg-white hover:bg-red-50 text-red-600 hover:text-red-700"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Unlink className="w-4 h-4" />
                   </Button>
@@ -340,12 +328,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
       <Dialog open={showAdisyoModal} onOpenChange={setShowAdisyoModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-xs">AD</span>
-              </div>
-              Adisyo Entegrasyonu
-            </DialogTitle>
+            <DialogTitle>Adisyo Entegrasyonu</DialogTitle>
             <DialogDescription>
               Adisyo POS sisteminizden sipariş çekmek için API bilgilerinizi girin
             </DialogDescription>
@@ -423,10 +406,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
       <Dialog open={showPlatformModal} onOpenChange={setShowPlatformModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <span className="text-2xl">{PLATFORM_STYLES[selectedPlatform?.id]?.icon || "📦"}</span>
-              {selectedPlatform?.name} Entegrasyonu
-            </DialogTitle>
+            <DialogTitle>{selectedPlatform?.name} Entegrasyonu</DialogTitle>
             <DialogDescription>
               {selectedPlatform?.description}
             </DialogDescription>
@@ -498,8 +478,8 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
               />
             </div>
             
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-amber-700">
+            <div className="p-3 border rounded-lg">
+              <p className="text-xs text-muted-foreground">
                 Bu platform entegrasyonu henüz geliştirme aşamasındadır. 
                 API dökümanları incelendikten sonra aktif edilecektir.
               </p>
