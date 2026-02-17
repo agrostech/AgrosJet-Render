@@ -126,22 +126,22 @@ export default function RestaurantMuhasebe({ restaurantId }) {
     fetchTransactions(false);
   };
 
-  // Restoran için bakiye renkleri (TERSİNE)
-  // Pozitif bakiye = Yönetici panelinde restoran borçlu = Restoran için ALACAK (yeşil)
-  // Negatif bakiye = Yönetici panelinde restorana borçlu = Restoran için BORÇ (kırmızı)
+  // Restoran için bakiye renkleri (Admin panelin TERSİ)
+  // Admin perspektifinden negatif = Admin borçlu = Restoran ALACAKLI (yeşil)
+  // Admin perspektifinden pozitif = Admin alacaklı = Restoran BORÇLU (kırmızı)
   const getBalanceColor = (bal) => {
     if (bal === 0) return 'text-slate-600';
-    return bal > 0 ? 'text-green-600' : 'text-red-600';
+    return bal < 0 ? 'text-green-600' : 'text-red-600';
   };
   
   const getBalanceBg = (bal) => {
     if (bal === 0) return 'bg-slate-50';
-    return bal > 0 ? 'bg-green-50' : 'bg-red-50';
+    return bal < 0 ? 'bg-green-50' : 'bg-red-50';
   };
 
   const getBalanceLabel = (bal) => {
     if (bal === 0) return 'Bakiye';
-    return bal > 0 ? 'Alacak' : 'Borç';
+    return bal < 0 ? 'Alacak' : 'Borç';
   };
 
   if (loading) {
