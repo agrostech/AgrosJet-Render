@@ -148,14 +148,14 @@ export default function RestaurantMuhasebe({ restaurantId }) {
 
   if (loading) {
     return (
-      <div className="space-y-6" data-testid="restaurant-muhasebe">
+      <div className="space-y-4" data-testid="restaurant-muhasebe">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Muhasebe</h1>
-          <p className="text-sm text-muted-foreground">Finansal işlemler ve bakiye</p>
+          <h1 className="text-lg font-bold text-slate-900">Muhasebe</h1>
+          <p className="text-xs text-muted-foreground">Finansal işlemler ve bakiye</p>
         </div>
         <Card>
-          <CardContent className="flex items-center justify-center py-16">
-            <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
+          <CardContent className="flex items-center justify-center py-12">
+            <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
           </CardContent>
         </Card>
       </div>
@@ -163,7 +163,7 @@ export default function RestaurantMuhasebe({ restaurantId }) {
   }
 
   return (
-    <div className="space-y-6" data-testid="restaurant-muhasebe">
+    <div className="space-y-4" data-testid="restaurant-muhasebe">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
