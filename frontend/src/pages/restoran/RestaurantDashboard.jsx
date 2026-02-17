@@ -152,6 +152,7 @@ export default function RestaurantDashboard() {
             onAssignCourier={handleAssignCourier}
             onRefresh={fetchOrders}
             restaurantId={user?.restaurant_id}
+            permissions={permissions}
           />
         );
       case "muhasebe":
