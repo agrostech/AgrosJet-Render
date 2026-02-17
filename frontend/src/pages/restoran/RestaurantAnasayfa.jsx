@@ -488,6 +488,20 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                 )
                               )}
                             </td>
+                            <td className="p-2 text-center">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 hover:bg-slate-100"
+                                onClick={() => {
+                                  setSelectedOrder(order);
+                                  setDetailModalOpen(true);
+                                }}
+                                data-testid={`order-detail-btn-${order.id}`}
+                              >
+                                <Eye className="w-4 h-4 text-slate-500" />
+                              </Button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -499,6 +513,13 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        order={selectedOrder}
+        open={detailModalOpen}
+        onClose={setDetailModalOpen}
+      />
     </div>
   );
 }
