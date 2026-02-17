@@ -136,7 +136,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     e.preventDefault();
     try {
       await axios.post(`${API}/companies/${companyId}/businesses`, newBusiness);
-      toast.success("İşletme eklendi");
+      toast.success("Restoran eklendi");
       setShowAddModal(false);
       setNewBusiness({ name: "", phone: "", address: "", tax_bracket: null });
       fetchEntities();
