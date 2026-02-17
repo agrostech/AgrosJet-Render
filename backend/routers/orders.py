@@ -836,6 +836,7 @@ async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data
     """
     Restoran panelinden kurye ata.
     Sadece o restorandan paketi olan kuryelere atama yapılabilir (eğer atanmış sipariş varsa).
+    İzin kontrolü: can_assign_courier izni aktif olmalı.
     """
     # Sipariş kontrolü
     order = await db.orders.find_one({"id": order_id, "restaurant_id": restaurant_id})
@@ -845,14 +846,22 @@ async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data
     if order.get("courier_id"):
         raise HTTPException(status_code=400, detail="Bu siparişe zaten kurye atanmış")
     
-    # Restoran bilgisini al
+    # Restoran bilgisini al (izinler dahil)
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "id": 1, "company_id": 1, "blocked_couriers": 1}
+        {"_id": 0, "id": 1, "company_id": 1, "blocked_couriers": 1, "permissions": 1}
     )
     
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # İzin kontrolü
+    permissions = restaurant.get("permissions", {})
+    if not permissions.get("can_assign_courier", False):
+        raise HTTPException(
+            status_code=403, 
+            detail="Bu restoran için kurye atama izni aktif değil"
+        )
     
     blocked_couriers = restaurant.get("blocked_couriers", [])
     
