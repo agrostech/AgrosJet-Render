@@ -82,7 +82,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
   const [editForm, setEditForm] = useState({ amount: "", description: "" });
   const [editLoading, setEditLoading] = useState(false);
 
-  // İşletme düzenleme state'leri
+  // Restoran düzenleme state'leri
   const [editingBusiness, setEditingBusiness] = useState(null);
   const [editBusinessForm, setEditBusinessForm] = useState({ name: "", phone: "", address: "", tax_bracket: null });
   const [editBusinessLoading, setEditBusinessLoading] = useState(false);
