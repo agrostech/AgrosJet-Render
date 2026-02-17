@@ -156,10 +156,6 @@ export default function OrderDetailModal({ order, open, onClose }) {
             <Package className="w-5 h-5" />
             Sipariş Detayı
           </DialogTitle>
-          <DialogDescription className="flex items-center gap-2 text-xs">
-            <Hash className="w-3 h-3" />
-            {order.order_number}
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
