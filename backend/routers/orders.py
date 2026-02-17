@@ -753,6 +753,181 @@ async def check_preparation_times(company_id: str):
     return len(expired_orders)
 
 
+@router.get("/restaurant/{restaurant_id}/available-couriers")
+async def get_available_couriers_for_restaurant(restaurant_id: str):
+    """
+    Restoran için uygun kuryeleri getir.
+    
+    Mantık:
+    - Eğer restoranda atanmış sipariş varsa: Sadece o restorandan paketi olan kuryeler
+    - Eğer hiç atanmış sipariş yoksa: Tüm aktif kuryeler
+    
+    Bu sayede aynı mahalleye birden fazla kurye gönderilmesi önlenir.
+    """
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "company_id": 1, "blocked_couriers": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    company_id = restaurant.get("company_id")
+    blocked_couriers = restaurant.get("blocked_couriers", [])
+    
+    # Restoranda aktif (atanmış ama teslim edilmemiş) siparişleri bul
+    active_orders = await db.orders.find(
+        {
+            "restaurant_id": restaurant_id,
+            "status": {"$in": ["assigned", "confirmed", "on_the_way"]},
+            "courier_id": {"$ne": None}
+        },
+        {"_id": 0, "courier_id": 1}
+    ).to_list(100)
+    
+    # Bu restorandan paketi olan kurye ID'lerini topla
+    couriers_with_packages = list(set(o.get("courier_id") for o in active_orders if o.get("courier_id")))
+    
+    if couriers_with_packages:
+        # Sadece bu restorandan paketi olan kuryeleri getir
+        couriers = await db.couriers.find(
+            {
+                "id": {"$in": couriers_with_packages},
+                "id": {"$nin": blocked_couriers}  # Engellenmemiş olanlar
+            },
+            {"_id": 0, "id": 1, "name": 1, "phone": 1, "status": 1, "current_location": 1}
+        ).to_list(50)
+        
+        restriction_mode = "restricted"  # Kısıtlı mod - sadece paketi olan kuryeler
+    else:
+        # Hiç atanmış sipariş yok - tüm aktif kuryeleri getir
+        # Önce şirket-kurye ilişkisini bul
+        company_courier_relations = await db.company_couriers.find(
+            {"company_id": company_id},
+            {"_id": 0, "courier_id": 1}
+        ).to_list(200)
+        
+        courier_ids = [r["courier_id"] for r in company_courier_relations]
+        
+        couriers = await db.couriers.find(
+            {
+                "id": {"$in": courier_ids},
+                "id": {"$nin": blocked_couriers},
+                "status": {"$in": ["active", "available", "busy"]}
+            },
+            {"_id": 0, "id": 1, "name": 1, "phone": 1, "status": 1, "current_location": 1}
+        ).to_list(50)
+        
+        restriction_mode = "all"  # Tüm kuryeler
+    
+    # Her kurye için bu restorandan kaç paketi olduğunu hesapla
+    for courier in couriers:
+        package_count = sum(1 for o in active_orders if o.get("courier_id") == courier["id"])
+        courier["package_count"] = package_count
+    
+    return {
+        "couriers": couriers,
+        "restriction_mode": restriction_mode,
+        "couriers_with_packages": couriers_with_packages
+    }
+
+
+@router.post("/restaurant/{restaurant_id}/assign/{order_id}")
+async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data: OrderAssign):
+    """
+    Restoran panelinden kurye ata.
+    Sadece o restorandan paketi olan kuryelere atama yapılabilir (eğer atanmış sipariş varsa).
+    """
+    # Sipariş kontrolü
+    order = await db.orders.find_one({"id": order_id, "restaurant_id": restaurant_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    if order.get("courier_id"):
+        raise HTTPException(status_code=400, detail="Bu siparişe zaten kurye atanmış")
+    
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "company_id": 1, "blocked_couriers": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    blocked_couriers = restaurant.get("blocked_couriers", [])
+    
+    # Engelli kurye kontrolü
+    if data.courier_id in blocked_couriers:
+        raise HTTPException(status_code=400, detail="Bu kurye restoran tarafından engellenmiş")
+    
+    # Restoranda aktif siparişleri kontrol et
+    active_orders = await db.orders.find(
+        {
+            "restaurant_id": restaurant_id,
+            "status": {"$in": ["assigned", "confirmed", "on_the_way"]},
+            "courier_id": {"$ne": None}
+        },
+        {"_id": 0, "courier_id": 1}
+    ).to_list(100)
+    
+    couriers_with_packages = list(set(o.get("courier_id") for o in active_orders if o.get("courier_id")))
+    
+    # Eğer restoranda atanmış sipariş varsa, sadece o kuryelere atama yapılabilir
+    if couriers_with_packages and data.courier_id not in couriers_with_packages:
+        raise HTTPException(
+            status_code=400, 
+            detail="Bu restorandan sadece halihazırda paketi olan kuryelere atama yapabilirsiniz"
+        )
+    
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one(
+        {"id": data.courier_id}, 
+        {"_id": 0, "name": 1, "phone": 1}
+    )
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # History'ye ekle
+    history_entry = {
+        "status": "assigned",
+        "label": "Kurye Atandı",
+        "timestamp": now,
+        "note": f"Kurye: {courier['name']} (Restoran tarafından)",
+        "actor_type": "restaurant",
+        "actor_name": "Restoran"
+    }
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": {
+                "courier_id": data.courier_id,
+                "courier_name": courier["name"],
+                "courier_phone": courier.get("phone"),
+                "status": "assigned",
+                "assigned_at": now,
+                "updated_at": now
+            },
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    # Kuryeye push notification gönder
+    try:
+        from services.push_notification_service import notify_courier_new_order
+        order["order_number"] = order.get("order_number", "")
+        order["restaurant_name"] = order.get("restaurant_name", "Restoran")
+        await notify_courier_new_order(data.courier_id, order)
+    except Exception as e:
+        print(f"Push notification error: {e}")
+    
+    return {"message": f"Sipariş {courier['name']} kuryesine atandı"}
+
+
 @router.get("/{company_id}/{order_id}")
 async def get_order(company_id: str, order_id: str):
     """Tek bir sipariş detayı"""
