@@ -364,6 +364,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                         <th className="text-left p-2 font-bold text-xs">Ödeme</th>
                         <th className="text-left p-2 font-bold text-xs">Durum</th>
                         <th className="text-left p-2 font-bold text-xs">Kurye</th>
+                        <th className="text-center p-2 font-bold text-xs w-[50px]"></th>
                       </tr>
                     </thead>
                     <tbody>
