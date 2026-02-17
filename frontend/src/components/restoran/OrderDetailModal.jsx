@@ -181,13 +181,6 @@ export default function OrderDetailModal({ order, open, onClose }) {
               <span className="text-slate-600">Sipariş Zamanı:</span>
               <span className="font-medium">{formatDateTime(order.created_at)}</span>
             </div>
-            {order.preparation_time && (
-              <div className="flex items-center gap-2 text-xs">
-                <Clock className="w-3.5 h-3.5 text-slate-500" />
-                <span className="text-slate-600">Hazırlık Süresi:</span>
-                <span className="font-medium">{order.preparation_time} dakika</span>
-              </div>
-            )}
             {distance && (
               <div className="flex items-center gap-2 text-xs">
                 <MapPin className="w-3.5 h-3.5 text-slate-500" />
