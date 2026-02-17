@@ -35,6 +35,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
   const [availableCouriers, setAvailableCouriers] = useState([]);
   const [courierRestrictionMode, setCourierRestrictionMode] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   // Fetch available couriers
   useEffect(() => {
