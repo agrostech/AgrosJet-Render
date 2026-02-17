@@ -238,7 +238,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
         <div className="flex-1 overflow-y-auto" ref={listRef}>
           {filteredDisplayList.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">
-              {listSearchQuery ? "Arama sonucu bulunamadı" : showArchived ? "Arşivlenmiş işletme yok" : "İşletme bulunamadı"}
+              {listSearchQuery ? "Arama sonucu bulunamadı" : showArchived ? "Arşivlenmiş restoran yok" : "Restoran bulunamadı"}
             </p>
           ) : (
             filteredDisplayList.map((b) => {
