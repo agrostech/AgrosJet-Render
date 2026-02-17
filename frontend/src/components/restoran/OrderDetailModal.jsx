@@ -490,11 +490,10 @@ function OrderMap({ order }) {
       center: [centerLat, centerLng],
       zoom: 14,
       zoomControl: true,
+      attributionControl: false,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
     mapInstanceRef.current = map;
     
