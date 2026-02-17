@@ -30,13 +30,16 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId }) {
+export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId, permissions = {} }) {
   const [activeTab, setActiveTab] = useState("pending");
   const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
   const [availableCouriers, setAvailableCouriers] = useState([]);
   const [courierRestrictionMode, setCourierRestrictionMode] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+
+  // İzin kontrolü - kurye telefonunu görebilir mi?
+  const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
 
   // Fetch available couriers
   useEffect(() => {
