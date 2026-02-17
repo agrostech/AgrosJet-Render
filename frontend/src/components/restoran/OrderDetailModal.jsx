@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Package,
   MapPin,
@@ -18,6 +20,7 @@ import {
   Store,
   Bike,
   Calendar,
+  Map,
 } from "lucide-react";
 
 // Sipariş durumları
@@ -96,7 +99,22 @@ const getOrderDistance = (order) => {
   return `${distance.toFixed(1)} km`;
 };
 
-export default function OrderDetailModal({ order, open, onClose, canViewCourierPhone = true }) {
+export default function OrderDetailModal({ 
+  order, 
+  open, 
+  onClose, 
+  canViewCourierPhone = true,
+  canViewCourierLocation = true 
+}) {
+  const [activeTab, setActiveTab] = useState("details");
+
+  // Modal kapandığında tab'ı sıfırla
+  useEffect(() => {
+    if (!open) {
+      setActiveTab("details");
+    }
+  }, [open]);
+
   if (!order) return null;
 
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.pending;
@@ -145,6 +163,9 @@ export default function OrderDetailModal({ order, open, onClose, canViewCourierP
   const parsedNotes = parseNotes(order.notes);
   const hasNotes = parsedNotes.customer.length > 0 || parsedNotes.kitchen.length > 0 || parsedNotes.other;
 
+  // Harita sekmesi gösterilsin mi?
+  const showMapTab = canViewCourierLocation && order.courier_id;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" data-testid="order-detail-modal">
@@ -155,178 +176,481 @@ export default function OrderDetailModal({ order, open, onClose, canViewCourierP
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Üst Bilgi - Durum & Ödeme & Kaynak */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className={`${statusConfig.color} text-xs px-2 py-1`}>
-              {statusConfig.label}
-            </Badge>
-            <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
-              <PaymentIcon className="w-3 h-3" />
-              <span>{paymentInfo.label}</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600">
-              <SourceIcon className="w-3 h-3" />
-              <span>{sourceInfo.label}</span>
-            </div>
-          </div>
-
-          {/* Zaman Bilgileri */}
-          <div className="bg-slate-50 rounded-lg p-3 space-y-1.5">
-            <div className="flex items-center gap-2 text-xs">
-              <Calendar className="w-3.5 h-3.5 text-slate-500" />
-              <span className="text-slate-600">Sipariş Zamanı:</span>
-              <span className="font-medium">{formatDateTime(order.created_at)}</span>
-            </div>
-            {distance && (
-              <div className="flex items-center gap-2 text-xs">
-                <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                <span className="text-slate-600">Teslimat Mesafesi:</span>
-                <span className="font-medium">{distance}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Müşteri Bilgileri */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-2">
-              <User className="w-4 h-4 text-blue-500" />
-              Müşteri Bilgileri
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-sm">{order.customer_name || "-"}</span>
-                {order.customer_phone && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    onClick={() => callPhone(order.customer_phone)}
-                  >
-                    <Phone className="w-3.5 h-3.5 mr-1" />
-                    {order.customer_phone}
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-start gap-2 text-xs text-slate-600">
-                <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-red-500" />
-                <div className="flex-1">
-                  <p className="leading-relaxed">{order.delivery_address || "-"}</p>
-                  {order.delivery_location?.latitude && (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-0 h-auto text-blue-600 text-xs mt-1"
-                      onClick={() => openInMaps(order.delivery_location.latitude, order.delivery_location.longitude)}
-                    >
-                      <Navigation className="w-3 h-3 mr-1" />
-                      Haritada Aç
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Kurye Bilgileri - Sadece atanmışsa göster */}
-          {order.courier_name && (
-            <div className="border rounded-lg p-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-2">
-                <Bike className="w-4 h-4 text-green-500" />
-                Kurye Bilgileri
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-sm">{order.courier_name}</span>
-                {canViewCourierPhone && order.courier_phone && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
-                    onClick={() => callPhone(order.courier_phone)}
-                  >
-                    <Phone className="w-3.5 h-3.5 mr-1" />
-                    {order.courier_phone}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Sipariş İçeriği */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-2">
-              <FileText className="w-4 h-4 text-orange-500" />
-              Sipariş İçeriği
-            </div>
-            <div className="space-y-1.5">
-              {order.items?.length > 0 ? (
-                <>
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-sm">
-                      <span>
-                        <span className="font-medium">{item.quantity}x</span>{" "}
-                        {item.name}
-                      </span>
-                      <span className="text-slate-600">{formatCurrency(item.price * item.quantity)}</span>
-                    </div>
-                  ))}
-                  <div className="border-t mt-2 pt-2 flex justify-between font-semibold">
-                    <span>Toplam</span>
-                    <span className="text-lg">{formatCurrency(order.total_amount)}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="flex justify-between font-semibold">
-                  <span>Toplam Tutar</span>
-                  <span className="text-lg">{formatCurrency(order.total_amount)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notlar */}
-          {hasNotes && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-yellow-700">
+        {showMapTab ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="details" className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                Sipariş Notları
-              </div>
-              
-              {/* Müşteri Notları */}
-              {parsedNotes.customer.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded p-2">
-                  <p className="text-xs font-semibold text-red-700 mb-1">Müşteri Notu:</p>
-                  {parsedNotes.customer.map((note, idx) => (
-                    <p key={idx} className="text-sm text-red-800">{note}</p>
-                  ))}
-                </div>
-              )}
-              
-              {/* Mutfak Notları */}
-              {parsedNotes.kitchen.length > 0 && (
-                <div className="bg-orange-50 border border-orange-200 rounded p-2">
-                  <p className="text-xs font-semibold text-orange-700 mb-1">Mutfak Notu:</p>
-                  {parsedNotes.kitchen.map((note, idx) => (
-                    <p key={idx} className="text-sm text-orange-800">{note}</p>
-                  ))}
-                </div>
-              )}
-              
-              {/* Diğer Notlar */}
-              {parsedNotes.other && (
-                <p className="text-sm text-yellow-800">{parsedNotes.other}</p>
-              )}
-            </div>
-          )}
+                Detaylar
+              </TabsTrigger>
+              <TabsTrigger value="map" className="flex items-center gap-2">
+                <Map className="w-4 h-4" />
+                Harita
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Kapat Butonu */}
-          <div className="pt-2">
-            <Button variant="outline" className="w-full" onClick={() => onClose(false)}>
-              Kapat
-            </Button>
-          </div>
-        </div>
+            <TabsContent value="details" className="mt-0">
+              <OrderDetails 
+                order={order}
+                statusConfig={statusConfig}
+                paymentInfo={paymentInfo}
+                PaymentIcon={PaymentIcon}
+                sourceInfo={sourceInfo}
+                SourceIcon={SourceIcon}
+                distance={distance}
+                canViewCourierPhone={canViewCourierPhone}
+                hasNotes={hasNotes}
+                parsedNotes={parsedNotes}
+                openInMaps={openInMaps}
+                callPhone={callPhone}
+                onClose={onClose}
+              />
+            </TabsContent>
+
+            <TabsContent value="map" className="mt-0">
+              <OrderMap order={order} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <OrderDetails 
+            order={order}
+            statusConfig={statusConfig}
+            paymentInfo={paymentInfo}
+            PaymentIcon={PaymentIcon}
+            sourceInfo={sourceInfo}
+            SourceIcon={SourceIcon}
+            distance={distance}
+            canViewCourierPhone={canViewCourierPhone}
+            hasNotes={hasNotes}
+            parsedNotes={parsedNotes}
+            openInMaps={openInMaps}
+            callPhone={callPhone}
+            onClose={onClose}
+          />
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Detaylar bileşeni
+function OrderDetails({ 
+  order, 
+  statusConfig, 
+  paymentInfo, 
+  PaymentIcon, 
+  sourceInfo, 
+  SourceIcon, 
+  distance,
+  canViewCourierPhone,
+  hasNotes,
+  parsedNotes,
+  openInMaps,
+  callPhone,
+  onClose
+}) {
+  return (
+    <div className="space-y-4">
+      {/* Üst Bilgi - Durum & Ödeme & Kaynak */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge className={`${statusConfig.color} text-xs px-2 py-1`}>
+          {statusConfig.label}
+        </Badge>
+        <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
+          <PaymentIcon className="w-3 h-3" />
+          <span>{paymentInfo.label}</span>
+        </div>
+        <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600">
+          <SourceIcon className="w-3 h-3" />
+          <span>{sourceInfo.label}</span>
+        </div>
+      </div>
+
+      {/* Zaman Bilgileri */}
+      <div className="bg-slate-50 rounded-lg p-3 space-y-1.5">
+        <div className="flex items-center gap-2 text-xs">
+          <Calendar className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-slate-600">Sipariş Zamanı:</span>
+          <span className="font-medium">{formatDateTime(order.created_at)}</span>
+        </div>
+        {distance && (
+          <div className="flex items-center gap-2 text-xs">
+            <MapPin className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-slate-600">Teslimat Mesafesi:</span>
+            <span className="font-medium">{distance}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Müşteri Bilgileri */}
+      <div className="border rounded-lg p-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-2">
+          <User className="w-4 h-4 text-blue-500" />
+          Müşteri Bilgileri
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-sm">{order.customer_name || "-"}</span>
+            {order.customer_phone && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                onClick={() => callPhone(order.customer_phone)}
+              >
+                <Phone className="w-3.5 h-3.5 mr-1" />
+                {order.customer_phone}
+              </Button>
+            )}
+          </div>
+          <div className="flex items-start gap-2 text-xs text-slate-600">
+            <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-red-500" />
+            <div className="flex-1">
+              <p className="leading-relaxed">{order.delivery_address || "-"}</p>
+              {order.delivery_location?.latitude && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 h-auto text-blue-600 text-xs mt-1"
+                  onClick={() => openInMaps(order.delivery_location.latitude, order.delivery_location.longitude)}
+                >
+                  <Navigation className="w-3 h-3 mr-1" />
+                  Haritada Aç
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Kurye Bilgileri - Sadece atanmışsa göster */}
+      {order.courier_name && (
+        <div className="border rounded-lg p-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-2">
+            <Bike className="w-4 h-4 text-green-500" />
+            Kurye Bilgileri
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-sm">{order.courier_name}</span>
+            {canViewCourierPhone && order.courier_phone && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                onClick={() => callPhone(order.courier_phone)}
+              >
+                <Phone className="w-3.5 h-3.5 mr-1" />
+                {order.courier_phone}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sipariş İçeriği */}
+      <div className="border rounded-lg p-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-2">
+          <FileText className="w-4 h-4 text-orange-500" />
+          Sipariş İçeriği
+        </div>
+        <div className="space-y-1.5">
+          {order.items?.length > 0 ? (
+            <>
+              {order.items.map((item, idx) => (
+                <div key={idx} className="flex justify-between text-sm">
+                  <span>
+                    <span className="font-medium">{item.quantity}x</span>{" "}
+                    {item.name}
+                  </span>
+                  <span className="text-slate-600">{formatCurrency(item.price * item.quantity)}</span>
+                </div>
+              ))}
+              <div className="border-t mt-2 pt-2 flex justify-between font-semibold">
+                <span>Toplam</span>
+                <span className="text-lg">{formatCurrency(order.total_amount)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-between font-semibold">
+              <span>Toplam Tutar</span>
+              <span className="text-lg">{formatCurrency(order.total_amount)}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Notlar */}
+      {hasNotes && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-yellow-700">
+            <FileText className="w-4 h-4" />
+            Sipariş Notları
+          </div>
+          
+          {/* Müşteri Notları */}
+          {parsedNotes.customer.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded p-2">
+              <p className="text-xs font-semibold text-red-700 mb-1">Müşteri Notu:</p>
+              {parsedNotes.customer.map((note, idx) => (
+                <p key={idx} className="text-sm text-red-800">{note}</p>
+              ))}
+            </div>
+          )}
+          
+          {/* Mutfak Notları */}
+          {parsedNotes.kitchen.length > 0 && (
+            <div className="bg-orange-50 border border-orange-200 rounded p-2">
+              <p className="text-xs font-semibold text-orange-700 mb-1">Mutfak Notu:</p>
+              {parsedNotes.kitchen.map((note, idx) => (
+                <p key={idx} className="text-sm text-orange-800">{note}</p>
+              ))}
+            </div>
+          )}
+          
+          {/* Diğer Notlar */}
+          {parsedNotes.other && (
+            <p className="text-sm text-yellow-800">{parsedNotes.other}</p>
+          )}
+        </div>
+      )}
+
+      {/* Kapat Butonu */}
+      <div className="pt-2">
+        <Button variant="outline" className="w-full" onClick={() => onClose(false)}>
+          Kapat
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Harita bileşeni
+function OrderMap({ order }) {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
+
+  useEffect(() => {
+    // Leaflet'i dinamik olarak yükle
+    const loadLeaflet = async () => {
+      if (!window.L) {
+        // CSS yükle
+        if (!document.querySelector('link[href*="leaflet.css"]')) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+          document.head.appendChild(link);
+        }
+        
+        // JS yükle
+        await new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          script.onload = resolve;
+          document.head.appendChild(script);
+        });
+      }
+      
+      initMap();
+    };
+
+    loadLeaflet();
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Kurye konumu değiştiğinde marker'ı güncelle
+  useEffect(() => {
+    if (mapInstanceRef.current && order.courier_location) {
+      updateMarkers();
+    }
+  }, [order.courier_location]);
+
+  const initMap = () => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    const L = window.L;
+    
+    // Merkez noktası hesapla
+    let centerLat = 41.0082;
+    let centerLng = 28.9784;
+    
+    if (order.delivery_location?.latitude) {
+      centerLat = order.delivery_location.latitude;
+      centerLng = order.delivery_location.longitude;
+    }
+
+    // Haritayı oluştur
+    const map = L.map(mapRef.current, {
+      center: [centerLat, centerLng],
+      zoom: 14,
+      zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    mapInstanceRef.current = map;
+    
+    updateMarkers();
+    
+    // Bounds'u ayarla
+    setTimeout(() => fitBounds(), 100);
+  };
+
+  const updateMarkers = () => {
+    if (!mapInstanceRef.current) return;
+    
+    const L = window.L;
+    const map = mapInstanceRef.current;
+
+    // Eski marker'ları temizle
+    markersRef.current.forEach(marker => {
+      try { map.removeLayer(marker); } catch (e) {}
+    });
+    markersRef.current = [];
+
+    // Teslimat noktası marker'ı (Kırmızı pin)
+    if (order.delivery_location?.latitude) {
+      const deliveryMarker = L.marker(
+        [order.delivery_location.latitude, order.delivery_location.longitude],
+        {
+          icon: L.divIcon({
+            className: '',
+            html: `
+              <div style="position: relative; width: 24px; height: 24px;">
+                <div style="
+                  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                  background: #ef4444; width: 20px; height: 20px; border-radius: 50%;
+                  border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                  display: flex; align-items: center; justify-content: center;
+                ">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3" fill="#ef4444"/>
+                  </svg>
+                </div>
+              </div>
+            `,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          })
+        }
+      ).addTo(map);
+      
+      deliveryMarker.bindPopup(`<strong>Teslimat Adresi</strong><br/>${order.delivery_address || ''}`);
+      markersRef.current.push(deliveryMarker);
+    }
+
+    // Kurye marker'ı (Yeşil, animasyonlu)
+    if (order.courier_location?.latitude) {
+      const courierInitials = order.courier_name 
+        ? order.courier_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+        : 'K';
+      
+      const courierMarker = L.marker(
+        [order.courier_location.latitude, order.courier_location.longitude],
+        {
+          icon: L.divIcon({
+            className: 'courier-marker',
+            html: `
+              <div style="position: relative; width: 28px; height: 28px; border-radius: 50% !important; background: transparent !important;">
+                <div style="
+                  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                  width: 28px; height: 28px; border-radius: 50%;
+                  background: rgba(34, 197, 94, 0.3);
+                  animation: pulse 2s infinite;
+                "></div>
+                <div style="
+                  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                  background: #22c55e; width: 22px; height: 22px; border-radius: 50%;
+                  border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                  display: flex; align-items: center; justify-content: center;
+                  color: white; font-size: 9px; font-weight: 700;
+                ">${courierInitials}</div>
+              </div>
+              <style>
+                @keyframes pulse {
+                  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+                }
+              </style>
+            `,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          })
+        }
+      ).addTo(map);
+      
+      courierMarker.bindPopup(`<strong>Kurye</strong><br/>${order.courier_name || ''}`);
+      markersRef.current.push(courierMarker);
+    }
+  };
+
+  const fitBounds = () => {
+    if (!mapInstanceRef.current) return;
+    
+    const L = window.L;
+    const bounds = [];
+    
+    if (order.delivery_location?.latitude) {
+      bounds.push([order.delivery_location.latitude, order.delivery_location.longitude]);
+    }
+    if (order.courier_location?.latitude) {
+      bounds.push([order.courier_location.latitude, order.courier_location.longitude]);
+    }
+    
+    if (bounds.length >= 2) {
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+    } else if (bounds.length === 1) {
+      mapInstanceRef.current.setView(bounds[0], 15);
+    }
+  };
+
+  const hasDeliveryLocation = order.delivery_location?.latitude;
+  const hasCourierLocation = order.courier_location?.latitude;
+
+  return (
+    <div className="space-y-3">
+      {/* Harita */}
+      <div 
+        ref={mapRef} 
+        className="w-full h-[300px] rounded-lg border bg-slate-100"
+        data-testid="order-map"
+      />
+
+      {/* Lejand */}
+      <div className="flex flex-wrap gap-4 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow" />
+          <span className="text-slate-600">Teslimat Noktası</span>
+        </div>
+        {hasCourierLocation && (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-white shadow" />
+            <span className="text-slate-600">Kurye Konumu</span>
+          </div>
+        )}
+      </div>
+
+      {/* Bilgi mesajları */}
+      {!hasDeliveryLocation && !hasCourierLocation && (
+        <div className="text-center py-4 text-sm text-muted-foreground">
+          Konum bilgisi bulunamadı
+        </div>
+      )}
+      
+      {hasDeliveryLocation && !hasCourierLocation && (
+        <div className="text-center py-2 text-xs text-amber-600 bg-amber-50 rounded-lg">
+          Kurye konum bilgisi henüz mevcut değil
+        </div>
+      )}
+    </div>
   );
 }
