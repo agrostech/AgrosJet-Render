@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { 
   ClipboardList, Truck, CheckCircle, XCircle, RefreshCw, 
-  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar, Bike
+  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar, Bike, UserPlus
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
 import {
@@ -26,9 +27,32 @@ import {
   formatCurrency
 } from "@/utils/orderUtils";
 
-export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onRefresh, restaurantId }) {
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId }) {
   const [activeTab, setActiveTab] = useState("pending");
   const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
+  const [availableCouriers, setAvailableCouriers] = useState([]);
+  const [courierRestrictionMode, setCourierRestrictionMode] = useState("all");
+
+  // Fetch available couriers
+  useEffect(() => {
+    const fetchCouriers = async () => {
+      if (!restaurantId) return;
+      try {
+        const res = await axios.get(`${API}/orders/restaurant/${restaurantId}/available-couriers`);
+        setAvailableCouriers(res.data.couriers || []);
+        setCourierRestrictionMode(res.data.restriction_mode || "all");
+      } catch (err) {
+        console.error("Kuryeler yüklenemedi:", err);
+      }
+    };
+    
+    fetchCouriers();
+    // Her 10 saniyede bir kurye listesini güncelle
+    const interval = setInterval(fetchCouriers, 10000);
+    return () => clearInterval(interval);
+  }, [restaurantId]);
 
   // Calculate stats
   const stats = useMemo(() => {
