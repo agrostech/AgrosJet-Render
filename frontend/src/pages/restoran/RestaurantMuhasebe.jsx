@@ -43,10 +43,20 @@ const formatDateTime = (dateStr) => {
 };
 
 // İşlem tipleri - Restoran perspektifinden (Admin panelin TERSİ)
-// Admin "verilen" (yeşil) = Restorandan alındı = Restoran için KIRMIZİ
-// Admin "alınan" (kırmızı) = Restorana verildi = Restoran için YEŞİL
+// Admin "payment_out/Verilen" (yeşil) = Admin verdi = Restoran aldı = YEŞİL
+// Admin "payment_in/Alınan" (kırmızı) = Admin aldı = Restoran verdi = KIRMIZI
+// AMA kullanıcı tam tersini istiyor:
+// Admin yeşil -> Restoran kırmızı
+// Admin kırmızı -> Restoran yeşil
 const TRANSACTION_TYPES = {
-  // Admin panelde "given/verilen" yeşil = Restoran verdi = KIRMIZI
+  // Admin panelde "payment_out" yeşil = Restoran için KIRMIZI
+  payment_out: { 
+    label: "Verilen", 
+    color: "text-red-600", 
+    bg: "bg-red-50",
+    icon: TrendingDown,
+    sign: "-"
+  },
   given: { 
     label: "Verilen", 
     color: "text-red-600", 
@@ -54,22 +64,15 @@ const TRANSACTION_TYPES = {
     icon: TrendingDown,
     sign: "-"
   },
+  // Admin panelde "payment_in" kırmızı = Restoran için YEŞİL
   payment_in: { 
-    label: "Verilen", 
-    color: "text-red-600", 
-    bg: "bg-red-50",
-    icon: TrendingDown,
-    sign: "-"
-  },
-  // Admin panelde "received/alınan" kırmızı = Restoran aldı = YEŞİL
-  received: { 
     label: "Alınan", 
     color: "text-green-600", 
     bg: "bg-green-50",
     icon: TrendingUp,
     sign: "+"
   },
-  payment_out: { 
+  received: { 
     label: "Alınan", 
     color: "text-green-600", 
     bg: "bg-green-50",
