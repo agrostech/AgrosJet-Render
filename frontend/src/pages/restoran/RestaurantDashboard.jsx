@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { key: "muhasebe", label: "Muhasebe", icon: Calculator, path: "/restoran/muhasebe" },
   { key: "raporlar", label: "Raporlar", icon: FileText, path: "/restoran/raporlar" },
   { key: "entegrasyonlar", label: "Entegrasyonlar", icon: Link2, path: "/restoran/entegrasyonlar" },
-  { key: "urunler", label: "Ürünler", icon: Package, path: "/restoran/urunler" },
+  { key: "urunler", label: "Ürünler", icon: UtensilsCrossed, path: "/restoran/urunler" },
 ];
 
 export default function RestaurantDashboard() {
