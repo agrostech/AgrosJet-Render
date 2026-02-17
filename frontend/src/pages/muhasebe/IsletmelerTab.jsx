@@ -518,7 +518,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
         )}
       </div>
 
-      {/* İşletme Ekle Modal */}
+      {/* Restoran Ekle Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
