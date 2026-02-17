@@ -37,13 +37,40 @@ def calculate_distance(restaurant_location: dict, delivery_location: dict) -> fl
     return R * c
 
 
-def calculate_preparation_time(restaurant: dict, order_items: list) -> int:
+import re
+
+def normalize_product_name(name: str) -> str:
+    """
+    Ürün ismini normalize et - fuzzy matching için.
+    "All in One" -> "allinone"
+    "AllinOne" -> "allinone"
+    "All in one (kutu)" -> "allinonekutu"
+    """
+    if not name:
+        return ""
+    # Küçük harfe çevir
+    normalized = name.lower()
+    # Türkçe karakterleri dönüştür
+    tr_map = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'}
+    for tr_char, en_char in tr_map.items():
+        normalized = normalized.replace(tr_char, en_char)
+    # Sadece alfanumerik karakterleri tut
+    normalized = re.sub(r'[^a-z0-9]', '', normalized)
+    return normalized
+
+
+def calculate_preparation_time(restaurant: dict, order_items: list, db_products: list = None) -> int:
     """
     Sipariş için toplam hazırlık süresini hesapla.
     
     Mantık:
     - Standart hazırlık süresi + En uzun ürün bazlı ekstra süre
     - Örnek: Standart 15 dk + max(Lahmacun 10 dk, Pide 8 dk) = 15 + 10 = 25 dk
+    
+    Args:
+        restaurant: Restoran bilgisi (preparation_time, product_preparation_times)
+        order_items: Siparişteki ürünler (product_id veya name içermeli)
+        db_products: Veritabanındaki ürünler (isim eşleştirmesi için, opsiyonel)
     """
     standard_time = restaurant.get("preparation_time", 15)
     product_times = restaurant.get("product_preparation_times", {})
@@ -51,19 +78,83 @@ def calculate_preparation_time(restaurant: dict, order_items: list) -> int:
     if not product_times or not order_items:
         return standard_time
     
+    # Eğer db_products verilmişse, ürün isimlerine göre ID eşleştirmesi yap
+    # (Adisyo, Yemeksepeti gibi platformlardan gelen siparişler için)
+    name_to_id_map = {}
+    if db_products:
+        for p in db_products:
+            normalized_name = normalize_product_name(p.get("name", ""))
+            if normalized_name:
+                name_to_id_map[normalized_name] = p.get("id")
+    
     # Siparişteki ürünlerin ekstra sürelerini topla
     extra_times = []
     for item in order_items:
         product_id = item.get("product_id") or item.get("id")
+        product_name = item.get("name") or item.get("product_name") or ""
+        
+        # Önce product_id ile dene
         if product_id and str(product_id) in product_times:
             extra_time = product_times[str(product_id)]
             if extra_time and extra_time > 0:
                 extra_times.append(extra_time)
+            continue
+        
+        # product_id yoksa veya bulunamadıysa, isim eşleştirmesi yap
+        if product_name and name_to_id_map:
+            normalized_item_name = normalize_product_name(product_name)
+            
+            # Tam eşleşme dene
+            if normalized_item_name in name_to_id_map:
+                matched_id = name_to_id_map[normalized_item_name]
+                if str(matched_id) in product_times:
+                    extra_time = product_times[str(matched_id)]
+                    if extra_time and extra_time > 0:
+                        extra_times.append(extra_time)
+                continue
+            
+            # Kısmi eşleşme dene (siparişteki isim DB'deki ismi içeriyor mu veya tersi)
+            for db_normalized, db_id in name_to_id_map.items():
+                if (normalized_item_name in db_normalized or db_normalized in normalized_item_name):
+                    if str(db_id) in product_times:
+                        extra_time = product_times[str(db_id)]
+                        if extra_time and extra_time > 0:
+                            extra_times.append(extra_time)
+                    break
     
     # En uzun ekstra süreyi ekle (birden fazla ürün varsa sadece en uzun olan)
     max_extra = max(extra_times) if extra_times else 0
     
     return standard_time + max_extra
+
+
+async def calculate_preparation_time_async(restaurant_id: str, order_items: list) -> int:
+    """
+    Async versiyon - veritabanından restoran ve ürünleri çekip hesaplar.
+    Adisyo, Yemeksepeti gibi platformlardan gelen siparişler için kullanılır.
+    """
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "preparation_time": 1, "product_preparation_times": 1}
+    )
+    
+    if not restaurant:
+        return 15  # Default
+    
+    product_times = restaurant.get("product_preparation_times", {})
+    
+    # Eğer ürün bazlı süre tanımlı değilse standart süreyi döndür
+    if not product_times:
+        return restaurant.get("preparation_time", 15)
+    
+    # Restoran ürünlerini çek (isim eşleştirmesi için)
+    db_products = await db.products.find(
+        {"restaurant_id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(1000)
+    
+    return calculate_preparation_time(restaurant, order_items, db_products)
 
 
 def calculate_fee_from_pricing(pricing_type: str, per_package_price: float, km_ranges: list, distance_km: float) -> float:
