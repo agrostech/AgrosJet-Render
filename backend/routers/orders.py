@@ -790,12 +790,11 @@ async def get_available_couriers_for_restaurant(restaurant_id: str):
     couriers_with_packages = list(set(o.get("courier_id") for o in active_orders if o.get("courier_id")))
     
     if couriers_with_packages:
-        # Sadece bu restorandan paketi olan kuryeleri getir
+        # Sadece bu restorandan paketi olan kuryeleri getir (engellenmemişleri)
+        valid_courier_ids = [c for c in couriers_with_packages if c not in blocked_couriers]
+        
         couriers = await db.couriers.find(
-            {
-                "id": {"$in": couriers_with_packages},
-                "id": {"$nin": blocked_couriers}  # Engellenmemiş olanlar
-            },
+            {"id": {"$in": valid_courier_ids}},
             {"_id": 0, "id": 1, "name": 1, "phone": 1, "status": 1, "current_location": 1}
         ).to_list(50)
         
@@ -808,12 +807,11 @@ async def get_available_couriers_for_restaurant(restaurant_id: str):
             {"_id": 0, "courier_id": 1}
         ).to_list(200)
         
-        courier_ids = [r["courier_id"] for r in company_courier_relations]
+        courier_ids = [r["courier_id"] for r in company_courier_relations if r["courier_id"] not in blocked_couriers]
         
         couriers = await db.couriers.find(
             {
                 "id": {"$in": courier_ids},
-                "id": {"$nin": blocked_couriers},
                 "status": {"$in": ["active", "available", "busy"]}
             },
             {"_id": 0, "id": 1, "name": 1, "phone": 1, "status": 1, "current_location": 1}
