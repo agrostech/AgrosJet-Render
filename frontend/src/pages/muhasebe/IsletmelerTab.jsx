@@ -522,7 +522,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading">Yeni İşletme</DialogTitle>
+            <DialogTitle className="font-heading">Yeni Restoran</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddBusiness} className="space-y-4">
             <div>
