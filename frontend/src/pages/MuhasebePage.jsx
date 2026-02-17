@@ -13,7 +13,7 @@ import RaporlarTab from "./muhasebe/RaporlarTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
-  { key: "isletmeler", label: "İşletmeler", icon: Building2 },
+  { key: "isletmeler", label: "Restoranlar", icon: Building2 },
   { key: "cariler", label: "Cariler", icon: Wallet },
   { key: "kurye-faturalari", label: "Kurye Faturaları", icon: FileText },
   { key: "isletme-faturalari", label: "İşletme Faturaları", icon: Receipt },
