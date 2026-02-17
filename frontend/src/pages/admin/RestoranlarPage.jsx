@@ -41,7 +41,6 @@ export default function RestoranlarPage({ companyId }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
-  const [showIntegrationModal, setShowIntegrationModal] = useState(false);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [showPreparationModal, setShowPreparationModal] = useState(false);
