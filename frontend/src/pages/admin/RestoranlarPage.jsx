@@ -663,6 +663,10 @@ export default function RestoranlarPage({ companyId }) {
                         <UserX className="w-4 h-4" />
                         <span className="ml-1 text-xs">Engellenenler</span>
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowPermissionsModal(true); }} className="h-8 px-3 border-2" title="İzinler">
+                        <Shield className="w-4 h-4" />
+                        <span className="ml-1 text-xs">İzinler</span>
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="h-8 px-3 border-2" title="Entegrasyonlar">
                         <Plug className="w-4 h-4" />
                         <span className="ml-1 text-xs">Entegrasyonlar</span>
