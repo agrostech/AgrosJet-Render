@@ -23,6 +23,11 @@ PERMISSION_DEFINITIONS = {
         "label": "Kurye Telefonu Görüntüleme",
         "description": "Atanan kuryenin telefon numarasını görüntüleyebilir",
         "default": True
+    },
+    "can_view_courier_location": {
+        "label": "Kurye Konumu Görüntüleme",
+        "description": "Haritada kuryenin anlık konumunu görüntüleyebilir",
+        "default": True
     }
 }
 
