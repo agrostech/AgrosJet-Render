@@ -667,10 +667,6 @@ export default function RestoranlarPage({ companyId }) {
                         <Shield className="w-4 h-4" />
                         <span className="ml-1 text-xs">İzinler</span>
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="h-8 px-3 border-2" title="Entegrasyonlar">
-                        <Plug className="w-4 h-4" />
-                        <span className="ml-1 text-xs">Entegrasyonlar</span>
-                      </Button>
                       <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="h-8 px-3 border-2" data-testid={`edit-restaurant-${restaurant.id}`}>
                         <Edit2 className="w-4 h-4" />
                       </Button>
