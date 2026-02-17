@@ -526,7 +526,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           </DialogHeader>
           <form onSubmit={handleAddBusiness} className="space-y-4">
             <div>
-              <Label className="text-sm font-semibold">İşletme Adı</Label>
+              <Label className="text-sm font-semibold">Restoran Adı</Label>
               <Input 
                 value={newBusiness.name} 
                 onChange={(e) => setNewBusiness({ ...newBusiness, name: e.target.value })} 
@@ -627,7 +627,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           {editingBusiness && (
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-semibold">İşletme Adı</Label>
+                <Label className="text-sm font-semibold">Restoran Adı</Label>
                 <Input
                   value={editBusinessForm.name}
                   onChange={(e) => setEditBusinessForm({ ...editBusinessForm, name: e.target.value })}
