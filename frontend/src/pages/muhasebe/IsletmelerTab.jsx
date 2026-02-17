@@ -621,7 +621,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
           <DialogHeader>
             <DialogTitle className="font-heading flex items-center gap-2">
               <Pencil className="w-5 h-5" />
-              İşletme Düzenle
+              Restoran Düzenle
             </DialogTitle>
           </DialogHeader>
           {editingBusiness && (
