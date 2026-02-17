@@ -263,19 +263,19 @@ export default function RestaurantMuhasebe({ restaurantId }) {
                   const typeInfo = TRANSACTION_TYPES[tx.type] || TRANSACTION_TYPES.payment_in;
                   
                   return (
-                    <div key={tx.id} className="p-4 hover:bg-slate-50 transition-colors">
+                    <div key={tx.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-slate-800 truncate">{tx.description}</p>
-                          <span className="text-xs text-muted-foreground">
+                          <p className="font-medium text-xs text-slate-800 truncate">{tx.description}</p>
+                          <span className="text-[11px] text-muted-foreground">
                             {formatDate(tx.date || tx.created_at)}
                           </span>
                           {tx.notes && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{tx.notes}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{tx.notes}</p>
                           )}
                         </div>
                         <div className="text-right shrink-0">
-                          <span className={`font-mono font-semibold ${typeInfo.color}`}>
+                          <span className={`font-mono text-xs font-semibold ${typeInfo.color}`}>
                             {typeInfo.sign}{formatMoney(tx.amount)}
                           </span>
                         </div>
@@ -287,22 +287,23 @@ export default function RestaurantMuhasebe({ restaurantId }) {
 
               {/* Load More */}
               {hasMore && (
-                <div className="p-4 text-center border-t">
+                <div className="p-3 text-center border-t">
                   <Button 
                     variant="outline" 
+                    size="sm"
                     onClick={loadMore} 
                     disabled={loadingMore}
-                    className="w-full md:w-auto"
+                    className="w-full md:w-auto h-8 text-xs"
                   >
                     {loadingMore ? (
                       <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                         Yükleniyor...
                       </>
                     ) : (
                       <>
-                        <ChevronDown className="w-4 h-4 mr-2" />
-                        Daha Fazla Yükle ({totalCount - transactions.length} kaldı)
+                        <ChevronDown className="w-3.5 h-3.5 mr-1.5" />
+                        Daha Fazla ({totalCount - transactions.length})
                       </>
                     )}
                   </Button>
