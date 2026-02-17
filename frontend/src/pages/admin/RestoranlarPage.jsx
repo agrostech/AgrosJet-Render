@@ -1449,6 +1449,13 @@ export default function RestoranlarPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Permissions Modal */}
+      <RestaurantPermissionsModal
+        open={showPermissionsModal}
+        onOpenChange={setShowPermissionsModal}
+        restaurant={selectedRestaurant}
+      />
     </div>
   );
 }
