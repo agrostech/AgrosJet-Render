@@ -103,7 +103,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     if (success) setEditingTx(null);
   };
 
-  // İşletme düzenleme işlevi
+  // Restoran düzenleme işlevi
   const handleEditBusinessSubmit = async () => {
     if (!editingBusiness) return;
     setEditBusinessLoading(true);
