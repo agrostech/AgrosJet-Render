@@ -1377,44 +1377,34 @@ export default function RestoranlarPage({ companyId }) {
           ) : (
             <div className="space-y-6 py-4">
               {/* Standart Hazırlık Süresi */}
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <Label className="text-blue-800 font-semibold">Standart Hazırlık Süresi</Label>
-                <p className="text-xs text-blue-600 mb-3">
-                  Tüm siparişler için geçerli olan temel hazırlık süresi
-                </p>
-                <div className="flex items-center gap-2">
+              <div className="p-4 border rounded-lg">
+                <Label className="font-semibold">Standart Hazırlık Süresi</Label>
+                <div className="flex items-center gap-2 mt-2">
                   <Input
                     type="number"
                     min="1"
                     max="120"
                     value={preparationData.standard_time}
                     onChange={(e) => setPreparationData(prev => ({ ...prev, standard_time: e.target.value }))}
-                    className="w-24 bg-white"
+                    className="w-24"
                   />
-                  <span className="text-blue-700 font-medium">dakika</span>
+                  <span className="text-muted-foreground">dakika</span>
                 </div>
               </div>
 
               {/* Ürün Bazlı Ekstra Süreler */}
-              <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                <Label className="text-amber-800 font-semibold">Ürün Bazlı Ekstra Hazırlık Süreleri</Label>
-                <p className="text-xs text-amber-600 mb-3">
-                  Belirli ürünler için standart süreye ek olarak eklenen süreler. 
-                  Siparişteki ürünlerden en uzun ekstra süre 1 kez eklenir.
-                </p>
-                <p className="text-xs text-amber-700 mb-4 font-medium">
-                  Örnek: Standart 15 dk + Lahmacun 10 dk + Pide 8 dk = 15 + max(10,8) = 25 dk
-                </p>
+              <div className="p-4 border rounded-lg">
+                <Label className="font-semibold">Ürün Bazlı Ekstra Hazırlık Süreleri</Label>
                 
                 {restaurantProducts.length === 0 ? (
-                  <p className="text-sm text-amber-600 py-4 text-center">
+                  <p className="text-sm text-muted-foreground py-4 text-center">
                     Bu restorana ait ürün bulunamadı
                   </p>
                 ) : (
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto mt-3">
                     {restaurantProducts.map((product) => (
-                      <div key={product.id} className="flex items-center justify-between p-2 bg-white rounded border">
-                        <span className="text-sm font-medium">{product.name}</span>
+                      <div key={product.id} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
+                        <span className="text-sm">{product.name}</span>
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
@@ -1425,24 +1415,13 @@ export default function RestoranlarPage({ companyId }) {
                             onChange={(e) => updateProductTime(product.id, e.target.value)}
                             className="w-20 h-8 text-sm"
                           />
-                          <span className="text-xs text-amber-600">dk</span>
+                          <span className="text-xs text-muted-foreground">dk</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Özet */}
-              {Object.keys(preparationData.product_times).some(k => preparationData.product_times[k] > 0) && (
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-green-700">
-                    <strong>Hesaplama:</strong> Standart ({preparationData.standard_time || 15} dk) + 
-                    Maks. Ürün Süresi ({Math.max(...Object.values(preparationData.product_times).filter(v => v > 0))} dk) = 
-                    <strong> {parseInt(preparationData.standard_time || 15) + Math.max(...Object.values(preparationData.product_times).filter(v => v > 0))} dk</strong>
-                  </p>
-                </div>
-              )}
             </div>
           )}
           
