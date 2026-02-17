@@ -38,8 +38,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
-  // İzin kontrolü - kurye telefonunu görebilir mi?
+  // İzin kontrolleri
   const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
+  const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
 
   // Fetch available couriers
   useEffect(() => {
