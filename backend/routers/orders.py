@@ -811,24 +811,9 @@ async def get_available_couriers_for_restaurant(restaurant_id: str):
         
         restriction_mode = "restricted"  # Kısıtlı mod - sadece paketi olan kuryeler
     else:
-        # Hiç atanmış sipariş yok - tüm aktif kuryeleri getir
-        # Önce şirket-kurye ilişkisini bul
-        company_courier_relations = await db.company_couriers.find(
-            {"company_id": company_id},
-            {"_id": 0, "courier_id": 1}
-        ).to_list(200)
-        
-        courier_ids = [r["courier_id"] for r in company_courier_relations if r["courier_id"] not in blocked_couriers]
-        
-        couriers = await db.couriers.find(
-            {
-                "id": {"$in": courier_ids},
-                "status": {"$in": ["active", "available", "busy"]}
-            },
-            {"_id": 0, "id": 1, "name": 1, "phone": 1, "status": 1, "current_location": 1}
-        ).to_list(50)
-        
-        restriction_mode = "all"  # Tüm kuryeler
+        # Hiç atanmış sipariş yok - restoran kurye atayamaz
+        couriers = []
+        restriction_mode = "no_packages"  # Hiç paket yok
     
     # Her kurye için bu restorandan kaç paketi olduğunu hesapla
     for courier in couriers:
