@@ -747,15 +747,11 @@ export default function RestoranlarPage({ companyId }) {
                 </Button>
               </div>
               
-              {/* Row 4: İzinler, Entegrasyonlar */}
+              {/* Row 4: İzinler */}
               <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowPermissionsModal(true); }} className="flex-1 border-2">
                   <Shield className="w-4 h-4 mr-1" />
                   <span className="text-xs">İzinler</span>
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowIntegrationModal(true); }} className="flex-1 border-2">
-                  <Plug className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Entegrasyonlar</span>
                 </Button>
               </div>
               
