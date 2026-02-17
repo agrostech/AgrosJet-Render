@@ -96,7 +96,7 @@ const getOrderDistance = (order) => {
   return `${distance.toFixed(1)} km`;
 };
 
-export default function OrderDetailModal({ order, open, onClose }) {
+export default function OrderDetailModal({ order, open, onClose, canViewCourierPhone = true }) {
   if (!order) return null;
 
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.pending;
