@@ -1,98 +1,111 @@
 <analysis>**original_problem_statement:**
-The user initially requested to build a Restaurant Panel for the ShiftJet system. The scope was later expanded to include:
-1.  **Web Scraping (Completed):** Import products from a  restaurant URL.
-2.  **Product Management (Completed):** Full CRUD for product categories and individual products.
-3.  **UI Refinements (Completed):** Various UI/UX improvements on the products page.
-4.  **Manual Order Entry (Completed):** A modal on the restaurant dashboard for manually creating phone orders, including options for scheduled delivery.
-5.  **Address Geocoding for Manual Orders (In Progress):** Enhance the manual order modal by integrating Google Places API to autocomplete the delivery address and save its geographic coordinates (, ) for courier routing. The user chose this approach and provided an API key.
+The user's goal is to build and refine a Restaurant Panel for the ShiftJet system. The initial scope included product management, UI refinements, and manual order entry.
+
+Recent development has focused on a series of advanced features and fixes for the restaurant dashboard:
+1.  **Dashboard Bugs:** Fixing issues with preparation time selection and implementing real-time order updates.
+2.  **UI/UX Overhaul:** Continuously refining the order table layout, column widths, and information display based on detailed user feedback.
+3.  **Courier ETA:** Calculating and displaying the estimated time of arrival for the assigned courier.
+4.  **Advanced Preparation Time:** Implementing a new system where order preparation time is calculated as a  (set per restaurant) plus the  from any single product within the order. This is managed via a new interface in the admin panel.
+5.  **Product Search/Filter:** Adding search and category filtering to the product selection modal for manual phone orders.
+6.  **Fuzzy Product Matching:** Ensuring the preparation time logic works for orders from external platforms (like Adisyo) by implementing fuzzy string matching for product names.
+7.  **Restricted Courier Assignment:** A feature allowing restaurants to assign unassigned orders only to couriers who already have an active order from that same restaurant, preventing inefficient dispatching.
+8.  **Restaurant Permissions:** Creating a foundational permissions system, starting with a toggle in the admin panel to enable/disable the Restricted Courier Assignment feature for each restaurant. This has been expanded to include permissions for viewing courier phone numbers and locations.
+9.  **Architecture Refactor (Integrations):** Moving the management of third-party integrations (like Adisyo, Yemeksepeti) from the central admin panel to each individual restaurant's panel.
+10. **Order Details Modal:** Adding a modal to the restaurant dashboard to view comprehensive order details, including a map tab for live courier tracking.
+11. **Restaurant Accounting:** Implementing a  (Accounting) page for restaurants to view their balance and transaction history.
+12. **Restaurant Reconciliation:** Creating a Restoran Mütabakat tab in the admin panel to calculate and apply weekly financial settlements for restaurants.
+13. **Platform Integrations:** The user is now focusing on integrating third-party food delivery platforms, starting with **Trendyol Yemek**. The user has provided extensive API documentation for this purpose.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application features a functional Restaurant Panel where users can log in, manage their entire menu (products and categories), and view incoming orders on a dashboard. A Yeni Sipariş (New Order) button on the dashboard opens a modal for creating manual phone orders. This modal allows product selection, customer data entry, and scheduling future deliveries.
-
-The backend has been updated to support the creation of these manual orders, including a new  status and storing / for the delivery address. The frontend implementation for Google Places Autocomplete has been started by adding the necessary script to  and modifying the new order modal, but it is currently not functional.
+The application has a functional Restaurant Panel with a real-time order dashboard. Key recent additions include:
+-   An order details modal, accessible by clicking on an order row, which displays comprehensive information.
+-   A new Map tab within the order details modal that shows the live location of the assigned courier and the delivery address, powered by Leaflet.
+-   An expanded permissions system for restaurants, now including toggles for  and , which control visibility of sensitive information in the UI.
+-   A new  (Accounting) page in the restaurant panel, showing the restaurant's live balance and transaction history with color-coding logic that is inverse to the admin's view.
+-   A new  (Restaurant Reconciliation) tab in the admin accounting section for processing weekly settlements.
+-   A major architectural correction has been implemented, unifying the previously separate  and  concepts. All accounting-related features now correctly use the  collection with .
+-   The UI for managing integrations (Adisyo, Yemeksepeti, etc.) is located on the  page, ready for backend implementation.
 
 **Last working item**:
--   Last item agent was working: The agent was debugging the Google Places Autocomplete integration within the New Order modal (). After trying an implementation with  and failing, the agent switched to injecting the script into  and using vanilla JavaScript for initialization. However, the autocomplete suggestion dropdown () is still not appearing when the user types in the address field. The agent confirmed with the user that the Places API is enabled in their Google Cloud project and was about to check the browser console for specific API errors.
--   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? screenshot tool. The agent must verify that typing in the address field displays the Google Places autocomplete dropdown, selecting an address fills the input correctly, and the order is created with the correct coordinates.
+-   Last item agent was working: The agent was about to begin the implementation of the Trendyol Yemek integration. It had just completed a thorough analysis of the API documentation provided by the user, confirmed the implementation plan, and was ready to start coding.
+-   Status: NOT STARTED
+-   Agent Testing Done: N/A
+-   Which testing method agent to use? both
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Google Places Autocomplete dropdown not visible in New Order Modal (P0)
--   Issue 2: Adisyo Payment Method Mapping Bug (P1)
--   Issue 3: Background Task Reliability (Notifications/Location) (P1)
--   Issue 4: Mobile Sidebar Courier List Collapsible Bug (P1)
+-   Issue 1: Adisyo Payment Method Mapping Bug (P1)
+-   Issue 2: Background Task Reliability (Notifications/Location) (P1)
+-   Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)
+-   Issue 4: Historical Accounting Data Inconsistency (P2)
 
 Issues Detail:
--   **Issue 1: Google Places Autocomplete dropdown not visible in New Order Modal (P0)**
-    -   Attempted fixes:
-        1.  Initial implementation using   component was unsuccessful.
-        2.  Switched to adding the Google Maps script directly to  and initializing autocomplete via a  hook.
-        3.  Added custom CSS in  to increase the  of the  to ensure it appears above the modal.
-    -   Next debug checklist:
-        1.  Inspect the browser's developer console for any errors from the Google Maps API (e.g., , ).
-        2.  Check the Network tab to confirm the API calls to Google are being made and what their status is.
-        3.  Verify the API key's restrictions in the Google Cloud Console. Ensure the preview environment's URL is whitelisted if HTTP referrer restrictions are active.
-        4.  Isolate the problem by attempting to implement the autocomplete feature on a blank page, outside the context of the modal, to rule out z-index or lifecycle conflicts.
-    -   Why fix this issue and what will be achieved with the fix? To allow restaurant staff to quickly and accurately enter customer addresses and capture their geographic coordinates, which is essential for courier map routing.
-    -   Status: IN PROGRESS
-    -   Is recurring issue? N
-    -   Should Test frontend/backend/both after fix? both
-    -   Blocked on other issue: None
--   **Issue 2: Adisyo Payment Method Mapping Bug (P1)**
+-   **Issue 1: Adisyo Payment Method Mapping Bug (P1)**
     -   Description: Orders from external platforms paid by card were sometimes saved as online.
     -   Attempted fixes: Blocked as the Adisyo API was returning .
     -   Status: BLOCKED
     -   Is recurring issue? Y
     -   Should Test frontend/backend/both after fix? backend
     -   Blocked on other issue: Adisyo API availability.
--   **Issue 3: Background Task Reliability (Notifications/Location) (P1)**
-    -   Description: Location tracking and notifications may stop when the courier app is in the background.
+-   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
+    -   Description: Location tracking and notifications may stop when the courier app is in the background. User has expressed strong interest in moving to a native app to solve this.
     -   Status: NOT STARTED
     -   Is recurring issue? Y
-    -   Should Test frontend/backend/both after fix? both
--   **Issue 4: Mobile Sidebar Courier List Collapsible Bug (P1)**
+-   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
     -   Description: The collapsible courier lists on the mobile sidebar may not expand on click.
     -   Status: NOT STARTED
     -   Is recurring issue? N
-    -   Should Test frontend/backend/both after fix? frontend
+-   **Issue 4: Historical Accounting Data Inconsistency (P2)**
+    -   Description: A major refactoring unified  and  under . However, historical transactions in the  collection were recorded with . These old records will not appear in the new accounting views.
+    -   Next debug checklist: A one-time migration script should be written to update all  where  is business to restaurant. The  will also need to be mapped from a  to a corresponding .
+    -   Why fix this issue and what will be achieved with the fix? To ensure restaurants can see their complete and accurate financial history.
+    -   Status: NOT STARTED
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix? backend
 
 **In progress Task List**:
--   **Task 1: Implement Google Places API for Manual Orders (P0)**
-    -   Where to resume: Debugging why the autocomplete dropdown is not visible, starting with checking the browser's console logs.
-    -   What will be achieved with this? Accurate address and coordinate capture for manual orders.
-    -   Status: IN PROGRESS
-    -   Should Test frontend/backend/both after fix? both
-    -   Blocked on something: The feature is currently bugged.
+-   **Task 1: Verify Status Dropdown Logic (P1)**
+    -   Where to resume: Review .
+    -   What will be achieved with this? Confirm that the order status dropdown is correctly disabled for orders that already have an assigned courier, which was an original requirement that may have been overlooked.
+    -   Status: NOT STARTED
+    -   Should Test frontend/backend/both after fix? frontend
+    -   Blocked on something: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **P1 - Complete the Restaurant Panel:** Implement the placeholder pages: Muhasebe (Accounting), Raporlar (Reports), and Entegrasyonlar (Integrations).
-    -   **P1 - Implement Adisyo Webhooks:** Replace polling with real-time order updates.
-    -   **P1 - Full Regression Test:** Perform a full regression test of the Manual Order and Google Places features once complete.
+    -   P0 - Implement Trendyol Yemek Integration: This is the immediate next task. The agent will create the backend service to poll Trendyol's API and update the frontend UI on the  page to manage credentials.
+    -   P1 - Implement Other Platform Integrations: After Trendyol, the user will likely provide documentation for Yemeksepeti, Getir Yemek, and Migros Yemek.
+    -   P1 - Complete Restaurant Panel Placeholder Pages: Implement the  (Reports) page.
+    -   P1 - Implement Adisyo Webhooks: Replace the current polling mechanism with real-time order updates via webhooks.
 -   **Future Tasks:**
-    -   **P1 - Re-enable & Enhance Chat System**
-    -   **P2 - Refactor Order History Pages:** Create a reusable  component.
-    -   **P2 - Dark Mode Implementation**
-    -   **P3 - Motosikletim Feature Enhancements**
+    -   P1 - Develop Native Courier App: The user has shown strong interest in creating a React Native application for couriers to address notification/location reliability issues and enable features like NFC payments.
+    -   P1 - Re-enable & Enhance Chat System
+    -   P2 - Thermal Printer Integration: The user is interested in automatic printing of orders via the Web Serial API but has put the task on hold for now.
+    -   P2 - Refactor Order History Pages: Create a reusable  component for  & .
+    -   P2 - Dark Mode Implementation
+    -   P3 - Motosikletim Feature Enhancements
 
 **Completed work in this session**
--   **Feature: Manual Order Creation Modal:**
-    -   Created a backend endpoint () to create orders with  source and  or  statuses.
-    -   Created a new frontend component  with a complete UI for manual order entry.
-    -   Integrated the modal into the restaurant dashboard (), adding a Yeni Sipariş button and updating the order lists to show the new orders.
-    -   The feature was successfully tested using , screenshots, and the .
--   **Backend Support for Geocoding:**
-    -   Updated the manual order model and API endpoint in  and  to accept and save  and .
--   **Testing & Debugging:**
-    -   Resolved a database connection issue where the agent was writing to  but the app was reading from .
-    -   Fixed a restaurant user login failure by creating a test user with the correct SHA256 password hashing algorithm, matching the backend's implementation.
+-   **Restaurant Order Detail Modal:** Created a new modal () to show full order details, customer info, and notes.
+-   **Live Courier Tracking Map:** Added a Map tab to the order detail modal using Leaflet to display live courier and destination locations.
+-   **Expanded Restaurant Permissions:**
+    -   Added  and  permissions.
+    -   Integrated these permissions to conditionally show the courier's phone number and the map tracking tab.
+-   **Restaurant Accounting Page:**
+    -   Created  page for restaurants to view their balance and transaction history.
+    -   Implemented logic to invert transaction colors and balance status compared to the admin view.
+-   **Admin Panel Accounting Features:**
+    -   Created a full-featured  for weekly restaurant financial reconciliation.
+    -   Renamed UI elements for clarity (İşletmeler -> Restoranlar, Günlük Mütabakat -> Kurye Mütabakat).
+-   **Major Architectural Refactor:**
+    -   Corrected a fundamental misunderstanding of the data model, refactoring the entire accounting system to use the  collection as the single source of truth, instead of a separate  collection. This impacted backend services, API endpoints, and frontend components.
+-   **Trendyol API Analysis:**
+    -   Conducted a thorough analysis of extensive API documentation provided by the user for the Trendyol Yemek integration, covering all endpoints for orders, status updates, and restaurant management.
 
 **Earlier issues found/mentioned but not fixed**
--   The pending issues (Adisyo, Background Tasks, Mobile Sidebar) from the previous session remain unfixed.
+-   The three pending issues (Adisyo mapping, background task reliability, mobile sidebar) remain unresolved.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork:** Mobile file upload issue.
@@ -103,74 +116,81 @@ Issues Detail:
 
 
 **Key Technical Concepts**
--   **Third-Party API Integration:** Integrating the Google Places API for address autocomplete. The process involved getting the user's API key, using the integration playbook, and attempting implementation via both a React library and direct script injection.
--   **Dynamic Script Loading:** Modifying  to load the Google Maps library globally for use within the React application.
--   **CSS Z-Index Debugging:** Attempting to solve a UI layering problem by forcing a high  on the autocomplete dropdown to ensure it renders on top of the modal dialog.
--   **API and DB Debugging:** Diagnosed and resolved several testing blockers, including an empty database, a DB name mismatch in the connection string, and a password hashing algorithm mismatch between test data creation and backend validation logic.
+-   **Modular API Design:** New features like permissions and integrations were built in separate, dedicated router files.
+-   **Real-time UI (Polling):** A  in React is used for the near-real-time dashboard experience.
+-   **Complex Backend Logic:** Implemented sophisticated business logic for financial calculations and permissions.
+-   **Conditional UI:** Extensive use of conditional rendering in React to show/hide features based on permissions.
+-   **Architectural Refactoring:** Identified and corrected a core data model error, refactoring multiple backend and frontend files to align with the correct architecture (using  as the single source of truth).
+-   **Leaflet Integration:** Used  to display interactive maps with custom markers for live tracking.
 
 **key DB schema**
--   **orders:**
-    -   : (Object) Now populated with : [longitude, latitude] for manual orders.
-    -   : (String) Set to  for manual orders.
-    -   : (String) Can now be .
+-   **restaurants:**
+    -   : (Object) e.g., 
+-   **transactions:**
+    -   : (String) Now correctly uses . Older records may still have .
+    -   : (String) The  of the document in the  collection.
 
 **All files of reference**
--   : The new component for manual order creation, where the Google Places bug exists.
--   : Modified to include the Google Maps script tag.
--   : Contains the updated  endpoint.
--   : Contains the updated Order model with location coordinates.
--   : Modified to integrate the new order modal and display scheduled orders.
--   : Modified to add CSS for the Google Places container.
+-   : Target page for the upcoming Trendyol integration.
+-   : Contains the logic for the new reconciliation feature.
+-   : Contains the UI for the new order detail modal and map.
+-   : Core of the refactored accounting logic.
+-   : UI for the restaurant-facing accounting page.
 
 **Areas that need refactoring**:
--   The current Google Places API integration in  is not working and needs to be refactored into a stable, working solution.
--   The long-standing task to refactor  &  into a reusable component is still pending.
+-   The pending task to refactor  &  into a reusable component is still outstanding.
+-    remains large and could be broken down into smaller components.
+-   A data migration is needed for the  collection to align historical data with the new  architecture.
 
 **key api endpoints**
--   **MODIFIED:**
-    -   : Now accepts optional  and  in the request body to save the delivery location's coordinates.
+-   **NEW:**  (Multiple endpoints for reconciliation)
+-   **NEW:** 
+-   **NEW:** 
+-   **MODIFIED:**  (handles new permissions)
 
 **Critical Info for New Agent**
 -   **You must communicate in Turkish.**
--   Your highest priority task (P0) is to fix the **Google Places Autocomplete** integration in . The autocomplete dropdown is not showing up.
--   The user has provided an API key: .
--   The user confirmed that the Places API is enabled for this key.
--   Your immediate next step should be to **check the browser's developer console for API errors** to diagnose the problem. Also, consider checking the API key's HTTP referrer restrictions in the Google Cloud Console.
+-   **The immediate priority is to implement the Trendyol Yemek integration.** The user has provided comprehensive API documentation, which has already been analyzed. Start by creating the backend service and then update the UI in  to manage credentials.
+-   **CRITICAL ARCHITECTURE NOTE:** A major refactoring was done to correct a misunderstanding between  and  collections. ** is the single source of truth.** All new accounting and reconciliation logic MUST use  and reference . Do not re-introduce logic that relies on a separate  collection or fuzzy name matching.
+-   The user is technically savvy and prefers to do their own testing (), so you can focus on implementation and provide summaries without taking screenshots unless necessary.
 
 **documents and test reports created in this job**
--   : Updated to reflect the completion of the manual order feature.
--   : Contains the successful test results for the manual order modal (prior to the Google Places integration attempt).
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks what can be done for location mapping for manual delivery addresses. (Status: **Addressed**)
-2.  **Agent:** Proposes several options: Manual Pin, Google Places, Geocoding, or a simple Google Maps link. (Status: **Addressed**)
-3.  **User:** Asks if Google Places API is paid. (Status: **Addressed**)
-4.  **Agent:** Explains the Google Maps Platform pricing, including the 00/month free credit, and suggests it will likely be free for their use case. Offers free alternatives again. (Status: **Addressed**)
-5.  **User:** Chooses option 'A' (Google Places). (Status: **Actioned**)
-6.  **Agent:** States it will proceed with the integration and will ask for the API key. (Status: **Actioned**)
-7.  **User:** Asks which option to select (Node.js, React, etc.) during Google's setup. (Status: **Addressed**)
-8.  **Agent:** Advises selecting React or Web. (Status: **Addressed**)
-9.  **User:** Provides the API Key: . (Status: **Actioned**)
-10. **Agent:** Attempts implementation, fails, tries another approach, and then asks user to confirm if the API is enabled in their Google account. (Status: **Actioned**)
-11. **User (LATEST & PENDING):**  (Confirms the API is active, unblocking the agent's next debugging step). (Status: **PENDING - Agent needs to resume debugging**)
+1.  **User:** Let's start building the Trendyol Yemek integration on the restaurant integrations page. (Status: **In Progress - Last working item**)
+2.  **User:** Provided documentation for the Update Restaurant Working Status endpoint. (Status: **Acknowledged & Analyzed**)
+3.  **User:** Provided documentation for the Sipariş İptali (Unsupplied) endpoint. (Status: **Acknowledged & Analyzed**)
+4.  **User:** Provided documentation for the Siparişin Teslim Edilmesi (manual-delivered) endpoint. (Status: **Acknowledged & Analyzed**)
+5.  **User:** Provided documentation for the Siparişin Yola Çıkması (manual-shipped) endpoint. (Status: **Acknowledged & Analyzed**)
+6.  **User:** Provided documentation for the Sipariş Hazırlığının Bitmesi (invoiced) endpoint. (Status: **Acknowledged & Analyzed**)
+7.  **User:** Provided documentation for the Siparişi Kabul Etme (picked) endpoint. (Status: **Acknowledged & Analyzed**)
+8.  **User:** Provided detailed documentation for the Trendyol Sipariş Paketlerini Çekme endpoint. (Status: **Acknowledged & Analyzed**)
+9.  **User:** Asked for an analysis of a Trendyol integration documentation link. (Status: **Completed**)
+10. **User:** Asked about high availability and failover solutions for the application. (Status: **Completed - Agent provided options**)
 
 **Project Health Check:**
 -   **Broken:**
-    -   **Google Places Autocomplete feature:** The address input in the new order modal is not showing suggestions, blocking the completion of the feature.
-    -   Adisyo API integration (from previous fork).
--   **Mocked:** None.
+    -   Adisyo Payment Method Mapping Bug (Blocked).
+    -   Background Task Reliability for courier app.
+    -   Mobile Sidebar Courier List collapse functionality.
+-   **Mocked:**
+    -   The platform integrations on the  page (Yemeksepeti, Trendyol, Getir, Migros). The agent is about to start implementing Trendyol.
+-   **Technical Debt:**
+    -   Historical data in the  collection uses the old , making it invisible to the newly refactored accounting pages.
 
 **3rd Party Integrations**
 -    (via polling)
--    (specifically Places API, integration in progress)
+-    (Places API)
 -   ,  (for web scraping)
--    (installed)
+-   
+-   , 
 
 **Testing status**
--   Testing agent used after significant changes: YES (for the manual order modal, before Google Places integration).
+-   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
--   Known regressions: None.
+-   Known regressions: None
 
 **Credentials to test flow:**
 -   **Super Admin:** username: , password: 
@@ -178,4 +198,4 @@ Issues Detail:
 -   **Restaurant User:** username: , password:  (for restaurant_id: )
 
 **What agent forgot to execute**
--   The agent was actively debugging the issue at hand and did not forget any requested tasks.</analysis>
+-   The agent did not explicitly verify that the original order  dropdown becomes disabled after a courier has been assigned to an order. This is a pending task from a previous session.</analysis>
