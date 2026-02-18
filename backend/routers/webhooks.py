@@ -238,7 +238,7 @@ async def getir_restaurant_status_webhook(
     Getir restoran durumu değişikliklerini (açık/kapalı) bu endpoint'e gönderir.
     
     Headers:
-        x-api-key: Restoran için tanımlanan API key
+        x-api-key: Sabit API key (agrosjet-getir-wh-9f3k7x2m4p)
     
     Body: Restoran durum bilgisi
     """
@@ -250,9 +250,6 @@ async def getir_restaurant_status_webhook(
             logger.warning(f"Getir restoran durum webhook: Geçersiz API key")
             raise HTTPException(status_code=401, detail="Geçersiz API key")
         
-        restaurant = auth_result["restaurant"]
-        restaurant_id = restaurant.get("id")
-        
         # JSON parse
         try:
             webhook_data = await request.json()
@@ -260,7 +257,24 @@ async def getir_restaurant_status_webhook(
             logger.error("Getir restoran durum webhook: JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
-        logger.info(f"Getir restoran durum webhook alındı: restaurant={restaurant_id}, data={webhook_data}")
+        logger.info(f"Getir restoran durum webhook alındı: data={webhook_data}")
+        
+        # Getir restoran ID'sini al
+        getir_restaurant_id = webhook_data.get("restaurantId") or webhook_data.get("restaurant_id") or webhook_data.get("id")
+        
+        # Sistemdeki restoranı bul
+        restaurant = None
+        if getir_restaurant_id:
+            restaurant = await db.restaurants.find_one(
+                {"platform_integrations.getir.restaurant_id": getir_restaurant_id},
+                {"_id": 0}
+            )
+        
+        if not restaurant:
+            logger.warning(f"Getir restoran durum webhook: Restoran bulunamadı, getir_restaurant_id={getir_restaurant_id}")
+            return {"status": "ok", "message": "Restoran bulunamadı"}
+        
+        restaurant_id = restaurant.get("id")
         
         # Durum bilgisini al - Getir farklı field'larda gönderebilir
         status = webhook_data.get("status") or webhook_data.get("restaurantStatus") or webhook_data.get("state")
