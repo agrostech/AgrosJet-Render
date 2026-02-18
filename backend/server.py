@@ -70,6 +70,37 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # Add Trendyol sync job - runs every 30 seconds
+    async def sync_trendyol_orders():
+        """Tüm şirketler için Trendyol siparişlerini senkronize et"""
+        try:
+            from services.trendyol_service import sync_all_company_trendyol_orders
+            
+            # Trendyol bağlantısı olan şirketleri bul
+            companies = await db.companies.find(
+                {"is_archived": {"$ne": True}},
+                {"_id": 0, "id": 1}
+            ).to_list(100)
+            
+            for company in companies:
+                try:
+                    result = await sync_all_company_trendyol_orders(company["id"])
+                    if result.get("total_synced", 0) > 0:
+                        print(f"Trendyol sync: {result['total_synced']} new orders for company {company['id']}")
+                except Exception as e:
+                    print(f"Trendyol sync error for company {company['id']}: {e}")
+        except Exception as e:
+            print(f"Trendyol sync job error: {e}")
+    
+    scheduler.add_job(
+        sync_trendyol_orders,
+        'interval',
+        seconds=30,  # Her 30 saniyede bir
+        id="trendyol_sync",
+        name="Trendyol Order Sync",
+        replace_existing=True
+    )
+    
     # Add break time reset job - checks every minute if any company's closing time has passed
     async def reset_courier_break_times():
         """Şirket kapanış saatinde kurye mola sürelerini sıfırla"""
