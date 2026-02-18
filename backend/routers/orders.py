@@ -1522,6 +1522,9 @@ async def courier_deliver_order(
         }
     )
     
+    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
+    await notify_platform_status_change(order, "delivered")
+    
     return {"message": "Sipariş teslim edildi"}
 
 
