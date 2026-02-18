@@ -356,3 +356,189 @@ async def disconnect_platform(restaurant_id: str, platform_id: str):
     
     platform_name = SUPPORTED_PLATFORMS[platform_id]["name"]
     return {"message": f"{platform_name} entegrasyonu kaldırıldı"}
+
+
+# --- Trendyol Özel Endpoint'ler ---
+
+@router.get("/{restaurant_id}/trendyol")
+async def get_trendyol_integration(restaurant_id: str):
+    """Restoran Trendyol entegrasyon ayarlarını getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "platform_integrations.trendyol": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    integration = restaurant.get("platform_integrations", {}).get("trendyol", {})
+    
+    return {
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant.get("name"),
+        "trendyol": {
+            "enabled": integration.get("enabled", False),
+            "connected": integration.get("connected", False),
+            "api_key": mask_secret(integration.get("api_key", ""), 4),
+            "api_secret": "********" if integration.get("api_secret") else "",
+            "supplier_id": integration.get("supplier_id", ""),
+            "store_id": integration.get("store_id", ""),
+            "is_open": integration.get("is_open"),
+            "last_sync": integration.get("last_sync"),
+            "last_test": integration.get("last_test"),
+            "has_credentials": bool(
+                integration.get("api_key") and 
+                integration.get("api_secret") and 
+                integration.get("supplier_id")
+            )
+        }
+    }
+
+
+@router.put("/{restaurant_id}/trendyol")
+async def update_trendyol_integration(restaurant_id: str, data: TrendyolIntegration):
+    """Restoran Trendyol entegrasyon ayarlarını güncelle"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    update_fields = {
+        "platform_integrations.trendyol.enabled": data.enabled,
+        "platform_integrations.trendyol.updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Sadece gönderilen alanları güncelle
+    if data.api_key is not None:
+        update_fields["platform_integrations.trendyol.api_key"] = data.api_key
+        update_fields["platform_integrations.trendyol.connected"] = False  # Yeni key girilince bağlantı sıfırlanır
+    
+    if data.api_secret is not None:
+        update_fields["platform_integrations.trendyol.api_secret"] = data.api_secret
+        update_fields["platform_integrations.trendyol.connected"] = False
+    
+    if data.supplier_id is not None:
+        update_fields["platform_integrations.trendyol.supplier_id"] = data.supplier_id
+    
+    if data.store_id is not None:
+        update_fields["platform_integrations.trendyol.store_id"] = data.store_id
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": update_fields}
+    )
+    
+    return {"message": "Trendyol entegrasyon ayarları güncellendi"}
+
+
+@router.post("/{restaurant_id}/trendyol/test")
+async def test_trendyol_connection_endpoint(restaurant_id: str):
+    """Trendyol bağlantısını test et"""
+    result = await test_trendyol_connection(restaurant_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/trendyol/sync")
+async def sync_trendyol_orders_endpoint(restaurant_id: str):
+    """Trendyol siparişlerini senkronize et"""
+    result = await sync_restaurant_trendyol_orders(restaurant_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.put("/{restaurant_id}/trendyol/working-status")
+async def update_trendyol_working_status(restaurant_id: str, data: TrendyolWorkingStatus):
+    """Trendyol'da restoran çalışma durumunu güncelle"""
+    result = await update_restaurant_working_status(restaurant_id, data.is_open)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.delete("/{restaurant_id}/trendyol")
+async def disconnect_trendyol(restaurant_id: str):
+    """Trendyol entegrasyonunu kaldır"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$unset": {"platform_integrations.trendyol": ""}}
+    )
+    
+    return {"message": "Trendyol entegrasyonu kaldırıldı"}
+
+
+# --- Trendyol Sipariş Durum Güncelleme ---
+
+@router.post("/{restaurant_id}/trendyol/orders/{order_id}/accept")
+async def accept_trendyol_order_endpoint(restaurant_id: str, order_id: str, preparation_time: int = 20):
+    """Trendyol siparişini kabul et"""
+    result = await accept_trendyol_order(restaurant_id, order_id, preparation_time)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/trendyol/orders/{order_id}/ready")
+async def mark_trendyol_ready_endpoint(restaurant_id: str, order_id: str):
+    """Trendyol siparişini hazır olarak işaretle"""
+    result = await mark_trendyol_order_ready(restaurant_id, order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/trendyol/orders/{order_id}/shipped")
+async def mark_trendyol_shipped_endpoint(restaurant_id: str, order_id: str):
+    """Trendyol siparişini yola çıktı olarak işaretle (Model 1)"""
+    result = await mark_trendyol_order_shipped(restaurant_id, order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/trendyol/orders/{order_id}/delivered")
+async def mark_trendyol_delivered_endpoint(restaurant_id: str, order_id: str):
+    """Trendyol siparişini teslim edildi olarak işaretle (Model 1)"""
+    result = await mark_trendyol_order_delivered(restaurant_id, order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/trendyol/orders/{order_id}/cancel")
+async def cancel_trendyol_order_endpoint(restaurant_id: str, order_id: str, data: TrendyolCancelOrder = None):
+    """Trendyol siparişini iptal et"""
+    reason_id = data.reason_id if data else 625
+    result = await cancel_trendyol_order(restaurant_id, order_id, reason_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
