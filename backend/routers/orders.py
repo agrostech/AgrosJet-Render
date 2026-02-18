@@ -734,6 +734,10 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
     
     await db.orders.update_one({"id": order_id}, {"$set": update_fields})
     
+    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
+    prep_time = update_fields.get("preparation_time")
+    await notify_platform_status_change(order, data.status, prep_time)
+    
     return {"message": "Sipariş durumu güncellendi", "status": data.status}
 
 
