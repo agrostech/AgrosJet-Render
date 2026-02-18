@@ -107,6 +107,13 @@ export function useAccountingTab({
       unarchive: (id) => `/businesses/${id}/unarchive`,
       delete: (id) => `/businesses/${id}`,
     },
+    restaurant: {
+      list: `/companies/${companyId}/accounting-restaurants`,
+      transactions: (id) => `/transactions/restaurant/${id}`,
+      archive: (id) => `/accounting-restaurants/${id}/archive`,
+      unarchive: (id) => `/accounting-restaurants/${id}/unarchive`,
+      delete: null, // Restaurants managed from admin panel
+    },
     vendor: {
       list: `/companies/${companyId}/vendors`,
       transactions: (id) => `/transactions/vendor/${id}`,
