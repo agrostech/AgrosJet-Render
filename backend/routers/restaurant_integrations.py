@@ -63,6 +63,22 @@ class TrendyolCancelOrder(BaseModel):
     reason_id: int = 625  # 621: Ürün tükendi, 622: Kapalı, 623: Yoğun, 624: Teknik, 625: Diğer
 
 
+class GetirIntegration(BaseModel):
+    enabled: bool = False
+    app_secret_key: Optional[str] = None
+    restaurant_secret_key: Optional[str] = None
+
+
+class GetirWorkingStatus(BaseModel):
+    is_open: bool
+    time_off_amount: Optional[int] = None  # 15, 30, 45 dakika
+
+
+class GetirCancelOrder(BaseModel):
+    cancel_reason_id: Optional[str] = None
+    cancel_note: Optional[str] = None
+
+
 # --- Helper Functions ---
 
 def mask_secret(value: str, visible_chars: int = 4) -> str:
