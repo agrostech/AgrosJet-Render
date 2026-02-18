@@ -26,25 +26,25 @@ logger = logging.getLogger(__name__)
 
 # ==================== GETİR WEBHOOKS ====================
 
+# Getir için sabit API Key - tüm restoranlar için geçerli
+GETIR_WEBHOOK_API_KEY = "agrosjet-getir-wh-9f3k7x2m4p"
+
+
 async def verify_getir_api_key(api_key: str, restaurant_id: str = None) -> dict:
     """
     Getir webhook API key doğrulama.
-    Eğer restaurant_id verilmişse o restoran için kontrol eder,
-    verilmemişse tüm restoranlar arasında arar.
+    Sabit API key kullanılır - tüm restoranlar için geçerli.
     """
     if not api_key:
         return {"valid": False, "restaurant": None}
     
-    query = {"platform_integrations.getir.webhook_api_key": api_key}
-    if restaurant_id:
-        query["id"] = restaurant_id
+    # Sabit API key kontrolü
+    if api_key != GETIR_WEBHOOK_API_KEY:
+        return {"valid": False, "restaurant": None}
     
-    restaurant = await db.restaurants.find_one(query, {"_id": 0})
-    
-    if restaurant:
-        return {"valid": True, "restaurant": restaurant}
-    
-    return {"valid": False, "restaurant": None}
+    # API key doğru - şimdilik restaurant bilgisi olmadan kabul et
+    # Getir siparişinde restaurant bilgisi gelecek
+    return {"valid": True, "restaurant": None}
 
 
 @router.post("/getir/order")
