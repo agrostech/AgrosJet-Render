@@ -9,11 +9,85 @@ from datetime import datetime, timezone, timedelta
 import uuid
 import random
 import re
+import logging
 
 from utils.database import db
 import math
 
 router = APIRouter(prefix="/api/orders", tags=["Sipariş Yönetimi"])
+logger = logging.getLogger(__name__)
+
+
+# --- Platform Bildirim Fonksiyonu ---
+async def notify_platform_status_change(order: dict, new_status: str, preparation_time: int = None):
+    """
+    Sipariş durumu değiştiğinde ilgili platforma (Trendyol, Adisyo vb.) bildirim gönder.
+    Bu fonksiyon arka planda çalışır ve hata alsa bile ana işlemi engellemez.
+    """
+    source = order.get("source", "")
+    restaurant_id = order.get("restaurant_id")
+    order_id = order.get("id")
+    
+    if not source or not restaurant_id:
+        return
+    
+    try:
+        if source == "trendyol":
+            from services.trendyol_service import (
+                accept_trendyol_order,
+                mark_trendyol_order_ready,
+                mark_trendyol_order_shipped,
+                mark_trendyol_order_delivered,
+                cancel_trendyol_order
+            )
+            
+            # Trendyol kuryesi (Model 2) kontrolü - shipped ve delivered gönderilmez
+            delivery_type = order.get("trendyol_raw", {}).get("deliveryType", "STORE")
+            is_trendyol_courier = delivery_type == "GO"
+            
+            result = None
+            
+            if new_status == "preparing":
+                # Siparişi kabul et
+                prep_time = preparation_time or order.get("preparation_time") or 20
+                result = await accept_trendyol_order(restaurant_id, order_id, prep_time)
+                
+            elif new_status == "ready":
+                # Hazır
+                result = await mark_trendyol_order_ready(restaurant_id, order_id)
+                
+            elif new_status == "on_the_way" and not is_trendyol_courier:
+                # Yola çıktı (sadece Model 1)
+                result = await mark_trendyol_order_shipped(restaurant_id, order_id)
+                
+            elif new_status == "delivered" and not is_trendyol_courier:
+                # Teslim edildi (sadece Model 1)
+                result = await mark_trendyol_order_delivered(restaurant_id, order_id)
+                
+            elif new_status == "cancelled":
+                # İptal
+                result = await cancel_trendyol_order(restaurant_id, order_id)
+            
+            if result:
+                if result.get("success"):
+                    logger.info(f"Trendyol bildirim başarılı: order={order_id}, status={new_status}")
+                else:
+                    logger.warning(f"Trendyol bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
+        
+        elif source == "adisyo":
+            from services.adisyo_service import update_adisyo_order_status
+            
+            adisyo_order_id = order.get("adisyo_order_id")
+            if adisyo_order_id:
+                result = await update_adisyo_order_status(restaurant_id, adisyo_order_id, new_status)
+                if result.get("success"):
+                    logger.info(f"Adisyo bildirim başarılı: order={order_id}, status={new_status}")
+                else:
+                    logger.warning(f"Adisyo bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
+                    
+    except Exception as e:
+        # Platform bildirimi başarısız olsa bile ana işlem devam etmeli
+        logger.error(f"Platform bildirim hatası: source={source}, order={order_id}, status={new_status}, error={str(e)}")
 
 
 # --- Ücret Hesaplama Fonksiyonları ---
