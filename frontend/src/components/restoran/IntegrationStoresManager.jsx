@@ -71,14 +71,16 @@ const PLATFORM_CONFIG = {
     fields: [
       { key: "app_secret_key", label: "App Secret Key", type: "password", required: true },
       { key: "restaurant_secret_key", label: "Restaurant Secret Key", type: "password", required: true },
-      { key: "webhook_api_key", label: "Webhook API Key", type: "text", required: true, placeholder: "Getir'e vereceğiniz x-api-key", description: "Getir'e vereceğiniz güvenlik anahtarı" }
+      { key: "restaurant_id", label: "Getir Restaurant ID", type: "text", required: true, description: "Getir panelindeki restoran ID'niz" }
     ],
-    helpText: "API bilgilerinizi Getir İş Ortağı panelinden alabilirsiniz.",
+    helpText: "API bilgilerinizi Getir İş Ortağı panelinden alabilirsiniz. Webhook entegrasyonu otomatik yapılandırılmıştır.",
     helpUrl: null,
     isWebhook: true,
     webhookInfo: {
       orderEndpoint: "/api/webhooks/getir/order",
-      cancelEndpoint: "/api/webhooks/getir/cancel"
+      cancelEndpoint: "/api/webhooks/getir/cancel",
+      statusEndpoint: "/api/webhooks/getir/restaurant-status",
+      apiKey: "agrosjet-getir-wh-9f3k7x2m4p"
     }
   },
   yemeksepeti: {
