@@ -39,7 +39,11 @@ ShiftJet, restoranlar ve kurye şirketleri için kapsamlı bir sipariş ve tesli
   - verify, prepare, handover, deliver, cancel akışı
   - Restoran açık/kapalı durumu (15/30/45 dk kapatma)
   - Getir kuryesi ve restoran kuryesi desteği
-- 🔄 Yemeksepeti - Placeholder
+- ✅ **Yemeksepeti** - Tam entegrasyon (Şubat 2025)
+  - OAuth 2.0 token yönetimi (2 saat geçerli)
+  - Webhook tabanlı sipariş alma (anlık bildirim)
+  - READY_FOR_PICKUP, DISPATCHED, CANCELLED durumları
+  - Platform ve Vendor teslimat desteği
 - 🔄 Migros Yemek - Placeholder
 
 ## API Endpoints
