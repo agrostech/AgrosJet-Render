@@ -286,22 +286,22 @@ export default function RestaurantMuhasebe({ restaurantId }) {
 
               {/* Load More */}
               {hasMore && (
-                <div className="p-3 text-center border-t">
+                <div className="p-4 text-center border-t">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={loadMore} 
                     disabled={loadingMore}
-                    className="w-full md:w-auto h-8 text-xs"
+                    className="w-full md:w-auto"
                   >
                     {loadingMore ? (
                       <>
-                        <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                         Yükleniyor...
                       </>
                     ) : (
                       <>
-                        <ChevronDown className="w-3.5 h-3.5 mr-1.5" />
+                        <ChevronDown className="w-4 h-4 mr-2" />
                         Daha Fazla ({totalCount - transactions.length})
                       </>
                     )}
@@ -310,8 +310,8 @@ export default function RestaurantMuhasebe({ restaurantId }) {
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
