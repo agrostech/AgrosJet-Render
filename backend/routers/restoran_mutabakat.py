@@ -205,7 +205,6 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         restaurant_data[r["id"]] = {
             "restaurant_id": r["id"],
             "restaurant_name": r["name"],
-            "business_id": r.get("business_id", ""),
             "order_count": 0,
             "delivery_fee": 0,
             "cash_amount": 0,
