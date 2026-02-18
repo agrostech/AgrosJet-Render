@@ -13,9 +13,9 @@ import { useNavigate } from "react-router-dom";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const PLATFORMS = [
+  { key: "yemeksepeti", name: "Yemeksepeti", color: "#E31E52" },
   { key: "trendyol", name: "Trendyol Yemek", color: "#F27A1A" },
   { key: "getir", name: "Getir Yemek", color: "#5D3EBC" },
-  { key: "yemeksepeti", name: "Yemeksepeti", color: "#E31E52" },
   { key: "migros", name: "Migros Yemek", color: "#F27A1A" }
 ];
 
