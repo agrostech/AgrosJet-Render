@@ -309,6 +309,199 @@ async def getir_webhook_health():
     }
 
 
+# ==================== MİGROS WEBHOOKS ====================
+
+async def verify_migros_api_key(api_key: str) -> dict:
+    """
+    Migros webhook API key doğrulama.
+    XApiKey header'ı ile gelen istekleri doğrular.
+    """
+    if not api_key:
+        return {"valid": False, "restaurant": None}
+    
+    # Migros entegrasyonu olan restoranları ara
+    restaurant = await db.restaurants.find_one(
+        {"platform_integrations.migros.api_key": api_key},
+        {"_id": 0}
+    )
+    
+    if restaurant:
+        return {"valid": True, "restaurant": restaurant}
+    
+    return {"valid": False, "restaurant": None}
+
+
+@router.post("/migros/order")
+async def migros_order_webhook(
+    request: Request,
+    x_api_key: Optional[str] = Header(None, alias="XApiKey")
+):
+    """
+    Migros Sipariş Webhook Endpoint
+    
+    Migros yeni sipariş ve sipariş durumu değişikliklerini bu endpoint'e gönderir.
+    İstek body'si Rijndael AES ile şifrelenmiş olarak gelir.
+    
+    Headers:
+        XApiKey: Restoran için tanımlanan API key
+    
+    Body: Şifrelenmiş sipariş verisi (value field'ında)
+    """
+    try:
+        # API Key doğrulama
+        auth_result = await verify_migros_api_key(x_api_key)
+        
+        if not auth_result["valid"]:
+            logger.warning(f"Migros order webhook: Geçersiz API key")
+            raise HTTPException(status_code=401, detail="Geçersiz API key")
+        
+        restaurant = auth_result["restaurant"]
+        restaurant_id = restaurant.get("id")
+        
+        # JSON parse
+        try:
+            webhook_data = await request.json()
+        except:
+            logger.error("Migros order webhook: JSON parse hatası")
+            raise HTTPException(status_code=400, detail="Geçersiz JSON")
+        
+        logger.info(f"Migros sipariş webhook alındı: restaurant={restaurant_id}")
+        
+        # TODO: Rijndael AES ile şifre çözme işlemi eklenecek
+        # Secret key ile decrypt yapılacak
+        # Şimdilik raw data'yı logluyoruz
+        
+        return {
+            "success": True,
+            "message": "Sipariş webhook alındı",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Migros sipariş webhook hatası: {str(e)}")
+        return {"success": False, "errorMessage": {"errorDetail": str(e)}}
+
+
+@router.post("/migros/cancel")
+async def migros_cancel_webhook(
+    request: Request,
+    x_api_key: Optional[str] = Header(None, alias="XApiKey")
+):
+    """
+    Migros Sipariş İptal Webhook Endpoint
+    
+    Migros sipariş iptallerini bu endpoint'e gönderir.
+    
+    Headers:
+        XApiKey: Restoran için tanımlanan API key
+    
+    Body: Şifrelenmiş iptal verisi
+    """
+    try:
+        # API Key doğrulama
+        auth_result = await verify_migros_api_key(x_api_key)
+        
+        if not auth_result["valid"]:
+            logger.warning(f"Migros cancel webhook: Geçersiz API key")
+            raise HTTPException(status_code=401, detail="Geçersiz API key")
+        
+        restaurant = auth_result["restaurant"]
+        restaurant_id = restaurant.get("id")
+        
+        # JSON parse
+        try:
+            webhook_data = await request.json()
+        except:
+            logger.error("Migros cancel webhook: JSON parse hatası")
+            raise HTTPException(status_code=400, detail="Geçersiz JSON")
+        
+        logger.info(f"Migros iptal webhook alındı: restaurant={restaurant_id}")
+        
+        # TODO: Rijndael AES ile şifre çözme işlemi eklenecek
+        
+        return {
+            "success": True,
+            "message": "İptal webhook alındı",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Migros iptal webhook hatası: {str(e)}")
+        return {"success": False, "errorMessage": {"errorDetail": str(e)}}
+
+
+@router.post("/migros/status")
+async def migros_status_webhook(
+    request: Request,
+    x_api_key: Optional[str] = Header(None, alias="XApiKey")
+):
+    """
+    Migros Sipariş Durum Değişikliği Webhook Endpoint
+    
+    Migros sipariş durumu değişikliklerini bu endpoint'e gönderir.
+    
+    Headers:
+        XApiKey: Restoran için tanımlanan API key
+    
+    Body: Şifrelenmiş durum verisi
+    """
+    try:
+        # API Key doğrulama
+        auth_result = await verify_migros_api_key(x_api_key)
+        
+        if not auth_result["valid"]:
+            logger.warning(f"Migros status webhook: Geçersiz API key")
+            raise HTTPException(status_code=401, detail="Geçersiz API key")
+        
+        restaurant = auth_result["restaurant"]
+        restaurant_id = restaurant.get("id")
+        
+        # JSON parse
+        try:
+            webhook_data = await request.json()
+        except:
+            logger.error("Migros status webhook: JSON parse hatası")
+            raise HTTPException(status_code=400, detail="Geçersiz JSON")
+        
+        logger.info(f"Migros status webhook alındı: restaurant={restaurant_id}")
+        
+        # TODO: Rijndael AES ile şifre çözme işlemi eklenecek
+        
+        return {
+            "success": True,
+            "message": "Durum webhook alındı",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Migros status webhook hatası: {str(e)}")
+        return {"success": False, "errorMessage": {"errorDetail": str(e)}}
+
+
+@router.get("/migros/health")
+async def migros_webhook_health():
+    """Migros Webhook Endpoint Sağlık Kontrolü"""
+    return {
+        "success": True,
+        "data": {
+            "status": "healthy",
+            "service": "migros_webhook",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "endpoints": {
+                "order": "/api/webhooks/migros/order",
+                "cancel": "/api/webhooks/migros/cancel",
+                "status": "/api/webhooks/migros/status"
+            }
+        }
+    }
+
+
 # ==================== YEMEKSEPETİ WEBHOOKS ====================
 
 
