@@ -8,6 +8,16 @@ from typing import Optional
 from datetime import datetime, timezone
 
 from utils.database import db
+from services.trendyol_service import (
+    test_trendyol_connection,
+    sync_restaurant_trendyol_orders,
+    accept_trendyol_order,
+    mark_trendyol_order_ready,
+    mark_trendyol_order_shipped,
+    mark_trendyol_order_delivered,
+    cancel_trendyol_order,
+    update_restaurant_working_status
+)
 
 router = APIRouter(prefix="/api/restaurant-integrations", tags=["Restoran Entegrasyonları"])
 
