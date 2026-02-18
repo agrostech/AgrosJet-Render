@@ -171,12 +171,11 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
     # 3. YEMEK KARTLARI
     meal_card_keywords = ["multinet", "sodexo", "setcard", "metropol", "ticket", "edenred", "pluxee", "smart ticket"]
     if any(k in payment_name_lower for k in meal_card_keywords):
-        # Online yemek kartı mı kontrol et (Smart Ticket hariç - o fiziksel kart)
-        is_online_meal_card = ("online" in payment_name_lower or "pass mobil" in payment_name_lower) and "smart" not in payment_name_lower
-        if is_online_meal_card:
+        # Online yemek kartı mı kontrol et
+        if "online" in payment_name_lower or "pass mobil" in payment_name_lower:
             logger.info(f"[PAYMENT MAP] Result: online_meal_card (online yemek kartı)")
             return "online_meal_card"
-        # Kapıda/fiziksel yemek kartı (Smart Ticket dahil)
+        # Kapıda/fiziksel yemek kartı
         logger.info(f"[PAYMENT MAP] Result: meal_card (kapıda yemek kartı)")
         return "meal_card"
     
