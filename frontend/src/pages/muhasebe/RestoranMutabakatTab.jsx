@@ -490,12 +490,12 @@ export default function RestoranMutabakatTab({ companyId }) {
                   <tbody>
                     {restaurants.map((r) => {
                       const isSelected = selectedIds.includes(r.restaurant_id);
-                      const canSelect = !r.is_processed && r.business_id;
+                      const canSelect = !r.is_processed;
                       
                       return (
                         <tr 
                           key={r.restaurant_id} 
-                          className={`border-b hover:bg-slate-50 transition-colors ${r.is_processed ? 'bg-green-50/50' : ''} ${!r.business_id ? 'opacity-50' : ''}`}
+                          className={`border-b hover:bg-slate-50 transition-colors ${r.is_processed ? 'bg-green-50/50' : ''}`}
                         >
                           <td className="p-2">
                             <Checkbox
@@ -506,9 +506,6 @@ export default function RestoranMutabakatTab({ companyId }) {
                           </td>
                           <td className="p-2 font-medium text-slate-800">
                             {r.restaurant_name}
-                            {!r.business_id && (
-                              <span className="ml-2 text-xs text-red-500">(Muhasebe kaydı yok)</span>
-                            )}
                           </td>
                           <td className="p-2 text-right font-mono">{r.order_count}</td>
                           <td className="p-2 text-right font-mono">{formatMoney(r.delivery_fee)}</td>
