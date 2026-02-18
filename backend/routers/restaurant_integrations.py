@@ -86,6 +86,19 @@ class GetirCancelOrder(BaseModel):
     cancel_note: Optional[str] = None
 
 
+class YemeksepetiIntegration(BaseModel):
+    enabled: bool = False
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    chain_id: Optional[str] = None
+    vendor_id: Optional[str] = None
+    webhook_secret: Optional[str] = None
+
+
+class YemeksepetiCancelOrder(BaseModel):
+    reason: str = "TOO_BUSY"  # CLOSED, ITEM_UNAVAILABLE, TOO_BUSY
+
+
 # --- Helper Functions ---
 
 def mask_secret(value: str, visible_chars: int = 4) -> str:
