@@ -151,8 +151,8 @@ export default function RestaurantMuhasebe({ restaurantId }) {
     return (
       <div className="space-y-4" data-testid="restaurant-muhasebe">
         <div>
-          <h1 className="text-lg font-bold text-slate-900">Muhasebe</h1>
-          <p className="text-xs text-muted-foreground">Finansal işlemler ve bakiye</p>
+          <h1 className="text-2xl font-bold text-slate-900">Muhasebe</h1>
+          <p className="text-sm text-muted-foreground">Finansal işlemler ve bakiye</p>
         </div>
         <Card>
           <CardContent className="flex items-center justify-center py-12">
@@ -168,38 +168,36 @@ export default function RestaurantMuhasebe({ restaurantId }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-slate-900">Muhasebe</h1>
-          <p className="text-xs text-muted-foreground">Finansal işlemler ve bakiye</p>
+          <h1 className="text-2xl font-bold text-slate-900">Muhasebe</h1>
+          <p className="text-sm text-muted-foreground">Finansal işlemler ve bakiye</p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading} className="h-8 text-xs">
-          <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Yenile
         </Button>
       </div>
 
       {/* Bakiye Kartı */}
-      <Card className={`border ${balance > 0 ? 'border-green-200' : balance < 0 ? 'border-red-200' : 'border-slate-200'}`}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getBalanceBg(balance)}`}>
-                <Wallet className={`w-5 h-5 ${getBalanceColor(balance)}`} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
-                <p className={`text-xl font-bold font-mono ${getBalanceColor(balance)}`}>
-                  {balance === 0 ? '0,00 TL' : formatMoney(balance)}
-                </p>
-              </div>
+      <div className="bg-white border rounded-xl p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getBalanceBg(balance)}`}>
+              <Wallet className={`w-5 h-5 ${getBalanceColor(balance)}`} />
             </div>
-            <div className={`px-2.5 py-1 rounded ${getBalanceBg(balance)}`}>
-              <span className={`text-xs font-medium ${getBalanceColor(balance)}`}>
-                {getBalanceLabel(balance)}
-              </span>
+            <div>
+              <p className="text-xs text-muted-foreground">Güncel Bakiye</p>
+              <p className={`text-2xl font-bold font-mono ${getBalanceColor(balance)}`}>
+                {balance === 0 ? '0,00 TL' : formatMoney(balance)}
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className={`px-3 py-1.5 rounded-lg ${getBalanceBg(balance)}`}>
+            <span className={`text-sm font-medium ${getBalanceColor(balance)}`}>
+              {getBalanceLabel(balance)}
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* İşlem Geçmişi */}
       <Card>
