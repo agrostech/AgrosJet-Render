@@ -11,6 +11,7 @@ import RestaurantMuhasebe from "./RestaurantMuhasebe";
 import RestaurantRaporlar from "./RestaurantRaporlar";
 import RestaurantEntegrasyonlar from "./RestaurantEntegrasyonlar";
 import RestaurantUrunler from "./RestaurantUrunler";
+import Footer from "@/components/Footer";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -191,10 +192,11 @@ export default function RestaurantDashboard() {
       />
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'} pt-14 lg:pt-0`}>
-        <div className="p-4 lg:p-6">
+      <main className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'} pt-14 lg:pt-0 min-h-screen flex flex-col`}>
+        <div className="p-4 lg:p-6 flex-1">
           {renderPage()}
         </div>
+        <Footer />
       </main>
     </div>
   );
