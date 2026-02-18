@@ -94,16 +94,18 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const fetchIntegrations = async () => {
     setLoading(true);
     try {
-      const [adisyoRes, trendyolRes, getirRes, platformsRes] = await Promise.all([
+      const [adisyoRes, trendyolRes, getirRes, yemeksepetiRes, platformsRes] = await Promise.all([
         axios.get(`${API}/restaurant-integrations/${restaurantId}/adisyo`),
         axios.get(`${API}/restaurant-integrations/${restaurantId}/trendyol`),
         axios.get(`${API}/restaurant-integrations/${restaurantId}/getir`),
+        axios.get(`${API}/restaurant-integrations/${restaurantId}/yemeksepeti`),
         axios.get(`${API}/restaurant-integrations/${restaurantId}/platforms`)
       ]);
       
       setAdisyoData(adisyoRes.data.adisyo);
       setTrendyolData(trendyolRes.data.trendyol);
       setGetirData(getirRes.data.getir);
+      setYemeksepetiData(yemeksepetiRes.data.yemeksepeti);
       setPlatforms(platformsRes.data.platforms || []);
     } catch (err) {
       console.error("Entegrasyonlar yüklenemedi:", err);
