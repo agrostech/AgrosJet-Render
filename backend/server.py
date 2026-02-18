@@ -270,6 +270,7 @@ from routers.restaurant_users import router as restaurant_users_router
 from routers.products import router as products_router, set_db as set_products_db
 from routers.restaurant_permissions import router as restaurant_permissions_router
 from routers.restaurant_integrations import router as restaurant_integrations_router
+from routers.restoran_mutabakat import router as restoran_mutabakat_router
 
 # Set db for products router
 set_products_db(db)
@@ -304,6 +305,7 @@ app.include_router(finance_router)
 app.include_router(hakedis_router)
 app.include_router(weekly_hakedis_router)
 app.include_router(daily_mutabakat_router)
+app.include_router(restoran_mutabakat_router)
 app.include_router(reports_router)
 app.include_router(restaurant_users_router)
 app.include_router(products_router)
