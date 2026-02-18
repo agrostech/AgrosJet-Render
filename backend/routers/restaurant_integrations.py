@@ -568,3 +568,184 @@ async def cancel_trendyol_order_endpoint(restaurant_id: str, order_id: str, data
         raise HTTPException(status_code=400, detail=result["error"])
     
     return result
+
+
+# --- Getir Yemek Endpoint'leri ---
+
+@router.get("/{restaurant_id}/getir")
+async def get_getir_integration(restaurant_id: str):
+    """Restoran Getir entegrasyon ayarlarını getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "platform_integrations.getir": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    integration = restaurant.get("platform_integrations", {}).get("getir", {})
+    
+    return {
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant.get("name"),
+        "getir": {
+            "enabled": integration.get("enabled", False),
+            "connected": integration.get("connected", False),
+            "app_secret_key": mask_secret(integration.get("app_secret_key", ""), 4),
+            "restaurant_secret_key": "********" if integration.get("restaurant_secret_key") else "",
+            "is_open": integration.get("is_open"),
+            "last_sync": integration.get("last_sync"),
+            "last_test": integration.get("last_test"),
+            "has_credentials": bool(
+                integration.get("app_secret_key") and 
+                integration.get("restaurant_secret_key")
+            )
+        }
+    }
+
+
+@router.put("/{restaurant_id}/getir")
+async def update_getir_integration(restaurant_id: str, data: GetirIntegration):
+    """Restoran Getir entegrasyon ayarlarını güncelle"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    update_fields = {
+        "platform_integrations.getir.enabled": data.enabled,
+        "platform_integrations.getir.updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if data.app_secret_key is not None:
+        update_fields["platform_integrations.getir.app_secret_key"] = data.app_secret_key
+        update_fields["platform_integrations.getir.connected"] = False
+        update_fields["platform_integrations.getir.token"] = None
+        update_fields["platform_integrations.getir.token_expires"] = None
+    
+    if data.restaurant_secret_key is not None:
+        update_fields["platform_integrations.getir.restaurant_secret_key"] = data.restaurant_secret_key
+        update_fields["platform_integrations.getir.connected"] = False
+        update_fields["platform_integrations.getir.token"] = None
+        update_fields["platform_integrations.getir.token_expires"] = None
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": update_fields}
+    )
+    
+    return {"message": "Getir entegrasyon ayarları güncellendi"}
+
+
+@router.post("/{restaurant_id}/getir/test")
+async def test_getir_connection_endpoint(restaurant_id: str):
+    """Getir bağlantısını test et"""
+    result = await test_getir_connection(restaurant_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/getir/sync")
+async def sync_getir_orders_endpoint(restaurant_id: str):
+    """Getir siparişlerini senkronize et"""
+    result = await sync_restaurant_getir_orders(restaurant_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.put("/{restaurant_id}/getir/working-status")
+async def update_getir_working_status(restaurant_id: str, data: GetirWorkingStatus):
+    """Getir'de restoran çalışma durumunu güncelle"""
+    result = await update_getir_restaurant_status(restaurant_id, data.is_open, data.time_off_amount)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.delete("/{restaurant_id}/getir")
+async def disconnect_getir(restaurant_id: str):
+    """Getir entegrasyonunu kaldır"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$unset": {"platform_integrations.getir": ""}}
+    )
+    
+    return {"message": "Getir entegrasyonu kaldırıldı"}
+
+
+# --- Getir Sipariş Durum Güncelleme ---
+
+@router.post("/{restaurant_id}/getir/orders/{order_id}/verify")
+async def verify_getir_order_endpoint(restaurant_id: str, order_id: str):
+    """Getir siparişini onayla"""
+    result = await verify_getir_order(restaurant_id, order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/getir/orders/{order_id}/prepare")
+async def prepare_getir_order_endpoint(restaurant_id: str, order_id: str):
+    """Getir siparişini hazırlanıyor olarak işaretle"""
+    result = await prepare_getir_order(restaurant_id, order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/getir/orders/{order_id}/handover")
+async def handover_getir_order_endpoint(restaurant_id: str, order_id: str):
+    """Getir siparişini kuryeye teslim et"""
+    result = await handover_getir_order(restaurant_id, order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/getir/orders/{order_id}/deliver")
+async def deliver_getir_order_endpoint(restaurant_id: str, order_id: str):
+    """Getir siparişini teslim edildi olarak işaretle"""
+    result = await deliver_getir_order(restaurant_id, order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/getir/orders/{order_id}/cancel")
+async def cancel_getir_order_endpoint(restaurant_id: str, order_id: str, data: GetirCancelOrder = None):
+    """Getir siparişini iptal et"""
+    cancel_reason_id = data.cancel_reason_id if data else None
+    cancel_note = data.cancel_note if data else None
+    result = await cancel_getir_order(restaurant_id, order_id, cancel_reason_id, cancel_note)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
