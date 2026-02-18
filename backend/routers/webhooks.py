@@ -70,9 +70,6 @@ async def getir_order_webhook(
             logger.warning(f"Getir webhook: Geçersiz API key")
             raise HTTPException(status_code=401, detail="Geçersiz API key")
         
-        restaurant = auth_result["restaurant"]
-        restaurant_id = restaurant.get("id")
-        
         # JSON parse
         try:
             webhook_data = await request.json()
@@ -80,13 +77,30 @@ async def getir_order_webhook(
             logger.error("Getir webhook: JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
-        logger.info(f"Getir sipariş webhook alındı: restaurant={restaurant_id}, order_id={webhook_data.get('id')}")
+        logger.info(f"Getir sipariş webhook alındı: order_id={webhook_data.get('id')}")
         
         # Sipariş ID kontrol
         getir_order_id = webhook_data.get("id")
         if not getir_order_id:
             logger.warning("Getir webhook: Sipariş ID bulunamadı")
             return {"status": "error", "message": "Sipariş ID bulunamadı"}
+        
+        # Restoran bilgisini Getir verisinden al
+        getir_restaurant_id = webhook_data.get("restaurant", {}).get("id") or webhook_data.get("restaurantId")
+        
+        # Sistemdeki restoranı bul (Getir restaurant ID ile eşleştir)
+        restaurant = None
+        if getir_restaurant_id:
+            restaurant = await db.restaurants.find_one(
+                {"platform_integrations.getir.restaurant_id": getir_restaurant_id},
+                {"_id": 0}
+            )
+        
+        if not restaurant:
+            logger.warning(f"Getir webhook: Restoran bulunamadı, getir_restaurant_id={getir_restaurant_id}")
+            # Yine de siparişi kabul et, sonra manuel eşleştirilebilir
+        
+        restaurant_id = restaurant.get("id") if restaurant else None
         
         # Mevcut sipariş kontrolü
         existing = await db.orders.find_one({"getir_order_id": getir_order_id})
