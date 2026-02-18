@@ -70,10 +70,16 @@ const PLATFORM_CONFIG = {
     textClass: "text-purple-600",
     fields: [
       { key: "app_secret_key", label: "App Secret Key", type: "password", required: true },
-      { key: "restaurant_secret_key", label: "Restaurant Secret Key", type: "password", required: true }
+      { key: "restaurant_secret_key", label: "Restaurant Secret Key", type: "password", required: true },
+      { key: "webhook_api_key", label: "Webhook API Key", type: "text", required: true, placeholder: "Getir'e vereceğiniz x-api-key", description: "Getir'e vereceğiniz güvenlik anahtarı" }
     ],
     helpText: "API bilgilerinizi Getir İş Ortağı panelinden alabilirsiniz.",
-    helpUrl: null
+    helpUrl: null,
+    isWebhook: true,
+    webhookInfo: {
+      orderEndpoint: "/api/webhooks/getir/order",
+      cancelEndpoint: "/api/webhooks/getir/cancel"
+    }
   },
   yemeksepeti: {
     name: "Yemeksepeti",
