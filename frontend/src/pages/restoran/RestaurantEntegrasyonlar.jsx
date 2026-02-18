@@ -44,6 +44,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [adisyoData, setAdisyoData] = useState(null);
   const [trendyolData, setTrendyolData] = useState(null);
   const [getirData, setGetirData] = useState(null);
+  const [yemeksepetiData, setYemeksepetiData] = useState(null);
   const [platforms, setPlatforms] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -51,6 +52,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [showAdisyoModal, setShowAdisyoModal] = useState(false);
   const [showTrendyolModal, setShowTrendyolModal] = useState(false);
   const [showGetirModal, setShowGetirModal] = useState(false);
+  const [showYemeksepetiModal, setShowYemeksepetiModal] = useState(false);
   const [showPlatformModal, setShowPlatformModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   
@@ -66,6 +68,13 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [getirForm, setGetirForm] = useState({
     app_secret_key: "",
     restaurant_secret_key: "",
+    enabled: false
+  });
+  const [yemeksepetiForm, setYemeksepetiForm] = useState({
+    client_id: "",
+    client_secret: "",
+    chain_id: "",
+    vendor_id: "",
     enabled: false
   });
   const [platformForm, setPlatformForm] = useState({ api_key: "", api_secret: "", store_id: "", enabled: false });
