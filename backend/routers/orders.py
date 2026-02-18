@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # --- Platform Bildirim Fonksiyonu ---
 async def notify_platform_status_change(order: dict, new_status: str, preparation_time: int = None):
     """
-    Sipariş durumu değiştiğinde ilgili platforma (Trendyol, Adisyo vb.) bildirim gönder.
+    Sipariş durumu değiştiğinde ilgili platforma (Trendyol, Getir, Adisyo vb.) bildirim gönder.
     Bu fonksiyon arka planda çalışır ve hata alsa bile ana işlemi engellemez.
     """
     source = order.get("source", "")
@@ -73,6 +73,46 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                     logger.info(f"Trendyol bildirim başarılı: order={order_id}, status={new_status}")
                 else:
                     logger.warning(f"Trendyol bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
+        
+        elif source == "getir":
+            from services.getir_service import (
+                verify_getir_order,
+                prepare_getir_order,
+                handover_getir_order,
+                deliver_getir_order,
+                cancel_getir_order
+            )
+            
+            # Getir kuryesi kontrolü
+            is_getir_courier = order.get("getir_raw", {}).get("isGetirCourier", False)
+            
+            result = None
+            
+            if new_status == "preparing":
+                # Siparişi onayla (verify)
+                result = await verify_getir_order(restaurant_id, order_id)
+                
+            elif new_status == "ready":
+                # Hazırlanıyor (prepare)
+                result = await prepare_getir_order(restaurant_id, order_id)
+                
+            elif new_status == "on_the_way":
+                # Kuryeye teslim (handover)
+                result = await handover_getir_order(restaurant_id, order_id)
+                
+            elif new_status == "delivered" and not is_getir_courier:
+                # Teslim edildi (sadece restoran kuryesi için)
+                result = await deliver_getir_order(restaurant_id, order_id)
+                
+            elif new_status == "cancelled":
+                # İptal
+                result = await cancel_getir_order(restaurant_id, order_id)
+            
+            if result:
+                if result.get("success"):
+                    logger.info(f"Getir bildirim başarılı: order={order_id}, status={new_status}")
+                else:
+                    logger.warning(f"Getir bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
         
         elif source == "adisyo":
             from services.adisyo_service import update_adisyo_order_status
