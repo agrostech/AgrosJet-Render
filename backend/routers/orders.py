@@ -1345,6 +1345,9 @@ async def courier_pickup_order(courier_id: str, order_id: str):
         }
     )
     
+    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
+    await notify_platform_status_change(order, "on_the_way")
+    
     return {"message": "Sipariş yola çıktı"}
 
 
