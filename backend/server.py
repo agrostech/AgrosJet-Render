@@ -333,6 +333,7 @@ from routers.products import router as products_router, set_db as set_products_d
 from routers.restaurant_permissions import router as restaurant_permissions_router
 from routers.restaurant_integrations import router as restaurant_integrations_router
 from routers.restoran_mutabakat import router as restoran_mutabakat_router
+from routers.webhooks import router as webhooks_router
 
 # Set db for products router
 set_products_db(db)
