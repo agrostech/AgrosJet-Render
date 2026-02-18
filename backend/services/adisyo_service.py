@@ -145,7 +145,8 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
     - cash: Nakit
     - card: Kapıda Kredi Kartı
     - online: Online ödemeler (platform üzerinden)
-    - meal_card: Yemek kartları (Multinet, Sodexo, Setcard, vb.)
+    - meal_card: Kapıda Yemek kartları (Multinet, Sodexo, Setcard, vb.)
+    - online_meal_card: Online Yemek kartları
     """
     payment_name_lower = (payment_method_name or "").lower()
     
@@ -167,14 +168,15 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
         logger.info(f"[PAYMENT MAP] Result: card (kapıda kredi kartı)")
         return "card"
     
-    # 3. YEMEK KARTLARI (fiziksel - kapıda)
+    # 3. YEMEK KARTLARI
     meal_card_keywords = ["multinet", "sodexo", "setcard", "metropol", "ticket", "edenred", "pluxee", "smart ticket"]
     if any(k in payment_name_lower for k in meal_card_keywords):
         # Online yemek kartı mı kontrol et
-        if "online" in payment_name_lower:
-            logger.info(f"[PAYMENT MAP] Result: meal_card (online yemek kartı)")
-            return "meal_card"
-        logger.info(f"[PAYMENT MAP] Result: meal_card (yemek kartı)")
+        if "online" in payment_name_lower or "pass mobil" in payment_name_lower or "smart" in payment_name_lower:
+            logger.info(f"[PAYMENT MAP] Result: online_meal_card (online yemek kartı)")
+            return "online_meal_card"
+        # Kapıda yemek kartı
+        logger.info(f"[PAYMENT MAP] Result: meal_card (kapıda yemek kartı)")
         return "meal_card"
     
     # 4. ONLINE ÖDEMELER
