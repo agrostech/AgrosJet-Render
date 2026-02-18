@@ -152,7 +152,7 @@ export default function RestoranMutabakatTab({ companyId }) {
 
   // Toggle select all unprocessed
   const handleToggleSelectAll = () => {
-    const selectableRestaurants = restaurants.filter(r => !r.is_processed && r.business_id);
+    const selectableRestaurants = restaurants.filter(r => !r.is_processed);
     const allSelected = selectableRestaurants.every(r => selectedIds.includes(r.restaurant_id));
     
     if (allSelected) {
