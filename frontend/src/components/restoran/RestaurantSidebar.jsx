@@ -15,7 +15,7 @@ export default function RestaurantSidebar({
 
   return (
     <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
-      <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2' : ''}`}>
+      <div className={`p-4 border-b border-white/20 flex-shrink-0 ${sidebarCollapsed ? 'px-2' : ''}`}>
         {!sidebarCollapsed && (
           <>
             <h1 className="font-heading text-lg font-bold truncate">{restaurant?.name || "Restoran"}</h1>
@@ -25,7 +25,7 @@ export default function RestaurantSidebar({
         )}
       </div>
       
-      <nav className="flex-1 py-2 overflow-y-auto">
+      <nav className="flex-1 py-2 overflow-y-auto min-h-0">
         {navItems.map((item) => (
           <Link 
             key={item.path} 
@@ -45,7 +45,7 @@ export default function RestaurantSidebar({
         ))}
       </nav>
       
-      <div className="border-t border-white/20">
+      <div className="border-t border-white/20 flex-shrink-0">
         <Button 
           variant="ghost" 
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)} 
