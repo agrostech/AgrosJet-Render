@@ -216,6 +216,84 @@ async def getir_cancel_webhook(
         return {"status": "error", "message": str(e)}
 
 
+@router.post("/getir/restaurant-status")
+async def getir_restaurant_status_webhook(
+    request: Request,
+    x_api_key: Optional[str] = Header(None, alias="x-api-key")
+):
+    """
+    Getir Restoran Durum Webhook Endpoint
+    
+    Getir restoran durumu değişikliklerini (açık/kapalı) bu endpoint'e gönderir.
+    
+    Headers:
+        x-api-key: Restoran için tanımlanan API key
+    
+    Body: Restoran durum bilgisi
+    """
+    try:
+        # API Key doğrulama
+        auth_result = await verify_getir_api_key(x_api_key)
+        
+        if not auth_result["valid"]:
+            logger.warning(f"Getir restoran durum webhook: Geçersiz API key")
+            raise HTTPException(status_code=401, detail="Geçersiz API key")
+        
+        restaurant = auth_result["restaurant"]
+        restaurant_id = restaurant.get("id")
+        
+        # JSON parse
+        try:
+            webhook_data = await request.json()
+        except:
+            logger.error("Getir restoran durum webhook: JSON parse hatası")
+            raise HTTPException(status_code=400, detail="Geçersiz JSON")
+        
+        logger.info(f"Getir restoran durum webhook alındı: restaurant={restaurant_id}, data={webhook_data}")
+        
+        # Durum bilgisini al - Getir farklı field'larda gönderebilir
+        status = webhook_data.get("status") or webhook_data.get("restaurantStatus") or webhook_data.get("state")
+        is_open = None
+        
+        if status:
+            status_lower = status.lower()
+            if status_lower in ["open", "online", "active", "available", "açık"]:
+                is_open = True
+            elif status_lower in ["closed", "offline", "inactive", "unavailable", "kapalı", "busy", "paused"]:
+                is_open = False
+        
+        # is_open field'ı da kontrol et
+        if is_open is None:
+            is_open_field = webhook_data.get("isOpen") or webhook_data.get("is_open")
+            if is_open_field is not None:
+                is_open = bool(is_open_field)
+        
+        if is_open is not None:
+            # Restoran durumunu güncelle
+            await db.restaurants.update_one(
+                {"id": restaurant_id},
+                {"$set": {
+                    "platform_integrations.getir.is_open": is_open,
+                    "platform_integrations.getir.status_updated_at": datetime.now(timezone.utc).isoformat(),
+                    "platform_integrations.getir.status_updated_by": "getir_webhook"
+                }}
+            )
+            
+            status_text = "açık" if is_open else "kapalı"
+            logger.info(f"Getir restoran durumu güncellendi: {restaurant_id} -> {status_text}")
+            
+            return {"status": "ok", "message": f"Restoran durumu güncellendi: {status_text}", "is_open": is_open}
+        else:
+            logger.warning(f"Getir restoran durum webhook: Durum bilgisi çözümlenemedi, data={webhook_data}")
+            return {"status": "ok", "message": "Durum bilgisi alındı ancak çözümlenemedi"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Getir restoran durum webhook hatası: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
 @router.get("/getir/health")
 async def getir_webhook_health():
     """Getir Webhook Endpoint Sağlık Kontrolü"""
@@ -225,7 +303,8 @@ async def getir_webhook_health():
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "endpoints": {
             "order": "/api/webhooks/getir/order",
-            "cancel": "/api/webhooks/getir/cancel"
+            "cancel": "/api/webhooks/getir/cancel",
+            "restaurant_status": "/api/webhooks/getir/restaurant-status"
         }
     }
 
