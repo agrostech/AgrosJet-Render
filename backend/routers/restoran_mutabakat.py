@@ -237,19 +237,6 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         if data["order_count"] == 0:
             continue
         
-        # Business ID'yi isim eşleştirmesiyle bul (eğer yoksa)
-        if not data["business_id"]:
-            r_name = data["restaurant_name"].lower().replace(" ", "").replace("&", "")
-            for b_name, b_id in business_name_map.items():
-                if r_name in b_name or b_name in r_name:
-                    data["business_id"] = b_id
-                    # Restaurant'a da kaydet
-                    await db.restaurants.update_one(
-                        {"id": rid},
-                        {"$set": {"business_id": b_id}}
-                    )
-                    break
-        
         # Hesaplamalar
         delivery_fee = data["delivery_fee"]
         delivery_vat = delivery_fee * (vat_rate / 100)
@@ -262,7 +249,6 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         result.append({
             "restaurant_id": rid,
             "restaurant_name": data["restaurant_name"],
-            "business_id": data["business_id"],
             "order_count": data["order_count"],
             "delivery_fee": round(delivery_fee, 2),
             "delivery_vat": round(delivery_vat, 2),
