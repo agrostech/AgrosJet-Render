@@ -236,7 +236,7 @@ async def lifespan(app: FastAPI):
     )
     
     scheduler.start()
-    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), break reset (1m), weekly hakedis (1m)")
+    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m)")
     
     yield
     
