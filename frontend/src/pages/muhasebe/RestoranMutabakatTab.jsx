@@ -193,7 +193,7 @@ export default function RestoranMutabakatTab({ companyId }) {
   // Apply mutabakat
   const handleApplyMutabakat = async () => {
     const selectedUnprocessed = restaurants.filter(
-      r => selectedIds.includes(r.restaurant_id) && !r.is_processed && r.business_id
+      r => selectedIds.includes(r.restaurant_id) && !r.is_processed
     );
     
     if (selectedUnprocessed.length === 0) return;
@@ -203,7 +203,6 @@ export default function RestoranMutabakatTab({ companyId }) {
       const items = selectedUnprocessed.map(r => ({
         restaurant_id: r.restaurant_id,
         restaurant_name: r.restaurant_name,
-        business_id: r.business_id,
         order_count: r.order_count,
         delivery_fee: r.delivery_fee,
         delivery_vat: r.delivery_vat,
