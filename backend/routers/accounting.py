@@ -101,7 +101,7 @@ async def get_activity_logs(company_id: str, skip: int = 0, limit: int = 10):
     }
 
 
-# --- İşletmeler (Businesses) ---
+# --- İşletmeler (Businesses) - ESKİ, geriye dönük uyumluluk için ---
 @router.get("/companies/{company_id}/businesses")
 async def get_businesses(company_id: str, include_archived: bool = False):
     """Get all businesses for a company"""
@@ -191,6 +191,39 @@ async def delete_business(
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="İşletme bulunamadı")
     return {"message": "İşletme silindi"}
+
+
+# --- Restoranlar için Muhasebe Endpoint'leri ---
+@router.get("/companies/{company_id}/accounting-restaurants")
+async def get_accounting_restaurants(company_id: str, include_archived: bool = False):
+    """Get all restaurants for accounting (muhasebe sekmesi için)"""
+    query = {"company_id": company_id}
+    if not include_archived:
+        query["is_archived"] = {"$ne": True}
+    restaurants = await db.restaurants.find(query, {"_id": 0}).to_list(500)
+    return restaurants
+
+@router.put("/accounting-restaurants/{restaurant_id}/archive")
+async def archive_accounting_restaurant(restaurant_id: str):
+    """Archive a restaurant for accounting"""
+    result = await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": {"is_archived": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    return {"message": "Restoran arşivlendi"}
+
+@router.put("/accounting-restaurants/{restaurant_id}/unarchive")
+async def unarchive_accounting_restaurant(restaurant_id: str):
+    """Unarchive a restaurant for accounting"""
+    result = await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": {"is_archived": False}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    return {"message": "Restoran arşivden çıkarıldı"}
 
 
 # --- Cariler (Vendors) ---
