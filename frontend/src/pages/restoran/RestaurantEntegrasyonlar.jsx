@@ -1297,6 +1297,118 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </DialogContent>
       </Dialog>
 
+      {/* Yemeksepeti Modal */}
+      <Dialog open={showYemeksepetiModal} onOpenChange={setShowYemeksepetiModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Yemeksepeti Entegrasyonu</DialogTitle>
+            <DialogDescription>
+              Yemeksepeti'den webhook ile sipariş almak için API bilgilerinizi girin.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label>Entegrasyon Durumu</Label>
+                <p className="text-xs text-muted-foreground">Bu entegrasyonu aktif et</p>
+              </div>
+              <Switch
+                checked={yemeksepetiForm.enabled}
+                onCheckedChange={(checked) => setYemeksepetiForm(prev => ({ ...prev, enabled: checked }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Client ID <span className="text-red-500">*</span></Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.ys_client_id ? "text" : "password"}
+                  value={yemeksepetiForm.client_id}
+                  onChange={(e) => setYemeksepetiForm(prev => ({ ...prev, client_id: e.target.value }))}
+                  placeholder={yemeksepetiData?.has_credentials ? "Değiştirmek için yeni ID girin" : "Client ID"}
+                  disabled={!yemeksepetiForm.enabled}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, ys_client_id: !prev.ys_client_id }))}
+                >
+                  {showSecrets.ys_client_id ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Client Secret <span className="text-red-500">*</span></Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.ys_client_secret ? "text" : "password"}
+                  value={yemeksepetiForm.client_secret}
+                  onChange={(e) => setYemeksepetiForm(prev => ({ ...prev, client_secret: e.target.value }))}
+                  placeholder={yemeksepetiData?.has_credentials ? "Değiştirmek için yeni secret girin" : "Client Secret"}
+                  disabled={!yemeksepetiForm.enabled}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, ys_client_secret: !prev.ys_client_secret }))}
+                >
+                  {showSecrets.ys_client_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Chain ID <span className="text-red-500">*</span></Label>
+              <Input
+                value={yemeksepetiForm.chain_id}
+                onChange={(e) => setYemeksepetiForm(prev => ({ ...prev, chain_id: e.target.value }))}
+                placeholder="Zincir ID"
+                disabled={!yemeksepetiForm.enabled}
+              />
+              <p className="text-xs text-muted-foreground">
+                Account Manager'dan alacağınız zincir kodu
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Vendor ID <span className="text-red-500">*</span></Label>
+              <Input
+                value={yemeksepetiForm.vendor_id}
+                onChange={(e) => setYemeksepetiForm(prev => ({ ...prev, vendor_id: e.target.value }))}
+                placeholder="Mağaza ID"
+                disabled={!yemeksepetiForm.enabled}
+              />
+              <p className="text-xs text-muted-foreground">
+                Bu şubenin Yemeksepeti mağaza kodu
+              </p>
+            </div>
+            
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs text-red-800">
+                <strong>Önemli:</strong> Yemeksepeti webhook tabanlı çalışır. Bağlantı başarılı olduktan sonra 
+                Partner Portal'dan webhook URL'ini kaydetmeniz gerekir. URL, ayarları kaydettikten sonra görünecektir.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowYemeksepetiModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveYemeksepeti} disabled={saving}>
+              {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Platform Modal (Placeholder) */}
       <Dialog open={showPlatformModal} onOpenChange={setShowPlatformModal}>
         <DialogContent className="max-w-md">
