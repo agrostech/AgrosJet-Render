@@ -342,19 +342,16 @@ async def test_store_connection(restaurant_id: str, store_id: str):
     
     stores = restaurant.get("integration_stores", [])
     store = None
-    store_index = None
     
-    for i, s in enumerate(stores):
+    for s in stores:
         if s.get("id") == store_id:
             store = s
-            store_index = i
             break
     
     if not store:
         raise HTTPException(status_code=404, detail="Mağaza bulunamadı")
     
     platform = store.get("platform")
-    credentials = store.get("credentials", {})
     
     # Credentials'ı geçici olarak eski formata yaz (mevcut test fonksiyonlarını kullanmak için)
     await sync_to_old_format(restaurant_id, platform, store)
