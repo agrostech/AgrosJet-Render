@@ -248,6 +248,94 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     }
   };
 
+  // Getir handlers
+  const openGetirModal = () => {
+    setGetirForm({
+      app_secret_key: "",
+      restaurant_secret_key: "",
+      enabled: getirData?.enabled || false
+    });
+    setShowSecrets({});
+    setShowGetirModal(true);
+  };
+
+  const handleSaveGetir = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        enabled: getirForm.enabled
+      };
+      if (getirForm.app_secret_key) payload.app_secret_key = getirForm.app_secret_key;
+      if (getirForm.restaurant_secret_key) payload.restaurant_secret_key = getirForm.restaurant_secret_key;
+      
+      await axios.put(`${API}/restaurant-integrations/${restaurantId}/getir`, payload);
+      toast.success("Getir ayarları kaydedildi");
+      setShowGetirModal(false);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestGetir = async () => {
+    setTesting(true);
+    try {
+      await axios.post(`${API}/restaurant-integrations/${restaurantId}/getir/test`);
+      toast.success("Getir bağlantısı başarılı");
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Bağlantı testi başarısız");
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const handleSyncGetir = async () => {
+    setSyncing(true);
+    try {
+      const res = await axios.post(`${API}/restaurant-integrations/${restaurantId}/getir/sync`);
+      const { synced, updated, skipped } = res.data;
+      toast.success(`Senkronizasyon tamamlandı: ${synced} yeni, ${updated} güncellendi`);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Senkronizasyon başarısız");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleGetirWorkingStatus = async (isOpen) => {
+    setUpdatingStatus(true);
+    try {
+      const payload = { is_open: isOpen };
+      if (!isOpen && closeTimeOff) {
+        payload.time_off_amount = parseInt(closeTimeOff);
+      }
+      
+      await axios.put(`${API}/restaurant-integrations/${restaurantId}/getir/working-status`, payload);
+      toast.success(`Restoran ${isOpen ? "açıldı" : "kapatıldı"}`);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Durum güncellenemedi");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleDisconnectGetir = async () => {
+    if (!confirm("Getir entegrasyonunu kaldırmak istediğinize emin misiniz?")) return;
+    
+    try {
+      await axios.delete(`${API}/restaurant-integrations/${restaurantId}/getir`);
+      toast.success("Getir entegrasyonu kaldırıldı");
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
   // Platform handlers
   const openPlatformModal = (platform) => {
     setSelectedPlatform(platform);
