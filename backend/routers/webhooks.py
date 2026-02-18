@@ -165,7 +165,7 @@ async def getir_cancel_webhook(
     Getir sipariş iptallerini bu endpoint'e gönderir.
     
     Headers:
-        x-api-key: Restoran için tanımlanan API key
+        x-api-key: Sabit API key (agrosjet-getir-wh-9f3k7x2m4p)
     
     Body: İptal bilgisi (order_id, cancel_reason, etc.)
     """
@@ -177,9 +177,6 @@ async def getir_cancel_webhook(
             logger.warning(f"Getir iptal webhook: Geçersiz API key")
             raise HTTPException(status_code=401, detail="Geçersiz API key")
         
-        restaurant = auth_result["restaurant"]
-        restaurant_id = restaurant.get("id")
-        
         # JSON parse
         try:
             webhook_data = await request.json()
@@ -187,7 +184,7 @@ async def getir_cancel_webhook(
             logger.error("Getir iptal webhook: JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
-        logger.info(f"Getir iptal webhook alındı: restaurant={restaurant_id}, data={webhook_data}")
+        logger.info(f"Getir iptal webhook alındı: data={webhook_data}")
         
         # Sipariş ID - Getir farklı field'larda gönderebilir
         getir_order_id = webhook_data.get("id") or webhook_data.get("orderId") or webhook_data.get("order_id")
