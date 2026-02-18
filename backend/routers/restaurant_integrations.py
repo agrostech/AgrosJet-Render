@@ -18,6 +18,16 @@ from services.trendyol_service import (
     cancel_trendyol_order,
     update_restaurant_working_status
 )
+from services.getir_service import (
+    test_getir_connection,
+    sync_restaurant_getir_orders,
+    verify_getir_order,
+    prepare_getir_order,
+    handover_getir_order,
+    deliver_getir_order,
+    cancel_getir_order,
+    update_getir_restaurant_status
+)
 
 router = APIRouter(prefix="/api/restaurant-integrations", tags=["Restoran Entegrasyonları"])
 
