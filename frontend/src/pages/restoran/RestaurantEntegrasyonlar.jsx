@@ -773,6 +773,117 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </CardContent>
       </Card>
 
+      {/* Yemeksepeti Entegrasyonu */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">YS</span>
+            </div>
+            <div>
+              <CardTitle className="text-lg">Yemeksepeti</CardTitle>
+              <CardDescription className="text-xs">
+                Yemeksepeti sipariş entegrasyonu (Webhook)
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 rounded-lg border">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <span className="font-bold text-sm text-red-600">YS</span>
+                </div>
+                <div>
+                  <h3 className="font-medium">Yemeksepeti Entegrasyonu</h3>
+                  <p className="text-xs text-muted-foreground">Webhook ile anlık sipariş bildirimi</p>
+                </div>
+              </div>
+              {yemeksepetiData?.connected ? (
+                <Badge variant="outline" className="border-green-500 text-green-600">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Bağlı
+                </Badge>
+              ) : yemeksepetiData?.has_credentials ? (
+                <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                  <XCircle className="w-3 h-3 mr-1" />
+                  Bağlantı Yok
+                </Badge>
+              ) : null}
+            </div>
+            
+            {yemeksepetiData?.has_credentials && (
+              <div className="mt-3 p-2 bg-slate-50 rounded text-xs text-muted-foreground space-y-1">
+                <div>
+                  <span className="font-medium">Client ID:</span> {yemeksepetiData.client_id}
+                </div>
+                <div>
+                  <span className="font-medium">Chain ID:</span> {yemeksepetiData.chain_id || "-"}
+                  {yemeksepetiData.vendor_id && (
+                    <span className="ml-3"><span className="font-medium">Vendor ID:</span> {yemeksepetiData.vendor_id}</span>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Webhook URL */}
+            {yemeksepetiData?.webhook_url && (
+              <div className="mt-3 p-3 border rounded-lg bg-amber-50">
+                <p className="text-xs font-medium text-amber-800 mb-1">Webhook URL (Partner Portal'a ekleyin):</p>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs bg-white px-2 py-1 rounded border flex-1 overflow-x-auto">
+                    {yemeksepetiData.webhook_url}
+                  </code>
+                  <Button size="sm" variant="outline" onClick={copyWebhookUrl}>
+                    Kopyala
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-3 flex gap-2 flex-wrap">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={openYemeksepetiModal}
+                className="flex-1"
+              >
+                <Settings className="w-4 h-4 mr-1" />
+                {yemeksepetiData?.has_credentials ? "Düzenle" : "Yapılandır"}
+              </Button>
+              
+              {yemeksepetiData?.has_credentials && (
+                <>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleTestYemeksepeti}
+                    disabled={testing}
+                  >
+                    {testing ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
+                    )}
+                    <span className="ml-1">Test</span>
+                  </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleDisconnectYemeksepeti}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Unlink className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Diğer Yemek Platformları (Placeholder) */}
       <Card>
         <CardHeader className="pb-3">
@@ -786,7 +897,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {platforms.filter(p => p.id !== "trendyol" && p.id !== "getir").map((platform) => (
+            {platforms.filter(p => !["trendyol", "getir", "yemeksepeti"].includes(p.id)).map((platform) => (
               <div
                 key={platform.id}
                 className="p-4 rounded-lg border hover:border-primary/50 transition-colors opacity-60"
