@@ -378,6 +378,7 @@ app.include_router(restaurant_permissions_router)
 app.include_router(restaurant_integrations_router)
 app.include_router(webhooks_router)
 app.include_router(integration_stores_router)
+app.include_router(sepettakip_router)
 
 # Health check
 @api_router.get("/")
