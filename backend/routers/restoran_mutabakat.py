@@ -149,7 +149,7 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     # Şirkete ait restoranları getir
     restaurants = await db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
-        {"_id": 0, "id": 1, "name": 1, "business_id": 1}
+        {"_id": 0, "id": 1, "name": 1}
     ).to_list(500)
     
     if not restaurants:
@@ -169,13 +169,6 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     ).to_list(500)
     
     processed_map = {r["restaurant_id"]: r["transaction_id"] for r in processed_records}
-    
-    # İlgili business'ları da al (muhasebe işlemi için gerekli)
-    businesses = await db.businesses.find(
-        {"company_id": company_id},
-        {"_id": 0, "id": 1, "name": 1}
-    ).to_list(500)
-    business_name_map = {b["name"].lower().replace(" ", "").replace("&", ""): b["id"] for b in businesses}
     
     # Teslim edilen siparişleri getir
     orders = await db.orders.find(
