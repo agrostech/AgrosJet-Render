@@ -299,11 +299,6 @@ async def apply_mutabakat(company_id: str, data: ApplyMutabakatRequest):
     skipped_count = 0
     
     for item in data.items:
-        # Business ID kontrolü
-        if not item.business_id:
-            skipped_count += 1
-            continue
-        
         # Daha önce işlenmiş mi kontrol et
         existing = await db.restoran_mutabakat_records.find_one({
             "company_id": company_id,
@@ -326,13 +321,13 @@ async def apply_mutabakat(company_id: str, data: ApplyMutabakatRequest):
             skipped_count += 1
             continue
         
-        # İşlem oluştur
+        # İşlem oluştur - entity_type: "restaurant" kullan
         transaction_id = str(uuid.uuid4())
         transaction = {
             "id": transaction_id,
             "company_id": company_id,
-            "entity_type": "business",
-            "entity_id": item.business_id,
+            "entity_type": "restaurant",
+            "entity_id": item.restaurant_id,
             "type": transaction_type,
             "amount": amount,
             "description": f"{item.restaurant_name} - {description}",
@@ -352,7 +347,6 @@ async def apply_mutabakat(company_id: str, data: ApplyMutabakatRequest):
             "company_id": company_id,
             "restaurant_id": item.restaurant_id,
             "restaurant_name": item.restaurant_name,
-            "business_id": item.business_id,
             "week_start": data.week_start,
             "week_end": data.week_end,
             "transaction_id": transaction_id,
