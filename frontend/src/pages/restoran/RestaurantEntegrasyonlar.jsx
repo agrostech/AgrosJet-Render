@@ -347,6 +347,73 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     }
   };
 
+  // Yemeksepeti handlers
+  const openYemeksepetiModal = () => {
+    setYemeksepetiForm({
+      client_id: "",
+      client_secret: "",
+      chain_id: yemeksepetiData?.chain_id || "",
+      vendor_id: yemeksepetiData?.vendor_id || "",
+      enabled: yemeksepetiData?.enabled || false
+    });
+    setShowSecrets({});
+    setShowYemeksepetiModal(true);
+  };
+
+  const handleSaveYemeksepeti = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        enabled: yemeksepetiForm.enabled
+      };
+      if (yemeksepetiForm.client_id) payload.client_id = yemeksepetiForm.client_id;
+      if (yemeksepetiForm.client_secret) payload.client_secret = yemeksepetiForm.client_secret;
+      if (yemeksepetiForm.chain_id !== undefined) payload.chain_id = yemeksepetiForm.chain_id;
+      if (yemeksepetiForm.vendor_id !== undefined) payload.vendor_id = yemeksepetiForm.vendor_id;
+      
+      await axios.put(`${API}/restaurant-integrations/${restaurantId}/yemeksepeti`, payload);
+      toast.success("Yemeksepeti ayarları kaydedildi");
+      setShowYemeksepetiModal(false);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestYemeksepeti = async () => {
+    setTesting(true);
+    try {
+      await axios.post(`${API}/restaurant-integrations/${restaurantId}/yemeksepeti/test`);
+      toast.success("Yemeksepeti bağlantısı başarılı");
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Bağlantı testi başarısız");
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const handleDisconnectYemeksepeti = async () => {
+    if (!confirm("Yemeksepeti entegrasyonunu kaldırmak istediğinize emin misiniz?")) return;
+    
+    try {
+      await axios.delete(`${API}/restaurant-integrations/${restaurantId}/yemeksepeti`);
+      toast.success("Yemeksepeti entegrasyonu kaldırıldı");
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const copyWebhookUrl = () => {
+    if (yemeksepetiData?.webhook_url) {
+      navigator.clipboard.writeText(yemeksepetiData.webhook_url);
+      toast.success("Webhook URL kopyalandı");
+    }
+  };
+
   // Platform handlers
   const openPlatformModal = (platform) => {
     setSelectedPlatform(platform);
