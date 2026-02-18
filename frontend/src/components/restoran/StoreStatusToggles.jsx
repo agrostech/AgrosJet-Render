@@ -107,11 +107,23 @@ export default function StoreStatusToggles({ restaurantId }) {
                     />
                     <span className="text-xs text-slate-600">{platform.name}</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     {platformStores.length > 0 && (
-                      <span className="text-[10px] text-slate-400">
-                        {openCount}/{platformStores.length}
-                      </span>
+                      <div className="flex items-center gap-0.5">
+                        {platformStores.map((store) => (
+                          <div
+                            key={store.id}
+                            className={`w-2 h-2 rounded-full ${
+                              !store.connected 
+                                ? "bg-slate-300" 
+                                : store.is_open 
+                                  ? "bg-green-500" 
+                                  : "bg-red-400"
+                            }`}
+                            title={`${store.name}: ${!store.connected ? "Test gerekli" : store.is_open ? "Açık" : "Kapalı"}`}
+                          />
+                        ))}
+                      </div>
                     )}
                     <ChevronDown 
                       className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} 
