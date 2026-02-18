@@ -470,8 +470,8 @@ export default function RestoranMutabakatTab({ companyId }) {
                     <tr>
                       <th className="p-2 text-left w-10">
                         <Checkbox
-                          checked={restaurants.filter(r => !r.is_processed && r.business_id).length > 0 &&
-                            restaurants.filter(r => !r.is_processed && r.business_id).every(r => selectedIds.includes(r.restaurant_id))}
+                          checked={restaurants.filter(r => !r.is_processed).length > 0 &&
+                            restaurants.filter(r => !r.is_processed).every(r => selectedIds.includes(r.restaurant_id))}
                           onCheckedChange={handleToggleSelectAll}
                         />
                       </th>
