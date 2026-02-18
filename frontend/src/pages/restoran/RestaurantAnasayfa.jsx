@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
 import OrderDetailModal from "@/components/restoran/OrderDetailModal";
+import StoreStatusToggles from "@/components/restoran/StoreStatusToggles";
 import {
   ORDER_STATUSES,
   COURIER_ONLY_STATUSES,
