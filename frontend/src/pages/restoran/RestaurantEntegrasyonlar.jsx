@@ -1022,6 +1022,92 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </DialogContent>
       </Dialog>
 
+      {/* Getir Modal */}
+      <Dialog open={showGetirModal} onOpenChange={setShowGetirModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Getir Yemek Entegrasyonu</DialogTitle>
+            <DialogDescription>
+              GetirYemek'ten sipariş çekmek için API bilgilerinizi girin.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <Label>Entegrasyon Durumu</Label>
+                <p className="text-xs text-muted-foreground">Bu entegrasyonu aktif et</p>
+              </div>
+              <Switch
+                checked={getirForm.enabled}
+                onCheckedChange={(checked) => setGetirForm(prev => ({ ...prev, enabled: checked }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>App Secret Key <span className="text-red-500">*</span></Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.gt_app_secret ? "text" : "password"}
+                  value={getirForm.app_secret_key}
+                  onChange={(e) => setGetirForm(prev => ({ ...prev, app_secret_key: e.target.value }))}
+                  placeholder={getirData?.has_credentials ? "Değiştirmek için yeni key girin" : "App Secret Key"}
+                  disabled={!getirForm.enabled}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, gt_app_secret: !prev.gt_app_secret }))}
+                >
+                  {showSecrets.gt_app_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Restaurant Secret Key <span className="text-red-500">*</span></Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.gt_rest_secret ? "text" : "password"}
+                  value={getirForm.restaurant_secret_key}
+                  onChange={(e) => setGetirForm(prev => ({ ...prev, restaurant_secret_key: e.target.value }))}
+                  placeholder={getirData?.has_credentials ? "Değiştirmek için yeni key girin" : "Restaurant Secret Key"}
+                  disabled={!getirForm.enabled}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, gt_rest_secret: !prev.gt_rest_secret }))}
+                >
+                  {showSecrets.gt_rest_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <p className="text-xs text-purple-800">
+                <strong>Bilgi:</strong> API bilgilerinizi Getir İş Ortağı panelinden alabilirsiniz. 
+                Token otomatik olarak yönetilir (1 saat geçerli, otomatik yenilenir).
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGetirModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveGetir} disabled={saving}>
+              {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Platform Modal (Placeholder) */}
       <Dialog open={showPlatformModal} onOpenChange={setShowPlatformModal}>
         <DialogContent className="max-w-md">
