@@ -28,6 +28,13 @@ from services.getir_service import (
     cancel_getir_order,
     update_getir_restaurant_status
 )
+from services.yemeksepeti_service import (
+    test_yemeksepeti_connection,
+    update_yemeksepeti_order_status,
+    cancel_yemeksepeti_order,
+    get_yemeksepeti_order,
+    generate_webhook_url
+)
 
 router = APIRouter(prefix="/api/restaurant-integrations", tags=["Restoran Entegrasyonları"])
 
