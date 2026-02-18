@@ -1402,6 +1402,10 @@ async def courier_bulk_pickup(courier_id: str, data: BulkPickupRequest):
         }
     )
     
+    # Platform'a bildirim gönder (her sipariş için)
+    for o in orders:
+        await notify_platform_status_change(o, "on_the_way")
+    
     return {"message": f"{result.modified_count} sipariş yola çıktı"}
 
 
