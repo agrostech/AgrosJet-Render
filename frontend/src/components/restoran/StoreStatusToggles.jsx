@@ -77,7 +77,7 @@ export default function StoreStatusToggles({ restaurantId }) {
   return (
     <div className="bg-white border rounded-xl p-4" data-testid="store-status-toggles">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-700">Platform Mağazaları</span>
+        <span className="text-sm font-medium text-slate-700">Entegrasyon Yönetimi</span>
         <button
           onClick={() => navigate("/restoran/entegrasyonlar")}
           className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1"
@@ -86,7 +86,7 @@ export default function StoreStatusToggles({ restaurantId }) {
         </button>
       </div>
 
-      <div className="space-y-1">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {PLATFORMS.map((platform) => {
           const platformStores = getStoresByPlatform(platform.key);
           const isOpen = openPlatforms[platform.key];
@@ -99,43 +99,45 @@ export default function StoreStatusToggles({ restaurantId }) {
               onOpenChange={() => setOpenPlatforms(prev => ({ ...prev, [platform.key]: !prev[platform.key] }))}
             >
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between py-2 px-1 hover:bg-slate-50 rounded-lg transition-colors">
+                <div className="flex items-center justify-between py-2 px-2 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100">
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-2 h-2 rounded-full" 
                       style={{ backgroundColor: platform.color }}
                     />
-                    <span className="text-sm text-slate-600">{platform.name}</span>
+                    <span className="text-xs text-slate-600">{platform.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
                     {platformStores.length > 0 && (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-[10px] text-slate-400">
                         {openCount}/{platformStores.length}
                       </span>
                     )}
+                    <ChevronDown 
+                      className={`w-3 h-3 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} 
+                    />
                   </div>
-                  <ChevronDown 
-                    className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} 
-                  />
                 </div>
               </CollapsibleTrigger>
               
               <CollapsibleContent>
-                <div className="pl-4 space-y-1 pb-1">
+                <div className="pl-4 space-y-1 pb-1 pt-1">
                   {platformStores.length === 0 ? (
-                    <p className="text-xs text-slate-400 py-1">Mağaza yok</p>
+                    <p className="text-[10px] text-slate-400 py-1">Mağaza yok</p>
                   ) : (
                     platformStores.map((store) => (
                       <div
                         key={store.id}
-                        className="flex items-center justify-between py-1.5"
+                        className="flex items-center justify-between py-1"
                         data-testid={`store-toggle-${store.id}`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm ${store.connected ? "text-slate-700" : "text-slate-400"}`}>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`text-xs truncate ${store.connected ? "text-slate-700" : "text-slate-400"}`}>
                             {store.name}
                           </span>
                           {!store.connected && (
-                            <span className="text-[10px] text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded">
-                              Test gerekli
+                            <span className="text-[9px] text-amber-500 bg-amber-50 px-1 rounded flex-shrink-0">
+                              Test
                             </span>
                           )}
                         </div>
@@ -146,7 +148,7 @@ export default function StoreStatusToggles({ restaurantId }) {
                             checked={store.is_open}
                             onCheckedChange={() => handleToggle(store)}
                             disabled={!store.connected}
-                            className="scale-75"
+                            className="scale-[0.65]"
                             data-testid={`store-switch-${store.id}`}
                           />
                         )}
