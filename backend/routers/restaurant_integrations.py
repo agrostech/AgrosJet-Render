@@ -37,6 +37,22 @@ class PlatformIntegration(BaseModel):
     store_id: Optional[str] = None
 
 
+class TrendyolIntegration(BaseModel):
+    enabled: bool = False
+    api_key: Optional[str] = None
+    api_secret: Optional[str] = None
+    supplier_id: Optional[str] = None
+    store_id: Optional[str] = None
+
+
+class TrendyolWorkingStatus(BaseModel):
+    is_open: bool
+
+
+class TrendyolCancelOrder(BaseModel):
+    reason_id: int = 625  # 621: Ürün tükendi, 622: Kapalı, 623: Yoğun, 624: Teknik, 625: Diğer
+
+
 # --- Helper Functions ---
 
 def mask_secret(value: str, visible_chars: int = 4) -> str:
