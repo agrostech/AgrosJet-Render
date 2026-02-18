@@ -294,7 +294,7 @@ export default function RestoranMutabakatTab({ companyId }) {
 
   // Calculated values
   const selectedRestaurants = restaurants.filter(r => selectedIds.includes(r.restaurant_id));
-  const selectedUnprocessed = selectedRestaurants.filter(r => !r.is_processed && r.business_id);
+  const selectedUnprocessed = selectedRestaurants.filter(r => !r.is_processed);
   const selectedUnprocessedTotal = selectedUnprocessed.reduce((sum, r) => sum + r.net_amount, 0);
   const selectedProcessed = selectedRestaurants.filter(r => r.is_processed);
   const selectedProcessedTotal = selectedProcessed.reduce((sum, r) => sum + r.net_amount, 0);
