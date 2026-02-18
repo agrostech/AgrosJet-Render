@@ -769,3 +769,167 @@ async def cancel_getir_order_endpoint(restaurant_id: str, order_id: str, data: G
         raise HTTPException(status_code=400, detail=result["error"])
     
     return result
+
+
+# --- Yemeksepeti Endpoint'leri ---
+
+@router.get("/{restaurant_id}/yemeksepeti")
+async def get_yemeksepeti_integration(restaurant_id: str):
+    """Restoran Yemeksepeti entegrasyon ayarlarını getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "platform_integrations.yemeksepeti": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    integration = restaurant.get("platform_integrations", {}).get("yemeksepeti", {})
+    
+    # Webhook URL oluştur
+    # Base URL'i environment'tan al veya default kullan
+    import os
+    base_url = os.environ.get("WEBHOOK_BASE_URL", os.environ.get("REACT_APP_BACKEND_URL", ""))
+    webhook_url = generate_webhook_url(restaurant_id, base_url) if integration.get("vendor_id") else ""
+    
+    return {
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant.get("name"),
+        "yemeksepeti": {
+            "enabled": integration.get("enabled", False),
+            "connected": integration.get("connected", False),
+            "client_id": mask_secret(integration.get("client_id", ""), 4),
+            "client_secret": "********" if integration.get("client_secret") else "",
+            "chain_id": integration.get("chain_id", ""),
+            "vendor_id": integration.get("vendor_id", ""),
+            "webhook_url": webhook_url,
+            "last_test": integration.get("last_test"),
+            "has_credentials": bool(
+                integration.get("client_id") and 
+                integration.get("client_secret") and
+                integration.get("chain_id")
+            )
+        }
+    }
+
+
+@router.put("/{restaurant_id}/yemeksepeti")
+async def update_yemeksepeti_integration(restaurant_id: str, data: YemeksepetiIntegration):
+    """Restoran Yemeksepeti entegrasyon ayarlarını güncelle"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    update_fields = {
+        "platform_integrations.yemeksepeti.enabled": data.enabled,
+        "platform_integrations.yemeksepeti.updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if data.client_id is not None:
+        update_fields["platform_integrations.yemeksepeti.client_id"] = data.client_id
+        update_fields["platform_integrations.yemeksepeti.connected"] = False
+        update_fields["platform_integrations.yemeksepeti.access_token"] = None
+        update_fields["platform_integrations.yemeksepeti.token_expires"] = None
+    
+    if data.client_secret is not None:
+        update_fields["platform_integrations.yemeksepeti.client_secret"] = data.client_secret
+        update_fields["platform_integrations.yemeksepeti.connected"] = False
+        update_fields["platform_integrations.yemeksepeti.access_token"] = None
+        update_fields["platform_integrations.yemeksepeti.token_expires"] = None
+    
+    if data.chain_id is not None:
+        update_fields["platform_integrations.yemeksepeti.chain_id"] = data.chain_id
+    
+    if data.vendor_id is not None:
+        update_fields["platform_integrations.yemeksepeti.vendor_id"] = data.vendor_id
+    
+    if data.webhook_secret is not None:
+        update_fields["platform_integrations.yemeksepeti.webhook_secret"] = data.webhook_secret
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": update_fields}
+    )
+    
+    return {"message": "Yemeksepeti entegrasyon ayarları güncellendi"}
+
+
+@router.post("/{restaurant_id}/yemeksepeti/test")
+async def test_yemeksepeti_connection_endpoint(restaurant_id: str):
+    """Yemeksepeti bağlantısını test et"""
+    result = await test_yemeksepeti_connection(restaurant_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.delete("/{restaurant_id}/yemeksepeti")
+async def disconnect_yemeksepeti(restaurant_id: str):
+    """Yemeksepeti entegrasyonunu kaldır"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$unset": {"platform_integrations.yemeksepeti": ""}}
+    )
+    
+    return {"message": "Yemeksepeti entegrasyonu kaldırıldı"}
+
+
+# --- Yemeksepeti Sipariş Durum Güncelleme ---
+
+@router.post("/{restaurant_id}/yemeksepeti/orders/{order_id}/ready")
+async def mark_yemeksepeti_ready_endpoint(restaurant_id: str, order_id: str):
+    """Yemeksepeti siparişini hazır olarak işaretle"""
+    result = await update_yemeksepeti_order_status(restaurant_id, order_id, "ready")
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/yemeksepeti/orders/{order_id}/dispatched")
+async def mark_yemeksepeti_dispatched_endpoint(restaurant_id: str, order_id: str):
+    """Yemeksepeti siparişini yola çıktı olarak işaretle (Vendor Delivery)"""
+    result = await update_yemeksepeti_order_status(restaurant_id, order_id, "on_the_way")
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/{restaurant_id}/yemeksepeti/orders/{order_id}/cancel")
+async def cancel_yemeksepeti_order_endpoint(restaurant_id: str, order_id: str, data: YemeksepetiCancelOrder = None):
+    """Yemeksepeti siparişini iptal et"""
+    reason = data.reason if data else "TOO_BUSY"
+    result = await cancel_yemeksepeti_order(restaurant_id, order_id, reason)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.get("/{restaurant_id}/yemeksepeti/orders/{ys_order_id}")
+async def get_yemeksepeti_order_endpoint(restaurant_id: str, ys_order_id: str):
+    """Yemeksepeti'den sipariş detayı getir (son 60 gün)"""
+    result = await get_yemeksepeti_order(restaurant_id, ys_order_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
