@@ -172,15 +172,16 @@ async def get_stores_summary(restaurant_id: str):
     
     stores = restaurant.get("integration_stores", [])
     
-    # Sadece aktif ve bağlı mağazalar
+    # Aktif (enabled) tüm mağazalar - bağlı olsun olmasın
     active_stores = []
     for store in stores:
-        if store.get("enabled") and store.get("connected"):
+        if store.get("enabled"):
             active_stores.append({
                 "id": store.get("id"),
                 "platform": store.get("platform"),
                 "name": store.get("name"),
                 "is_open": store.get("is_open", False),
+                "connected": store.get("connected", False),
                 "platform_name": SUPPORTED_PLATFORMS.get(store.get("platform"), {}).get("name", store.get("platform")),
                 "color": SUPPORTED_PLATFORMS.get(store.get("platform"), {}).get("color", "gray")
             })

@@ -68,28 +68,33 @@ export default function StoreStatusToggles({ restaurantId }) {
     }
   };
 
-  const handleToggle = async (storeId, currentStatus, platform) => {
-    const newStatus = !currentStatus;
+  const handleToggle = async (store) => {
+    if (!store.connected) {
+      toast.error("Önce mağaza bağlantısını test ediniz");
+      navigate("/restoran/entegrasyonlar");
+      return;
+    }
     
-    setUpdating(prev => ({ ...prev, [storeId]: true }));
+    const newStatus = !store.is_open;
+    
+    setUpdating(prev => ({ ...prev, [store.id]: true }));
     
     try {
-      await axios.put(`${API}/integration-stores/${restaurantId}/${storeId}/status`, {
+      await axios.put(`${API}/integration-stores/${restaurantId}/${store.id}/status`, {
         is_open: newStatus
       });
       
       // Local state güncelle
       setStores(prev => prev.map(s => 
-        s.id === storeId ? { ...s, is_open: newStatus } : s
+        s.id === store.id ? { ...s, is_open: newStatus } : s
       ));
       
-      const platformName = stores.find(s => s.id === storeId)?.name || platform;
-      toast.success(`${platformName} ${newStatus ? "açıldı" : "kapatıldı"}`);
+      toast.success(`${store.name} ${newStatus ? "açıldı" : "kapatıldı"}`);
     } catch (err) {
       const errMsg = err.response?.data?.detail || "Durum güncellenemedi";
       toast.error(errMsg);
     } finally {
-      setUpdating(prev => ({ ...prev, [storeId]: false }));
+      setUpdating(prev => ({ ...prev, [store.id]: false }));
     }
   };
 
@@ -129,11 +134,12 @@ export default function StoreStatusToggles({ restaurantId }) {
             const colors = PLATFORM_COLORS[store.platform] || PLATFORM_COLORS.migros;
             const abbr = PLATFORM_ABBR[store.platform] || store.platform.substring(0, 2).toUpperCase();
             const isUpdating = updating[store.id];
+            const isDisabled = !store.connected || isUpdating;
             
             return (
               <div
                 key={store.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${colors.border} ${colors.bgLight} transition-all`}
+                className={`flex items-center justify-between p-3 rounded-lg border ${colors.border} ${colors.bgLight} transition-all ${!store.connected ? "opacity-70" : ""}`}
                 data-testid={`store-toggle-${store.id}`}
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -144,9 +150,16 @@ export default function StoreStatusToggles({ restaurantId }) {
                     <p className="text-sm font-medium truncate" title={store.name}>
                       {store.name}
                     </p>
-                    <p className={`text-xs ${store.is_open ? "text-green-600" : "text-slate-500"}`}>
-                      {store.is_open ? "Açık" : "Kapalı"}
-                    </p>
+                    {!store.connected ? (
+                      <p className="text-xs text-yellow-600 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        Test Gerekli
+                      </p>
+                    ) : (
+                      <p className={`text-xs ${store.is_open ? "text-green-600" : "text-slate-500"}`}>
+                        {store.is_open ? "Açık" : "Kapalı"}
+                      </p>
+                    )}
                   </div>
                 </div>
                 
@@ -156,8 +169,8 @@ export default function StoreStatusToggles({ restaurantId }) {
                   ) : (
                     <Switch
                       checked={store.is_open}
-                      onCheckedChange={() => handleToggle(store.id, store.is_open, store.platform)}
-                      disabled={isUpdating}
+                      onCheckedChange={() => handleToggle(store)}
+                      disabled={isDisabled}
                       data-testid={`store-switch-${store.id}`}
                     />
                   )}
