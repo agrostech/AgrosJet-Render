@@ -349,59 +349,8 @@ async def get_vendor_transactions(vendor_id: str, skip: int = 0, limit: int = 10
 async def get_restaurant_transactions(restaurant_id: str, skip: int = 0, limit: int = 10):
     """Get paginated transactions for a restaurant.
     
-    Bu endpoint, restoran ID'si ile ilişkili business'ı bulur ve
-    o business'ın işlemlerini döndürür.
+    Direkt restaurant entity_type ile işlemleri döndürür.
     """
-    import re
-    import unicodedata
-    
-    def normalize_name(name):
-        """İsmi normalize et - karşılaştırma için"""
-        if not name:
-            return ""
-        # Unicode normalize
-        name = unicodedata.normalize('NFKD', name)
-        # Küçük harfe çevir
-        name = name.lower()
-        # Sadece alfanumerik karakterleri tut
-        name = re.sub(r'[^a-z0-9]', '', name)
-        return name
-    
-    # Önce restaurant bilgisini al
-    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "name": 1, "company_id": 1, "business_id": 1})
-    
-    if not restaurant:
-        return {"transactions": [], "balance": 0, "total_count": 0, "has_more": False}
-    
-    # Restaurant'ın business_id'si varsa direkt kullan
-    if restaurant.get("business_id"):
-        return await get_entity_transactions("business", restaurant["business_id"], skip, limit)
-    
-    # Business_id yoksa, aynı şirketteki business'ları kontrol et
-    if restaurant.get("company_id") and restaurant.get("name"):
-        restaurant_name_normalized = normalize_name(restaurant["name"])
-        
-        # Şirketteki tüm business'ları al
-        businesses = await db.businesses.find(
-            {"company_id": restaurant["company_id"]},
-            {"_id": 0, "id": 1, "name": 1}
-        ).to_list(100)
-        
-        # İsim eşleştirmesi yap
-        for business in businesses:
-            business_name_normalized = normalize_name(business.get("name", ""))
-            # Tam eşleşme veya içerme kontrolü
-            if (restaurant_name_normalized == business_name_normalized or
-                restaurant_name_normalized in business_name_normalized or
-                business_name_normalized in restaurant_name_normalized):
-                # Business bulundu, restaurant'a business_id ekle (cache için)
-                await db.restaurants.update_one(
-                    {"id": restaurant_id},
-                    {"$set": {"business_id": business["id"]}}
-                )
-                return await get_entity_transactions("business", business["id"], skip, limit)
-    
-    # Hiçbir business bulunamadı, restaurant entity_type ile dene
     return await get_entity_transactions("restaurant", restaurant_id, skip, limit)
 
 @router.delete("/transactions/{transaction_id}")
