@@ -370,9 +370,9 @@ export default function IntegrationStoresManager({ restaurantId }) {
         {config.isWebhook && config.webhookInfo && (
           <div className="p-4 bg-slate-50 border rounded-lg space-y-3">
             <div>
-              <Label className="text-sm font-semibold">Webhook URL'leri</Label>
+              <Label className="text-sm font-semibold">Webhook Bilgileri (Otomatik Yapılandırılmış)</Label>
               <p className="text-xs text-muted-foreground mt-1">
-                Bu URL'leri Getir'e bildirin. x-api-key olarak yukarıda belirlediğiniz anahtarı kullanın.
+                Bu bilgiler platform entegrasyonu için kullanılmaktadır.
               </p>
             </div>
             <div className="space-y-2">
@@ -388,6 +388,22 @@ export default function IntegrationStoresManager({ restaurantId }) {
                   {baseUrl}{config.webhookInfo.cancelEndpoint}
                 </code>
               </div>
+              {config.webhookInfo.statusEndpoint && (
+                <div>
+                  <p className="text-xs font-medium text-slate-700">Durum Webhook:</p>
+                  <code className="block text-xs bg-white p-2 rounded border break-all">
+                    {baseUrl}{config.webhookInfo.statusEndpoint}
+                  </code>
+                </div>
+              )}
+              {config.webhookInfo.apiKey && (
+                <div>
+                  <p className="text-xs font-medium text-slate-700">x-api-key:</p>
+                  <code className="block text-xs bg-white p-2 rounded border break-all font-mono">
+                    {config.webhookInfo.apiKey}
+                  </code>
+                </div>
+              )}
             </div>
           </div>
         )}
