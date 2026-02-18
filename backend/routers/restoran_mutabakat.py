@@ -25,7 +25,6 @@ class WeekInfo(BaseModel):
 class ApplyMutabakatItem(BaseModel):
     restaurant_id: str
     restaurant_name: str
-    business_id: str  # Muhasebe işlemi için
     order_count: int
     delivery_fee: float
     delivery_vat: float
