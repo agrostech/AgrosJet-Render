@@ -317,6 +317,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         </div>
       </TooltipProvider>
 
+      {/* Platform Mağazaları - Hızlı Aç/Kapat */}
+      <StoreStatusToggles restaurantId={restaurantId} />
+
       {/* Orders Tabs */}
       <Card>
         <CardHeader className="pb-2">
