@@ -69,7 +69,7 @@ export default function IsletmelerTab({ companyId, adminId, adminName, companyLo
     getDateDisplayText,
     getBalanceLabel,
   } = useAccountingTab({
-    entityType: "business",
+    entityType: "restaurant",
     companyId,
     adminId,
     adminName,
