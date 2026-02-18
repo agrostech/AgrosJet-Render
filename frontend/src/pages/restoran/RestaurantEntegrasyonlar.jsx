@@ -26,27 +26,40 @@ import {
   EyeOff,
   Utensils,
   Store,
-  ExternalLink
+  ExternalLink,
+  Power,
+  PowerOff
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [adisyoData, setAdisyoData] = useState(null);
+  const [trendyolData, setTrendyolData] = useState(null);
   const [platforms, setPlatforms] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Modal states
   const [showAdisyoModal, setShowAdisyoModal] = useState(false);
+  const [showTrendyolModal, setShowTrendyolModal] = useState(false);
   const [showPlatformModal, setShowPlatformModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   
   // Form states
   const [adisyoForm, setAdisyoForm] = useState({ api_key: "", api_secret: "", branch_id: "" });
+  const [trendyolForm, setTrendyolForm] = useState({ 
+    api_key: "", 
+    api_secret: "", 
+    supplier_id: "", 
+    store_id: "",
+    enabled: false 
+  });
   const [platformForm, setPlatformForm] = useState({ api_key: "", api_secret: "", store_id: "", enabled: false });
   const [showSecrets, setShowSecrets] = useState({});
   const [testing, setTesting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     if (restaurantId) {
@@ -57,12 +70,14 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const fetchIntegrations = async () => {
     setLoading(true);
     try {
-      const [adisyoRes, platformsRes] = await Promise.all([
+      const [adisyoRes, trendyolRes, platformsRes] = await Promise.all([
         axios.get(`${API}/restaurant-integrations/${restaurantId}/adisyo`),
+        axios.get(`${API}/restaurant-integrations/${restaurantId}/trendyol`),
         axios.get(`${API}/restaurant-integrations/${restaurantId}/platforms`)
       ]);
       
       setAdisyoData(adisyoRes.data.adisyo);
+      setTrendyolData(trendyolRes.data.trendyol);
       setPlatforms(platformsRes.data.platforms || []);
     } catch (err) {
       console.error("Entegrasyonlar yüklenemedi:", err);
@@ -127,6 +142,95 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     }
   };
 
+  // Trendyol handlers
+  const openTrendyolModal = () => {
+    setTrendyolForm({
+      api_key: "",
+      api_secret: "",
+      supplier_id: trendyolData?.supplier_id || "",
+      store_id: trendyolData?.store_id || "",
+      enabled: trendyolData?.enabled || false
+    });
+    setShowSecrets({});
+    setShowTrendyolModal(true);
+  };
+
+  const handleSaveTrendyol = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        enabled: trendyolForm.enabled
+      };
+      if (trendyolForm.api_key) payload.api_key = trendyolForm.api_key;
+      if (trendyolForm.api_secret) payload.api_secret = trendyolForm.api_secret;
+      if (trendyolForm.supplier_id !== undefined) payload.supplier_id = trendyolForm.supplier_id;
+      if (trendyolForm.store_id !== undefined) payload.store_id = trendyolForm.store_id;
+      
+      await axios.put(`${API}/restaurant-integrations/${restaurantId}/trendyol`, payload);
+      toast.success("Trendyol ayarları kaydedildi");
+      setShowTrendyolModal(false);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestTrendyol = async () => {
+    setTesting(true);
+    try {
+      await axios.post(`${API}/restaurant-integrations/${restaurantId}/trendyol/test`);
+      toast.success("Trendyol bağlantısı başarılı");
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Bağlantı testi başarısız");
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const handleSyncTrendyol = async () => {
+    setSyncing(true);
+    try {
+      const res = await axios.post(`${API}/restaurant-integrations/${restaurantId}/trendyol/sync`);
+      const { synced, updated, skipped } = res.data;
+      toast.success(`Senkronizasyon tamamlandı: ${synced} yeni, ${updated} güncellendi`);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Senkronizasyon başarısız");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleTrendyolWorkingStatus = async (isOpen) => {
+    setUpdatingStatus(true);
+    try {
+      await axios.put(`${API}/restaurant-integrations/${restaurantId}/trendyol/working-status`, {
+        is_open: isOpen
+      });
+      toast.success(`Restoran ${isOpen ? "açıldı" : "kapatıldı"}`);
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Durum güncellenemedi");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleDisconnectTrendyol = async () => {
+    if (!confirm("Trendyol entegrasyonunu kaldırmak istediğinize emin misiniz?")) return;
+    
+    try {
+      await axios.delete(`${API}/restaurant-integrations/${restaurantId}/trendyol`);
+      toast.success("Trendyol entegrasyonu kaldırıldı");
+      fetchIntegrations();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
   // Platform handlers
   const openPlatformModal = (platform) => {
     setSelectedPlatform(platform);
@@ -178,23 +282,174 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         <p className="text-sm text-muted-foreground">Sipariş platformları ve POS entegrasyonları</p>
       </div>
 
-      {/* Yemek Platformu Entegrasyonları */}
+      {/* Trendyol Yemek Entegrasyonu */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">TY</span>
+            </div>
+            <div>
+              <CardTitle className="text-lg">Trendyol Yemek</CardTitle>
+              <CardDescription className="text-xs">
+                Trendyol Go by Uber Eats entegrasyonu
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 rounded-lg border">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <span className="font-bold text-sm text-orange-600">TY</span>
+                </div>
+                <div>
+                  <h3 className="font-medium">Trendyol Yemek Entegrasyonu</h3>
+                  <p className="text-xs text-muted-foreground">Trendyol'dan otomatik sipariş çekme</p>
+                </div>
+              </div>
+              {trendyolData?.connected ? (
+                <Badge variant="outline" className="border-green-500 text-green-600">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Bağlı
+                </Badge>
+              ) : trendyolData?.has_credentials ? (
+                <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                  <XCircle className="w-3 h-3 mr-1" />
+                  Bağlantı Yok
+                </Badge>
+              ) : null}
+            </div>
+            
+            {trendyolData?.has_credentials && (
+              <div className="mt-3 p-2 bg-slate-50 rounded text-xs text-muted-foreground space-y-1">
+                <div>
+                  <span className="font-medium">API Key:</span> {trendyolData.api_key}
+                </div>
+                <div>
+                  <span className="font-medium">Supplier ID:</span> {trendyolData.supplier_id || "-"}
+                  {trendyolData.store_id && (
+                    <span className="ml-3"><span className="font-medium">Store ID:</span> {trendyolData.store_id}</span>
+                  )}
+                </div>
+                {trendyolData.last_sync && (
+                  <div>
+                    <span className="font-medium">Son Senkronizasyon:</span>{" "}
+                    {new Date(trendyolData.last_sync).toLocaleString("tr-TR")}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Restoran Açık/Kapalı Durumu */}
+            {trendyolData?.connected && (
+              <div className="mt-3 flex items-center justify-between p-3 border rounded-lg bg-slate-50">
+                <div>
+                  <p className="text-sm font-medium">Restoran Durumu (Trendyol)</p>
+                  <p className="text-xs text-muted-foreground">
+                    {trendyolData.is_open ? "Restoran şu anda açık" : "Restoran şu anda kapalı"}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={trendyolData.is_open ? "outline" : "default"}
+                    onClick={() => handleTrendyolWorkingStatus(true)}
+                    disabled={updatingStatus || trendyolData.is_open}
+                    className={trendyolData.is_open ? "" : "bg-green-600 hover:bg-green-700"}
+                  >
+                    <Power className="w-4 h-4 mr-1" />
+                    Aç
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={!trendyolData.is_open ? "outline" : "destructive"}
+                    onClick={() => handleTrendyolWorkingStatus(false)}
+                    disabled={updatingStatus || !trendyolData.is_open}
+                  >
+                    <PowerOff className="w-4 h-4 mr-1" />
+                    Kapat
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-3 flex gap-2 flex-wrap">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={openTrendyolModal}
+                className="flex-1"
+              >
+                <Settings className="w-4 h-4 mr-1" />
+                {trendyolData?.has_credentials ? "Düzenle" : "Yapılandır"}
+              </Button>
+              
+              {trendyolData?.has_credentials && (
+                <>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleTestTrendyol}
+                    disabled={testing}
+                  >
+                    {testing ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
+                    )}
+                    <span className="ml-1">Test</span>
+                  </Button>
+                  
+                  {trendyolData.connected && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={handleSyncTrendyol}
+                      disabled={syncing}
+                    >
+                      {syncing ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      <span className="ml-1">Senkronize Et</span>
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleDisconnectTrendyol}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Unlink className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Diğer Yemek Platformları (Placeholder) */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Utensils className="w-5 h-5" />
-            <CardTitle className="text-lg">Yemek Platformu Entegrasyonları</CardTitle>
+            <CardTitle className="text-lg">Diğer Yemek Platformları</CardTitle>
           </div>
           <CardDescription>
-            Online yemek siparişi platformlarından otomatik sipariş çekme
+            Yakında eklenecek entegrasyonlar
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {platforms.map((platform) => (
+            {platforms.filter(p => p.id !== "trendyol").map((platform) => (
               <div
                 key={platform.id}
-                className="p-4 rounded-lg border hover:border-primary/50 transition-colors"
+                className="p-4 rounded-lg border hover:border-primary/50 transition-colors opacity-60"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -206,14 +461,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                       <p className="text-xs text-muted-foreground">{platform.description}</p>
                     </div>
                   </div>
-                  {platform.connected ? (
-                    <Badge variant="outline" className="border-green-500 text-green-600">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Bağlı
-                    </Badge>
-                  ) : platform.enabled ? (
-                    <Badge variant="outline">Yapılandırılmamış</Badge>
-                  ) : null}
+                  <Badge variant="outline" className="text-xs">Yakında</Badge>
                 </div>
                 
                 <div className="mt-3">
@@ -222,6 +470,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                     variant="outline"
                     onClick={() => openPlatformModal(platform)}
                     className="w-full"
+                    disabled
                   >
                     <Settings className="w-4 h-4 mr-1" />
                     Ayarlar
@@ -230,10 +479,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
               </div>
             ))}
           </div>
-          
-          <p className="text-xs text-muted-foreground mt-4 text-center">
-            Platform entegrasyonları API dökümanları incelendikten sonra detaylandırılacaktır.
-          </p>
         </CardContent>
       </Card>
 
@@ -402,13 +647,14 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </DialogContent>
       </Dialog>
 
-      {/* Platform Modal */}
-      <Dialog open={showPlatformModal} onOpenChange={setShowPlatformModal}>
+      {/* Trendyol Modal */}
+      <Dialog open={showTrendyolModal} onOpenChange={setShowTrendyolModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedPlatform?.name} Entegrasyonu</DialogTitle>
+            <DialogTitle>Trendyol Yemek Entegrasyonu</DialogTitle>
             <DialogDescription>
-              {selectedPlatform?.description}
+              Trendyol Go by Uber Eats'den sipariş çekmek için API bilgilerinizi girin.
+              Bu bilgileri partner.trendyol.com panelinden alabilirsiniz.
             </DialogDescription>
           </DialogHeader>
           
@@ -419,80 +665,122 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                 <p className="text-xs text-muted-foreground">Bu entegrasyonu aktif et</p>
               </div>
               <Switch
-                checked={platformForm.enabled}
-                onCheckedChange={(checked) => setPlatformForm(prev => ({ ...prev, enabled: checked }))}
+                checked={trendyolForm.enabled}
+                onCheckedChange={(checked) => setTrendyolForm(prev => ({ ...prev, enabled: checked }))}
               />
             </div>
             
             <div className="space-y-2">
-              <Label>API Key</Label>
+              <Label>API Key <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <Input
-                  type={showSecrets.platform_api_key ? "text" : "password"}
-                  value={platformForm.api_key}
-                  onChange={(e) => setPlatformForm(prev => ({ ...prev, api_key: e.target.value }))}
-                  placeholder="API Key"
-                  disabled={!platformForm.enabled}
+                  type={showSecrets.ty_api_key ? "text" : "password"}
+                  value={trendyolForm.api_key}
+                  onChange={(e) => setTrendyolForm(prev => ({ ...prev, api_key: e.target.value }))}
+                  placeholder={trendyolData?.has_credentials ? "Değiştirmek için yeni key girin" : "API Key"}
+                  disabled={!trendyolForm.enabled}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  onClick={() => setShowSecrets(prev => ({ ...prev, platform_api_key: !prev.platform_api_key }))}
+                  onClick={() => setShowSecrets(prev => ({ ...prev, ty_api_key: !prev.ty_api_key }))}
                 >
-                  {showSecrets.platform_api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showSecrets.ty_api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label>API Secret</Label>
+              <Label>API Secret <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <Input
-                  type={showSecrets.platform_api_secret ? "text" : "password"}
-                  value={platformForm.api_secret}
-                  onChange={(e) => setPlatformForm(prev => ({ ...prev, api_secret: e.target.value }))}
-                  placeholder="API Secret"
-                  disabled={!platformForm.enabled}
+                  type={showSecrets.ty_api_secret ? "text" : "password"}
+                  value={trendyolForm.api_secret}
+                  onChange={(e) => setTrendyolForm(prev => ({ ...prev, api_secret: e.target.value }))}
+                  placeholder={trendyolData?.has_credentials ? "Değiştirmek için yeni secret girin" : "API Secret"}
+                  disabled={!trendyolForm.enabled}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  onClick={() => setShowSecrets(prev => ({ ...prev, platform_api_secret: !prev.platform_api_secret }))}
+                  onClick={() => setShowSecrets(prev => ({ ...prev, ty_api_secret: !prev.ty_api_secret }))}
                 >
-                  {showSecrets.platform_api_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showSecrets.ty_api_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label>Mağaza ID (Opsiyonel)</Label>
+              <Label>Supplier ID (Satıcı ID) <span className="text-red-500">*</span></Label>
               <Input
-                value={platformForm.store_id}
-                onChange={(e) => setPlatformForm(prev => ({ ...prev, store_id: e.target.value }))}
-                placeholder="Mağaza/Restoran ID"
-                disabled={!platformForm.enabled}
+                value={trendyolForm.supplier_id}
+                onChange={(e) => setTrendyolForm(prev => ({ ...prev, supplier_id: e.target.value }))}
+                placeholder="Örn: 107385"
+                disabled={!trendyolForm.enabled}
               />
+              <p className="text-xs text-muted-foreground">
+                Trendyol satıcı panelinizden alabilirsiniz
+              </p>
             </div>
             
-            <div className="p-3 border rounded-lg">
+            <div className="space-y-2">
+              <Label>Store ID (Mağaza ID)</Label>
+              <Input
+                value={trendyolForm.store_id}
+                onChange={(e) => setTrendyolForm(prev => ({ ...prev, store_id: e.target.value }))}
+                placeholder="Örn: 330 (opsiyonel)"
+                disabled={!trendyolForm.enabled}
+              />
               <p className="text-xs text-muted-foreground">
-                Bu platform entegrasyonu henüz geliştirme aşamasındadır. 
-                API dökümanları incelendikten sonra aktif edilecektir.
+                Birden fazla şubeniz varsa şube ID'si belirtin
+              </p>
+            </div>
+            
+            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-xs text-orange-800">
+                <strong>Bilgi:</strong> API bilgilerinizi <a href="https://partner.trendyol.com" target="_blank" rel="noopener noreferrer" className="underline">partner.trendyol.com</a> adresinden 
+                "Hesap Bilgilerim → Entegrasyon Bilgileri" bölümünden alabilirsiniz.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTrendyolModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveTrendyol} disabled={saving}>
+              {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Platform Modal (Placeholder) */}
+      <Dialog open={showPlatformModal} onOpenChange={setShowPlatformModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedPlatform?.name} Entegrasyonu</DialogTitle>
+            <DialogDescription>
+              {selectedPlatform?.description}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="p-3 border rounded-lg">
+              <p className="text-sm text-muted-foreground text-center">
+                Bu platform entegrasyonu henüz geliştirme aşamasındadır.
               </p>
             </div>
           </div>
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPlatformModal(false)}>
-              İptal
-            </Button>
-            <Button onClick={handleSavePlatform} disabled={saving}>
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
-              Kaydet
+              Kapat
             </Button>
           </DialogFooter>
         </DialogContent>
