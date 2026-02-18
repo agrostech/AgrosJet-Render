@@ -1232,6 +1232,10 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
         }
     )
     
+    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
+    prep_time = update_fields.get("preparation_time")
+    await notify_platform_status_change(order, data.status, prep_time)
+    
     return {"message": f"Sipariş durumu güncellendi: {ORDER_STATUSES[data.status]['label']}"}
 
 
