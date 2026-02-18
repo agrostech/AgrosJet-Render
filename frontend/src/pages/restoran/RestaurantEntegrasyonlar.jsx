@@ -43,12 +43,14 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [adisyoData, setAdisyoData] = useState(null);
   const [trendyolData, setTrendyolData] = useState(null);
+  const [getirData, setGetirData] = useState(null);
   const [platforms, setPlatforms] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Modal states
   const [showAdisyoModal, setShowAdisyoModal] = useState(false);
   const [showTrendyolModal, setShowTrendyolModal] = useState(false);
+  const [showGetirModal, setShowGetirModal] = useState(false);
   const [showPlatformModal, setShowPlatformModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   
@@ -61,12 +63,18 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     store_id: "",
     enabled: false 
   });
+  const [getirForm, setGetirForm] = useState({
+    app_secret_key: "",
+    restaurant_secret_key: "",
+    enabled: false
+  });
   const [platformForm, setPlatformForm] = useState({ api_key: "", api_secret: "", store_id: "", enabled: false });
   const [showSecrets, setShowSecrets] = useState({});
   const [testing, setTesting] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [closeTimeOff, setCloseTimeOff] = useState("15");
 
   useEffect(() => {
     if (restaurantId) {
