@@ -538,6 +538,163 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </CardContent>
       </Card>
 
+      {/* Getir Yemek Entegrasyonu */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">G</span>
+            </div>
+            <div>
+              <CardTitle className="text-lg">Getir Yemek</CardTitle>
+              <CardDescription className="text-xs">
+                GetirYemek sipariş entegrasyonu
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 rounded-lg border">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <span className="font-bold text-sm text-purple-600">G</span>
+                </div>
+                <div>
+                  <h3 className="font-medium">Getir Yemek Entegrasyonu</h3>
+                  <p className="text-xs text-muted-foreground">Getir'den otomatik sipariş çekme</p>
+                </div>
+              </div>
+              {getirData?.connected ? (
+                <Badge variant="outline" className="border-green-500 text-green-600">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Bağlı
+                </Badge>
+              ) : getirData?.has_credentials ? (
+                <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                  <XCircle className="w-3 h-3 mr-1" />
+                  Bağlantı Yok
+                </Badge>
+              ) : null}
+            </div>
+            
+            {getirData?.has_credentials && (
+              <div className="mt-3 p-2 bg-slate-50 rounded text-xs text-muted-foreground space-y-1">
+                <div>
+                  <span className="font-medium">App Secret Key:</span> {getirData.app_secret_key}
+                </div>
+                {getirData.last_sync && (
+                  <div>
+                    <span className="font-medium">Son Senkronizasyon:</span>{" "}
+                    {new Date(getirData.last_sync).toLocaleString("tr-TR")}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Restoran Açık/Kapalı Durumu */}
+            {getirData?.connected && (
+              <div className="mt-3 flex items-center justify-between p-3 border rounded-lg bg-slate-50">
+                <div>
+                  <p className="text-sm font-medium">Restoran Durumu (Getir)</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getirData.is_open ? "Restoran şu anda açık" : "Restoran şu anda kapalı"}
+                  </p>
+                </div>
+                <div className="flex gap-2 items-center">
+                  {!getirData.is_open && (
+                    <Select value={closeTimeOff} onValueChange={setCloseTimeOff}>
+                      <SelectTrigger className="w-20 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 dk</SelectItem>
+                        <SelectItem value="30">30 dk</SelectItem>
+                        <SelectItem value="45">45 dk</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Button
+                    size="sm"
+                    variant={getirData.is_open ? "outline" : "default"}
+                    onClick={() => handleGetirWorkingStatus(true)}
+                    disabled={updatingStatus || getirData.is_open}
+                    className={getirData.is_open ? "" : "bg-green-600 hover:bg-green-700"}
+                  >
+                    <Power className="w-4 h-4 mr-1" />
+                    Aç
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={!getirData.is_open ? "outline" : "destructive"}
+                    onClick={() => handleGetirWorkingStatus(false)}
+                    disabled={updatingStatus || !getirData.is_open}
+                  >
+                    <PowerOff className="w-4 h-4 mr-1" />
+                    Kapat
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-3 flex gap-2 flex-wrap">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={openGetirModal}
+                className="flex-1"
+              >
+                <Settings className="w-4 h-4 mr-1" />
+                {getirData?.has_credentials ? "Düzenle" : "Yapılandır"}
+              </Button>
+              
+              {getirData?.has_credentials && (
+                <>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleTestGetir}
+                    disabled={testing}
+                  >
+                    {testing ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
+                    )}
+                    <span className="ml-1">Test</span>
+                  </Button>
+                  
+                  {getirData.connected && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={handleSyncGetir}
+                      disabled={syncing}
+                    >
+                      {syncing ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      <span className="ml-1">Senkronize Et</span>
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleDisconnectGetir}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Unlink className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Diğer Yemek Platformları (Placeholder) */}
       <Card>
         <CardHeader className="pb-3">
@@ -551,7 +708,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {platforms.filter(p => p.id !== "trendyol").map((platform) => (
+            {platforms.filter(p => p.id !== "trendyol" && p.id !== "getir").map((platform) => (
               <div
                 key={platform.id}
                 className="p-4 rounded-lg border hover:border-primary/50 transition-colors opacity-60"
