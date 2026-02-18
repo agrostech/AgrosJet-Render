@@ -334,6 +334,7 @@ from routers.restaurant_permissions import router as restaurant_permissions_rout
 from routers.restaurant_integrations import router as restaurant_integrations_router
 from routers.restoran_mutabakat import router as restoran_mutabakat_router
 from routers.webhooks import router as webhooks_router
+from routers.integration_stores import router as integration_stores_router
 
 # Set db for products router
 set_products_db(db)
@@ -375,6 +376,7 @@ app.include_router(products_router)
 app.include_router(restaurant_permissions_router)
 app.include_router(restaurant_integrations_router)
 app.include_router(webhooks_router)
+app.include_router(integration_stores_router)
 
 # Health check
 @api_router.get("/")
