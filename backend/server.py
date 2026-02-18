@@ -101,6 +101,37 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # Add Getir sync job - runs every 30 seconds
+    async def sync_getir_orders():
+        """Tüm şirketler için Getir siparişlerini senkronize et"""
+        try:
+            from services.getir_service import sync_all_company_getir_orders
+            
+            # Getir bağlantısı olan şirketleri bul
+            companies = await db.companies.find(
+                {"is_archived": {"$ne": True}},
+                {"_id": 0, "id": 1}
+            ).to_list(100)
+            
+            for company in companies:
+                try:
+                    result = await sync_all_company_getir_orders(company["id"])
+                    if result.get("total_synced", 0) > 0:
+                        print(f"Getir sync: {result['total_synced']} new orders for company {company['id']}")
+                except Exception as e:
+                    print(f"Getir sync error for company {company['id']}: {e}")
+        except Exception as e:
+            print(f"Getir sync job error: {e}")
+    
+    scheduler.add_job(
+        sync_getir_orders,
+        'interval',
+        seconds=30,  # Her 30 saniyede bir
+        id="getir_sync",
+        name="Getir Order Sync",
+        replace_existing=True
+    )
+    
     # Add break time reset job - checks every minute if any company's closing time has passed
     async def reset_courier_break_times():
         """Şirket kapanış saatinde kurye mola sürelerini sıfırla"""
