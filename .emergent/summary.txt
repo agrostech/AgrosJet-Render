@@ -1,80 +1,83 @@
 <analysis>**original_problem_statement:**
 The user's goal is to build and refine a Restaurant Panel for the ShiftJet system. The initial scope included product management, UI refinements, and manual order entry.
 
-Recent development has focused on a series of advanced features and fixes for the restaurant dashboard, with the current primary objective being the integration of third-party food delivery platforms. The sequence of integrations has been:
-1.  **Trendyol Yemek Integration**: Implemented a polling-based system to fetch and manage orders.
-2.  **Getir Yemek Integration**: Implemented a similar polling-based system.
-3.  **Yemeksepeti Integration**: Researched and implemented the foundational structure for a webhook-based system, which is architecturally different from the previous two.
-
-The user has also been inquisitive about the capabilities of these integrations, such as retrieving customer location data.
+Recent development has focused on a series of advanced features and fixes for the restaurant dashboard.
+PRODUCT REQUIREMENTS:
+1.  **Multi-Store Support:** A single restaurant entity must be able to manage multiple stores for each third-party integration platform (e.g., two Trendyol stores, three Getir stores). Adisyo remains a single-instance integration.
+2.  **Homepage Store Management:** Add a component to the restaurant panel homepage () that allows users to quickly see the status of all their integrated stores and toggle them between open and closed.
+3.  **UI/UX Refinements:** The user requested several iterative design changes to the homepage dashboard for a more minimal and clean aesthetic. This included consolidating six statistics cards into one, redesigning the store management component into a collapsible/accordion layout, and adding status indicators.
+4.  **Payment Method Bug Fix:** Correct a persistent bug where orders synced from Adisyo had incorrect payment methods. This required analyzing a large dataset of past orders to create a comprehensive mapping logic for over 26 different payment method strings.
+5.  **General UI Consistency:** Ensure UI elements like page titles and footers are consistent across the restaurant panel.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application features a comprehensive Restaurant Panel with a real-time order dashboard. The core system has been extended with a robust multi-platform integration architecture.
--   **Trendyol Yemek Integration:** Fully implemented with backend services (), periodic order synchronization (), automatic status notifications (), and a frontend UI for credential management ().
--   **Getir Yemek Integration:** Fully implemented, mirroring the Trendyol architecture with its own dedicated service () and UI components.
--   **Yemeksepeti Integration (Initial Setup):** The foundational code is in place. This includes a new webhook router () to receive incoming orders, an OAuth 2.0-capable service (), and the corresponding frontend UI for configuration. This integration is architecturally distinct, using a push (webhook) model instead of a pull (polling) model.
--   **Centralized Notification Logic:** The  router has been refactored to include a  function, which intelligently routes status updates to the correct external platform (Trendyol, Getir, or Yemeksepeti) based on the order's origin.
+The application now supports a multi-store architecture for third-party integrations. A single restaurant can add, edit, and delete multiple stores for platforms like Trendyol, Getir, and Yemeksepeti via a redesigned Entegrasyonlar page.
+
+The homepage features a new Entegrasyon Yönetimi (Integration Management) component. This component displays all configured stores grouped by platform in a collapsible, side-by-side layout. It uses dot indicators to show the status of each store (🟢 Open, 🔴 Closed, ⚪ Test Required).
+
+The Adisyo payment mapping logic in  has been completely overhauled. Based on an analysis of a 26,000-order Excel file provided by the user, the system now accurately maps 26 unique payment strings into five standardized categories: , , , , and .
+
+The UI of the restaurant panel homepage has been significantly refined to be more minimal and modern, and a standard footer has been added.
 
 **Last working item**:
--   Last item agent was working: The agent completed the initial implementation of the Yemeksepeti integration. This involved creating the backend services, a new dedicated router for webhooks, and the frontend UI for credentials and displaying the necessary webhook URL. The agent then answered a user query about the availability of customer location data from Trendyol and Getir. The last task was the setup of the Yemeksepeti integration.
--   Status: IN PROGRESS
+-   Last item agent was working: The agent updated the Adisyo payment mapping logic to create a new, distinct category for online meal cards () as requested by the user, separating them from physical meal cards ().
+-   Status: USER VERIFICATION PENDING
 -   Agent Testing Done: Y
--   Which testing method agent to use? manual testing by curl
+-   Which testing method agent to use? backend testing agent
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Adisyo Payment Method Mapping Bug (P1)
--   Issue 2: Background Task Reliability (Notifications/Location) (P1)
--   Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)
--   Issue 4: Historical Accounting Data Inconsistency (P2)
+-   Issue 1: Background Task Reliability (Notifications/Location) (P1)
+-   Issue 2: Mobile Sidebar Courier List Collapsible Bug (P1)
+-   Issue 3: Historical Accounting Data Inconsistency (P2)
 
 Issues Detail:
--   **Issue 1: Adisyo Payment Method Mapping Bug (P1)**
-    -   Description: Orders from external platforms paid by card were sometimes saved as online.
-    -   Attempted fixes: Blocked as the Adisyo API was returning .
-    -   Status: BLOCKED
-    -   Is recurring issue? Y
-    -   Should Test frontend/backend/both after fix? backend
-    -   Blocked on other issue: Adisyo API availability.
--   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
+-   **Issue 1: Background Task Reliability (Notifications/Location) (P1)**
     -   Description: Location tracking and notifications may stop when the courier app is in the background. User has expressed strong interest in moving to a native app to solve this.
     -   Status: NOT STARTED
     -   Is recurring issue? Y
--   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
+    -   Should Test frontend/backend/both after fix? both
+-   **Issue 2: Mobile Sidebar Courier List Collapsible Bug (P1)**
     -   Description: The collapsible courier lists on the mobile sidebar may not expand on click.
     -   Status: NOT STARTED
     -   Is recurring issue? N
--   **Issue 4: Historical Accounting Data Inconsistency (P2)**
-    -   Description: A major refactoring unified  and  under . However, historical transactions in the  collection were recorded with . These old records will not appear in the new accounting views.
-    -   Next debug checklist: A one-time migration script should be written to update all  where  is business to restaurant. The  will also need to be mapped from a  to a corresponding .
+    -   Should Test frontend/backend/both after fix? frontend
+-   **Issue 3: Historical Accounting Data Inconsistency (P2)**
+    -   Description: Historical transactions in the  collection were recorded with . A major refactoring unified  and  under , so old records are not visible.
+    -   Next debug checklist: A one-time migration script should be written to update all  where  is business to restaurant.
     -   Why fix this issue and what will be achieved with the fix? To ensure restaurants can see their complete and accurate financial history.
     -   Status: NOT STARTED
     -   Is recurring issue? N
     -   Should Test frontend/backend/both after fix? backend
 
 **In progress Task List**:
--   **Task 1: Complete Yemeksepeti Integration (P0)**
-    -   Where to resume: The backend and frontend structure is complete. The next step is to guide the user on obtaining their , , , and  from their Yemeksepeti Account Manager. They will then need to input these into the UI and register the provided webhook URL () in their Yemeksepeti Partner Portal. Full testing can only proceed after this step.
+-   **Task 1: Implement Test Connection for Stores (P0)**
+    -   Where to resume: The UI on the  page has a Test button for each store, and the homepage toggles are disabled for stores marked Test Gerekli. However, the backend logic and frontend action for this Test button do not exist.
+    -   What will be achieved with this? This will complete the multi-store feature loop, allowing users to verify their store credentials, mark the store as connected, and enable the open/close toggle on the homepage.
+    -   Status: NOT STARTED
+    -   Should Test frontend/backend/both after fix? both
+    -   Blocked on something: None.
+-   **Task 2: Complete Yemeksepeti Integration (P1)**
+    -   Where to resume: The backend and frontend structure is complete. The user needs to be guided on obtaining their , , etc., from Yemeksepeti and entering them.
     -   What will be achieved with this? A fully functional, real-time, webhook-driven integration with Yemeksepeti.
     -   Status: BLOCKED
     -   Should Test frontend/backend/both after fix? both
     -   Blocked on something: User needs to provide credentials from Yemeksepeti.
--   **Task 2: Verify Status Dropdown Logic (P1)**
+-   **Task 3: Verify Status Dropdown Logic (P2)**
     -   Where to resume: Review .
-    -   What will be achieved with this? Confirm that the order status dropdown is correctly disabled for orders that already have an assigned courier, which was an original requirement that may have been overlooked.
+    -   What will be achieved with this? Confirm that the order status dropdown is correctly disabled for orders that already have an assigned courier.
     -   Status: NOT STARTED
     -   Should Test frontend/backend/both after fix? frontend
     -   Blocked on something: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   P1 - Implement Other Platform Integrations: The user may provide documentation for Migros Yemek or others.
+    -   P1 - Implement Other Platform Integrations (e.g., Migros Yemek).
     -   P1 - Complete Restaurant Panel Placeholder Pages: Implement the  (Reports) page.
-    -   P1 - Implement Adisyo Webhooks: Replace the current polling mechanism with real-time order updates via webhooks.
+    -   P1 - Implement Adisyo Webhooks: Replace the current polling mechanism.
 -   **Future Tasks:**
-    -   P1 - Develop Native Courier App: To address notification/location reliability issues.
+    -   P1 - Develop Native Courier App.
     -   P1 - Re-enable & Enhance Chat System.
     -   P2 - Thermal Printer Integration.
     -   P2 - Refactor Order History Pages ( & ).
@@ -82,13 +85,22 @@ Issues Detail:
     -   P3 - Motosikletim Feature Enhancements.
 
 **Completed work in this session**
--   **Trendyol Yemek Integration:** Completed backend services, periodic order sync, automatic status updates, and frontend UI for credential management.
--   **Getir Yemek Integration:** Completed backend services, periodic order sync, automatic status updates, and frontend UI for credential management.
--   **Yemeksepeti Integration (Foundation):** Analyzed the API, designed the webhook-based architecture, and implemented the initial backend services, webhook router, and frontend UI.
--   **Architectural Enhancement:** Refactored  to create a centralized  function to handle status updates for all integrated platforms.
+-   **Multi-Store Architecture:** Implemented a new database schema, backend API (), and frontend UI () to support multiple stores per integration.
+-   **Homepage UI/UX Overhaul:**
+    -   Created a new dynamic homepage component () to manage store open/closed states.
+    -   Consolidated six separate statistics cards into a single, minimal component ().
+    -   Iteratively refined the layout of the store management component to be horizontal and use badges instead of text.
+    -   Added a standard application footer () to the restaurant layout.
+    -   Standardized page heading styles for UI consistency.
+-   **Adisyo Payment Mapping Fix:**
+    -   Analyzed a 26,000-record Excel file using  to identify all unique payment methods.
+    -   Implemented a robust mapping function in  that correctly categorizes all known payment methods into , , , , and .
+-   **Testing:** Successfully ran a full-stack test using the testing agent, which validated the new multi-store UI and API endpoints.
 
 **Earlier issues found/mentioned but not fixed**
--   The three pending issues from the initial handoff (Adisyo mapping, background task reliability, mobile sidebar) remain unresolved.
+-   **Issue 1: Background Task Reliability (Notifications/Location)**: Courier app location tracking is unreliable when the app is in the background.
+-   **Issue 2: Mobile Sidebar Courier List Collapsible Bug**: The collapsible lists on the mobile sidebar do not expand.
+-   **Issue 3: Historical Accounting Data Inconsistency**: Old transactions with  are not showing up in accounting.
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork:** Mobile file upload issue.
@@ -99,66 +111,68 @@ Issues Detail:
 
 
 **Key Technical Concepts**
--   **Multi-Platform Integration:** The system now supports three distinct third-party APIs (Trendyol, Getir, Yemeksepeti).
--   **Hybrid Ingestion Architecture:** The application accommodates both polling (Trendyol, Getir) and webhook-based (Yemeksepeti) data ingestion models.
--   **Centralized Status Notification:** A  helper in  broadcasts status updates to the correct external platform based on the order's source, acting as a notification hub.
--   **Scheduled Tasks ():** Used to periodically sync orders from polling-based platforms.
--   **OAuth 2.0:** Implemented the client credentials flow for Yemeksepeti's more modern authentication scheme.
--   **Dynamic Integration UI:**  serves as a central hub for managing multiple integrations, each with its own card, modal, and credential fields.
+-   **Multi-Store Architecture:** The data model was changed from a single object per integration to an array of  within the restaurant document, allowing for multiple configurations per platform.
+-   **Data-Driven Bug Fixing:** Used the  library to analyze a large Excel file (26k rows) of historical data to accurately map dozens of real-world payment method strings to a standardized set of categories.
+-   **Component-Based Refactoring:** The monolithic Integrations page was broken down. New, reusable components (, , ) were created to handle specific functionalities, improving modularity.
+-   **Iterative UI/UX Design:** The agent worked through multiple cycles of user feedback to refine the homepage dashboard, moving from large cards to a minimal, single-line stats bar and a compact, collapsible management section.
+-   **State-Dependent UI:** The UI now reflects the state of each store. For example, homepage toggles are disabled and show a Test Required status until the store's connection is verified.
 
 **key DB schema**
 -   **restaurants:**
-    -   : (Object) Stores credentials for each platform, e.g., 
+    -   : (Array of Objects) - This new array holds the configuration for each individual store.
+        -   
 
 **All files of reference**
--   : Main router for managing integration credentials.
--   : New router dedicated to handling incoming webhooks.
--   : Contains the central logic for notifying platforms of status changes.
--   : Contains the periodic sync jobs for polling-based integrations.
--   : Service for Trendyol integration logic.
--   : Service for Getir integration logic.
--   : Service for Yemeksepeti integration logic.
--   : The single frontend page for managing all integrations.
+-   : **New** backend router for all multi-store operations (CRUD, toggle status).
+-   : **Modified** to include the new, comprehensive payment mapping logic.
+-   : **Modified** to incorporate the new statistics and store management components.
+-   : **Modified** to delegate store management to the new  component.
+-   : **New** component for the homepage to manage store statuses.
+-   : **New** component for the integrations page to manage multiple stores.
+-   : **New** consolidated statistics card for the homepage.
+-   : **Modified** to include the new  component.
 
 **Areas that need refactoring**:
 -   The  collection requires a one-time data migration script to update historical records from  to .
--    and  are becoming large and may benefit from being broken down into smaller, more focused modules in the future.
 
 **key api endpoints**
--   **NEW:**  (Receives new orders from Yemeksepeti)
--   **NEW:**  (for , , )
--   **MODIFIED:** All order status update endpoints (e.g., in ) now trigger external platform notifications.
+-   : Fetch all stores for the restaurant.
+-   : Add a new store.
+-   : Update an existing store.
+-   : Delete a store.
+-   : Toggle the  status of a store.
 
 **Critical Info for New Agent**
 -   **You must communicate in Turkish.**
--   **Integration Architecture is Hybrid:** Be aware that Trendyol/Getir use a polling mechanism managed by , while Yemeksepeti uses a webhook-based push mechanism handled by . This is a critical distinction.
--   **Yemeksepeti Integration is Blocked on User:** The code structure for Yemeksepeti is complete, but it is not functional. The user must acquire , , , and  from their Yemeksepeti Account Manager. Your next step should be to guide the user on this process and explain how to register the generated webhook URL in the Yemeksepeti portal.
--   **Central Notification Hub:** Any changes to order status logic must be integrated with the  function in  to ensure external platforms are updated correctly.
+-   The most critical missing piece is the **Test Connection functionality** for newly added stores. The UI is in place, but the logic to verify credentials and update the store's status to  needs to be implemented. This is the highest priority task (P0) to make the new multi-store feature fully functional.
+-   The Adisyo payment mapping logic is now very specific. Any future changes should be made carefully in  in the  function.
+-   The agent installed  and  but **forgot to update **. This must be done immediately to avoid environment errors.
+-   The Yemeksepeti integration remains blocked pending credentials from the user. Do not attempt to work on it until the user provides the necessary keys.
 
 **documents and test reports created in this job**
--   None.
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks about the plan for Yemeksepeti. (Status: **Completed**)
-2.  **Agent:** Explains the webhook architecture and asks for confirmation to build it. (Status: **Completed**)
-3.  **User:** Asks if they will need to contact an account manager for every single restaurant integration. (Status: **Completed**)
-4.  **Agent:** Explains the two models (Individual Restaurant Credentials vs. ShiftJet as Integrator Partner) and recommends starting with the individual model. (Status: **Completed**)
-5.  **User:** Olur şimdilik başlangıç adımını atalım (Okay, let's take the first step for now). (Status: **Completed - Agent proceeded with implementation**)
-6.  **User:** Finishes providing details for Yemeksepeti implementation. (Status: **Completed**)
-7.  **User:** devam (continue). (Status: **Completed**)
-8.  **User:** Asks if customer location can be retrieved from Getir and Trendyol. (Status: **Completed**)
-9.  **Agent:** Explains that location is available for restaurant-courier deliveries but is often hidden for platform-courier deliveries. (Status: **Completed**)
-10. **User:** No pending messages.
+1.  **User:** Requests an analysis of payment methods from a 50,000-order CSV file they will provide. (Status: **Completed**)
+2.  **User:** Uploads the Excel file. (Status: **Completed**)
+3.  **Agent:** Analyzes the file, lists 26 unique payment methods, and asks the user to categorize them. (Status: **Completed**)
+4.  **User:** Provides the categorization for all payment methods, introducing new categories like YEMEK KARTI and ONLINE YEMEK KARTI. (Status: **Completed**)
+5.  **Agent:** Implements the new mapping logic. (Status: **Completed**)
+6.  **Agent:** Asks for clarification on whether to separate Online Meal Card from Meal Card. (Status: **Completed**)
+7.  **User:** Confirms that the distinction should be made (AYRIMI YAPALIM). (Status: **Completed**)
+8.  **Agent:** Implements the final logic with the  category and confirms tests have passed. (Status: **Completed**)
+9.  **User:** Asks about the status of Adisyo logs. (Status: **Completed**)
+10. **User:** Asks to check the payment methods bug again. (Status: **Completed**)
 
 **Project Health Check:**
 -   **Broken:**
-    -   Adisyo Payment Method Mapping (Blocked).
     -   Background Task Reliability for the courier app.
     -   Mobile Sidebar Courier List collapse functionality.
 -   **Mocked:**
-    -   None. The previously mocked integration UIs are now connected to backend logic.
+    -   None.
 -   **Technical Debt:**
-    -   Historical data in the  collection uses the old , making it invisible to the newly refactored accounting pages. A migration script is needed.
+    -   Historical data in the  collection needs a migration script.
+    -   The  file is missing the  and  dependencies.
 
 **3rd Party Integrations**
 -    (via polling)
@@ -167,11 +181,13 @@ Issues Detail:
 -   **Trendyol Yemek** (Polling via direct API calls)
 -   **Getir Yemek** (Polling via direct API calls)
 -   **Yemeksepeti** (Webhook & OAuth 2.0 - initial setup complete)
+-   ,  (Used for data analysis, needs to be added to )
 
 **Testing status**
--   Testing agent used after significant changes: NO
+-   Testing agent used after significant changes: YES
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None
+-   Test files created:
+    - 
 -   Known regressions: None
 
 **Credentials to test flow:**
@@ -180,4 +196,5 @@ Issues Detail:
 -   **Restaurant User:** username: , password:  (for restaurant_id: )
 
 **What agent forgot to execute**
--   The agent did not explicitly verify that the original order  dropdown becomes disabled after a courier has been assigned to an order. This is a pending task from a previous session.</analysis>
+-   The agent installed  and  via pip but **failed to freeze these new dependencies into the  file.** This is a critical first step for the next agent.
+-   The agent created the UI for testing a store connection (Test button) and made other UI elements dependent on a connected status, but **never implemented the actual testing logic** that would allow a store's status to change from Test Gerekli to Connected.</analysis>
