@@ -36,10 +36,8 @@ export default function StoreStatusToggles({ restaurantId }) {
       const storeData = res.data.stores || [];
       setStores(storeData);
       
-      // Mağazası olan platformları aç
-      const open = {};
-      storeData.forEach(s => { open[s.platform] = true; });
-      setOpenPlatforms(open);
+      // Default olarak tüm platformlar kapalı
+      setOpenPlatforms({});
     } catch (err) {
       console.error("Mağaza listesi alınamadı:", err);
     } finally {
