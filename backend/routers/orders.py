@@ -124,6 +124,29 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                     logger.info(f"Adisyo bildirim başarılı: order={order_id}, status={new_status}")
                 else:
                     logger.warning(f"Adisyo bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
+        
+        elif source == "yemeksepeti":
+            from services.yemeksepeti_service import update_yemeksepeti_order_status, cancel_yemeksepeti_order
+            
+            result = None
+            
+            if new_status == "ready":
+                result = await update_yemeksepeti_order_status(restaurant_id, order_id, "ready")
+                
+            elif new_status == "on_the_way":
+                # Vendor Delivery ise gönder
+                is_platform_delivery = order.get("yemeksepeti_raw", {}).get("isPlatformDelivery", True)
+                if not is_platform_delivery:
+                    result = await update_yemeksepeti_order_status(restaurant_id, order_id, "on_the_way")
+                    
+            elif new_status == "cancelled":
+                result = await cancel_yemeksepeti_order(restaurant_id, order_id)
+            
+            if result:
+                if result.get("success"):
+                    logger.info(f"Yemeksepeti bildirim başarılı: order={order_id}, status={new_status}")
+                else:
+                    logger.warning(f"Yemeksepeti bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
                     
     except Exception as e:
         # Platform bildirimi başarısız olsa bile ana işlem devam etmeli
