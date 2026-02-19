@@ -352,13 +352,24 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         ? `${deliveryAddress.trim()}, ${addressDetails.trim()}`
         : deliveryAddress.trim();
 
+      // Manuel tutar varsa items'a ekle
+      const finalItems = [...selectedItems];
+      if (parseFloat(manualAmount) > 0) {
+        finalItems.push({
+          product_id: "manual_amount",
+          name: manualAmountNote.trim() || "Manuel Tutar",
+          price: parseFloat(manualAmount),
+          quantity: 1,
+        });
+      }
+
       const res = await axios.post(`${API}/orders/manual`, {
         restaurant_id: restaurantId,
         customer_name: customerName.trim(),
-        customer_phone: customerPhone.trim() || null,
+        customer_phone: customerPhone.trim(),
         delivery_address: fullAddress,
         delivery_location: deliveryLocation,
-        items: selectedItems,
+        items: finalItems,
         payment_method: selectedPayment,
         notes: notes.trim() || null,
         is_scheduled: isScheduled,
