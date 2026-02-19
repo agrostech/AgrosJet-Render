@@ -241,6 +241,7 @@ async def check_credentials(
 @router.post("/create-package")
 async def create_package(
     request: CreatePackageRequest,
+    raw_request: Request,
     api_key: Optional[str] = Header(None, alias="Api-Key")
 ):
     """
@@ -249,6 +250,20 @@ async def create_package(
     Sepettakip'ten gelen sipariş bilgilerini alarak sistemde kayıt açar.
     Sipariş "Hazırlanıyor" statüsüne geçtiğinde veya restoran manuel tetiklediğinde çağrılır.
     """
+    # Debug loglama - gelen isteği kaydet
+    try:
+        raw_body = await raw_request.body()
+        await db.sepettakip_logs.insert_one({
+            "type": "create-package",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "headers": dict(raw_request.headers),
+            "body": raw_body.decode('utf-8')[:5000],  # İlk 5000 karakter
+            "order_id": request.order.order_id if request.order else None,
+            "api_key_present": bool(api_key)
+        })
+    except Exception as e:
+        logger.error(f"Log kaydetme hatası: {e}")
+    
     logger.info(f"SepetTakip create-package: order_id={request.order.order_id}, platform={request.order.platform}")
     
     # API Key kontrolü
