@@ -217,9 +217,9 @@ export default function KuryelerPage({ companyId }) {
     setSelectedCourier(courier);
     try {
       const res = await axios.get(`${API}/couriers/${courier.id}/payment-methods`);
-      setAllowedPaymentMethods(res.data.allowed_payment_methods || ["cash", "card", "online", "meal_card"]);
+      setAllowedPaymentMethods(res.data.allowed_payment_methods || ["cash", "card", "online", "meal_card", "online_meal_card"]);
     } catch (err) {
-      setAllowedPaymentMethods(["cash", "card", "online", "meal_card"]);
+      setAllowedPaymentMethods(["cash", "card", "online", "meal_card", "online_meal_card"]);
     }
     setShowPaymentMethodsModal(true);
   };
