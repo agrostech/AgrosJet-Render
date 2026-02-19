@@ -1,45 +1,72 @@
-# ShiftJet - Restaurant Panel PRD
+# ShiftJet / AgrosJet - Restaurant Panel PRD
 
 ## Original Problem Statement
 Kullanıcının amacı ShiftJet sistemi için "Restoran Paneli" oluşturmak ve geliştirmektir. İlk kapsam ürün yönetimi, UI iyileştirmeleri ve manuel sipariş girişini içermektedir.
 
-## User Persona
+## Production URL
+**https://agrosjet.app**
+
+## User Personas
 - **Super Admin:** Tüm sistemi yöneten kullanıcı
 - **Admin:** Restoran ve kurye yönetimi yapan kullanıcı
 - **Restaurant User:** Restoran panelini kullanan işletme sahibi/çalışanı
 - **Courier:** Sipariş teslimatı yapan kurye
 
-## Core Requirements
+## Core Features
 
-### 1. Webhook Integrations (P1 - BLOCKED)
-- Getir, Migros, SepetTakip için webhook tabanlı entegrasyonlar
-- Durum: API anahtarları bekleniyor
+### 1. SepetTakip Kurye Entegrasyonu (P0 - BEKLEMEDE)
+**Durum:** Endpoint'ler hazır, Base URL tanımı bekleniyor
 
-### 2. Restaurant-Specific Collection Settings (COMPLETED)
-- Her restoran için nakit, kredi kartı ve yemek kartı ödemelerinin kim tarafından tahsil edileceğini belirleme
+**Kimlik Bilgileri:**
+- Kurye Firması Key: `agrosjet`
+- API Key: `4dd744ca-001e-44be-b17c-0178b0d3f704`
+- Restaurant ID: `934`
+- Base URL: `https://agrosjet.app/api/sepettakip`
 
-### 3. Restaurant Delivery Feature (COMPLETED)
+**Endpoint'ler:**
+- `POST /api/sepettakip/check-credentials` - Restoran doğrulama
+- `POST /api/sepettakip/create-package` - Sipariş oluşturma
+- `POST /api/sepettakip/cancel-package` - Sipariş iptali
+- `GET /api/sepettakip/logs` - Debug logları
+- `GET /api/sepettakip/health` - Sağlık kontrolü
+
+**Webhook (Biz → SepetTakip):**
+- `PATCH https://test-api.sepettakip.com/courier-company/package`
+- Status: assigned, picked_up, delivered, canceled
+
+**Bekleyen:** SepetTakip'in Base URL tanımlaması
+
+### 2. Restaurant Delivery Feature (COMPLETED)
 - Restoranların siparişi kendi teslimatı olarak işaretlemesi
 - Toggle fonksiyonu ile geri alma özelliği
 
-### 4. Manual Order Modal (COMPLETED)
+### 3. Manual Order Modal (COMPLETED)
 - 3 adımlı wizard: Ürün Seçimi → Müşteri Bilgisi → Ödeme Seçimi
 - Manuel tutar girişi
 - Zorunlu telefon numarası
 - Yemek kartı tipi seçimi (Sodexo, Ticket, vb.)
 
-### 5. Admin Order Management Enhancements (COMPLETED)
-- Client-side arama çubuğu (ad, adres, telefon, restoran)
-- Çoklu durum filtreleri
-- Sipariş limiti 50'den 200'e artırıldı
-- Durum renkleri düzeltildi
+### 4. Admin Order Management (COMPLETED)
+- Client-side arama çubuğu
+- Çoklu durum filtreleri (%30 şeffaflık)
+- Sipariş limiti 200
+- Teslim/İptal onay modalı (müşteri ismiyle)
 
-### 6. Meal Card Specificity (COMPLETED)
-- Tüm panellerde (Admin, Restoran, Kurye) spesifik yemek kartı tipi gösterimi
+### 5. Meal Card Support (COMPLETED)
+- `meal_card` ve `online_meal_card` ödeme yöntemleri
+- Kurye izinlerinde yemek kartı seçeneği
+- Tüm panellerde spesifik yemek kartı tipi gösterimi
 
-### 7. Scheduled Order Logic (COMPLETED)
-- Hazırlık süresi teslimat zamanından 30 dakika önce başlıyor
-- Geri sayım hem Admin hem Restoran panelinde görünür
+### 6. Restaurant Settings Page (COMPLETED - NEW)
+- Otomatik yazdırma ayarları
+- 58mm ve 80mm termal yazıcı desteği
+- Test yazdırma özelliği
+- Yazdırma sesi açma/kapama
+
+### 7. Auto Print Feature (COMPLETED - NEW)
+- Yeni sipariş geldiğinde otomatik fiş yazdırma
+- Her siparişte manuel yazdır butonu
+- localStorage'da ayar saklama
 
 ## Architecture
 
@@ -47,61 +74,68 @@ Kullanıcının amacı ShiftJet sistemi için "Restoran Paneli" oluşturmak ve g
 ```
 /app/backend/
 ├── routers/
-│   ├── orders.py              # Sipariş CRUD, restaurant delivery, multi-status filter
-│   ├── manual_orders.py       # Manuel sipariş oluşturma
-│   ├── integration_stores.py  # Platform entegrasyonları
-│   └── webhooks/              # Webhook endpoints
+│   ├── orders.py              # Sipariş CRUD, SepetTakip bildirimleri
+│   ├── sepettakip.py          # SepetTakip entegrasyonu (YENİ)
+│   ├── manual_orders.py       # Manuel sipariş
+│   ├── restaurant_integrations.py  # Entegrasyon ayarları
+│   └── couriers.py            # Kurye yönetimi, ödeme izinleri
 └── services/
-    └── adisyo_service.py      # Adisyo entegrasyonu
+    └── adisyo_service.py
 ```
 
 ### Frontend Structure
 ```
 /app/frontend/src/
-├── components/
-│   ├── admin/
-│   │   └── NewOrderModal.jsx  # 3-step wizard
-│   └── PaymentBadge.jsx       # Ödeme tipi gösterimi
 ├── pages/
-│   ├── admin/
-│   │   └── SiparisYonetimiPage.jsx  # Arama, filtre, sipariş yönetimi
-│   ├── restoran/
-│   │   └── RestaurantAnasayfa.jsx   # Restaurant delivery toggle
-│   └── kurye/
-└── utils/
-    └── getPaymentMethod.js    # Payment method helper
+│   └── restoran/
+│       ├── RestaurantAyarlar.jsx    # YENİ - Ayarlar sayfası
+│       ├── RestaurantEntegrasyonlar.jsx  # SepetTakip UI
+│       └── RestaurantAnasayfa.jsx   # Otomatik yazdırma
+├── utils/
+│   └── printUtils.js               # YENİ - Yazdırma fonksiyonları
+└── components/
 ```
 
-### Database Schema (MongoDB)
+### Database Schema
 **orders collection:**
-- `is_restaurant_delivery`: Boolean - Restoranın kendi teslimatı mı?
-- `payment_method_detail`: String - Spesifik ödeme tipi (Sodexo, Ticket, vb.)
+- `sepettakip_order_id`: String - SepetTakip sipariş ID
+- `is_restaurant_delivery`: Boolean
+- `payment_method_detail`: String (Sodexo, Ticket, vb.)
 
-## What's Been Implemented (December 2025)
+**restaurants collection:**
+- `sepettakip_restaurant_id`: String - SepetTakip restoran ID
+- `sepettakip_credentials`: Object - username, password, enabled
 
-### Session 1-5
-- Restaurant Delivery feature (tam implementasyon + toggle)
-- Manual Order Modal (3-step wizard refactor)
-- Admin sipariş sayfası iyileştirmeleri (arama, filtre)
-- Yemek kartı spesifikliği tüm panellerde
-- Scheduled order logic düzeltmesi
-- JSX syntax hataları düzeltildi
+**sepettakip_logs collection:**
+- Debug logları için
+
+## What's Been Implemented (February 2026)
+
+### Session - Latest
+- [x] JSX syntax hatası düzeltildi
+- [x] Filtre butonları şeffaflığı ayarlandı
+- [x] Yemek kartı kurye dropdown sorunu çözüldü
+- [x] Teslim/İptal onay modalı eklendi (müşteri ismiyle)
+- [x] Restoran Ayarlar sekmesi eklendi
+- [x] Otomatik yazdırma özelliği (58mm/80mm)
+- [x] SepetTakip entegrasyonu (endpoint'ler hazır)
+- [x] SepetTakip debug loglama sistemi
+- [x] Kurye atama/durum değişikliğinde SepetTakip bildirimi
 
 ## Pending Issues
 
 ### P0 - Critical
-- [ ] Admin arama/filtre doğrulaması (USER VERIFICATION PENDING)
+- [ ] SepetTakip Base URL tanımı (ONLARIN TARAFI)
 
 ### P1 - High Priority
 - [ ] Background task reliability (kurye uygulaması)
-- [ ] Mobile sidebar courier list collapsible bug
-- [ ] Webhook entegrasyonları (BLOCKED - API keys)
+- [ ] Diğer webhook entegrasyonları (Migros, Getir)
 
 ### P2 - Medium Priority
+- [ ] Mobile sidebar courier list bug
 - [ ] Historical accounting data migration
-- [ ] Mobile file upload issue
 
-## Future Tasks (Backlog)
+## Future Tasks
 
 ### P1
 - Native Courier App geliştirme
@@ -110,22 +144,15 @@ Kullanıcının amacı ShiftJet sistemi için "Restoran Paneli" oluşturmak ve g
 - Yemeksepeti entegrasyonu
 
 ### P2
-- Thermal printer integration
-- Order history page refactor
 - Dark mode
-
-### P3
-- Motosikletim feature enhancements
+- Order history refactor
 
 ## 3rd Party Integrations
+- **SepetTakip** (BEKLEMEDE - Base URL tanımı lazım)
 - Adisyo (polling)
 - Trendyol Yemek (polling)
-- Getir Yemek (webhook - hardcoded key)
-- Yemeksepeti (pending credentials)
-- Migros Yemek (pending encryption keys)
-- SepetTakip (pending API keys)
+- Getir Yemek (webhook - placeholder)
 - Google Maps Platform
-- react-leaflet, leaflet
 
 ## Test Credentials
 - **Super Admin:** username: `onurertas`, password: `125594`
@@ -133,7 +160,17 @@ Kullanıcının amacı ShiftJet sistemi için "Restoran Paneli" oluşturmak ve g
 - **Courier:** phone: `05527370032`, password: `123456`
 - **Restaurant:** username: `testrestaurant`, password: `password`
 
+## SepetTakip Checklist (Beklemede)
+1. [x] check-credentials endpoint
+2. [x] create-package endpoint
+3. [x] cancel-package endpoint
+4. [x] Debug loglama
+5. [ ] Base URL tanımı (SepetTakip tarafı)
+6. [ ] Test siparişleri
+7. [ ] assigned/picked_up/delivered testleri
+8. [ ] Canlı ortam onayı
+
 ## Notes
 - User preferred language: Turkish
-- User handles testing ("Testleri sen yapma ben yaparım")
-- Client-side filtering implemented with useMemo for performance
+- Production URL: https://agrosjet.app
+- SepetTakip test API: https://test-api.sepettakip.com
