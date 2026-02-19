@@ -450,46 +450,6 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
               />
             </div>
 
-            {/* Payment Method */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                Ödeme Yöntemi *
-              </Label>
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  type="button"
-                  variant={paymentMethod === "cash" ? "default" : "outline"}
-                  className="flex items-center gap-2"
-                  onClick={() => setPaymentMethod("cash")}
-                  data-testid="payment-cash"
-                >
-                  <Banknote className="w-4 h-4" />
-                  Nakit
-                </Button>
-                <Button
-                  type="button"
-                  variant={paymentMethod === "card" ? "default" : "outline"}
-                  className="flex items-center gap-2"
-                  onClick={() => setPaymentMethod("card")}
-                  data-testid="payment-card"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Kart
-                </Button>
-                <Button
-                  type="button"
-                  variant={paymentMethod === "online" ? "default" : "outline"}
-                  className="flex items-center gap-2"
-                  onClick={() => setPaymentMethod("online")}
-                  data-testid="payment-online"
-                >
-                  <Smartphone className="w-4 h-4" />
-                  Online
-                </Button>
-              </div>
-            </div>
-
             {/* Notes */}
             <div className="space-y-2">
               <Label htmlFor="notes">Sipariş Notu</Label>
