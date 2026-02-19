@@ -729,7 +729,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
               />
             </div>
             <p className="col-span-2 text-xs text-muted-foreground">
-              * Sipariş belirtilen saatten 45 dk önce hazırlanmaya başlar
+              * Sipariş belirtilen saatten 30 dk önce hazır olacak şekilde hazırlanır
             </p>
           </div>
         )}
