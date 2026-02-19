@@ -577,6 +577,36 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         canViewCourierPhone={canViewCourierPhone}
         canViewCourierLocation={canViewCourierLocation}
       />
+
+      {/* Restoran Teslimatı Onay Dialog */}
+      <AlertDialog open={!!restaurantDeliveryConfirm} onOpenChange={() => setRestaurantDeliveryConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Store className="w-5 h-5 text-orange-500" />
+              Restoran Teslimatı
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu siparişi restoran teslimatı olarak işaretlemek istediğinize emin misiniz?
+              <ul className="mt-3 space-y-1 text-sm">
+                <li>• Kurye ataması kaldırılacak</li>
+                <li>• Sipariş yönetici panelinden kaldırılacak</li>
+                <li>• Mütabakat ve raporlara dahil edilmeyecek</li>
+                <li>• Teslimatı siz yapacaksınız</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-orange-500 hover:bg-orange-600"
+              onClick={() => handleMarkRestaurantDelivery(restaurantDeliveryConfirm?.id)}
+            >
+              Onayla
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
