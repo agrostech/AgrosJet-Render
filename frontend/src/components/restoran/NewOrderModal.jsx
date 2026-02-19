@@ -615,7 +615,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       <div className="space-y-2">
         <Label htmlFor="customer-phone" className="flex items-center gap-2">
           <Phone className="w-4 h-4" />
-          Telefon
+          Telefon *
         </Label>
         <Input
           id="customer-phone"
