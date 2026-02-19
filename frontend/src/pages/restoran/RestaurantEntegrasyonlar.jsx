@@ -23,8 +23,7 @@ import {
   Settings,
   Eye,
   EyeOff,
-  Store,
-  Truck
+  Store
 } from "lucide-react";
 import IntegrationStoresManager from "@/components/restoran/IntegrationStoresManager";
 
