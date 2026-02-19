@@ -201,6 +201,8 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setSelectedItems([]);
     setProductSearch("");
     setSelectedCategory("all");
+    setManualAmount("");
+    setManualAmountNote("");
     if (autocompleteRef.current) {
       window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
       autocompleteRef.current = null;
