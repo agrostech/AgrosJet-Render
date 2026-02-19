@@ -519,9 +519,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               <div className="flex items-center justify-center gap-1">
                                 {/* Restoran Teslimatı butonu */}
                                 {order.is_restaurant_delivery ? (
-                                  <Badge variant="outline" className="text-[10px] bg-orange-50 text-orange-600 border-orange-200">
-                                    <Store className="w-3 h-3 mr-1" />R.Tes.
-                                  </Badge>
+                                  <div className="h-7 w-7 rounded border-2 border-slate-400 flex items-center justify-center">
+                                    <Home className="w-4 h-4 text-slate-500" />
+                                  </div>
                                 ) : canMarkRestaurantDelivery && (() => {
                                   const check = canMarkAsRestaurantDelivery(order);
                                   return check.allowed ? (
@@ -531,10 +531,10 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                           <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="h-7 w-7 p-0 hover:bg-orange-100"
+                                            className="h-7 w-7 p-0 hover:bg-slate-100"
                                             onClick={() => setRestaurantDeliveryConfirm(order)}
                                           >
-                                            <Store className="w-4 h-4 text-orange-500" />
+                                            <Home className="w-4 h-4 text-slate-400" />
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>Restoran Teslimatı</TooltipContent>
