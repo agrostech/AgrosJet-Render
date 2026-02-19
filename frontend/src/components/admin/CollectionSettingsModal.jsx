@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -12,16 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Banknote, CreditCard, Building2, Users, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /**
  * Restoran Tahsilat Ayarları Modal
- * 
- * Nakit ve Kredi Kartı tahsilatlarının kim tarafından yapılacağını belirler.
- * - "courier": Kurye firması tahsil eder (mütabakata dahil)
- * - "restaurant": Restoran kendi tahsil eder (mütabakattan hariç)
  */
 export default function CollectionSettingsModal({ 
   open, 
@@ -34,7 +29,6 @@ export default function CollectionSettingsModal({
   const [cashCollection, setCashCollection] = useState("courier");
   const [cardCollection, setCardCollection] = useState("courier");
 
-  // Load current settings
   useEffect(() => {
     if (open && restaurant?.id) {
       loadSettings();
@@ -48,7 +42,6 @@ export default function CollectionSettingsModal({
       setCashCollection(res.data.cash_collection || "courier");
       setCardCollection(res.data.card_collection || "courier");
     } catch (err) {
-      // Default değerler kullan
       setCashCollection("courier");
       setCardCollection("courier");
     } finally {
@@ -77,123 +70,66 @@ export default function CollectionSettingsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-primary" />
-            Tahsilat Ayarları
-          </DialogTitle>
-          <DialogDescription>
-            {restaurant?.name} için nakit ve kredi kartı tahsilat yönetimi
-          </DialogDescription>
+          <DialogTitle>Tahsilat Ayarları</DialogTitle>
+          <p className="text-sm text-muted-foreground">{restaurant?.name}</p>
         </DialogHeader>
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="space-y-6 py-4">
-            {/* Nakit Tahsilatlar */}
+          <div className="space-y-6 py-2">
+            {/* Nakit */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Banknote className="w-5 h-5 text-green-600" />
-                <Label className="text-sm font-semibold">Nakit Tahsilatlar</Label>
-              </div>
+              <Label className="text-sm font-medium">Nakit Tahsilatlar</Label>
               <RadioGroup 
                 value={cashCollection} 
                 onValueChange={setCashCollection}
-                className="grid grid-cols-2 gap-3"
+                className="flex gap-4"
               >
-                <Label
-                  htmlFor="cash-courier"
-                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all ${
-                    cashCollection === "courier" 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="courier" id="cash-courier" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <Users className="w-4 h-4 text-primary" />
-                      <span className="font-medium text-sm">Kurye Firması</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">Biz tahsil ederiz</p>
-                  </div>
-                </Label>
-                <Label
-                  htmlFor="cash-restaurant"
-                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all ${
-                    cashCollection === "restaurant" 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
+                  <Label htmlFor="cash-courier" className="text-sm font-normal cursor-pointer">
+                    Kurye Firması
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="restaurant" id="cash-restaurant" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <Building2 className="w-4 h-4 text-orange-600" />
-                      <span className="font-medium text-sm">Restoran</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">Kendileri tahsil eder</p>
-                  </div>
-                </Label>
+                  <Label htmlFor="cash-restaurant" className="text-sm font-normal cursor-pointer">
+                    Restoran
+                  </Label>
+                </div>
               </RadioGroup>
             </div>
 
-            {/* Kredi Kartı Tahsilatlar */}
+            {/* Kredi Kartı */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                <Label className="text-sm font-semibold">Kredi Kartı Tahsilatlar</Label>
-              </div>
+              <Label className="text-sm font-medium">Kredi Kartı Tahsilatlar</Label>
               <RadioGroup 
                 value={cardCollection} 
                 onValueChange={setCardCollection}
-                className="grid grid-cols-2 gap-3"
+                className="flex gap-4"
               >
-                <Label
-                  htmlFor="card-courier"
-                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all ${
-                    cardCollection === "courier" 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="courier" id="card-courier" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <Users className="w-4 h-4 text-primary" />
-                      <span className="font-medium text-sm">Kurye Firması</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">Biz tahsil ederiz</p>
-                  </div>
-                </Label>
-                <Label
-                  htmlFor="card-restaurant"
-                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all ${
-                    cardCollection === "restaurant" 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
+                  <Label htmlFor="card-courier" className="text-sm font-normal cursor-pointer">
+                    Kurye Firması
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="restaurant" id="card-restaurant" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <Building2 className="w-4 h-4 text-orange-600" />
-                      <span className="font-medium text-sm">Restoran</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">Kendileri tahsil eder</p>
-                  </div>
-                </Label>
+                  <Label htmlFor="card-restaurant" className="text-sm font-normal cursor-pointer">
+                    Restoran
+                  </Label>
+                </div>
               </RadioGroup>
             </div>
 
-            {/* Info Box */}
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-amber-800">
-                <strong>Not:</strong> Restoran tarafından tahsil edilen ödemeler mütabakat hesaplamalarına dahil edilmez ve tabloda siyah renkte gösterilir.
-              </p>
-            </div>
+            {/* Info */}
+            <p className="text-xs text-muted-foreground">
+              Restoran tahsil ediyorsa mütabakattan hariç tutulur.
+            </p>
           </div>
         )}
 
