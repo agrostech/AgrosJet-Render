@@ -680,21 +680,88 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
             İptal
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting} data-testid="submit-order-btn">
-            {submitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Kaydediliyor...
-              </>
-            ) : (
-              <>
-                <Plus className="w-4 h-4 mr-2" />
-                Siparişi Oluştur
-              </>
-            )}
+          <Button onClick={handleOpenPaymentStep} disabled={submitting} data-testid="submit-order-btn">
+            <Plus className="w-4 h-4 mr-2" />
+            Siparişi Oluştur
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Payment Selection Dialog */}
+      <Dialog open={showPaymentStep} onOpenChange={setShowPaymentStep}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Ödeme Yöntemi Seçin</DialogTitle>
+            <DialogDescription className="text-center">
+              Toplam: {formatPrice(totalAmount)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-3 py-4">
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-green-50 hover:border-green-500"
+              onClick={() => handlePaymentSelect("cash")}
+              disabled={submitting}
+              data-testid="payment-cash"
+            >
+              <Banknote className="w-6 h-6 text-green-600" />
+              <span className="text-sm font-medium">Nakit</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-500"
+              onClick={() => handlePaymentSelect("card")}
+              disabled={submitting}
+              data-testid="payment-card"
+            >
+              <CreditCard className="w-6 h-6 text-blue-600" />
+              <span className="text-sm font-medium">Kredi Kartı</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 hover:border-purple-500"
+              onClick={() => handlePaymentSelect("online")}
+              disabled={submitting}
+              data-testid="payment-online"
+            >
+              <Smartphone className="w-6 h-6 text-purple-600" />
+              <span className="text-sm font-medium">Online</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-500"
+              onClick={() => handlePaymentSelect("meal_card")}
+              disabled={submitting}
+              data-testid="payment-meal-card"
+            >
+              <UtensilsCrossed className="w-6 h-6 text-orange-600" />
+              <span className="text-sm font-medium">Yemek Kartı</span>
+            </Button>
+          </div>
+          
+          {submitting && (
+            <div className="flex items-center justify-center py-2">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-sm text-muted-foreground">Sipariş oluşturuluyor...</span>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="ghost" 
+              className="w-full" 
+              onClick={() => setShowPaymentStep(false)}
+              disabled={submitting}
+            >
+              Geri
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
