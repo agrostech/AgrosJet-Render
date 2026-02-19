@@ -146,10 +146,10 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
-    # Şirkete ait restoranları getir
+    # Şirkete ait restoranları getir (collection_settings dahil)
     restaurants = await db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
-        {"_id": 0, "id": 1, "name": 1}
+        {"_id": 0, "id": 1, "name": 1, "collection_settings": 1}
     ).to_list(500)
     
     if not restaurants:
