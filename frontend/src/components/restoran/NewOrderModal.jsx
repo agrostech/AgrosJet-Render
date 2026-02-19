@@ -260,9 +260,9 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     }).format(price);
   };
 
-  // Handle submit
-  const handleSubmit = async () => {
-    // Validation
+  // Handle opening payment selection step
+  const handleOpenPaymentStep = () => {
+    // Validation before showing payment step
     if (!customerName.trim()) {
       toast.error("Müşteri adı gerekli");
       return;
@@ -279,7 +279,13 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       toast.error("İleri tarihli teslimat için tarih ve saat seçmelisiniz");
       return;
     }
+    setShowPaymentStep(true);
+  };
 
+  // Handle payment selection and submit
+  const handlePaymentSelect = async (selectedPayment) => {
+    setPaymentMethod(selectedPayment);
+    
     // Build scheduled datetime if needed
     let scheduledTimeISO = null;
     if (isScheduled) {
@@ -301,7 +307,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         delivery_address: fullAddress,
         delivery_location: deliveryLocation, // Koordinatlar
         items: selectedItems,
-        payment_method: paymentMethod,
+        payment_method: selectedPayment,
         notes: notes.trim() || null,
         is_scheduled: isScheduled,
         scheduled_time: scheduledTimeISO,
@@ -314,6 +320,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       toast.error(err.response?.data?.detail || "Sipariş oluşturulamadı");
     } finally {
       setSubmitting(false);
+      setShowPaymentStep(false);
     }
   };
 
