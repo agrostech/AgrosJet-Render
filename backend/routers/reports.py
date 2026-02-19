@@ -123,12 +123,26 @@ async def get_restaurant_report(
     end_datetime: str = Query(...),
     restaurant_id: Optional[str] = Query(None)
 ):
-    """Restoran bazlı sipariş raporu - parçalı ödeme desteği ile"""
+    """Restoran bazlı sipariş raporu - parçalı ödeme ve tahsilat ayarları desteği ile"""
     # Tarih formatını düzelt
     if len(start_datetime) == 16:
         start_datetime = start_datetime + ":00"
     if len(end_datetime) == 16:
         end_datetime = end_datetime + ":59"
+    
+    # Restoranların tahsilat ayarlarını çek
+    restaurants_cursor = db.restaurants.find(
+        {"company_id": company_id, "is_archived": {"$ne": True}},
+        {"_id": 0, "id": 1, "name": 1, "collection_settings": 1}
+    )
+    restaurant_settings = {}
+    async for r in restaurants_cursor:
+        settings = r.get("collection_settings", {})
+        restaurant_settings[r["id"]] = {
+            "name": r.get("name", "Bilinmiyor"),
+            "cash_included": settings.get("cash_collection", "courier") == "courier",
+            "card_included": settings.get("card_collection", "courier") == "courier"
+        }
     
     # Temel filtre
     match_filter = {
@@ -144,7 +158,7 @@ async def get_restaurant_report(
     if restaurant_id:
         match_filter["restaurant_id"] = restaurant_id
     
-    # Siparişleri getir (aggregation yerine find kullanarak payment_details'i işleyebiliriz)
+    # Siparişleri getir
     orders = await db.orders.find(
         match_filter,
         {
@@ -165,17 +179,21 @@ async def get_restaurant_report(
     
     for order in orders:
         rid = order.get("restaurant_id")
+        settings = restaurant_settings.get(rid, {"name": order.get("restaurant_name") or "Bilinmiyor", "cash_included": True, "card_included": True})
+        
         if rid not in restaurant_data:
             restaurant_data[rid] = {
                 "id": rid,
-                "name": order.get("restaurant_name") or "Bilinmiyor",
+                "name": settings["name"],
                 "orderCount": 0,
                 "transportFee": 0,
                 "transportKdv": 0,
                 "posCommission": 0,
                 "cash": 0,
                 "card": 0,
-                "modified_count": 0
+                "modified_count": 0,
+                "cash_included": settings["cash_included"],
+                "card_included": settings["card_included"]
             }
         
         r = restaurant_data[rid]
@@ -193,7 +211,6 @@ async def get_restaurant_report(
         card_amt = payment_details.get("card_amount", 0) or 0
         
         if payment_method == "mixed" or (cash_amt > 0 and card_amt > 0):
-            # Parçalı ödeme - her iki tutarı da ekle
             r["cash"] += cash_amt
             r["card"] += card_amt
             if payment_details.get("original_method") or payment_details.get("original_payment_method"):
@@ -211,13 +228,15 @@ async def get_restaurant_report(
     restaurants = list(restaurant_data.values())
     restaurants.sort(key=lambda x: x["name"].lower())
     
-    # Toplamlar
+    # Toplamlar - tahsilat ayarlarına göre
     total_orders = sum(r["orderCount"] for r in restaurants)
     total_transport_fee = sum(r["transportFee"] for r in restaurants)
     total_transport_kdv = sum(r["transportKdv"] for r in restaurants)
-    total_pos_commission = sum(r["posCommission"] for r in restaurants)
-    total_cash = sum(r["cash"] for r in restaurants)
-    total_card = sum(r["card"] for r in restaurants)
+    total_pos_commission = sum(r["posCommission"] if r["card_included"] else 0 for r in restaurants)
+    
+    # Nakit ve kart toplamları (sadece dahil edilenler)
+    total_cash = sum(r["cash"] if r["cash_included"] else 0 for r in restaurants)
+    total_card = sum(r["card"] if r["card_included"] else 0 for r in restaurants)
     total_modified = sum(r["modified_count"] for r in restaurants)
     
     # Sonuç hesapla
