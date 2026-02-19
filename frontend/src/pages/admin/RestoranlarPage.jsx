@@ -1334,6 +1334,14 @@ export default function RestoranlarPage({ companyId }) {
         onOpenChange={setShowPermissionsModal}
         restaurant={selectedRestaurant}
       />
+
+      {/* Collection Settings Modal */}
+      <CollectionSettingsModal
+        open={showCollectionModal}
+        onOpenChange={setShowCollectionModal}
+        restaurant={selectedRestaurant}
+        onSaved={fetchRestaurants}
+      />
     </div>
   );
 }
