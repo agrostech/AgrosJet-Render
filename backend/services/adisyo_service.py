@@ -18,10 +18,18 @@ ADISYO_BASE_URL = "https://ext.adisyo.com/api/External/v2"
 
 async def get_adisyo_headers(restaurant: dict) -> dict:
     """Adisyo API için gerekli header'ları oluştur"""
+    # Consumer header ASCII olmalı, Türkçe karakterleri temizle
+    import unicodedata
+    consumer_name = restaurant.get("name", "ShiftJet")
+    # Türkçe karakterleri ASCII'ye çevir
+    consumer_ascii = unicodedata.normalize('NFKD', consumer_name).encode('ASCII', 'ignore').decode('ASCII')
+    if not consumer_ascii:
+        consumer_ascii = "ShiftJet"
+    
     return {
         "x-api-key": restaurant.get("adisyo_api_key", ""),
         "x-api-secret": restaurant.get("adisyo_api_secret", ""),
-        "x-api-consumer": restaurant.get("name", "ShiftJet"),
+        "x-api-consumer": consumer_ascii,
         "Content-Type": "application/json"
     }
 
