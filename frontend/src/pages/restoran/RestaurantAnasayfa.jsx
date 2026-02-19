@@ -49,11 +49,56 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const [courierRestrictionMode, setCourierRestrictionMode] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [restaurantDeliveryConfirm, setRestaurantDeliveryConfirm] = useState(null);
 
   // İzin kontrolleri
   const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
   const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
   const canMarkRestaurantDelivery = permissions.can_mark_restaurant_delivery === true; // Default false
+
+  // Restoran teslimatı işaretleme
+  const handleMarkRestaurantDelivery = async (orderId) => {
+    try {
+      await axios.post(`${API}/orders/${orderId}/mark-restaurant-delivery?restaurant_id=${restaurantId}`);
+      toast.success("Sipariş restoran teslimatı olarak işaretlendi");
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşaretleme başarısız");
+    }
+    setRestaurantDeliveryConfirm(null);
+  };
+
+  // Restoran teslimatı durumunu güncelleme
+  const handleRestaurantDeliveryStatus = async (orderId, newStatus) => {
+    try {
+      await axios.post(`${API}/orders/${orderId}/restaurant-update-status?restaurant_id=${restaurantId}&new_status=${newStatus}`);
+      toast.success("Sipariş durumu güncellendi");
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Güncelleme başarısız");
+    }
+  };
+
+  // Restoran teslimatı işaretlenebilir mi kontrol et
+  const canMarkAsRestaurantDelivery = (order) => {
+    if (!canMarkRestaurantDelivery) return { allowed: false, reason: "İzniniz yok" };
+    if (order.is_restaurant_delivery) return { allowed: false, reason: "Zaten restoran teslimatı" };
+    if (order.status === "on_the_way") return { allowed: false, reason: "Yolda olan siparişler işaretlenemez" };
+    if (order.status === "delivered") return { allowed: false, reason: "Teslim edilmiş siparişler işaretlenemez" };
+    if (order.status === "cancelled") return { allowed: false, reason: "İptal edilmiş siparişler işaretlenemez" };
+    
+    // 3 dakika kuralı
+    if (order.courier_id && order.status === "confirmed" && order.assigned_at) {
+      const assignedTime = new Date(order.assigned_at);
+      const now = new Date();
+      const elapsed = (now - assignedTime) / 1000; // saniye
+      if (elapsed > 180) {
+        return { allowed: false, reason: "Kurye atandıktan 3dk geçti" };
+      }
+    }
+    
+    return { allowed: true };
+  };
 
   // Fetch available couriers
   useEffect(() => {
