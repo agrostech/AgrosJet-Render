@@ -75,7 +75,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const fetchOrders = useCallback(async () => {
     if (!companyId) return;
     try {
-      const res = await axios.get(`${API}/orders/${companyId}?status=${statusFilter}`);
+      const res = await axios.get(`${API}/orders/${companyId}?status=${statusFilter}&limit=500`);
       setOrders(res.data);
     } catch (err) {
       console.error("Orders fetch error:", err);
