@@ -277,23 +277,9 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* SepetTakip Kurye Entegrasyonu */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Truck className="w-5 h-5" />
-            <CardTitle className="text-lg">Kurye Entegrasyonları</CardTitle>
-          </div>
-          <CardDescription>
-            Yemek platformlarından gelen siparişler için kurye yönlendirme
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* SepetTakip */}
-          <div className="p-4 rounded-lg border">
+          {/* SepetTakip Kurye */}
+          <div className="p-4 rounded-lg border mt-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -348,6 +334,23 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                       <RefreshCw className="w-4 h-4 animate-spin" />
                     ) : (
                       <Link2 className="w-4 h-4" />
+                    )}
+                    <span className="ml-1">Test</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleDisconnectSepettakip}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Unlink className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
                     )}
                     <span className="ml-1">Test</span>
                   </Button>
