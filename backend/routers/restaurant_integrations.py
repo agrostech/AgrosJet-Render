@@ -252,6 +252,160 @@ async def disconnect_adisyo(restaurant_id: str):
     return {"message": "Adisyo entegrasyonu kaldırıldı"}
 
 
+@router.get("/{restaurant_id}/adisyo/couriers")
+async def get_adisyo_couriers(restaurant_id: str):
+    """Adisyo'daki kurye listesini getir"""
+    from services.adisyo_service import fetch_adisyo_couriers
+    
+    result = await fetch_adisyo_couriers(restaurant_id)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result.get("error", "Kuryeler alınamadı"))
+    
+    return {
+        "success": True,
+        "couriers": result["couriers"]
+    }
+
+
+class AdisyoCourierMapping(BaseModel):
+    shiftjet_courier_id: str
+    adisyo_courier_id: int
+
+
+@router.post("/{restaurant_id}/adisyo/courier-mapping")
+async def map_adisyo_courier(restaurant_id: str, data: AdisyoCourierMapping):
+    """
+    ShiftJet kuryesini Adisyo kuryesiyle eşleştir.
+    Bu eşleştirme, yola çıktı durumunda doğru kurye ID'sinin gönderilmesi için gerekli.
+    """
+    # ShiftJet kuryesini kontrol et
+    courier = await db.couriers.find_one(
+        {"id": data.shiftjet_courier_id},
+        {"_id": 0, "id": 1, "name": 1}
+    )
+    
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Eşleştirmeyi kaydet
+    await db.couriers.update_one(
+        {"id": data.shiftjet_courier_id},
+        {"$set": {
+            "adisyo_courier_id": data.adisyo_courier_id,
+            "adisyo_courier_updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "success": True,
+        "message": f"{courier['name']} kuryesi Adisyo kurye ID {data.adisyo_courier_id} ile eşleştirildi"
+    }
+
+
+@router.get("/{restaurant_id}/adisyo/courier-mappings")
+async def get_adisyo_courier_mappings(restaurant_id: str):
+    """Adisyo kurye eşleştirmelerini getir"""
+    # Restoran kontrolü
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "company_id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # Şirketin kuryelerini al
+    couriers = await db.couriers.find(
+        {"company_id": restaurant["company_id"]},
+        {"_id": 0, "id": 1, "name": 1, "phone": 1, "adisyo_courier_id": 1}
+    ).to_list(100)
+    
+    return {
+        "success": True,
+        "couriers": [
+            {
+                "shiftjet_id": c["id"],
+                "name": c["name"],
+                "phone": c.get("phone"),
+                "adisyo_courier_id": c.get("adisyo_courier_id")
+            }
+            for c in couriers
+        ]
+    }
+
+
+class AdisyoWebhookConfig(BaseModel):
+    webhook_api_key: str
+    restaurant_identity: Optional[str] = None
+
+
+@router.put("/{restaurant_id}/adisyo/webhook")
+async def configure_adisyo_webhook(restaurant_id: str, data: AdisyoWebhookConfig):
+    """
+    Adisyo webhook ayarlarını yapılandır.
+    
+    Adisyo panelinde webhook oluşturduktan sonra:
+    1. Oluşturulan API Key'i buraya kaydedin
+    2. Restaurant Identity (UUID) değerini ekleyin
+    
+    Webhook URL: https://[YOUR_DOMAIN]/api/adisyo/webhook
+    """
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    update_fields = {
+        "adisyo_webhook_api_key": data.webhook_api_key,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if data.restaurant_identity:
+        update_fields["adisyo_restaurant_identity"] = data.restaurant_identity
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": update_fields}
+    )
+    
+    return {
+        "success": True,
+        "message": "Adisyo webhook ayarları kaydedildi",
+        "webhook_url": "/api/adisyo/webhook"
+    }
+
+
+@router.get("/{restaurant_id}/adisyo/webhook")
+async def get_adisyo_webhook_config(restaurant_id: str):
+    """Adisyo webhook ayarlarını getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "adisyo_webhook_api_key": 1, "adisyo_restaurant_identity": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    return {
+        "success": True,
+        "webhook_configured": bool(restaurant.get("adisyo_webhook_api_key")),
+        "webhook_api_key": mask_secret(restaurant.get("adisyo_webhook_api_key", ""), 4),
+        "restaurant_identity": restaurant.get("adisyo_restaurant_identity", ""),
+        "webhook_url": "/api/adisyo/webhook",
+        "instructions": {
+            "1": "Adisyo panelinde Uygulama Mağazası > Webhook bölümüne gidin",
+            "2": "Yeni Webhook Oluştur butonuna tıklayın",
+            "3": "Firma Adı: ShiftJet (max 10 karakter)",
+            "4": "Servis URL: https://[YOUR_DOMAIN]/api/adisyo/webhook",
+            "5": "Oluşturulan API Key ve Restaurant Identity değerlerini buraya kaydedin"
+        }
+    }
+
+
 # --- Platform Entegrasyonları (Yemeksepeti, Trendyol, Getir, Migros) ---
 # Bu platformlar için henüz API dökümantasyonu yok, placeholder olarak ekleniyor
 
