@@ -68,6 +68,18 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     setRestaurantDeliveryConfirm(null);
   };
 
+  // Restoran teslimatı işaretini kaldırma
+  const handleUnmarkRestaurantDelivery = async (orderId) => {
+    try {
+      await axios.post(`${API}/orders/${orderId}/unmark-restaurant-delivery?restaurant_id=${restaurantId}`);
+      toast.success("Sipariş kurye şirketine aktarıldı");
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+    setUnmarkDeliveryConfirm(null);
+  };
+
   // Restoran teslimatı durumunu güncelleme
   const handleRestaurantDeliveryStatus = async (orderId, newStatus) => {
     try {
