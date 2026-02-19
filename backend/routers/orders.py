@@ -1809,3 +1809,176 @@ async def create_manual_order(data: ManualOrderCreate):
         "order": order
     }
 
+
+# --- Restoran Teslimatı İşaretleme ---
+@router.post("/{order_id}/mark-restaurant-delivery")
+async def mark_restaurant_delivery(order_id: str, restaurant_id: str):
+    """
+    Siparişi restoran teslimatı olarak işaretle.
+    
+    Kurallar:
+    - Restoran izni olmalı (can_mark_restaurant_delivery)
+    - Yolda veya Teslim Edildi durumunda işaretlenemez
+    - Kurye atandıktan 3dk geçtiyse ve onaylandı durumundaysa işaretlenemez
+    
+    Sonuç:
+    - Kurye ataması kaldırılır
+    - Sipariş yönetici panelinden gizlenir
+    - Mütabakat ve raporlara dahil edilmez
+    """
+    # Siparişi bul
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    # Sipariş bu restorana mı ait
+    if order.get("restaurant_id") != restaurant_id:
+        raise HTTPException(status_code=403, detail="Bu sipariş size ait değil")
+    
+    # Zaten restoran teslimatı mı
+    if order.get("is_restaurant_delivery"):
+        raise HTTPException(status_code=400, detail="Bu sipariş zaten restoran teslimatı olarak işaretli")
+    
+    # İzin kontrolü
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "permissions": 1})
+    permissions = restaurant.get("permissions", {}) if restaurant else {}
+    if not permissions.get("can_mark_restaurant_delivery", False):
+        raise HTTPException(status_code=403, detail="Restoran teslimatı işaretleme izniniz yok")
+    
+    # Durum kontrolü - Yolda veya Teslim Edildi işaretlenemez
+    current_status = order.get("status", "")
+    if current_status in ["on_the_way", "delivered"]:
+        status_text = "Yolda" if current_status == "on_the_way" else "Teslim Edildi"
+        raise HTTPException(status_code=400, detail=f"{status_text} durumundaki siparişler restoran teslimatı olarak işaretlenemez")
+    
+    # 3 dakika kuralı - Kurye atandıktan 3dk geçtiyse ve onaylandı durumundaysa
+    courier_id = order.get("courier_id")
+    if courier_id and current_status == "confirmed":
+        assigned_at = order.get("assigned_at")
+        if assigned_at:
+            try:
+                if isinstance(assigned_at, str):
+                    assigned_time = datetime.fromisoformat(assigned_at.replace('Z', '+00:00'))
+                else:
+                    assigned_time = assigned_at
+                
+                now = datetime.now(timezone.utc)
+                elapsed = (now - assigned_time).total_seconds()
+                
+                if elapsed > 180:  # 3 dakika = 180 saniye
+                    raise HTTPException(
+                        status_code=400, 
+                        detail="Kurye atandıktan 3 dakika geçtiği için restoran teslimatı olarak işaretlenemez"
+                    )
+            except (ValueError, TypeError):
+                pass  # Tarih parse edilemezse devam et
+    
+    # İşaretle
+    now = datetime.now(timezone.utc)
+    
+    update_data = {
+        "is_restaurant_delivery": True,
+        "restaurant_delivery_marked_at": now.isoformat(),
+        "restaurant_delivery_marked_by": restaurant_id,
+        "courier_id": None,
+        "courier_name": None,
+        "courier_phone": None,
+        "updated_at": now.isoformat()
+    }
+    
+    # Status history'ye ekle
+    history_entry = {
+        "status": "restaurant_delivery",
+        "label": "Restoran Teslimatı",
+        "timestamp": now.isoformat(),
+        "note": "Restoran teslimatı olarak işaretlendi",
+        "actor_type": "restaurant",
+        "actor_name": "Restoran"
+    }
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": update_data,
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    logger.info(f"Sipariş restoran teslimatı olarak işaretlendi: {order_id}, restaurant: {restaurant_id}")
+    
+    return {
+        "message": "Sipariş restoran teslimatı olarak işaretlendi",
+        "order_id": order_id
+    }
+
+
+@router.post("/{order_id}/restaurant-update-status")
+async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, new_status: str):
+    """
+    Restoran teslimatı olan siparişin durumunu güncelle.
+    Sadece restoran teslimatı işaretli siparişler için çalışır.
+    
+    İzin verilen durumlar: preparing, confirmed, on_the_way, delivered
+    """
+    # Siparişi bul
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    # Sipariş bu restorana mı ait
+    if order.get("restaurant_id") != restaurant_id:
+        raise HTTPException(status_code=403, detail="Bu sipariş size ait değil")
+    
+    # Restoran teslimatı kontrolü
+    if not order.get("is_restaurant_delivery"):
+        raise HTTPException(status_code=400, detail="Bu sipariş restoran teslimatı değil")
+    
+    # İzin verilen durumlar
+    allowed_statuses = ["preparing", "confirmed", "on_the_way", "delivered"]
+    if new_status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail=f"Geçersiz durum. İzin verilenler: {', '.join(allowed_statuses)}")
+    
+    now = datetime.now(timezone.utc)
+    
+    # Status label mapping
+    status_labels = {
+        "preparing": "Hazırlanıyor",
+        "confirmed": "Onaylandı",
+        "on_the_way": "Yolda",
+        "delivered": "Teslim Edildi"
+    }
+    
+    update_data = {
+        "status": new_status,
+        "updated_at": now.isoformat()
+    }
+    
+    if new_status == "delivered":
+        update_data["delivered_at"] = now.isoformat()
+    
+    # Status history'ye ekle
+    history_entry = {
+        "status": new_status,
+        "label": status_labels.get(new_status, new_status),
+        "timestamp": now.isoformat(),
+        "note": "Restoran tarafından güncellendi",
+        "actor_type": "restaurant",
+        "actor_name": "Restoran Teslimatı"
+    }
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": update_data,
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    logger.info(f"Restoran teslimatı sipariş durumu güncellendi: {order_id} -> {new_status}")
+    
+    return {
+        "message": f"Sipariş durumu güncellendi: {status_labels.get(new_status, new_status)}",
+        "order_id": order_id,
+        "new_status": new_status
+    }
+
