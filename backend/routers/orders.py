@@ -1199,6 +1199,18 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     except Exception as e:
         print(f"Push notification error: {e}")
     
+    # SepetTakip siparişi ise bildirim gönder
+    sepettakip_order_id = order.get("sepettakip_order_id")
+    if sepettakip_order_id:
+        try:
+            from routers.sepettakip import notify_sepettakip_status
+            # Tahmini 30 dakika sonra teslimat
+            courier_eta = (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat()
+            await notify_sepettakip_status(sepettakip_order_id, "assigned", courier_eta)
+            logger.info(f"SepetTakip kurye atama bildirimi: order={sepettakip_order_id}")
+        except Exception as e:
+            logger.error(f"SepetTakip kurye atama bildirimi hatası: {e}")
+    
     return {"message": f"Sipariş {courier['name']} kuryesine atandı"}
 
 
