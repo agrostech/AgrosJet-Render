@@ -28,6 +28,11 @@ PERMISSION_DEFINITIONS = {
         "label": "Kurye Konumu Görüntüleme",
         "description": "Haritada kuryenin anlık konumunu görüntüleyebilir",
         "default": True
+    },
+    "can_mark_restaurant_delivery": {
+        "label": "Restoran Teslimatı İşaretleme",
+        "description": "Siparişi restoran teslimatı olarak işaretleyebilir. Bu siparişler mütabakat ve raporlara dahil edilmez.",
+        "default": False
     }
 }
 
