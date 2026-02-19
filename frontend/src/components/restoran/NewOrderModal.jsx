@@ -751,7 +751,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold">Ödeme Yöntemi Seçin</h3>
         <p className="text-2xl font-bold text-primary mt-2">{formatPrice(totalAmount)}</p>
-        <p className="text-sm text-muted-foreground mt-1">{customerName} - {selectedItems.length} ürün</p>
+        <p className="text-sm text-muted-foreground mt-1">{customerName} - {customerPhone}</p>
       </div>
       
       <div className="grid grid-cols-2 gap-4">
@@ -777,22 +777,22 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         
         <Button
           variant="outline"
-          className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 hover:border-purple-500 transition-all"
-          onClick={() => handlePaymentSelect("online")}
-          disabled={submitting}
-        >
-          <Smartphone className="w-8 h-8 text-purple-600" />
-          <span className="font-medium">Online</span>
-        </Button>
-        
-        <Button
-          variant="outline"
           className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-500 transition-all"
           onClick={() => handlePaymentSelect("meal_card")}
           disabled={submitting}
         >
           <UtensilsCrossed className="w-8 h-8 text-orange-600" />
           <span className="font-medium">Yemek Kartı</span>
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 hover:border-purple-500 transition-all"
+          onClick={() => handlePaymentSelect("online")}
+          disabled={submitting}
+        >
+          <Smartphone className="w-8 h-8 text-purple-600" />
+          <span className="font-medium">Online</span>
         </Button>
       </div>
       
