@@ -380,6 +380,7 @@ app.include_router(restaurant_integrations_router)
 app.include_router(webhooks_router)
 app.include_router(integration_stores_router)
 app.include_router(sepettakip_router)
+app.include_router(adisyo_webhook_router)
 
 # Health check
 @api_router.get("/")
