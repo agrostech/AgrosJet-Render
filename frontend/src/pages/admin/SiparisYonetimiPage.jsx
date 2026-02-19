@@ -1170,7 +1170,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         />
 
         {/* Status Confirmation Modal */}
-        <Dialog open={confirmStatusModal.open} onOpenChange={(open) => !open && setConfirmStatusModal({ open: false, orderId: null, newStatus: null, orderNumber: null })}>
+        <Dialog open={confirmStatusModal.open} onOpenChange={(open) => !open && setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null })}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
