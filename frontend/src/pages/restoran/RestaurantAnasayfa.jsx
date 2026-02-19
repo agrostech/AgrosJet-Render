@@ -42,6 +42,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   // İzin kontrolleri
   const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
   const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
+  const canMarkRestaurantDelivery = permissions.can_mark_restaurant_delivery === true; // Default false
 
   // Fetch available couriers
   useEffect(() => {
