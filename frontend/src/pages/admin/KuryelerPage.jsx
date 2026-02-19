@@ -530,6 +530,23 @@ export default function KuryelerPage({ companyId }) {
                 onCheckedChange={() => togglePaymentMethod("online")}
               />
             </div>
+
+            {/* Yemek Kartı */}
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                  <UtensilsCrossed className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Yemek Kartı</p>
+                  <p className="text-xs text-muted-foreground">Sodexo, Multinet, Ticket vb.</p>
+                </div>
+              </div>
+              <Switch
+                checked={allowedPaymentMethods.includes("meal_card")}
+                onCheckedChange={() => togglePaymentMethod("meal_card")}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPaymentMethodsModal(false)}>
