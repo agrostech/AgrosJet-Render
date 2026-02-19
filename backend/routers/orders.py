@@ -147,6 +147,25 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                     logger.info(f"Yemeksepeti bildirim başarılı: order={order_id}, status={new_status}")
                 else:
                     logger.warning(f"Yemeksepeti bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
+        
+        # SepetTakip siparişleri için de bildirim gönder
+        sepettakip_order_id = order.get("sepettakip_order_id")
+        if sepettakip_order_id:
+            from routers.sepettakip import notify_sepettakip_status
+            
+            # Kurye ETA hesapla (assigned durumunda)
+            courier_eta = None
+            if new_status == "assigned":
+                # Tahmini 30 dakika sonra
+                eta_time = datetime.now(timezone.utc) + timedelta(minutes=30)
+                courier_eta = eta_time.isoformat()
+            
+            result = await notify_sepettakip_status(sepettakip_order_id, new_status, courier_eta)
+            if result:
+                if result.get("success"):
+                    logger.info(f"SepetTakip bildirim başarılı: order={order_id}, sepettakip_order={sepettakip_order_id}, status={new_status}")
+                else:
+                    logger.warning(f"SepetTakip bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
                     
     except Exception as e:
         # Platform bildirimi başarısız olsa bile ana işlem devam etmeli
