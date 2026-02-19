@@ -202,13 +202,18 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     # Restoran bazlı agregasyon
     restaurant_data = {}
     for r in restaurants:
+        # Tahsilat ayarlarını al
+        collection_settings = r.get("collection_settings", {})
         restaurant_data[r["id"]] = {
             "restaurant_id": r["id"],
             "restaurant_name": r["name"],
             "order_count": 0,
             "delivery_fee": 0,
             "cash_amount": 0,
-            "card_amount": 0
+            "card_amount": 0,
+            # Tahsilat ayarları - "courier" ise mütabakata dahil, "restaurant" ise hariç
+            "cash_included": collection_settings.get("cash_collection", "courier") == "courier",
+            "card_included": collection_settings.get("card_collection", "courier") == "courier"
         }
     
     for order in orders:
@@ -241,10 +246,16 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         delivery_fee = data["delivery_fee"]
         delivery_vat = delivery_fee * (vat_rate / 100)
         total_delivery = delivery_fee + delivery_vat
-        pos_commission = data["card_amount"] * (pos_commission_rate / 100)
         
-        # Net tutar: (Taşıma + KDV + POS) - (Nakit + Kart)
-        net_amount = (total_delivery + pos_commission) - (data["cash_amount"] + data["card_amount"])
+        # Tahsilat ayarlarına göre mütabakata dahil edilecek tutarları belirle
+        cash_for_calc = data["cash_amount"] if data["cash_included"] else 0
+        card_for_calc = data["card_amount"] if data["card_included"] else 0
+        
+        # POS komisyonu sadece dahil edilen kart tutarı üzerinden
+        pos_commission = card_for_calc * (pos_commission_rate / 100)
+        
+        # Net tutar: (Taşıma + KDV + POS) - (Nakit + Kart) - sadece dahil edilenler
+        net_amount = (total_delivery + pos_commission) - (cash_for_calc + card_for_calc)
         
         result.append({
             "restaurant_id": rid,
@@ -258,7 +269,10 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "card_amount": round(data["card_amount"], 2),
             "net_amount": round(net_amount, 2),
             "is_processed": rid in processed_map,
-            "transaction_id": processed_map.get(rid)
+            "transaction_id": processed_map.get(rid),
+            # Tahsilat dahil/hariç bilgisi (frontend renklendirme için)
+            "cash_included": data["cash_included"],
+            "card_included": data["card_included"]
         })
         
         total_orders += data["order_count"]
