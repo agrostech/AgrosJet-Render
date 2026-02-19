@@ -1784,6 +1784,7 @@ async def create_manual_order(data: ManualOrderCreate):
         "items": items,
         "total_amount": total_amount,
         "payment_method": data.payment_method,
+        "payment_method_detail": data.payment_method_detail,  # Yemek kartı türü
         "status": initial_status,
         "preparation_time": prep_time,
         "preparation_end_at": preparation_end_at.isoformat(),
