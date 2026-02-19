@@ -107,14 +107,19 @@ class CancelPackageRequest(BaseModel):
 async def verify_sepettakip_api_key(api_key: str) -> bool:
     """
     Sepettakip'ten gelen API Key'i doğrula.
-    Test aşamasında her zaman True döner.
     """
     if not api_key:
         return False
     
-    # TODO: Gerçek API key doğrulaması eklenecek
-    # Şimdilik test için kabul ediyoruz
-    return True
+    # API Key doğrulama
+    if api_key == SEPETTAKIP_API_KEY:
+        return True
+    
+    # Header formatında gelebilir
+    if api_key.replace("Bearer ", "") == SEPETTAKIP_API_KEY:
+        return True
+    
+    return False
 
 
 async def verify_restaurant_credentials(username: str, password: str) -> dict:
