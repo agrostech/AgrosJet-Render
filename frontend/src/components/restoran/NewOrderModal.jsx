@@ -293,10 +293,12 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   // Step navigation
   const canGoNext = () => {
     if (currentStep === 0) {
-      return selectedItems.length > 0;
+      // Ürün seçilmiş veya manuel tutar girilmiş olmalı
+      return selectedItems.length > 0 || (parseFloat(manualAmount) > 0);
     }
     if (currentStep === 1) {
       if (!customerName.trim()) return false;
+      if (!customerPhone.trim()) return false;
       if (!deliveryAddress.trim()) return false;
       if (isScheduled && (!scheduledDate || !scheduledTime)) return false;
       return true;
@@ -305,13 +307,17 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   };
 
   const handleNext = () => {
-    if (currentStep === 0 && selectedItems.length === 0) {
-      toast.error("En az bir ürün seçmelisiniz");
+    if (currentStep === 0 && selectedItems.length === 0 && !(parseFloat(manualAmount) > 0)) {
+      toast.error("En az bir ürün seçin veya manuel tutar girin");
       return;
     }
     if (currentStep === 1) {
       if (!customerName.trim()) {
         toast.error("Müşteri adı gerekli");
+        return;
+      }
+      if (!customerPhone.trim()) {
+        toast.error("Telefon numarası gerekli");
         return;
       }
       if (!deliveryAddress.trim()) {
