@@ -532,6 +532,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                         <td className="p-2">
                           <PaymentBadge 
                             paymentMethod={order.payment_method}
+                            paymentMethodDetail={order.payment_method_detail}
                             paymentDetails={order.payment_details}
                             totalAmount={order.total_amount}
                             showAmount={false}
