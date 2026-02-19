@@ -691,13 +691,18 @@ async def get_orders(
     status: Optional[str] = None,
     courier_id: Optional[str] = None,
     restaurant_id: Optional[str] = None,
-    limit: int = 50
+    limit: int = 50,
+    include_restaurant_delivery: bool = False
 ):
     """Şirkete ait siparişleri getir"""
     # Önce hazırlık süresi dolan siparişleri güncelle
     await check_preparation_times(company_id)
     
     query = {"company_id": company_id}
+    
+    # Restoran teslimatı siparişlerini varsayılan olarak hariç tut (yönetici paneli için)
+    if not include_restaurant_delivery:
+        query["is_restaurant_delivery"] = {"$ne": True}
     
     if status:
         if status == "active":
