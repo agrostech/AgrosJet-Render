@@ -556,10 +556,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   }, [focusMapOnCourier]);
 
   // Onay gerektiren durum değişikliği kontrolü
-  const handleStatusChangeRequest = (orderId, newStatus, preparationTime = null, orderNumber = null) => {
+  const handleStatusChangeRequest = (orderId, newStatus, preparationTime = null, customerName = null) => {
     // Teslim edildi veya iptal edildi için onay iste
     if (newStatus === 'delivered' || newStatus === 'cancelled') {
-      setConfirmStatusModal({ open: true, orderId, newStatus, orderNumber, preparationTime });
+      setConfirmStatusModal({ open: true, orderId, newStatus, customerName, preparationTime });
     } else {
       handleUpdateStatus(orderId, newStatus, preparationTime);
     }
@@ -569,7 +569,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const handleConfirmStatusChange = () => {
     const { orderId, newStatus, preparationTime } = confirmStatusModal;
     handleUpdateStatus(orderId, newStatus, preparationTime);
-    setConfirmStatusModal({ open: false, orderId: null, newStatus: null, orderNumber: null });
+    setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null });
   };
 
   const handleUpdateStatus = async (orderId, newStatus, preparationTime = null) => {
