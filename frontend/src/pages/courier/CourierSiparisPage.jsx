@@ -1170,7 +1170,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           </div>
           <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
             <PaymentIcon className="w-3 h-3" />
-            <span>{paymentInfo.label}</span>
+            <span>{getPaymentLabel(order)}</span>
           </div>
         </div>
 
