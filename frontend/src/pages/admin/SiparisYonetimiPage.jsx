@@ -806,8 +806,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             >
                               <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
                                 <SelectValue>
-                                  {order.status === 'preparing' && order.preparation_end_at
-                                    ? getCountdown(order.preparation_end_at)?.text
+                                  {(order.status === 'preparing' || order.status === 'scheduled') && order.preparation_end_at
+                                    ? getCountdown(order.preparation_end_at)?.text || statusInfo.label
                                     : statusInfo.label}
                                 </SelectValue>
                               </SelectTrigger>
