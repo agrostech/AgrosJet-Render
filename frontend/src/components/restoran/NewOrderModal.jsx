@@ -509,15 +509,15 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
             Sepet ({selectedItems.length})
           </h4>
           
-          {selectedItems.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
-              <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Sepet boş</p>
-              <p className="text-xs">Soldan ürün seçin</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="border rounded-lg divide-y max-h-[280px] overflow-y-auto">
+          <div className="space-y-3">
+            {selectedItems.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground border rounded-lg border-dashed">
+                <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Sepet boş</p>
+                <p className="text-xs">Soldan ürün seçin veya manuel tutar girin</p>
+              </div>
+            ) : (
+              <div className="border rounded-lg divide-y max-h-[220px] overflow-y-auto">
                 {selectedItems.map((item) => (
                   <div key={item.product_id} className="flex items-center gap-2 p-2">
                     <div className="flex-1 min-w-0">
@@ -556,37 +556,39 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                   </div>
                 ))}
               </div>
+            )}
 
-              {/* Manuel Tutar */}
-              <div className="p-3 border rounded-lg bg-slate-50 space-y-2">
-                <Label className="text-xs font-medium text-slate-600">Manuel Tutar Ekle</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Tutar (₺)"
-                    value={manualAmount}
-                    onChange={(e) => setManualAmount(e.target.value)}
-                    className="w-24 h-8 text-sm"
-                    min="0"
-                    step="0.01"
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Açıklama (opsiyonel)"
-                    value={manualAmountNote}
-                    onChange={(e) => setManualAmountNote(e.target.value)}
-                    className="flex-1 h-8 text-sm"
-                  />
-                </div>
+            {/* Manuel Tutar */}
+            <div className="p-3 border rounded-lg bg-slate-50 space-y-2">
+              <Label className="text-xs font-medium text-slate-600">Manuel Tutar Ekle</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Tutar (₺)"
+                  value={manualAmount}
+                  onChange={(e) => setManualAmount(e.target.value)}
+                  className="w-24 h-8 text-sm"
+                  min="0"
+                  step="0.01"
+                />
+                <Input
+                  type="text"
+                  placeholder="Açıklama (opsiyonel)"
+                  value={manualAmountNote}
+                  onChange={(e) => setManualAmountNote(e.target.value)}
+                  className="flex-1 h-8 text-sm"
+                />
               </div>
+            </div>
 
-              {/* Total */}
+            {/* Total */}
+            {(selectedItems.length > 0 || parseFloat(manualAmount) > 0) && (
               <div className="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
                 <span className="font-semibold">Toplam</span>
                 <span className="text-lg font-bold text-primary">{formatPrice(totalAmount)}</span>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
