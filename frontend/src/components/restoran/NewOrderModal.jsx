@@ -163,13 +163,14 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setAddressDetails("");
     setDeliveryLocation(null);
     setNotes("");
-    setPaymentMethod("cash");
+    setPaymentMethod("");
     setIsScheduled(false);
     setScheduledDate("");
     setScheduledTime("");
     setSelectedItems([]);
     setProductSearch("");
     setSelectedCategory("all");
+    setShowPaymentStep(false);
   };
 
   // Group products by category with search and filter
