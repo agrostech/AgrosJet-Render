@@ -174,9 +174,11 @@ async def update_adisyo_integration(restaurant_id: str, data: AdisyoIntegration)
 @router.post("/{restaurant_id}/adisyo/test")
 async def test_adisyo_connection(restaurant_id: str):
     """Adisyo bağlantısını test et"""
+    import unicodedata
+    
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "id": 1, "adisyo_api_key": 1, "adisyo_api_secret": 1, "adisyo_branch_id": 1}
+        {"_id": 0, "id": 1, "name": 1, "adisyo_api_key": 1, "adisyo_api_secret": 1, "adisyo_branch_id": 1}
     )
     
     if not restaurant:
@@ -188,6 +190,12 @@ async def test_adisyo_connection(restaurant_id: str):
     if not api_key or not api_secret:
         raise HTTPException(status_code=400, detail="API Key ve Secret gerekli")
     
+    # Consumer header ASCII olmalı
+    consumer_name = restaurant.get("name", "ShiftJet")
+    consumer_ascii = unicodedata.normalize('NFKD', consumer_name).encode('ASCII', 'ignore').decode('ASCII')
+    if not consumer_ascii:
+        consumer_ascii = "ShiftJet"
+    
     # Adisyo API'ye bağlantı testi - RecentOrders endpoint'i ile test
     try:
         import httpx
@@ -197,8 +205,9 @@ async def test_adisyo_connection(restaurant_id: str):
                 "https://ext.adisyo.com/api/External/v2/RecentOrders",
                 params={"onlyRestaurantCourier": "true"},
                 headers={
-                    "X-Api-Key": api_key,
-                    "X-Api-Secret": api_secret,
+                    "x-api-key": api_key,
+                    "x-api-secret": api_secret,
+                    "x-api-consumer": consumer_ascii,
                     "Content-Type": "application/json"
                 }
             )
@@ -216,14 +225,6 @@ async def test_adisyo_connection(restaurant_id: str):
                     {"$set": {"adisyo_connected": False}}
                 )
                 raise HTTPException(status_code=401, detail="API Key veya Secret hatalı")
-            elif response.status_code == 400:
-                # 400 hatası genellikle credentials doğru ama başka bir parametre hatası
-                # Bu durumda bağlantı çalışıyor demektir
-                await db.restaurants.update_one(
-                    {"id": restaurant_id},
-                    {"$set": {"adisyo_connected": True, "updated_at": datetime.now(timezone.utc).isoformat()}}
-                )
-                return {"success": True, "message": "Adisyo bağlantısı başarılı"}
             else:
                 raise HTTPException(status_code=response.status_code, detail=f"Adisyo API hatası: {response.status_code}")
                 
