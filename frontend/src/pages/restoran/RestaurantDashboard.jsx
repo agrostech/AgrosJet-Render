@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { Home, Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Truck, CheckCircle, XCircle } from "lucide-react";
+import { Home, Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Truck, CheckCircle, XCircle, Settings } from "lucide-react";
 
 import RestaurantSidebar from "@/components/restoran/RestaurantSidebar";
 import RestaurantMobileNav from "@/components/restoran/RestaurantMobileNav";
@@ -11,6 +11,7 @@ import RestaurantMuhasebe from "./RestaurantMuhasebe";
 import RestaurantRaporlar from "./RestaurantRaporlar";
 import RestaurantEntegrasyonlar from "./RestaurantEntegrasyonlar";
 import RestaurantUrunler from "./RestaurantUrunler";
+import RestaurantAyarlar from "./RestaurantAyarlar";
 import Footer from "@/components/Footer";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { key: "raporlar", label: "Raporlar", icon: FileText, path: "/restoran/raporlar" },
   { key: "entegrasyonlar", label: "Entegrasyonlar", icon: Link2, path: "/restoran/entegrasyonlar" },
   { key: "urunler", label: "Ürünler", icon: UtensilsCrossed, path: "/restoran/urunler" },
+  { key: "ayarlar", label: "Ayarlar", icon: Settings, path: "/restoran/ayarlar" },
 ];
 
 export default function RestaurantDashboard() {
