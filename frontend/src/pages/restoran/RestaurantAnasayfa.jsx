@@ -490,18 +490,46 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               )}
                             </td>
                             <td className="p-2 text-center">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 hover:bg-slate-100"
-                                onClick={() => {
-                                  setSelectedOrder(order);
-                                  setDetailModalOpen(true);
-                                }}
-                                data-testid={`order-detail-btn-${order.id}`}
-                              >
-                                <Eye className="w-4 h-4 text-slate-500" />
-                              </Button>
+                              <div className="flex items-center justify-center gap-1">
+                                {/* Restoran Teslimatı butonu */}
+                                {order.is_restaurant_delivery ? (
+                                  <Badge variant="outline" className="text-[10px] bg-orange-50 text-orange-600 border-orange-200">
+                                    <Store className="w-3 h-3 mr-1" />R.Tes.
+                                  </Badge>
+                                ) : canMarkRestaurantDelivery && (() => {
+                                  const check = canMarkAsRestaurantDelivery(order);
+                                  return check.allowed ? (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 hover:bg-orange-100"
+                                            onClick={() => setRestaurantDeliveryConfirm(order)}
+                                          >
+                                            <Store className="w-4 h-4 text-orange-500" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Restoran Teslimatı</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  ) : null;
+                                })()}
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0 hover:bg-slate-100"
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setDetailModalOpen(true);
+                                  }}
+                                  data-testid={`order-detail-btn-${order.id}`}
+                                >
+                                  <Eye className="w-4 h-4 text-slate-500" />
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         );
