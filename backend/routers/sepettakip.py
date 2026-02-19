@@ -13,6 +13,8 @@ from fastapi import APIRouter, HTTPException, Request, Header
 from pydantic import BaseModel, Field
 from typing import Optional, List
 import logging
+import os
+import httpx
 from datetime import datetime, timezone
 
 from utils.database import db
@@ -20,8 +22,13 @@ from utils.database import db
 router = APIRouter(prefix="/api/sepettakip", tags=["SepetTakip"])
 logger = logging.getLogger(__name__)
 
-# Sepettakip tarafından gönderilecek API Key (test ortamı için)
-SEPETTAKIP_API_KEY = None  # Sepettakip'ten alınacak
+# SepetTakip API Kimlik Bilgileri
+COURIER_COMPANY_KEY = os.environ.get("SEPETTAKIP_COURIER_KEY", "agrosjet")
+SEPETTAKIP_API_KEY = os.environ.get("SEPETTAKIP_API_KEY", "4dd744ca-001e-44be-b17c-0178b0d3f704")
+SEPETTAKIP_TEST_RESTAURANT_ID = "934"
+
+# SepetTakip API Base URL
+SEPETTAKIP_API_BASE = "https://api.sepettakip.com/api/v1"
 
 
 # ==================== PYDANTIC MODELS ====================
