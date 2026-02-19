@@ -694,7 +694,7 @@ async def get_orders(
     status: Optional[str] = None,
     courier_id: Optional[str] = None,
     restaurant_id: Optional[str] = None,
-    limit: int = 50,
+    limit: int = 200,
     include_restaurant_delivery: bool = False
 ):
     """Şirkete ait siparişleri getir"""
