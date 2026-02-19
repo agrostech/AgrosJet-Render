@@ -87,6 +87,17 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     { id: "payment", label: "Ödeme" },
   ];
 
+  // Yemek kartı türleri
+  const MEAL_CARD_TYPES = [
+    { id: "ticket", label: "Ticket" },
+    { id: "sodexo", label: "Sodexo" },
+    { id: "multinet", label: "Multinet" },
+    { id: "setcard", label: "Setcard" },
+    { id: "metropol", label: "Metropol" },
+    { id: "edenred", label: "Edenred" },
+    { id: "other", label: "Diğer" },
+  ];
+
   // Form state
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -95,6 +106,8 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const [deliveryLocation, setDeliveryLocation] = useState(null);
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethodDetail, setPaymentMethodDetail] = useState("");
+  const [showMealCardTypes, setShowMealCardTypes] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
