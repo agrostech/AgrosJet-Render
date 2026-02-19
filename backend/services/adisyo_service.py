@@ -595,9 +595,138 @@ async def sync_all_company_orders(company_id: str) -> dict:
     }
 
 
+# --- Adisyo Kurye İşlemleri ---
+
+async def fetch_adisyo_couriers(restaurant_id: str) -> dict:
+    """
+    Adisyo'dan kurye listesini çek.
+    GET /api/External/v2/Couriers
+    """
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı", "couriers": []}
+    
+    if not restaurant.get("adisyo_api_key") or not restaurant.get("adisyo_api_secret"):
+        return {"success": False, "error": "Adisyo API bilgileri eksik", "couriers": []}
+    
+    try:
+        headers = await get_adisyo_headers(restaurant)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"{ADISYO_BASE_URL}/Couriers",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                couriers = data.get("couriers", [])
+                return {"success": True, "couriers": couriers}
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}", "couriers": []}
+                
+    except Exception as e:
+        return {"success": False, "error": str(e), "couriers": []}
+
+
+async def get_adisyo_courier_id(restaurant_id: str, shiftjet_courier_id: str) -> Optional[int]:
+    """
+    ShiftJet kurye ID'sini Adisyo kurye ID'sine eşleştir.
+    
+    Eşleştirme önceliği:
+    1. Kurye'nin adisyo_courier_id alanı
+    2. Telefon numarası ile eşleştirme
+    3. İsim ile eşleştirme
+    """
+    # ShiftJet kuryesini al
+    courier = await db.couriers.find_one(
+        {"id": shiftjet_courier_id},
+        {"_id": 0, "id": 1, "name": 1, "phone": 1, "adisyo_courier_id": 1}
+    )
+    
+    if not courier:
+        return None
+    
+    # 1. Doğrudan eşleştirme varsa kullan
+    if courier.get("adisyo_courier_id"):
+        return int(courier["adisyo_courier_id"])
+    
+    # 2. Adisyo kuryelerini çek ve eşleştir
+    result = await fetch_adisyo_couriers(restaurant_id)
+    
+    if not result["success"] or not result["couriers"]:
+        return None
+    
+    adisyo_couriers = result["couriers"]
+    courier_phone = courier.get("phone", "").replace(" ", "").replace("-", "")
+    courier_name = courier.get("name", "").lower()
+    
+    # Telefon numarasını normalize et
+    if courier_phone.startswith("0"):
+        courier_phone = courier_phone[1:]
+    if courier_phone.startswith("+90"):
+        courier_phone = courier_phone[3:]
+    
+    for adisyo_courier in adisyo_couriers:
+        adisyo_phone = (adisyo_courier.get("phoneNumber") or "").replace(" ", "").replace("-", "")
+        adisyo_name = (adisyo_courier.get("name") or "").lower()
+        
+        # Telefon eşleşmesi
+        if adisyo_phone and courier_phone:
+            if adisyo_phone.startswith("0"):
+                adisyo_phone = adisyo_phone[1:]
+            if adisyo_phone.startswith("+90"):
+                adisyo_phone = adisyo_phone[3:]
+            
+            if adisyo_phone == courier_phone:
+                adisyo_id = adisyo_courier.get("id")
+                # Eşleşmeyi kaydet
+                await db.couriers.update_one(
+                    {"id": shiftjet_courier_id},
+                    {"$set": {"adisyo_courier_id": adisyo_id}}
+                )
+                logger.info(f"Adisyo kurye eşleştirildi (telefon): {shiftjet_courier_id} -> {adisyo_id}")
+                return adisyo_id
+        
+        # İsim eşleşmesi (son çare)
+        if courier_name and adisyo_name and courier_name in adisyo_name:
+            adisyo_id = adisyo_courier.get("id")
+            await db.couriers.update_one(
+                {"id": shiftjet_courier_id},
+                {"$set": {"adisyo_courier_id": adisyo_id}}
+            )
+            logger.info(f"Adisyo kurye eşleştirildi (isim): {shiftjet_courier_id} -> {adisyo_id}")
+            return adisyo_id
+    
+    return None
+
+
+# --- Adisyo Ödeme Tipleri ---
+# Adisyo PaymentMethodId değerleri
+ADISYO_PAYMENT_TYPES = {
+    "cash": 1,           # Nakit
+    "card": 2,           # Kredi Kartı
+    "online": 53,        # Web Online
+    "meal_card": 3,      # Multinet (varsayılan yemek kartı)
+    "online_meal_card": 41,  # Sodexo Online
+}
+
+def get_adisyo_payment_type(shiftjet_payment: str) -> int:
+    """ShiftJet ödeme yöntemini Adisyo payment type ID'sine çevir"""
+    return ADISYO_PAYMENT_TYPES.get(shiftjet_payment, 1)  # Varsayılan: Nakit
+
+
 # --- Adisyo'ya durum güncelleme ---
-async def update_adisyo_order_status(restaurant_id: str, adisyo_order_id: int, status: str) -> dict:
-    """Adisyo'da sipariş durumunu güncelle"""
+
+async def mark_adisyo_order_prepared(restaurant_id: str, adisyo_order_id: int) -> dict:
+    """
+    Adisyo'da siparişi "Hazırlandı" durumuna getir.
+    POST /api/External/v2/Prepared
+    Body: {"orderId": <order_id>}
+    """
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
         {"_id": 0}
@@ -609,24 +738,186 @@ async def update_adisyo_order_status(restaurant_id: str, adisyo_order_id: int, s
     try:
         headers = await get_adisyo_headers(restaurant)
         async with httpx.AsyncClient(timeout=10.0) as client:
-            # Status endpoint'leri
-            endpoint_map = {
-                "ready": f"{ADISYO_BASE_URL}/Order/{adisyo_order_id}/Prepared",
-                "on_the_way": f"{ADISYO_BASE_URL}/Order/{adisyo_order_id}/OnDelivery",
-                "delivered": f"{ADISYO_BASE_URL}/Order/{adisyo_order_id}/Deliver",
-                "cancelled": f"{ADISYO_BASE_URL}/Order/{adisyo_order_id}/Cancel"
-            }
-            
-            endpoint = endpoint_map.get(status)
-            if not endpoint:
-                return {"success": False, "error": f"Geçersiz durum: {status}"}
-            
-            response = await client.post(endpoint, headers=headers)
+            response = await client.post(
+                f"{ADISYO_BASE_URL}/Prepared",
+                headers=headers,
+                json={"orderId": adisyo_order_id}
+            )
             
             if response.status_code == 200:
-                return {"success": True, "message": "Durum güncellendi"}
+                data = response.json()
+                if data.get("status") == 100:
+                    logger.info(f"Adisyo sipariş hazırlandı: order_id={adisyo_order_id}")
+                    return {"success": True, "message": "Sipariş hazırlandı olarak işaretlendi"}
+                else:
+                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
             else:
                 return {"success": False, "error": f"API hatası: {response.status_code}"}
                 
     except Exception as e:
+        logger.error(f"Adisyo hazırlandı hatası: {e}")
         return {"success": False, "error": str(e)}
+
+
+async def mark_adisyo_order_on_delivery(restaurant_id: str, adisyo_order_id: int, courier_id: str = None) -> dict:
+    """
+    Adisyo'da siparişi "Yola Çıktı" durumuna getir.
+    POST /api/External/v2/OnDelivery
+    Body: {"orderId": <order_id>, "courierId": <courier_id>}
+    
+    NOT: courierId zorunlu! Adisyo kurye ID'si gerekli.
+    """
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    # Adisyo kurye ID'sini bul
+    adisyo_courier_id = None
+    
+    if courier_id:
+        adisyo_courier_id = await get_adisyo_courier_id(restaurant_id, courier_id)
+    
+    if not adisyo_courier_id:
+        # Kurye eşleştirilemedi - varsayılan kurye kullan veya hata dön
+        # Adisyo'dan ilk kuryeyi al
+        couriers_result = await fetch_adisyo_couriers(restaurant_id)
+        if couriers_result["success"] and couriers_result["couriers"]:
+            adisyo_courier_id = couriers_result["couriers"][0].get("id")
+            logger.warning(f"Adisyo kurye eşleştirilemedi, varsayılan kurye kullanılıyor: {adisyo_courier_id}")
+        else:
+            return {"success": False, "error": "Adisyo kurye ID bulunamadı. Kurye eşleştirmesi yapılmalı."}
+    
+    try:
+        headers = await get_adisyo_headers(restaurant)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{ADISYO_BASE_URL}/OnDelivery",
+                headers=headers,
+                json={
+                    "orderId": adisyo_order_id,
+                    "courierId": adisyo_courier_id
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == 100:
+                    logger.info(f"Adisyo sipariş yola çıktı: order_id={adisyo_order_id}, courier_id={adisyo_courier_id}")
+                    return {"success": True, "message": "Sipariş yola çıktı olarak işaretlendi"}
+                else:
+                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+                
+    except Exception as e:
+        logger.error(f"Adisyo yola çıktı hatası: {e}")
+        return {"success": False, "error": str(e)}
+
+
+async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, payment_method: str = "cash") -> dict:
+    """
+    Adisyo'da siparişi "Teslim Edildi" durumuna getir.
+    POST /api/External/v2/Deliver
+    Body: {"orderId": <order_id>, "paymentType": <payment_type_id>}
+    
+    NOT: paymentType zorunlu!
+    """
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    # Ödeme tipini Adisyo formatına çevir
+    payment_type_id = get_adisyo_payment_type(payment_method)
+    
+    try:
+        headers = await get_adisyo_headers(restaurant)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{ADISYO_BASE_URL}/Deliver",
+                headers=headers,
+                json={
+                    "orderId": adisyo_order_id,
+                    "paymentType": payment_type_id
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == 100:
+                    logger.info(f"Adisyo sipariş teslim edildi: order_id={adisyo_order_id}, payment_type={payment_type_id}")
+                    return {"success": True, "message": "Sipariş teslim edildi olarak işaretlendi"}
+                else:
+                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+                
+    except Exception as e:
+        logger.error(f"Adisyo teslim edildi hatası: {e}")
+        return {"success": False, "error": str(e)}
+
+
+async def cancel_adisyo_order(restaurant_id: str, adisyo_order_id: int) -> dict:
+    """
+    Adisyo'da siparişi iptal et.
+    POST /api/External/v2/Cancel (veya uygun cancel endpoint)
+    """
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    try:
+        headers = await get_adisyo_headers(restaurant)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Adisyo'da Cancel endpoint'i farklı olabilir
+            # Döküman'da belirtilmemiş, varsayılan endpoint deneyelim
+            response = await client.post(
+                f"{ADISYO_BASE_URL}/Cancel",
+                headers=headers,
+                json={"orderId": adisyo_order_id}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == 100:
+                    logger.info(f"Adisyo sipariş iptal edildi: order_id={adisyo_order_id}")
+                    return {"success": True, "message": "Sipariş iptal edildi"}
+                else:
+                    return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
+            else:
+                # İptal endpoint'i olmayabilir, loglayalım
+                logger.warning(f"Adisyo iptal API yanıtı: {response.status_code}")
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+                
+    except Exception as e:
+        logger.error(f"Adisyo iptal hatası: {e}")
+        return {"success": False, "error": str(e)}
+
+
+# Eski fonksiyon - geriye uyumluluk için
+async def update_adisyo_order_status(restaurant_id: str, adisyo_order_id: int, status: str, courier_id: str = None, payment_method: str = None) -> dict:
+    """
+    Adisyo'da sipariş durumunu güncelle.
+    Eski API - yeni fonksiyonlara yönlendirir.
+    """
+    if status == "ready":
+        return await mark_adisyo_order_prepared(restaurant_id, adisyo_order_id)
+    elif status == "on_the_way":
+        return await mark_adisyo_order_on_delivery(restaurant_id, adisyo_order_id, courier_id)
+    elif status == "delivered":
+        return await mark_adisyo_order_delivered(restaurant_id, adisyo_order_id, payment_method or "cash")
+    elif status == "cancelled":
+        return await cancel_adisyo_order(restaurant_id, adisyo_order_id)
+    else:
+        return {"success": False, "error": f"Geçersiz durum: {status}"}
