@@ -130,49 +130,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     }
   };
 
-  // Adisyo Webhook handlers
-  const handleSaveAdisyoWebhook = async () => {
-    if (!adisyoWebhookForm.webhook_api_key) {
-      toast.error("Webhook API Key gerekli");
-      return;
-    }
-    
-    setSavingWebhook(true);
-    try {
-      await axios.put(`${API}/restaurant-integrations/${restaurantId}/adisyo/webhook`, {
-        webhook_api_key: adisyoWebhookForm.webhook_api_key,
-        restaurant_identity: adisyoWebhookForm.restaurant_identity || undefined
-      });
-      toast.success("Adisyo webhook ayarları kaydedildi");
-      fetchAdisyoData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
-    } finally {
-      setSavingWebhook(false);
-    }
-  };
-
-  const copyWebhookUrl = () => {
-    const baseUrl = process.env.REACT_APP_BACKEND_URL?.replace('/api', '') || window.location.origin;
-    const webhookUrl = `${baseUrl}/api/adisyo/webhook`;
-    navigator.clipboard.writeText(webhookUrl);
-    toast.success("Webhook URL kopyalandı");
-  };
-
-  // Adisyo Courier mapping handlers
-  const handleCourierMapping = async (shiftjetCourierId, adisyoCourierId) => {
-    try {
-      await axios.post(`${API}/restaurant-integrations/${restaurantId}/adisyo/courier-mapping`, {
-        shiftjet_courier_id: shiftjetCourierId,
-        adisyo_courier_id: parseInt(adisyoCourierId)
-      });
-      toast.success("Kurye eşleştirildi");
-      fetchAdisyoCouriers();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Eşleştirme başarısız");
-    }
-  };
-
   // SepetTakip handlers
   const openSepettakipModal = () => {
     setSepettakipForm({
