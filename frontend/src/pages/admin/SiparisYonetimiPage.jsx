@@ -803,13 +803,21 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <div className="flex justify-center py-8">
                 <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
-            ) : orders.length === 0 ? (
+            ) : filteredOrders.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Sipariş bulunamadı</p>
-                <Button variant="link" onClick={handleGenerateMock}>
-                  Test için mock sipariş oluştur
-                </Button>
+                {searchQuery ? (
+                  <p>"{searchQuery}" için sonuç bulunamadı</p>
+                ) : orders.length === 0 ? (
+                  <>
+                    <p>Sipariş bulunamadı</p>
+                    <Button variant="link" onClick={handleGenerateMock}>
+                      Test için mock sipariş oluştur
+                    </Button>
+                  </>
+                ) : (
+                  <p>Seçili filtrelere uygun sipariş yok</p>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -828,7 +836,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((order) => {
+                    {filteredOrders.map((order) => {
                       const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
                       const orderAge = getOrderAge(order);
                       
