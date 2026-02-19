@@ -133,6 +133,7 @@ async def verify_restaurant_credentials(username: str, password: str) -> dict:
         {
             "$or": [
                 {"sepettakip_credentials.username": username},
+                {"sepettakip_restaurant_id": username},
                 {"id": username}  # ID ile de eşleşebilir
             ]
         },
