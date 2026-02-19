@@ -197,10 +197,10 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Store className="w-5 h-5" />
-            <CardTitle className="text-lg">POS Entegrasyonları</CardTitle>
+            <CardTitle className="text-lg">POS ve Kurye Entegrasyonları</CardTitle>
           </div>
           <CardDescription>
-            POS ve restoran yönetim sistemleri (tek mağaza)
+            POS sistemleri ve kurye yönlendirme entegrasyonları
           </CardDescription>
         </CardHeader>
         <CardContent>
