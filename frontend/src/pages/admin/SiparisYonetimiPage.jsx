@@ -950,8 +950,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                     // Check if blocked
                                     if (blockedCourierIds.has(c.id)) return false;
                                     // Check if courier accepts this payment method
-                                    const allowedMethods = c.allowed_payment_methods || ["cash", "card", "online"];
-                                    return allowedMethods.includes(orderPaymentMethod);
+                                    const allowedMethods = c.allowed_payment_methods || ["cash", "card", "online", "meal_card", "online_meal_card"];
+                                    // Normalize payment method for comparison
+                                    const normalizedPayment = orderPaymentMethod?.includes("meal_card") ? "meal_card" : orderPaymentMethod;
+                                    return allowedMethods.includes(orderPaymentMethod) || allowedMethods.includes(normalizedPayment);
                                   });
                                   
                                   const sortedActive = filterCouriers(sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders));
