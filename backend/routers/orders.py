@@ -711,6 +711,11 @@ async def get_orders(
         if status == "active":
             # Aktif siparişler: teslim edilmemiş ve iptal edilmemiş
             query["status"] = {"$nin": ["delivered", "cancelled"]}
+        elif "," in status:
+            # Çoklu status filtresi (virgülle ayrılmış)
+            status_list = [s.strip() for s in status.split(",") if s.strip()]
+            if status_list:
+                query["status"] = {"$in": status_list}
         else:
             query["status"] = status
     
