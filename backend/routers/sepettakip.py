@@ -422,9 +422,7 @@ class StatusUpdateRequest(BaseModel):
     """Sipariş durumu güncelleme isteği"""
     order_id: str
     status: str  # assigned, picked_up, on_the_way, delivered, cancelled
-    courier_name: Optional[str] = None
-    courier_phone: Optional[str] = None
-    note: Optional[str] = None
+    courier_eta: Optional[str] = None  # ISO-8601 format, assigned durumunda önerilir
 
 
 # SepetTakip durum kodları mapping (ShiftJet -> SepetTakip)
