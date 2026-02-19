@@ -509,7 +509,17 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                 <Checkbox
                   id="scheduled"
                   checked={isScheduled}
-                  onCheckedChange={setIsScheduled}
+                  onCheckedChange={(checked) => {
+                    setIsScheduled(checked);
+                    if (checked) {
+                      // Bugün ve şimdiki zamandan 1 saat sonrasını default yap
+                      const now = new Date();
+                      setScheduledDate(now.toISOString().split("T")[0]);
+                      now.setHours(now.getHours() + 1);
+                      now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15); // 15 dk'ya yuvarla
+                      setScheduledTime(now.toTimeString().slice(0, 5));
+                    }
+                  }}
                   data-testid="scheduled-checkbox"
                 />
                 <Label htmlFor="scheduled" className="flex items-center gap-2 cursor-pointer">
@@ -543,7 +553,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                     />
                   </div>
                   <p className="col-span-2 text-xs text-muted-foreground">
-                    * Sipariş belirtilen saatten 30 dk önce hazırlanmaya başlar
+                    * Sipariş belirtilen saatten 45 dk önce hazırlanmaya başlar
                   </p>
                 </div>
               )}
