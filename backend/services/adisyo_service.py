@@ -217,21 +217,21 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
     ]
     if any(k in payment_name_lower for k in online_keywords):
         logger.info(f"[PAYMENT MAP] Result: online (online ödeme)")
-        return "online"
+        return {"method": "online", "detail": None}
     
     # 5. Sadece "Kredi Kartı" (kapıda olmayan)
     if payment_method_id == 2 or ("kredi" in payment_name_lower or "banka" in payment_name_lower):
         logger.info(f"[PAYMENT MAP] Result: card (kredi kartı)")
-        return "card"
+        return {"method": "card", "detail": None}
     
     # 6. ID bazlı fallback (Adisyo'da 3+ genellikle online platform ödemeleri)
     if payment_method_id and payment_method_id >= 3:
         logger.info(f"[PAYMENT MAP] Result: online (ID >= 3 fallback)")
-        return "online"
+        return {"method": "online", "detail": None}
     
     # Varsayılan: online (bilinmeyen ödemeler genelde platform ödemesi)
     logger.info(f"[PAYMENT MAP] Result: online (default)")
-    return "online"
+    return {"method": "online", "detail": None}
 
 
 def parse_coordinate(coord) -> float:
