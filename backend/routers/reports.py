@@ -141,7 +141,8 @@ async def get_restaurant_report(
         restaurant_settings[r["id"]] = {
             "name": r.get("name", "Bilinmiyor"),
             "cash_included": settings.get("cash_collection", "courier") == "courier",
-            "card_included": settings.get("card_collection", "courier") == "courier"
+            "card_included": settings.get("card_collection", "courier") == "courier",
+            "meal_card_included": settings.get("meal_card_collection", "courier") == "courier"
         }
     
     # Temel filtre
@@ -179,7 +180,12 @@ async def get_restaurant_report(
     
     for order in orders:
         rid = order.get("restaurant_id")
-        settings = restaurant_settings.get(rid, {"name": order.get("restaurant_name") or "Bilinmiyor", "cash_included": True, "card_included": True})
+        settings = restaurant_settings.get(rid, {
+            "name": order.get("restaurant_name") or "Bilinmiyor", 
+            "cash_included": True, 
+            "card_included": True,
+            "meal_card_included": True
+        })
         
         if rid not in restaurant_data:
             restaurant_data[rid] = {
@@ -191,9 +197,11 @@ async def get_restaurant_report(
                 "posCommission": 0,
                 "cash": 0,
                 "card": 0,
+                "mealCard": 0,
                 "modified_count": 0,
                 "cash_included": settings["cash_included"],
-                "card_included": settings["card_included"]
+                "card_included": settings["card_included"],
+                "meal_card_included": settings["meal_card_included"]
             }
         
         r = restaurant_data[rid]
@@ -215,6 +223,11 @@ async def get_restaurant_report(
             r["card"] += card_amt
             if payment_details.get("original_method") or payment_details.get("original_payment_method"):
                 r["modified_count"] += 1
+        elif "meal_card" in payment_method or "yemek" in payment_method:
+            # Yemek kartı ödemeleri
+            r["mealCard"] += total_amount
+            if payment_details.get("original_method") or payment_details.get("original_payment_method"):
+                r["modified_count"] += 1
         elif "cash" in payment_method or "nakit" in payment_method:
             r["cash"] += total_amount
             if payment_details.get("original_method") or payment_details.get("original_payment_method"):
@@ -234,14 +247,15 @@ async def get_restaurant_report(
     total_transport_kdv = sum(r["transportKdv"] for r in restaurants)
     total_pos_commission = sum(r["posCommission"] if r["card_included"] else 0 for r in restaurants)
     
-    # Nakit ve kart toplamları (sadece dahil edilenler)
+    # Nakit, kart ve yemek kartı toplamları (sadece dahil edilenler)
     total_cash = sum(r["cash"] if r["cash_included"] else 0 for r in restaurants)
     total_card = sum(r["card"] if r["card_included"] else 0 for r in restaurants)
+    total_meal_card = sum(r["mealCard"] if r["meal_card_included"] else 0 for r in restaurants)
     total_modified = sum(r["modified_count"] for r in restaurants)
     
     # Sonuç hesapla
     total_transport = total_transport_fee + total_transport_kdv
-    result = (total_transport + total_pos_commission) - (total_cash + total_card)
+    result = (total_transport + total_pos_commission) - (total_cash + total_card + total_meal_card)
     
     return {
         "summary": {
@@ -252,6 +266,7 @@ async def get_restaurant_report(
             "totalPosCommission": total_pos_commission,
             "totalCash": total_cash,
             "totalCard": total_card,
+            "totalMealCard": total_meal_card,
             "totalModified": total_modified,
             "result": result
         },
