@@ -512,8 +512,14 @@ export default function RestoranMutabakatTab({ companyId }) {
                           <td className="p-2 text-right font-mono text-slate-500">{formatMoney(r.delivery_vat)}</td>
                           <td className="p-2 text-right font-mono font-medium">{formatMoney(r.total_delivery)}</td>
                           <td className="p-2 text-right font-mono text-slate-500">{formatMoney(r.pos_commission)}</td>
-                          <td className="p-2 text-right font-mono text-green-600">{formatMoney(r.cash_amount)}</td>
-                          <td className="p-2 text-right font-mono text-blue-600">{formatMoney(r.card_amount)}</td>
+                          <td className={`p-2 text-right font-mono ${r.cash_included !== false ? 'text-green-600' : 'text-slate-800'}`} title={r.cash_included === false ? 'Restoran tahsil ediyor - mütabakatta hariç' : 'Kurye firması tahsil ediyor'}>
+                            {formatMoney(r.cash_amount)}
+                            {r.cash_included === false && <span className="ml-1 text-xs">*</span>}
+                          </td>
+                          <td className={`p-2 text-right font-mono ${r.card_included !== false ? 'text-blue-600' : 'text-slate-800'}`} title={r.card_included === false ? 'Restoran tahsil ediyor - mütabakatta hariç' : 'Kurye firması tahsil ediyor'}>
+                            {formatMoney(r.card_amount)}
+                            {r.card_included === false && <span className="ml-1 text-xs">*</span>}
+                          </td>
                           <td className={`p-2 text-right font-mono font-semibold ${r.net_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             <span className="flex items-center justify-end gap-1">
                               {r.net_amount >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
