@@ -82,7 +82,18 @@ const ORDER_STATUS_CONFIG = {
 const PAYMENT_METHODS = {
   cash: { label: "Nakit", icon: Banknote, color: "text-green-600", bg: "bg-green-50" },
   card: { label: "Kart", icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
+  meal_card: { label: "Yemek Kartı", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50" },
+  online_meal_card: { label: "Online Y.K.", icon: CreditCard, color: "text-orange-600", bg: "bg-orange-50" },
   online: { label: "Online", icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
+};
+
+// Ödeme label'ını al (yemek kartı türü varsa onu göster)
+const getPaymentLabel = (order) => {
+  const method = order.payment_method;
+  if ((method === 'meal_card' || method === 'online_meal_card') && order.payment_method_detail) {
+    return order.payment_method_detail;
+  }
+  return PAYMENT_METHODS[method]?.label || method;
 };
 
 // Zaman formatı
