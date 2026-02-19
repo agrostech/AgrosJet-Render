@@ -586,14 +586,16 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               <Store className="w-5 h-5 text-orange-500" />
               Restoran Teslimatı
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu siparişi restoran teslimatı olarak işaretlemek istediğinize emin misiniz?
-              <ul className="mt-3 space-y-1 text-sm">
-                <li>• Kurye ataması kaldırılacak</li>
-                <li>• Sipariş yönetici panelinden kaldırılacak</li>
-                <li>• Mütabakat ve raporlara dahil edilmeyecek</li>
-                <li>• Teslimatı siz yapacaksınız</li>
-              </ul>
+            <AlertDialogDescription asChild>
+              <div className="text-sm text-muted-foreground">
+                Bu siparişi restoran teslimatı olarak işaretlemek istediğinize emin misiniz?
+                <ul className="mt-3 space-y-1 text-sm">
+                  <li>• Kurye ataması kaldırılacak</li>
+                  <li>• Sipariş yönetici panelinden kaldırılacak</li>
+                  <li>• Mütabakat ve raporlara dahil edilmeyecek</li>
+                  <li>• Teslimatı siz yapacaksınız</li>
+                </ul>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
