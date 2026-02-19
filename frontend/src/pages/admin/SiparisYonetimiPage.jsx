@@ -148,6 +148,32 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     };
   }, [fetchAll, fetchOrders, fetchCouriers]);
 
+  // Filtrelenmiş siparişler (arama + durum filtresi)
+  const filteredOrders = useMemo(() => {
+    let result = orders;
+    
+    // Arama filtresi
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(order => {
+        const searchableFields = [
+          order.customer_name,
+          order.customer_phone,
+          order.delivery_address,
+          order.restaurant_name,
+          order.courier_name,
+          order.order_number,
+          order.notes,
+          order.payment_method_detail,
+        ].filter(Boolean).map(f => f.toLowerCase());
+        
+        return searchableFields.some(field => field.includes(query));
+      });
+    }
+    
+    return result;
+  }, [orders, searchQuery]);
+
   // Computed values
   const couriersOnDelivery = useMemo(() => {
     const onTheWayCourierIds = new Set(
