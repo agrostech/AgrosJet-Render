@@ -112,6 +112,7 @@ export function PaymentDetailPopover({
 export function PaymentBadge({ 
   paymentMethod, 
   paymentDetails, 
+  paymentMethodDetail,
   totalAmount,
   showAmount = false 
 }) {
@@ -150,12 +151,21 @@ export function PaymentBadge({
   }
 
   // Tek ödeme gösterimi
+  const isMealCard = paymentMethod === 'meal_card' || paymentMethod === 'online_meal_card';
   const bgColor = paymentMethod === 'cash' ? 'bg-green-100 text-green-700' : 
                   paymentMethod === 'card' ? 'bg-blue-100 text-blue-700' : 
+                  isMealCard ? 'bg-orange-100 text-orange-700' :
                   'bg-purple-100 text-purple-700';
   
-  const label = paymentMethod === 'cash' ? 'Nakit' : 
-                paymentMethod === 'card' ? 'Kart' : 'Online';
+  // Yemek kartı türü varsa onu göster
+  let label;
+  if (isMealCard && paymentMethodDetail) {
+    label = paymentMethodDetail;
+  } else {
+    label = paymentMethod === 'cash' ? 'Nakit' : 
+            paymentMethod === 'card' ? 'Kart' : 
+            isMealCard ? 'Yemek Kartı' : 'Online';
+  }
 
   return (
     <div className="inline-flex items-center gap-1">
