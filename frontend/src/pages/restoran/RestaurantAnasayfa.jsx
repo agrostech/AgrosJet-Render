@@ -657,6 +657,24 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                 >
                                   <Eye className="w-4 h-4 text-slate-500" />
                                 </Button>
+                                
+                                {/* Yazdır butonu */}
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0 hover:bg-blue-50"
+                                        onClick={() => handlePrintOrder(order)}
+                                        data-testid={`order-print-btn-${order.id}`}
+                                      >
+                                        <Printer className="w-4 h-4 text-blue-500" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Fiş Yazdır</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                             </td>
                           </tr>
