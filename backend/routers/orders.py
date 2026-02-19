@@ -119,7 +119,17 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             
             adisyo_order_id = order.get("adisyo_order_id")
             if adisyo_order_id:
-                result = await update_adisyo_order_status(restaurant_id, adisyo_order_id, new_status)
+                # Kurye ID ve ödeme yöntemi bilgisini aktar
+                courier_id = order.get("courier_id")
+                payment_method = order.get("payment_method", "cash")
+                
+                result = await update_adisyo_order_status(
+                    restaurant_id, 
+                    adisyo_order_id, 
+                    new_status,
+                    courier_id=courier_id,
+                    payment_method=payment_method
+                )
                 if result.get("success"):
                     logger.info(f"Adisyo bildirim başarılı: order={order_id}, status={new_status}")
                 else:
