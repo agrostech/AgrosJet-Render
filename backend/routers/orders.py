@@ -1736,24 +1736,28 @@ async def create_manual_order(data: ManualOrderCreate):
         for item in data.items
     ]
     
-    # Hazırlık süresini hesapla (standart + ürün bazlı ekstra)
-    prep_time = calculate_preparation_time(restaurant, items)
-    
     # Programlı sipariş kontrolü
     if data.is_scheduled and data.scheduled_time:
         # Scheduled time'ı parse et
         try:
             scheduled_dt = datetime.fromisoformat(data.scheduled_time.replace('Z', '+00:00'))
-            # 30 dakikalık tampon ekle (kullanıcı istediği için)
-            buffer_minutes = 30
+            # 45 dakikalık tampon (kurye için hazırlık süresi)
+            buffer_minutes = 45
             # Hazırlık bitiş zamanı = scheduled_time - buffer (kurye teslim zamanı)
             preparation_end_at = scheduled_dt - timedelta(minutes=buffer_minutes)
+            
+            # İleri tarihli siparişlerde prep_time, scheduled_time - now - buffer olarak hesaplanır
+            # Bu, geri sayım için kullanılır
+            time_until_ready = (preparation_end_at - now).total_seconds() / 60
+            prep_time = max(int(time_until_ready), 0)  # Negatif olamaz
             
             initial_status = "scheduled"
             history_note = f"Programlı teslimat: {scheduled_dt.strftime('%d.%m.%Y %H:%M')}"
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Geçersiz tarih formatı: {str(e)}")
     else:
+        # Standart siparişler için hazırlık süresini hesapla (standart + ürün bazlı ekstra)
+        prep_time = calculate_preparation_time(restaurant, items)
         preparation_end_at = now + timedelta(minutes=prep_time)
         initial_status = "preparing"
         history_note = f"Hazırlık süresi: {prep_time} dakika"
