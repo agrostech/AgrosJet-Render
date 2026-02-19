@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(
         sync_adisyo_orders,
         'interval',
-        seconds=30,  # Her 30 saniyede bir
+        seconds=60,  # Her 60 saniyede bir (Adisyo rate limit)
         id="adisyo_sync",
         name="Adisyo Order Sync",
         replace_existing=True
