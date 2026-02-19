@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -38,27 +38,66 @@ import {
   CheckCircle2,
   Search,
   UtensilsCrossed,
+  ChevronRight,
+  ChevronLeft,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Step indicator component
+function StepIndicator({ currentStep, steps }) {
+  return (
+    <div className="flex items-center justify-center gap-2 py-4 border-b">
+      {steps.map((step, index) => (
+        <div key={step.id} className="flex items-center">
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            currentStep === index 
+              ? "bg-primary text-primary-foreground" 
+              : currentStep > index 
+                ? "bg-green-100 text-green-700"
+                : "bg-slate-100 text-slate-500"
+          }`}>
+            {currentStep > index ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20 text-xs">
+                {index + 1}
+              </span>
+            )}
+            <span className="hidden sm:inline">{step.label}</span>
+          </div>
+          {index < steps.length - 1 && (
+            <ChevronRight className="w-4 h-4 mx-1 text-slate-300" />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrderCreated }) {
+  // Step state
+  const [currentStep, setCurrentStep] = useState(0);
+  const steps = [
+    { id: "products", label: "Ürün Seçimi" },
+    { id: "customer", label: "Müşteri Bilgileri" },
+    { id: "payment", label: "Ödeme" },
+  ];
+
   // Form state
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [addressDetails, setAddressDetails] = useState(""); // Apartman, kat, daire
-  const [deliveryLocation, setDeliveryLocation] = useState(null); // {lat, lng}
+  const [addressDetails, setAddressDetails] = useState("");
+  const [deliveryLocation, setDeliveryLocation] = useState(null);
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
-  
-  // Payment selection step
-  const [showPaymentStep, setShowPaymentStep] = useState(false);
 
   // Products state
   const [products, setProducts] = useState({ categories: [], products: [] });
@@ -74,33 +113,23 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const autocompleteRef = useRef(null);
   const addressInputId = "delivery-address-autocomplete";
 
-  // Initialize Google Places Autocomplete when modal opens
+  // Initialize Google Places when on step 2
   useEffect(() => {
-    if (!open) {
-      // Cleanup when modal closes
-      if (autocompleteRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
-        autocompleteRef.current = null;
-      }
+    if (!open || currentStep !== 1) {
       return;
     }
 
-    // Wait for DOM to be ready
     const initAutocomplete = () => {
       const inputElement = document.getElementById(addressInputId);
       
       if (!inputElement || !window.google?.maps?.places) {
-        console.log("Waiting for input or Google Maps...");
         return false;
       }
 
-      // Already initialized
       if (autocompleteRef.current) {
         return true;
       }
 
-      console.log("Initializing Google Places Autocomplete...");
-      
       const autocomplete = new window.google.maps.places.Autocomplete(inputElement, {
         componentRestrictions: { country: "tr" },
         types: ["geocode", "establishment"],
@@ -109,7 +138,6 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
-        console.log("Place selected:", place);
         if (place.geometry && place.geometry.location) {
           const lat = place.geometry.location.lat();
           const lng = place.geometry.location.lng();
@@ -119,16 +147,14 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       });
 
       autocompleteRef.current = autocomplete;
-      console.log("Autocomplete initialized successfully");
       return true;
     };
 
-    // Try to initialize immediately, or retry after a delay
     if (!initAutocomplete()) {
       const timer = setTimeout(initAutocomplete, 500);
       return () => clearTimeout(timer);
     }
-  }, [open]);
+  }, [open, currentStep]);
 
   // Load products when modal opens
   useEffect(() => {
@@ -157,6 +183,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   };
 
   const resetForm = () => {
+    setCurrentStep(0);
     setCustomerName("");
     setCustomerPhone("");
     setDeliveryAddress("");
@@ -170,31 +197,30 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setSelectedItems([]);
     setProductSearch("");
     setSelectedCategory("all");
-    setShowPaymentStep(false);
+    if (autocompleteRef.current) {
+      window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
+    }
   };
 
-  // Group products by category with search and filter
+  // Group products by category
   const groupedProducts = useMemo(() => {
     const groups = {};
     const searchLower = productSearch.toLowerCase().trim();
     
     products.categories.forEach((cat) => {
-      // Kategori filtresi
       if (selectedCategory !== "all" && cat.id !== selectedCategory) {
         return;
       }
       
-      // Bu kategorideki ürünleri filtrele
       let categoryProducts = products.products.filter((p) => p.category_id === cat.id);
       
-      // Arama filtresi
       if (searchLower) {
         categoryProducts = categoryProducts.filter((p) => 
           p.name.toLowerCase().includes(searchLower)
         );
       }
       
-      // Sadece ürün varsa ekle
       if (categoryProducts.length > 0) {
         groups[cat.id] = {
           category: cat,
@@ -205,16 +231,14 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     return groups;
   }, [products, productSearch, selectedCategory]);
 
-  // Add product to order
+  // Product functions
   const addProduct = (product) => {
     const existingIndex = selectedItems.findIndex((item) => item.product_id === product.id);
     if (existingIndex >= 0) {
-      // Increase quantity
       const newItems = [...selectedItems];
       newItems[existingIndex].quantity += 1;
       setSelectedItems(newItems);
     } else {
-      // Add new item
       setSelectedItems([
         ...selectedItems,
         {
@@ -227,7 +251,6 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     }
   };
 
-  // Update item quantity
   const updateQuantity = (productId, delta) => {
     const newItems = selectedItems
       .map((item) => {
@@ -241,7 +264,6 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setSelectedItems(newItems);
   };
 
-  // Remove item
   const removeItem = (productId) => {
     setSelectedItems(selectedItems.filter((item) => item.product_id !== productId));
   };
@@ -260,33 +282,50 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     }).format(price);
   };
 
-  // Handle opening payment selection step
-  const handleOpenPaymentStep = () => {
-    // Validation before showing payment step
-    if (!customerName.trim()) {
-      toast.error("Müşteri adı gerekli");
-      return;
+  // Step navigation
+  const canGoNext = () => {
+    if (currentStep === 0) {
+      return selectedItems.length > 0;
     }
-    if (!deliveryAddress.trim()) {
-      toast.error("Teslimat adresi gerekli");
-      return;
+    if (currentStep === 1) {
+      if (!customerName.trim()) return false;
+      if (!deliveryAddress.trim()) return false;
+      if (isScheduled && (!scheduledDate || !scheduledTime)) return false;
+      return true;
     }
-    if (selectedItems.length === 0) {
+    return true;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 0 && selectedItems.length === 0) {
       toast.error("En az bir ürün seçmelisiniz");
       return;
     }
-    if (isScheduled && (!scheduledDate || !scheduledTime)) {
-      toast.error("İleri tarihli teslimat için tarih ve saat seçmelisiniz");
-      return;
+    if (currentStep === 1) {
+      if (!customerName.trim()) {
+        toast.error("Müşteri adı gerekli");
+        return;
+      }
+      if (!deliveryAddress.trim()) {
+        toast.error("Teslimat adresi gerekli");
+        return;
+      }
+      if (isScheduled && (!scheduledDate || !scheduledTime)) {
+        toast.error("İleri tarihli teslimat için tarih ve saat seçmelisiniz");
+        return;
+      }
     }
-    setShowPaymentStep(true);
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+  };
+
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   // Handle payment selection and submit
   const handlePaymentSelect = async (selectedPayment) => {
     setPaymentMethod(selectedPayment);
     
-    // Build scheduled datetime if needed
     let scheduledTimeISO = null;
     if (isScheduled) {
       const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
@@ -295,7 +334,6 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
 
     setSubmitting(true);
     try {
-      // Tam adresi oluştur (Google Places + Detaylar)
       const fullAddress = addressDetails.trim() 
         ? `${deliveryAddress.trim()}, ${addressDetails.trim()}`
         : deliveryAddress.trim();
@@ -305,7 +343,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim() || null,
         delivery_address: fullAddress,
-        delivery_location: deliveryLocation, // Koordinatlar
+        delivery_location: deliveryLocation,
         items: selectedItems,
         payment_method: selectedPayment,
         notes: notes.trim() || null,
@@ -320,49 +358,422 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
       toast.error(err.response?.data?.detail || "Sipariş oluşturulamadı");
     } finally {
       setSubmitting(false);
-      setShowPaymentStep(false);
     }
   };
 
-  // Get minimum date (today)
+  // Date/time helpers
   const getMinDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
 
-  // Get minimum time based on date
   const getMinTime = () => {
     if (!scheduledDate) return "";
     const today = new Date().toISOString().split("T")[0];
     if (scheduledDate === today) {
       const now = new Date();
-      now.setMinutes(now.getMinutes() + 45); // At least 45 min from now
+      now.setMinutes(now.getMinutes() + 45);
       return now.toTimeString().slice(0, 5);
     }
     return "00:00";
   };
 
+  // Render step content
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return renderProductStep();
+      case 1:
+        return renderCustomerStep();
+      case 2:
+        return renderPaymentStep();
+      default:
+        return null;
+    }
+  };
+
+  // Step 1: Product Selection
+  const renderProductStep = () => (
+    <div className="space-y-4 py-4">
+      {/* Search and Category Filter */}
+      {products.products.length > 0 && (
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Ürün ara..."
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
+          {products.categories.length > 1 && (
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px] h-9">
+                <SelectValue placeholder="Kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                {products.categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Product List */}
+        <div>
+          <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            Ürünler
+          </h4>
+          {loadingProducts ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : products.products.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground border rounded-lg">
+              <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Henüz ürün eklenmemiş</p>
+            </div>
+          ) : Object.keys(groupedProducts).length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground border rounded-lg">
+              <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Ürün bulunamadı</p>
+            </div>
+          ) : (
+            <div className="border rounded-lg max-h-[350px] overflow-y-auto">
+              {Object.entries(groupedProducts).map(([catId, group]) => (
+                <div key={catId} className="border-b last:border-b-0">
+                  <div className="px-3 py-2 bg-slate-50 font-medium text-sm sticky top-0">
+                    {group.category.name}
+                  </div>
+                  <div className="divide-y">
+                    {group.products.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between px-3 py-2 hover:bg-slate-50 cursor-pointer"
+                        onClick={() => addProduct(product)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatPrice(product.price)}</p>
+                        </div>
+                        <Button size="sm" variant="ghost" className="shrink-0">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Cart */}
+        <div>
+          <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+            <ShoppingBag className="w-4 h-4" />
+            Sepet ({selectedItems.length})
+          </h4>
+          
+          {selectedItems.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
+              <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Sepet boş</p>
+              <p className="text-xs">Soldan ürün seçin</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="border rounded-lg divide-y max-h-[280px] overflow-y-auto">
+                {selectedItems.map((item) => (
+                  <div key={item.product_id} className="flex items-center gap-2 p-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatPrice(item.price)} x {item.quantity} = {formatPrice(item.price * item.quantity)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-7 w-7"
+                        onClick={() => updateQuantity(item.product_id, -1)}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-7 w-7"
+                        onClick={() => updateQuantity(item.product_id, 1)}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-red-500 hover:text-red-600"
+                        onClick={() => removeItem(item.product_id)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Total */}
+              <div className="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
+                <span className="font-semibold">Toplam</span>
+                <span className="text-lg font-bold text-primary">{formatPrice(totalAmount)}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Step 2: Customer Info
+  const renderCustomerStep = () => (
+    <div className="space-y-4 py-4 max-w-lg mx-auto">
+      {/* Customer Name */}
+      <div className="space-y-2">
+        <Label htmlFor="customer-name" className="flex items-center gap-2">
+          <User className="w-4 h-4" />
+          Müşteri Adı *
+        </Label>
+        <Input
+          id="customer-name"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          placeholder="Ahmet Yılmaz"
+        />
+      </div>
+
+      {/* Customer Phone */}
+      <div className="space-y-2">
+        <Label htmlFor="customer-phone" className="flex items-center gap-2">
+          <Phone className="w-4 h-4" />
+          Telefon
+        </Label>
+        <Input
+          id="customer-phone"
+          value={customerPhone}
+          onChange={(e) => setCustomerPhone(e.target.value)}
+          placeholder="05XX XXX XX XX"
+        />
+      </div>
+
+      {/* Delivery Address */}
+      <div className="space-y-2">
+        <Label htmlFor={addressInputId} className="flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          Teslimat Adresi *
+        </Label>
+        <input
+          id={addressInputId}
+          type="text"
+          value={deliveryAddress}
+          onChange={(e) => {
+            setDeliveryAddress(e.target.value);
+            setDeliveryLocation(null);
+          }}
+          placeholder="Sokak ve bina numarası girin"
+          autoComplete="off"
+          className="flex h-9 w-full border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-md"
+        />
+        {deliveryLocation && (
+          <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Konum alındı</span>
+            <a
+              href={`https://www.google.com/maps?q=${deliveryLocation.lat},${deliveryLocation.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto flex items-center gap-1 text-blue-600 hover:underline"
+            >
+              <Navigation className="w-3 h-3" />
+              Haritada Gör
+            </a>
+          </div>
+        )}
+      </div>
+
+      {/* Address Details */}
+      <div className="space-y-2">
+        <Label htmlFor="address-details">Adres Detayları</Label>
+        <Input
+          id="address-details"
+          value={addressDetails}
+          onChange={(e) => setAddressDetails(e.target.value)}
+          placeholder="Apartman / Site Adı, Kat ve Daire"
+        />
+      </div>
+
+      {/* Notes */}
+      <div className="space-y-2">
+        <Label htmlFor="notes">Sipariş Notu</Label>
+        <Textarea
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Zile basma, kapıda bekle, vb."
+          rows={2}
+        />
+      </div>
+
+      {/* Scheduled Delivery */}
+      <div className="space-y-3 p-3 rounded-lg border bg-slate-50">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="scheduled"
+            checked={isScheduled}
+            onCheckedChange={(checked) => {
+              setIsScheduled(checked);
+              if (checked) {
+                const now = new Date();
+                setScheduledDate(now.toISOString().split("T")[0]);
+                now.setHours(now.getHours() + 1);
+                now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
+                setScheduledTime(now.toTimeString().slice(0, 5));
+              }
+            }}
+          />
+          <Label htmlFor="scheduled" className="flex items-center gap-2 cursor-pointer">
+            <Clock className="w-4 h-4" />
+            İleri Tarihli Teslimat
+          </Label>
+        </div>
+        
+        {isScheduled && (
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <div>
+              <Label htmlFor="scheduled-date" className="text-xs">Tarih</Label>
+              <Input
+                id="scheduled-date"
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                min={getMinDate()}
+              />
+            </div>
+            <div>
+              <Label htmlFor="scheduled-time" className="text-xs">Saat</Label>
+              <Input
+                id="scheduled-time"
+                type="time"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                min={getMinTime()}
+              />
+            </div>
+            <p className="col-span-2 text-xs text-muted-foreground">
+              * Sipariş belirtilen saatten 45 dk önce hazırlanmaya başlar
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Order Summary */}
+      <div className="p-3 bg-slate-100 rounded-lg">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">{selectedItems.length} ürün</span>
+          <span className="font-bold text-primary">{formatPrice(totalAmount)}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Step 3: Payment Selection
+  const renderPaymentStep = () => (
+    <div className="py-6 max-w-md mx-auto">
+      <div className="text-center mb-6">
+        <h3 className="text-lg font-semibold">Ödeme Yöntemi Seçin</h3>
+        <p className="text-2xl font-bold text-primary mt-2">{formatPrice(totalAmount)}</p>
+        <p className="text-sm text-muted-foreground mt-1">{customerName} - {selectedItems.length} ürün</p>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-green-50 hover:border-green-500 transition-all"
+          onClick={() => handlePaymentSelect("cash")}
+          disabled={submitting}
+        >
+          <Banknote className="w-8 h-8 text-green-600" />
+          <span className="font-medium">Nakit</span>
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-500 transition-all"
+          onClick={() => handlePaymentSelect("card")}
+          disabled={submitting}
+        >
+          <CreditCard className="w-8 h-8 text-blue-600" />
+          <span className="font-medium">Kredi Kartı</span>
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 hover:border-purple-500 transition-all"
+          onClick={() => handlePaymentSelect("online")}
+          disabled={submitting}
+        >
+          <Smartphone className="w-8 h-8 text-purple-600" />
+          <span className="font-medium">Online</span>
+        </Button>
+        
+        <Button
+          variant="outline"
+          className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-500 transition-all"
+          onClick={() => handlePaymentSelect("meal_card")}
+          disabled={submitting}
+        >
+          <UtensilsCrossed className="w-8 h-8 text-orange-600" />
+          <span className="font-medium">Yemek Kartı</span>
+        </Button>
+      </div>
+      
+      {submitting && (
+        <div className="flex items-center justify-center py-4 mt-4">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-sm text-muted-foreground">Sipariş oluşturuluyor...</span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="max-w-3xl max-h-[90vh] overflow-y-auto" 
+        className="max-w-3xl max-h-[90vh] overflow-y-auto p-0" 
         data-testid="new-order-modal"
         onInteractOutside={(e) => {
-          // Prevent modal close when clicking on Google Places autocomplete dropdown
           const target = e.target;
-          if (target.closest('.pac-container') || target.classList.contains('pac-item') || target.classList.contains('pac-item-query')) {
+          if (target.closest('.pac-container') || target.classList.contains('pac-item')) {
             e.preventDefault();
           }
         }}
         onPointerDownOutside={(e) => {
-          // Also prevent on pointer down for pac-container clicks
           const target = e.target;
-          if (target.closest('.pac-container') || target.classList.contains('pac-item') || target.classList.contains('pac-item-query')) {
+          if (target.closest('.pac-container') || target.classList.contains('pac-item')) {
             e.preventDefault();
           }
         }}
       >
-        <DialogHeader>
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Phone className="w-5 h-5" />
             Yeni Telefon Siparişi
@@ -370,398 +781,37 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
           <DialogDescription>Manuel sipariş girişi yapın</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-          {/* Left Column - Customer Info */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-              Müşteri Bilgileri
-            </h3>
+        {/* Step Indicator */}
+        <StepIndicator currentStep={currentStep} steps={steps} />
 
-            {/* Customer Name */}
-            <div className="space-y-2">
-              <Label htmlFor="customer-name" className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Müşteri Adı *
-              </Label>
-              <Input
-                id="customer-name"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Ahmet Yılmaz"
-                data-testid="customer-name-input"
-              />
-            </div>
-
-            {/* Customer Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="customer-phone" className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                Telefon
-              </Label>
-              <Input
-                id="customer-phone"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                placeholder="05XX XXX XX XX"
-                data-testid="customer-phone-input"
-              />
-            </div>
-
-            {/* Delivery Address with Google Places Autocomplete */}
-            <div className="space-y-2">
-              <Label htmlFor={addressInputId} className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Teslimat Adresi *
-              </Label>
-              <input
-                id={addressInputId}
-                type="text"
-                value={deliveryAddress}
-                onChange={(e) => {
-                  setDeliveryAddress(e.target.value);
-                  setDeliveryLocation(null);
-                }}
-                placeholder="Sokak ve bina numarası veya kurum/site adı girin"
-                data-testid="delivery-address-input"
-                autoComplete="off"
-                className="flex h-9 w-full border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              {deliveryLocation && (
-                <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                  <CheckCircle2 className="w-3 h-3" />
-                  <span>Konum alındı</span>
-                  <a
-                    href={`https://www.google.com/maps?q=${deliveryLocation.lat},${deliveryLocation.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-auto flex items-center gap-1 text-blue-600 hover:underline"
-                  >
-                    <Navigation className="w-3 h-3" />
-                    Haritada Gör
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Address Details */}
-            <div className="space-y-2">
-              <Label htmlFor="address-details">
-                Adres Detayları
-              </Label>
-              <Input
-                id="address-details"
-                value={addressDetails}
-                onChange={(e) => setAddressDetails(e.target.value)}
-                placeholder="Apartman / Site Adı, Kat ve Daire Girin"
-                data-testid="address-details-input"
-              />
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes">Sipariş Notu</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Zile basma, kapıda bekle, vb."
-                rows={2}
-                data-testid="notes-input"
-              />
-            </div>
-
-            {/* Scheduled Delivery */}
-            <div className="space-y-3 p-3 rounded-lg border bg-slate-50">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="scheduled"
-                  checked={isScheduled}
-                  onCheckedChange={(checked) => {
-                    setIsScheduled(checked);
-                    if (checked) {
-                      // Bugün ve şimdiki zamandan 1 saat sonrasını default yap
-                      const now = new Date();
-                      setScheduledDate(now.toISOString().split("T")[0]);
-                      now.setHours(now.getHours() + 1);
-                      now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15); // 15 dk'ya yuvarla
-                      setScheduledTime(now.toTimeString().slice(0, 5));
-                    }
-                  }}
-                  data-testid="scheduled-checkbox"
-                />
-                <Label htmlFor="scheduled" className="flex items-center gap-2 cursor-pointer">
-                  <Clock className="w-4 h-4" />
-                  İleri Tarihli Teslimat
-                </Label>
-              </div>
-              
-              {isScheduled && (
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div>
-                    <Label htmlFor="scheduled-date" className="text-xs">Tarih</Label>
-                    <Input
-                      id="scheduled-date"
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                      min={getMinDate()}
-                      data-testid="scheduled-date-input"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="scheduled-time" className="text-xs">Saat</Label>
-                    <Input
-                      id="scheduled-time"
-                      type="time"
-                      value={scheduledTime}
-                      onChange={(e) => setScheduledTime(e.target.value)}
-                      min={getMinTime()}
-                      data-testid="scheduled-time-input"
-                    />
-                  </div>
-                  <p className="col-span-2 text-xs text-muted-foreground">
-                    * Sipariş belirtilen saatten 45 dk önce hazırlanmaya başlar
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column - Product Selection */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-              Ürün Seçimi
-            </h3>
-
-            {/* Search and Category Filter */}
-            {products.products.length > 0 && (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Ürün ara..."
-                    value={productSearch}
-                    onChange={(e) => setProductSearch(e.target.value)}
-                    className="pl-8 h-9"
-                    data-testid="product-search"
-                  />
-                </div>
-                {products.categories.length > 1 && (
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Kategori seç" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tüm Kategoriler</SelectItem>
-                      {products.categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            )}
-
-            {loadingProducts ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : products.products.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground border rounded-lg">
-                <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Henüz ürün eklenmemiş</p>
-                <p className="text-xs">Önce Ürünler sayfasından ürün ekleyin</p>
-              </div>
-            ) : Object.keys(groupedProducts).length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground border rounded-lg">
-                <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Ürün bulunamadı</p>
-                <p className="text-xs">Arama veya filtreyi değiştirin</p>
-              </div>
-            ) : (
-              <div className="border rounded-lg max-h-[280px] overflow-y-auto">
-                {Object.entries(groupedProducts).map(([catId, group]) => (
-                  <div key={catId} className="border-b last:border-b-0">
-                    <div className="px-3 py-2 bg-slate-50 font-medium text-sm">
-                      {group.category.name}
-                    </div>
-                    <div className="divide-y">
-                      {group.products.map((product) => (
-                        <div
-                          key={product.id}
-                          className="flex items-center justify-between px-3 py-2 hover:bg-slate-50 cursor-pointer"
-                          onClick={() => addProduct(product)}
-                          data-testid={`product-${product.id}`}
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{product.name}</p>
-                            <p className="text-xs text-muted-foreground">{formatPrice(product.price)}</p>
-                          </div>
-                          <Button size="sm" variant="ghost" className="shrink-0">
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Selected Items */}
-            <div className="space-y-2">
-              <h4 className="font-medium text-sm flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4" />
-                Sepet ({selectedItems.length})
-              </h4>
-              
-              {selectedItems.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground border rounded-lg border-dashed">
-                  <p className="text-sm">Sepet boş</p>
-                  <p className="text-xs">Yukarıdan ürün seçin</p>
-                </div>
-              ) : (
-                <div className="border rounded-lg divide-y max-h-[180px] overflow-y-auto">
-                  {selectedItems.map((item) => (
-                    <div key={item.product_id} className="flex items-center gap-2 p-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatPrice(item.price)} x {item.quantity}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-7 w-7"
-                          onClick={() => updateQuantity(item.product_id, -1)}
-                        >
-                          <Minus className="w-3 h-3" />
-                        </Button>
-                        <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-7 w-7"
-                          onClick={() => updateQuantity(item.product_id, 1)}
-                        >
-                          <Plus className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-red-500 hover:text-red-600"
-                          onClick={() => removeItem(item.product_id)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Total */}
-              {selectedItems.length > 0 && (
-                <div className="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
-                  <span className="font-semibold">Toplam</span>
-                  <span className="text-lg font-bold text-primary">{formatPrice(totalAmount)}</span>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Step Content */}
+        <div className="px-6">
+          {renderStepContent()}
         </div>
 
-        <DialogFooter className="border-t pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            İptal
-          </Button>
-          <Button onClick={handleOpenPaymentStep} disabled={submitting} data-testid="submit-order-btn">
-            <Plus className="w-4 h-4 mr-2" />
-            Siparişi Oluştur
-          </Button>
+        {/* Footer Navigation */}
+        <DialogFooter className="px-6 py-4 border-t flex justify-between">
+          <div>
+            {currentStep > 0 && currentStep < 2 && (
+              <Button variant="outline" onClick={handleBack} disabled={submitting}>
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Geri
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
+              İptal
+            </Button>
+            {currentStep < 2 && (
+              <Button onClick={handleNext} disabled={!canGoNext()}>
+                {currentStep === 0 ? "Müşteri Bilgileri" : "Ödeme Seçimi"}
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
-
-      {/* Payment Selection Dialog */}
-      <Dialog open={showPaymentStep} onOpenChange={setShowPaymentStep}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-center">Ödeme Yöntemi Seçin</DialogTitle>
-            <DialogDescription className="text-center">
-              Toplam: {formatPrice(totalAmount)}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-2 gap-3 py-4">
-            <Button
-              variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-green-50 hover:border-green-500"
-              onClick={() => handlePaymentSelect("cash")}
-              disabled={submitting}
-              data-testid="payment-cash"
-            >
-              <Banknote className="w-6 h-6 text-green-600" />
-              <span className="text-sm font-medium">Nakit</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-500"
-              onClick={() => handlePaymentSelect("card")}
-              disabled={submitting}
-              data-testid="payment-card"
-            >
-              <CreditCard className="w-6 h-6 text-blue-600" />
-              <span className="text-sm font-medium">Kredi Kartı</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 hover:border-purple-500"
-              onClick={() => handlePaymentSelect("online")}
-              disabled={submitting}
-              data-testid="payment-online"
-            >
-              <Smartphone className="w-6 h-6 text-purple-600" />
-              <span className="text-sm font-medium">Online</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-500"
-              onClick={() => handlePaymentSelect("meal_card")}
-              disabled={submitting}
-              data-testid="payment-meal-card"
-            >
-              <UtensilsCrossed className="w-6 h-6 text-orange-600" />
-              <span className="text-sm font-medium">Yemek Kartı</span>
-            </Button>
-          </div>
-          
-          {submitting && (
-            <div className="flex items-center justify-center py-2">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-sm text-muted-foreground">Sipariş oluşturuluyor...</span>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button 
-              variant="ghost" 
-              className="w-full" 
-              onClick={() => setShowPaymentStep(false)}
-              disabled={submitting}
-            >
-              Geri
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Dialog>
   );
 }
