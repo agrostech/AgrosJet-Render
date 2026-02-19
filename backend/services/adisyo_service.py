@@ -138,7 +138,7 @@ def map_adisyo_status(status_id: int, status_name: str) -> str:
     return status_map.get(status_id, "preparing")
 
 
-def map_adisyo_payment(payment_method_id: int, payment_method_name: str, external_app_name: str = "") -> str:
+def map_adisyo_payment(payment_method_id: int, payment_method_name: str, external_app_name: str = "") -> dict:
     """Adisyo ödeme yöntemini ShiftJet'e çevir
     
     Kategoriler:
@@ -147,11 +147,33 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
     - online: Online ödemeler (platform üzerinden)
     - meal_card: Kapıda Yemek kartları (Multinet, Sodexo, Setcard, vb.)
     - online_meal_card: Online Yemek kartları
+    
+    Returns:
+        dict: {"method": "meal_card", "detail": "Sodexo"} gibi
     """
     payment_name_lower = (payment_method_name or "").lower()
+    original_name = payment_method_name or ""
     
     # Debug log
     logger.info(f"[PAYMENT MAP] ID: {payment_method_id}, Name: '{payment_method_name}', External: '{external_app_name}'")
+    
+    # Yemek kartı türünü tespit et
+    def get_meal_card_detail(name_lower, original):
+        if "sodexo" in name_lower:
+            return "Sodexo"
+        elif "multinet" in name_lower:
+            return "Multinet"
+        elif "setcard" in name_lower or "set card" in name_lower:
+            return "Setcard"
+        elif "ticket" in name_lower:
+            return "Ticket"
+        elif "metropol" in name_lower:
+            return "Metropol"
+        elif "edenred" in name_lower:
+            return "Edenred"
+        elif "pluxee" in name_lower:
+            return "Pluxee"
+        return original.split()[0] if original else "Yemek Kartı"
     
     # 1. NAKİT
     nakit_keywords = ["nakit", "cash"]
@@ -159,25 +181,26 @@ def map_adisyo_payment(payment_method_id: int, payment_method_name: str, externa
         # "Kapıda Nakit" da buraya düşer
         if "kapıda" in payment_name_lower or "kapida" in payment_name_lower:
             logger.info(f"[PAYMENT MAP] Result: cash (kapıda nakit)")
-            return "cash"
+            return {"method": "cash", "detail": None}
         logger.info(f"[PAYMENT MAP] Result: cash (nakit)")
-        return "cash"
+        return {"method": "cash", "detail": None}
     
     # 2. KAPIDA KREDİ KARTI
     if ("kapıda" in payment_name_lower or "kapida" in payment_name_lower) and ("kart" in payment_name_lower or "kredi" in payment_name_lower):
         logger.info(f"[PAYMENT MAP] Result: card (kapıda kredi kartı)")
-        return "card"
+        return {"method": "card", "detail": None}
     
     # 3. YEMEK KARTLARI
     meal_card_keywords = ["multinet", "sodexo", "setcard", "metropol", "ticket", "edenred", "pluxee", "smart ticket"]
     if any(k in payment_name_lower for k in meal_card_keywords):
+        detail = get_meal_card_detail(payment_name_lower, original_name)
         # Online yemek kartı mı kontrol et
         if "online" in payment_name_lower or "pass mobil" in payment_name_lower:
-            logger.info(f"[PAYMENT MAP] Result: online_meal_card (online yemek kartı)")
-            return "online_meal_card"
+            logger.info(f"[PAYMENT MAP] Result: online_meal_card ({detail})")
+            return {"method": "online_meal_card", "detail": detail}
         # Kapıda/fiziksel yemek kartı
-        logger.info(f"[PAYMENT MAP] Result: meal_card (kapıda yemek kartı)")
-        return "meal_card"
+        logger.info(f"[PAYMENT MAP] Result: meal_card ({detail})")
+        return {"method": "meal_card", "detail": detail}
     
     # 4. ONLINE ÖDEMELER
     online_keywords = [
