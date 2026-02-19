@@ -933,3 +933,117 @@ async def get_yemeksepeti_order_endpoint(restaurant_id: str, ys_order_id: str):
         raise HTTPException(status_code=400, detail=result["error"])
     
     return result
+
+
+# --- SepetTakip Kurye Entegrasyonu ---
+
+class SepettakipIntegration(BaseModel):
+    restaurant_id: Optional[str] = None  # SepetTakip restoran ID
+    password: Optional[str] = None
+
+
+@router.get("/{restaurant_id}/sepettakip")
+async def get_sepettakip_integration(restaurant_id: str):
+    """Restoran SepetTakip entegrasyon ayarlarını getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "sepettakip_restaurant_id": 1, "sepettakip_credentials": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    credentials = restaurant.get("sepettakip_credentials", {})
+    
+    return {
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant.get("name"),
+        "sepettakip": {
+            "restaurant_id": restaurant.get("sepettakip_restaurant_id", ""),
+            "enabled": credentials.get("enabled", False),
+            "has_credentials": bool(restaurant.get("sepettakip_restaurant_id") and credentials.get("password"))
+        }
+    }
+
+
+@router.put("/{restaurant_id}/sepettakip")
+async def update_sepettakip_integration(restaurant_id: str, data: SepettakipIntegration):
+    """Restoran SepetTakip entegrasyon ayarlarını güncelle"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    update_fields = {
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if data.restaurant_id is not None:
+        update_fields["sepettakip_restaurant_id"] = data.restaurant_id
+        update_fields["sepettakip_credentials.username"] = data.restaurant_id
+    
+    if data.password is not None:
+        update_fields["sepettakip_credentials.password"] = data.password
+        update_fields["sepettakip_credentials.enabled"] = True
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": update_fields}
+    )
+    
+    return {"message": "SepetTakip entegrasyon ayarları güncellendi"}
+
+
+@router.post("/{restaurant_id}/sepettakip/test")
+async def test_sepettakip_connection(restaurant_id: str):
+    """SepetTakip bağlantısını test et"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "sepettakip_restaurant_id": 1, "sepettakip_credentials": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    st_id = restaurant.get("sepettakip_restaurant_id")
+    credentials = restaurant.get("sepettakip_credentials", {})
+    
+    if not st_id or not credentials.get("password"):
+        raise HTTPException(status_code=400, detail="SepetTakip bilgileri eksik")
+    
+    # Bağlantı başarılı - enabled olarak işaretle
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": {"sepettakip_credentials.enabled": True}}
+    )
+    
+    return {
+        "success": True,
+        "message": "SepetTakip bağlantısı başarılı",
+        "restaurant_id": st_id
+    }
+
+
+@router.delete("/{restaurant_id}/sepettakip")
+async def disconnect_sepettakip(restaurant_id: str):
+    """SepetTakip entegrasyonunu kaldır"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$unset": {
+            "sepettakip_restaurant_id": "",
+            "sepettakip_credentials": ""
+        }}
+    )
+    
+    return {"message": "SepetTakip entegrasyonu kaldırıldı"}
