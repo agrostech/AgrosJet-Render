@@ -519,7 +519,7 @@ async def get_courier_pricing(courier_id: str):
 
 # --- Kurye Ödeme Yöntemleri ---
 class PaymentMethodsUpdate(BaseModel):
-    allowed_payment_methods: List[str]  # ["cash", "card", "online"]
+    allowed_payment_methods: List[str]  # ["cash", "card", "online", "meal_card", "online_meal_card"]
 
 
 @router.get("/couriers/{courier_id}/payment-methods")
@@ -531,14 +531,14 @@ async def get_courier_payment_methods(courier_id: str):
     
     # Varsayılan olarak tüm ödeme yöntemleri açık
     return {
-        "allowed_payment_methods": courier.get("allowed_payment_methods", ["cash", "card", "online"])
+        "allowed_payment_methods": courier.get("allowed_payment_methods", ["cash", "card", "online", "meal_card", "online_meal_card"])
     }
 
 
 @router.put("/couriers/{courier_id}/payment-methods")
 async def update_courier_payment_methods(courier_id: str, data: PaymentMethodsUpdate):
     """Kuryenin taşıyabileceği ödeme yöntemlerini güncelle"""
-    valid_methods = ["cash", "card", "online"]
+    valid_methods = ["cash", "card", "online", "meal_card", "online_meal_card"]
     for method in data.allowed_payment_methods:
         if method not in valid_methods:
             raise HTTPException(status_code=400, detail=f"Geçersiz ödeme yöntemi: {method}")
