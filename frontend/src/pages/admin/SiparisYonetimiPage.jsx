@@ -920,9 +920,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               value={order.status} 
                               onValueChange={(newValue) => {
                                 if (newValue.startsWith('preparing_')) {
-                                  handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.order_number);
+                                  handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name);
                                 } else {
-                                  handleStatusChangeRequest(order.id, newValue, null, order.order_number);
+                                  handleStatusChangeRequest(order.id, newValue, null, order.customer_name);
                                 }
                               }}
                             >
