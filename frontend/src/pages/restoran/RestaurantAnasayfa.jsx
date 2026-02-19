@@ -614,7 +614,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Store className="w-5 h-5 text-orange-500" />
+              <Home className="w-5 h-5 text-slate-600" />
               Restoran Teslimatı
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
@@ -632,10 +632,41 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           <AlertDialogFooter>
             <AlertDialogCancel>İptal</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-slate-600 hover:bg-slate-700"
               onClick={() => handleMarkRestaurantDelivery(restaurantDeliveryConfirm?.id)}
             >
               Onayla
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Restoran Teslimatı Geri Alma Dialog */}
+      <AlertDialog open={!!unmarkDeliveryConfirm} onOpenChange={() => setUnmarkDeliveryConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-slate-600" />
+              Kurye Şirketine Aktar
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="text-sm text-muted-foreground">
+                Bu siparişi kurye şirketine aktarmak istediğinize emin misiniz?
+                <ul className="mt-3 space-y-1 text-sm">
+                  <li>• Sipariş tekrar yönetici panelinde görünecek</li>
+                  <li>• Kurye atanabilir hale gelecek</li>
+                  <li>• Mütabakat ve raporlara dahil edilecek</li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-slate-600 hover:bg-slate-700"
+              onClick={() => handleUnmarkRestaurantDelivery(unmarkDeliveryConfirm?.id)}
+            >
+              Aktar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
