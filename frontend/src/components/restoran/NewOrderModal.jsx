@@ -208,6 +208,8 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setDeliveryLocation(null);
     setNotes("");
     setPaymentMethod("");
+    setPaymentMethodDetail("");
+    setShowMealCardTypes(false);
     setIsScheduled(false);
     setScheduledDate("");
     setScheduledTime("");
