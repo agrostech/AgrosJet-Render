@@ -82,18 +82,8 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
       api_secret: "",
       branch_id: adisyoData?.branch_id || ""
     });
-    setAdisyoWebhookForm({
-      webhook_api_key: "",
-      restaurant_identity: adisyoWebhookData?.restaurant_identity || ""
-    });
     setShowSecrets({});
-    setAdisyoModalTab("credentials");
     setShowAdisyoModal(true);
-    
-    // Kurye verilerini yükle
-    if (adisyoData?.connected) {
-      fetchAdisyoCouriers();
-    }
   };
 
   const handleSaveAdisyo = async () => {
