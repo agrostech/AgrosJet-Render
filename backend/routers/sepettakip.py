@@ -664,3 +664,21 @@ async def test_create_order_for_sepettakip():
         }
     }
 
+
+
+# ==================== DEBUG LOGGING ====================
+
+@router.get("/logs")
+async def get_sepettakip_logs():
+    """Son SepetTakip loglarını getir (debug için)"""
+    logs = await db.sepettakip_logs.find({}).sort("timestamp", -1).limit(50).to_list(50)
+    for log in logs:
+        log.pop("_id", None)
+    return {"logs": logs}
+
+
+@router.delete("/logs")
+async def clear_sepettakip_logs():
+    """SepetTakip loglarını temizle"""
+    await db.sepettakip_logs.delete_many({})
+    return {"message": "Loglar temizlendi"}
