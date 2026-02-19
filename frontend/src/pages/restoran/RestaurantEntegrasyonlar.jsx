@@ -14,8 +14,6 @@ import {
   DialogFooter,
   DialogDescription 
 } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   RefreshCw, 
   Link2, 
@@ -25,11 +23,7 @@ import {
   Settings,
   Eye,
   EyeOff,
-  Store,
-  Webhook,
-  Users,
-  Copy,
-  Info
+  Store
 } from "lucide-react";
 import IntegrationStoresManager from "@/components/restoran/IntegrationStoresManager";
 
@@ -46,17 +40,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [showSecrets, setShowSecrets] = useState({});
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [adisyoModalTab, setAdisyoModalTab] = useState("credentials");
-
-  // Adisyo Webhook states
-  const [adisyoWebhookData, setAdisyoWebhookData] = useState(null);
-  const [adisyoWebhookForm, setAdisyoWebhookForm] = useState({ webhook_api_key: "", restaurant_identity: "" });
-  const [savingWebhook, setSavingWebhook] = useState(false);
-
-  // Adisyo Courier mapping states
-  const [adisyoCouriers, setAdisyoCouriers] = useState([]);
-  const [courierMappings, setCourierMappings] = useState([]);
-  const [loadingCouriers, setLoadingCouriers] = useState(false);
 
   // SepetTakip Modal states
   const [showSepettakipModal, setShowSepettakipModal] = useState(false);
