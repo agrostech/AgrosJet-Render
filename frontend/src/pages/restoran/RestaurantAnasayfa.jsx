@@ -224,11 +224,13 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     const styles = {
       cash: 'bg-emerald-100 text-emerald-700',
       card: 'bg-blue-100 text-blue-700',
+      meal_card: 'bg-orange-100 text-orange-700',
       online: 'bg-purple-100 text-purple-700'
     };
     const labels = {
       cash: 'Nakit',
       card: 'Kart',
+      meal_card: 'Yemek Kartı',
       online: 'Online'
     };
     return (
