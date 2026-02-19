@@ -521,6 +521,10 @@ export default function RestoranMutabakatTab({ companyId }) {
                             {formatMoney(r.card_amount)}
                             {r.card_included === false && <span className="ml-1 text-xs">*</span>}
                           </td>
+                          <td className={`p-2 text-right font-mono ${r.meal_card_included !== false ? 'text-purple-600' : 'text-slate-800'}`} title={r.meal_card_included === false ? 'Restoran tahsil ediyor - mütabakatta hariç' : 'Kurye firması tahsil ediyor'}>
+                            {formatMoney(r.meal_card_amount || 0)}
+                            {r.meal_card_included === false && <span className="ml-1 text-xs">*</span>}
+                          </td>
                           <td className={`p-2 text-right font-mono font-semibold ${r.net_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             <span className="flex items-center justify-end gap-1">
                               {r.net_amount >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
