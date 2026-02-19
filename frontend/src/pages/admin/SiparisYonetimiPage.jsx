@@ -753,11 +753,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               {/* Durum Filtreleri */}
               <div className="flex flex-wrap items-center gap-1.5">
                 {[
-                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-100 text-yellow-700 border-yellow-300", activeColor: "bg-yellow-300 text-yellow-900 border-yellow-500" },
-                  { value: "ready", label: "Hazır", color: "bg-orange-100 text-orange-700 border-orange-300", activeColor: "bg-orange-300 text-orange-900 border-orange-500" },
-                  { value: "assigned", label: "Atandı", color: "bg-purple-100 text-purple-700 border-purple-300", activeColor: "bg-purple-300 text-purple-900 border-purple-500" },
-                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-100 text-blue-700 border-blue-300", activeColor: "bg-blue-300 text-blue-900 border-blue-500" },
-                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-100 text-cyan-700 border-cyan-300", activeColor: "bg-cyan-300 text-cyan-900 border-cyan-500" },
+                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-500/30 text-yellow-700 border-yellow-400/50", activeColor: "bg-yellow-500/30 text-yellow-800 border-yellow-500/70" },
+                  { value: "ready", label: "Hazır", color: "bg-orange-500/30 text-orange-700 border-orange-400/50", activeColor: "bg-orange-500/30 text-orange-800 border-orange-500/70" },
+                  { value: "assigned", label: "Atandı", color: "bg-purple-500/30 text-purple-700 border-purple-400/50", activeColor: "bg-purple-500/30 text-purple-800 border-purple-500/70" },
+                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-500/30 text-blue-700 border-blue-400/50", activeColor: "bg-blue-500/30 text-blue-800 border-blue-500/70" },
+                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-500/30 text-cyan-700 border-cyan-400/50", activeColor: "bg-cyan-500/30 text-cyan-800 border-cyan-500/70" },
                 ].map((status) => {
                   const count = orders.filter(o => o.status === status.value).length;
                   const isActive = statusFilters.includes(status.value);
@@ -772,7 +772,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         );
                       }}
                       className={`px-2 py-0.5 text-xs rounded border transition-all flex items-center gap-1 ${
-                        isActive ? status.activeColor + " font-medium shadow-sm" : status.color + " opacity-60 hover:opacity-100"
+                        isActive ? status.activeColor + " font-medium shadow-sm ring-1 ring-inset ring-current/20" : status.color + " opacity-50 hover:opacity-80"
                       }`}
                     >
                       {status.label}
