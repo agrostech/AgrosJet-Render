@@ -23,7 +23,8 @@ import {
   Settings,
   Eye,
   EyeOff,
-  Store
+  Store,
+  Truck
 } from "lucide-react";
 import IntegrationStoresManager from "@/components/restoran/IntegrationStoresManager";
 
@@ -31,6 +32,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [adisyoData, setAdisyoData] = useState(null);
+  const [sepettakipData, setSepettakipData] = useState(null);
   const [loading, setLoading] = useState(true);
   
   // Adisyo Modal states
@@ -40,9 +42,16 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // SepetTakip Modal states
+  const [showSepettakipModal, setShowSepettakipModal] = useState(false);
+  const [sepettakipForm, setSepettakipForm] = useState({ restaurant_id: "", password: "" });
+  const [testingSepettakip, setTestingSepettakip] = useState(false);
+  const [savingSepettakip, setSavingSepettakip] = useState(false);
+
   useEffect(() => {
     if (restaurantId) {
       fetchAdisyoData();
+      fetchSepettakipData();
     }
   }, [restaurantId]);
 
