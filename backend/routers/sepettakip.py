@@ -27,8 +27,11 @@ COURIER_COMPANY_KEY = os.environ.get("SEPETTAKIP_COURIER_KEY", "agrosjet")
 SEPETTAKIP_API_KEY = os.environ.get("SEPETTAKIP_API_KEY", "4dd744ca-001e-44be-b17c-0178b0d3f704")
 SEPETTAKIP_TEST_RESTAURANT_ID = "934"
 
-# SepetTakip API Base URL
-SEPETTAKIP_API_BASE = "https://api.sepettakip.com/api/v1"
+# SepetTakip API Base URL - Test ve Production
+SEPETTAKIP_API_BASE_TEST = "https://test-api.sepettakip.com"
+SEPETTAKIP_API_BASE_PROD = "https://api.sepettakip.com"
+# Şimdilik test ortamını kullan
+SEPETTAKIP_API_BASE = os.environ.get("SEPETTAKIP_API_BASE", SEPETTAKIP_API_BASE_TEST)
 
 
 # ==================== PYDANTIC MODELS ====================
