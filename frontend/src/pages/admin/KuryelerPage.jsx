@@ -557,11 +557,11 @@ export default function KuryelerPage({ companyId }) {
                 </div>
                 <div>
                   <p className="font-medium">Yemek Kartı</p>
-                  <p className="text-xs text-muted-foreground">Sodexo, Multinet, Ticket vb.</p>
+                  <p className="text-xs text-muted-foreground">Sodexo, Multinet, Ticket vb. (kapıda & online)</p>
                 </div>
               </div>
               <Switch
-                checked={allowedPaymentMethods.includes("meal_card")}
+                checked={allowedPaymentMethods.includes("meal_card") || allowedPaymentMethods.includes("online_meal_card")}
                 onCheckedChange={() => togglePaymentMethod("meal_card")}
               />
             </div>
