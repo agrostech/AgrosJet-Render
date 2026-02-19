@@ -353,261 +353,84 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
 
       {/* Adisyo Modal */}
       <Dialog open={showAdisyoModal} onOpenChange={setShowAdisyoModal}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Adisyo Entegrasyonu</DialogTitle>
             <DialogDescription>
-              Adisyo POS sisteminizden sipariş çekmek için ayarları yapılandırın
+              Adisyo POS sisteminizden sipariş çekmek için API bilgilerinizi girin
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs value={adisyoModalTab} onValueChange={setAdisyoModalTab}>
-            <TabsList className="grid grid-cols-3 w-full">
-              <TabsTrigger value="credentials">
-                <Settings className="w-4 h-4 mr-1" />
-                API
-              </TabsTrigger>
-              <TabsTrigger value="webhook">
-                <Webhook className="w-4 h-4 mr-1" />
-                Webhook
-              </TabsTrigger>
-              <TabsTrigger value="couriers" disabled={!adisyoData?.connected}>
-                <Users className="w-4 h-4 mr-1" />
-                Kuryeler
-              </TabsTrigger>
-            </TabsList>
-
-            {/* API Credentials Tab */}
-            <TabsContent value="credentials" className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label>API Key</Label>
-                <div className="relative">
-                  <Input
-                    type={showSecrets.api_key ? "text" : "password"}
-                    value={adisyoForm.api_key}
-                    onChange={(e) => setAdisyoForm(prev => ({ ...prev, api_key: e.target.value }))}
-                    placeholder={adisyoData?.has_credentials ? "Değiştirmek için yeni key girin" : "API Key"}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                    onClick={() => setShowSecrets(prev => ({ ...prev, api_key: !prev.api_key }))}
-                  >
-                    {showSecrets.api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>API Secret</Label>
-                <div className="relative">
-                  <Input
-                    type={showSecrets.api_secret ? "text" : "password"}
-                    value={adisyoForm.api_secret}
-                    onChange={(e) => setAdisyoForm(prev => ({ ...prev, api_secret: e.target.value }))}
-                    placeholder={adisyoData?.has_credentials ? "Değiştirmek için yeni secret girin" : "API Secret"}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                    onClick={() => setShowSecrets(prev => ({ ...prev, api_secret: !prev.api_secret }))}
-                  >
-                    {showSecrets.api_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Branch ID (Opsiyonel)</Label>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>API Key</Label>
+              <div className="relative">
                 <Input
-                  value={adisyoForm.branch_id}
-                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, branch_id: e.target.value }))}
-                  placeholder="Şube ID"
+                  type={showSecrets.api_key ? "text" : "password"}
+                  value={adisyoForm.api_key}
+                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, api_key: e.target.value }))}
+                  placeholder={adisyoData?.has_credentials ? "Değiştirmek için yeni key girin" : "API Key"}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Birden fazla şubeniz varsa şube ID'si belirtin
-                </p>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button onClick={handleSaveAdisyo} disabled={saving} className="flex-1">
-                  {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Kaydet
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, api_key: !prev.api_key }))}
+                >
+                  {showSecrets.api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
-                {adisyoData?.has_credentials && (
-                  <Button variant="outline" onClick={handleTestAdisyo} disabled={testing}>
-                    {testing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
-                    <span className="ml-1">Test</span>
-                  </Button>
-                )}
               </div>
-            </TabsContent>
-
-            {/* Webhook Tab */}
-            <TabsContent value="webhook" className="space-y-4 pt-4">
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 mt-0.5" />
-                  <div className="text-xs text-blue-800">
-                    <p className="font-medium mb-1">Webhook nedir?</p>
-                    <p>
-                      Webhook ile Adisyo'dan gelen siparişler anında sisteme düşer. 
-                      Polling (sürekli kontrol) yerine Adisyo size bildirim gönderir.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Webhook URL</Label>
-                <div className="flex gap-2">
-                  <Input
-                    readOnly
-                    value={`${process.env.REACT_APP_BACKEND_URL?.replace('/api', '') || window.location.origin}/api/adisyo/webhook`}
-                    className="bg-slate-50 text-sm"
-                  />
-                  <Button variant="outline" size="icon" onClick={copyWebhookUrl}>
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Bu URL'yi Adisyo panelinde webhook oluştururken kullanın
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Webhook API Key</Label>
-                <div className="relative">
-                  <Input
-                    type={showSecrets.webhook_api_key ? "text" : "password"}
-                    value={adisyoWebhookForm.webhook_api_key}
-                    onChange={(e) => setAdisyoWebhookForm(prev => ({ ...prev, webhook_api_key: e.target.value }))}
-                    placeholder={adisyoWebhookData?.webhook_configured ? "Değiştirmek için yeni key girin" : "Adisyo'dan aldığınız API Key"}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                    onClick={() => setShowSecrets(prev => ({ ...prev, webhook_api_key: !prev.webhook_api_key }))}
-                  >
-                    {showSecrets.webhook_api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Restaurant Identity (UUID)</Label>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>API Secret</Label>
+              <div className="relative">
                 <Input
-                  value={adisyoWebhookForm.restaurant_identity}
-                  onChange={(e) => setAdisyoWebhookForm(prev => ({ ...prev, restaurant_identity: e.target.value }))}
-                  placeholder="Adisyo tarafından verilen UUID"
+                  type={showSecrets.api_secret ? "text" : "password"}
+                  value={adisyoForm.api_secret}
+                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, api_secret: e.target.value }))}
+                  placeholder={adisyoData?.has_credentials ? "Değiştirmek için yeni secret girin" : "API Secret"}
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, api_secret: !prev.api_secret }))}
+                >
+                  {showSecrets.api_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
               </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Branch ID (Opsiyonel)</Label>
+              <Input
+                value={adisyoForm.branch_id}
+                onChange={(e) => setAdisyoForm(prev => ({ ...prev, branch_id: e.target.value }))}
+                placeholder="Şube ID"
+              />
+              <p className="text-xs text-muted-foreground">
+                Birden fazla şubeniz varsa şube ID'si belirtin
+              </p>
+            </div>
 
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-xs text-amber-800">
-                  <strong>Kurulum Adımları:</strong><br />
-                  1. Adisyo panelinde Uygulama Mağazası &gt; Webhook'a gidin<br />
-                  2. Yeni Webhook Oluştur'a tıklayın<br />
-                  3. Firma Adı: ShiftJet (max 10 karakter)<br />
-                  4. Yukarıdaki Webhook URL'yi yapıştırın<br />
-                  5. Oluşturulan API Key ve Identity değerlerini buraya girin
-                </p>
-              </div>
-
-              <Button onClick={handleSaveAdisyoWebhook} disabled={savingWebhook} className="w-full">
-                {savingWebhook ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Webhook className="w-4 h-4 mr-2" />}
-                Webhook Ayarlarını Kaydet
-              </Button>
-
-              {adisyoWebhookData?.webhook_configured && (
-                <div className="flex items-center gap-2 text-sm text-green-600">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Webhook yapılandırıldı
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Courier Mapping Tab */}
-            <TabsContent value="couriers" className="space-y-4 pt-4">
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 mt-0.5" />
-                  <div className="text-xs text-blue-800">
-                    <p className="font-medium mb-1">Kurye Eşleştirme</p>
-                    <p>
-                      ShiftJet kuryelerinizi Adisyo'daki kuryelerle eşleştirin. 
-                      Bu sayede "Yola Çıktı" durumunda doğru kurye bilgisi Adisyo'ya gönderilir.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <Button 
-                variant="outline" 
-                onClick={fetchAdisyoCouriers} 
-                disabled={loadingCouriers}
-                className="w-full"
-              >
-                {loadingCouriers ? (
-                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                )}
-                Kurye Listesini Yenile
-              </Button>
-
-              {courierMappings.length > 0 ? (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {courierMappings.map(courier => (
-                    <div key={courier.shiftjet_id} className="flex items-center gap-2 p-2 border rounded">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{courier.name}</p>
-                        <p className="text-xs text-muted-foreground">{courier.phone}</p>
-                      </div>
-                      <Select
-                        value={courier.adisyo_courier_id?.toString() || ""}
-                        onValueChange={(value) => handleCourierMapping(courier.shiftjet_id, value)}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Adisyo Kurye" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {adisyoCouriers.map(ac => (
-                            <SelectItem key={ac.id} value={ac.id.toString()}>
-                              {ac.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {courier.adisyo_courier_id && (
-                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  {loadingCouriers ? "Yükleniyor..." : "Henüz kurye eşleştirmesi yok"}
-                </p>
-              )}
-
-              {adisyoCouriers.length === 0 && !loadingCouriers && (
-                <p className="text-xs text-amber-600 text-center">
-                  Adisyo'da tanımlı kurye bulunamadı. Önce Adisyo panelinde kurye ekleyin.
-                </p>
-              )}
-            </TabsContent>
-          </Tabs>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800">
+                <strong>Not:</strong> Yola çıkarma durumunda Adisyo'daki ilk kurye otomatik olarak atanır. 
+                Adisyo panelinde en az 1 kurye tanımlı olmalıdır.
+              </p>
+            </div>
+          </div>
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdisyoModal(false)}>
-              Kapat
+              İptal
+            </Button>
+            <Button onClick={handleSaveAdisyo} disabled={saving}>
+              {saving ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kaydet
             </Button>
           </DialogFooter>
         </DialogContent>
