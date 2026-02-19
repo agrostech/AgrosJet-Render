@@ -365,7 +365,10 @@ async def test_store_connection(restaurant_id: str, store_id: str):
         result = await test_trendyol_connection(restaurant_id)
     elif platform == "getir":
         result = await test_getir_connection(restaurant_id)
-    # TODO: yemeksepeti test
+    elif platform == "yemeksepeti":
+        result = await test_yemeksepeti_connection(restaurant_id)
+    elif platform == "adisyo":
+        result = await test_adisyo_connection(restaurant_id)
     
     # Sonucu store'a yaz
     if result.get("success"):
