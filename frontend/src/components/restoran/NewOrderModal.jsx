@@ -557,6 +557,29 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
                 ))}
               </div>
 
+              {/* Manuel Tutar */}
+              <div className="p-3 border rounded-lg bg-slate-50 space-y-2">
+                <Label className="text-xs font-medium text-slate-600">Manuel Tutar Ekle</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Tutar (₺)"
+                    value={manualAmount}
+                    onChange={(e) => setManualAmount(e.target.value)}
+                    className="w-24 h-8 text-sm"
+                    min="0"
+                    step="0.01"
+                  />
+                  <Input
+                    type="text"
+                    placeholder="Açıklama (opsiyonel)"
+                    value={manualAmountNote}
+                    onChange={(e) => setManualAmountNote(e.target.value)}
+                    className="flex-1 h-8 text-sm"
+                  />
+                </div>
+              </div>
+
               {/* Total */}
               <div className="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
                 <span className="font-semibold">Toplam</span>
