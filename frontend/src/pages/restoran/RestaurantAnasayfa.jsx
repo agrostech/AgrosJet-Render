@@ -387,10 +387,10 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               )}
                             </td>
                             <td className="p-2 max-w-[120px]">
-                              <div>
-                                <span className="text-sm">{order.customer_name || "-"}</span>
+                              <div className="overflow-hidden">
+                                <span className="text-sm block truncate">{order.customer_name || "-"}</span>
                                 {order.customer_phone && (
-                                  <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
+                                  <div className="text-xs text-muted-foreground font-mono truncate">{order.customer_phone}</div>
                                 )}
                               </div>
                             </td>
