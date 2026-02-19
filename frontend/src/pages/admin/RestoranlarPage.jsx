@@ -46,6 +46,7 @@ export default function RestoranlarPage({ companyId }) {
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [showPreparationModal, setShowPreparationModal] = useState(false);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   
   // Blocked couriers state
