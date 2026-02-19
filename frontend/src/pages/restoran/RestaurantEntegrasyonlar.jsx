@@ -452,6 +452,71 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* SepetTakip Modal */}
+      <Dialog open={showSepettakipModal} onOpenChange={setShowSepettakipModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>SepetTakip Kurye Entegrasyonu</DialogTitle>
+            <DialogDescription>
+              SepetTakip'ten aldığınız restoran bilgilerinizi girin
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Restoran ID</Label>
+              <Input
+                value={sepettakipForm.restaurant_id}
+                onChange={(e) => setSepettakipForm(prev => ({ ...prev, restaurant_id: e.target.value }))}
+                placeholder="SepetTakip Restoran ID (örn: 934)"
+              />
+              <p className="text-xs text-muted-foreground">
+                SepetTakip tarafından verilen restoran numaranız
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Şifre</Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.sepettakip_password ? "text" : "password"}
+                  value={sepettakipForm.password}
+                  onChange={(e) => setSepettakipForm(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder={sepettakipData?.has_credentials ? "Değiştirmek için yeni şifre girin" : "Şifre"}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, sepettakip_password: !prev.sepettakip_password }))}
+                >
+                  {showSecrets.sepettakip_password ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-xs text-amber-800">
+                <strong>Not:</strong> Bu bilgileri SepetTakip ekibinden talep edebilirsiniz. 
+                Entegrasyon aktif olduktan sonra yemek platformlarından gelen siparişler 
+                otomatik olarak kurye sistemine aktarılacaktır.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSepettakipModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveSepettakip} disabled={savingSepettakip}>
+              {savingSepettakip ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
