@@ -219,8 +219,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     });
   };
 
-  // Get payment badge
-  const getPaymentBadge = (method) => {
+  // Get payment badge with detail support
+  const getPaymentBadge = (method, detail = null) => {
     const styles = {
       cash: 'bg-emerald-100 text-emerald-700',
       card: 'bg-blue-100 text-blue-700',
@@ -235,9 +235,16 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       online_meal_card: 'Online Y.K.',
       online: 'Online'
     };
+    
+    // Yemek kartı detayı varsa göster
+    let displayLabel = labels[method] || method;
+    if ((method === 'meal_card' || method === 'online_meal_card') && detail) {
+      displayLabel = detail;
+    }
+    
     return (
       <span className={`px-2 py-0.5 text-xs rounded ${styles[method] || 'bg-gray-100 text-gray-700'}`}>
-        {labels[method] || method}
+        {displayLabel}
       </span>
     );
   };
