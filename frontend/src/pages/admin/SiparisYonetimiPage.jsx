@@ -796,7 +796,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 </div>
               </div>
               </div>
-            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
