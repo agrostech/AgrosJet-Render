@@ -523,8 +523,7 @@ async def update_order_status(
     result = await notify_sepettakip_status(
         sepettakip_order_id, 
         request.status,
-        request.courier_name,
-        request.courier_phone
+        request.courier_eta
     )
     
     return {
