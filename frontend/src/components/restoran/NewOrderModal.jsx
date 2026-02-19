@@ -351,9 +351,17 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  // Handle payment selection and submit
-  const handlePaymentSelect = async (selectedPayment) => {
+  // Handle payment selection
+  const handlePaymentSelect = async (selectedPayment, detail = null) => {
+    // Yemek kartı seçildiyse tür seçimi ekranını göster
+    if (selectedPayment === "meal_card" && !detail) {
+      setShowMealCardTypes(true);
+      return;
+    }
+    
     setPaymentMethod(selectedPayment);
+    setPaymentMethodDetail(detail);
+    setShowMealCardTypes(false);
     
     let scheduledTimeISO = null;
     if (isScheduled) {
@@ -386,6 +394,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
         delivery_location: deliveryLocation,
         items: finalItems,
         payment_method: selectedPayment,
+        payment_method_detail: detail,
         notes: notes.trim() || null,
         is_scheduled: isScheduled,
         scheduled_time: scheduledTimeISO,
