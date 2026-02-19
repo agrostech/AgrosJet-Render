@@ -1,0 +1,399 @@
+/**
+ * Termal Yazıcı Yazdırma Utility
+ * 58mm ve 80mm termal yazıcılar için fiş yazdırma
+ */
+
+// Ödeme yöntemi etiketleri
+const PAYMENT_LABELS = {
+  cash: "NAKİT",
+  card: "KREDİ KARTI",
+  online: "ONLINE",
+  meal_card: "YEMEK KARTI",
+  online_meal_card: "ONLINE YEMEK KARTI",
+};
+
+// Platform etiketleri
+const PLATFORM_LABELS = {
+  adisyo: "Adisyo",
+  getir: "Getir",
+  trendyol: "Trendyol",
+  yemeksepeti: "Yemeksepeti",
+  migros: "Migros",
+  phone: "Telefon",
+  manual: "Manuel",
+  test: "Test",
+};
+
+/**
+ * Tarihi formatla
+ */
+const formatDate = (dateStr) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  return date.toLocaleString("tr-TR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+/**
+ * Para formatla
+ */
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: "TRY",
+    minimumFractionDigits: 2,
+  }).format(amount || 0);
+};
+
+/**
+ * 58mm termal fiş HTML'i oluştur
+ * Genişlik: ~32 karakter
+ */
+const generate58mmReceipt = (order) => {
+  const items = order.items || [];
+  const platform = PLATFORM_LABELS[order.platform] || order.platform || "Sipariş";
+  const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
+
+  let itemsHtml = items.map(item => `
+    <tr>
+      <td style="text-align:left;font-size:11px;padding:2px 0;">
+        ${item.quantity}x ${item.name}
+        ${item.notes ? `<br><small style="color:#666;font-size:9px;">Not: ${item.notes}</small>` : ""}
+      </td>
+      <td style="text-align:right;font-size:11px;padding:2px 0;white-space:nowrap;">
+        ${formatCurrency(item.price * item.quantity)}
+      </td>
+    </tr>
+  `).join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Sipariş Fişi - ${order.order_number}</title>
+      <style>
+        @page { 
+          size: 58mm auto; 
+          margin: 0; 
+        }
+        body { 
+          font-family: 'Courier New', monospace; 
+          font-size: 11px; 
+          width: 58mm; 
+          margin: 0; 
+          padding: 4mm;
+          box-sizing: border-box;
+        }
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+        .order-number { font-size: 16px; font-weight: bold; }
+        .platform { font-size: 10px; background: #000; color: #fff; padding: 2px 6px; display: inline-block; margin-top: 4px; }
+        .section { margin: 8px 0; padding: 8px 0; border-bottom: 1px dashed #000; }
+        .label { font-size: 9px; color: #666; }
+        .value { font-size: 11px; font-weight: bold; }
+        .items-table { width: 100%; border-collapse: collapse; }
+        .total { font-size: 14px; font-weight: bold; text-align: right; margin-top: 8px; }
+        .payment { text-align: center; background: #f0f0f0; padding: 4px; margin-top: 8px; font-weight: bold; }
+        .notes { background: #fff3cd; padding: 6px; margin-top: 8px; font-size: 10px; }
+        .footer { text-align: center; font-size: 9px; color: #666; margin-top: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="order-number">#${order.order_number}</div>
+        <div class="platform">${platform}</div>
+        <div style="font-size:10px;margin-top:4px;">${formatDate(order.created_at)}</div>
+      </div>
+
+      <div class="section">
+        <div class="label">MÜŞTERİ</div>
+        <div class="value">${order.customer_name || "-"}</div>
+        <div style="font-size:11px;">${order.customer_phone || ""}</div>
+      </div>
+
+      <div class="section">
+        <div class="label">ADRES</div>
+        <div style="font-size:10px;">${order.delivery_address || "-"}</div>
+      </div>
+
+      <div class="section">
+        <div class="label">ÜRÜNLER</div>
+        <table class="items-table">
+          ${itemsHtml}
+        </table>
+      </div>
+
+      <div class="total">
+        TOPLAM: ${formatCurrency(order.total_amount)}
+      </div>
+
+      <div class="payment">
+        ${paymentMethod}
+      </div>
+
+      ${order.notes ? `<div class="notes"><strong>NOT:</strong> ${order.notes}</div>` : ""}
+
+      <div class="footer">
+        --------------------------------<br>
+        ShiftJet Sipariş Sistemi
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * 80mm termal fiş HTML'i oluştur
+ * Genişlik: ~48 karakter
+ */
+const generate80mmReceipt = (order) => {
+  const items = order.items || [];
+  const platform = PLATFORM_LABELS[order.platform] || order.platform || "Sipariş";
+  const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
+
+  let itemsHtml = items.map(item => `
+    <tr>
+      <td style="text-align:left;padding:4px 0;">
+        <strong>${item.quantity}x</strong> ${item.name}
+        ${item.notes ? `<br><small style="color:#666;">📝 ${item.notes}</small>` : ""}
+      </td>
+      <td style="text-align:right;padding:4px 0;white-space:nowrap;font-weight:bold;">
+        ${formatCurrency(item.price * item.quantity)}
+      </td>
+    </tr>
+  `).join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Sipariş Fişi - ${order.order_number}</title>
+      <style>
+        @page { 
+          size: 80mm auto; 
+          margin: 0; 
+        }
+        body { 
+          font-family: 'Arial', sans-serif; 
+          font-size: 12px; 
+          width: 80mm; 
+          margin: 0; 
+          padding: 5mm;
+          box-sizing: border-box;
+        }
+        .header { 
+          text-align: center; 
+          border-bottom: 2px solid #000; 
+          padding-bottom: 10px; 
+          margin-bottom: 10px; 
+        }
+        .order-number { 
+          font-size: 22px; 
+          font-weight: bold; 
+          letter-spacing: 1px;
+        }
+        .platform { 
+          font-size: 11px; 
+          background: #000; 
+          color: #fff; 
+          padding: 3px 10px; 
+          display: inline-block; 
+          margin-top: 6px;
+          border-radius: 3px;
+        }
+        .section { 
+          margin: 10px 0; 
+          padding: 10px 0; 
+          border-bottom: 1px dashed #ccc; 
+        }
+        .section-title { 
+          font-size: 10px; 
+          color: #666; 
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 4px;
+        }
+        .section-value { 
+          font-size: 13px; 
+          font-weight: bold; 
+        }
+        .customer-phone {
+          font-size: 14px;
+          font-family: monospace;
+          background: #f5f5f5;
+          padding: 4px 8px;
+          display: inline-block;
+          margin-top: 4px;
+        }
+        .items-table { 
+          width: 100%; 
+          border-collapse: collapse; 
+        }
+        .items-table td {
+          font-size: 12px;
+        }
+        .total-section {
+          background: #000;
+          color: #fff;
+          padding: 10px;
+          margin-top: 10px;
+          text-align: right;
+        }
+        .total-label {
+          font-size: 12px;
+        }
+        .total-amount { 
+          font-size: 20px; 
+          font-weight: bold; 
+        }
+        .payment { 
+          text-align: center; 
+          background: #e8f5e9; 
+          padding: 8px; 
+          margin-top: 10px; 
+          font-weight: bold;
+          font-size: 14px;
+          border: 2px solid #4caf50;
+        }
+        .payment.cash { background: #e8f5e9; border-color: #4caf50; }
+        .payment.card { background: #e3f2fd; border-color: #2196f3; }
+        .payment.online { background: #f3e5f5; border-color: #9c27b0; }
+        .payment.meal_card { background: #fff3e0; border-color: #ff9800; }
+        .notes { 
+          background: #fff8e1; 
+          border-left: 4px solid #ffc107;
+          padding: 8px 12px; 
+          margin-top: 10px; 
+          font-size: 11px; 
+        }
+        .footer { 
+          text-align: center; 
+          font-size: 10px; 
+          color: #999; 
+          margin-top: 15px;
+          padding-top: 10px;
+          border-top: 1px dashed #ccc;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="order-number">#${order.order_number}</div>
+        <div class="platform">${platform}</div>
+        <div style="font-size:11px;margin-top:6px;color:#666;">${formatDate(order.created_at)}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Müşteri Bilgileri</div>
+        <div class="section-value">${order.customer_name || "-"}</div>
+        ${order.customer_phone ? `<div class="customer-phone">📞 ${order.customer_phone}</div>` : ""}
+      </div>
+
+      <div class="section">
+        <div class="section-title">Teslimat Adresi</div>
+        <div style="font-size:12px;line-height:1.4;">${order.delivery_address || "-"}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Sipariş Detayı</div>
+        <table class="items-table">
+          ${itemsHtml}
+        </table>
+      </div>
+
+      <div class="total-section">
+        <div class="total-label">TOPLAM TUTAR</div>
+        <div class="total-amount">${formatCurrency(order.total_amount)}</div>
+      </div>
+
+      <div class="payment ${order.payment_method}">
+        💳 ${paymentMethod}
+      </div>
+
+      ${order.notes ? `<div class="notes"><strong>📝 Sipariş Notu:</strong><br>${order.notes}</div>` : ""}
+
+      <div class="footer">
+        ════════════════════════════════════<br>
+        ShiftJet Sipariş Yönetim Sistemi<br>
+        ════════════════════════════════════
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * Siparişi yazdır
+ * @param {Object} order - Sipariş objesi
+ * @param {string} paperSize - "58mm" veya "80mm"
+ */
+export const printOrder = (order, paperSize = "80mm") => {
+  if (!order) {
+    console.error("Yazdırılacak sipariş yok");
+    return;
+  }
+
+  // HTML oluştur
+  const html = paperSize === "58mm" 
+    ? generate58mmReceipt(order) 
+    : generate80mmReceipt(order);
+
+  // Yeni pencere aç ve yazdır
+  const printWindow = window.open("", "_blank", "width=400,height=600");
+  
+  if (!printWindow) {
+    console.error("Popup engellenmiş olabilir");
+    return;
+  }
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+
+  // Yazdırma dialogunu aç
+  printWindow.onload = () => {
+    setTimeout(() => {
+      printWindow.print();
+      // Yazdırma sonrası pencereyi kapat (opsiyonel)
+      // printWindow.close();
+    }, 250);
+  };
+};
+
+/**
+ * Yazdırma ayarlarını localStorage'dan al
+ */
+export const getPrintSettings = (restaurantId) => {
+  const stored = localStorage.getItem(`restaurant_print_settings_${restaurantId}`);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Yazdırma ayarları okunamadı:", e);
+    }
+  }
+  return {
+    autoPrint: false,
+    paperSize: "80mm",
+    printSound: true,
+  };
+};
+
+/**
+ * Otomatik yazdırma kontrolü
+ */
+export const shouldAutoPrint = (restaurantId) => {
+  const settings = getPrintSettings(restaurantId);
+  return settings.autoPrint === true;
+};
+
+export default {
+  printOrder,
+  getPrintSettings,
+  shouldAutoPrint,
+};
