@@ -62,6 +62,61 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
   const canMarkRestaurantDelivery = permissions.can_mark_restaurant_delivery === true; // Default false
 
+  // Otomatik yazdırma - yeni sipariş algılama
+  useEffect(() => {
+    if (!orders || orders.length === 0) return;
+    
+    const printSettings = getPrintSettings(restaurantId);
+    const currentOrderIds = new Set(orders.map(o => o.id));
+    
+    // İlk yüklemede sadece ID'leri kaydet, yazdırma
+    if (isFirstLoadRef.current) {
+      previousOrderIdsRef.current = currentOrderIds;
+      isFirstLoadRef.current = false;
+      return;
+    }
+    
+    // Otomatik yazdırma kapalıysa çık
+    if (!printSettings.autoPrint) {
+      previousOrderIdsRef.current = currentOrderIds;
+      return;
+    }
+    
+    // Yeni siparişleri bul
+    const newOrders = orders.filter(o => !previousOrderIdsRef.current.has(o.id));
+    
+    // Yeni siparişleri yazdır
+    newOrders.forEach(order => {
+      // Sadece pending veya preparing durumundaki siparişleri yazdır
+      if (order.status === 'pending' || order.status === 'preparing') {
+        printOrder(order, printSettings.paperSize);
+        
+        // Ses çal
+        if (printSettings.printSound) {
+          try {
+            const audio = new Audio('/notification.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(() => {});
+          } catch (e) {}
+        }
+        
+        toast.info(`Yeni sipariş yazdırıldı: #${order.order_number}`, {
+          icon: <Printer className="w-4 h-4" />,
+        });
+      }
+    });
+    
+    // Önceki ID'leri güncelle
+    previousOrderIdsRef.current = currentOrderIds;
+  }, [orders, restaurantId]);
+
+  // Manuel yazdırma fonksiyonu
+  const handlePrintOrder = (order) => {
+    const printSettings = getPrintSettings(restaurantId);
+    printOrder(order, printSettings.paperSize);
+    toast.success("Fiş yazdırma penceresine gönderildi");
+  };
+
   // Restoran teslimatı işaretleme
   const handleMarkRestaurantDelivery = async (orderId) => {
     try {
