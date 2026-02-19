@@ -67,6 +67,15 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     }
   };
 
+  const fetchSepettakipData = async () => {
+    try {
+      const res = await axios.get(`${API}/restaurant-integrations/${restaurantId}/sepettakip`);
+      setSepettakipData(res.data.sepettakip);
+    } catch (err) {
+      console.error("SepetTakip verisi yüklenemedi:", err);
+    }
+  };
+
   // Adisyo handlers
   const openAdisyoModal = () => {
     setAdisyoForm({
