@@ -401,9 +401,256 @@ async def sepettakip_health():
         "status": "healthy",
         "service": "sepettakip_courier_integration",
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "courier_company_key": COURIER_COMPANY_KEY,
+        "test_restaurant_id": SEPETTAKIP_TEST_RESTAURANT_ID,
         "endpoints": {
             "check_credentials": "/api/sepettakip/check-credentials",
             "create_package": "/api/sepettakip/create-package",
-            "cancel_package": "/api/sepettakip/cancel-package"
+            "cancel_package": "/api/sepettakip/cancel-package",
+            "update_status": "/api/sepettakip/update-status"
         }
     }
+
+
+# ==================== STATUS UPDATE TO SEPETTAKIP ====================
+
+class StatusUpdateRequest(BaseModel):
+    """Sipariş durumu güncelleme isteği"""
+    order_id: str
+    status: str  # assigned, picked_up, on_the_way, delivered, cancelled
+    courier_name: Optional[str] = None
+    courier_phone: Optional[str] = None
+    note: Optional[str] = None
+
+
+# SepetTakip durum kodları mapping
+SHIFTJET_TO_SEPETTAKIP_STATUS = {
+    "assigned": "COURIER_ASSIGNED",
+    "confirmed": "COURIER_CONFIRMED",
+    "on_the_way": "ON_THE_WAY",
+    "delivered": "DELIVERED",
+    "cancelled": "CANCELLED"
+}
+
+
+async def notify_sepettakip_status(order_id: str, status: str, courier_name: str = None, courier_phone: str = None):
+    """
+    Sipariş durumu değiştiğinde SepetTakip'e bildirim gönder.
+    Bu fonksiyon order status güncellenirken çağrılmalı.
+    """
+    sepettakip_status = SHIFTJET_TO_SEPETTAKIP_STATUS.get(status)
+    
+    if not sepettakip_status:
+        logger.debug(f"SepetTakip bildirim: {status} durumu için mapping yok, atlanıyor")
+        return None
+    
+    try:
+        payload = {
+            "order_id": order_id,
+            "status": sepettakip_status,
+            "courier_company_key": COURIER_COMPANY_KEY,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if courier_name:
+            payload["courier_name"] = courier_name
+        if courier_phone:
+            payload["courier_phone"] = courier_phone
+        
+        headers = {
+            "Api-Key": SEPETTAKIP_API_KEY,
+            "Content-Type": "application/json"
+        }
+        
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{SEPETTAKIP_API_BASE}/courier/update-status",
+                json=payload,
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                logger.info(f"SepetTakip durum bildirimi başarılı: order={order_id}, status={sepettakip_status}")
+                return {"success": True, "status_code": response.status_code}
+            else:
+                logger.warning(f"SepetTakip durum bildirimi başarısız: order={order_id}, status_code={response.status_code}, response={response.text}")
+                return {"success": False, "status_code": response.status_code, "error": response.text}
+                
+    except httpx.TimeoutException:
+        logger.error(f"SepetTakip durum bildirimi timeout: order={order_id}")
+        return {"success": False, "error": "timeout"}
+    except Exception as e:
+        logger.error(f"SepetTakip durum bildirimi hatası: order={order_id}, error={str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+@router.post("/update-status")
+async def update_order_status(
+    request: StatusUpdateRequest,
+    api_key: Optional[str] = Header(None, alias="Api-Key")
+):
+    """
+    Manuel durum güncelleme endpoint'i.
+    Admin panelinden veya sistemden sipariş durumu değiştiğinde
+    SepetTakip'e bildirim göndermek için kullanılır.
+    """
+    logger.info(f"SepetTakip update-status: order_id={request.order_id}, status={request.status}")
+    
+    # Siparişi bul
+    order = await db.orders.find_one({"sepettakip_order_id": request.order_id})
+    
+    if not order:
+        # Normal order_id ile de dene
+        order = await db.orders.find_one({"id": request.order_id})
+        
+    if not order:
+        logger.warning(f"SepetTakip update-status: Sipariş bulunamadı - order_id={request.order_id}")
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    # SepetTakip'e bildir
+    sepettakip_order_id = order.get("sepettakip_order_id", request.order_id)
+    result = await notify_sepettakip_status(
+        sepettakip_order_id, 
+        request.status,
+        request.courier_name,
+        request.courier_phone
+    )
+    
+    return {
+        "status": True,
+        "message": "Durum güncelleme isteği gönderildi",
+        "sepettakip_response": result
+    }
+
+
+@router.get("/test-connection")
+async def test_sepettakip_connection():
+    """
+    SepetTakip bağlantı testi.
+    API Key ve kurye şirketi anahtarının doğru yapılandırıldığını test eder.
+    """
+    logger.info("SepetTakip bağlantı testi başlatılıyor...")
+    
+    try:
+        headers = {
+            "Api-Key": SEPETTAKIP_API_KEY,
+            "Content-Type": "application/json"
+        }
+        
+        # Test isteği - ping veya health endpoint'i varsa kullan
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # SepetTakip'in test endpoint'i
+            response = await client.get(
+                f"{SEPETTAKIP_API_BASE}/courier/health",
+                headers=headers
+            )
+            
+            return {
+                "status": "connected" if response.status_code in [200, 404] else "error",
+                "courier_company_key": COURIER_COMPANY_KEY,
+                "api_key_configured": bool(SEPETTAKIP_API_KEY),
+                "test_restaurant_id": SEPETTAKIP_TEST_RESTAURANT_ID,
+                "response_code": response.status_code,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+    except httpx.TimeoutException:
+        return {
+            "status": "timeout",
+            "courier_company_key": COURIER_COMPANY_KEY,
+            "api_key_configured": bool(SEPETTAKIP_API_KEY),
+            "error": "Bağlantı zaman aşımına uğradı"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "courier_company_key": COURIER_COMPANY_KEY,
+            "api_key_configured": bool(SEPETTAKIP_API_KEY),
+            "error": str(e)
+        }
+
+
+# ==================== TEST ENDPOINT FOR SEPETTAKIP CHECKLIST ====================
+
+@router.post("/test-create-order")
+async def test_create_order_for_sepettakip():
+    """
+    SepetTakip entegrasyon checklist'i için test sipariş oluşturma.
+    Bu endpoint bir test siparişi oluşturur ve order_id döner.
+    """
+    import uuid
+    
+    test_order_id = f"TEST-{uuid.uuid4().hex[:8].upper()}"
+    
+    # Test restoranı kontrol et (ID: 934)
+    restaurant = await db.restaurants.find_one({"sepettakip_restaurant_id": SEPETTAKIP_TEST_RESTAURANT_ID})
+    
+    if not restaurant:
+        # Varsayılan test restoranı bilgileri
+        restaurant_info = {
+            "id": "test-restaurant-934",
+            "name": "Test Restoran (SepetTakip)",
+            "company_id": "test-company",
+            "latitude": 41.0082,
+            "longitude": 28.9784,
+            "phone": "05551234567"
+        }
+    else:
+        restaurant_info = restaurant
+    
+    test_order = {
+        "id": str(uuid.uuid4()),
+        "order_number": f"ST-{test_order_id}",
+        "sepettakip_order_id": test_order_id,
+        "external_app_name": "SepetTakip Test",
+        "company_id": restaurant_info.get("company_id", "test-company"),
+        "restaurant_id": restaurant_info.get("id"),
+        "restaurant_name": restaurant_info.get("name"),
+        "restaurant_phone": restaurant_info.get("phone"),
+        "restaurant_location": {
+            "latitude": restaurant_info.get("latitude", 41.0082),
+            "longitude": restaurant_info.get("longitude", 28.9784)
+        },
+        "customer_name": "SepetTakip Test Müşteri",
+        "customer_phone": "05559876543",
+        "delivery_address": "Test Mahallesi, Test Sokak No:1, Kadıköy/İstanbul",
+        "delivery_location": {
+            "latitude": 40.9910,
+            "longitude": 29.0230
+        },
+        "items": [
+            {"name": "Test Ürün 1", "quantity": 2, "price": 50.0, "notes": ""},
+            {"name": "Test Ürün 2", "quantity": 1, "price": 30.0, "notes": "Acısız"}
+        ],
+        "total_amount": 130.0,
+        "payment_method": "cash",
+        "payment_method_detail": "Nakit",
+        "is_paid": False,
+        "status": "preparing",
+        "notes": "SepetTakip entegrasyon testi",
+        "source": "sepettakip",
+        "preparation_time": 20,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "courier_id": None,
+        "courier_name": None,
+        "is_test_order": True
+    }
+    
+    await db.orders.insert_one(test_order)
+    
+    logger.info(f"SepetTakip test siparişi oluşturuldu: order_id={test_order_id}")
+    
+    return {
+        "status": True,
+        "message": "Test siparişi oluşturuldu",
+        "order_id": test_order_id,
+        "internal_order_id": test_order["id"],
+        "order_number": test_order["order_number"],
+        "instructions": {
+            "1": "Bu order_id'yi SepetTakip checklist'ine gönderin",
+            "2": "Sipariş durumlarını test edin: assigned, on_the_way, delivered",
+            "3": "Test tamamlandıktan sonra siparişi silebilirsiniz"
+        }
+    }
+
