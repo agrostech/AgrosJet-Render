@@ -725,49 +725,75 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         <Card>
           <CardHeader className="pb-2">
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Siparişler ({orders.length})</CardTitle>
+              {/* Başlık ve Arama */}
+              <div className="flex items-center justify-between gap-4">
+                <CardTitle className="text-base whitespace-nowrap">
+                  Siparişler ({filteredOrders.length}{searchQuery && ` / ${orders.length}`})
+                </CardTitle>
+                <div className="relative flex-1 max-w-xs">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Ara... (ad, adres, telefon, restoran)"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-8 text-sm"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
-              {/* Çoklu Filtre Seçimi */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted-foreground mr-1">Filtre:</span>
+              {/* Durum Filtreleri */}
+              <div className="flex flex-wrap items-center gap-1.5">
                 {[
-                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-200 text-yellow-800 border-yellow-400" },
-                  { value: "ready", label: "Hazır", color: "bg-orange-200 text-orange-800 border-orange-400" },
-                  { value: "assigned", label: "Kurye Atandı", color: "bg-purple-200 text-purple-800 border-purple-400" },
-                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-200 text-blue-800 border-blue-400" },
-                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-200 text-cyan-800 border-cyan-400" },
-                ].map((status) => (
+                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-100 text-yellow-700 border-yellow-300", activeColor: "bg-yellow-300 text-yellow-900 border-yellow-500" },
+                  { value: "ready", label: "Hazır", color: "bg-orange-100 text-orange-700 border-orange-300", activeColor: "bg-orange-300 text-orange-900 border-orange-500" },
+                  { value: "assigned", label: "Atandı", color: "bg-purple-100 text-purple-700 border-purple-300", activeColor: "bg-purple-300 text-purple-900 border-purple-500" },
+                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-100 text-blue-700 border-blue-300", activeColor: "bg-blue-300 text-blue-900 border-blue-500" },
+                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-100 text-cyan-700 border-cyan-300", activeColor: "bg-cyan-300 text-cyan-900 border-cyan-500" },
+                ].map((status) => {
+                  const count = orders.filter(o => o.status === status.value).length;
+                  const isActive = statusFilters.includes(status.value);
+                  return (
+                    <button
+                      key={status.value}
+                      onClick={() => {
+                        setStatusFilters(prev => 
+                          prev.includes(status.value) 
+                            ? prev.filter(s => s !== status.value)
+                            : [...prev, status.value]
+                        );
+                      }}
+                      className={`px-2 py-0.5 text-xs rounded border transition-all flex items-center gap-1 ${
+                        isActive ? status.activeColor + " font-medium shadow-sm" : status.color + " opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      {status.label}
+                      {count > 0 && <span className="text-[10px] font-bold">({count})</span>}
+                    </button>
+                  );
+                })}
+                <div className="border-l pl-1.5 ml-1 flex gap-1">
                   <button
-                    key={status.value}
-                    onClick={() => {
-                      setStatusFilters(prev => 
-                        prev.includes(status.value) 
-                          ? prev.filter(s => s !== status.value)
-                          : [...prev, status.value]
-                      );
-                    }}
-                    className={`px-2 py-1 text-xs rounded-full border transition-all ${
-                      statusFilters.includes(status.value) 
-                        ? status.color + " font-medium" 
-                        : "bg-gray-50 text-gray-400 border-gray-200"
-                    }`}
+                    onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
+                    className="px-1.5 py-0.5 text-[10px] text-blue-600 hover:bg-blue-50 rounded"
                   >
-                    {status.label}
+                    Tümü
                   </button>
-                ))}
-                <button
-                  onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
-                  className="px-2 py-1 text-xs text-blue-600 hover:underline"
-                >
-                  Tümü
-                </button>
-                <button
-                  onClick={() => setStatusFilters([])}
-                  className="px-2 py-1 text-xs text-gray-500 hover:underline"
-                >
-                  Temizle
-                </button>
+                  <button
+                    onClick={() => setStatusFilters([])}
+                    className="px-1.5 py-0.5 text-[10px] text-gray-500 hover:bg-gray-100 rounded"
+                  >
+                    Temizle
+                  </button>
+                </div>
+              </div>
               </div>
             </div>
           </CardHeader>
