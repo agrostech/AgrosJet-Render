@@ -705,11 +705,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-muted-foreground mr-1">Filtre:</span>
                 {[
-                  { value: "preparing", label: "Hazırlanıyor", color: "bg-amber-100 text-amber-700 border-amber-300" },
-                  { value: "ready", label: "Hazır", color: "bg-green-100 text-green-700 border-green-300" },
-                  { value: "assigned", label: "Kurye Atandı", color: "bg-blue-100 text-blue-700 border-blue-300" },
-                  { value: "confirmed", label: "Onaylandı", color: "bg-indigo-100 text-indigo-700 border-indigo-300" },
-                  { value: "on_the_way", label: "Yolda", color: "bg-purple-100 text-purple-700 border-purple-300" },
+                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-200 text-yellow-800 border-yellow-400" },
+                  { value: "ready", label: "Hazır", color: "bg-orange-200 text-orange-800 border-orange-400" },
+                  { value: "assigned", label: "Kurye Atandı", color: "bg-purple-200 text-purple-800 border-purple-400" },
+                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-200 text-blue-800 border-blue-400" },
+                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-200 text-cyan-800 border-cyan-400" },
                 ].map((status) => (
                   <button
                     key={status.value}
