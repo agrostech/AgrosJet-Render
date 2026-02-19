@@ -1598,7 +1598,7 @@ function PaymentConfirmModal({ order, open, onConfirm, onCancel, loading }) {
               </div>
               {selectedMethod !== order.payment_method && (
                 <p className="text-xs text-amber-600">
-                  Orijinal: {PAYMENT_METHODS[order.payment_method]?.label || order.payment_method}
+                  Orijinal: {getPaymentLabel(order)}
                 </p>
               )}
             </div>
