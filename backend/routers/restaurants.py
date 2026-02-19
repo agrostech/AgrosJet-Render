@@ -232,6 +232,58 @@ async def get_preparation_times(restaurant_id: str):
     }
 
 
+# --- Tahsilat Ayarları ---
+class CollectionSettingsUpdate(BaseModel):
+    cash_collection: str  # "courier" veya "restaurant"
+    card_collection: str  # "courier" veya "restaurant"
+
+
+@router.get("/{restaurant_id}/collection-settings")
+async def get_collection_settings(restaurant_id: str):
+    """Restoran tahsilat ayarlarını getir"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "collection_settings": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    settings = restaurant.get("collection_settings", {})
+    
+    return {
+        "cash_collection": settings.get("cash_collection", "courier"),
+        "card_collection": settings.get("card_collection", "courier")
+    }
+
+
+@router.put("/{restaurant_id}/collection-settings")
+async def update_collection_settings(restaurant_id: str, data: CollectionSettingsUpdate):
+    """Restoran tahsilat ayarlarını güncelle"""
+    # Validate values
+    valid_options = ["courier", "restaurant"]
+    if data.cash_collection not in valid_options:
+        raise HTTPException(status_code=400, detail="Geçersiz nakit tahsilat seçeneği")
+    if data.card_collection not in valid_options:
+        raise HTTPException(status_code=400, detail="Geçersiz kart tahsilat seçeneği")
+    
+    result = await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": {
+            "collection_settings": {
+                "cash_collection": data.cash_collection,
+                "card_collection": data.card_collection
+            },
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    return {"message": "Tahsilat ayarları güncellendi"}
+
+
 # --- CRUD Endpoints ---
 
 @router.get("/{company_id}")
