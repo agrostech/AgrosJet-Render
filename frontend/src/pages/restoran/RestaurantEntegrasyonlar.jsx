@@ -280,6 +280,101 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </CardContent>
       </Card>
 
+      {/* SepetTakip Kurye Entegrasyonu */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Truck className="w-5 h-5" />
+            <CardTitle className="text-lg">Kurye Entegrasyonları</CardTitle>
+          </div>
+          <CardDescription>
+            Yemek platformlarından gelen siparişler için kurye yönlendirme
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* SepetTakip */}
+          <div className="p-4 rounded-lg border">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <span className="font-bold text-sm text-orange-600">ST</span>
+                </div>
+                <div>
+                  <h3 className="font-medium">SepetTakip Kurye</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Yemeksepeti, Getir, Trendyol siparişlerini otomatik kurye sistemine aktar
+                  </p>
+                </div>
+              </div>
+              {sepettakipData?.enabled ? (
+                <Badge variant="outline" className="border-green-500 text-green-600">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Aktif
+                </Badge>
+              ) : sepettakipData?.has_credentials ? (
+                <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                  <XCircle className="w-3 h-3 mr-1" />
+                  Pasif
+                </Badge>
+              ) : null}
+            </div>
+            
+            {sepettakipData?.has_credentials && (
+              <div className="mt-3 p-2 bg-orange-50 rounded text-xs text-muted-foreground">
+                <span className="font-medium">Restoran ID:</span> {sepettakipData.restaurant_id}
+              </div>
+            )}
+            
+            <div className="mt-3 flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={openSepettakipModal}
+                className="flex-1"
+              >
+                <Settings className="w-4 h-4 mr-1" />
+                {sepettakipData?.has_credentials ? "Düzenle" : "Yapılandır"}
+              </Button>
+              
+              {sepettakipData?.has_credentials && (
+                <>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleTestSepettakip}
+                    disabled={testingSepettakip}
+                  >
+                    {testingSepettakip ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
+                    )}
+                    <span className="ml-1">Test</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleDisconnectSepettakip}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Unlink className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+            
+            {/* Bilgilendirme */}
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800">
+                <strong>Nasıl Çalışır:</strong> SepetTakip entegrasyonu ile yemek platformlarından 
+                gelen siparişler otomatik olarak kurye sistemine aktarılır. Kurye ataması, 
+                takip ve teslimat bilgileri anlık olarak güncellenir.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Adisyo Modal */}
       <Dialog open={showAdisyoModal} onOpenChange={setShowAdisyoModal}>
         <DialogContent className="max-w-md">
