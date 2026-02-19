@@ -50,6 +50,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [restaurantDeliveryConfirm, setRestaurantDeliveryConfirm] = useState(null);
+  const [unmarkDeliveryConfirm, setUnmarkDeliveryConfirm] = useState(null);
 
   // İzin kontrolleri
   const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
