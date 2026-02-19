@@ -427,20 +427,29 @@ class StatusUpdateRequest(BaseModel):
     note: Optional[str] = None
 
 
-# SepetTakip durum kodları mapping
+# SepetTakip durum kodları mapping (ShiftJet -> SepetTakip)
+# Döküman: assigned, picked_up, delivered, canceled, rejected
 SHIFTJET_TO_SEPETTAKIP_STATUS = {
-    "assigned": "COURIER_ASSIGNED",
-    "confirmed": "COURIER_CONFIRMED",
-    "on_the_way": "ON_THE_WAY",
-    "delivered": "DELIVERED",
-    "cancelled": "CANCELLED"
+    "assigned": "assigned",      # Kuryeye Atandı / Kurye Yola Çıktı
+    "confirmed": "assigned",     # Kurye onayladı -> assigned olarak bildir
+    "on_the_way": "picked_up",   # Kurye paketi aldı, yolda
+    "delivered": "delivered",    # Teslim edildi
+    "cancelled": "canceled"      # İptal edildi (SepetTakip 'canceled' kullanıyor)
 }
 
 
-async def notify_sepettakip_status(order_id: str, status: str, courier_name: str = None, courier_phone: str = None):
+async def notify_sepettakip_status(order_id: str, status: str, courier_eta: str = None):
     """
-    Sipariş durumu değiştiğinde SepetTakip'e bildirim gönder.
-    Bu fonksiyon order status güncellenirken çağrılmalı.
+    Sipariş durumu değiştiğinde SepetTakip'e webhook bildirimi gönder.
+    
+    Endpoint: PATCH /courier-company/package
+    Headers: 
+        - Courier-Company: <COURIER_COMPANY_KEY>
+        - Api-Key: <SEPETTAKIP_API_KEY>
+    Body:
+        - order_id: string (zorunlu)
+        - status: enum (assigned, picked_up, delivered, canceled, rejected)
+        - courier_eta: datetime ISO-8601 (opsiyonel, assigned durumunda önerilir)
     """
     sepettakip_status = SHIFTJET_TO_SEPETTAKIP_STATUS.get(status)
     
@@ -451,29 +460,29 @@ async def notify_sepettakip_status(order_id: str, status: str, courier_name: str
     try:
         payload = {
             "order_id": order_id,
-            "status": sepettakip_status,
-            "courier_company_key": COURIER_COMPANY_KEY,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "status": sepettakip_status
         }
         
-        if courier_name:
-            payload["courier_name"] = courier_name
-        if courier_phone:
-            payload["courier_phone"] = courier_phone
+        # Kurye atandıysa ETA ekle (önerilen)
+        if sepettakip_status == "assigned" and courier_eta:
+            payload["courier_eta"] = courier_eta
         
         headers = {
+            "Courier-Company": COURIER_COMPANY_KEY,
             "Api-Key": SEPETTAKIP_API_KEY,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
         }
         
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
-                f"{SEPETTAKIP_API_BASE}/courier/update-status",
+            response = await client.patch(
+                f"{SEPETTAKIP_API_BASE}/courier-company/package",
                 json=payload,
                 headers=headers
             )
             
-            if response.status_code == 200:
+            # 204 No Content = başarılı
+            if response.status_code in [200, 204]:
                 logger.info(f"SepetTakip durum bildirimi başarılı: order={order_id}, status={sepettakip_status}")
                 return {"success": True, "status_code": response.status_code}
             else:
