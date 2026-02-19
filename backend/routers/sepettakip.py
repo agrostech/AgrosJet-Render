@@ -212,6 +212,7 @@ def map_sepettakip_platform(platform: str) -> str:
 @router.post("/check-credentials")
 async def check_credentials(
     request: CheckCredentialsRequest,
+    raw_request: Request,
     api_key: Optional[str] = Header(None, alias="Api-Key")
 ):
     """
@@ -220,6 +221,20 @@ async def check_credentials(
     Restoranın Sepettakip paneline girdiği entegrasyon bilgilerinin doğrulanması.
     Bu adım başarılı olmadan sipariş akışı başlatılamaz.
     """
+    # Debug loglama
+    try:
+        raw_body = await raw_request.body()
+        await db.sepettakip_logs.insert_one({
+            "type": "check-credentials",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "headers": dict(raw_request.headers),
+            "body": raw_body.decode('utf-8')[:2000],
+            "username": request.username,
+            "api_key_present": bool(api_key)
+        })
+    except Exception as e:
+        logger.error(f"Log kaydetme hatası: {e}")
+    
     logger.info(f"SepetTakip check-credentials: username={request.username}")
     
     # API Key kontrolü
