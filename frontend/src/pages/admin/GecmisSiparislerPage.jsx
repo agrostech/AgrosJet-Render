@@ -369,6 +369,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
                   <SelectItem value="all">Tümü</SelectItem>
                   <SelectItem value="cash">Nakit</SelectItem>
                   <SelectItem value="card">Kart</SelectItem>
+                  <SelectItem value="meal_card">Yemek Kartı</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
                 </SelectContent>
               </Select>
