@@ -1741,18 +1741,18 @@ async def create_manual_order(data: ManualOrderCreate):
         # Scheduled time'ı parse et
         try:
             scheduled_dt = datetime.fromisoformat(data.scheduled_time.replace('Z', '+00:00'))
-            # 45 dakikalık tampon (kurye için hazırlık süresi)
-            buffer_minutes = 45
-            # Hazırlık bitiş zamanı = scheduled_time - buffer (kurye teslim zamanı)
+            # 30 dakikalık tampon - sipariş teslimata 30dk kala hazır olacak
+            buffer_minutes = 30
+            # Hazırlık bitiş zamanı = scheduled_time - buffer (hazır olma zamanı)
             preparation_end_at = scheduled_dt - timedelta(minutes=buffer_minutes)
             
-            # İleri tarihli siparişlerde prep_time, scheduled_time - now - buffer olarak hesaplanır
-            # Bu, geri sayım için kullanılır
+            # İleri tarihli siparişlerde prep_time = preparation_end_at - now
+            # Örnek: 17:00'da 19:00 teslimatı için -> 18:30 hazır -> 90dk hazırlık
             time_until_ready = (preparation_end_at - now).total_seconds() / 60
             prep_time = max(int(time_until_ready), 0)  # Negatif olamaz
             
             initial_status = "scheduled"
-            history_note = f"Programlı teslimat: {scheduled_dt.strftime('%d.%m.%Y %H:%M')}"
+            history_note = f"Programlı teslimat: {scheduled_dt.strftime('%d.%m.%Y %H:%M')} (Hazırlık: {prep_time} dk)"
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Geçersiz tarih formatı: {str(e)}")
     else:
