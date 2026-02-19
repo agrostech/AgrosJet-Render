@@ -1359,7 +1359,7 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
             <Badge className={`${statusConfig.color} text-white text-xs`}>{statusConfig.label}</Badge>
             <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
               <PaymentIcon className="w-3 h-3" />
-              <span>{paymentInfo.label}</span>
+              <span>{getPaymentLabel(order)}</span>
               <span className="font-semibold ml-1">{formatCurrency(order.total_amount)}</span>
             </div>
           </div>
