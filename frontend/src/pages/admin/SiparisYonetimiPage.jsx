@@ -787,9 +787,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                           <td className="p-2">
                             <span className={`px-2 py-0.5 text-xs rounded ${
                               order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
-                              order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                              order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
+                              order.payment_method === 'meal_card' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
                             }`}>
-                              {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : 'Online'}
+                              {order.payment_method === 'cash' ? 'Nakit' : order.payment_method === 'card' ? 'Kart' : order.payment_method === 'meal_card' ? 'Yemek Kartı' : 'Online'}
                             </span>
                           </td>
                           <td className="p-2" onClick={(e) => e.stopPropagation()}>
