@@ -58,6 +58,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [selectedCourierId, setSelectedCourierId] = useState("");
   
+  // Status confirmation modal
+  const [confirmStatusModal, setConfirmStatusModal] = useState({ open: false, orderId: null, newStatus: null, orderNumber: null });
+  
   // Map ref
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
