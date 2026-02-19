@@ -532,9 +532,27 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               <div className="flex items-center justify-center gap-1">
                                 {/* Restoran Teslimatı butonu */}
                                 {order.is_restaurant_delivery ? (
-                                  <div className="h-7 w-7 rounded border-2 border-slate-400 flex items-center justify-center">
-                                    <Home className="w-4 h-4 text-slate-500" />
-                                  </div>
+                                  // İşaretli sipariş - tıklanınca geri alma onayı
+                                  order.status !== 'delivered' && canMarkRestaurantDelivery ? (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            className="h-7 w-7 rounded border-2 border-slate-400 flex items-center justify-center hover:border-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                                            onClick={() => setUnmarkDeliveryConfirm(order)}
+                                          >
+                                            <Home className="w-4 h-4 text-slate-500" />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Kurye Şirketine Aktar</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  ) : (
+                                    // Teslim edilmiş veya izin yoksa sadece görsel
+                                    <div className="h-7 w-7 rounded border-2 border-slate-300 flex items-center justify-center opacity-50">
+                                      <Home className="w-4 h-4 text-slate-400" />
+                                    </div>
+                                  )
                                 ) : canMarkRestaurantDelivery && (() => {
                                   const check = canMarkAsRestaurantDelivery(order);
                                   return check.allowed ? (
