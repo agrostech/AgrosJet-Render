@@ -236,6 +236,7 @@ async def get_preparation_times(restaurant_id: str):
 class CollectionSettingsUpdate(BaseModel):
     cash_collection: str  # "courier" veya "restaurant"
     card_collection: str  # "courier" veya "restaurant"
+    meal_card_collection: str = "courier"  # "courier" veya "restaurant"
 
 
 @router.get("/collection-settings/{restaurant_id}")
@@ -253,7 +254,8 @@ async def get_collection_settings(restaurant_id: str):
     
     return {
         "cash_collection": settings.get("cash_collection", "courier"),
-        "card_collection": settings.get("card_collection", "courier")
+        "card_collection": settings.get("card_collection", "courier"),
+        "meal_card_collection": settings.get("meal_card_collection", "courier")
     }
 
 
@@ -266,13 +268,16 @@ async def update_collection_settings(restaurant_id: str, data: CollectionSetting
         raise HTTPException(status_code=400, detail="Geçersiz nakit tahsilat seçeneği")
     if data.card_collection not in valid_options:
         raise HTTPException(status_code=400, detail="Geçersiz kart tahsilat seçeneği")
+    if data.meal_card_collection not in valid_options:
+        raise HTTPException(status_code=400, detail="Geçersiz yemek kartı tahsilat seçeneği")
     
     result = await db.restaurants.update_one(
         {"id": restaurant_id},
         {"$set": {
             "collection_settings": {
                 "cash_collection": data.cash_collection,
-                "card_collection": data.card_collection
+                "card_collection": data.card_collection,
+                "meal_card_collection": data.meal_card_collection
             },
             "updated_at": datetime.now(timezone.utc).isoformat()
         }}
