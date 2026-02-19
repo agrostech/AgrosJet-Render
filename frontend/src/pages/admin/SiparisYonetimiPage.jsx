@@ -1189,7 +1189,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             </DialogHeader>
             <div className="py-4">
               <p className="text-sm text-muted-foreground">
-                <strong>#{confirmStatusModal.orderNumber}</strong> numaralı siparişi{' '}
+                <strong>{confirmStatusModal.customerName || 'Müşteri'}</strong> siparişini{' '}
                 <strong className={confirmStatusModal.newStatus === 'delivered' ? 'text-green-600' : 'text-red-600'}>
                   {confirmStatusModal.newStatus === 'delivered' ? 'teslim edildi' : 'iptal edildi'}
                 </strong>{' '}
@@ -1204,7 +1204,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               )}
             </div>
             <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setConfirmStatusModal({ open: false, orderId: null, newStatus: null, orderNumber: null })}>
+              <Button variant="outline" onClick={() => setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null })}>
                 Vazgeç
               </Button>
               <Button 
