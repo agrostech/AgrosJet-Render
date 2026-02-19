@@ -483,6 +483,7 @@ export default function RestoranMutabakatTab({ companyId }) {
                       <th className="p-2 text-right text-xs font-semibold text-slate-600">POS Kom.</th>
                       <th className="p-2 text-right text-xs font-semibold text-slate-600">Nakit</th>
                       <th className="p-2 text-right text-xs font-semibold text-slate-600">Kart</th>
+                      <th className="p-2 text-right text-xs font-semibold text-slate-600">Y.Kartı</th>
                       <th className="p-2 text-right text-xs font-semibold text-slate-600">Net Tutar</th>
                       <th className="p-2 text-center text-xs font-semibold text-slate-600">Durum</th>
                     </tr>
