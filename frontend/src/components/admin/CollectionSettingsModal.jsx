@@ -44,7 +44,7 @@ export default function CollectionSettingsModal({
   const loadSettings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/restaurants/${restaurant.id}/collection-settings`);
+      const res = await axios.get(`${API}/restaurants/collection-settings/${restaurant.id}`);
       setCashCollection(res.data.cash_collection || "courier");
       setCardCollection(res.data.card_collection || "courier");
     } catch (err) {
@@ -59,7 +59,7 @@ export default function CollectionSettingsModal({
   const handleSave = async () => {
     setSaving(true);
     try {
-      await axios.put(`${API}/restaurants/${restaurant.id}/collection-settings`, {
+      await axios.put(`${API}/restaurants/collection-settings/${restaurant.id}`, {
         cash_collection: cashCollection,
         card_collection: cardCollection
       });
