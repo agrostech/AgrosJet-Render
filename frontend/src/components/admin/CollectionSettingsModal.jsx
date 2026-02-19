@@ -17,6 +17,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /**
  * Restoran Tahsilat Ayarları Modal
+ * Nakit, Kredi Kartı ve Yemek Kartı tahsilatlarını yönetir
  */
 export default function CollectionSettingsModal({ 
   open, 
@@ -28,6 +29,7 @@ export default function CollectionSettingsModal({
   const [saving, setSaving] = useState(false);
   const [cashCollection, setCashCollection] = useState("courier");
   const [cardCollection, setCardCollection] = useState("courier");
+  const [mealCardCollection, setMealCardCollection] = useState("courier");
 
   useEffect(() => {
     if (open && restaurant?.id) {
@@ -41,9 +43,11 @@ export default function CollectionSettingsModal({
       const res = await axios.get(`${API}/restaurants/collection-settings/${restaurant.id}`);
       setCashCollection(res.data.cash_collection || "courier");
       setCardCollection(res.data.card_collection || "courier");
+      setMealCardCollection(res.data.meal_card_collection || "courier");
     } catch (err) {
       setCashCollection("courier");
       setCardCollection("courier");
+      setMealCardCollection("courier");
     } finally {
       setLoading(false);
     }
@@ -54,7 +58,8 @@ export default function CollectionSettingsModal({
     try {
       await axios.put(`${API}/restaurants/collection-settings/${restaurant.id}`, {
         cash_collection: cashCollection,
-        card_collection: cardCollection
+        card_collection: cardCollection,
+        meal_card_collection: mealCardCollection
       });
       toast.success("Tahsilat ayarları kaydedildi");
       onSaved?.();
@@ -65,6 +70,30 @@ export default function CollectionSettingsModal({
       setSaving(false);
     }
   };
+
+  const CollectionOption = ({ label, value, onChange }) => (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">{label}</Label>
+      <RadioGroup 
+        value={value} 
+        onValueChange={onChange}
+        className="flex gap-6"
+      >
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="courier" id={`${label}-courier`} />
+          <Label htmlFor={`${label}-courier`} className="text-sm font-normal cursor-pointer">
+            Şirket
+          </Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="restaurant" id={`${label}-restaurant`} />
+          <Label htmlFor={`${label}-restaurant`} className="text-sm font-normal cursor-pointer">
+            Restoran
+          </Label>
+        </div>
+      </RadioGroup>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,56 +108,25 @@ export default function CollectionSettingsModal({
             <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="space-y-6 py-2">
-            {/* Nakit */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Nakit Tahsilatlar</Label>
-              <RadioGroup 
-                value={cashCollection} 
-                onValueChange={setCashCollection}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="courier" id="cash-courier" />
-                  <Label htmlFor="cash-courier" className="text-sm font-normal cursor-pointer">
-                    Kurye Firması
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="restaurant" id="cash-restaurant" />
-                  <Label htmlFor="cash-restaurant" className="text-sm font-normal cursor-pointer">
-                    Restoran
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+          <div className="space-y-5 py-2">
+            <CollectionOption 
+              label="Nakit Tahsilatlar" 
+              value={cashCollection} 
+              onChange={setCashCollection} 
+            />
+            <CollectionOption 
+              label="Kredi Kartı Tahsilatlar" 
+              value={cardCollection} 
+              onChange={setCardCollection} 
+            />
+            <CollectionOption 
+              label="Yemek Kartı Tahsilatlar" 
+              value={mealCardCollection} 
+              onChange={setMealCardCollection} 
+            />
 
-            {/* Kredi Kartı */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Kredi Kartı Tahsilatlar</Label>
-              <RadioGroup 
-                value={cardCollection} 
-                onValueChange={setCardCollection}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="courier" id="card-courier" />
-                  <Label htmlFor="card-courier" className="text-sm font-normal cursor-pointer">
-                    Kurye Firması
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="restaurant" id="card-restaurant" />
-                  <Label htmlFor="card-restaurant" className="text-sm font-normal cursor-pointer">
-                    Restoran
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Info */}
-            <p className="text-xs text-muted-foreground">
-              Restoran tahsil ediyorsa mütabakattan hariç tutulur.
+            <p className="text-xs text-muted-foreground border-t pt-3">
+              Restoran tahsil ediyorsa mütabakat ve raporlara dahil edilmez.
             </p>
           </div>
         )}
