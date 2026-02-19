@@ -1168,6 +1168,54 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             setShowOrderDetailModal(true);
           }}
         />
+
+        {/* Status Confirmation Modal */}
+        <Dialog open={confirmStatusModal.open} onOpenChange={(open) => !open && setConfirmStatusModal({ open: false, orderId: null, newStatus: null, orderNumber: null })}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {confirmStatusModal.newStatus === 'delivered' ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    Teslim Edildi Olarak İşaretle
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-5 h-5 text-red-600" />
+                    İptal Edildi Olarak İşaretle
+                  </>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-muted-foreground">
+                <strong>#{confirmStatusModal.orderNumber}</strong> numaralı siparişi{' '}
+                <strong className={confirmStatusModal.newStatus === 'delivered' ? 'text-green-600' : 'text-red-600'}>
+                  {confirmStatusModal.newStatus === 'delivered' ? 'teslim edildi' : 'iptal edildi'}
+                </strong>{' '}
+                olarak işaretlemek istediğinize emin misiniz?
+              </p>
+              {confirmStatusModal.newStatus === 'cancelled' && (
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-xs text-red-700">
+                    <strong>Uyarı:</strong> İptal edilen siparişler geri alınamaz ve kurye ataması kaldırılır.
+                  </p>
+                </div>
+              )}
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setConfirmStatusModal({ open: false, orderId: null, newStatus: null, orderNumber: null })}>
+                Vazgeç
+              </Button>
+              <Button 
+                onClick={handleConfirmStatusChange}
+                className={confirmStatusModal.newStatus === 'delivered' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+              >
+                {confirmStatusModal.newStatus === 'delivered' ? 'Teslim Edildi' : 'İptal Et'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
