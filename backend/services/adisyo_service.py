@@ -427,6 +427,13 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
     # External app adını al (Yemeksepeti, Getir vb.)
     external_app_name = adisyo_order.get("externalAppName", "")
     
+    # Ödeme yöntemini ve detayını al
+    payment_info = map_adisyo_payment(
+        adisyo_order.get("paymentMethodId", 1),
+        adisyo_order.get("paymentMethodName", "Nakit"),
+        external_app_name
+    )
+    
     return {
         "id": str(uuid.uuid4()),
         "order_number": f"ADY-{adisyo_order.get('orderNumber', adisyo_order.get('id'))}",
@@ -450,6 +457,8 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         },
         "items": items,
         "total_amount": float(adisyo_order.get("orderTotal", 0)),
+        "payment_method": payment_info["method"],
+        "payment_method_detail": payment_info.get("detail"),
         "status": map_adisyo_status(
             adisyo_order.get("statusId", 1),
             adisyo_order.get("status", "Beklemede")
