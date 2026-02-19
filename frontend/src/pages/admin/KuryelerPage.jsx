@@ -239,6 +239,24 @@ export default function KuryelerPage({ companyId }) {
 
   // Ödeme yöntemi toggle
   const togglePaymentMethod = (method) => {
+    // Yemek kartı için hem meal_card hem online_meal_card'ı birlikte toggle et
+    if (method === "meal_card") {
+      const hasMealCard = allowedPaymentMethods.includes("meal_card") || allowedPaymentMethods.includes("online_meal_card");
+      if (hasMealCard) {
+        // Kapat - her iki türü de kaldır
+        const remaining = allowedPaymentMethods.filter(m => m !== "meal_card" && m !== "online_meal_card");
+        if (remaining.length > 0) {
+          setAllowedPaymentMethods(remaining);
+        } else {
+          toast.error("En az bir ödeme yöntemi açık olmalı");
+        }
+      } else {
+        // Aç - her iki türü de ekle
+        setAllowedPaymentMethods([...allowedPaymentMethods, "meal_card", "online_meal_card"]);
+      }
+      return;
+    }
+
     if (allowedPaymentMethods.includes(method)) {
       // En az 1 yöntem açık kalmalı
       if (allowedPaymentMethods.length > 1) {
