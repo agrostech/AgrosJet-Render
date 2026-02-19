@@ -131,6 +131,63 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     }
   };
 
+  // SepetTakip handlers
+  const openSepettakipModal = () => {
+    setSepettakipForm({
+      restaurant_id: sepettakipData?.restaurant_id || "",
+      password: ""
+    });
+    setShowSecrets({});
+    setShowSepettakipModal(true);
+  };
+
+  const handleSaveSepettakip = async () => {
+    if (!sepettakipForm.restaurant_id) {
+      toast.error("Restoran ID gerekli");
+      return;
+    }
+    
+    setSavingSepettakip(true);
+    try {
+      await axios.put(`${API}/restaurant-integrations/${restaurantId}/sepettakip`, {
+        restaurant_id: sepettakipForm.restaurant_id,
+        password: sepettakipForm.password || undefined
+      });
+      toast.success("SepetTakip ayarları kaydedildi");
+      setShowSepettakipModal(false);
+      fetchSepettakipData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setSavingSepettakip(false);
+    }
+  };
+
+  const handleTestSepettakip = async () => {
+    setTestingSepettakip(true);
+    try {
+      await axios.post(`${API}/restaurant-integrations/${restaurantId}/sepettakip/test`);
+      toast.success("SepetTakip bağlantısı başarılı");
+      fetchSepettakipData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Bağlantı testi başarısız");
+    } finally {
+      setTestingSepettakip(false);
+    }
+  };
+
+  const handleDisconnectSepettakip = async () => {
+    if (!confirm("SepetTakip entegrasyonunu kaldırmak istediğinize emin misiniz?")) return;
+    
+    try {
+      await axios.delete(`${API}/restaurant-integrations/${restaurantId}/sepettakip`);
+      toast.success("SepetTakip entegrasyonu kaldırıldı");
+      fetchSepettakipData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
   return (
     <div className="space-y-6" data-testid="restaurant-entegrasyonlar">
       {/* Yemek Platformları - Çoklu Mağaza Desteği */}
