@@ -176,6 +176,7 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "company_id": company_id,
             "restaurant_id": {"$in": restaurant_ids},
             "status": "delivered",
+            "is_restaurant_delivery": {"$ne": True},
             "delivered_at": {
                 "$gte": start_dt.isoformat(),
                 "$lte": end_dt.isoformat()
