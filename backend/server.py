@@ -336,6 +336,7 @@ from routers.restoran_mutabakat import router as restoran_mutabakat_router
 from routers.webhooks import router as webhooks_router
 from routers.integration_stores import router as integration_stores_router
 from routers.sepettakip import router as sepettakip_router
+from routers.adisyo_webhook import router as adisyo_webhook_router
 
 # Set db for products router
 set_products_db(db)
