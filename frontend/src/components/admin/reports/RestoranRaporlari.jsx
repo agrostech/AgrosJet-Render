@@ -148,7 +148,11 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                   <tbody>
                     {filteredRestaurants.map((r, i) => {
                       const toplamTasima = r.transportFee + r.transportKdv;
-                      const sonuc = (toplamTasima + r.posCommission) - (r.cash + r.card);
+                      // Tahsilat ayarlarına göre hesaplama
+                      const cashForCalc = r.cash_included !== false ? r.cash : 0;
+                      const cardForCalc = r.card_included !== false ? r.card : 0;
+                      const posForCalc = r.card_included !== false ? r.posCommission : 0;
+                      const sonuc = (toplamTasima + posForCalc) - (cashForCalc + cardForCalc);
                       return (
                         <tr key={i} className="border-t">
                           <td className="p-2">{r.name}</td>
@@ -157,8 +161,12 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                           <td className="p-2 text-right">{r.transportKdv.toFixed(2)}₺</td>
                           <td className="p-2 text-right text-green-600">{toplamTasima.toFixed(2)}₺</td>
                           <td className="p-2 text-right text-green-600">{r.posCommission.toFixed(2)}₺</td>
-                          <td className="p-2 text-right text-red-600">{r.cash.toFixed(2)}₺</td>
-                          <td className="p-2 text-right text-red-600">{r.card.toFixed(2)}₺</td>
+                          <td className={`p-2 text-right ${r.cash_included !== false ? 'text-red-600' : 'text-slate-800'}`} title={r.cash_included === false ? 'Restoran tahsil ediyor' : ''}>
+                            {r.cash.toFixed(2)}₺{r.cash_included === false && '*'}
+                          </td>
+                          <td className={`p-2 text-right ${r.card_included !== false ? 'text-red-600' : 'text-slate-800'}`} title={r.card_included === false ? 'Restoran tahsil ediyor' : ''}>
+                            {r.card.toFixed(2)}₺{r.card_included === false && '*'}
+                          </td>
                           <td className={`p-2 text-right font-bold ${sonuc >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {sonuc >= 0 ? '+' : ''}{sonuc.toFixed(2)}₺
                           </td>
