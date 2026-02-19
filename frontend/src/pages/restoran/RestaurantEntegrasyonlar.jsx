@@ -351,32 +351,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
           </div>
         </CardContent>
       </Card>
-                    )}
-                    <span className="ml-1">Test</span>
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={handleDisconnectSepettakip}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Unlink className="w-4 h-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-            
-            {/* Bilgilendirme */}
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs text-blue-800">
-                <strong>Nasıl Çalışır:</strong> SepetTakip entegrasyonu ile yemek platformlarından 
-                gelen siparişler otomatik olarak kurye sistemine aktarılır. Kurye ataması, 
-                takip ve teslimat bilgileri anlık olarak güncellenir.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Adisyo Modal */}
       <Dialog open={showAdisyoModal} onOpenChange={setShowAdisyoModal}>
