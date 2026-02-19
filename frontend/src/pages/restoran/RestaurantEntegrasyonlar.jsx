@@ -74,12 +74,33 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const fetchAdisyoData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/restaurant-integrations/${restaurantId}/adisyo`);
-      setAdisyoData(res.data.adisyo);
+      const [integrationRes, webhookRes] = await Promise.all([
+        axios.get(`${API}/restaurant-integrations/${restaurantId}/adisyo`),
+        axios.get(`${API}/restaurant-integrations/${restaurantId}/adisyo/webhook`)
+      ]);
+      setAdisyoData(integrationRes.data.adisyo);
+      setAdisyoWebhookData(webhookRes.data);
     } catch (err) {
       console.error("Adisyo verisi yüklenemedi:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAdisyoCouriers = async () => {
+    setLoadingCouriers(true);
+    try {
+      const [couriersRes, mappingsRes] = await Promise.all([
+        axios.get(`${API}/restaurant-integrations/${restaurantId}/adisyo/couriers`),
+        axios.get(`${API}/restaurant-integrations/${restaurantId}/adisyo/courier-mappings`)
+      ]);
+      setAdisyoCouriers(couriersRes.data.couriers || []);
+      setCourierMappings(mappingsRes.data.couriers || []);
+    } catch (err) {
+      console.error("Adisyo kurye verisi yüklenemedi:", err);
+      toast.error("Kurye listesi alınamadı");
+    } finally {
+      setLoadingCouriers(false);
     }
   };
 
