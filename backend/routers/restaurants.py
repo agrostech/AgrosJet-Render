@@ -238,7 +238,7 @@ class CollectionSettingsUpdate(BaseModel):
     card_collection: str  # "courier" veya "restaurant"
 
 
-@router.get("/{restaurant_id}/collection-settings")
+@router.get("/collection-settings/{restaurant_id}")
 async def get_collection_settings(restaurant_id: str):
     """Restoran tahsilat ayarlarını getir"""
     restaurant = await db.restaurants.find_one(
@@ -257,7 +257,7 @@ async def get_collection_settings(restaurant_id: str):
     }
 
 
-@router.put("/{restaurant_id}/collection-settings")
+@router.put("/collection-settings/{restaurant_id}")
 async def update_collection_settings(restaurant_id: str, data: CollectionSettingsUpdate):
     """Restoran tahsilat ayarlarını güncelle"""
     # Validate values
