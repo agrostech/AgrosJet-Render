@@ -697,22 +697,51 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         {/* Orders Table */}
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <CardTitle className="text-base">Siparişler ({orders.length})</CardTitle>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Aktif Siparişler</SelectItem>
-                  <SelectItem value="preparing">Hazırlanıyor</SelectItem>
-                  <SelectItem value="ready">Hazır</SelectItem>
-                  <SelectItem value="assigned">Kurye Atandı</SelectItem>
-                  <SelectItem value="confirmed">Onaylandı</SelectItem>
-                  <SelectItem value="on_the_way">Yolda</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Siparişler ({orders.length})</CardTitle>
+              </div>
+              {/* Çoklu Filtre Seçimi */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground mr-1">Filtre:</span>
+                {[
+                  { value: "preparing", label: "Hazırlanıyor", color: "bg-amber-100 text-amber-700 border-amber-300" },
+                  { value: "ready", label: "Hazır", color: "bg-green-100 text-green-700 border-green-300" },
+                  { value: "assigned", label: "Kurye Atandı", color: "bg-blue-100 text-blue-700 border-blue-300" },
+                  { value: "confirmed", label: "Onaylandı", color: "bg-indigo-100 text-indigo-700 border-indigo-300" },
+                  { value: "on_the_way", label: "Yolda", color: "bg-purple-100 text-purple-700 border-purple-300" },
+                ].map((status) => (
+                  <button
+                    key={status.value}
+                    onClick={() => {
+                      setStatusFilters(prev => 
+                        prev.includes(status.value) 
+                          ? prev.filter(s => s !== status.value)
+                          : [...prev, status.value]
+                      );
+                    }}
+                    className={`px-2 py-1 text-xs rounded-full border transition-all ${
+                      statusFilters.includes(status.value) 
+                        ? status.color + " font-medium" 
+                        : "bg-gray-50 text-gray-400 border-gray-200"
+                    }`}
+                  >
+                    {status.label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
+                  className="px-2 py-1 text-xs text-blue-600 hover:underline"
+                >
+                  Tümü
+                </button>
+                <button
+                  onClick={() => setStatusFilters([])}
+                  className="px-2 py-1 text-xs text-gray-500 hover:underline"
+                >
+                  Temizle
+                </button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
