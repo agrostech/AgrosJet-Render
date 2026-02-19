@@ -70,7 +70,7 @@ export default function KuryelerPage({ companyId }) {
   
   // Payment Methods Modal State
   const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
-  const [allowedPaymentMethods, setAllowedPaymentMethods] = useState(["cash", "card", "online"]);
+  const [allowedPaymentMethods, setAllowedPaymentMethods] = useState(["cash", "card", "online", "meal_card"]);
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
