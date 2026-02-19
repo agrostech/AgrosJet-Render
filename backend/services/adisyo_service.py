@@ -450,11 +450,14 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         },
         "items": items,
         "total_amount": float(adisyo_order.get("orderTotal", 0)),
-        "payment_method": map_adisyo_payment(
-            adisyo_order.get("paymentMethodId", 1),
-            adisyo_order.get("paymentMethodName", "Nakit"),
-            external_app_name
-        ),
+        **{
+            "payment_method": (payment_info := map_adisyo_payment(
+                adisyo_order.get("paymentMethodId", 1),
+                adisyo_order.get("paymentMethodName", "Nakit"),
+                external_app_name
+            ))["method"],
+            "payment_method_detail": payment_info.get("detail")
+        },
         "status": map_adisyo_status(
             adisyo_order.get("statusId", 1),
             adisyo_order.get("status", "Beklemede")
