@@ -1919,6 +1919,74 @@ async def mark_restaurant_delivery(order_id: str, restaurant_id: str):
     }
 
 
+@router.post("/{order_id}/unmark-restaurant-delivery")
+async def unmark_restaurant_delivery(order_id: str, restaurant_id: str):
+    """
+    Restoran teslimatı işaretini kaldır - sipariş tekrar kurye şirketine aktarılır.
+    
+    Kurallar:
+    - Restoran izni olmalı (can_mark_restaurant_delivery)
+    - Sipariş restoran teslimatı olarak işaretli olmalı
+    - Teslim edilmiş siparişler geri alınamaz
+    """
+    # Siparişi bul
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    # Sipariş bu restorana mı ait
+    if order.get("restaurant_id") != restaurant_id:
+        raise HTTPException(status_code=403, detail="Bu sipariş size ait değil")
+    
+    # Restoran teslimatı kontrolü
+    if not order.get("is_restaurant_delivery"):
+        raise HTTPException(status_code=400, detail="Bu sipariş zaten restoran teslimatı değil")
+    
+    # Teslim edilmiş sipariş geri alınamaz
+    if order.get("status") == "delivered":
+        raise HTTPException(status_code=400, detail="Teslim edilmiş siparişler geri alınamaz")
+    
+    # İzin kontrolü
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "permissions": 1})
+    permissions = restaurant.get("permissions", {}) if restaurant else {}
+    if not permissions.get("can_mark_restaurant_delivery", False):
+        raise HTTPException(status_code=403, detail="Restoran teslimatı işaretleme izniniz yok")
+    
+    now = datetime.now(timezone.utc)
+    
+    update_data = {
+        "is_restaurant_delivery": False,
+        "restaurant_delivery_unmarked_at": now.isoformat(),
+        "status": "ready",  # Hazır durumuna geri al
+        "updated_at": now.isoformat()
+    }
+    
+    # Status history'ye ekle
+    history_entry = {
+        "status": "ready",
+        "label": "Kurye Şirketine Aktarıldı",
+        "timestamp": now.isoformat(),
+        "note": "Restoran teslimatı iptal edildi, sipariş kurye şirketine aktarıldı",
+        "actor_type": "restaurant",
+        "actor_name": "Restoran"
+    }
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": update_data,
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    logger.info(f"Restoran teslimatı iptal edildi: {order_id}, restaurant: {restaurant_id}")
+    
+    return {
+        "message": "Sipariş kurye şirketine aktarıldı",
+        "order_id": order_id
+    }
+
+
 @router.post("/{order_id}/restaurant-update-status")
 async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, new_status: str):
     """
