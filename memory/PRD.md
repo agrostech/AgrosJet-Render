@@ -1,187 +1,139 @@
-# ShiftJet - Kurye ve Restoran Yönetim Sistemi
+# ShiftJet - Restaurant Panel PRD
 
-## Problem Statement
-ShiftJet, restoranlar ve kurye şirketleri için kapsamlı bir sipariş ve teslimat yönetim sistemidir.
+## Original Problem Statement
+Kullanıcının amacı ShiftJet sistemi için "Restoran Paneli" oluşturmak ve geliştirmektir. İlk kapsam ürün yönetimi, UI iyileştirmeleri ve manuel sipariş girişini içermektedir.
 
-## Completed Features
+## User Persona
+- **Super Admin:** Tüm sistemi yöneten kullanıcı
+- **Admin:** Restoran ve kurye yönetimi yapan kullanıcı
+- **Restaurant User:** Restoran panelini kullanan işletme sahibi/çalışanı
+- **Courier:** Sipariş teslimatı yapan kurye
 
-### Core Features
-- Admin Panel (Sipariş yönetimi, kurye atama, restoran yönetimi)
-- Restoran Panel (Sipariş görüntüleme, durum güncelleme, manuel sipariş)
-- Kurye Uygulaması (Sipariş kabul, konum takibi, teslimat)
-- Google Places entegrasyonu (adres autocomplete)
-- Web scraping (tgoyemek.com ürün import)
+## Core Requirements
 
-### Restaurant Panel
-- Hazırlık süresi seçimi
-- Gerçek zamanlı güncelleme (2 saniyelik polling)
-- Kurye telefonu ve TVS gösterimi
-- Sipariş detay modalı ve harita takibi
-- Restoran muhasebe sayfası
-- Restaurant permissions sistemi
+### 1. Webhook Integrations (P1 - BLOCKED)
+- Getir, Migros, SepetTakip için webhook tabanlı entegrasyonlar
+- Durum: API anahtarları bekleniyor
 
-### Ürün Bazlı Hazırlık Süreleri
-- Admin panelde "Hazırlık" butonu
-- Standart hazırlık süresi ayarlama
-- Ürün bazlı ekstra süreler
-- Hesaplama: Standart + max(Ürün Süreleri)
+### 2. Restaurant-Specific Collection Settings (COMPLETED)
+- Her restoran için nakit, kredi kartı ve yemek kartı ödemelerinin kim tarafından tahsil edileceğini belirleme
 
-### Platform Entegrasyonları
-- **Adisyo POS** - Sipariş çekme ve senkronizasyon (tek mağaza)
-- **Trendyol Yemek** - Tam entegrasyon (Şubat 2025)
-  - Sipariş çekme ve otomatik senkronizasyon (30 sn)
-  - Sipariş kabul, hazır, yola çıktı, teslim durumları
-  - Restoran açık/kapalı durumu yönetimi
-  - Model 1 (restoran kuryesi) ve Model 2 (Trendyol kuryesi) desteği
-  - **Çoklu mağaza desteği** (Şubat 2025)
-- **Getir Yemek** - Tam entegrasyon (Şubat 2025)
-  - Token bazlı auth (1 saat geçerli, otomatik yenileme)
-  - Sipariş çekme ve otomatik senkronizasyon (30 sn)
-  - verify, prepare, handover, deliver, cancel akışı
-  - Restoran açık/kapalı durumu (15/30/45 dk kapatma)
-  - Getir kuryesi ve restoran kuryesi desteği
-  - **Çoklu mağaza desteği** (Şubat 2025)
-- **Yemeksepeti** - Tam entegrasyon (Şubat 2025)
-  - OAuth 2.0 token yönetimi (2 saat geçerli)
-  - Webhook tabanlı sipariş alma (anlık bildirim)
-  - READY_FOR_PICKUP, DISPATCHED, CANCELLED durumları
-  - Platform ve Vendor teslimat desteği
-  - **Çoklu mağaza desteği** (Şubat 2025)
-- Migros Yemek - Placeholder (Yakında)
+### 3. Restaurant Delivery Feature (COMPLETED)
+- Restoranların siparişi kendi teslimatı olarak işaretlemesi
+- Toggle fonksiyonu ile geri alma özelliği
 
-### Çoklu Mağaza Entegrasyonu (Şubat 2025)
-- Her platform için birden fazla mağaza tanımlama
-- Mağaza ekleme/düzenleme/silme modal'ları
-- Platform-specific credential alanları
-- Test ve senkronizasyon butonları (mağaza bazlı)
-- Mağaza açık/kapalı toggle'ları (Anasayfada, bağlı mağazalar için)
-- API: GET/POST/PUT/DELETE /api/integration-stores/{restaurant_id}
+### 4. Manual Order Modal (COMPLETED)
+- 3 adımlı wizard: Ürün Seçimi → Müşteri Bilgisi → Ödeme Seçimi
+- Manuel tutar girişi
+- Zorunlu telefon numarası
+- Yemek kartı tipi seçimi (Sodexo, Ticket, vb.)
 
-### Tahsilat Ayarları (Collection Settings) - NEW (Şubat 2025)
-- Restoran bazlı ödeme tahsilatı ayarları
-- Nakit, kredi kartı ve yemek kartı için ayrı ayarlar
-- Şirket veya restoran tahsilatı seçeneği
-- Mütabakat ve raporlardan otomatik hariç tutma
-- UI'da farklı renklendirme (siyah renk = restoran tahsilatı)
+### 5. Admin Order Management Enhancements (COMPLETED)
+- Client-side arama çubuğu (ad, adres, telefon, restoran)
+- Çoklu durum filtreleri
+- Sipariş limiti 50'den 200'e artırıldı
+- Durum renkleri düzeltildi
 
-### Restoran Teslimatı (Restaurant Delivery) - NEW (Şubat 2025)
-- Restoranın kendi teslimatını işaretleme özelliği
-- İzin bazlı erişim kontrolü (can_mark_restaurant_delivery)
-- Durum kısıtlamaları (yolda/teslim edilmiş işaretlenemez)
-- 3 dakika kuralı (kurye atandıktan 3dk sonra işaretlenemez)
-- Admin panelinden otomatik gizleme
-- Mütabakat ve raporlardan hariç tutma
-- Özel durum güncelleme dropdown'u (turuncu tema)
+### 6. Meal Card Specificity (COMPLETED)
+- Tüm panellerde (Admin, Restoran, Kurye) spesifik yemek kartı tipi gösterimi
 
-## API Endpoints
+### 7. Scheduled Order Logic (COMPLETED)
+- Hazırlık süresi teslimat zamanından 30 dakika önce başlıyor
+- Geri sayım hem Admin hem Restoran panelinde görünür
 
-### Çoklu Mağaza Yönetimi
-- `GET /api/integration-stores/{restaurant_id}` - Tüm mağazaları listele
-- `GET /api/integration-stores/{restaurant_id}/summary` - Anasayfa için özet
-- `POST /api/integration-stores/{restaurant_id}` - Yeni mağaza ekle
-- `PUT /api/integration-stores/{restaurant_id}/{store_id}` - Mağaza güncelle
-- `DELETE /api/integration-stores/{restaurant_id}/{store_id}` - Mağaza sil
-- `POST /api/integration-stores/{restaurant_id}/{store_id}/test` - Bağlantı test (Trendyol, Getir, Yemeksepeti, Adisyo destekli)
-- `PUT /api/integration-stores/{restaurant_id}/{store_id}/status` - Açık/Kapalı
-- `POST /api/integration-stores/{restaurant_id}/{store_id}/sync` - Senkronize
+## Architecture
 
-### Tahsilat Ayarları (NEW)
-- `GET /api/restaurants/collection-settings/{restaurant_id}` - Tahsilat ayarlarını getir
-- `PUT /api/restaurants/collection-settings/{restaurant_id}` - Tahsilat ayarlarını güncelle
-
-### Restoran Teslimatı (NEW)
-- `POST /api/orders/{order_id}/mark-restaurant-delivery` - Restoran teslimatı olarak işaretle
-- `POST /api/orders/{order_id}/restaurant-update-status` - Restoran teslimatı durumunu güncelle
-
-### Hazırlık Süreleri
-- `PUT /api/restaurants/{id}/preparation-times` - Güncelle
-- `GET /api/restaurants/{id}/preparation-times` - Getir
-
-### Sipariş
-- `GET /api/orders/restaurant/{restaurant_id}` - Restoran siparişleri
-- `PUT /api/orders/{id}/status` - Durum güncelle
-- `POST /api/orders/manual` - Manuel sipariş
-
-### Platform Entegrasyonları (Eski format - backward compatible)
-- `GET /api/restaurant-integrations/{id}/trendyol` - Ayarları getir
-- `PUT /api/restaurant-integrations/{id}/trendyol` - Ayarları güncelle
-- `POST /api/restaurant-integrations/{id}/trendyol/test` - Bağlantı testi
-- `POST /api/restaurant-integrations/{id}/trendyol/sync` - Senkronize et
-- `PUT /api/restaurant-integrations/{id}/trendyol/working-status` - Açık/kapalı
-
-## DB Schema
-
-### restaurants.integration_stores
-```json
-{
-  "integration_stores": [
-    {
-      "id": "uuid",
-      "platform": "trendyol",
-      "name": "Kadıköy Şubesi",
-      "enabled": true,
-      "is_open": true,
-      "connected": false,
-      "credentials": { ... },
-      "last_sync": "...",
-      "last_test": "...",
-      "created_at": "...",
-      "updated_at": "..."
-    }
-  ]
-}
+### Backend Structure
+```
+/app/backend/
+├── routers/
+│   ├── orders.py              # Sipariş CRUD, restaurant delivery, multi-status filter
+│   ├── manual_orders.py       # Manuel sipariş oluşturma
+│   ├── integration_stores.py  # Platform entegrasyonları
+│   └── webhooks/              # Webhook endpoints
+└── services/
+    └── adisyo_service.py      # Adisyo entegrasyonu
 ```
 
-### restaurants.collection_settings
-```json
-{
-  "collection_settings": {
-    "cash_collected_by": "company|restaurant",
-    "card_collected_by": "company|restaurant",
-    "meal_card_collected_by": "company|restaurant"
-  }
-}
+### Frontend Structure
+```
+/app/frontend/src/
+├── components/
+│   ├── admin/
+│   │   └── NewOrderModal.jsx  # 3-step wizard
+│   └── PaymentBadge.jsx       # Ödeme tipi gösterimi
+├── pages/
+│   ├── admin/
+│   │   └── SiparisYonetimiPage.jsx  # Arama, filtre, sipariş yönetimi
+│   ├── restoran/
+│   │   └── RestaurantAnasayfa.jsx   # Restaurant delivery toggle
+│   └── kurye/
+└── utils/
+    └── getPaymentMethod.js    # Payment method helper
 ```
 
-### orders (new fields)
-```json
-{
-  "is_restaurant_delivery": true,
-  "restaurant_delivery_marked_at": "ISO date",
-  "restaurant_delivery_marked_by": "restaurant_id"
-}
-```
+### Database Schema (MongoDB)
+**orders collection:**
+- `is_restaurant_delivery`: Boolean - Restoranın kendi teslimatı mı?
+- `payment_method_detail`: String - Spesifik ödeme tipi (Sodexo, Ticket, vb.)
 
-## Tech Stack
-- Frontend: React, Tailwind CSS, Shadcn UI
-- Backend: FastAPI, Python
-- Database: MongoDB
-- Maps: Google Maps Platform, Leaflet
+## What's Been Implemented (December 2025)
 
-## Known Issues
-- Adisyo API entegrasyonu blocked (API 400 hatası)
-- Background task reliability (kurye app)
-- Mobile sidebar collapsible bug
-- Historical accounting data inconsistency (entity_type migration needed)
+### Session 1-5
+- Restaurant Delivery feature (tam implementasyon + toggle)
+- Manual Order Modal (3-step wizard refactor)
+- Admin sipariş sayfası iyileştirmeleri (arama, filtre)
+- Yemek kartı spesifikliği tüm panellerde
+- Scheduled order logic düzeltmesi
+- JSX syntax hataları düzeltildi
 
-## Backlog
+## Pending Issues
 
-### P0 (Critical)
-- None currently
+### P0 - Critical
+- [ ] Admin arama/filtre doğrulaması (USER VERIFICATION PENDING)
 
-### P1 (High Priority)
-- Native kurye uygulaması (background task reliability için)
-- Adisyo webhook entegrasyonu
-- Raporlar sayfası geliştirmeleri
-- Migros Yemek entegrasyonu (API key bekleniyor)
-- SepetTakip entegrasyonu (API key bekleniyor)
+### P1 - High Priority
+- [ ] Background task reliability (kurye uygulaması)
+- [ ] Mobile sidebar courier list collapsible bug
+- [ ] Webhook entegrasyonları (BLOCKED - API keys)
 
-### P2 (Medium Priority)
-- Chat sistemi
+### P2 - Medium Priority
+- [ ] Historical accounting data migration
+- [ ] Mobile file upload issue
+
+## Future Tasks (Backlog)
+
+### P1
+- Native Courier App geliştirme
+- Chat sistemi yeniden etkinleştirme
+- Adisyo Webhooks (polling → webhook)
+- Yemeksepeti entegrasyonu
+
+### P2
+- Thermal printer integration
+- Order history page refactor
 - Dark mode
-- Historical data migration script
-- Mobile sidebar collapsible bug fix
 
-### P3 (Low Priority)
-- Motosikletim geliştirmeleri
-- Thermal printer entegrasyonu
+### P3
+- Motosikletim feature enhancements
+
+## 3rd Party Integrations
+- Adisyo (polling)
+- Trendyol Yemek (polling)
+- Getir Yemek (webhook - hardcoded key)
+- Yemeksepeti (pending credentials)
+- Migros Yemek (pending encryption keys)
+- SepetTakip (pending API keys)
+- Google Maps Platform
+- react-leaflet, leaflet
+
+## Test Credentials
+- **Super Admin:** username: `onurertas`, password: `125594`
+- **Admin:** username: `testadmin`, password: `123456`
+- **Courier:** phone: `05527370032`, password: `123456`
+- **Restaurant:** username: `testrestaurant`, password: `password`
+
+## Notes
+- User preferred language: Turkish
+- User handles testing ("Testleri sen yapma ben yaparım")
+- Client-side filtering implemented with useMemo for performance
