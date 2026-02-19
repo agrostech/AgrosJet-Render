@@ -145,10 +145,11 @@ async def get_restaurant_report(
             "meal_card_included": settings.get("meal_card_collection", "courier") == "courier"
         }
     
-    # Temel filtre
+    # Temel filtre (restoran teslimatı hariç)
     match_filter = {
         "company_id": company_id,
         "status": "delivered",
+        "is_restaurant_delivery": {"$ne": True},
         "created_at": {
             "$gte": start_datetime,
             "$lte": end_datetime
