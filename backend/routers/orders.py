@@ -570,7 +570,9 @@ async def generate_mock_orders(company_id: str, count: int = 5):
         "streets": [
             "Atatürk Caddesi", "Cumhuriyet Caddesi", "İstiklal Caddesi", "Hürriyet Caddesi",
             "Gazi Caddesi", "Çarşı Caddesi", "İnönü Caddesi", "Hastane Caddesi"
-        ]
+        ],
+        "base_lat": 39.0,  # Default Türkiye merkezi
+        "base_lng": 35.0
     }
     
     # Şirketin şehrini al veya varsayılan kullan
