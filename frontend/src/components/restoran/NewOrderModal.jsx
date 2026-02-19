@@ -105,6 +105,10 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  
+  // Manuel tutar state
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualAmountNote, setManualAmountNote] = useState("");
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
