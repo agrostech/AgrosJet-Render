@@ -166,6 +166,8 @@ export default function RestaurantDashboard() {
         return <RestaurantEntegrasyonlar restaurantId={user?.restaurant_id} />;
       case "urunler":
         return <RestaurantUrunler restaurantId={user?.restaurant_id} />;
+      case "ayarlar":
+        return <RestaurantAyarlar restaurantId={user?.restaurant_id} />;
       default:
         return null;
     }
