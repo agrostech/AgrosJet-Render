@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   ClipboardList, Truck, CheckCircle, XCircle, RefreshCw, 
-  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar, Bike, UserPlus, Eye, Store, Home
+  Package, Timer, TrendingUp, Info, Plus, Phone, Calendar, Bike, UserPlus, Eye, Store, Home, Printer
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
 import OrderDetailModal from "@/components/restoran/OrderDetailModal";
@@ -39,6 +39,7 @@ import {
   formatTime,
   formatCurrency
 } from "@/utils/orderUtils";
+import { printOrder, getPrintSettings } from "@/utils/printUtils";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
