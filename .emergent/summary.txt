@@ -4,36 +4,45 @@ The user's goal is to build and refine a Restaurant Panel for the ShiftJet syste
 Recent development has focused on a series of advanced features and fixes for the restaurant dashboard.
 PRODUCT REQUIREMENTS:
 1.  **Webhook Integrations:** Implement webhook-based integrations for Getir, Migros, and SepetTakip to handle new orders, cancellations, and status updates, moving away from polling mechanisms.
-2.  **Restaurant-Specific Collection Settings:** Implement a feature that allows administrators to define, on a per-restaurant basis, who collects payments for cash, credit card, and meal card transactions (the company or the restaurant itself). If the restaurant collects the payment, those transactions must be excluded from financial reconciliation reports and colored differently in the UI.
-3.  **Restaurant Delivery Feature:** Create a feature enabling restaurants to mark an order as their own delivery. This action should remove the order from the main admin dashboard, un-assign any courier, and exclude all associated costs (delivery fees, commissions) and revenues from company-level financial reports. This feature must be permission-based and have time/status constraints.
-4.  **UI/UX Bug Fixes:**
-    *   Resolve an issue where the sidebar's bottom buttons (toggle, logout) are obscured by the application footer on shorter viewports.
+2.  **Restaurant-Specific Collection Settings:** Implement a feature that allows administrators to define, on a per-restaurant basis, who collects payments for cash, credit card, and meal card transactions (the company or the restaurant itself).
+3.  **Restaurant Delivery Feature:** Create a feature enabling restaurants to mark an order as their own delivery. This action should remove the order from the main admin dashboard, un-assign any courier, and exclude all associated costs and revenues from company-level financial reports.
+4.  **Manual Order Modal Refinements:** Improve the manual phone order creation process with a multi-step wizard, manual price entry, and enhanced payment options.
+5.  **UI/UX Bug Fixes & Enhancements:**
+    *   Resolve an issue where the sidebar's bottom buttons are obscured by the application footer.
     *   Correct a persistent bug where Adisyo payment methods for Smart Ticket were being incorrectly categorized.
+    *   Improve filtering and search capabilities on the admin order management page.
+    *   Display specific meal card types (e.g., Sodexo, Ticket) instead of a generic label across all panels.
+    *   Refine the UI for scheduled orders and the Restaurant Delivery feature.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application now has foundational webhook endpoints for Getir, Migros, and SepetTakip integrations. For Getir, the API key is hardcoded system-wide as requested by the user.
+The Restaurant Delivery feature is fully implemented, tested, and includes a toggle functionality to revert an order back to company delivery. The associated UI has been refined per user feedback.
 
-A comprehensive Tahsilat Ayarları (Collection Settings) feature has been fully implemented. This allows an admin to configure, for each restaurant, whether cash, credit card, and meal card payments are collected by the company or the restaurant. The backend financial reporting logic in both the Mütabakat (Reconciliation) and Raporlar (Reports) sections has been updated to exclude transactions that the restaurant collects itself. The UI reflects this by rendering the excluded amounts in black.
+The manual order creation process has been completely overhauled into a 3-step wizard:
+1.  **Product Selection:** Includes a new option to add a manual amount.
+2.  **Customer Info:** The phone number is now a mandatory field.
+3.  **Payment Selection:** Options are correctly ordered, and a new Yemek Kartı (Meal Card) option has been added. When Yemek Kartı is selected, the user can now specify the type (e.g., Sodexo, Ticket, Manual Input), and this detail is saved with the order.
 
-The Restoran Teslimatı (Restaurant Delivery) feature is largely implemented. The backend API is in place with logic to handle permissions, time/status constraints, and financial exclusion from reports. The restaurant panel UI has been updated with a button to mark orders for restaurant delivery.
+The Admin order management page () has been significantly enhanced. It now features multi-select status filters, a global client-side search bar that filters across multiple data fields, and corrected status color indicators. The backend order fetch limit has been increased from 50 to 200.
 
-Additionally, a critical UI bug preventing access to sidebar buttons has been fixed, and the Adisyo payment mapping for Smart Ticket has been corrected based on user feedback.
+Scheduled order logic has been improved. The preparation time is now calculated to start 30 minutes before the scheduled delivery time, and this countdown is now visible in both the Restaurant and Admin panels.
+
+Crucially, all panels (Admin, Restaurant, Courier) have been updated to display the specific  for meal cards, showing Sodexo, Ticket, etc., instead of a generic Yemek Kartı badge.
 
 **Last working item**:
--   Last item agent was working: The agent was implementing the Restoran Teslimatı (Restaurant Delivery) feature. This involved creating a new permission, building a backend endpoint with complex business rules (time constraints, status checks, permission validation), updating all financial reporting queries to exclude these orders, and adding the necessary UI components and logic to the restaurant and admin panels.
--   Status: IN PROGRESS
+-   Last item agent was working: The agent implemented a comprehensive filtering and search feature on the admin's Aktif Siparişler (Active Orders) page (). This included adding a free-text search input that filters on the client side across multiple order fields (customer name, address, etc.) and improving the status filters. The agent also fixed a JSX syntax error that was preventing the frontend from compiling.
+-   Status: USER VERIFICATION PENDING
 -   Agent Testing Done: N
--   Which testing method agent to use? both
+-   Which testing method agent to use? The user has stated they will conduct testing themselves (Testleri sen yapma ben yaparım.). The agent should only confirm the application compiles and runs.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Test Restaurant Delivery Feature (P0)**
-    -   Description: The newly implemented Restaurant Delivery feature is complex and requires end-to-end testing to verify all business logic, including permissions, time/status constraints, financial exclusion, and UI behavior in both the restaurant and admin panels.
-    -   Status: TESTING PENDING
+-   **Issue 1: Verify New Search and Filter on Admin Page (P0)**
+    -   Description: The user needs to test the newly added client-side search bar and the improved multi-select status filters on the .
+    -   Status: USER VERIFICATION PENDING
 -   **Issue 2: Background Task Reliability (Notifications/Location) (P1)**
-    -   Description: Location tracking and notifications may stop when the courier app is in the background. User has expressed strong interest in moving to a native app to solve this.
+    -   Description: Location tracking and notifications may stop when the courier app is in the background. The user has expressed strong interest in moving to a native app to solve this.
     -   Status: NOT STARTED
 -   **Issue 3: Mobile Sidebar Courier List Collapsible Bug (P1)**
     -   Description: The collapsible courier lists on the mobile sidebar may not expand on click.
@@ -46,7 +55,7 @@ Additionally, a critical UI bug preventing access to sidebar buttons has been fi
 -   **Task 1: Finalize Webhook Integrations (P1)**
     -   Where to resume: The basic webhook endpoints for Getir, Migros, and SepetTakip have been created in  and . However, the internal logic for processing the incoming data is mostly placeholder.
     -   What will be achieved with this? Fully functional, real-time integrations.
-    -   Status: IN PROGRESS
+    -   Status: BLOCKED
     -   Blocked on something:
         -   **Migros:** Requires  and  from Migros to implement the Rijndael AES encryption.
         -   **SepetTakip:** Requires  and  to implement endpoint logic.
@@ -54,7 +63,6 @@ Additionally, a critical UI bug preventing access to sidebar buttons has been fi
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   P0 - Implement Test Connection for Stores: The UI exists, but the backend logic to verify credentials is still missing. This is critical to complete the multi-store feature.
     -   P1 - Complete Yemeksepeti Integration: Awaiting user credentials.
     -   P1 - Implement Other Platform Integrations (e.g., Migros Yemek - logic part).
     -   P1 - Complete Restaurant Panel Placeholder Pages: Implement the  (Reports) page functionality beyond the initial implementation.
@@ -68,10 +76,20 @@ Additionally, a critical UI bug preventing access to sidebar buttons has been fi
     -   P3 - Motosikletim Feature Enhancements.
 
 **Completed work in this session**
--   **Restaurant Collection Settings Feature:** Fully implemented backend logic and frontend UI for managing cash, credit card, and meal card collection settings per restaurant, with corresponding updates to financial reports.
--   **Webhook Integration Scaffolding:** Created placeholder API endpoints and routers for Getir, Migros, and SepetTakip. Hardcoded the Getir API key as requested.
--   **UI Bug Fix:** Resolved an issue where the  buttons were hidden behind the footer by adjusting the flexbox layout.
--   **Payment Mapping Fix:** Corrected the payment mapping logic in  to accurately categorize Smart Ticket and Smart Ticket Online based on user clarification.
+-   **Restaurant Delivery Feature:** Tested via testing agent, added a toggle to unmark orders, and refined UI (icon, color, layout) based on user feedback.
+-   **Test Connection for Stores:** Backend endpoint in  was completed by adding missing platform checks for Yemeksepeti and Adisyo.
+-   **Manual Order Modal:** Completely refactored into a 3-step wizard with manual amount entry, mandatory phone number, and a detailed meal card selection process.
+-   **Admin Order Management Page:**
+    -   Implemented a client-side global search bar.
+    -   Implemented multi-select status filters.
+    -   Increased backend order fetch limit to 200.
+    -   Corrected status filter colors and fixed build-breaking JSX errors.
+-   **Meal Card Specificity:** Updated all panels (Admin, Restaurant, Courier) and the backend to store and display the specific meal card type (e.g., Sodexo, Ticket) instead of a generic label.
+-   **Scheduled Order Logic:** Improved preparation time calculation () and ensured the countdown timer is visible on both Admin and Restaurant panels.
+-   **Bug Fixes:**
+    -   Fixed  in mock order creation script.
+    -   Fixed customer phone number overflow in the restaurant panel UI by adding truncation.
+    -   Corrected the payment method mapping for  vs  in various admin pages.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: Background Task Reliability (Notifications/Location)**: Courier app location tracking is unreliable when the app is in the background.
@@ -87,63 +105,57 @@ Additionally, a critical UI bug preventing access to sidebar buttons has been fi
 
 
 **Key Technical Concepts**
--   **Conditional Financial Reporting:** Backend reporting logic was refactored to dynamically include or exclude transaction types (cash, card, meal card) based on restaurant-specific settings stored in the database.
--   **Permission-Gated Features:** The Restaurant Delivery functionality is controlled by a specific permission that can be granted or revoked per restaurant, demonstrating a role-based access control pattern.
--   **Complex Business Logic in API:** The  endpoint encapsulates multiple business rules, including status checks, time-based constraints (3-minute rule), and permission validation, ensuring data integrity at the API level.
--   **Webhook Scaffolding:** The agent established the foundational API routes and router structure to receive incoming webhooks from multiple third-party services (Getir, Migros, SepetTakip).
--   **State-Driven UI Rendering:** The reconciliation and report tables dynamically change the color of financial data based on the  fetched from the backend, providing clear visual cues to the user.
+-   **Client-Side Filtering/Searching:** Implemented  in  to perform instant search and filtering on the fetched order list, providing a fast user experience without needing extra API calls.
+-   **Multi-Step Wizard UI:** The phone order modal was refactored into a multi-step component using React state to manage the current step, validation, and data collection across the Product, Customer, and Payment stages.
+-   **Extensible Data Models:** Added a  field to the  schema. This allowed for storing richer payment information (e.g., Sodexo) without breaking existing logic, enabling more specific UI representations.
+-   **Conditional Rendering and Logic Toggle:** The Restaurant Delivery button now toggles its function (mark/unmark) and appearance based on the order's  status, calling different API endpoints accordingly.
 
 **key DB schema**
--   **restaurants:**
-    -   : (Object) - Holds the collection policy for different payment types.
-        -   
 -   **orders:**
-    -   : (Boolean) -  if the order is handled entirely by the restaurant.
+    -   : (Boolean) -  if the order is handled by the restaurant.
+    -   : (String, optional) - Stores the specific type of payment, e.g., Sodexo, Ticket, Multinet.
 
 **All files of reference**
--   : Modified to add GET/PUT endpoints for collection settings.
--   : Modified to add the  endpoint and filter .
--   : Heavily modified to exclude transactions based on  and .
--   : Modified to exclude transactions based on  and .
--   : New file for handling Getir webhooks with a hardcoded API key.
--   : New file for handling Migros webhooks (placeholder).
--   : New file for handling SepetTakip API calls (placeholder).
--   : Modified to add the Tahsilat Ayarları button.
--   : New component to manage collection settings.
--   : Modified to add the Yemek Kartı column and conditional text coloring.
--   : Modified to add the Restoran Teslimatı button, confirmation dialog, and associated logic.
--   : Modified to fix the footer overlap bug.
+-   : Heavily modified for client-side search, multi-select filters, UI fixes, and color correction.
+-   : Completely refactored into a 3-step wizard with manual amount, mandatory phone, and detailed meal card selection.
+-   : Modified to implement the Restaurant Delivery toggle functionality and various UI refinements.
+-   : Modified to add the  endpoint, support multi-status filtering, and increase the default fetch limit.
+-   : Modified to accept  and adjust scheduled order preparation time logic.
+-   : Modified to extract and save the specific payment method detail from Adisyo.
+-   : Updated to display  if available.
+-   : Updated to display specific meal card types.
+-   Multiple admin pages (, , ) were updated to correctly display the detailed meal card information.
 
 **key api endpoints**
--   : Get collection settings for a restaurant.
--   : Update collection settings.
--   : Mark an order as a restaurant delivery.
--   : New Getir webhook endpoints.
--   : New Migros webhook endpoints.
--   : New SepetTakip endpoints.
+-   : Reverts an order from Restaurant Delivery back to a company-managed delivery.
+-   : Endpoint modified to accept a list of statuses for filtering (e.g., ) and a higher default  of 200.
 
 **Critical Info for New Agent**
 -   **You must communicate in Turkish.**
--   The immediate priority is to **thoroughly test the Restaurant Delivery feature**. It has many complex rules and financial implications that must be verified.
--   The webhook integrations (Migros, SepetTakip) are blocked pending API keys and secrets from the third parties. Do not proceed with implementation until the user provides these. The logic for Migros's  will be a key task once the secret is available.
--   The **Test Connection task** from the previous handoff is still a high-priority (P0) item required to complete the multi-store integration feature. It has been repeatedly postponed due to new user requests.
+-   The user has explicitly taken over testing responsibilities (Testleri sen yapma ben yaparım). Your role is to implement features as requested, ensure the application compiles and runs, and then clearly summarize the changes for the user to verify. Do not run extensive tests unless a bug is reported.
+-   The last major change was a significant client-side refactor of  to include search and filtering. Be aware that the filtering logic is now handled in the frontend using .
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requests to apply the collection settings logic to the Reports tab as well, and to simplify the modal's UI. (Status: **Completed**)
-2.  **User:** Asks if meal cards were considered in the collection settings feature. (Status: **Addressed**)
-3.  **User:** Confirms meal cards should be a separate option in collection settings, requiring new UI columns and backend logic. (Status: **Completed**)
-4.  **User:** Introduces the new Restaurant Delivery feature concept. (Status: **Addressed**)
-5.  **Agent:** Summarizes understanding of the Restaurant Delivery feature and asks for confirmation. (Status: **Addressed**)
-6.  **User:** Confirms the understanding and adds three critical rules: it must be permission-based, has a 3-minute time limit after courier assignment, and cannot be used on On the way or Delivered orders. (Status: **Completed**)
+1.  **User:** Requests that the specific meal card type (e.g., Sodexo) be shown instead of a generic MEAL_CARD label. (Status: **Completed**)
+2.  **User:** Reiterates that the specific meal card type should be visible in all panels (Courier, Admin, Restaurant). (Status: **Completed**)
+3.  **User:** Reports that the admin order management page only shows a maximum of 50 orders. (Status: **Completed**)
+4.  **User:** Requests the ability to select multiple status filters simultaneously on the active orders page. (Status: **Completed**)
+5.  **User:** Reports that the colors for the status filters are incorrect. (Status: **Completed**)
+6.  **User:** Suggests improving the filter UI and adding a global search bar that searches all columns. (Status: **Completed**)
+7.  **User:** Proposes refactoring the phone order modal into a 3-step wizard and states they will handle testing from now on. (Status: **Completed**)
+8.  **User:** Provides a detailed list of requirements for the new modal and other features, including manual amount entry, mandatory phone number, payment method order, fixing payment display bugs, and adjusting scheduled order logic. (Status: **Completed**)
+9.  **User:** Requests UI tweaks for the Restaurant Delivery button (change icon, remove color/text) and a fix for overflowing customer phone numbers. (Status: **Completed**)
+10. **User:** Requests the ability to undo a Restaurant Delivery assignment by clicking the button again. (Status: **Completed**)
 
 **Project Health Check:**
 -   **Broken:**
     -   Background Task Reliability for the courier app.
     -   Mobile Sidebar Courier List collapse functionality.
 -   **Mocked:**
-    -   The logic within the Migros and SepetTakip webhook endpoints is currently placeholder.
+    -   The logic within the Migros and SepetTakip webhook endpoints is currently placeholder, awaiting API keys.
 -   **Technical Debt:**
-    -   Historical data in the  collection needs a migration script.
+    -   A one-time migration script for historical  data is still needed.
+    -    now contains significant client-side logic; it could be a candidate for refactoring into smaller hooks and components.
 
 **3rd Party Integrations**
 -    (via polling)
@@ -156,7 +168,7 @@ Additionally, a critical UI bug preventing access to sidebar buttons has been fi
 -   , 
 
 **Testing status**
--   Testing agent used after significant changes: NO
+-   Testing agent used after significant changes: YES (for Restaurant Delivery feature initially)
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
 -   Known regressions: None
@@ -168,4 +180,4 @@ Additionally, a critical UI bug preventing access to sidebar buttons has been fi
 -   **Restaurant User:** username: , password:  (for restaurant_id: )
 
 **What agent forgot to execute**
-The agent correctly prioritized new, urgent user requests over older, pending tasks from the previous handoff summary. The most significant postponed task is the **Test Connection functionality for integration stores**, which remains a P0 item to fully complete the multi-store feature.</analysis>
+The agent has successfully addressed all user requests from the current session. All pending tasks are either blocked on external dependencies (API keys) or are lower-priority items from the original handoff that were superseded by the user's more recent, detailed requests.</analysis>
