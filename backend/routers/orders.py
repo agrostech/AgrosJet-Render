@@ -425,7 +425,8 @@ class ManualOrderCreate(BaseModel):
     delivery_address: str
     delivery_location: Optional[DeliveryLocation] = None  # Koordinatlar
     items: List[ManualOrderItem]
-    payment_method: str  # cash, card, online
+    payment_method: str  # cash, card, online, meal_card
+    payment_method_detail: Optional[str] = None  # Yemek kartı türü (Ticket, Sodexo vb.)
     notes: Optional[str] = None
     is_scheduled: bool = False
     scheduled_time: Optional[str] = None  # ISO datetime string
