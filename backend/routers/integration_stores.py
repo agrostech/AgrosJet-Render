@@ -36,6 +36,8 @@ from services.getir_service import (
     test_getir_connection,
     update_getir_restaurant_status
 )
+from services.yemeksepeti_service import test_yemeksepeti_connection
+from services.adisyo_service import test_adisyo_connection
 
 router = APIRouter(prefix="/api/integration-stores", tags=["Entegrasyon Mağazaları"])
 
