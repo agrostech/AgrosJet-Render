@@ -555,6 +555,23 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     focusMapOnCourier(courier);
   }, [focusMapOnCourier]);
 
+  // Onay gerektiren durum değişikliği kontrolü
+  const handleStatusChangeRequest = (orderId, newStatus, preparationTime = null, orderNumber = null) => {
+    // Teslim edildi veya iptal edildi için onay iste
+    if (newStatus === 'delivered' || newStatus === 'cancelled') {
+      setConfirmStatusModal({ open: true, orderId, newStatus, orderNumber, preparationTime });
+    } else {
+      handleUpdateStatus(orderId, newStatus, preparationTime);
+    }
+  };
+
+  // Onaylanan durum değişikliği
+  const handleConfirmStatusChange = () => {
+    const { orderId, newStatus, preparationTime } = confirmStatusModal;
+    handleUpdateStatus(orderId, newStatus, preparationTime);
+    setConfirmStatusModal({ open: false, orderId: null, newStatus: null, orderNumber: null });
+  };
+
   const handleUpdateStatus = async (orderId, newStatus, preparationTime = null) => {
     try {
       const payload = { status: newStatus, admin_name: adminName || "Admin" };
@@ -585,6 +602,13 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         }
         return order;
       }));
+      
+      // Başarı mesajı
+      if (newStatus === 'delivered') {
+        toast.success("Sipariş teslim edildi olarak işaretlendi");
+      } else if (newStatus === 'cancelled') {
+        toast.success("Sipariş iptal edildi olarak işaretlendi");
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || "Durum güncellenemedi");
     }
