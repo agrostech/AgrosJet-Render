@@ -220,7 +220,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
         order.customer_phone,
         order.courier_name,
         order.delivery_address,
-        order.payment_method === 'cash' ? 'nakit' : order.payment_method === 'card' ? 'kart' : 'online',
+        order.payment_method === 'cash' ? 'nakit' : order.payment_method === 'card' ? 'kart' : order.payment_method === 'meal_card' ? 'yemek kartı' : 'online',
         order.total_amount?.toString(),
         order.order_number,
         order.cancellation_reason
