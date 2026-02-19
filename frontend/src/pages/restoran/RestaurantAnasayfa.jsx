@@ -401,8 +401,28 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
                             <td className="p-2">{getPaymentBadge(order.payment_method)}</td>
                             <td className="p-2">
-                              {/* Kurye atandıysa veya teslim/iptal ise dropdown pasif */}
-                              {order.courier_id || order.status === 'delivered' || order.status === 'cancelled' ? (
+                              {/* Restoran teslimatı siparişleri için özel dropdown */}
+                              {order.is_restaurant_delivery ? (
+                                <Select 
+                                  value={order.status} 
+                                  onValueChange={(newValue) => handleRestaurantDeliveryStatus(order.id, newValue)}
+                                  disabled={order.status === 'delivered' || order.status === 'cancelled'}
+                                >
+                                  <SelectTrigger className="bg-orange-100 text-orange-700 font-medium text-xs px-2 py-0.5 h-7 border border-orange-300/50 w-[135px] shadow-sm">
+                                    <SelectValue>
+                                      {ORDER_STATUSES[order.status]?.label || order.status}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <div className="px-2 py-1 text-xs font-semibold text-orange-700 bg-orange-50">Restoran Teslimatı</div>
+                                    <SelectItem value="preparing" className="text-xs">Hazırlanıyor</SelectItem>
+                                    <SelectItem value="confirmed" className="text-xs">Onaylandı</SelectItem>
+                                    <SelectItem value="on_the_way" className="text-xs">Yolda</SelectItem>
+                                    <SelectItem value="delivered" className="text-xs">Teslim Edildi</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : order.courier_id || order.status === 'delivered' || order.status === 'cancelled' ? (
+                                /* Kurye atandıysa veya teslim/iptal ise dropdown pasif */
                                 <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center opacity-70 whitespace-nowrap min-w-[135px]`}>
                                   {statusInfo.label}
                                 </span>
