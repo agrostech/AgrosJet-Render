@@ -274,10 +274,12 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setSelectedItems(selectedItems.filter((item) => item.product_id !== productId));
   };
 
-  // Calculate total
+  // Calculate total (ürünler + manuel tutar)
   const totalAmount = useMemo(() => {
-    return selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  }, [selectedItems]);
+    const productsTotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const manualTotal = parseFloat(manualAmount) || 0;
+    return productsTotal + manualTotal;
+  }, [selectedItems, manualAmount]);
 
   // Format price
   const formatPrice = (price) => {
