@@ -52,10 +52,13 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const [addressDetails, setAddressDetails] = useState(""); // Apartman, kat, daire
   const [deliveryLocation, setDeliveryLocation] = useState(null); // {lat, lng}
   const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  
+  // Payment selection step
+  const [showPaymentStep, setShowPaymentStep] = useState(false);
 
   // Products state
   const [products, setProducts] = useState({ categories: [], products: [] });
