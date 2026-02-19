@@ -459,7 +459,13 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               )}
                             </td>
                             <td className="p-2">
-                              {order.courier_name ? (
+                              {/* Restoran teslimatı ise "Restoran" göster */}
+                              {order.is_restaurant_delivery ? (
+                                <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded font-medium flex items-center gap-1 w-fit">
+                                  <Store className="w-3 h-3" />
+                                  Restoran
+                                </span>
+                              ) : order.courier_name ? (
                                 <div className="text-xs">
                                   <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium flex items-center gap-1 w-fit">
                                     <Bike className="w-3 h-3" />
