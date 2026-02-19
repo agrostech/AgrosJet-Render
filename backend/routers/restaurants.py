@@ -243,10 +243,10 @@ async def get_collection_settings(restaurant_id: str):
     """Restoran tahsilat ayarlarını getir"""
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "collection_settings": 1}
+        {"_id": 0, "id": 1, "collection_settings": 1}
     )
     
-    if not restaurant:
+    if not restaurant or "id" not in restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     settings = restaurant.get("collection_settings", {})
