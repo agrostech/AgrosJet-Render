@@ -1,0 +1,140 @@
+{
+  "summary": "Tested 'Restoran Teslimatı' (Restaurant Delivery) feature for ShiftJet Restaurant Panel. All core features working correctly: permission control, mark-restaurant-delivery endpoint, restaurant-update-status endpoint, status restrictions, order list filtering, and frontend UI components.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "note": "HTML validation warning in AlertDialogDescription: <ul> cannot be nested inside <p>. This is a minor hydration warning but doesn't affect functionality.",
+        "location": "RestaurantAnasayfa.jsx line 589-591"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_restaurant_delivery.py",
+    "/app/test_reports/pytest/restaurant_delivery_results.xml"
+  ],
+  "action_items": [
+    "MINOR: Fix HTML nesting warning - change <ul> inside AlertDialogDescription to be outside the <p> tag or use a different element structure"
+  ],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_restaurant_delivery.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 passed, 2 skipped due to no test data for delivered/on_the_way orders)",
+    "frontend": "100%"
+  },
+  "tested_features": {
+    "backend_tests": {
+      "permission_check": {
+        "status": "PASS",
+        "details": [
+          "✓ can_mark_restaurant_delivery permission defined in PERMISSION_DEFINITIONS",
+          "✓ GET /api/restaurant-permissions/{restaurant_id} returns permission status",
+          "✓ PUT /api/restaurant-permissions/{restaurant_id} toggles permission",
+          "✓ Marking without permission returns 403: 'Restoran teslimatı işaretleme izniniz yok'"
+        ]
+      },
+      "mark_restaurant_delivery_endpoint": {
+        "status": "PASS",
+        "details": [
+          "✓ POST /api/orders/{order_id}/mark-restaurant-delivery?restaurant_id=xxx",
+          "✓ Returns 200 with success message when permission enabled",
+          "✓ Returns 403 when permission disabled",
+          "✓ Returns 404 for non-existent order",
+          "✓ Returns 403 when order belongs to different restaurant",
+          "✓ Returns 400 if order already marked as restaurant delivery"
+        ]
+      },
+      "restaurant_update_status_endpoint": {
+        "status": "PASS",
+        "details": [
+          "✓ POST /api/orders/{order_id}/restaurant-update-status?restaurant_id=xxx&new_status=yyy",
+          "✓ Allowed statuses: preparing, confirmed, on_the_way, delivered",
+          "✓ Returns 400 for non-restaurant delivery orders",
+          "✓ Returns 400 for invalid status values"
+        ]
+      },
+      "order_list_filtering": {
+        "status": "PASS",
+        "details": [
+          "✓ GET /api/orders/{company_id}?include_restaurant_delivery=false excludes restaurant delivery orders",
+          "✓ GET /api/orders/{company_id}?include_restaurant_delivery=true includes all orders",
+          "✓ GET /api/orders/restaurant/{restaurant_id} always shows all orders including restaurant delivery"
+        ]
+      },
+      "three_minute_rule": {
+        "status": "IMPLEMENTED",
+        "details": [
+          "✓ Code verifies elapsed time > 180 seconds since assigned_at",
+          "✓ Only applies when courier_id exists AND status is 'confirmed'",
+          "✓ Returns 400: 'Kurye atandıktan 3 dakika geçtiği için restoran teslimatı olarak işaretlenemez'"
+        ]
+      }
+    },
+    "frontend_tests": {
+      "restaurant_delivery_button": {
+        "status": "PASS",
+        "details": [
+          "✓ Store icon button (lucide-store) appears in last column for eligible orders",
+          "✓ Button only visible when can_mark_restaurant_delivery=true",
+          "✓ Button hidden for already marked orders",
+          "✓ Tooltip shows 'Restoran Teslimatı'"
+        ]
+      },
+      "confirmation_dialog": {
+        "status": "PASS",
+        "details": [
+          "✓ AlertDialog opens on button click",
+          "✓ Title: 'Restoran Teslimatı' with Store icon",
+          "✓ Description lists consequences (4 bullet points)",
+          "✓ İptal (Cancel) and Onayla (Confirm) buttons present",
+          "✓ Cancel closes dialog without action",
+          "✓ Confirm marks order and shows success toast"
+        ]
+      },
+      "restaurant_delivery_status_dropdown": {
+        "status": "PASS",
+        "details": [
+          "✓ Orange background dropdown (bg-orange-100) for restaurant delivery orders",
+          "✓ 'Restoran Teslimatı' header in dropdown options",
+          "✓ Options: Hazırlanıyor, Onaylandı, Yolda, Teslim Edildi",
+          "✓ Status change shows success toast: 'Sipariş durumu güncellendi'"
+        ]
+      },
+      "restoran_badge": {
+        "status": "PASS",
+        "details": [
+          "✓ 'Restoran' badge with Store icon in Kurye column for marked orders",
+          "✓ 'R.Tes.' badge in last column (outline orange style)"
+        ]
+      }
+    }
+  },
+  "test_credentials": {
+    "restaurant_user": {
+      "username": "testrestaurant",
+      "password": "password",
+      "restaurant_id": "rest_c9c5cb06",
+      "restaurant_name": "Test Restoran"
+    },
+    "secondary_test_restaurant": {
+      "restaurant_id": "97846e57-e24c-4e10-bb64-7063b98871af",
+      "restaurant_name": "Test Restoran",
+      "note": "Used for backend API tests"
+    }
+  },
+  "seed_data_creation": "Orders marked as restaurant delivery during testing. Permission enabled for both test restaurants.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Restaurant Delivery (Restoran Teslimatı) feature fully tested. Both backend API and frontend UI working correctly. Permission can be toggled via admin panel. Test orders exist with is_restaurant_delivery=true flag.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
