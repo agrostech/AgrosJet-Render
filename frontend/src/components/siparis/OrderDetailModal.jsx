@@ -210,6 +210,20 @@ export function OrderDetailModal({
           
           {/* Detaylar Sekmesi */}
           <TabsContent value="details" className="flex-1 overflow-y-auto mt-4 space-y-4">
+            {/* Sipariş No ve Doğrulama Kodu */}
+            <div className="flex items-center justify-between text-sm">
+              {order.order_number && (
+                <div className="text-muted-foreground">
+                  Sipariş No: <span className="font-medium text-slate-700">{order.order_number}</span>
+                </div>
+              )}
+              {order.verification_code && (
+                <div className="px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-bold text-xs">
+                  Doğrulama: {order.verification_code}
+                </div>
+              )}
+            </div>
+
             {/* Restaurant */}
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
               <Store className="w-5 h-5 text-red-500 mt-0.5" />
