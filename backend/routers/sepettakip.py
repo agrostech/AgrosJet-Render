@@ -155,10 +155,10 @@ async def verify_restaurant_credentials(username: str, password: str) -> dict:
     if not restaurant:
         return {"valid": False, "restaurant": None, "error": "Restoran bulunamadı"}
     
-    # Şifre kontrolü - farklı alanlarda olabilir
+    # Şifre kontrolü - önce sepettakip_password, sonra credentials
     stored_password = (
-        restaurant.get("sepettakip_credentials", {}).get("password") or 
-        restaurant.get("sepettakip_password")
+        restaurant.get("sepettakip_password") or
+        restaurant.get("sepettakip_credentials", {}).get("password")
     )
     
     if stored_password and stored_password != password:
