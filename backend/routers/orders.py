@@ -1372,6 +1372,47 @@ async def check_preparation_times(company_id: str):
     return len(expired_orders)
 
 
+async def check_preparation_times_by_restaurant(restaurant_id: str):
+    """Restoran bazlı: Hazırlık süresi dolan siparişleri otomatik 'Hazır' durumuna güncelle"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Hazırlanıyor durumunda ve hazırlık süresi dolmuş siparişleri bul
+    expired_orders = await db.orders.find(
+        {
+            "restaurant_id": restaurant_id,
+            "status": "preparing",
+            "preparation_end_at": {"$lte": now}
+        },
+        {"_id": 0, "id": 1, "order_number": 1}
+    ).to_list(100)
+    
+    # Her birini güncelle ve history'ye ekle
+    for order in expired_orders:
+        history_entry = {
+            "status": "ready",
+            "label": "Hazır",
+            "timestamp": now,
+            "note": "Hazırlık süresi doldu",
+            "actor_type": "auto",
+            "actor_name": "Otomatik"
+        }
+        
+        await db.orders.update_one(
+            {"id": order["id"]},
+            {
+                "$set": {
+                    "status": "ready",
+                    "updated_at": now
+                },
+                "$push": {"status_history": history_entry}
+            }
+        )
+        
+        logger.info(f"Sipariş hazır durumuna güncellendi (bekleme süresi doldu): {order.get('order_number')}")
+    
+    return len(expired_orders)
+
+
 @router.get("/restaurant/{restaurant_id}/available-couriers")
 async def get_available_couriers_for_restaurant(restaurant_id: str):
     """
