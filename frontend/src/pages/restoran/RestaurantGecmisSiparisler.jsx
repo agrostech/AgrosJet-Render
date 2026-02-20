@@ -94,21 +94,26 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     });
   };
 
-  // Fetch couriers
+  // Fetch couriers and company name
   useEffect(() => {
-    const fetchCouriers = async () => {
+    const fetchData = async () => {
       if (!restaurantId) return;
       try {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         if (user.company_id) {
-          const res = await axios.get(`${API}/companies/${user.company_id}/couriers`);
-          setCouriers(res.data || []);
+          // Fetch couriers
+          const couriersRes = await axios.get(`${API}/companies/${user.company_id}/couriers`);
+          setCouriers(couriersRes.data || []);
+          
+          // Fetch company name
+          const companyRes = await axios.get(`${API}/companies/${user.company_id}`);
+          setCompanyName(companyRes.data?.name || "Şirket");
         }
       } catch (err) {
-        console.error("Couriers fetch error:", err);
+        console.error("Data fetch error:", err);
       }
     };
-    fetchCouriers();
+    fetchData();
   }, [restaurantId]);
 
   // Initial load
