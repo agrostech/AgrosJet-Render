@@ -1329,6 +1329,164 @@ async def get_cancel_reasons_by_platform(source: str):
     }
 
 
+# =============================================================================
+# MERKEZİ SİPARİŞ LİSTELEME ENDPOİNT'İ (v2)
+# Tüm paneller için tek endpoint - eski endpoint'ler backward compatibility için duruyor
+# =============================================================================
+
+@router.get("/v2/list")
+async def get_orders_unified(
+    panel: str,  # admin | restaurant | courier
+    company_id: Optional[str] = None,
+    restaurant_id: Optional[str] = None,
+    courier_id: Optional[str] = None,
+    status: Optional[str] = None,  # pending,preparing,ready veya "active"
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    source: Optional[str] = None,  # getir,trendyol
+    include_restaurant_delivery: bool = False,
+    limit: int = 200,
+    offset: int = 0
+):
+    """
+    Merkezi sipariş listeleme endpoint'i - Tüm paneller için.
+    
+    Args:
+        panel: admin | restaurant | courier (zorunlu)
+        company_id: Şirket ID (admin için zorunlu)
+        restaurant_id: Restoran ID (restaurant için zorunlu)
+        courier_id: Kurye ID (courier için zorunlu)
+        status: Durum filtresi - "active" veya virgülle ayrılmış durumlar
+        date_from: Başlangıç tarihi (ISO format)
+        date_to: Bitiş tarihi (ISO format)
+        source: Platform filtresi (getir,trendyol)
+        include_restaurant_delivery: Restoran teslimatı siparişlerini dahil et
+        limit: Maksimum kayıt sayısı
+        offset: Sayfalama için offset
+    """
+    from datetime import datetime, timezone, timedelta
+    
+    # Panel doğrulama
+    if panel not in ["admin", "restaurant", "courier"]:
+        raise HTTPException(status_code=400, detail="Geçersiz panel. İzin verilenler: admin, restaurant, courier")
+    
+    # Panel bazlı zorunlu parametreler
+    if panel == "admin" and not company_id:
+        raise HTTPException(status_code=400, detail="Admin paneli için company_id zorunlu")
+    if panel == "restaurant" and not restaurant_id:
+        raise HTTPException(status_code=400, detail="Restoran paneli için restaurant_id zorunlu")
+    if panel == "courier" and not courier_id:
+        raise HTTPException(status_code=400, detail="Kurye paneli için courier_id zorunlu")
+    
+    # Hazırlık süresi kontrolü (admin ve restaurant için)
+    if panel == "admin" and company_id:
+        await check_preparation_times(company_id=company_id)
+    elif panel == "restaurant" and restaurant_id:
+        await check_preparation_times(restaurant_id=restaurant_id)
+    
+    # Query oluştur
+    query = {}
+    
+    # Panel bazlı temel filtreler
+    if panel == "admin":
+        query["company_id"] = company_id
+        if not include_restaurant_delivery:
+            query["is_restaurant_delivery"] = {"$ne": True}
+    elif panel == "restaurant":
+        query["restaurant_id"] = restaurant_id
+    elif panel == "courier":
+        query["courier_id"] = courier_id
+        # Kurye için varsayılan: sadece aktif siparişler
+        if not status:
+            status = "active"
+    
+    # Status filtresi
+    if status:
+        if status == "active":
+            query["status"] = {"$nin": ["delivered", "cancelled"]}
+        elif "," in status:
+            status_list = [s.strip() for s in status.split(",") if s.strip()]
+            if status_list:
+                query["status"] = {"$in": status_list}
+        else:
+            query["status"] = status
+    else:
+        # Restaurant paneli varsayılan: Bugün + Aktif
+        if panel == "restaurant":
+            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            query["$or"] = [
+                {"status": {"$nin": ["delivered", "cancelled"]}},
+                {"created_at": {"$gte": today_start.isoformat()}}
+            ]
+    
+    # Tarih filtresi
+    if date_from or date_to:
+        date_query = {}
+        if date_from:
+            date_query["$gte"] = date_from
+        if date_to:
+            date_query["$lte"] = date_to
+        if date_query:
+            query["created_at"] = date_query
+    
+    # Platform filtresi
+    if source:
+        if "," in source:
+            source_list = [s.strip() for s in source.split(",") if s.strip()]
+            query["source"] = {"$in": source_list}
+        else:
+            query["source"] = source
+    
+    # Ek filtreler (cross-panel)
+    if panel == "admin":
+        if courier_id:
+            query["courier_id"] = courier_id
+        if restaurant_id:
+            query["restaurant_id"] = restaurant_id
+    
+    # Sıralama
+    sort_field = "assigned_at" if panel == "courier" else "created_at"
+    sort_order = 1 if panel == "courier" else -1  # Kurye için en eski önce
+    
+    # Sorgu çalıştır
+    orders = await db.orders.find(
+        query, 
+        {"_id": 0}
+    ).sort(sort_field, sort_order).skip(offset).to_list(limit)
+    
+    # Kurye bilgilerini zenginleştir (restaurant ve admin paneli için)
+    if panel in ["restaurant", "admin"]:
+        courier_ids = list(set(o.get("courier_id") for o in orders if o.get("courier_id")))
+        
+        if courier_ids:
+            couriers = await db.couriers.find(
+                {"id": {"$in": courier_ids}},
+                {"_id": 0, "id": 1, "phone": 1, "current_location": 1, "name": 1}
+            ).to_list(100)
+            
+            courier_map = {c["id"]: c for c in couriers}
+            
+            for order in orders:
+                if order.get("courier_id") and order["courier_id"] in courier_map:
+                    courier = courier_map[order["courier_id"]]
+                    order["courier_phone"] = courier.get("phone")
+                    order["courier_location"] = courier.get("current_location")
+                    if not order.get("courier_name"):
+                        order["courier_name"] = courier.get("name")
+    
+    # Toplam sayı (pagination için)
+    total_count = await db.orders.count_documents(query)
+    
+    return {
+        "success": True,
+        "orders": orders,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset,
+        "panel": panel
+    }
+
+
 @router.get("/{company_id}")
 async def get_orders(
     company_id: str, 
