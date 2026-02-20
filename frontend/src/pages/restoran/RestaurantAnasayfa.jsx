@@ -84,7 +84,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     if (!orders || orders.length === 0) return;
     
     const printSettings = getPrintSettings(restaurantId);
-    const qzSettings = getQzSettings(restaurantId);
+    const localSettings = getLocalPrintSettings(restaurantId);
     const currentOrderIds = new Set(orders.map(o => o.id));
     
     // İlk yüklemede sadece ID'leri kaydet, yazdırma
@@ -94,8 +94,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       return;
     }
     
-    // Hem QZ Tray hem tarayıcı otomatik yazdırma kapalıysa çık
-    if (!qzSettings.enabled && !printSettings.autoPrint) {
+    // Hem yerel sunucu hem tarayıcı otomatik yazdırma kapalıysa çık
+    if (!localSettings.enabled && !printSettings.autoPrint) {
       previousOrderIdsRef.current = currentOrderIds;
       return;
     }
@@ -108,13 +108,12 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       // Sadece pending veya preparing durumundaki siparişleri yazdır
       if (order.status === 'pending' || order.status === 'preparing') {
         
-        // QZ Tray ile sessiz yazdırma (öncelikli)
-        if (qzSettings.enabled && qzSettings.printerName) {
-          const result = await silentPrint(
+        // Yerel sunucu ile sessiz yazdırma (öncelikli)
+        if (localSettings.enabled && localSettings.printerName) {
+          const result = await printOrderLocal(
             order,
-            qzSettings.printerName,
-            qzSettings.paperSize,
-            qzSettings.useRawMode
+            localSettings.printerName,
+            localSettings.paperSize
           );
           
           if (result.success) {
@@ -122,8 +121,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               icon: <Printer className="w-4 h-4" />,
             });
           } else {
-            // QZ Tray başarısız olduysa tarayıcı yazdırmayı dene
-            console.error("QZ Tray yazdırma hatası:", result.error);
+            // Yerel sunucu başarısız olduysa tarayıcı yazdırmayı dene
+            console.error("Yerel sunucu yazdırma hatası:", result.error);
             if (printSettings.autoPrint) {
               printOrder(order, printSettings.paperSize);
               toast.info(`Yeni sipariş (tarayıcı): #${order.order_number}`, {
@@ -132,7 +131,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             }
           }
         } 
-        // QZ Tray yoksa tarayıcı yazdırma
+        // Yerel sunucu yoksa tarayıcı yazdırma
         else if (printSettings.autoPrint) {
           printOrder(order, printSettings.paperSize);
           toast.info(`Yeni sipariş yazdırıldı: #${order.order_number}`, {
@@ -158,15 +157,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   // Manuel yazdırma fonksiyonu
   const handlePrintOrder = async (order) => {
     const printSettings = getPrintSettings(restaurantId);
-    const qzSettings = getQzSettings(restaurantId);
+    const localSettings = getLocalPrintSettings(restaurantId);
     
-    // QZ Tray ile sessiz yazdırma (öncelikli)
-    if (qzSettings.enabled && qzSettings.printerName) {
-      const result = await silentPrint(
+    // Yerel sunucu ile sessiz yazdırma (öncelikli)
+    if (localSettings.enabled && localSettings.printerName) {
+      const result = await printOrderLocal(
         order,
-        qzSettings.printerName,
-        qzSettings.paperSize,
-        qzSettings.useRawMode
+        localSettings.printerName,
+        localSettings.paperSize
       );
       
       if (result.success) {
