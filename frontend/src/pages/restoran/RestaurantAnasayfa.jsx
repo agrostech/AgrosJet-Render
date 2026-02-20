@@ -258,9 +258,21 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   };
 
   // Durum değişikliği - onay gerektiren durumlar için modal aç
-  const handleStatusChange = (order, newStatus) => {
+  const handleStatusChange = async (order, newStatus) => {
     // delivered ve cancelled için onay modalı aç
     if (newStatus === 'delivered' || newStatus === 'cancelled') {
+      // İptal için platform bazlı sebepleri çek
+      if (newStatus === 'cancelled') {
+        try {
+          const res = await axios.get(`${API}/orders/${order.id}/cancel-reasons`);
+          setCancelReasons(res.data.reasons || []);
+          setSelectedCancelReason("");
+          setCancelNote("");
+        } catch (err) {
+          console.error("İptal sebepleri yüklenemedi:", err);
+          setCancelReasons([]);
+        }
+      }
       setStatusConfirmModal({ open: true, order, status: newStatus });
     } else {
       handleRestaurantDeliveryStatus(order.id, newStatus);
@@ -270,9 +282,37 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   // Onay modalından durum değişikliğini onayla
   const confirmStatusChange = () => {
     if (statusConfirmModal.order && statusConfirmModal.status) {
-      handleRestaurantDeliveryStatus(statusConfirmModal.order.id, statusConfirmModal.status);
+      // İptal durumunda sebep ve notu da gönder
+      if (statusConfirmModal.status === 'cancelled') {
+        handleRestaurantDeliveryStatusWithCancel(
+          statusConfirmModal.order.id, 
+          statusConfirmModal.status,
+          selectedCancelReason,
+          cancelNote
+        );
+      } else {
+        handleRestaurantDeliveryStatus(statusConfirmModal.order.id, statusConfirmModal.status);
+      }
     }
     setStatusConfirmModal({ open: false, order: null, status: null });
+    setSelectedCancelReason("");
+    setCancelNote("");
+  };
+
+  // İptal sebebi ile durum güncelle
+  const handleRestaurantDeliveryStatusWithCancel = async (orderId, status, cancelReasonId, cancelNoteText) => {
+    try {
+      const payload = { 
+        status,
+        cancel_reason_id: cancelReasonId || undefined,
+        cancel_note: cancelNoteText || undefined
+      };
+      await axios.put(`${API}/orders/${orderId}/status`, payload);
+      toast.success("Sipariş iptal edildi");
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İptal işlemi başarısız");
+    }
   };
 
   // Restoran teslimatı işaretlenebilir mi kontrol et
