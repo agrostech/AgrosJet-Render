@@ -340,8 +340,8 @@ export default function RestaurantAyarlar({ restaurantId }) {
                   </ol>
                   <div className="mt-3 flex gap-3">
                     <a 
-                      href="/shiftjet_print_server_tray.py" 
-                      download="shiftjet_print_server_tray.py"
+                      href="/shiftjet_print_server_systray.py" 
+                      download="shiftjet_print_server_systray.py"
                       className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-blue-700"
                     >
                       <Download className="w-3 h-3" />
