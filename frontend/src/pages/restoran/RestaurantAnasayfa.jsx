@@ -558,14 +558,39 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
             <p className="text-sm text-muted-foreground">Güncel sipariş durumu</p>
           </div>
-          <Button 
-            onClick={() => setNewOrderModalOpen(true)} 
-            className="bg-primary hover:bg-primary/90"
-            data-testid="new-order-btn"
-          >
-            <Phone className="w-4 h-4 mr-2" />
-            Telefon Siparişi
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Mock Sipariş Butonları */}
+            <Button 
+              onClick={handleGenerateMock}
+              variant="outline"
+              size="sm"
+              disabled={mockLoading}
+              className="text-green-600 border-green-300 hover:bg-green-50"
+              data-testid="generate-mock-btn"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              20 Test Sipariş
+            </Button>
+            <Button 
+              onClick={handleClearMock}
+              variant="outline"
+              size="sm"
+              disabled={mockLoading}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+              data-testid="clear-mock-btn"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Test Sil
+            </Button>
+            <Button 
+              onClick={() => setNewOrderModalOpen(true)} 
+              className="bg-primary hover:bg-primary/90"
+              data-testid="new-order-btn"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Telefon Siparişi
+            </Button>
+          </div>
         </div>
         
         {/* Alt Sekmeler */}
