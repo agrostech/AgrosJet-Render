@@ -2218,33 +2218,23 @@ async def courier_reject_order(courier_id: str, order_id: str, reason: Optional[
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
     courier_name = courier.get("name", "Kurye") if courier else "Kurye"
     
-    now = datetime.now(timezone.utc).isoformat()
-    
-    # History entry
-    history_entry = {
-        "status": "ready",
-        "label": "Kurye Reddetti",
-        "timestamp": now,
-        "note": f"Kurye: {courier_name}" + (f", Sebep: {reason}" if reason else ""),
-        "actor_type": "courier",
-        "actor_name": courier_name
-    }
-    
-    # Kuryeyi siparişten çıkar, sipariş tekrar atanabilir duruma gelir
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": {
-                "courier_id": None,
-                "courier_name": None,
-                "status": "ready",  # Tekrar atanmaya hazır
-                "rejection_reason": reason,
-                "rejected_at": now,
-                "updated_at": now
-            },
-            "$push": {"status_history": history_entry}
-        }
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status="ready",
+        actor_type="courier",
+        actor_name=courier_name,
+        note=f"Kurye reddetti" + (f", Sebep: {reason}" if reason else ""),
+        extra_updates={
+            "courier_id": None,
+            "courier_name": None,
+            "rejection_reason": reason,
+            "rejected_at": datetime.now(timezone.utc).isoformat()
+        },
+        notify_platform=False
     )
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": "Sipariş reddedildi, başka kuryeye atanabilir"}
 
