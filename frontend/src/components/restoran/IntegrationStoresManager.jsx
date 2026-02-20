@@ -449,108 +449,122 @@ export default function IntegrationStoresManager({ restaurantId }) {
       {Object.entries(PLATFORM_CONFIG).map(([platformKey, config]) => {
         const platformStores = storesByPlatform[platformKey] || [];
         const isDisabled = config.disabled;
+        const isExpanded = expandedPlatforms[platformKey] || false;
 
         return (
-          <Card key={platformKey} className={isDisabled ? "opacity-60" : ""}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 ${config.bgClass} rounded-lg flex items-center justify-center`}>
-                    <span className="text-white font-bold text-sm">{config.abbr}</span>
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{config.name}</CardTitle>
-                    <CardDescription className="text-xs">
-                      {platformStores.length > 0 
-                        ? `${platformStores.length} mağaza tanımlı`
-                        : isDisabled ? "Yakında" : "Henüz mağaza eklenmedi"
-                      }
-                    </CardDescription>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => openAddModal(platformKey)}
-                  disabled={isDisabled}
-                  data-testid={`add-store-${platformKey}`}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Mağaza Ekle
-                </Button>
-              </div>
-            </CardHeader>
-
-            {platformStores.length > 0 && (
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  {platformStores.map((store) => (
-                    <div
-                      key={store.id}
-                      className={`p-4 rounded-lg border ${config.bgLightClass} transition-all`}
-                      data-testid={`store-card-${store.id}`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-10 h-10 ${config.bgClass} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                            <Store className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="font-medium truncate">{store.name}</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              {store.connected ? (
-                                <Badge variant="outline" className="border-green-500 text-green-600 text-xs">
-                                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                                  Bağlı
-                                </Badge>
-                              ) : store.credentials && Object.values(store.credentials).some(v => v) ? (
-                                <Badge variant="outline" className="border-yellow-500 text-yellow-600 text-xs">
-                                  <XCircle className="w-3 h-3 mr-1" />
-                                  Test Gerekli
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-slate-300 text-slate-500 text-xs">
-                                  Yapılandırılmamış
-                                </Badge>
-                              )}
-                              {store.enabled && store.connected && (
-                                <Badge 
-                                  variant={store.is_open ? "default" : "secondary"}
-                                  className={`text-xs ${store.is_open ? "bg-green-500" : "bg-slate-400"}`}
-                                >
-                                  {store.is_open ? "Açık" : "Kapalı"}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {/* Open/Close Buttons */}
-                          {store.connected && (
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant={store.is_open ? "outline" : "default"}
-                                onClick={() => handleStatusUpdate(store.id, true)}
-                                disabled={updatingStatus[store.id] || store.is_open}
-                                className={`h-8 px-2 ${!store.is_open ? "bg-green-600 hover:bg-green-700" : ""}`}
-                              >
-                                <Power className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={!store.is_open ? "outline" : "destructive"}
-                                onClick={() => handleStatusUpdate(store.id, false)}
-                                disabled={updatingStatus[store.id] || !store.is_open}
-                                className="h-8 px-2"
-                              >
-                                <PowerOff className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
+          <Collapsible 
+            key={platformKey} 
+            open={isExpanded}
+            onOpenChange={(open) => setExpandedPlatforms(prev => ({ ...prev, [platformKey]: open }))}
+          >
+            <Card className={isDisabled ? "opacity-60" : ""}>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="pb-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      )}
+                      <div className={`w-8 h-8 ${config.bgClass} rounded-lg flex items-center justify-center`}>
+                        <span className="text-white font-bold text-sm">{config.abbr}</span>
                       </div>
+                      <div>
+                        <CardTitle className="text-lg">{config.name}</CardTitle>
+                        <CardDescription className="text-xs">
+                          {platformStores.length > 0 
+                            ? `${platformStores.length} mağaza tanımlı`
+                            : isDisabled ? "Yakında" : "Henüz mağaza eklenmedi"
+                          }
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); openAddModal(platformKey); }}
+                      disabled={isDisabled}
+                      data-testid={`add-store-${platformKey}`}
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Mağaza Ekle
+                    </Button>
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent>
+                {platformStores.length > 0 && (
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {platformStores.map((store) => (
+                        <div
+                          key={store.id}
+                          className={`p-4 rounded-lg border ${config.bgLightClass} transition-all`}
+                          data-testid={`store-card-${store.id}`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-10 h-10 ${config.bgClass} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                                <Store className="w-5 h-5 text-white" />
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="font-medium truncate">{store.name}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  {store.connected ? (
+                                    <Badge variant="outline" className="border-green-500 text-green-600 text-xs">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      Bağlı
+                                    </Badge>
+                                  ) : store.credentials && Object.values(store.credentials).some(v => v) ? (
+                                    <Badge variant="outline" className="border-yellow-500 text-yellow-600 text-xs">
+                                      <XCircle className="w-3 h-3 mr-1" />
+                                      Test Gerekli
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="border-slate-300 text-slate-500 text-xs">
+                                      Yapılandırılmamış
+                                    </Badge>
+                                  )}
+                                  {store.enabled && store.connected && (
+                                    <Badge 
+                                      variant={store.is_open ? "default" : "secondary"}
+                                      className={`text-xs ${store.is_open ? "bg-green-500" : "bg-slate-400"}`}
+                                    >
+                                      {store.is_open ? "Açık" : "Kapalı"}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {/* Open/Close Buttons */}
+                              {store.connected && (
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant={store.is_open ? "outline" : "default"}
+                                    onClick={() => handleStatusUpdate(store.id, true)}
+                                    disabled={updatingStatus[store.id] || store.is_open}
+                                    className={`h-8 px-2 ${!store.is_open ? "bg-green-600 hover:bg-green-700" : ""}`}
+                                  >
+                                    <Power className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant={!store.is_open ? "outline" : "destructive"}
+                                    onClick={() => handleStatusUpdate(store.id, false)}
+                                    disabled={updatingStatus[store.id] || !store.is_open}
+                                    className="h-8 px-2"
+                                  >
+                                    <PowerOff className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
 
                       {/* Actions */}
                       <div className="mt-3 flex gap-2 flex-wrap">
