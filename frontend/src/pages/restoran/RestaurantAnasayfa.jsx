@@ -981,95 +981,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Durum Değişikliği Onay Modalı */}
-      <AlertDialog open={statusConfirmModal.open} onOpenChange={(open) => {
-        if (!open) {
-          setStatusConfirmModal({ open: false, order: null, status: null });
-          setSelectedCancelReason("");
-          setCancelNote("");
-        }
-      }}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              {statusConfirmModal.status === 'delivered' ? (
-                <>
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  Siparişi Teslim Et
-                </>
-              ) : (
-                <>
-                  <XCircle className="w-5 h-5 text-red-600" />
-                  Siparişi İptal Et
-                </>
-              )}
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4">
-                <p>
-                  {statusConfirmModal.status === 'delivered' 
-                    ? `${statusConfirmModal.order?.customer_name} siparişini teslim edildi olarak işaretlemek istediğinize emin misiniz?`
-                    : `${statusConfirmModal.order?.customer_name} siparişini iptal etmek istediğinize emin misiniz?`
-                  }
-                </p>
-                
-                {/* İptal Sebebi Seçimi - Sadece iptal durumunda göster */}
-                {statusConfirmModal.status === 'cancelled' && cancelReasons.length > 0 && (
-                  <div className="space-y-3 pt-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        İptal Sebebi {statusConfirmModal.order?.source === 'getir' && <span className="text-red-500">*</span>}
-                      </label>
-                      <Select value={selectedCancelReason} onValueChange={setSelectedCancelReason}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Sebep seçin..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {cancelReasons.map((reason) => (
-                            <SelectItem key={reason.id} value={reason.id}>
-                              {reason.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">İptal Notu (Opsiyonel)</label>
-                      <textarea
-                        className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                        rows={2}
-                        placeholder="Ek açıklama..."
-                        value={cancelNote}
-                        onChange={(e) => setCancelNote(e.target.value)}
-                      />
-                    </div>
-                    
-                    {statusConfirmModal.order?.source === 'getir' && !selectedCancelReason && (
-                      <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                        ⚠️ Getir siparişleri için iptal sebebi seçmeniz zorunludur.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setSelectedCancelReason("");
-              setCancelNote("");
-            }}>Vazgeç</AlertDialogCancel>
-            <AlertDialogAction
-              className={statusConfirmModal.status === 'delivered' ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
-              disabled={statusConfirmModal.status === 'cancelled' && statusConfirmModal.order?.source === 'getir' && !selectedCancelReason}
-              onClick={confirmStatusChange}
-            >
-              {statusConfirmModal.status === 'delivered' ? 'Teslim Et' : 'İptal Et'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* İptal/Teslim Onay Modalı - Yeni Component */}
+      <CancelModal
+        open={actionModal.open}
+        onOpenChange={(open) => !open && setActionModal({ open: false, order: null, actionType: null })}
+        order={actionModal.order}
+        actionType={actionModal.actionType}
+        onConfirm={handleActionConfirm}
+      />
     </div>
   );
 }
