@@ -289,11 +289,11 @@ async def get_restaurant_products(restaurant_id: str):
     if db is None:
         raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
     
-    # Kategorileri getir
+    # Kategorileri getir (order'a göre sıralı)
     categories = await db.product_categories.find(
         {"restaurant_id": restaurant_id},
         {"_id": 0}
-    ).to_list(100)
+    ).sort("order", 1).to_list(100)
     
     # Ürünleri getir
     products = await db.products.find(
