@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS = {
   printSound: true,
 };
 
-export default function RestaurantAyarlar({ restaurantId }) {
+export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [saving, setSaving] = useState(false);
   
