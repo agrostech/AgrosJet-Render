@@ -444,7 +444,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                       <th className="text-left p-2 font-bold text-xs w-[120px]">Müşteri</th>
                       <th className="text-left p-2 font-bold text-xs">Adres</th>
                       <th className="text-left p-2 font-bold text-xs w-[70px]">Tutar</th>
-                      <th className="text-left p-2 font-bold text-xs w-[100px]">Ödeme</th>
+                      <th className="text-left p-2 font-bold text-xs w-[130px]">Ödeme</th>
                       <th className="text-left p-2 font-bold text-xs w-[140px]">Mesafe / Ücret</th>
                       <th className="text-left p-2 font-bold text-xs w-[90px]">Kurye</th>
                       <th className="text-center p-2 font-bold text-xs w-[40px]"></th>
