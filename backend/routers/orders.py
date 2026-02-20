@@ -2166,16 +2166,11 @@ async def courier_deliver_order(
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
     courier_name = courier.get("name", "Kurye") if courier else "Kurye"
     
-    now = datetime.now(timezone.utc).isoformat()
-    
     # Ücretleri hesapla
     fees = await calculate_order_fees(order)
     
-    # Ödeme bilgilerini hazırla
-    update_data = {
-        "status": "delivered",
-        "delivered_at": now,
-        "updated_at": now,
+    # Extra güncellemeler
+    extra_updates = {
         "courier_fee": fees["courier_fee"],
         "restaurant_fee": fees["restaurant_fee"],
         "restaurant_kdv": fees["restaurant_kdv"],
@@ -2183,38 +2178,28 @@ async def courier_deliver_order(
         "distance_km": fees["distance_km"]
     }
     
-    # Eğer ödeme detayları gönderildiyse güncelle
+    # Ödeme detayları varsa ekle
     if payment_details:
         if payment_details.payment_method:
-            update_data["payment_method"] = payment_details.payment_method
-        
-        # Parçalı ödeme detaylarını kaydet
-        update_data["payment_details"] = {
+            extra_updates["payment_method"] = payment_details.payment_method
+        extra_updates["payment_details"] = {
             "cash_amount": payment_details.cash_amount,
             "card_amount": payment_details.card_amount,
             "original_method": order.get("payment_method", "unknown")
         }
     
-    # History entry
-    history_entry = {
-        "status": "delivered",
-        "label": "Teslim Edildi",
-        "timestamp": now,
-        "note": "Sipariş müşteriye teslim edildi",
-        "actor_type": "courier",
-        "actor_name": courier_name
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": update_data,
-            "$push": {"status_history": history_entry}
-        }
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status="delivered",
+        actor_type="courier",
+        actor_name=courier_name,
+        note="Sipariş müşteriye teslim edildi",
+        extra_updates=extra_updates,
+        notify_platform=True
     )
     
-    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
-    await notify_platform_status_change(order, "delivered")
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": "Sipariş teslim edildi"}
 
