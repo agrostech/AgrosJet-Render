@@ -2559,32 +2559,6 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
     }
 
 
-@router.get("/{order_id}/cancel-reasons")
-async def get_order_cancel_reasons(order_id: str):
-    """
-    Sipariş için uygun iptal sebeplerini döndür
-    Siparişin kaynağına göre (getir, trendyol vb.) iptal sebeplerini getirir
-    """
-    order = await db.orders.find_one(
-        {"id": order_id},
-        {"_id": 0, "source": 1, "order_number": 1}
-    )
-    
-    if not order:
-        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
-    
-    source = order.get("source", "manual")
-    reasons = PLATFORM_CANCEL_REASONS.get(source, PLATFORM_CANCEL_REASONS["default"])
-    
-    return {
-        "success": True,
-        "order_id": order_id,
-        "order_number": order.get("order_number"),
-        "source": source,
-        "reasons": reasons
-    }
-
-
 # --- Kurye ETA Endpoint ---
 
 @router.get("/courier/{courier_id}/eta/{restaurant_id}")
