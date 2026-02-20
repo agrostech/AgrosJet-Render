@@ -641,12 +641,13 @@ async def delayed_prepare(restaurant_id: str, getir_order_id: str, shiftjet_orde
             
             if response.status_code == 200:
                 logger.info(f"Getir delayed_prepare başarılı: {getir_order_id}")
-                # Veritabanını güncelle
+                # Veritabanını güncelle - prepare status 500'dür, 700 DEĞİL!
                 await db.orders.update_one(
                     {"id": shiftjet_order_id},
                     {"$set": {
                         "getir_prepared_at": datetime.now(timezone.utc).isoformat(),
-                        "getir_raw.status": 700
+                        "getir_raw.status": 500,
+                        "status": "preparing"
                     }}
                 )
             else:
