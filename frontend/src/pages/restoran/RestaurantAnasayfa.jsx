@@ -712,96 +712,25 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                             <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
                             <td className="p-2">{getPaymentBadge(order.payment_method, order.payment_method_detail)}</td>
                             <td className="p-2">
-                              {/* Restoran teslimatı siparişleri için özel dropdown */}
-                              {order.is_restaurant_delivery ? (
-                                <Select 
-                                  value={order.status} 
-                                  onValueChange={(newValue) => handleRestaurantDeliveryStatus(order.id, newValue)}
-                                  disabled={order.status === 'delivered' || order.status === 'cancelled'}
-                                >
-                                  <SelectTrigger className="bg-orange-100 text-orange-700 font-medium text-xs px-2 py-0.5 h-7 border border-orange-300/50 w-[135px] shadow-sm">
-                                    <SelectValue>
-                                      {ORDER_STATUSES[order.status]?.label || order.status}
-                                    </SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <div className="px-2 py-1 text-xs font-semibold text-orange-700 bg-orange-50">Restoran Teslimatı</div>
-                                    <SelectItem value="preparing" className="text-xs">Hazırlanıyor</SelectItem>
-                                    <SelectItem value="confirmed" className="text-xs">Onaylandı</SelectItem>
-                                    <SelectItem value="on_the_way" className="text-xs">Yolda</SelectItem>
-                                    <SelectItem value="delivered" className="text-xs">Teslim Edildi</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              ) : order.status === 'delivered' || order.status === 'cancelled' ? (
-                                /* Teslim/iptal durumunda dropdown pasif */
-                                <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center opacity-70 whitespace-nowrap min-w-[135px]`}>
-                                  {statusInfo.label}
-                                </span>
-                              ) : order.courier_id ? (
-                                /* Kurye atandıysa sadece bekleme süresi ve iptal seçenekleri */
-                                <Select 
-                                  value={order.status} 
-                                  onValueChange={(newValue) => {
-                                    if (newValue === 'cancelled') {
-                                      handleStatusChange(order, newValue);
-                                    } else if (newValue.startsWith('preparing_')) {
-                                      onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 w-[135px] shadow-sm`}>
-                                    <SelectValue>
-                                      {(order.status === 'preparing' || order.status === 'scheduled') && order.preparation_end_at
-                                        ? getCountdown(order.preparation_end_at)?.text || statusInfo.label
-                                        : statusInfo.label}
-                                    </SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                                    {PREPARATION_TIMES.map(time => (
-                                      <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
-                                        {time.label}
-                                      </SelectItem>
-                                    ))}
-                                    <div className="border-t my-1" />
-                                    <SelectItem value="cancelled" className="text-xs">İptal Edildi</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                <Select 
-                                  value={order.status} 
-                                  onValueChange={(newValue) => {
-                                    // delivered ve cancelled için handleStatusChange kullan (iptal sebepleri için)
-                                    if (newValue === 'delivered' || newValue === 'cancelled') {
-                                      handleStatusChange(order, newValue);
-                                    } else if (newValue.startsWith('preparing_')) {
-                                      onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
-                                    } else {
-                                      onUpdateStatus(order.id, newValue);
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 w-[135px] shadow-sm`}>
-                                    <SelectValue>
-                                      {(order.status === 'preparing' || order.status === 'scheduled') && order.preparation_end_at
-                                        ? getCountdown(order.preparation_end_at)?.text || statusInfo.label
-                                        : statusInfo.label}
-                                    </SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                                    {PREPARATION_TIMES.map(time => (
-                                      <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
-                                        {time.label}
-                                      </SelectItem>
-                                    ))}
-                                    <div className="border-t my-1" />
-                                    <SelectItem value="on_the_way" className="text-xs">Yolda</SelectItem>
-                                    <SelectItem value="delivered" className="text-xs">Teslim Edildi</SelectItem>
-                                    <SelectItem value="cancelled" className="text-xs">İptal Edildi</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )}
+                              <StatusDropdown
+                                order={order}
+                                onStatusChange={(orderId, newStatus) => {
+                                  if (order.is_restaurant_delivery) {
+                                    handleRestaurantDeliveryStatus(orderId, newStatus);
+                                  } else {
+                                    onUpdateStatus?.(orderId, newStatus);
+                                  }
+                                }}
+                                onPreparationTimeChange={(orderId, minutes) => {
+                                  onUpdateStatus?.(orderId, "preparing", minutes);
+                                }}
+                                onCancelClick={(ord, status) => {
+                                  // delivered veya cancelled için modal aç
+                                  const actionType = status || "cancelled";
+                                  setActionModal({ open: true, order: ord, actionType });
+                                }}
+                                getCountdown={getCountdown}
+                              />
                             </td>
                             <td className="p-2">
                               {/* Restoran teslimatı ise "Restoran" göster */}
