@@ -1,81 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="2" failures="3" skipped="0" tests="29" time="0.380" timestamp="2026-02-20T22:14:24.618289+00:00" hostname="agent-env-05721f81-6013-40ed-ad6d-31dc7097704c"><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_recent_timestamp" time="0.138" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_old_timestamp" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_none" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_empty_string" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_invalid_timestamp" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_z_suffix" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_boundary_at_70_seconds" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_returns_str" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_json_message" time="0.014" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_json_error" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_invalid_json" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_empty_response" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestSmartAdvanceGetirOrderStructure" name="test_smart_advance_function_exists" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestSmartAdvanceGetirOrderStructure" name="test_smart_advance_is_async" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestGetirServiceConstants" name="test_getir_step_wait_seconds" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestGetirServiceConstants" name="test_getir_order_statuses_mapping" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestGetirServiceConstants" name="test_getir_payment_methods_mapping" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestOrderEndpointsAPI" name="test_health_endpoint" time="0.022"><failure message="requests.exceptions.MissingSchema: Invalid URL '/api/health': No scheme supplied. Perhaps you meant https:///api/health?">tests/test_getir_faz2_refactor.py:250: in test_health_endpoint
-    response = requests.get(f"{BASE_URL}/api/health")
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/api.py:73: in get
-    return request("get", url, params=params, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
-    prep = self.prepare_request(req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
-    p.prepare(
-/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
-    self.prepare_url(url, params)
-/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
-    raise MissingSchema(
-E   requests.exceptions.MissingSchema: Invalid URL '/api/health': No scheme supplied. Perhaps you meant https:///api/health?</failure></testcase><testcase classname="tests.test_getir_faz2_refactor.TestOrderEndpointsAPI" name="test_restaurant_login" time="0.001"><failure message="requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?">tests/test_getir_faz2_refactor.py:261: in test_restaurant_login
-    response = requests.post(f"{BASE_URL}/api/auth/login", json={
-/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
-    return request("post", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
-    prep = self.prepare_request(req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
-    p.prepare(
-/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
-    self.prepare_url(url, params)
-/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
-    raise MissingSchema(
-E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</failure></testcase><testcase classname="tests.test_getir_faz2_refactor.TestOrderEndpointsAPI" name="test_admin_login" time="0.001"><failure message="requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?">tests/test_getir_faz2_refactor.py:275: in test_admin_login
-    response = requests.post(f"{BASE_URL}/api/auth/login", json={
-/root/.venv/lib/python3.11/site-packages/requests/api.py:115: in post
-    return request("post", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
-    return session.request(method=method, url=url, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
-    prep = self.prepare_request(req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
-    p.prepare(
-/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
-    self.prepare_url(url, params)
-/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
-    raise MissingSchema(
-E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</failure></testcase><testcase classname="tests.test_getir_faz2_refactor.TestGetirIntegrationEndpoints" name="test_orders_endpoint_exists" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">tests/test_getir_faz2_refactor.py:297: in setup
-    response = self.session.post(f"{BASE_URL}/api/auth/login", json={
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
-    return self.request("POST", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
-    prep = self.prepare_request(req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
-    p.prepare(
-/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
-    self.prepare_url(url, params)
-/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
-    raise MissingSchema(
-E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="tests.test_getir_faz2_refactor.TestGetirIntegrationEndpoints" name="test_restaurants_endpoint_exists" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">tests/test_getir_faz2_refactor.py:297: in setup
-    response = self.session.post(f"{BASE_URL}/api/auth/login", json={
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
-    return self.request("POST", url, data=data, json=json, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
-    prep = self.prepare_request(req)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
-    p.prepare(
-/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
-    self.prepare_url(url, params)
-/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
-    raise MissingSchema(
-E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="tests.test_getir_faz2_refactor.TestDelayedFunctions" name="test_delayed_prepare_exists" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestDelayedFunctions" name="test_delayed_deliver_exists" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestHelperFunctionsFromFaz1" name="test_extract_customer_info" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestHelperFunctionsFromFaz1" name="test_extract_address_info" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestHelperFunctionsFromFaz1" name="test_extract_items" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestMapGetirStatus" name="test_map_getir_status_numeric" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestMapGetirStatus" name="test_map_getir_status_string" time="0.000" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="29" time="1.242" timestamp="2026-02-20T22:14:35.873016+00:00" hostname="agent-env-05721f81-6013-40ed-ad6d-31dc7097704c"><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_recent_timestamp" time="0.139" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_old_timestamp" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_none" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_empty_string" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_invalid_timestamp" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_with_z_suffix" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestCheckTimingWaitHelper" name="test_check_timing_wait_boundary_at_70_seconds" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_returns_str" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_json_message" time="0.008" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_json_error" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_invalid_json" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestExtractError" name="test_extract_error_with_empty_response" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestSmartAdvanceGetirOrderStructure" name="test_smart_advance_function_exists" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestSmartAdvanceGetirOrderStructure" name="test_smart_advance_is_async" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestGetirServiceConstants" name="test_getir_step_wait_seconds" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestGetirServiceConstants" name="test_getir_order_statuses_mapping" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestGetirServiceConstants" name="test_getir_payment_methods_mapping" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestOrderEndpointsAPI" name="test_health_endpoint" time="0.291"><failure message="AssertionError: assert 'healthy' == 'ok'&#10;  &#10;  - ok&#10;  + healthy">tests/test_getir_faz2_refactor.py:255: in test_health_endpoint
+    assert data.get("status") == "ok"
+E   AssertionError: assert 'healthy' == 'ok'
+E     
+E     - ok
+E     + healthy</failure></testcase><testcase classname="tests.test_getir_faz2_refactor.TestOrderEndpointsAPI" name="test_restaurant_login" time="0.134"><failure message="assert 404 == 200&#10; +  where 404 = &lt;Response [404]&gt;.status_code">tests/test_getir_faz2_refactor.py:267: in test_restaurant_login
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = &lt;Response [404]&gt;.status_code</failure></testcase><testcase classname="tests.test_getir_faz2_refactor.TestOrderEndpointsAPI" name="test_admin_login" time="0.156"><failure message="assert 404 == 200&#10; +  where 404 = &lt;Response [404]&gt;.status_code">tests/test_getir_faz2_refactor.py:281: in test_admin_login
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = &lt;Response [404]&gt;.status_code</failure></testcase><testcase classname="tests.test_getir_faz2_refactor.TestGetirIntegrationEndpoints" name="test_orders_endpoint_exists" time="0.205" /><testcase classname="tests.test_getir_faz2_refactor.TestGetirIntegrationEndpoints" name="test_restaurants_endpoint_exists" time="0.223" /><testcase classname="tests.test_getir_faz2_refactor.TestDelayedFunctions" name="test_delayed_prepare_exists" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestDelayedFunctions" name="test_delayed_deliver_exists" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestHelperFunctionsFromFaz1" name="test_extract_customer_info" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestHelperFunctionsFromFaz1" name="test_extract_address_info" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestHelperFunctionsFromFaz1" name="test_extract_items" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestMapGetirStatus" name="test_map_getir_status_numeric" time="0.000" /><testcase classname="tests.test_getir_faz2_refactor.TestMapGetirStatus" name="test_map_getir_status_string" time="0.000" /></testsuite></testsuites>
