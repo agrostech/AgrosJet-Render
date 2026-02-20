@@ -328,22 +328,29 @@ export default function RestaurantAyarlar({ restaurantId }) {
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-2">Kurulum Adımları</p>
                   <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Python 3.8+ yükleyin (python.org)</li>
-                    <li>CMD açın: <code className="bg-blue-100 px-1 rounded">pip install pywin32 pillow</code></li>
-                    <li>ShiftJet Print Server programını indirin</li>
-                    <li>Programı çift tıklayarak çalıştırın</li>
-                    <li>Bu sayfayı yenileyin ve "Yenile" butonuna tıklayın</li>
+                    <li>Python 3.8+ yükleyin (python.org) - <strong>"Add to PATH"</strong> işaretleyin</li>
+                    <li>CMD açın ve şunu çalıştırın:</li>
                   </ol>
-                  <div className="mt-3">
+                  <code className="block bg-blue-100 px-2 py-1 rounded mt-1 text-xs font-mono">
+                    pip install pywin32 pillow pystray
+                  </code>
+                  <ol className="list-decimal list-inside space-y-1 text-xs mt-2" start={3}>
+                    <li>Aşağıdaki dosyayı indirin ve çift tıklayarak çalıştırın</li>
+                    <li>Sistem tepsisinde (saat yanında) yeşil ikon görünecek</li>
+                  </ol>
+                  <div className="mt-3 flex gap-3">
                     <a 
-                      href="/shiftjet_print_server.py" 
-                      download="shiftjet_print_server.py"
-                      className="inline-flex items-center gap-1 text-blue-700 underline font-medium"
+                      href="/shiftjet_print_server_tray.py" 
+                      download="shiftjet_print_server_tray.py"
+                      className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-blue-700"
                     >
                       <Download className="w-3 h-3" />
-                      shiftjet_print_server.py indir
+                      İndir (Sistem Tepsisi)
                     </a>
                   </div>
+                  <p className="text-xs mt-2 text-blue-600">
+                    Program arka planda sessiz çalışır, pencere açılmaz.
+                  </p>
                 </div>
               </div>
             </div>
