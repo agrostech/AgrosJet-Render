@@ -433,16 +433,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
           <p className="text-sm text-muted-foreground">Güncel sipariş durumu</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setNewOrderModalOpen(true)} data-testid="new-order-btn">
-            <Plus className="w-4 h-4 mr-2" />
-            Yeni Sipariş
-          </Button>
-          <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Yenile
-          </Button>
-        </div>
+        <Button 
+          onClick={() => setNewOrderModalOpen(true)} 
+          className="bg-primary hover:bg-primary/90"
+          data-testid="new-order-btn"
+        >
+          <Phone className="w-4 h-4 mr-2" />
+          Telefon Siparişi
+        </Button>
       </div>
 
       {/* New Order Modal */}
