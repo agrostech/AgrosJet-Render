@@ -1100,6 +1100,22 @@ async def generate_mock_orders(company_id: str, count: int = 5):
 
 # --- Endpoints ---
 
+# Platform İptal Sebepleri (Bu endpoint'ler dinamik olanlardan ÖNCE gelmeli!)
+@router.get("/platform-cancel-reasons/{source}")
+async def get_cancel_reasons_by_platform(source: str):
+    """
+    Platform bazlı iptal sebeplerini döndür
+    
+    source: getir, trendyol, yemeksepeti, adisyo, manual, vb.
+    """
+    reasons = PLATFORM_CANCEL_REASONS.get(source, PLATFORM_CANCEL_REASONS["default"])
+    return {
+        "success": True,
+        "source": source,
+        "reasons": reasons
+    }
+
+
 @router.get("/{company_id}")
 async def get_orders(
     company_id: str, 
