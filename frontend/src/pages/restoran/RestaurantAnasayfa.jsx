@@ -289,6 +289,36 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     setActionModal({ open: false, order: null, actionType: null });
   };
 
+  // Mock sipariş oluştur
+  const handleGenerateMock = async () => {
+    if (!restaurantId) return;
+    setMockLoading(true);
+    try {
+      const res = await axios.post(`${API}/orders/restaurant/${restaurantId}/generate-mock?count=20`);
+      toast.success(res.data.message || "20 mock sipariş oluşturuldu");
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Mock sipariş oluşturulamadı");
+    } finally {
+      setMockLoading(false);
+    }
+  };
+
+  // Mock siparişleri sil
+  const handleClearMock = async () => {
+    if (!restaurantId) return;
+    setMockLoading(true);
+    try {
+      const res = await axios.delete(`${API}/orders/restaurant/${restaurantId}/clear-mock`);
+      toast.success(res.data.message || "Mock siparişler silindi");
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Mock siparişler silinemedi");
+    } finally {
+      setMockLoading(false);
+    }
+  };
+
   // Restoran teslimatı işaretlenebilir mi kontrol et
   const canMarkAsRestaurantDelivery = (order) => {
     if (!canMarkRestaurantDelivery) return { allowed: false, reason: "İzniniz yok" };
