@@ -1235,9 +1235,6 @@ async def handover_getir_order(restaurant_id: str, order_id: str) -> dict:
     if not getir_order_id:
         return {"success": False, "error": "Bu sipariş Getir siparişi değil"}
     
-    # Getir kuryesi kontrolü - Getir kuryesi varsa handover zaten otomatik
-    is_getir_courier = order.get("getir_raw", {}).get("isGetirCourier", False)
-    
     headers = await get_getir_headers(restaurant)
     if not headers:
         return {"success": False, "error": "Getir token alınamadı"}
