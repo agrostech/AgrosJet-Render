@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,6 @@ import {
   saveLocalPrintSettings,
 } from "@/utils/localPrintService";
 
-const STORAGE_KEY = "restaurant_print_settings";
-
 export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [localSettings, setLocalSettings] = useState({ enabled: false, printerName: null, paperSize: "80mm" });
   const [savedSettings, setSavedSettings] = useState({ enabled: false, printerName: null, paperSize: "80mm" });
@@ -25,7 +23,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [printers, setPrinters] = useState([]);
   const [loadingPrinters, setLoadingPrinters] = useState(false);
   const [testingPrint, setTestingPrint] = useState(false);
-  const [openSections, setOpenSections] = useState({ print: true });
+  const [openSections, setOpenSections] = useState({ print: false });
   const [hasChanges, setHasChanges] = useState(false);
 
   // Ayarları yükle
@@ -126,33 +124,34 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   };
 
   return (
-    <div className="space-y-4" data-testid="restaurant-ayarlar-page">
-      {/* Başlık */}
-      <div className="flex items-center gap-2">
-        <Settings className="w-5 h-5" />
-        <h1 className="text-xl font-semibold">Ayarlar</h1>
-      </div>
-
+    <div className="space-y-6" data-testid="restaurant-ayarlar-page">
       {/* Otomatik Yazdırma */}
-      <Collapsible open={openSections.print} onOpenChange={() => toggleSection("print")}>
-        <Card>
+      <Card>
+        <Collapsible open={openSections.print} onOpenChange={() => toggleSection("print")}>
           <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50">
-              <div className="flex items-center gap-3">
-                <Printer className="w-5 h-5" />
-                <span className="font-medium">Otomatik Yazdırma</span>
-                {serverStatus.connected ? (
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                ) : (
-                  <XCircle className="w-4 h-4 text-slate-400" />
-                )}
+            <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Printer className="w-5 h-5" />
+                  <div>
+                    <CardTitle className="text-lg">Otomatik Yazdırma</CardTitle>
+                    <CardDescription>Sipariş fişlerini otomatik yazdırma ayarları</CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {serverStatus.connected ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-slate-400" />
+                  )}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${openSections.print ? "rotate-180" : ""}`} />
+                </div>
               </div>
-              <ChevronDown className={`w-4 h-4 transition-transform ${openSections.print ? "rotate-180" : ""}`} />
-            </div>
+            </CardHeader>
           </CollapsibleTrigger>
           
           <CollapsibleContent>
-            <CardContent className="pt-0 space-y-4">
+            <CardContent className="space-y-4">
               {/* Bağlı Değilse - İndirme */}
               {!serverStatus.connected && (
                 <div className="p-4 border rounded-lg space-y-3">
@@ -240,7 +239,6 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
                     </Button>
                     <Button
                       variant="outline"
-                      size="sm"
                       onClick={handleTestPrint}
                       disabled={testingPrint || !localSettings.printerName}
                       className="gap-2"
@@ -257,8 +255,8 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
               )}
             </CardContent>
           </CollapsibleContent>
-        </Card>
-      </Collapsible>
+        </Collapsible>
+      </Card>
     </div>
   );
 }
