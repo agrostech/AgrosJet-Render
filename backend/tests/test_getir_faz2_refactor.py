@@ -11,7 +11,8 @@ import os
 from datetime import datetime, timezone, timedelta
 
 # Backend URL
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL') or 'https://getir-refactor.preview.emergentagent.com'
+BASE_URL = BASE_URL.rstrip('/')
 
 # Test credentials
 RESTAURANT_USER = {"username": "bostonddisparta", "password": "123456"}
