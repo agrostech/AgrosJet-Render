@@ -112,10 +112,13 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       // Sadece pending veya preparing durumundaki siparişleri yazdır
       if (order.status === 'pending' || order.status === 'preparing') {
         
+        // Siparişe restoran adını ekle
+        const orderWithRestaurant = { ...order, restaurant_name: restaurantName };
+        
         // Yerel sunucu ile sessiz yazdırma (öncelikli)
         if (localSettings.enabled && localSettings.printerName) {
           const result = await printOrderLocal(
-            order,
+            orderWithRestaurant,
             localSettings.printerName,
             localSettings.paperSize
           );
@@ -128,7 +131,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             // Yerel sunucu başarısız olduysa tarayıcı yazdırmayı dene
             console.error("Yerel sunucu yazdırma hatası:", result.error);
             if (printSettings.autoPrint) {
-              printOrder(order, printSettings.paperSize);
+              printOrder(orderWithRestaurant, printSettings.paperSize);
               toast.info(`Yeni sipariş (tarayıcı): #${order.order_number}`, {
                 icon: <Printer className="w-4 h-4" />,
               });
