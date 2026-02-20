@@ -428,22 +428,73 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     );
   };
 
+  // Alt sekme navigasyonu
+  const currentSubPage = location.pathname === '/restoran' ? 'aktif' 
+    : location.pathname === '/restoran/gecmis-siparisler' ? 'gecmis'
+    : location.pathname === '/restoran/iptal-siparisler' ? 'iptal'
+    : 'aktif';
+
+  const handleSubPageChange = (value) => {
+    if (value === 'aktif') navigate('/restoran');
+    else if (value === 'gecmis') navigate('/restoran/gecmis-siparisler');
+    else if (value === 'iptal') navigate('/restoran/iptal-siparisler');
+  };
+
   return (
     <div className="space-y-6" data-testid="restaurant-anasayfa">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
-          <p className="text-sm text-muted-foreground">Güncel sipariş durumu</p>
+      {/* Header with Sub-tabs */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
+            <p className="text-sm text-muted-foreground">Güncel sipariş durumu</p>
+          </div>
+          <Button 
+            onClick={() => setNewOrderModalOpen(true)} 
+            className="bg-primary hover:bg-primary/90"
+            data-testid="new-order-btn"
+          >
+            <Phone className="w-4 h-4 mr-2" />
+            Telefon Siparişi
+          </Button>
         </div>
-        <Button 
-          onClick={() => setNewOrderModalOpen(true)} 
-          className="bg-primary hover:bg-primary/90"
-          data-testid="new-order-btn"
-        >
-          <Phone className="w-4 h-4 mr-2" />
-          Telefon Siparişi
-        </Button>
+        
+        {/* Alt Sekmeler */}
+        <div className="flex gap-1 border-b">
+          <button
+            onClick={() => handleSubPageChange('aktif')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              currentSubPage === 'aktif' 
+                ? 'border-primary text-primary' 
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <ClipboardList className="w-4 h-4" />
+            Aktif Siparişler
+          </button>
+          <button
+            onClick={() => handleSubPageChange('gecmis')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              currentSubPage === 'gecmis' 
+                ? 'border-primary text-primary' 
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <CheckCircle className="w-4 h-4" />
+            Geçmiş Siparişler
+          </button>
+          <button
+            onClick={() => handleSubPageChange('iptal')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              currentSubPage === 'iptal' 
+                ? 'border-primary text-primary' 
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <XCircle className="w-4 h-4" />
+            İptal Siparişler
+          </button>
+        </div>
       </div>
 
       {/* New Order Modal */}
