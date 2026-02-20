@@ -413,8 +413,8 @@ async def calculate_courier_eta_for_restaurant(
             rest_lat, rest_lng = get_location_coords(nearest.get("restaurant_location"))
             
             total_distance += nearest_distance
-            travel_time = math.ceil((nearest_distance / AVG_SPEED_KMH) * 60)
-            total_time += travel_time + PICKUP_TIME_MINS
+            travel_time = max(1, math.ceil((nearest_distance / AVG_SPEED_KMH) * 60))
+            total_time += travel_time + PICKUP_WAIT_MINS
             
             # Hedef restorana varınca işaretle
             is_target = nearest.get("restaurant_id") == target_restaurant_id
@@ -423,7 +423,9 @@ async def calculate_courier_eta_for_restaurant(
                 "type": "pickup",
                 "description": f"Teslim Al: {nearest.get('restaurant_name', 'Restoran')[:25]}",
                 "distance_km": round(nearest_distance, 2),
-                "time_mins": travel_time + PICKUP_TIME_MINS,
+                "travel_mins": travel_time,
+                "wait_mins": PICKUP_WAIT_MINS,
+                "time_mins": travel_time + PICKUP_WAIT_MINS,
                 "is_target": is_target
             })
             
