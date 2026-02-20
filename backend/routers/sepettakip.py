@@ -306,7 +306,15 @@ async def create_package(
     auth_result = await verify_restaurant_credentials(request.auth.username, request.auth.password)
     
     if not auth_result["valid"]:
-        logger.warning(f"SepetTakip create-package: Restoran doğrulama başarısız")
+        logger.warning(f"SepetTakip create-package: Restoran doğrulama başarısız - {auth_result.get('error')}")
+        # Hata logu kaydet
+        await db.sepettakip_logs.insert_one({
+            "type": "ERROR-create-package",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "order_id": request.order.order_id if request.order else None,
+            "error": f"Restoran doğrulama başarısız: {auth_result.get('error')}",
+            "auth_username": request.auth.username
+        })
         return {
             "status": False,
             "error_code": "unauthorized_access",
