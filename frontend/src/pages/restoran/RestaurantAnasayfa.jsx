@@ -430,7 +430,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Anasayfa</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
           <p className="text-sm text-muted-foreground">Güncel sipariş durumu</p>
         </div>
         <div className="flex gap-2">
