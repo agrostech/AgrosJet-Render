@@ -547,9 +547,11 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     # Oluşturulma zamanı
     created_at = getir_order.get("createdAt") or getir_order.get("checkoutDate") or datetime.now(timezone.utc).isoformat()
     
-    # Status
+    # Status - Yeni siparişler her zaman "pending" olarak başlar
+    # Getir'deki status ne olursa olsun, ShiftJet'te manuel yönetim yapılacak
     raw_status = getir_order.get("status", 400)
-    mapped_status = map_getir_status(raw_status)
+    # mapped_status kullanılmıyor - her zaman pending başlatıyoruz
+    initial_status = "pending"
     
     return {
         "id": str(uuid.uuid4()),
