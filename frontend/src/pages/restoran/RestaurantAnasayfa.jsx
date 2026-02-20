@@ -800,17 +800,37 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     <Bike className="w-3 h-3" />
                                     {order.courier_name}
                                   </span>
-                                  <div className="flex items-center gap-2 mt-0.5 pl-1">
+                                  <div className="flex flex-col mt-0.5 pl-1 gap-0.5">
                                     {canViewCourierPhone && order.courier_phone && (
                                       <a href={`tel:${order.courier_phone}`} className="text-muted-foreground font-mono hover:text-primary text-[11px]">
                                         {order.courier_phone}
                                       </a>
                                     )}
-                                    {order.courier_location && !['on_the_way', 'delivered', 'cancelled'].includes(order.status) && (() => {
-                                      const eta = getEstimatedArrival(order.courier_location, order.restaurant_location);
-                                      return eta ? (
-                                        <span className="text-blue-600 text-[10px]">{eta.text}</span>
-                                      ) : null;
+                                    {/* Dinamik ETA - assigned/confirmed durumunda göster */}
+                                    {['assigned', 'confirmed'].includes(order.status) && order.courier_id && (() => {
+                                      const eta = courierETAs[order.courier_id];
+                                      if (eta?.eta_text) {
+                                        return (
+                                          <div className="flex flex-col">
+                                            <span className="text-blue-600 font-medium text-[11px]">
+                                              {eta.eta_text}
+                                            </span>
+                                            {eta.route_summary && eta.route_summary !== "Doğrudan geliyor" && (
+                                              <span className="text-[10px] text-muted-foreground">
+                                                {eta.route_summary}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      }
+                                      // Fallback: Basit mesafe tabanlı ETA
+                                      if (order.courier_location) {
+                                        const simpleEta = getEstimatedArrival(order.courier_location, order.restaurant_location);
+                                        return simpleEta ? (
+                                          <span className="text-blue-600 text-[10px]">{simpleEta.text}</span>
+                                        ) : null;
+                                      }
+                                      return null;
                                     })()}
                                   </div>
                                 </div>
