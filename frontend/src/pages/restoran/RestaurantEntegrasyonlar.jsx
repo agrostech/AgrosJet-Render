@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Dialog, 
   DialogContent, 
@@ -23,7 +24,9 @@ import {
   Settings,
   Eye,
   EyeOff,
-  Store
+  Store,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import IntegrationStoresManager from "@/components/restoran/IntegrationStoresManager";
 
