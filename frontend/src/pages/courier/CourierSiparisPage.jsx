@@ -1016,10 +1016,10 @@ function NewOrderCard({ order, onConfirm, loading }) {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Yeni</Badge>
-            {getOrderAge(order) && (
+            {getOrderAgeText(order) && (
               <span className="text-xs text-purple-600 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {getOrderAge(order)}
+                {getOrderAgeText(order)}
               </span>
             )}
           </div>
@@ -1106,10 +1106,10 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Badge className={`${statusConfig.color} text-white text-xs px-2 py-0.5`}>{statusConfig.label}</Badge>
-            {getOrderAge(order) && (
+            {getOrderAgeText(order) && (
               <span className="text-xs text-slate-500 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {getOrderAge(order)}
+                {getOrderAgeText(order)}
               </span>
             )}
             {getOrderDistance(order) && (
