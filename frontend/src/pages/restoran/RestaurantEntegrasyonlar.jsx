@@ -870,6 +870,62 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
         </Card>
       </Collapsible>
 
+      {/* Migros Yemek Entegrasyonu */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <img src="https://www.migros.com.tr/assets/images/favicon.ico" alt="Migros" className="w-6 h-6" />
+            <div>
+              <CardTitle className="text-lg">Migros Yemek</CardTitle>
+              <CardDescription>
+                Migros Yemek sipariş entegrasyonu
+              </CardDescription>
+            </div>
+            {migrosData?.enabled && (
+              <Badge variant="default" className="ml-auto bg-green-600">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Aktif
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {migrosData?.enabled ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-green-800">Entegrasyon Aktif</p>
+                  <p className="text-xs text-green-600">
+                    Store ID: {migrosData.store_id} | 
+                    {migrosData.is_test ? " Test Ortamı" : " Production"}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={openMigrosModal}>
+                    <Settings className="w-4 h-4 mr-1" />
+                    Düzenle
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={removeMigrosIntegration}>
+                    <Unlink className="w-4 h-4 mr-1" />
+                    Kaldır
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                Migros Yemek entegrasyonu yapılandırılmamış
+              </p>
+              <Button onClick={openMigrosModal}>
+                <Link2 className="w-4 h-4 mr-2" />
+                Bağlan
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Adisyo Modal */}
       <Dialog open={showAdisyoModal} onOpenChange={setShowAdisyoModal}>
         <DialogContent className="max-w-md">
