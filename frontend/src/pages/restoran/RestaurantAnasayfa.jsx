@@ -707,7 +707,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               {/* İleri tarihli sipariş için teslimat saatini göster */}
                               {order.getir_raw?.isScheduled && order.getir_raw?.scheduledDate && (
                                 <div className="text-[10px] text-purple-600 font-medium mt-0.5">
-                                  {formatScheduledTime(order.getir_raw.scheduledDate)} İT
+                                  {formatScheduledTime(order.getir_raw.scheduledDate)} İleri Tarih
                                 </div>
                               )}
                               {order.source === "manual" && (
