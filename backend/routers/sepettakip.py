@@ -729,3 +729,290 @@ async def clear_sepettakip_logs():
     """SepetTakip loglarını temizle"""
     await db.sepettakip_logs.delete_many({})
     return {"message": "Loglar temizlendi"}
+
+
+# ==================== ENTEGRASYON TEST PANELİ ====================
+
+@router.post("/run-test/check-credentials")
+async def run_test_check_credentials(success: bool = True):
+    """
+    SepetTakip Check Credentials testini çalıştır.
+    success=True -> CC-01 (Başarılı)
+    success=False -> CC-02 (Hatalı)
+    """
+    # Restoran bilgilerini al
+    restaurant = await db.restaurants.find_one(
+        {"sepettakip_restaurant_id": "934"},
+        {"_id": 0, "sepettakip_username": 1, "sepettakip_password": 1}
+    )
+    
+    if not restaurant:
+        return {
+            "success": False,
+            "test_code": "CC-01" if success else "CC-02",
+            "error": "934 ID'li restoran bulunamadı"
+        }
+    
+    username = restaurant.get("sepettakip_username", "testtakip")
+    password = restaurant.get("sepettakip_password", "123456") if success else "yanlis_sifre_test"
+    
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Courier-Company": COURIER_COMPANY_KEY,
+            "Api-Key": SEPETTAKIP_API_KEY
+        }
+        
+        payload = {
+            "credentials": {
+                "username": username,
+                "password": password
+            }
+        }
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{SEPETTAKIP_API_BASE}/courier-company/test/check-credentials",
+                json=payload,
+                headers=headers
+            )
+            
+            test_code = "CC-01" if success else "CC-02"
+            expected_status = [200, 201] if success else [400, 401]
+            
+            result = {
+                "success": response.status_code in expected_status,
+                "test_code": test_code,
+                "status_code": response.status_code,
+                "expected_status": expected_status,
+                "response": response.text[:500] if response.text else None,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Sonucu kaydet
+            await db.sepettakip_test_results.update_one(
+                {"test_code": test_code},
+                {"$set": result},
+                upsert=True
+            )
+            
+            return result
+            
+    except httpx.TimeoutException:
+        return {"success": False, "test_code": "CC-01" if success else "CC-02", "error": "Timeout"}
+    except Exception as e:
+        return {"success": False, "test_code": "CC-01" if success else "CC-02", "error": str(e)}
+
+
+@router.post("/run-test/create-order/{test_number}")
+async def run_test_create_order(test_number: int):
+    """
+    SepetTakip Sipariş Oluşturma testini çalıştır.
+    test_number: 1-5 -> ORD-01 ~ ORD-05 (Başarılı)
+    test_number: 6 -> ORD-06 (Hatalı adres)
+    """
+    if test_number < 1 or test_number > 6:
+        return {"success": False, "error": "Test numarası 1-6 arasında olmalı"}
+    
+    test_code = f"ORD-0{test_number}"
+    
+    # Test verileri
+    test_data = {
+        1: {"amount": 125.50, "name": "Ahmet Yılmaz", "phone": "05551112233", "city": "İstanbul", "town": "Kadıköy", "neighborhood": "Caferağa", "description": "Kırmızı bina", "building_no": "15", "floor": "2", "door_number": "4", "latitude": 40.9884, "longitude": 29.0290, "payment_type": "cash"},
+        2: {"amount": 89.00, "name": "Mehmet Demir", "phone": "05552223344", "city": "İstanbul", "town": "Üsküdar", "neighborhood": "Altunizade", "description": "Site içi B Blok", "building_no": "7", "floor": "5", "door_number": "10", "latitude": 41.0214, "longitude": 29.0456, "payment_type": "credit_card"},
+        3: {"amount": 210.75, "name": "Ayşe Kaya", "phone": "05553334455", "city": "İstanbul", "town": "Beşiktaş", "neighborhood": "Levent", "description": "İş merkezi", "building_no": "42", "floor": "12", "door_number": "1", "latitude": 41.0822, "longitude": 29.0103, "payment_type": "online"},
+        4: {"amount": 67.25, "name": "Fatma Öztürk", "phone": "05554445566", "city": "İstanbul", "town": "Maltepe", "neighborhood": "Cevizli", "description": "Yeşil apartman", "building_no": "23", "floor": "1", "door_number": "2", "latitude": 40.9356, "longitude": 29.1268, "payment_type": "cash"},
+        5: {"amount": 156.00, "name": "Ali Çelik", "phone": "05555556677", "city": "İstanbul", "town": "Ataşehir", "neighborhood": "Barbaros", "description": "Palmiye Sitesi A Blok", "building_no": "1", "floor": "8", "door_number": "16", "latitude": 40.9923, "longitude": 29.1187, "payment_type": "credit_card"},
+        6: {"amount": 50.00, "name": "Test Hatalı", "phone": "05559998877", "city": "", "town": "", "neighborhood": "", "description": "", "building_no": "", "floor": "", "door_number": "", "payment_type": "cash"}  # Hatalı adres
+    }
+    
+    payload = test_data.get(test_number)
+    
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Courier-Company": COURIER_COMPANY_KEY,
+            "Api-Key": SEPETTAKIP_API_KEY
+        }
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{SEPETTAKIP_API_BASE}/courier-company/test/package",
+                json=payload,
+                headers=headers
+            )
+            
+            # ORD-06 için 400 bekleniyor, diğerleri için 200/201
+            expected_success = test_number != 6
+            expected_status = [200, 201] if expected_success else [400]
+            
+            # Response'dan order_id çıkar
+            order_id = None
+            try:
+                resp_json = response.json()
+                order_id = resp_json.get("order_id") or resp_json.get("id") or resp_json.get("package_id")
+            except:
+                pass
+            
+            result = {
+                "success": response.status_code in expected_status,
+                "test_code": test_code,
+                "status_code": response.status_code,
+                "expected_status": expected_status,
+                "order_id": order_id,
+                "response": response.text[:500] if response.text else None,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Sonucu kaydet
+            await db.sepettakip_test_results.update_one(
+                {"test_code": test_code},
+                {"$set": result},
+                upsert=True
+            )
+            
+            return result
+            
+    except httpx.TimeoutException:
+        return {"success": False, "test_code": test_code, "error": "Timeout - 30 saniye bekleyip tekrar deneyin"}
+    except Exception as e:
+        return {"success": False, "test_code": test_code, "error": str(e)}
+
+
+@router.post("/run-test/update-status/{order_id}/{status}")
+async def run_test_update_status(order_id: str, status: str):
+    """
+    SepetTakip'e durum güncellemesi gönder.
+    status: assigned, picked_up, delivered, canceled, rejected
+    """
+    valid_statuses = ["assigned", "picked_up", "delivered", "canceled", "rejected"]
+    if status not in valid_statuses:
+        return {"success": False, "error": f"Geçersiz status. Kabul edilen: {valid_statuses}"}
+    
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Courier-Company": COURIER_COMPANY_KEY,
+            "Api-Key": SEPETTAKIP_API_KEY
+        }
+        
+        payload = {
+            "order_id": order_id,
+            "status": status
+        }
+        
+        # assigned durumunda ETA ekle
+        if status == "assigned":
+            from datetime import timedelta
+            eta = (datetime.now(timezone.utc) + timedelta(minutes=20)).isoformat()
+            payload["courier_eta"] = eta
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.patch(
+                f"{SEPETTAKIP_API_BASE}/courier-company/package",
+                json=payload,
+                headers=headers
+            )
+            
+            result = {
+                "success": response.status_code in [200, 204],
+                "order_id": order_id,
+                "status": status,
+                "status_code": response.status_code,
+                "response": response.text[:500] if response.text else None,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Sonucu kaydet
+            test_code = f"STATUS-{status.upper()}"
+            await db.sepettakip_test_results.update_one(
+                {"test_code": test_code, "order_id": order_id},
+                {"$set": result},
+                upsert=True
+            )
+            
+            return result
+            
+    except httpx.TimeoutException:
+        return {"success": False, "error": "Timeout"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@router.post("/run-test/cancel-order/{order_id}")
+async def run_test_cancel_order(order_id: str):
+    """
+    SepetTakip test siparişini iptal et (restoran kaynaklı iptal simülasyonu).
+    """
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Courier-Company": COURIER_COMPANY_KEY,
+            "Api-Key": SEPETTAKIP_API_KEY
+        }
+        
+        payload = {
+            "package_id": order_id,
+            "status": "cancel"
+        }
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.patch(
+                f"{SEPETTAKIP_API_BASE}/courier-company/test/package/{order_id}",
+                json=payload,
+                headers=headers
+            )
+            
+            return {
+                "success": response.status_code in [200, 204],
+                "order_id": order_id,
+                "status_code": response.status_code,
+                "response": response.text[:500] if response.text else None,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@router.get("/test-results")
+async def get_test_results():
+    """Tüm test sonuçlarını getir"""
+    results = await db.sepettakip_test_results.find({}).sort("test_code", 1).to_list(50)
+    for r in results:
+        r.pop("_id", None)
+    return {"results": results}
+
+
+@router.delete("/test-results")
+async def clear_test_results():
+    """Test sonuçlarını temizle"""
+    await db.sepettakip_test_results.delete_many({})
+    return {"message": "Test sonuçları temizlendi"}
+
+
+@router.get("/test-orders")
+async def get_test_orders():
+    """SepetTakip'ten test siparişlerini listele"""
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Courier-Company": COURIER_COMPANY_KEY,
+            "Api-Key": SEPETTAKIP_API_KEY
+        }
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(
+                f"{SEPETTAKIP_API_BASE}/courier-company/test/package",
+                headers=headers
+            )
+            
+            return {
+                "success": response.status_code == 200,
+                "status_code": response.status_code,
+                "orders": response.json() if response.status_code == 200 else None,
+                "response": response.text[:1000] if response.status_code != 200 else None
+            }
+            
+    except Exception as e:
+        return {"success": False, "error": str(e)}
