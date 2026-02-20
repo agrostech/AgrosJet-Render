@@ -673,9 +673,6 @@ async def calculate_courier_eta_for_restaurant(
             break
     
     # 2. Sonra teslim alınacakları işle (assigned/confirmed)
-    # Hedef restoranı da dahil et
-    target_in_pickups = any(o.get("restaurant_id") == target_restaurant_id for o in pickup_orders)
-    
     remaining_pickups = pickup_orders.copy()
     
     # Teslim alım noktalarını en yakın rotaya göre sırala
