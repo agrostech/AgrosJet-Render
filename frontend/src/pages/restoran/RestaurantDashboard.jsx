@@ -174,8 +174,6 @@ export default function RestaurantDashboard() {
         user={user}
         restaurant={restaurant}
         navItems={NAV_ITEMS}
-        sidebarCollapsed={sidebarCollapsed}
-        setSidebarCollapsed={setSidebarCollapsed}
         onLogout={handleLogout}
         badges={badges}
       />
