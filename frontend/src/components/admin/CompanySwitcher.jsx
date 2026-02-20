@@ -80,7 +80,7 @@ export default function CompanySwitcher({
                 <img 
                   src={company.logo_url} 
                   alt={company.name}
-                  className="w-6 h-6 rounded object-cover bg-slate-100 flex-shrink-0"
+                  className="w-6 h-6 rounded object-contain flex-shrink-0"
                 />
               ) : (
                 <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center flex-shrink-0">
