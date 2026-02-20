@@ -1854,74 +1854,47 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
             detail="Hazırlanıyor durumu için süre belirtilmeli"
         )
     
-    now = datetime.now(timezone.utc)
-    
-    update_fields = {
-        "status": data.status,
-        "updated_at": now.isoformat()
+    # Extra güncellemeleri hazırla
+    extra_updates = {
+        "preparation_end_at": None,  # Durum değiştiğinde sıfırla
+        "preparation_time": None
     }
-    
-    # History için note
-    history_note = ""
-    
-    # Durum değiştiğinde geri sayımı sıfırla
-    update_fields["preparation_end_at"] = None
-    update_fields["preparation_time"] = None
-    
-    # Hazırlanıyor durumuna geçişte yeni geri sayım başlat
-    if data.status == "preparing" and data.preparation_time:
-        preparation_end_at = now + timedelta(minutes=data.preparation_time)
-        update_fields["preparation_time"] = data.preparation_time
-        update_fields["preparation_end_at"] = preparation_end_at.isoformat()
-        history_note = f"Hazırlık süresi: {data.preparation_time} dakika"
     
     # Kurye ataması kaldırılacak durumlara geçişte kurye bilgisini sil
     if data.status in COURIER_REMOVAL_STATUSES:
-        update_fields["courier_id"] = None
-        update_fields["courier_name"] = None
-        update_fields["assigned_at"] = None
-        update_fields["confirmed_at"] = None
+        extra_updates["courier_id"] = None
+        extra_updates["courier_name"] = None
+        extra_updates["assigned_at"] = None
+        extra_updates["confirmed_at"] = None
     
+    # Delivered durumunda ücretleri hesapla
     if data.status == "delivered":
-        update_fields["delivered_at"] = now.isoformat()
-        # Ücretleri hesapla
         fees = await calculate_order_fees(order)
-        update_fields["courier_fee"] = fees["courier_fee"]
-        update_fields["restaurant_fee"] = fees["restaurant_fee"]
-        update_fields["restaurant_kdv"] = fees["restaurant_kdv"]
-        update_fields["pos_commission"] = fees["pos_commission"]
-        update_fields["distance_km"] = fees["distance_km"]
+        extra_updates["courier_fee"] = fees["courier_fee"]
+        extra_updates["restaurant_fee"] = fees["restaurant_fee"]
+        extra_updates["restaurant_kdv"] = fees["restaurant_kdv"]
+        extra_updates["pos_commission"] = fees["pos_commission"]
+        extra_updates["distance_km"] = fees["distance_km"]
     
-    # İptal durumunda iptal bilgilerini kaydet
+    # İptal durumunda cancelled_by ekle
     if data.status == "cancelled":
-        update_fields["cancelled_at"] = now.isoformat()
-        update_fields["cancelled_by"] = data.admin_name or "admin"
-        if data.cancel_reason_id:
-            update_fields["cancel_reason_id"] = data.cancel_reason_id
-        if data.cancel_note:
-            update_fields["cancel_note"] = data.cancel_note
+        extra_updates["cancelled_by"] = data.admin_name or "admin"
     
-    # History'ye ekle
-    history_entry = {
-        "status": data.status,
-        "label": ORDER_STATUSES[data.status]["label"],
-        "timestamp": now.isoformat(),
-        "note": history_note,
-        "actor_type": "admin" if data.admin_name else "system",
-        "actor_name": data.admin_name or "Sistem"
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": update_fields,
-            "$push": {"status_history": history_entry}
-        }
+    # Merkezi fonksiyon ile güncelle
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status=data.status,
+        actor_type="admin" if data.admin_name else "system",
+        actor_name=data.admin_name or "Sistem",
+        preparation_time=data.preparation_time,
+        cancel_reason_id=data.cancel_reason_id,
+        cancel_note=data.cancel_note,
+        extra_updates=extra_updates,
+        notify_platform=True
     )
     
-    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
-    prep_time = update_fields.get("preparation_time")
-    await notify_platform_status_change(order, data.status, prep_time, data.cancel_reason_id, data.cancel_note)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": f"Sipariş durumu güncellendi: {ORDER_STATUSES[data.status]['label']}"}
 
