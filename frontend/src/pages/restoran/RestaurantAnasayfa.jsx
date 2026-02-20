@@ -630,7 +630,10 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                 <Select 
                                   value={order.status} 
                                   onValueChange={(newValue) => {
-                                    if (newValue.startsWith('preparing_')) {
+                                    // delivered ve cancelled için onay modalı aç
+                                    if (newValue === 'delivered' || newValue === 'cancelled') {
+                                      setStatusConfirmModal({ open: true, order, status: newValue });
+                                    } else if (newValue.startsWith('preparing_')) {
                                       onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
                                     } else {
                                       onUpdateStatus(order.id, newValue);
@@ -653,7 +656,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     ))}
                                     <div className="border-t my-1" />
                                     <SelectItem value="on_the_way" className="text-xs">Yolda</SelectItem>
-                                    <SelectItem value="delivered" className="text-xs">Teslim Edildi</SelectItem>
+                                    <SelectItem value="delivered" className="text-xs text-green-600">Teslim Edildi</SelectItem>
+                                    <SelectItem value="cancelled" className="text-xs text-red-600">İptal Edildi</SelectItem>
                                   </SelectContent>
                                 </Select>
                               )}
