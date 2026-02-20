@@ -321,6 +321,45 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     return () => clearInterval(interval);
   }, [restaurantId]);
 
+  // Atanmış kuryelerin ETA'larını çek
+  useEffect(() => {
+    const fetchAssignedCourierETAs = async () => {
+      if (!restaurantId || !orders || orders.length === 0) return;
+      
+      // Aktif siparişlerdeki atanmış kuryeleri bul (assigned, confirmed durumunda)
+      const assignedCourierIds = [...new Set(
+        orders
+          .filter(o => o.courier_id && ['assigned', 'confirmed'].includes(o.status))
+          .map(o => o.courier_id)
+      )];
+      
+      if (assignedCourierIds.length === 0) {
+        setCourierETAs({});
+        return;
+      }
+      
+      // Her kurye için ETA al
+      const newETAs = {};
+      await Promise.all(
+        assignedCourierIds.map(async (courierId) => {
+          try {
+            const res = await axios.get(`${API}/orders/courier/${courierId}/eta/${restaurantId}`);
+            newETAs[courierId] = res.data;
+          } catch (err) {
+            console.error(`Kurye ${courierId} ETA alınamadı:`, err);
+          }
+        })
+      );
+      
+      setCourierETAs(newETAs);
+    };
+    
+    fetchAssignedCourierETAs();
+    // Her 15 saniyede bir güncelle
+    const interval = setInterval(fetchAssignedCourierETAs, 15000);
+    return () => clearInterval(interval);
+  }, [restaurantId, orders]);
+
   // Calculate stats
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
