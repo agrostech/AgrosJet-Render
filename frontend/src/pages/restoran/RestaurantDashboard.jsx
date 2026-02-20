@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { Home, Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Truck, CheckCircle, XCircle, Settings } from "lucide-react";
+import { Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Settings } from "lucide-react";
 
 import RestaurantSidebar from "@/components/restoran/RestaurantSidebar";
 import RestaurantMobileNav from "@/components/restoran/RestaurantMobileNav";
