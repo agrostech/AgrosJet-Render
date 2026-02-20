@@ -216,6 +216,27 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     }
   };
 
+  // Kurye/Teslimat bilgisini göster
+  const getDeliveryInfo = (order) => {
+    // Kurye atanmışsa kurye ismini göster
+    if (order.courier_name) {
+      return order.courier_name;
+    }
+    if (order.courier_id) {
+      const courier = couriers.find(c => c.id === order.courier_id);
+      return courier?.name || "Kurye";
+    }
+    // Restoran kendi teslimat yaptıysa
+    if (order.is_restaurant_delivery) {
+      return "Restoran";
+    }
+    // Kurye yoksa ama teslim edildiyse, şirket kuryeleri teslim etmiştir
+    if (order.status === "delivered") {
+      return companyName || "Şirket";
+    }
+    return "-";
+  };
+
   const handleSubPageChange = (value) => {
     if (value === 'aktif') navigate('/restoran');
     else if (value === 'gecmis') navigate('/restoran/gecmis-siparisler');
