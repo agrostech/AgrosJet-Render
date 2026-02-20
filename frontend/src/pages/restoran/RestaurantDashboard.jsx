@@ -76,8 +76,15 @@ export default function RestaurantDashboard() {
     if (!user?.restaurant_id) return;
     
     try {
-      const res = await axios.get(`${API}/orders/restaurant/${user.restaurant_id}`);
-      setOrders(res.data);
+      // Yeni merkezi endpoint kullan
+      const res = await axios.get(`${API}/orders/v2/list`, {
+        params: {
+          panel: 'restaurant',
+          restaurant_id: user.restaurant_id,
+          limit: 200
+        }
+      });
+      setOrders(res.data.orders || []);
       
       // Badges disabled - keeping code structure for future use
       setBadges({});
