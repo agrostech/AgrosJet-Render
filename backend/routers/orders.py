@@ -2452,7 +2452,6 @@ async def get_couriers_with_eta_for_restaurant(restaurant_id: str):
             "message": "Kurye atama izni aktif değil"
         }
     
-    company_id = restaurant.get("company_id")
     blocked_couriers = restaurant.get("blocked_couriers", [])
     restaurant_location = {
         "latitude": restaurant.get("latitude"),
