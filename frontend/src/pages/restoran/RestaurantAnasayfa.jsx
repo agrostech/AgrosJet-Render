@@ -102,19 +102,18 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   useEffect(() => {
     if (!orders || orders.length === 0) return;
     
-    const printSettings = getPrintSettings(restaurantId);
     const localSettings = getLocalPrintSettings(restaurantId);
     const currentOrderIds = new Set(orders.map(o => o.id));
     
-    // İlk yüklemede sadece ID'leri kaydet, yazdırma
+    // İlk yüklemede sadece ID'leri kaydet, yazdırma yapma
     if (isFirstLoadRef.current) {
       previousOrderIdsRef.current = currentOrderIds;
       isFirstLoadRef.current = false;
       return;
     }
     
-    // Hem yerel sunucu hem tarayıcı otomatik yazdırma kapalıysa çık
-    if (!localSettings.enabled && !printSettings.autoPrint) {
+    // Otomatik yazdırma kapalıysa çık
+    if (!localSettings.enabled) {
       previousOrderIdsRef.current = currentOrderIds;
       return;
     }
