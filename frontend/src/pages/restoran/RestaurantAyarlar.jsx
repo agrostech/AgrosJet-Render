@@ -228,7 +228,7 @@ export default function RestaurantAyarlar({ restaurantId }) {
                 </div>
               </div>
               <div className="flex gap-2">
-                {!qzStatus.installed && (
+                {(!qzStatus.installed || !qzStatus.connected) && (
                   <Button
                     variant="outline"
                     size="sm"
