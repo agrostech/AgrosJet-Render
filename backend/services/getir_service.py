@@ -963,3 +963,348 @@ async def sync_all_company_getir_orders(company_id: str) -> dict:
         "total_synced": total_synced,
         "restaurants": results
     }
+
+
+# --- Onay bekleyen siparişler (unapproved) ---
+
+async def fetch_getir_unapproved_orders(restaurant_id: str) -> dict:
+    """Getir'den onay bekleyen siparişleri çek"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı", "orders": []}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı", "orders": []}
+    
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(
+                f"{GETIR_BASE_URL}/food-orders/periodic/unapproved",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                orders = data if isinstance(data, list) else data.get("foodOrders", [])
+                return {
+                    "success": True,
+                    "orders": orders,
+                    "total": len(orders)
+                }
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}", "orders": []}
+                
+    except Exception as e:
+        logger.exception("Getir unapproved orders çekme hatası")
+        return {"success": False, "error": str(e), "orders": []}
+
+
+async def fetch_getir_cancelled_orders(restaurant_id: str) -> dict:
+    """Getir'den iptal edilmiş siparişleri çek (son 24 saat)"""
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı", "orders": []}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı", "orders": []}
+    
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(
+                f"{GETIR_BASE_URL}/food-orders/periodic/cancelled",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                orders = data if isinstance(data, list) else data.get("foodOrders", [])
+                return {
+                    "success": True,
+                    "orders": orders,
+                    "total": len(orders)
+                }
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}", "orders": []}
+                
+    except Exception as e:
+        logger.exception("Getir cancelled orders çekme hatası")
+        return {"success": False, "error": str(e), "orders": []}
+
+
+# --- Webhook Handler ---
+
+async def handle_getir_webhook_order(webhook_data: dict, x_api_key: str) -> dict:
+    """
+    Getir'den gelen yeni sipariş webhook'unu işle
+    
+    Getir, yeni sipariş geldiğinde bu webhook'u çağırır.
+    Siparişi sisteme kaydeder ve otomatik onay gönderir (30 saniye kuralı).
+    """
+    # X-API-Key doğrulama
+    # Bu key'i sistem ayarlarından veya restaurant bazlı ayarlardan alabiliriz
+    
+    getir_order_id = webhook_data.get("id")
+    if not getir_order_id:
+        logger.warning("Getir webhook: Sipariş ID eksik")
+        return {"success": False, "error": "Sipariş ID eksik"}
+    
+    # Restaurant ID'yi bul (restaurantId veya restaurant.id)
+    restaurant_getir_id = webhook_data.get("restaurant", {}).get("id") or webhook_data.get("restaurantId")
+    
+    # Getir restaurant ID'sine göre restoran bul
+    restaurant = await db.restaurants.find_one(
+        {
+            "platform_integrations.getir.restaurant_id": restaurant_getir_id,
+            "platform_integrations.getir.enabled": True
+        },
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        # Alternatif: restaurantSecretKey ile eşleşen restoran bul
+        logger.warning(f"Getir webhook: Restoran bulunamadı - getir_restaurant_id={restaurant_getir_id}")
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    restaurant_id = restaurant.get("id")
+    
+    # Bu sipariş zaten var mı?
+    existing = await db.orders.find_one({"getir_order_id": getir_order_id})
+    if existing:
+        logger.info(f"Getir webhook: Sipariş zaten mevcut - {getir_order_id}")
+        return {"success": True, "message": "Sipariş zaten mevcut", "order_id": existing.get("id")}
+    
+    # Siparişi ShiftJet formatına dönüştür
+    shiftjet_order = await convert_getir_order_to_shiftjet(webhook_data, restaurant)
+    
+    # Hazırlama süresini hesapla
+    try:
+        from routers.orders import calculate_preparation_time_async
+        prep_time = await calculate_preparation_time_async(restaurant_id, shiftjet_order.get("items", []))
+    except:
+        prep_time = 20  # Default 20 dakika
+    
+    prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+    shiftjet_order["preparation_time"] = prep_time
+    shiftjet_order["preparation_end_at"] = prep_end.isoformat()
+    shiftjet_order["webhook_received_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # DB'ye kaydet
+    await db.orders.insert_one(shiftjet_order)
+    
+    # Otomatik onay gönder (30 saniye kuralı!)
+    # İleri tarihli sipariş mi kontrol et
+    is_scheduled = shiftjet_order.get("getir_raw", {}).get("isScheduled", False)
+    raw_status = webhook_data.get("status", 400)
+    
+    if raw_status == 325:  # İleri tarihli, ön onay bekliyor
+        verify_result = await verify_getir_order(restaurant_id, shiftjet_order["id"])
+        logger.info(f"Getir webhook: İleri tarihli sipariş ön onay - {verify_result}")
+    elif raw_status == 400:  # Normal sipariş, onay bekliyor
+        verify_result = await verify_getir_order(restaurant_id, shiftjet_order["id"])
+        logger.info(f"Getir webhook: Sipariş onaylandı - {verify_result}")
+    
+    logger.info(f"Getir webhook: Yeni sipariş kaydedildi - {shiftjet_order['id']}")
+    
+    return {
+        "success": True,
+        "message": "Sipariş alındı ve onaylandı",
+        "order_id": shiftjet_order["id"],
+        "order_number": shiftjet_order["order_number"]
+    }
+
+
+async def handle_getir_webhook_cancel(webhook_data: dict, x_api_key: str) -> dict:
+    """
+    Getir'den gelen sipariş iptal webhook'unu işle
+    """
+    getir_order_id = webhook_data.get("id")
+    if not getir_order_id:
+        return {"success": False, "error": "Sipariş ID eksik"}
+    
+    # Bu siparişi bul
+    order = await db.orders.find_one({"getir_order_id": getir_order_id})
+    
+    if not order:
+        logger.warning(f"Getir cancel webhook: Sipariş bulunamadı - {getir_order_id}")
+        return {"success": False, "error": "Sipariş bulunamadı"}
+    
+    # Siparişi iptal et
+    cancel_reason = webhook_data.get("cancelReason", {})
+    cancel_note = cancel_reason.get("message") or webhook_data.get("cancelNote", "Getir tarafından iptal edildi")
+    
+    await db.orders.update_one(
+        {"getir_order_id": getir_order_id},
+        {"$set": {
+            "status": "cancelled",
+            "cancel_reason": cancel_note,
+            "cancelled_at": datetime.now(timezone.utc).isoformat(),
+            "cancelled_by": "getir",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logger.info(f"Getir cancel webhook: Sipariş iptal edildi - {getir_order_id}")
+    
+    return {
+        "success": True,
+        "message": "Sipariş iptal edildi",
+        "order_id": order.get("id")
+    }
+
+
+# --- Kurye durumu yönetimi ---
+
+async def update_getir_courier_status(restaurant_id: str, enable: bool, time_off_amount: int = None) -> dict:
+    """Getir'de kurye hizmet durumunu güncelle"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            if enable:
+                response = await client.post(
+                    f"{GETIR_BASE_URL}/restaurants/courier/enable",
+                    headers=headers
+                )
+            else:
+                body = {}
+                if time_off_amount and time_off_amount in [15, 30, 45]:
+                    body["timeOffAmount"] = time_off_amount
+                
+                response = await client.post(
+                    f"{GETIR_BASE_URL}/restaurants/courier/disable",
+                    headers=headers,
+                    json=body if body else None
+                )
+            
+            if response.status_code == 200:
+                status_text = "aktif" if enable else "pasif"
+                logger.info(f"Getir kurye durumu güncellendi: {status_text}")
+                return {"success": True, "message": f"Kurye hizmeti {status_text} olarak güncellendi"}
+            else:
+                error_detail = _extract_error(response)
+                return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
+                
+    except Exception as e:
+        logger.exception("Getir kurye durumu güncelleme hatası")
+        return {"success": False, "error": str(e)}
+
+
+# --- Restoran yoğunluk durumu ---
+
+async def update_getir_busyness(restaurant_id: str, is_busy: bool, duration_minutes: int = None) -> dict:
+    """
+    Restoran yoğunluk durumunu güncelle
+    duration_minutes: 15, 30 veya 45 dakika
+    """
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        body = {"isBusy": is_busy}
+        if is_busy and duration_minutes and duration_minutes in [15, 30, 45]:
+            body["busynessDifferenceDuration"] = duration_minutes
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.put(
+                f"{GETIR_BASE_URL}/restaurants/delivery-duration/busyness",
+                headers=headers,
+                json=body
+            )
+            
+            if response.status_code == 200:
+                if is_busy:
+                    return {"success": True, "message": f"Restoran yoğuna alındı (+{duration_minutes or 15} dk)"}
+                else:
+                    return {"success": True, "message": "Restoran yoğunluk durumu kaldırıldı"}
+            else:
+                error_detail = _extract_error(response)
+                return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
+                
+    except Exception as e:
+        logger.exception("Getir yoğunluk güncelleme hatası")
+        return {"success": False, "error": str(e)}
+
+
+# --- Restoran bilgisi ve menü ---
+
+async def get_getir_restaurant_info(restaurant_id: str) -> dict:
+    """Getir'den restoran bilgilerini çek"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(
+                f"{GETIR_BASE_URL}/restaurants",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+                
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def get_getir_restaurant_menu(restaurant_id: str) -> dict:
+    """Getir'den restoran menüsünü çek"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{GETIR_BASE_URL}/restaurants/menu",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+                
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+# --- İptal sebepleri ---
+
+def get_cancel_reasons() -> List[dict]:
+    """Getir iptal sebeplerini döndür"""
+    return [
+        {"id": k, "message": v} 
+        for k, v in GETIR_CANCEL_REASONS.items()
+    ]
