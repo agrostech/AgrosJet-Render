@@ -57,26 +57,26 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   // Otomatik yazdırma için önceki siparişleri takip et
   const previousOrderIdsRef = useRef(new Set());
   const isFirstLoadRef = useRef(true);
-  const qzConnectedRef = useRef(false);
+  const localServerAvailableRef = useRef(false);
 
   // İzin kontrolleri
   const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
   const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
   const canMarkRestaurantDelivery = permissions.can_mark_restaurant_delivery === true; // Default false
 
-  // QZ Tray bağlantısını başlat (sayfa yüklendiğinde)
+  // Yerel yazdırma sunucusu bağlantısını kontrol et (sayfa yüklendiğinde)
   useEffect(() => {
-    const initQz = async () => {
-      const qzSettings = getQzSettings(restaurantId);
-      if (qzSettings.enabled && isQzAvailable()) {
-        const result = await connectToQz();
-        qzConnectedRef.current = result.success;
-        if (result.success) {
-          console.log("QZ Tray sessiz yazdırma hazır");
+    const checkServer = async () => {
+      const localSettings = getLocalPrintSettings(restaurantId);
+      if (localSettings.enabled) {
+        const status = await checkLocalPrintServer();
+        localServerAvailableRef.current = status.connected;
+        if (status.connected) {
+          console.log("Yerel yazdırma sunucusu hazır");
         }
       }
     };
-    initQz();
+    checkServer();
   }, [restaurantId]);
 
   // Otomatik yazdırma - yeni sipariş algılama
