@@ -34,11 +34,11 @@ export default function RestaurantSidebar({
 
       {/* Orta: Menü */}
       <nav className="flex-1 flex items-center justify-center gap-1">
-        {navItems.map((item) => (
+        {navItems.filter(item => !item.hidden).map((item) => (
           <Link 
             key={item.path} 
             to={item.path} 
-            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors relative ${location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"}`} 
+            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors relative ${location.pathname === item.path || (item.key === 'anasayfa' && ['/restoran', '/restoran/gecmis-siparisler', '/restoran/iptal-siparisler'].includes(location.pathname)) ? "bg-white/20" : "hover:bg-white/10"}`} 
             data-testid={`restaurant-nav-${item.key}`}
           >
             <item.icon className="w-4 h-4" />
