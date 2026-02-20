@@ -945,11 +945,12 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
         
         shiftjet_order_id = shiftjet_order.get("id")
         
-        # === OTOMATİK ONAYLA (verify) + 70sn SONRA HAZIRLA (prepare) ===
+        # === OTOMATİK ONAYLA (verify/verify-scheduled) ===
         # Getir kuralı: 30 saniye içinde onaylanmalı
-        # verify → prepare: 70 saniye bekleme (background task)
+        # Status 400 = Normal sipariş, onay bekliyor
+        # Status 325 = İleri tarihli sipariş, onay bekliyor
         
-        if getir_status == 400:  # Status 400 = Onay bekliyor
+        if getir_status in [400, 325]:  # Onay bekleyen siparişler
             try:
                 verify_result = await auto_verify_and_schedule_prepare(restaurant, getir_order_id, getir_order, shiftjet_order_id)
                 if verify_result.get("success"):
@@ -963,7 +964,7 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
                             "auto_approved_at": datetime.now(timezone.utc).isoformat()
                         }}
                     )
-                    logger.info(f"Getir sipariş onaylandı, prepare {GETIR_STEP_WAIT_SECONDS}sn sonra: {getir_order_id}")
+                    logger.info(f"Getir sipariş onaylandı: {getir_order_id} (status: {getir_status})")
                 else:
                     logger.warning(f"Getir otomatik onay hatası: {getir_order_id} - {verify_result.get('error')}")
             except Exception as e:
