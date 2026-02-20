@@ -21,7 +21,7 @@ export default function RestaurantSidebar({
             <img 
               src={companyLogo} 
               alt="Şirket" 
-              className="h-10 object-contain"
+              className="h-12 object-contain"
             />
             <div className="w-px h-8 bg-white/30" />
           </>
