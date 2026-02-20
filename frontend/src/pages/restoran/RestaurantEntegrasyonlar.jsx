@@ -209,7 +209,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                 )}
                 <Store className="w-5 h-5" />
                 <div>
-                  <CardTitle className="text-lg">POS ve Kurye Entegrasyonları</CardTitle>
+                  <CardTitle className="text-lg">POS Entegrasyonları</CardTitle>
                   <CardDescription>
                     POS sistemleri ve kurye yönlendirme entegrasyonları
                   </CardDescription>
