@@ -1778,98 +1778,54 @@ async def get_order(company_id: str, order_id: str):
 
 @router.post("/{company_id}/{order_id}/assign")
 async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
-    """Siparişe kurye ata"""
+    """Siparişe kurye ata (Admin paneli)"""
     order = await db.orders.find_one({"id": order_id, "company_id": company_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
-    
-    # Kurye bilgisini al (ücretlendirme ve telefon dahil)
-    courier = await db.couriers.find_one(
-        {"id": data.courier_id}, 
-        {"_id": 0, "name": 1, "phone": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
-    )
-    if not courier:
-        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
     # Restoran engel kontrolü
     restaurant_id = order.get("restaurant_id")
     if restaurant_id:
         restaurant = await db.restaurants.find_one(
             {"id": restaurant_id},
-            {"_id": 0, "blocked_couriers": 1, "name": 1}
+            {"_id": 0, "blocked_couriers": 1}
         )
         if restaurant:
             blocked_couriers = restaurant.get("blocked_couriers", [])
             if data.courier_id in blocked_couriers:
+                # Kurye adını al
+                courier = await db.couriers.find_one({"id": data.courier_id}, {"_id": 0, "name": 1})
+                courier_name = courier.get("name", "Bu kurye") if courier else "Bu kurye"
                 raise HTTPException(
                     status_code=400, 
-                    detail=f"{courier['name']} bu restoran için engellenmiş"
+                    detail=f"{courier_name} bu restoran için engellenmiş"
                 )
     
-    now = datetime.now(timezone.utc).isoformat()
-    
-    # Kurye ücretini hesapla
-    courier_fee = 0.0
-    distance_km = 0.0
-    
-    if order.get("restaurant_location") and order.get("delivery_location"):
-        distance_km = calculate_distance(order["restaurant_location"], order["delivery_location"])
-    
-    courier_fee = calculate_fee_from_pricing(
-        courier.get("pricing_type", "per_package"),
-        courier.get("per_package_price", 0),
-        courier.get("km_ranges", []),
-        distance_km
+    # Merkezi fonksiyon ile ata
+    result = await assign_courier_core(
+        order=order,
+        courier_id=data.courier_id,
+        actor_type="admin" if data.admin_name else "system",
+        actor_name=data.admin_name or "Sistem",
+        calculate_fee=True,
+        send_push=True
     )
     
-    # History'ye ekle
-    history_entry = {
-        "status": "assigned",
-        "label": "Kurye Atandı",
-        "timestamp": now,
-        "note": f"Kurye: {courier['name']}",
-        "actor_type": "admin" if data.admin_name else "system",
-        "actor_name": data.admin_name or "Sistem"
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": {
-                "courier_id": data.courier_id,
-                "courier_name": courier["name"],
-                "courier_phone": courier.get("phone"),
-                "courier_fee": round(courier_fee, 2),
-                "status": "assigned",
-                "assigned_at": now,
-                "updated_at": now
-            },
-            "$push": {"status_history": history_entry}
-        }
-    )
-    
-    # Kuryeye push notification gönder
-    try:
-        from services.push_notification_service import notify_courier_new_order
-        order["order_number"] = order.get("order_number", "")
-        order["restaurant_name"] = order.get("restaurant_name", "Restoran")
-        await notify_courier_new_order(data.courier_id, order)
-    except Exception as e:
-        print(f"Push notification error: {e}")
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["error"])
     
     # SepetTakip siparişi ise bildirim gönder
     sepettakip_order_id = order.get("sepettakip_order_id")
     if sepettakip_order_id:
         try:
             from routers.sepettakip import notify_sepettakip_status
-            # Tahmini 30 dakika sonra teslimat
             courier_eta = (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat()
             await notify_sepettakip_status(sepettakip_order_id, "assigned", courier_eta)
             logger.info(f"SepetTakip kurye atama bildirimi: order={sepettakip_order_id}")
         except Exception as e:
             logger.error(f"SepetTakip kurye atama bildirimi hatası: {e}")
     
-    return {"message": f"Sipariş {courier['name']} kuryesine atandı"}
+    return {"message": f"Sipariş {result['courier_name']} kuryesine atandı"}
 
 
 @router.delete("/{company_id}/{order_id}/assign")
