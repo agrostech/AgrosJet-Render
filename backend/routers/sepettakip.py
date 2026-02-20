@@ -476,9 +476,10 @@ class StatusUpdateRequest(BaseModel):
 SHIFTJET_TO_SEPETTAKIP_STATUS = {
     "assigned": "assigned",      # Kuryeye Atandı / Kurye Yola Çıktı
     "confirmed": "assigned",     # Kurye onayladı -> assigned olarak bildir
-    "on_the_way": "picked_up",   # Kurye paketi aldı, yolda
+    "on_the_way": "picked_up",   # Kurye paketi aldı, müşteriye gidiyor
     "delivered": "delivered",    # Teslim edildi
-    "cancelled": "canceled"      # İptal edildi (SepetTakip 'canceled' kullanıyor)
+    "cancelled": "canceled",     # İptal edildi (SepetTakip 'canceled' kullanıyor)
+    "rejected": "rejected"       # Sipariş reddedildi (kabul edilmedi)
 }
 
 
