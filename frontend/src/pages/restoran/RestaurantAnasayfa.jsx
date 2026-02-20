@@ -730,14 +730,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-7 w-7 p-0 hover:bg-blue-50"
+                                        className={`h-7 w-7 p-0 ${printedOrders.has(order.id) ? 'hover:bg-green-50' : 'hover:bg-slate-100'}`}
                                         onClick={() => handlePrintOrder(order)}
                                         data-testid={`order-print-btn-${order.id}`}
                                       >
-                                        <Printer className="w-4 h-4 text-blue-500" />
+                                        <Printer className={`w-4 h-4 ${printedOrders.has(order.id) ? 'text-green-500' : 'text-slate-700'}`} />
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Fiş Yazdır</TooltipContent>
+                                    <TooltipContent>{printedOrders.has(order.id) ? 'Yazdırıldı - Tekrar Yazdır' : 'Fiş Yazdır'}</TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
                               </div>
