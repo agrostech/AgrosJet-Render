@@ -1249,11 +1249,20 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
         if order.get("status") == "scheduled":
             update_fields["is_scheduled"] = False
     
+    # İptal durumunda iptal bilgilerini kaydet
+    if data.status == "cancelled":
+        update_fields["cancelled_at"] = now.isoformat()
+        update_fields["cancelled_by"] = "restaurant"
+        if data.cancel_reason_id:
+            update_fields["cancel_reason_id"] = data.cancel_reason_id
+        if data.cancel_note:
+            update_fields["cancel_note"] = data.cancel_note
+    
     await db.orders.update_one({"id": order_id}, {"$set": update_fields})
     
     # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
     prep_time = update_fields.get("preparation_time")
-    await notify_platform_status_change(order, data.status, prep_time)
+    await notify_platform_status_change(order, data.status, prep_time, data.cancel_reason_id, data.cancel_note)
     
     return {"message": "Sipariş durumu güncellendi", "status": data.status}
 
