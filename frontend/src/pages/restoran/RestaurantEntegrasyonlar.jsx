@@ -36,6 +36,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [adisyoData, setAdisyoData] = useState(null);
   const [sepettakipData, setSepettakipData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [posCardOpen, setPosCardOpen] = useState(false);
   
   // Adisyo Modal states
   const [showAdisyoModal, setShowAdisyoModal] = useState(false);
