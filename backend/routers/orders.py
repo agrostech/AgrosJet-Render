@@ -90,7 +90,6 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             is_getir_courier = getir_raw.get("isGetirCourier", False) or getir_raw.get("deliveryType") == 1
             
             result = None
-            getir_order_id = order.get("getir_order_id")
             
             if new_status == "on_the_way":
                 # "Yola Çıkar" butonu tıklandığında
