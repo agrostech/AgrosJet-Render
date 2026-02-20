@@ -919,27 +919,27 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
         await db.orders.insert_one(shiftjet_order)
         synced_count += 1
         
-        # === OTOMATİK ONAYLA (verify) + HAZIRLA (prepare) ===
-        # Yeni siparişler için otomatik verify ve prepare çağır
+        shiftjet_order_id = shiftjet_order.get("id")
+        
+        # === OTOMATİK ONAYLA (verify) + 70sn SONRA HAZIRLA (prepare) ===
         # Getir kuralı: 30 saniye içinde onaylanmalı
+        # verify → prepare: 70 saniye bekleme (background task)
         
         if getir_status == 400:  # Status 400 = Onay bekliyor
             try:
-                # 1. Verify (Onayla)
-                verify_result = await auto_verify_and_prepare(restaurant, getir_order_id, getir_order)
+                verify_result = await auto_verify_and_schedule_prepare(restaurant, getir_order_id, getir_order, shiftjet_order_id)
                 if verify_result.get("success"):
                     auto_approved_count += 1
                     # Yerel durumu güncelle
                     await db.orders.update_one(
-                        {"getir_order_id": getir_order_id},
+                        {"id": shiftjet_order_id},
                         {"$set": {
                             "status": "preparing",
-                            "getir_raw.status": 700,  # Yolda durumuna geçecek
                             "auto_approved": True,
                             "auto_approved_at": datetime.now(timezone.utc).isoformat()
                         }}
                     )
-                    logger.info(f"Getir sipariş otomatik onaylandı ve hazırlandı: {getir_order_id}")
+                    logger.info(f"Getir sipariş onaylandı, prepare {GETIR_STEP_WAIT_SECONDS}sn sonra: {getir_order_id}")
                 else:
                     logger.warning(f"Getir otomatik onay hatası: {getir_order_id} - {verify_result.get('error')}")
             except Exception as e:
