@@ -2502,6 +2502,61 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
         raise HTTPException(status_code=400, detail="Bu sipariş restoran teslimatı değil")
     
     # İzin verilen durumlar
+    allowed_statuses = ["preparing", "confirmed", "on_the_way", "delivered", "cancelled"]
+    if new_status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail=f"Geçersiz durum. İzin verilenler: {', '.join(allowed_statuses)}")
+    
+    now = datetime.now(timezone.utc)
+    
+    # Status label mapping
+    status_labels = {
+        "preparing": "Hazırlanıyor",
+        "confirmed": "Onaylandı",
+        "on_the_way": "Yolda",
+        "delivered": "Teslim Edildi",
+        "cancelled": "İptal Edildi"
+    }
+    
+    update_fields = {
+        "status": new_status,
+        "updated_at": now.isoformat()
+    }
+    
+    # Teslim edildi ise teslim zamanını kaydet
+    if new_status == "delivered":
+        update_fields["delivered_at"] = now.isoformat()
+        update_fields["delivered_by"] = "restaurant"
+    
+    # İptal edildi ise iptal zamanını kaydet
+    if new_status == "cancelled":
+        update_fields["cancelled_at"] = now.isoformat()
+        update_fields["cancelled_by"] = "restaurant"
+    
+    # History'ye ekle
+    history_entry = {
+        "status": new_status,
+        "label": status_labels.get(new_status, new_status),
+        "timestamp": now.isoformat(),
+        "actor_type": "restaurant",
+        "actor_name": order.get("restaurant_name", "Restoran")
+    }
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": update_fields,
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    logger.info(f"Restoran teslimatı durumu güncellendi: {order_id} -> {new_status}")
+    
+    return {
+        "success": True,
+        "message": f"Sipariş durumu güncellendi: {status_labels.get(new_status, new_status)}",
+        "order_id": order_id,
+        "status": new_status
+    }
 
 
 @router.get("/{order_id}/cancel-reasons")
