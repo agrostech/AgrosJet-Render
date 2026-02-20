@@ -38,8 +38,26 @@ from services.getir_service import (
 )
 from services.yemeksepeti_service import test_yemeksepeti_connection
 from services.adisyo_service import test_adisyo_connection
+from services.migros_service import MigrosYemekService
 
 router = APIRouter(prefix="/api/integration-stores", tags=["Entegrasyon Mağazaları"])
+
+
+async def test_migros_connection(credentials: dict) -> dict:
+    """Migros Yemek bağlantısını test et"""
+    try:
+        service = MigrosYemekService(
+            api_key=credentials.get("api_key", ""),
+            secret_key=credentials.get("secret_key", ""),
+            is_test=credentials.get("is_test", True)
+        )
+        result = await service.test_connection()
+        if result.get("success"):
+            return {"success": True, "message": "Migros Yemek bağlantısı başarılı"}
+        else:
+            return {"success": False, "error": result.get("error", "Bağlantı başarısız")}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 # --- Pydantic Models ---
