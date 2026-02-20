@@ -503,7 +503,7 @@ export default function RestaurantUrunler({ restaurantId }) {
                 <Badge variant="secondary">{savedProducts.products_count} Ürün</Badge>
               </div>
               
-              {Object.entries(groupProductsByCategory(savedProducts.products, savedProducts.categories)).map(([catId, group]) => (
+              {Object.entries(groupProductsByCategory(savedProducts.products, savedProducts.categories)).map(([catId, group], catIndex, catArray) => (
                 <Collapsible 
                   key={catId} 
                   open={expandedCategories[catId]} 
@@ -523,6 +523,28 @@ export default function RestaurantUrunler({ restaurantId }) {
                           <Badge variant="outline">{group.products.length}</Badge>
                         </div>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          {/* Sıralama butonları */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveCategoryOrder(catId, 'up')}
+                            disabled={catIndex === 0}
+                            title="Yukarı taşı"
+                            className="text-muted-foreground hover:text-slate-900"
+                          >
+                            <ArrowUp className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveCategoryOrder(catId, 'down')}
+                            disabled={catIndex === catArray.length - 1}
+                            title="Aşağı taşı"
+                            className="text-muted-foreground hover:text-slate-900"
+                          >
+                            <ArrowDown className="w-4 h-4" />
+                          </Button>
+                          <div className="w-px h-6 bg-slate-200 mx-1" />
                           <Button
                             variant="ghost"
                             size="sm"
