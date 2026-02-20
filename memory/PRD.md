@@ -66,6 +66,7 @@ GET /api/orders/v2/list?panel=admin|restaurant|courier&...
 ## Bekleyen İşler
 
 ### P0 - Kritik
+- [x] `/api/orders/v2/list` bug fix - DB_NAME sorunu (✅ Düzeltildi - 20 Şubat 2026)
 - [ ] SepetTakip entegrasyonu (3. taraf yanıtı bekliyor - BLOKE)
 
 ### P1 - Yüksek Öncelik  
