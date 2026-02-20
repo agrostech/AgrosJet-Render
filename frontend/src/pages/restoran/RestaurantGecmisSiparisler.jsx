@@ -50,7 +50,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     if (!restaurantId) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/restaurant/orders/${restaurantId}?status=delivered`);
+      const res = await axios.get(`${API}/orders/restaurant/${restaurantId}?status=delivered`);
       let result = res.data || [];
       
       // Courier filter
