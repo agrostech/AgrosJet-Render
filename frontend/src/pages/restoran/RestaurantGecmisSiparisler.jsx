@@ -53,8 +53,16 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     if (!restaurantId) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/orders/restaurant/${restaurantId}?status=delivered`);
-      let result = res.data || [];
+      // Yeni merkezi endpoint kullan
+      const res = await axios.get(`${API}/orders/v2/list`, {
+        params: {
+          panel: 'restaurant',
+          restaurant_id: restaurantId,
+          status: 'delivered',
+          limit: 500
+        }
+      });
+      let result = res.data.orders || [];
       
       // Courier filter
       if (filters.courier !== "all") {
