@@ -885,6 +885,14 @@ async def run_test_create_order(test_number: int):
     
     payload = test_data.get(test_number)
     
+    # PAYLOAD LOGLAMA - DEBUG
+    logger.info(f"SepetTakip test payload gönderiliyor: test={test_number}, payload_keys={list(payload.keys())}")
+    logger.info(f"SepetTakip test payload içeriği: {payload}")
+    
+    # Payload'da latitude/longitude OLMAMALI
+    if 'latitude' in payload or 'longitude' in payload:
+        logger.error(f"HATA: Payload'da latitude/longitude var! Bu olmamalı!")
+    
     try:
         headers = {
             "Content-Type": "application/json",
