@@ -204,6 +204,274 @@ def calculate_distance(restaurant_location: dict, delivery_location: dict) -> fl
     return R * c
 
 
+def calculate_distance_between_points(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """İki koordinat arası mesafe hesapla (km) - Haversine"""
+    if not all([lat1, lng1, lat2, lng2]):
+        return 0.0
+    
+    R = 6371  # Dünya yarıçapı km
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lng2 - lng1)
+    a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * c
+
+
+def get_location_coords(location: dict) -> tuple:
+    """Lokasyon dict'inden koordinatları çıkar"""
+    if not location:
+        return (None, None)
+    lat = location.get("latitude") or location.get("lat")
+    lng = location.get("longitude") or location.get("lng")
+    return (lat, lng)
+
+
+async def calculate_courier_eta_for_restaurant(
+    courier_id: str, 
+    target_restaurant_id: str,
+    target_restaurant_location: dict = None
+) -> dict:
+    """
+    Kuryenin belirli bir restorana tahmini varış süresini hesapla.
+    
+    Mantık:
+    1. Kuryenin mevcut konumunu al
+    2. Kuryenin aktif siparişlerini al
+    3. Her sipariş için duruma göre (pickup veya delivery) işlem sırası belirle
+    4. Tüm ara noktaları hesaba katarak toplam ETA hesapla
+    
+    Senaryolar:
+    - Kurye boşta: Doğrudan restorana mesafe
+    - Kurye assigned/confirmed: Önce o restoranlardan teslim alması gerekir
+    - Kurye on_the_way: Önce teslimat yapması gerekir
+    - Karışık: Tüm ara noktaları sırayla gezer
+    
+    Returns:
+        {
+            "eta_minutes": int,          # Toplam tahmini dakika
+            "eta_text": str,             # "~15 dk" formatında
+            "distance_km": float,        # Toplam mesafe
+            "current_orders_count": int, # Mevcut sipariş sayısı
+            "route_summary": str,        # "2 teslimat, 1 teslim alım" gibi
+            "breakdown": list            # Detaylı rota bilgisi
+        }
+    """
+    AVG_SPEED_KMH = 25  # Ortalama şehir içi motorsiklet hızı
+    PICKUP_TIME_MINS = 2  # Restorandan alma süresi (dakika)
+    DELIVERY_TIME_MINS = 3  # Teslimat süresi (dakika)
+    
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one(
+        {"id": courier_id},
+        {"_id": 0, "current_location": 1, "name": 1}
+    )
+    
+    if not courier or not courier.get("current_location"):
+        return {
+            "eta_minutes": None,
+            "eta_text": "Konum yok",
+            "distance_km": 0,
+            "current_orders_count": 0,
+            "route_summary": "Kurye konumu bilinmiyor",
+            "breakdown": []
+        }
+    
+    courier_lat, courier_lng = get_location_coords(courier["current_location"])
+    if not courier_lat or not courier_lng:
+        return {
+            "eta_minutes": None,
+            "eta_text": "Konum yok",
+            "distance_km": 0,
+            "current_orders_count": 0,
+            "route_summary": "Kurye konumu bilinmiyor",
+            "breakdown": []
+        }
+    
+    # Hedef restoran konumunu al
+    if not target_restaurant_location:
+        restaurant = await db.restaurants.find_one(
+            {"id": target_restaurant_id},
+            {"_id": 0, "latitude": 1, "longitude": 1, "name": 1}
+        )
+        if restaurant:
+            target_restaurant_location = {
+                "latitude": restaurant.get("latitude"),
+                "longitude": restaurant.get("longitude")
+            }
+    
+    target_lat, target_lng = get_location_coords(target_restaurant_location)
+    if not target_lat or not target_lng:
+        return {
+            "eta_minutes": None,
+            "eta_text": "Restoran konumu yok",
+            "distance_km": 0,
+            "current_orders_count": 0,
+            "route_summary": "Restoran konumu bilinmiyor",
+            "breakdown": []
+        }
+    
+    # Kuryenin aktif siparişlerini al
+    active_orders = await db.orders.find(
+        {
+            "courier_id": courier_id,
+            "status": {"$in": ["assigned", "confirmed", "on_the_way"]}
+        },
+        {"_id": 0, "id": 1, "status": 1, "restaurant_id": 1, "restaurant_name": 1, 
+         "restaurant_location": 1, "delivery_location": 1, "delivery_address": 1}
+    ).to_list(20)
+    
+    # Sipariş yoksa doğrudan mesafe hesapla
+    if not active_orders:
+        direct_distance = calculate_distance_between_points(courier_lat, courier_lng, target_lat, target_lng)
+        eta_minutes = max(1, math.ceil((direct_distance / AVG_SPEED_KMH) * 60))
+        
+        return {
+            "eta_minutes": eta_minutes,
+            "eta_text": f"~{eta_minutes} dk",
+            "distance_km": round(direct_distance, 2),
+            "current_orders_count": 0,
+            "route_summary": "Doğrudan geliyor",
+            "breakdown": [{
+                "type": "direct",
+                "description": "Restorana doğrudan",
+                "distance_km": round(direct_distance, 2),
+                "time_mins": eta_minutes
+            }]
+        }
+    
+    # Ara noktaları (waypoints) oluştur
+    waypoints = []
+    
+    # Siparişleri öncelik sırasına koy:
+    # 1. on_the_way olanlar (teslimat yapılacak) - en önce
+    # 2. assigned/confirmed (teslim alınacak) - sonra
+    
+    on_the_way_orders = [o for o in active_orders if o["status"] == "on_the_way"]
+    pickup_orders = [o for o in active_orders if o["status"] in ["assigned", "confirmed"]]
+    
+    # Mevcut konum
+    current_lat, current_lng = courier_lat, courier_lng
+    total_distance = 0
+    total_time = 0
+    breakdown = []
+    
+    # 1. Önce teslimat yapılacakları işle (on_the_way)
+    # En yakın teslimat noktasına git, teslim et, sonraki en yakına...
+    remaining_deliveries = on_the_way_orders.copy()
+    while remaining_deliveries:
+        # En yakın teslimat noktasını bul
+        nearest = None
+        nearest_distance = float('inf')
+        
+        for order in remaining_deliveries:
+            del_lat, del_lng = get_location_coords(order.get("delivery_location"))
+            if del_lat and del_lng:
+                dist = calculate_distance_between_points(current_lat, current_lng, del_lat, del_lng)
+                if dist < nearest_distance:
+                    nearest_distance = dist
+                    nearest = order
+        
+        if nearest:
+            remaining_deliveries.remove(nearest)
+            del_lat, del_lng = get_location_coords(nearest.get("delivery_location"))
+            
+            total_distance += nearest_distance
+            travel_time = math.ceil((nearest_distance / AVG_SPEED_KMH) * 60)
+            total_time += travel_time + DELIVERY_TIME_MINS
+            
+            breakdown.append({
+                "type": "delivery",
+                "description": f"Teslimat: {nearest.get('delivery_address', 'Adres')[:30]}...",
+                "distance_km": round(nearest_distance, 2),
+                "time_mins": travel_time + DELIVERY_TIME_MINS
+            })
+            
+            current_lat, current_lng = del_lat, del_lng
+        else:
+            break
+    
+    # 2. Sonra teslim alınacakları işle (assigned/confirmed)
+    # Hedef restoranı da dahil et (eğer pickup listesinde değilse)
+    target_in_pickups = any(o.get("restaurant_id") == target_restaurant_id for o in pickup_orders)
+    
+    remaining_pickups = pickup_orders.copy()
+    
+    # Teslim alım noktalarını en yakın rotaya göre sırala
+    while remaining_pickups:
+        nearest = None
+        nearest_distance = float('inf')
+        
+        for order in remaining_pickups:
+            rest_lat, rest_lng = get_location_coords(order.get("restaurant_location"))
+            if rest_lat and rest_lng:
+                dist = calculate_distance_between_points(current_lat, current_lng, rest_lat, rest_lng)
+                if dist < nearest_distance:
+                    nearest_distance = dist
+                    nearest = order
+        
+        if nearest:
+            remaining_pickups.remove(nearest)
+            rest_lat, rest_lng = get_location_coords(nearest.get("restaurant_location"))
+            
+            total_distance += nearest_distance
+            travel_time = math.ceil((nearest_distance / AVG_SPEED_KMH) * 60)
+            total_time += travel_time + PICKUP_TIME_MINS
+            
+            # Hedef restorana varınca işaretle
+            is_target = nearest.get("restaurant_id") == target_restaurant_id
+            
+            breakdown.append({
+                "type": "pickup",
+                "description": f"Teslim Al: {nearest.get('restaurant_name', 'Restoran')[:25]}",
+                "distance_km": round(nearest_distance, 2),
+                "time_mins": travel_time + PICKUP_TIME_MINS,
+                "is_target": is_target
+            })
+            
+            current_lat, current_lng = rest_lat, rest_lng
+        else:
+            break
+    
+    # 3. Eğer hedef restoran pickup listesinde değilse, son olarak oraya git
+    if not target_in_pickups:
+        final_distance = calculate_distance_between_points(current_lat, current_lng, target_lat, target_lng)
+        total_distance += final_distance
+        travel_time = math.ceil((final_distance / AVG_SPEED_KMH) * 60)
+        total_time += travel_time
+        
+        breakdown.append({
+            "type": "target",
+            "description": "Hedefe varış",
+            "distance_km": round(final_distance, 2),
+            "time_mins": travel_time,
+            "is_target": True
+        })
+    
+    # Özet oluştur
+    delivery_count = len(on_the_way_orders)
+    pickup_count = len(pickup_orders)
+    
+    if delivery_count > 0 and pickup_count > 0:
+        route_summary = f"{delivery_count} teslimat, {pickup_count} teslim alım sonra"
+    elif delivery_count > 0:
+        route_summary = f"{delivery_count} teslimat sonra"
+    elif pickup_count > 0:
+        route_summary = f"{pickup_count} teslim alım sonra"
+    else:
+        route_summary = "Doğrudan geliyor"
+    
+    eta_minutes = max(1, total_time)
+    
+    return {
+        "eta_minutes": eta_minutes,
+        "eta_text": f"~{eta_minutes} dk",
+        "distance_km": round(total_distance, 2),
+        "current_orders_count": len(active_orders),
+        "route_summary": route_summary,
+        "breakdown": breakdown
+    }
+
+
 def normalize_product_name(name: str) -> str:
     """
     Ürün ismini normalize et - fuzzy matching için.
