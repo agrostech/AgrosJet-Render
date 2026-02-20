@@ -497,30 +497,30 @@ export const silentPrint = async (order, printerName = null, paperSize = "80mm",
  * QZ Tray durumunu kontrol et
  */
 export const getQzStatus = async () => {
+  // Kütüphane yüklü mü kontrol et
   if (!isQzAvailable()) {
     return {
       installed: false,
       connected: false,
-      message: "QZ Tray yüklü değil"
+      message: "QZ Tray kütüphanesi yüklenemedi. Sayfayı yenileyin."
     };
   }
 
-  const isConnected = window.qz?.websocket?.isActive() || false;
-  
-  if (!isConnected) {
-    // Bağlanmayı dene
-    const connection = await connectToQz();
+  // Zaten bağlı mı kontrol et
+  if (isQzConnected()) {
     return {
       installed: true,
-      connected: connection.success,
-      message: connection.success ? "QZ Tray bağlı" : connection.error
+      connected: true,
+      message: "QZ Tray bağlı ve hazır"
     };
   }
 
+  // Bağlanmayı dene
+  const connection = await connectToQz();
   return {
     installed: true,
-    connected: true,
-    message: "QZ Tray bağlı ve hazır"
+    connected: connection.success,
+    message: connection.success ? "QZ Tray bağlı" : connection.error
   };
 };
 
