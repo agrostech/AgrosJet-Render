@@ -784,7 +784,16 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               <div className="line-clamp-3 leading-relaxed">{order.delivery_address || "-"}</div>
                             </td>
                             <td className="p-2 text-xs whitespace-nowrap">{getOrderDistance(order) || "-"}</td>
-                            <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
+                            <td className="p-2 whitespace-nowrap">
+                              {order.total_price && order.total_discounted_price && order.total_price > order.total_discounted_price ? (
+                                <div className="flex flex-col">
+                                  <span className="text-xs text-muted-foreground line-through">{formatCurrency(order.total_price)}</span>
+                                  <span className="font-semibold text-green-600">{formatCurrency(order.total_amount)}</span>
+                                </div>
+                              ) : (
+                                <span className="font-semibold">{formatCurrency(order.total_amount)}</span>
+                              )}
+                            </td>
                             <td className="p-2">{getPaymentBadge(order.payment_method, order.payment_method_detail)}</td>
                             <td className="p-2">
                               <StatusDropdown
