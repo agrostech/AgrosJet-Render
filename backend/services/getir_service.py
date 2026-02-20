@@ -709,7 +709,7 @@ async def delayed_prepare(restaurant_id: str, getir_order_id: str, shiftjet_orde
             else:
                 error = _extract_error(response)
                 logger.warning(f"Getir delayed_prepare hatası: {getir_order_id} - {error}")
-    except Exception as e:
+    except Exception:
         logger.exception(f"Getir delayed_prepare exception: {getir_order_id}")
 
 
