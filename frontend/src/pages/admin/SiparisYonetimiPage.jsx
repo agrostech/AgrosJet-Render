@@ -878,11 +878,19 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                           data-testid={`order-row-${order.id}`}
                         >
                           <td className="p-2 text-xs whitespace-nowrap">
-                            <div className="flex items-center gap-1">
-                              <span>{formatTime(order.created_at)}</span>
-                              {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
-                                <span className={`text-[10px] px-1 py-0.5 rounded ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
-                                  {orderAge.text}
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1">
+                                <span>{formatTime(order.created_at)}</span>
+                                {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
+                                  <span className={`text-[10px] px-1 py-0.5 rounded ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
+                                    {orderAge.text}
+                                  </span>
+                                )}
+                              </div>
+                              {/* İleri tarihli sipariş için teslimat saati */}
+                              {order.getir_raw?.isScheduled && order.getir_raw?.scheduledDate && (
+                                <span className="text-[10px] text-purple-600 font-medium">
+                                  {formatTime(order.getir_raw.scheduledDate)} İT
                                 </span>
                               )}
                             </div>
