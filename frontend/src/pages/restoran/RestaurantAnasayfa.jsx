@@ -778,7 +778,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                 /* Kurye atanmamış - dropdown göster (sadece paketi olan kurye varsa) */
                                 courierRestrictionMode === "restricted" && availableCouriers.length > 0 ? (
                                   <Select onValueChange={(courierId) => onAssignCourier(order.id, courierId)}>
-                                    <SelectTrigger className="h-7 text-xs w-[120px] border-dashed">
+                                    <SelectTrigger className="h-7 text-xs w-[140px] border-dashed">
                                       <SelectValue placeholder="Kurye Ata" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -787,13 +787,23 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                       </div>
                                       {availableCouriers.map((courier) => (
                                         <SelectItem key={courier.id} value={courier.id} className="text-xs">
-                                          <div className="flex items-center gap-2">
-                                            <span>{courier.name}</span>
-                                            {courier.package_count > 0 && (
-                                              <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                                                {courier.package_count} paket
-                                              </Badge>
-                                            )}
+                                          <div className="flex flex-col">
+                                            <div className="flex items-center gap-2">
+                                              <span className="font-medium">{courier.name}</span>
+                                              {courier.eta?.eta_text && (
+                                                <span className="text-blue-600 text-[10px]">
+                                                  {courier.eta.eta_text}
+                                                </span>
+                                              )}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                              {courier.package_count > 0 && (
+                                                <span>{courier.package_count} paket</span>
+                                              )}
+                                              {courier.eta?.route_summary && courier.eta.route_summary !== "Doğrudan geliyor" && (
+                                                <span>• {courier.eta.route_summary}</span>
+                                              )}
+                                            </div>
                                           </div>
                                         </SelectItem>
                                       ))}
