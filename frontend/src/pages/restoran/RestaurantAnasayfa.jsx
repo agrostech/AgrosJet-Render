@@ -56,6 +56,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const [restaurantDeliveryConfirm, setRestaurantDeliveryConfirm] = useState(null);
   const [unmarkDeliveryConfirm, setUnmarkDeliveryConfirm] = useState(null);
   const [statusConfirmModal, setStatusConfirmModal] = useState({ open: false, order: null, status: null });
+  const [cancelReasons, setCancelReasons] = useState([]);
+  const [selectedCancelReason, setSelectedCancelReason] = useState("");
+  const [cancelNote, setCancelNote] = useState("");
   const [courierETAs, setCourierETAs] = useState({}); // {courierId: etaInfo}
   
   // Otomatik yazdırma için önceki siparişleri takip et
