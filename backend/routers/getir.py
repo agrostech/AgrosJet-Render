@@ -604,7 +604,7 @@ async def get_order_receipt_html(order_id: str):
             from datetime import datetime
             dt = datetime.fromisoformat(order_date.replace('Z', '+00:00'))
             order_date_formatted = dt.strftime("%d.%m.%Y %H:%M")
-        except:
+        except (ValueError, TypeError):
             order_date_formatted = order_date
     else:
         order_date_formatted = "-"
