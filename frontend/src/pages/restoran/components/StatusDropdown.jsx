@@ -20,19 +20,19 @@ const PREPARATION_TIMES = [
   { value: 60, label: "60 dakika" },
 ];
 
-// Status bilgileri
+// Status bilgileri - orderUtils.js ile AYNI renkler
 const ORDER_STATUSES = {
-  pending: { label: "Beklemede", color: "bg-yellow-100" },
-  preparing: { label: "Hazırlanıyor", color: "bg-blue-100" },
-  scheduled: { label: "Planlandı", color: "bg-purple-100" },
-  ready: { label: "Hazır", color: "bg-green-100" },
-  confirmed: { label: "Onaylandı", color: "bg-cyan-100" },
-  assigned: { label: "Kurye Atandı", color: "bg-indigo-100" },
-  picked_up: { label: "Teslim Alındı", color: "bg-teal-100" },
-  on_the_way: { label: "Yolda", color: "bg-orange-100" },
-  delivered: { label: "Teslim Edildi", color: "bg-green-200" },
-  cancelled: { label: "İptal", color: "bg-red-100" },
-  restaurant_delivery: { label: "Restoran Teslimatı", color: "bg-orange-100" },
+  pending: { label: "Beklemede", color: "bg-yellow-300/50" },
+  preparing: { label: "Hazırlanıyor", color: "bg-yellow-300/50" },
+  scheduled: { label: "Planlandı", color: "bg-purple-300/50" },
+  ready: { label: "Hazır", color: "bg-orange-300/50" },
+  confirmed: { label: "Onaylandı", color: "bg-blue-300/50" },
+  assigned: { label: "Kurye Atandı", color: "bg-purple-300/50" },
+  picked_up: { label: "Teslim Alındı", color: "bg-teal-300/50" },
+  on_the_way: { label: "Yolda", color: "bg-cyan-300/50" },
+  delivered: { label: "Teslim Edildi", color: "bg-green-300/50" },
+  cancelled: { label: "İptal", color: "bg-red-300/50" },
+  restaurant_delivery: { label: "Restoran Teslimatı", color: "bg-orange-300/50" },
 };
 
 export default function StatusDropdown({
