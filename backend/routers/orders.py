@@ -2589,8 +2589,6 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
     """
     Restoran teslimatı olan siparişin durumunu güncelle.
     Sadece restoran teslimatı işaretli siparişler için çalışır.
-    
-    İzin verilen durumlar: preparing, confirmed, on_the_way, delivered
     """
     # Siparişi bul
     order = await db.orders.find_one({"id": order_id})
@@ -2610,50 +2608,29 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
     if new_status not in allowed_statuses:
         raise HTTPException(status_code=400, detail=f"Geçersiz durum. İzin verilenler: {', '.join(allowed_statuses)}")
     
-    now = datetime.now(timezone.utc)
-    
-    # Status label mapping
-    status_labels = {
-        "preparing": "Hazırlanıyor",
-        "confirmed": "Onaylandı",
-        "on_the_way": "Yolda",
-        "delivered": "Teslim Edildi",
-        "cancelled": "İptal Edildi"
-    }
-    
-    update_fields = {
-        "status": new_status,
-        "updated_at": now.isoformat()
-    }
-    
-    # Teslim edildi ise teslim zamanını kaydet
+    # Extra güncellemeler
+    extra_updates = {}
     if new_status == "delivered":
-        update_fields["delivered_at"] = now.isoformat()
-        update_fields["delivered_by"] = "restaurant"
-    
-    # İptal edildi ise iptal zamanını kaydet
+        extra_updates["delivered_by"] = "restaurant"
     if new_status == "cancelled":
-        update_fields["cancelled_at"] = now.isoformat()
-        update_fields["cancelled_by"] = "restaurant"
+        extra_updates["cancelled_by"] = "restaurant"
     
-    # History'ye ekle
-    history_entry = {
-        "status": new_status,
-        "label": status_labels.get(new_status, new_status),
-        "timestamp": now.isoformat(),
-        "actor_type": "restaurant",
-        "actor_name": order.get("restaurant_name", "Restoran")
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": update_fields,
-            "$push": {"status_history": history_entry}
-        }
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status=new_status,
+        actor_type="restaurant",
+        actor_name=order.get("restaurant_name", "Restoran"),
+        extra_updates=extra_updates if extra_updates else None,
+        notify_platform=True
     )
     
-    logger.info(f"Restoran teslimatı durumu güncellendi: {order_id} -> {new_status}")
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    status_labels = {
+        "preparing": "Hazırlanıyor", "confirmed": "Onaylandı",
+        "on_the_way": "Yolda", "delivered": "Teslim Edildi", "cancelled": "İptal Edildi"
+    }
     
     return {
         "success": True,
