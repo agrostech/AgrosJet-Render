@@ -44,7 +44,7 @@ import { printOrderLocal, getLocalPrintSettings, checkLocalPrintServer } from "@
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId, permissions = {} }) {
+export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId, restaurantName, permissions = {} }) {
   const [activeTab, setActiveTab] = useState("pending");
   const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
   const [availableCouriers, setAvailableCouriers] = useState([]);
