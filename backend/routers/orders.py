@@ -445,15 +445,16 @@ async def calculate_courier_eta_for_restaurant(
         })
     
     # Özet oluştur
+    # Hedef restoran pickup listesindeyse, onu sayıdan çıkar (zaten oraya gidiyoruz)
     delivery_count = len(on_the_way_orders)
-    pickup_count = len(pickup_orders)
+    other_pickups_count = len([o for o in pickup_orders if o.get("restaurant_id") != target_restaurant_id])
     
-    if delivery_count > 0 and pickup_count > 0:
-        route_summary = f"{delivery_count} teslimat, {pickup_count} teslim alım sonra"
+    if delivery_count > 0 and other_pickups_count > 0:
+        route_summary = f"{delivery_count} teslimat, {other_pickups_count} teslim alım sonra"
     elif delivery_count > 0:
         route_summary = f"{delivery_count} teslimat sonra"
-    elif pickup_count > 0:
-        route_summary = f"{pickup_count} teslim alım sonra"
+    elif other_pickups_count > 0:
+        route_summary = f"{other_pickups_count} teslim alım sonra"
     else:
         route_summary = "Doğrudan geliyor"
     
