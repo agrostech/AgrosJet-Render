@@ -7,7 +7,8 @@ export default function RestaurantSidebar({
   restaurant,
   navItems, 
   onLogout,
-  badges = {}
+  badges = {},
+  companyLogo = null
 }) {
   const location = useLocation();
 
@@ -39,6 +40,17 @@ export default function RestaurantSidebar({
       </nav>
       
       <div className="border-t border-white/20 flex-shrink-0">
+        {/* Şirket Logosu */}
+        {companyLogo && (
+          <div className="flex justify-center py-3">
+            <img 
+              src={companyLogo} 
+              alt="Şirket" 
+              className="object-contain" 
+              style={{ width: '70%' }}
+            />
+          </div>
+        )}
         <Button 
           variant="ghost" 
           onClick={onLogout} 
