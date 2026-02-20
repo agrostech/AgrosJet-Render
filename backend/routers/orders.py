@@ -19,10 +19,13 @@ logger = logging.getLogger(__name__)
 
 
 # --- Platform Bildirim Fonksiyonu ---
-async def notify_platform_status_change(order: dict, new_status: str, preparation_time: int = None):
+async def notify_platform_status_change(order: dict, new_status: str, preparation_time: int = None, cancel_reason_id: str = None, cancel_note: str = None):
     """
     Sipariş durumu değiştiğinde ilgili platforma (Trendyol, Getir, Adisyo vb.) bildirim gönder.
     Bu fonksiyon arka planda çalışır ve hata alsa bile ana işlemi engellemez.
+    
+    cancel_reason_id: Platform iptal sebebi ID'si (iptal durumu için)
+    cancel_note: İptal notu
     """
     source = order.get("source", "")
     restaurant_id = order.get("restaurant_id")
