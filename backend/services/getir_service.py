@@ -892,19 +892,33 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
                 skipped_count += 1
                 continue
             
-            # Getir'den durum güncellemesi varsa uygula
+            # Getir'den SADECE İPTAL durumunu al, diğer durumları yoksay
+            # Çünkü ShiftJet'te durum yönetimi manuel yapılıyor (Yola Çıkar, Teslim Et butonları)
             new_status = map_getir_status(getir_status)
-            if current_status != new_status:
+            
+            # Sadece iptal durumunu Getir'den al
+            if new_status == "cancelled" and current_status != "cancelled":
                 await db.orders.update_one(
                     {"_id": existing["_id"]},
                     {"$set": {
-                        "status": new_status,
+                        "status": "cancelled",
                         "updated_at": datetime.now(timezone.utc).isoformat(),
-                        "getir_raw.status": getir_status
+                        "getir_raw.status": getir_status,
+                        "cancelled_by": "getir",
+                        "cancelled_at": datetime.now(timezone.utc).isoformat()
                     }}
                 )
                 updated_count += 1
+                logger.info(f"Getir sipariş iptal edildi (sync): {getir_order_id}")
             else:
+                # Sadece getir_raw.status'u güncelle, ShiftJet status'unu değiştirme
+                await db.orders.update_one(
+                    {"_id": existing["_id"]},
+                    {"$set": {
+                        "getir_raw.status": getir_status,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
                 skipped_count += 1
             continue
         
