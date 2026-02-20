@@ -765,6 +765,8 @@ class OrderStatusUpdate(BaseModel):
     admin_name: Optional[str] = None
     actor_type: Optional[str] = None  # admin, courier, system
     is_super_admin: Optional[bool] = False  # Super admin bypass
+    cancel_reason_id: Optional[str] = None  # Platform iptal sebebi ID
+    cancel_note: Optional[str] = None  # İptal notu
 
 
 class OrderFeesUpdate(BaseModel):
