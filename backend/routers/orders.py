@@ -2035,32 +2035,17 @@ async def courier_pickup_order(courier_id: str, order_id: str):
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
     courier_name = courier.get("name", "Kurye") if courier else "Kurye"
     
-    now = datetime.now(timezone.utc).isoformat()
-    
-    # History entry
-    history_entry = {
-        "status": "on_the_way",
-        "label": "Yolda",
-        "timestamp": now,
-        "note": "Kurye yola çıktı",
-        "actor_type": "courier",
-        "actor_name": courier_name
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": {
-                "status": "on_the_way",
-                "picked_up_at": now,
-                "updated_at": now
-            },
-            "$push": {"status_history": history_entry}
-        }
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status="on_the_way",
+        actor_type="courier",
+        actor_name=courier_name,
+        note="Kurye yola çıktı",
+        notify_platform=True
     )
     
-    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
-    await notify_platform_status_change(order, "on_the_way")
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": "Sipariş yola çıktı"}
 
