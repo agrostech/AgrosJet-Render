@@ -2469,6 +2469,49 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
         raise HTTPException(status_code=400, detail="Bu sipariş restoran teslimatı değil")
     
     # İzin verilen durumlar
+
+
+# --- Platform İptal Sebepleri ---
+@router.get("/cancel-reasons/{source}")
+async def get_cancel_reasons_by_platform(source: str):
+    """
+    Platform bazlı iptal sebeplerini döndür
+    
+    source: getir, trendyol, yemeksepeti, adisyo, manual, vb.
+    """
+    reasons = PLATFORM_CANCEL_REASONS.get(source, PLATFORM_CANCEL_REASONS["default"])
+    return {
+        "success": True,
+        "source": source,
+        "reasons": reasons
+    }
+
+
+@router.get("/{order_id}/cancel-reasons")
+async def get_order_cancel_reasons(order_id: str):
+    """
+    Sipariş için uygun iptal sebeplerini döndür
+    Siparişin kaynağına göre (getir, trendyol vb.) iptal sebeplerini getirir
+    """
+    order = await db.orders.find_one(
+        {"id": order_id},
+        {"_id": 0, "source": 1, "order_number": 1}
+    )
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    source = order.get("source", "manual")
+    reasons = PLATFORM_CANCEL_REASONS.get(source, PLATFORM_CANCEL_REASONS["default"])
+    
+    return {
+        "success": True,
+        "order_id": order_id,
+        "order_number": order.get("order_number"),
+        "source": source,
+        "reasons": reasons
+    }
+
     allowed_statuses = ["preparing", "confirmed", "on_the_way", "delivered"]
     if new_status not in allowed_statuses:
         raise HTTPException(status_code=400, detail=f"Geçersiz durum. İzin verilenler: {', '.join(allowed_statuses)}")
