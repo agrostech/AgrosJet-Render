@@ -1261,7 +1261,6 @@ async def get_available_couriers_for_restaurant(restaurant_id: str):
             "message": "Kurye atama izni aktif değil"
         }
     
-    company_id = restaurant.get("company_id")
     blocked_couriers = restaurant.get("blocked_couriers", [])
     
     # Restoranda aktif (atanmış ama teslim edilmemiş) siparişleri bul
