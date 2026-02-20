@@ -365,17 +365,55 @@ function OrderDetails({
                   <span className="text-slate-600">{formatCurrency(item.price * item.quantity)}</span>
                 </div>
               ))}
-              <div className="border-t mt-2 pt-2 flex justify-between font-semibold">
-                <span>Toplam</span>
-                <span className="text-lg">{formatCurrency(order.total_amount)}</span>
+              <div className="border-t mt-2 pt-2">
+                {order.total_price && order.total_discounted_price && order.total_price > order.total_discounted_price ? (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Ara Toplam</span>
+                      <span className="line-through">{formatCurrency(order.total_price)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>İndirim</span>
+                      <span>-{formatCurrency(order.total_price - order.total_discounted_price)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold pt-1 border-t">
+                      <span>Toplam</span>
+                      <span className="text-lg text-green-600">{formatCurrency(order.total_amount)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between font-semibold">
+                    <span>Toplam</span>
+                    <span className="text-lg">{formatCurrency(order.total_amount)}</span>
+                  </div>
+                )}
               </div>
             </>
           ) : (
-            <div className="flex justify-between font-semibold">
-              <span>Toplam Tutar</span>
-              <span className="text-lg">{formatCurrency(order.total_amount)}</span>
+            <div>
+              {order.total_price && order.total_discounted_price && order.total_price > order.total_discounted_price ? (
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Ara Toplam</span>
+                    <span className="line-through">{formatCurrency(order.total_price)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>İndirim</span>
+                    <span>-{formatCurrency(order.total_price - order.total_discounted_price)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold pt-1 border-t">
+                    <span>Toplam Tutar</span>
+                    <span className="text-lg text-green-600">{formatCurrency(order.total_amount)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between font-semibold">
+                  <span>Toplam Tutar</span>
+                  <span className="text-lg">{formatCurrency(order.total_amount)}</span>
+                </div>
+              )}
             </div>
-          )}
+          )}}
         </div>
       </div>
 
