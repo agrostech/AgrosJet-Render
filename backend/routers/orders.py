@@ -804,15 +804,22 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
-    # Kurye atandıysa restoran değişiklik yapamaz
+    # Kurye atandıysa sadece belirli işlemlere izin ver
     if order.get("courier_id"):
-        raise HTTPException(
-            status_code=403, 
-            detail="Kurye atandıktan sonra sipariş durumu restoran tarafından değiştirilemez"
-        )
+        # İptal edilebilir
+        if data.status == "cancelled":
+            pass  # İzin ver
+        # Bekleme süresi güncellenebilir (kurye ataması iptal olur)
+        elif data.status == "preparing":
+            pass  # İzin ver, aşağıda courier_id = None yapılacak
+        else:
+            raise HTTPException(
+                status_code=403, 
+                detail="Kurye atandıktan sonra sadece bekleme süresi güncellenebilir veya sipariş iptal edilebilir"
+            )
     
     # Sadece belirli durumlar değiştirilebilir
-    allowed_statuses = ["pending", "preparing", "ready", "scheduled", "on_the_way", "delivered"]
+    allowed_statuses = ["pending", "preparing", "ready", "scheduled", "on_the_way", "delivered", "cancelled"]
     if data.status not in allowed_statuses:
         raise HTTPException(
             status_code=400, 
@@ -825,6 +832,12 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
         "status": data.status,
         "updated_at": now.isoformat()
     }
+    
+    # Kurye atanmışken bekleme süresi güncellenirse kurye atamasını iptal et
+    if order.get("courier_id") and data.status == "preparing":
+        update_fields["courier_id"] = None
+        update_fields["courier_name"] = None
+        update_fields["courier_assigned_at"] = None
     
     # Hazırlanıyor durumuna geçişte geri sayım
     if data.status == "preparing":
