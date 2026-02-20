@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { printOrder } from "@/utils/printUtils";
 import {
   isQzAvailable,
+  isQzConnected,
   connectToQz,
   getPrinters,
   silentPrint,
