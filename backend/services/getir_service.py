@@ -430,12 +430,14 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     """Getir sipariş formatını ShiftJet sipariş formatına çevir"""
     
     order_id = getir_order.get("id", "")
-    order_number = getir_order.get("confirmationId") or getir_order.get("orderNumber") or order_id[:8]
+    confirmation_id = getir_order.get("confirmationId", "")
+    order_number = confirmation_id or getir_order.get("orderNumber") or order_id[:8]
     
     # Müşteri bilgileri
     client = getir_order.get("client", {})
     customer_name = client.get("name", "Müşteri")
-    customer_phone = client.get("phoneNumber", client.get("contactPhoneNumber", ""))
+    # 0850 ile başlayan maskelenmiş numara
+    customer_phone = client.get("phoneNumber") or client.get("contactPhoneNumber") or ""
     
     # Adres bilgileri
     address = getir_order.get("address", {}) or getir_order.get("clientAddress", {})
@@ -488,32 +490,51 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         })
     
     # Toplam tutar
-    total_amount = float(getir_order.get("totalPrice", getir_order.get("total", 0)))
+    total_price = float(getir_order.get("totalPrice", 0))
+    total_discounted = float(getir_order.get("totalDiscountedPrice", 0))
+    total_amount = total_discounted if total_discounted > 0 else total_price
     
     # Ödeme yöntemi
-    payment_method = getir_order.get("paymentMethod", {})
+    payment_method = getir_order.get("paymentMethod")
     payment = map_getir_payment(payment_method)
+    payment_method_name = get_payment_method_name(payment_method)
+    
+    # Teslimat tipi: 1 = Getir Getirsin, 2 = Restoran Getirsin
+    delivery_type = getir_order.get("deliveryType", 1)
+    is_getir_courier = delivery_type == 1
+    delivery_type_text = "Getir Getirsin" if is_getir_courier else "Restoran Getirsin"
+    
+    # İleri tarihli sipariş
+    is_scheduled = getir_order.get("isScheduled", False) or getir_order.get("isScheduledOrder", False)
+    scheduled_date = getir_order.get("scheduledDate") or getir_order.get("scheduledTime")
     
     # Sipariş notları
     notes_parts = []
     if getir_order.get("clientNote"):
-        notes_parts.append(f"CUSTOMER:{getir_order['clientNote']}")
+        notes_parts.append(f"MÜŞTERİ NOTU: {getir_order['clientNote']}")
     if address.get("description") or address.get("directions"):
-        notes_parts.append(f"ADDRESS:{address.get('description') or address.get('directions')}")
-    order_notes = "|".join(notes_parts)
+        notes_parts.append(f"ADRES TARIFI: {address.get('description') or address.get('directions')}")
+    if is_scheduled and scheduled_date:
+        notes_parts.append(f"İLERİ TARİHLİ: {scheduled_date}")
+    notes_parts.append(f"TESLİMAT: {delivery_type_text}")
+    order_notes = " | ".join(notes_parts)
     
-    # Kurye tipi
-    courier_type = getir_order.get("courierType", "")
-    is_getir_courier = courier_type.lower() in ["getir", "getir_courier"]
+    # Doğrulama kodu (sipariş fişi için)
+    verification_code = getir_order.get("verificationCode") or confirmation_id[:4] if confirmation_id else ""
     
     # Oluşturulma zamanı
     created_at = getir_order.get("createdAt") or getir_order.get("checkoutDate") or datetime.now(timezone.utc).isoformat()
+    
+    # Status
+    raw_status = getir_order.get("status", 400)
+    mapped_status = map_getir_status(raw_status)
     
     return {
         "id": str(uuid.uuid4()),
         "order_number": f"GT-{order_number}",
         "getir_order_id": order_id,
-        "getir_confirmation_id": getir_order.get("confirmationId"),
+        "getir_confirmation_id": confirmation_id,
+        "verification_code": verification_code,
         "external_app_name": "Getir Yemek",
         "company_id": restaurant.get("company_id"),
         "restaurant_id": restaurant.get("id"),
@@ -532,8 +553,11 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         },
         "items": items,
         "total_amount": total_amount,
+        "total_price": total_price,
+        "total_discounted_price": total_discounted,
         "payment_method": payment,
-        "status": map_getir_status(getir_order.get("status", "pending")),
+        "payment_method_name": payment_method_name,
+        "status": mapped_status,
         "notes": order_notes,
         "source": "getir",
         "created_at": created_at,
@@ -542,12 +566,17 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "courier_name": None,
         "getir_raw": {
             "orderId": order_id,
-            "status": getir_order.get("status"),
-            "courierType": courier_type,
+            "status": raw_status,
+            "statusText": GETIR_ORDER_STATUSES.get(raw_status, "unknown"),
+            "deliveryType": delivery_type,
+            "deliveryTypeText": delivery_type_text,
             "isGetirCourier": is_getir_courier,
-            "paymentMethodId": payment_method.get("id") if payment_method else None,
-            "isScheduled": getir_order.get("isScheduledOrder", False),
-            "scheduledTime": getir_order.get("scheduledTime")
+            "paymentMethodId": payment_method if isinstance(payment_method, int) else (payment_method.get("id") if payment_method else None),
+            "paymentMethodName": payment_method_name,
+            "isScheduled": is_scheduled,
+            "scheduledDate": scheduled_date,
+            "verificationCode": verification_code,
+            "confirmationId": confirmation_id
         }
     }
 
