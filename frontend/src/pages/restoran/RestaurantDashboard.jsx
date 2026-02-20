@@ -33,7 +33,6 @@ export default function RestaurantDashboard() {
   const [restaurant, setRestaurant] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [badges, setBadges] = useState({});
   const [permissions, setPermissions] = useState({});
 
