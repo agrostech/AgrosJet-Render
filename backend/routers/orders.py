@@ -818,6 +818,43 @@ ORDER_STATUSES = {
     "cancelled": {"label": "İptal Edildi", "color": "red"}
 }
 
+# Platform bazlı iptal sebepleri
+PLATFORM_CANCEL_REASONS = {
+    "getir": [
+        {"id": "5f05b1392765e85c5d0432d2", "label": "Restoranda kurye yok, müsait değil"},
+        {"id": "5f05b13f2765e85c5d0432d3", "label": "Restoran teknik problem yaşıyor"},
+        {"id": "5e1469f7916c7a55cfc2aede", "label": "Müşteri adresi restoran servis alanı dışında"},
+        {"id": "5c5b49b068f6a45d427f0a8f", "label": "Restoran yoğun"},
+        {"id": "5f0875342ce13c10cbf1c0e6", "label": "Hava muhalefeti"},
+        {"id": "5c5b495768f6a45d427f0a8d", "label": "Restoran kapalı"},
+        {"id": "5c5b49a768f6a45d427f0a8e", "label": "Restoranda ürün eksik"},
+        {"id": "5f0875342ce13c10cbf1c0e7", "label": "Kurye müşteri adresini bulamadı"},
+        {"id": "6088226bdaa34255a5693e23", "label": "Sipariş minimum sepet tutarı altında"},
+    ],
+    "trendyol": [
+        {"id": "OUT_OF_STOCK", "label": "Ürün stokta yok"},
+        {"id": "RESTAURANT_CLOSED", "label": "Restoran kapalı"},
+        {"id": "BUSY", "label": "Restoran çok yoğun"},
+        {"id": "DELIVERY_AREA", "label": "Teslimat alanı dışında"},
+        {"id": "OTHER", "label": "Diğer"},
+    ],
+    "yemeksepeti": [
+        {"id": "1", "label": "Ürün stokta yok"},
+        {"id": "2", "label": "Restoran kapalı"},
+        {"id": "3", "label": "Restoran yoğun"},
+        {"id": "4", "label": "Teslimat problemi"},
+        {"id": "5", "label": "Diğer"},
+    ],
+    "default": [
+        {"id": "out_of_stock", "label": "Ürün stokta yok"},
+        {"id": "restaurant_closed", "label": "Restoran kapalı"},
+        {"id": "busy", "label": "Restoran yoğun"},
+        {"id": "delivery_issue", "label": "Teslimat problemi"},
+        {"id": "customer_request", "label": "Müşteri isteği"},
+        {"id": "other", "label": "Diğer"},
+    ]
+}
+
 # Kurye ataması kaldırılacak durumlar
 COURIER_REMOVAL_STATUSES = ["preparing", "ready", "cancelled"]
 
