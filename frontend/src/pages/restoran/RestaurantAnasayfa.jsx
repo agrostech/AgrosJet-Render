@@ -611,7 +611,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               {/* Restoran teslimatı ise "Restoran" göster */}
                               {order.is_restaurant_delivery ? (
                                 <span className="text-xs px-2 py-1 border border-slate-300 text-slate-600 rounded font-medium flex items-center gap-1 w-fit">
-                                  <Home className="w-3 h-3" />
+                                  <Truck className="w-3 h-3" />
                                   Restoran
                                 </span>
                               ) : order.courier_name ? (
@@ -677,7 +677,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                             className="h-7 w-7 rounded border-2 border-slate-400 flex items-center justify-center hover:border-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
                                             onClick={() => setUnmarkDeliveryConfirm(order)}
                                           >
-                                            <Home className="w-4 h-4 text-slate-500" />
+                                            <Truck className="w-4 h-4 text-slate-500" />
                                           </button>
                                         </TooltipTrigger>
                                         <TooltipContent>Kurye Şirketine Aktar</TooltipContent>
@@ -686,7 +686,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                   ) : (
                                     // Teslim edilmiş veya izin yoksa sadece görsel
                                     <div className="h-7 w-7 rounded border-2 border-slate-300 flex items-center justify-center opacity-50">
-                                      <Home className="w-4 h-4 text-slate-400" />
+                                      <Truck className="w-4 h-4 text-slate-400" />
                                     </div>
                                   )
                                 ) : canMarkRestaurantDelivery && (() => {
@@ -701,7 +701,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                             className="h-7 w-7 p-0 hover:bg-slate-100"
                                             onClick={() => setRestaurantDeliveryConfirm(order)}
                                           >
-                                            <Home className="w-4 h-4 text-slate-400" />
+                                            <Truck className="w-4 h-4 text-slate-400" />
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>Restoran Teslimatı</TooltipContent>
@@ -768,7 +768,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Home className="w-5 h-5 text-slate-600" />
+              <Truck className="w-5 h-5 text-slate-600" />
               Restoran Teslimatı
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
