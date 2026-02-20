@@ -81,13 +81,11 @@ const generateReceiptText = (order, width = 48) => {
   const sep = "=".repeat(width);
   const dash = "-".repeat(width);
 
-  const orderNum = order.order_number || "---";
-  const platform = PLATFORM_LABELS[order.platform] || order.platform || "";
+  const restaurantName = order.restaurant_name || "RESTORAN";
 
   // Başlık
   lines.push(sep);
-  lines.push(centerText(`#${orderNum}`, width));
-  lines.push(centerText(`[ ${platform.toUpperCase()} ]`, width));
+  lines.push(centerText(`[ ${restaurantName.toUpperCase()} ]`, width));
   lines.push(centerText(formatDate(order.created_at), width));
   lines.push(sep);
 
