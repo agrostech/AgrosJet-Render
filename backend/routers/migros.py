@@ -8,14 +8,14 @@ Migros Yemek Entegrasyon Router'ı
 import logging
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from database import get_database
+from utils.database import db
 from services.migros_service import MigrosYemekService, transform_migros_order_to_shiftjet
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/migros", tags=["Migros Yemek"])
+router = APIRouter(prefix="/api/migros", tags=["Migros Yemek"])
 
 # Test ortamı bilgileri
 MIGROS_TEST_SECRET = "YRwPHEl09DTCFkw5qrAHswr9e4h7Wex7"
