@@ -40,7 +40,7 @@ import {
   formatCurrency
 } from "@/utils/orderUtils";
 import { printOrder, getPrintSettings } from "@/utils/printUtils";
-import { silentPrint, getQzSettings, isQzAvailable, connectToQz } from "@/utils/qzTrayService";
+import { printOrderLocal, getLocalPrintSettings, checkLocalPrintServer } from "@/utils/localPrintService";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
