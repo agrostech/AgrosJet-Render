@@ -264,7 +264,19 @@ function OrderDetails({
           <SourceIcon className="w-3 h-3" />
           <span>{sourceInfo.label}</span>
         </div>
+        {order.verification_code && (
+          <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-bold">
+            <span>Kod: {order.verification_code}</span>
+          </div>
+        )}
       </div>
+
+      {/* Sipariş Numarası */}
+      {order.order_number && (
+        <div className="text-xs text-muted-foreground">
+          Sipariş No: <span className="font-medium text-slate-700">{order.order_number}</span>
+        </div>
+      )}
 
       {/* Zaman Bilgileri */}
       <div className="bg-slate-50 rounded-lg p-3 space-y-1.5">
