@@ -2493,7 +2493,7 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
 
 
 # --- Platform İptal Sebepleri ---
-@router.get("/cancel-reasons/{source}")
+@router.get("/platform-cancel-reasons/{source}")
 async def get_cancel_reasons_by_platform(source: str):
     """
     Platform bazlı iptal sebeplerini döndür
