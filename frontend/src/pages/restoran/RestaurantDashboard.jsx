@@ -68,14 +68,8 @@ export default function RestaurantDashboard() {
       const res = await axios.get(`${API}/orders/restaurant/${user.restaurant_id}`);
       setOrders(res.data);
       
-      // Calculate badges
-      const pending = res.data.filter(o => o.status === "pending" || o.status === "preparing").length;
-      const onTheWay = res.data.filter(o => o.status === "on_the_way").length;
-      
-      setBadges({
-        anasayfa: pending,
-        // Add more badges as needed
-      });
+      // Badges disabled - keeping code structure for future use
+      setBadges({});
     } catch (err) {
       console.error("Siparişler yüklenemedi:", err);
     } finally {
