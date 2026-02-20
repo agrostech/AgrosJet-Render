@@ -70,10 +70,8 @@ export default function RestaurantUrunler({ restaurantId }) {
     try {
       const res = await axios.get(`${API}/products/restaurant/${restaurantId}`);
       setSavedProducts(res.data);
-      // Tüm kategorileri genişlet
-      const expanded = {};
-      res.data.categories.forEach(c => { expanded[c.id] = true; });
-      setExpandedCategories(expanded);
+      // Kategorileri default olarak kapalı tut
+      setExpandedCategories({});
     } catch (err) {
       console.error("Ürünler yüklenemedi:", err);
     } finally {
