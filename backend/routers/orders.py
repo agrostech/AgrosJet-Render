@@ -438,13 +438,14 @@ async def calculate_courier_eta_for_restaurant(
     if not target_in_pickups:
         final_distance = calculate_distance_between_points(current_lat, current_lng, target_lat, target_lng)
         total_distance += final_distance
-        travel_time = math.ceil((final_distance / AVG_SPEED_KMH) * 60)
+        travel_time = max(1, math.ceil((final_distance / AVG_SPEED_KMH) * 60))
         total_time += travel_time
         
         breakdown.append({
             "type": "target",
             "description": "Hedefe varış",
             "distance_km": round(final_distance, 2),
+            "travel_mins": travel_time,
             "time_mins": travel_time,
             "is_target": True
         })
