@@ -328,7 +328,8 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
       const code = `ORD-0${n}`;
       const r = testResults[code];
       const orderId = r?.order_id || "";
-      lines.push(`${code}: ${r ? (r.success ? "✅ Başarılı" : "❌ Başarısız") : "⏳ Yapılmadı"} ${orderId ? `[Order ID: ${orderId}]` : ""}`);
+      const coordStatus = r?.payload_has_coordinates === false ? "✅ Koordinat yok" : (r?.payload_has_coordinates === true ? "⚠️ KOORDINAT VAR!" : "");
+      lines.push(`${code}: ${r ? (r.success ? "✅ Başarılı" : "❌ Başarısız") : "⏳ Yapılmadı"} ${orderId ? `[Order ID: ${orderId}]` : ""} ${coordStatus}`);
     });
     
     // Order ID listesi
