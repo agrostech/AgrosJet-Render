@@ -34,7 +34,13 @@ from services.getir_service import (
     get_cancel_reasons,
     check_pos_status,
     activate_pos_status,
-    GETIR_CANCEL_REASONS
+    get_product_status,
+    update_product_status,
+    activate_option,
+    inactivate_option,
+    get_option_products,
+    GETIR_CANCEL_REASONS,
+    GETIR_PAYMENT_METHODS
 )
 
 logger = logging.getLogger(__name__)
