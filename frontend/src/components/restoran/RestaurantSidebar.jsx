@@ -16,7 +16,7 @@ export default function RestaurantSidebar({
       <div className="p-3 border-b border-white/20 flex-shrink-0">
         <h1 className="font-heading text-base font-bold truncate">{restaurant?.name || "Restoran"}</h1>
         <p className="text-white/60 text-xs mt-0.5">Restoran Paneli</p>
-        <p className="text-white/80 text-xs font-mono mt-0.5 truncate">{user?.name}</p>
+        <p className="text-white/80 text-xs font-mono mt-0.5 truncate">Kullanıcı: {user?.name}</p>
       </div>
       
       <nav className="flex-1 py-2 overflow-y-auto min-h-0">
