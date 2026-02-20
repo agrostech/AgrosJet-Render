@@ -1067,20 +1067,23 @@ async def prepare_getir_order(restaurant_id: str, order_id: str) -> dict:
 
 async def smart_advance_getir_order(restaurant_id: str, order_id: str, target_status: str, is_getir_courier: bool) -> dict:
     """
-    Akıllı sipariş ilerletme - Getir'deki mevcut duruma göre uygun aksiyonu al
+    Kullanıcı "Yola Çıkar" veya "Teslim Et" butonuna bastığında çağrılır.
     
-    Getir Status Kodları:
-    - 400: Onay bekliyor
-    - 500: Onaylandı (verify yapılmış)
-    - 700: Yolda (prepare yapılmış)
-    - 900: Teslim edildi
+    Getir Akışı:
+    - verify = sipariş onaylandı (otomatik yapılıyor)
+    - prepare = sipariş yola çıktı ("Yola Çıkar" butonu)
+    - deliver = sipariş teslim edildi ("Teslim Et" butonu, sadece Restoran Getirsin)
+    - handover = kuryeye teslim edildi (sadece Getir Getirsin)
     
     Getir Kuralları:
-    - verify → prepare: 1 dakika bekleme
-    - prepare → deliver: 1 dakika bekleme
+    - verify → prepare: 1 dakika (70sn) bekleme
+    - prepare → deliver: 1 dakika (70sn) bekleme
     
-    Bu fonksiyon, hedef duruma ulaşmak için gerekli tüm adımları otomatik atar.
+    Args:
+        target_status: "on_the_way" (prepare gönder) veya "delivered" (deliver gönder)
     """
+    import asyncio
+    
     restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
@@ -1092,6 +1095,128 @@ async def smart_advance_getir_order(restaurant_id: str, order_id: str, target_st
     getir_order_id = order.get("getir_order_id")
     if not getir_order_id:
         return {"success": False, "error": "Bu sipariş Getir siparişi değil"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    now = datetime.now(timezone.utc)
+    
+    try:
+        if target_status == "on_the_way":
+            # "Yola Çıkar" butonu → Getir'e PREPARE gönder
+            
+            # 70 saniye kuralını kontrol et
+            verified_at_str = order.get("getir_verified_at")
+            if verified_at_str:
+                verified_at = datetime.fromisoformat(verified_at_str.replace('Z', '+00:00'))
+                elapsed = (now - verified_at).total_seconds()
+                remaining = GETIR_STEP_WAIT_SECONDS - elapsed
+                
+                if remaining > 0:
+                    # Henüz 70 saniye geçmemiş - background task ile bekle
+                    logger.info(f"Getir prepare bekletiliyor: {getir_order_id}, {int(remaining)} saniye kaldı")
+                    asyncio.create_task(delayed_prepare(restaurant_id, getir_order_id, order_id))
+                    return {
+                        "success": True,
+                        "message": f"Sipariş {int(remaining)} saniye sonra Getir'de yola çıkacak",
+                        "wait_seconds": int(remaining),
+                        "scheduled": True
+                    }
+            
+            # 70 saniye geçmiş veya zaman kaydı yok - hemen prepare gönder
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.post(
+                    f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/prepare",
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    logger.info(f"Getir prepare başarılı: {getir_order_id}")
+                    await db.orders.update_one(
+                        {"id": order_id},
+                        {"$set": {
+                            "getir_prepared_at": now.isoformat(),
+                            "getir_raw.status": 700
+                        }}
+                    )
+                    return {"success": True, "message": "Sipariş Getir'de yola çıktı", "steps": ["prepare"]}
+                else:
+                    error = _extract_error(response)
+                    logger.warning(f"Getir prepare hatası: {getir_order_id} - {error}")
+                    
+                    # Zaman hatası ise schedule et
+                    if "time" in error.lower() or "minute" in error.lower() or "dakika" in error.lower():
+                        asyncio.create_task(delayed_prepare(restaurant_id, getir_order_id, order_id))
+                        return {
+                            "success": True,
+                            "message": "Getir 1 dakika kuralı - otomatik olarak gönderilecek",
+                            "scheduled": True
+                        }
+                    return {"success": False, "error": f"Prepare hatası: {error}"}
+        
+        elif target_status == "delivered":
+            # "Teslim Et" butonu → Getir'e DELIVER gönder (sadece Restoran Getirsin)
+            
+            if is_getir_courier:
+                # Getir Getirsin - deliver göndermemize gerek yok
+                return {"success": True, "message": "Getir Getirsin siparişi - teslim otomatik güncellenecek"}
+            
+            # 70 saniye kuralını kontrol et
+            prepared_at_str = order.get("getir_prepared_at")
+            if prepared_at_str:
+                prepared_at = datetime.fromisoformat(prepared_at_str.replace('Z', '+00:00'))
+                elapsed = (now - prepared_at).total_seconds()
+                remaining = GETIR_STEP_WAIT_SECONDS - elapsed
+                
+                if remaining > 0:
+                    # Henüz 70 saniye geçmemiş - background task ile bekle
+                    logger.info(f"Getir deliver bekletiliyor: {getir_order_id}, {int(remaining)} saniye kaldı")
+                    asyncio.create_task(delayed_deliver(restaurant_id, getir_order_id, order_id, int(remaining)))
+                    return {
+                        "success": True,
+                        "message": f"Sipariş {int(remaining)} saniye sonra Getir'de teslim edilecek",
+                        "wait_seconds": int(remaining),
+                        "scheduled": True
+                    }
+            
+            # 70 saniye geçmiş - hemen deliver gönder
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.post(
+                    f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/deliver",
+                    headers=headers
+                )
+                
+                if response.status_code == 200:
+                    logger.info(f"Getir deliver başarılı: {getir_order_id}")
+                    await db.orders.update_one(
+                        {"id": order_id},
+                        {"$set": {
+                            "getir_delivered_at": now.isoformat(),
+                            "getir_raw.status": 900
+                        }}
+                    )
+                    return {"success": True, "message": "Sipariş Getir'de teslim edildi", "steps": ["deliver"]}
+                else:
+                    error = _extract_error(response)
+                    logger.warning(f"Getir deliver hatası: {getir_order_id} - {error}")
+                    
+                    # Zaman hatası ise schedule et
+                    if "time" in error.lower() or "minute" in error.lower():
+                        asyncio.create_task(delayed_deliver(restaurant_id, getir_order_id, order_id, GETIR_STEP_WAIT_SECONDS))
+                        return {
+                            "success": True,
+                            "message": "Getir 1 dakika kuralı - otomatik olarak gönderilecek",
+                            "scheduled": True
+                        }
+                    return {"success": False, "error": f"Deliver hatası: {error}"}
+        
+        else:
+            return {"success": False, "error": f"Geçersiz hedef durum: {target_status}"}
+    
+    except Exception as e:
+        logger.exception(f"Getir smart_advance exception: {getir_order_id}")
+        return {"success": False, "error": str(e)}
     
     headers = await get_getir_headers(restaurant)
     if not headers:
