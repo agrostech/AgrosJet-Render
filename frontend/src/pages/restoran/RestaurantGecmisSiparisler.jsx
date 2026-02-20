@@ -17,6 +17,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const [companyName, setCompanyName] = useState("");
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
