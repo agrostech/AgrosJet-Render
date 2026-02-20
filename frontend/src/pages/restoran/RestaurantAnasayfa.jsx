@@ -880,6 +880,45 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Durum Değişikliği Onay Modalı */}
+      <AlertDialog open={statusConfirmModal.open} onOpenChange={() => setStatusConfirmModal({ open: false, order: null, status: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {statusConfirmModal.status === 'delivered' ? (
+                <>
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  Siparişi Teslim Et
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-5 h-5 text-red-600" />
+                  Siparişi İptal Et
+                </>
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {statusConfirmModal.status === 'delivered' 
+                ? `#${statusConfirmModal.order?.order_number} numaralı siparişi teslim edildi olarak işaretlemek istediğinize emin misiniz?`
+                : `#${statusConfirmModal.order?.order_number} numaralı siparişi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              className={statusConfirmModal.status === 'delivered' ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              onClick={() => {
+                onUpdateStatus(statusConfirmModal.order?.id, statusConfirmModal.status);
+                setStatusConfirmModal({ open: false, order: null, status: null });
+              }}
+            >
+              {statusConfirmModal.status === 'delivered' ? 'Teslim Et' : 'İptal Et'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
