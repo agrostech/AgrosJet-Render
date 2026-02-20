@@ -184,6 +184,7 @@ export default function RestaurantDashboard() {
         navItems={NAV_ITEMS}
         onLogout={handleLogout}
         badges={badges}
+        companyLogo={companyLogo}
       />
 
       {/* Mobile Navigation */}
