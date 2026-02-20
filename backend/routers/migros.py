@@ -220,7 +220,7 @@ async def update_order_status(
 @router.post("/poll-orders/{restaurant_id}")
 async def poll_orders(restaurant_id: str):
     """
-    Migros Yemek siparişlerini poll et ve sisteme ekle
+    Migros Yemek siparişlerini poll et, sisteme ekle ve otomatik onayla
     """
     try:
         # Restoran ayarlarını al
@@ -247,9 +247,12 @@ async def poll_orders(restaurant_id: str):
         
         orders_data = result.get("data", [])
         new_orders = []
+        approved_orders = []
         
         for migros_order in orders_data:
             external_id = f"migros_{migros_order.get('id')}"
+            migros_order_id = migros_order.get('id')
+            migros_store_id = migros_order.get('store', {}).get('id')
             
             # Daha önce eklenmiş mi kontrol et
             existing = await db.orders.find_one({"external_id": external_id})
@@ -264,11 +267,33 @@ async def poll_orders(restaurant_id: str):
             new_orders.append(order_data)
             
             logger.info(f"Migros sipariş eklendi: {external_id}")
+            
+            # Otomatik olarak Migros'a "Approved" durumu gönder
+            try:
+                approve_result = await service.update_order_status(
+                    order_id=migros_order_id,
+                    store_id=migros_store_id,
+                    status="Approved"
+                )
+                if approve_result.get("success", True):
+                    approved_orders.append(external_id)
+                    logger.info(f"Migros sipariş otomatik onaylandı: {external_id}")
+                    
+                    # ShiftJet'te durumu da güncelle
+                    await db.orders.update_one(
+                        {"external_id": external_id},
+                        {"$set": {"migros_status": "Approved"}}
+                    )
+                else:
+                    logger.warning(f"Migros sipariş onaylama başarısız: {external_id} - {approve_result}")
+            except Exception as approve_error:
+                logger.error(f"Migros sipariş onaylama hatası: {external_id} - {approve_error}")
         
         return {
             "success": True,
             "total_pending": len(orders_data),
             "new_orders": len(new_orders),
+            "approved_orders": len(approved_orders),
             "orders": [o.get("external_id") for o in new_orders]
         }
         
