@@ -300,3 +300,90 @@ async def poll_orders(restaurant_id: str):
     except Exception as e:
         logger.error(f"Migros poll hatası: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/sync-order-status/{order_id}")
+async def sync_order_status_to_migros(order_id: str):
+    """
+    ShiftJet sipariş durumunu Migros'a senkronize et
+    
+    ShiftJet Durum -> Migros Durum:
+    - pending -> (otomatik Approved)
+    - preparing -> Prepared
+    - ready -> Prepared
+    - on_the_way / delivering -> Delivery
+    - delivered -> Completed
+    - cancelled -> Rejected
+    """
+    try:
+        # Siparişi bul
+        order = await db.orders.find_one({"id": order_id})
+        if not order:
+            raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+        
+        # Migros siparişi mi kontrol et
+        if order.get("source") != "migros" and order.get("platform") != "migros":
+            return {"success": False, "error": "Bu sipariş Migros siparişi değil"}
+        
+        migros_data = order.get("migros_data", {})
+        migros_order_id = migros_data.get("order_id")
+        migros_store_id = migros_data.get("store_id")
+        
+        if not migros_order_id or not migros_store_id:
+            return {"success": False, "error": "Migros sipariş bilgileri eksik"}
+        
+        # Restoran ayarlarını al
+        restaurant_id = order.get("restaurant_id")
+        restaurant = await db.restaurants.find_one({"id": restaurant_id})
+        if not restaurant:
+            raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+        
+        migros_config = restaurant.get("migros_credentials", {})
+        if not migros_config.get("enabled"):
+            return {"success": False, "error": "Migros entegrasyonu aktif değil"}
+        
+        service = MigrosYemekService(
+            api_key=migros_config.get("api_key"),
+            secret_key=migros_config.get("secret_key"),
+            is_test=migros_config.get("is_test", True)
+        )
+        
+        # ShiftJet durumunu Migros durumuna çevir
+        shiftjet_status = order.get("status", "")
+        migros_status = None
+        
+        status_map = {
+            "preparing": "Prepared",
+            "ready": "Prepared", 
+            "on_the_way": "Delivery",
+            "delivering": "Delivery",
+            "delivered": "Completed",
+            "cancelled": "Rejected"
+        }
+        
+        migros_status = status_map.get(shiftjet_status)
+        
+        if not migros_status:
+            return {"success": False, "error": f"Bu durum için Migros güncellemesi gerekmiyor: {shiftjet_status}"}
+        
+        # Migros'a gönder
+        result = await service.update_order_status(
+            order_id=migros_order_id,
+            store_id=migros_store_id,
+            status=migros_status
+        )
+        
+        if result.get("success", True):
+            # Veritabanında migros_status güncelle
+            await db.orders.update_one(
+                {"id": order_id},
+                {"$set": {"migros_status": migros_status}}
+            )
+            logger.info(f"Migros durum güncellendi: {order_id} -> {migros_status}")
+            return {"success": True, "migros_status": migros_status}
+        else:
+            return {"success": False, "error": result.get("error", "Bilinmeyen hata")}
+        
+    except Exception as e:
+        logger.error(f"Migros durum senkronizasyonu hatası: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
