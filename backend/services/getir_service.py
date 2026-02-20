@@ -70,17 +70,12 @@ GETIR_ORDER_STATUSES = {
     1600: "cancelled",           # Restoran iptal / otomatik iptal
 }
 
-# İptal sebepleri
+# İptal sebepleri - Getir panelinde sadece bu 4 sebep kabul ediliyor
 GETIR_CANCEL_REASONS = {
-    "5f05b1392765e85c5d0432d2": "Restoranda kurye yok, müsait değil",
-    "5f05b13f2765e85c5d0432d3": "Restoran teknik problem yaşıyor",
-    "5e1469f7916c7a55cfc2aede": "Müşteri adresi restoran servis alanı dışında",
-    "5c5b49b068f6a45d427f0a8f": "Restoran yoğun",
-    "5f0875342ce13c10cbf1c0e6": "Hava muhalefeti",
-    "5c5b495768f6a45d427f0a8d": "Restoran kapalı",
-    "5c5b49a768f6a45d427f0a8e": "Restoranda ürün eksik",
-    "5f0875342ce13c10cbf1c0e7": "Kurye müşteri adresini bulamadı",
     "6088226bdaa34255a5693e23": "Sipariş minimum sepet tutarı altında",
+    "5e1469f7916c7a55cfc2aede": "Müşteri adresi restoran servis alanı dışında",
+    "5c5b49a768f6a45d427f0a8e": "Restoranda ürün eksik",
+    "5f05b13f2765e85c5d0432d3": "Restoran teknik problem yaşıyor",
 }
 
 
