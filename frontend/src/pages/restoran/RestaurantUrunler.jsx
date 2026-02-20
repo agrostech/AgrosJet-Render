@@ -207,6 +207,9 @@ export default function RestaurantUrunler({ restaurantId }) {
       return;
     }
     
+    // Optimistic UI update
+    setSavedProducts(prev => ({ ...prev, categories }));
+    
     // Backend'e yeni sıralamayı gönder
     const categoryOrders = categories.map((c, i) => ({ id: c.id, order: i }));
     
@@ -215,9 +218,10 @@ export default function RestaurantUrunler({ restaurantId }) {
         restaurant_id: restaurantId,
         category_orders: categoryOrders
       });
-      loadSavedProducts();
+      toast.success("Sıralama güncellendi");
     } catch (err) {
       toast.error("Sıralama kaydedilemedi");
+      loadSavedProducts(); // Hata durumunda orijinal veriyi yükle
     }
   };
 
