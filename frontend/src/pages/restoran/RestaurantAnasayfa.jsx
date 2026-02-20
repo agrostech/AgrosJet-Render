@@ -39,7 +39,6 @@ import {
   formatTime,
   formatCurrency
 } from "@/utils/orderUtils";
-import { getPrintSettings } from "@/utils/printUtils";
 import { printOrderLocal, getLocalPrintSettings, checkLocalPrintServer } from "@/utils/localPrintService";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
