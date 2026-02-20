@@ -2406,3 +2406,111 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
         "new_status": new_status
     }
 
+
+
+# --- Kurye ETA Endpoint ---
+
+@router.get("/courier/{courier_id}/eta/{restaurant_id}")
+async def get_courier_eta_for_restaurant_endpoint(courier_id: str, restaurant_id: str):
+    """
+    Kuryenin belirli bir restorana tahmini varış süresini hesapla.
+    
+    Bu endpoint kuryenin mevcut siparişlerini ve konumunu dikkate alarak
+    dinamik ETA hesaplar.
+    
+    Returns:
+        eta_minutes: Toplam tahmini dakika
+        eta_text: "~15 dk" formatında
+        distance_km: Toplam mesafe
+        current_orders_count: Mevcut sipariş sayısı
+        route_summary: "2 teslimat, 1 teslim alım sonra" gibi özet
+        breakdown: Detaylı rota bilgisi
+    """
+    return await calculate_courier_eta_for_restaurant(courier_id, restaurant_id)
+
+
+@router.get("/restaurant/{restaurant_id}/couriers-with-eta")
+async def get_couriers_with_eta_for_restaurant(restaurant_id: str):
+    """
+    Restoran için uygun kuryeleri ETA bilgisiyle birlikte getir.
+    
+    Her kurye için dinamik ETA hesaplanır.
+    """
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "company_id": 1, "blocked_couriers": 1, "permissions": 1,
+         "latitude": 1, "longitude": 1, "name": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # İzin kontrolü
+    permissions = restaurant.get("permissions", {})
+    if not permissions.get("can_assign_courier", False):
+        return {
+            "couriers": [],
+            "restriction_mode": "disabled",
+            "message": "Kurye atama izni aktif değil"
+        }
+    
+    company_id = restaurant.get("company_id")
+    blocked_couriers = restaurant.get("blocked_couriers", [])
+    restaurant_location = {
+        "latitude": restaurant.get("latitude"),
+        "longitude": restaurant.get("longitude")
+    }
+    
+    # Restoranda aktif siparişleri bul
+    active_orders = await db.orders.find(
+        {
+            "restaurant_id": restaurant_id,
+            "status": {"$in": ["assigned", "confirmed", "on_the_way"]},
+            "courier_id": {"$ne": None}
+        },
+        {"_id": 0, "courier_id": 1}
+    ).to_list(100)
+    
+    couriers_with_packages = list(set(o.get("courier_id") for o in active_orders if o.get("courier_id")))
+    
+    if couriers_with_packages:
+        valid_courier_ids = [c for c in couriers_with_packages if c not in blocked_couriers]
+        
+        couriers = await db.couriers.find(
+            {"id": {"$in": valid_courier_ids}},
+            {"_id": 0, "id": 1, "name": 1, "phone": 1, "status": 1, "current_location": 1}
+        ).to_list(50)
+        
+        restriction_mode = "restricted"
+    else:
+        couriers = []
+        restriction_mode = "no_packages"
+    
+    # Her kurye için ETA hesapla
+    couriers_with_eta = []
+    for courier in couriers:
+        package_count = sum(1 for o in active_orders if o.get("courier_id") == courier["id"])
+        
+        # ETA hesapla
+        eta_info = await calculate_courier_eta_for_restaurant(
+            courier["id"], 
+            restaurant_id, 
+            restaurant_location
+        )
+        
+        couriers_with_eta.append({
+            **courier,
+            "package_count": package_count,
+            "eta": eta_info
+        })
+    
+    # ETA süresine göre sırala (en yakın önce)
+    couriers_with_eta.sort(key=lambda c: c["eta"].get("eta_minutes") or 999)
+    
+    return {
+        "couriers": couriers_with_eta,
+        "restriction_mode": restriction_mode,
+        "couriers_with_packages": couriers_with_packages
+    }
+
