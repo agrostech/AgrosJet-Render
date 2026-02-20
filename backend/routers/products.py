@@ -331,6 +331,32 @@ async def delete_restaurant_products(restaurant_id: str):
 # CATEGORY CRUD
 # =====================
 
+class CategoryReorderItem(BaseModel):
+    id: str
+    order: int
+
+
+class CategoryReorderRequest(BaseModel):
+    restaurant_id: str
+    category_orders: List[CategoryReorderItem]
+
+
+@router.put("/categories/reorder")
+async def reorder_categories(data: CategoryReorderRequest):
+    """Kategorilerin sıralamasını güncelle"""
+    if db is None:
+        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
+    
+    # Her kategori için order değerini güncelle
+    for item in data.category_orders:
+        await db.product_categories.update_one(
+            {"id": item.id, "restaurant_id": data.restaurant_id},
+            {"$set": {"order": item.order}}
+        )
+    
+    return {"success": True, "message": "Sıralama güncellendi"}
+
+
 @router.post("/categories")
 async def create_category(data: CategoryCreate):
     """Yeni kategori oluştur"""
@@ -403,32 +429,6 @@ async def update_category(category_id: str, data: CategoryUpdate):
     )
     
     return {"success": True, "message": "Kategori güncellendi"}
-
-
-class CategoryReorderItem(BaseModel):
-    id: str
-    order: int
-
-
-class CategoryReorderRequest(BaseModel):
-    restaurant_id: str
-    category_orders: List[CategoryReorderItem]
-
-
-@router.put("/categories/reorder")
-async def reorder_categories(data: CategoryReorderRequest):
-    """Kategorilerin sıralamasını güncelle"""
-    if db is None:
-        raise HTTPException(status_code=500, detail="Veritabanı bağlantısı yok")
-    
-    # Her kategori için order değerini güncelle
-    for item in data.category_orders:
-        await db.product_categories.update_one(
-            {"id": item.id, "restaurant_id": data.restaurant_id},
-            {"$set": {"order": item.order}}
-        )
-    
-    return {"success": True, "message": "Sıralama güncellendi"}
 
 
 @router.delete("/categories/{category_id}")
