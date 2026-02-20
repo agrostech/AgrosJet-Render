@@ -349,11 +349,19 @@ async def create_category(data: CategoryCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Bu isimde bir kategori zaten var")
     
+    # Mevcut en yüksek order değerini bul
+    highest_order_cat = await db.product_categories.find_one(
+        {"restaurant_id": data.restaurant_id},
+        sort=[("order", -1)]
+    )
+    next_order = (highest_order_cat.get("order", 0) + 1) if highest_order_cat else 0
+    
     category = {
         "id": str(uuid.uuid4()),
         "name": data.name,
         "restaurant_id": data.restaurant_id,
         "company_id": restaurant.get("company_id"),
+        "order": next_order,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
