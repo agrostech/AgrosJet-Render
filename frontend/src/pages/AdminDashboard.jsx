@@ -178,8 +178,38 @@ export default function AdminDashboard() {
     return permissions[item.permKey] === true;
   });
 
+  // Mevcut sayfanın başlığını al
+  const getCurrentPageTitle = () => {
+    const item = NAV_ITEMS.find(n => n.path === location.pathname);
+    if (item) return item.label;
+    // Alt sayfalarda kontrol
+    if (location.pathname.includes('/admin/gecmis-siparisler')) return 'Geçmiş Siparişler';
+    if (location.pathname.includes('/admin/iptal-siparisler')) return 'İptal Siparişler';
+    return 'Sipariş Yönetimi';
+  };
+
   return (
     <div className="min-h-screen bg-slate-50" data-testid="admin-dashboard">
+      {/* Desktop Top Bar */}
+      <header className="hidden lg:flex fixed top-0 right-0 left-0 h-14 bg-white border-b shadow-sm z-30 items-center px-6" style={{ marginLeft: sidebarCollapsed ? '4rem' : '14rem' }}>
+        {/* Sol: Sayfa başlığı */}
+        <div className="flex-1">
+          <h1 className="text-lg font-bold text-slate-800">{getCurrentPageTitle()}</h1>
+        </div>
+        
+        {/* Orta: Şirket logosu */}
+        <div className="flex items-center justify-center">
+          {company?.logo_url ? (
+            <img src={company.logo_url} alt={company.name} className="h-9 object-contain" />
+          ) : (
+            <span className="font-heading text-lg font-semibold text-slate-700">{company?.name}</span>
+          )}
+        </div>
+        
+        {/* Sağ: Boş alan (dengelemek için) */}
+        <div className="flex-1" />
+      </header>
+
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
