@@ -325,32 +325,48 @@ export default function RestaurantAyarlar({ restaurantId }) {
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start gap-3">
                 <Download className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-2">Kurulum Adımları</p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Python 3.8+ yükleyin (python.org) - <strong>"Add to PATH"</strong> işaretleyin</li>
-                    <li>CMD açın ve şunu çalıştırın:</li>
-                  </ol>
-                  <code className="block bg-blue-100 px-2 py-1 rounded mt-1 text-xs font-mono">
-                    pip install pywin32 pillow pystray flask flask-cors
-                  </code>
-                  <ol className="list-decimal list-inside space-y-1 text-xs mt-2" start={3}>
-                    <li>Aşağıdaki dosyayı indirin ve çift tıklayarak çalıştırın</li>
-                    <li>Sistem tepsisinde (saat yanında) yeşil ikon görünecek</li>
-                  </ol>
-                  <div className="mt-3 flex gap-3">
-                    <a 
-                      href="/shiftjet_print_server_systray.py" 
-                      download="shiftjet_print_server_systray.py"
-                      className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-blue-700"
-                    >
-                      <Download className="w-3 h-3" />
-                      İndir (Sistem Tepsisi)
-                    </a>
+                <div className="text-sm text-blue-800 w-full">
+                  <p className="font-medium mb-3">Tek Tıkla Kurulum</p>
+                  
+                  <div className="bg-white border border-blue-300 rounded-lg p-4 mb-3">
+                    <ol className="list-decimal list-inside space-y-2 text-xs">
+                      <li><strong>Python yükleyin</strong> (python.org) - <span className="text-red-600 font-semibold">"Add to PATH"</span> işaretleyin!</li>
+                      <li>Aşağıdaki kurulum dosyasını indirin</li>
+                      <li>Dosyayı çift tıklayın, kurulum otomatik yapılacak</li>
+                      <li>Masaüstünüzde <strong>"ShiftJet Print Server.exe"</strong> oluşacak</li>
+                    </ol>
                   </div>
-                  <p className="text-xs mt-2 text-blue-600">
-                    Program arka planda sessiz çalışır, pencere açılmaz.
-                  </p>
+                  
+                  <div className="flex flex-col gap-2">
+                    <a 
+                      href="/ShiftJet_Kurulum.bat" 
+                      download="ShiftJet_Kurulum.bat"
+                      className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Kurulum Dosyasını İndir (.bat)
+                    </a>
+                    <p className="text-xs text-center text-blue-600">
+                      Kurulum tamamlandıktan sonra .exe dosyasını çift tıklayın
+                    </p>
+                  </div>
+                  
+                  <details className="mt-3">
+                    <summary className="text-xs cursor-pointer text-blue-700 hover:underline">
+                      Manuel kurulum (gelişmiş kullanıcılar için)
+                    </summary>
+                    <div className="mt-2 p-2 bg-blue-100 rounded text-xs">
+                      <code className="block font-mono">pip install pywin32 pillow pystray flask flask-cors pyinstaller</code>
+                      <a 
+                        href="/shiftjet_print_server_systray.py" 
+                        download="shiftjet_print_server_systray.py"
+                        className="inline-flex items-center gap-1 text-blue-700 hover:underline mt-2"
+                      >
+                        <Download className="w-3 h-3" />
+                        Python dosyasını indir
+                      </a>
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>
