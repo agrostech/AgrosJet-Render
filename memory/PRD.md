@@ -1,176 +1,93 @@
-# ShiftJet / AgrosJet - Restaurant Panel PRD
+# ShiftJet - Kurye Yönetim Sistemi PRD
 
-## Original Problem Statement
-Kullanıcının amacı ShiftJet sistemi için "Restoran Paneli" oluşturmak ve geliştirmektir. İlk kapsam ürün yönetimi, UI iyileştirmeleri ve manuel sipariş girişini içermektedir.
+## Orijinal Problem Tanımı
+Restoran paneli için kapsamlı kurye yönetim sistemi. Ana özellikler:
+- Çoklu platform entegrasyonları (Adisyo, Getir, Trendyol, Yemeksepeti, Migros, SepetTakip)
+- Sipariş yönetimi ve durum güncellemeleri
+- Kurye takibi ve atama
+- Muhasebe ve raporlama
+- Sessiz termal yazdırma
 
-## Production URL
-**https://agrosjet.app**
+## Kullanıcı Personaları
+1. **Restoran Yöneticisi** - Siparişleri yönetir, kurye atar, raporları görür
+2. **Kurye** - Siparişleri teslim eder, konum paylaşır
+3. **Super Admin** - Tüm sistemi yönetir
 
-## User Personas
-- **Super Admin:** Tüm sistemi yöneten kullanıcı
-- **Admin:** Restoran ve kurye yönetimi yapan kullanıcı
-- **Restaurant User:** Restoran panelini kullanan işletme sahibi/çalışanı
-- **Courier:** Sipariş teslimatı yapan kurye
+## Temel Gereksinimler
 
-## Core Features
+### Entegrasyonlar
+- **Adisyo**: Polling tabanlı sipariş çekme + durum güncelleme (v2 API)
+- **Getir/Yemeksepeti/Migros**: Webhook tabanlı (placeholder)
+- **SepetTakip**: Webhook tabanlı (3. taraf yapılandırması bekliyor)
+- **Trendyol**: Polling tabanlı
 
-### 1. SepetTakip Kurye Entegrasyonu (P0 - BEKLEMEDE)
-**Durum:** Endpoint'ler hazır, Base URL tanımı bekleniyor
+### Sessiz Yazdırma
+- Yerel Python sunucusu (`localhost:5555`)
+- System tray versiyonu (konsol penceresi olmadan)
+- ESC/POS termal yazıcı desteği
 
-**Kimlik Bilgileri:**
-- Kurye Firması Key: `agrosjet`
-- API Key: `4dd744ca-001e-44be-b17c-0178b0d3f704`
-- Restaurant ID: `934`
-- Base URL: `https://agrosjet.app/api/sepettakip`
+---
 
-**Endpoint'ler:**
-- `POST /api/sepettakip/check-credentials` - Restoran doğrulama
-- `POST /api/sepettakip/create-package` - Sipariş oluşturma
-- `POST /api/sepettakip/cancel-package` - Sipariş iptali
-- `GET /api/sepettakip/logs` - Debug logları
-- `GET /api/sepettakip/health` - Sağlık kontrolü
+## Tamamlanan İşler
 
-**Webhook (Biz → SepetTakip):**
-- `PATCH https://test-api.sepettakip.com/courier-company/package`
-- Status: assigned, picked_up, delivered, canceled
+### 20 Şubat 2026
+- ✅ Sessiz yazıcı sunucusu (system tray versiyonu) tamamlandı
+  - `/app/frontend/public/shiftjet_print_server_systray.py`
+  - `pystray` ile sistem tepsisi ikonu
+  - Flask sunucusu arka planda çalışıyor
+  - Yazıcı seçimi, test yazdırma menüsü
+  - Windows bildirimleri
 
-**Bekleyen:** SepetTakip'in Base URL tanımlaması
+### Önceki Oturumlar
+- ✅ Adisyo entegrasyonu yenilendi (v2 API)
+- ✅ Yerel yazıcı sunucusu (temel versiyon)
+- ✅ Ayarlar sayfası yazıcı yapılandırması
 
-### 2. Restaurant Delivery Feature (COMPLETED)
-- Restoranların siparişi kendi teslimatı olarak işaretlemesi
-- Toggle fonksiyonu ile geri alma özelliği
+---
 
-### 3. Manual Order Modal (COMPLETED)
-- 3 adımlı wizard: Ürün Seçimi → Müşteri Bilgisi → Ödeme Seçimi
-- Manuel tutar girişi
-- Zorunlu telefon numarası
-- Yemek kartı tipi seçimi (Sodexo, Ticket, vb.)
+## Bekleyen İşler
 
-### 4. Admin Order Management (COMPLETED)
-- Client-side arama çubuğu
-- Çoklu durum filtreleri (%30 şeffaflık)
-- Sipariş limiti 200
-- Teslim/İptal onay modalı (müşteri ismiyle)
+### P0 - Kritik
+- [ ] Adisyo sipariş senkronizasyonu - "sipariş gelmedi" sorunu
+- [ ] Backend sync_orders.py inceleme
 
-### 5. Meal Card Support (COMPLETED)
-- `meal_card` ve `online_meal_card` ödeme yöntemleri
-- Kurye izinlerinde yemek kartı seçeneği
-- Tüm panellerde spesifik yemek kartı tipi gösterimi
+### P1 - Yüksek Öncelik
+- [ ] Raporlar sayfası işlevselliği
+- [ ] Yemeksepeti entegrasyonu (kimlik bilgileri bekleniyor)
+- [ ] Adisyo webhook implementasyonu (polling yerine)
 
-### 6. Restaurant Settings Page (COMPLETED - NEW)
-- Otomatik yazdırma ayarları
-- 58mm ve 80mm termal yazıcı desteği
-- Test yazdırma özelliği
-- Yazdırma sesi açma/kapama
+### P2 - Orta Öncelik
+- [ ] Arka plan görev güvenilirliği (kurye uygulaması)
+- [ ] Mobil sidebar collapsible bug
+- [ ] Tarihsel muhasebe veri migration
 
-### 7. Auto Print Feature (COMPLETED - NEW)
-- Yeni sipariş geldiğinde otomatik fiş yazdırma
-- Her siparişte manuel yazdır butonu
-- localStorage'da ayar saklama
+### P3 - Düşük Öncelik
+- [ ] QZ Tray kodlarının temizlenmesi
+- [ ] Dark mode tema
+- [ ] Motosikletim özellikleri
 
-## Architecture
+---
 
-### Backend Structure
+## Bloklanmış İşler
+- **SepetTakip**: 3. taraf Base URL yapılandırması gerekli
+- **Migros/Getir**: API anahtarları bekleniyor
+
+---
+
+## Teknik Mimari
+
 ```
-/app/backend/
-├── routers/
-│   ├── orders.py              # Sipariş CRUD, SepetTakip bildirimleri
-│   ├── sepettakip.py          # SepetTakip entegrasyonu (YENİ)
-│   ├── manual_orders.py       # Manuel sipariş
-│   ├── restaurant_integrations.py  # Entegrasyon ayarları
-│   └── couriers.py            # Kurye yönetimi, ödeme izinleri
-└── services/
-    └── adisyo_service.py
-```
-
-### Frontend Structure
-```
-/app/frontend/src/
-├── pages/
-│   └── restoran/
-│       ├── RestaurantAyarlar.jsx    # YENİ - Ayarlar sayfası
-│       ├── RestaurantEntegrasyonlar.jsx  # SepetTakip UI
-│       └── RestaurantAnasayfa.jsx   # Otomatik yazdırma
-├── utils/
-│   └── printUtils.js               # YENİ - Yazdırma fonksiyonları
-└── components/
+/app/
+├── backend/
+│   ├── jobs/sync_orders.py (Adisyo polling - 60s)
+│   ├── services/adisyo_service.py (v2 API)
+│   └── routers/orders.py, webhooks/
+└── frontend/
+    ├── public/shiftjet_print_server*.py
+    └── src/pages/restoran/RestaurantAyarlar.jsx
 ```
 
-### Database Schema
-**orders collection:**
-- `sepettakip_order_id`: String - SepetTakip sipariş ID
-- `is_restaurant_delivery`: Boolean
-- `payment_method_detail`: String (Sodexo, Ticket, vb.)
-
-**restaurants collection:**
-- `sepettakip_restaurant_id`: String - SepetTakip restoran ID
-- `sepettakip_credentials`: Object - username, password, enabled
-
-**sepettakip_logs collection:**
-- Debug logları için
-
-## What's Been Implemented (February 2026)
-
-### Session - Latest
-- [x] JSX syntax hatası düzeltildi
-- [x] Filtre butonları şeffaflığı ayarlandı
-- [x] Yemek kartı kurye dropdown sorunu çözüldü
-- [x] Teslim/İptal onay modalı eklendi (müşteri ismiyle)
-- [x] Restoran Ayarlar sekmesi eklendi
-- [x] Otomatik yazdırma özelliği (58mm/80mm)
-- [x] SepetTakip entegrasyonu (endpoint'ler hazır)
-- [x] SepetTakip debug loglama sistemi
-- [x] Kurye atama/durum değişikliğinde SepetTakip bildirimi
-
-## Pending Issues
-
-### P0 - Critical
-- [ ] SepetTakip Base URL tanımı (ONLARIN TARAFI)
-
-### P1 - High Priority
-- [ ] Background task reliability (kurye uygulaması)
-- [ ] Diğer webhook entegrasyonları (Migros, Getir)
-
-### P2 - Medium Priority
-- [ ] Mobile sidebar courier list bug
-- [ ] Historical accounting data migration
-
-## Future Tasks
-
-### P1
-- Native Courier App geliştirme
-- Chat sistemi yeniden etkinleştirme
-- Adisyo Webhooks (polling → webhook)
-- Yemeksepeti entegrasyonu
-
-### P2
-- Dark mode
-- Order history refactor
-
-## 3rd Party Integrations
-- **SepetTakip** (BEKLEMEDE - Base URL tanımı lazım)
-- Adisyo (polling)
-- Trendyol Yemek (polling)
-- Getir Yemek (webhook - placeholder)
-- Google Maps Platform
-
-## Test Credentials
-- **Super Admin:** username: `onurertas`, password: `125594`
-- **Admin:** username: `testadmin`, password: `123456`
-- **Courier:** phone: `05527370032`, password: `123456`
-- **Restaurant:** username: `testrestaurant`, password: `password`
-
-## SepetTakip Checklist (Beklemede)
-1. [x] check-credentials endpoint
-2. [x] create-package endpoint
-3. [x] cancel-package endpoint
-4. [x] Debug loglama
-5. [ ] Base URL tanımı (SepetTakip tarafı)
-6. [ ] Test siparişleri
-7. [ ] assigned/picked_up/delivered testleri
-8. [ ] Canlı ortam onayı
-
-## Notes
-- User preferred language: Turkish
-- Production URL: https://agrosjet.app
-- SepetTakip test API: https://test-api.sepettakip.com
+## Test Hesapları
+- Super Admin: `onurertas` / `125594`
+- Restaurant: `testrestaurant` / `password`
+- Courier: `05527370032` / `123456`
