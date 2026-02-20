@@ -30,36 +30,31 @@ Restoran paneli için kapsamlı kurye yönetim sistemi. Ana özellikler:
 
 ## Tamamlanan İşler
 
-### 20 Şubat 2026
-- ✅ Sessiz yazıcı sunucusu (system tray versiyonu) tamamlandı
-  - `/app/frontend/public/shiftjet_print_server_systray.py`
-  - `pystray` ile sistem tepsisi ikonu
-  - Flask sunucusu arka planda çalışıyor
-  - Yazıcı seçimi, test yazdırma menüsü
-  - Windows bildirimleri
-- ✅ Tek tıkla kurulum batch dosyası oluşturuldu
-  - `/app/frontend/public/ShiftJet_Kurulum.bat`
-  - Otomatik kütüphane kurulumu
-  - PyInstaller ile .exe oluşturma
-  - Masaüstüne "ShiftJet Print Server.exe" koyar
-- ✅ **DOĞRUDAN EXE DOSYASI OLUŞTURULDU**
-  - `/app/frontend/public/ShiftJet_Print_Server.exe`
-  - Go ile yazıldı, cross-compile edildi
-  - Hiçbir kurulum gerektirmez
-  - İndir, çalıştır, bitti
+### 20 Şubat 2026 (Son Oturum)
+- ✅ **Ürün Kategorisi Sıralama** tamamlandı
+  - Backend: `PUT /api/products/categories/reorder` endpoint
+  - Kategorilere `order` alanı eklendi
+  - Frontend: Yukarı/aşağı ok butonları ile sıralama
+  - Optimistic UI güncellemesi
+  - Sıralama Telefon Siparişi modalında da geçerli
+- ✅ **Sidebar Güncellemesi**
+  - %15 küçültüldü (w-56 → w-48)
+  - Açılır/kapanır özelliği kaldırıldı
+  - Sürekli açık, sabit genişlik
 
-### Önceki Oturumlar
-- ✅ Adisyo entegrasyonu yenilendi (v2 API)
-- ✅ Yerel yazıcı sunucusu (temel versiyon)
-- ✅ Ayarlar sayfası yazıcı yapılandırması
+### Önceki Oturum
+- ✅ Sessiz yazıcı sunucusu (Go ile .exe) - AgrosJet_Print_Server.exe
+- ✅ Frontend receipt tasarımı (localPrintService.js)
+- ✅ Ayarlar sayfası yeniden tasarımı (collapsible cards)
+- ✅ Sipariş sayfası UI/UX iyileştirmeleri
+- ✅ İptal seçeneği ve onay modalları
 
 ---
 
 ## Bekleyen İşler
 
 ### P0 - Kritik
-- [ ] Adisyo sipariş senkronizasyonu - "sipariş gelmedi" sorunu
-- [ ] Backend sync_orders.py inceleme
+- [ ] Adisyo sipariş senkronizasyonu - "sipariş gelmedi" sorunu doğrulaması
 
 ### P1 - Yüksek Öncelik
 - [ ] Raporlar sayfası işlevselliği
@@ -89,12 +84,13 @@ Restoran paneli için kapsamlı kurye yönetim sistemi. Ana özellikler:
 ```
 /app/
 ├── backend/
+│   ├── routers/products.py (kategori sıralama endpoint)
 │   ├── jobs/sync_orders.py (Adisyo polling - 60s)
-│   ├── services/adisyo_service.py (v2 API)
-│   └── routers/orders.py, webhooks/
+│   └── services/adisyo_service.py (v2 API)
 └── frontend/
-    ├── public/shiftjet_print_server*.py
-    └── src/pages/restoran/RestaurantAyarlar.jsx
+    ├── components/restoran/RestaurantSidebar.jsx (sabit sidebar)
+    ├── pages/restoran/RestaurantUrunler.jsx (kategori sıralama)
+    └── utils/localPrintService.js (fiş tasarımı)
 ```
 
 ## Test Hesapları
