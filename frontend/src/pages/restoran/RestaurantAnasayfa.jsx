@@ -64,19 +64,23 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
   const canMarkRestaurantDelivery = permissions.can_mark_restaurant_delivery === true; // Default false
 
-  // Yerel yazdırma sunucusu bağlantısını kontrol et (sayfa yüklendiğinde)
+  // Yerel yazdırma sunucusu bağlantısını kontrol et (periyodik)
   useEffect(() => {
     const checkServer = async () => {
       const localSettings = getLocalPrintSettings(restaurantId);
       if (localSettings.enabled) {
         const status = await checkLocalPrintServer();
         localServerAvailableRef.current = status.connected;
-        if (status.connected) {
-          console.log("Yerel yazdırma sunucusu hazır");
-        }
       }
     };
+    
+    // İlk kontrol
     checkServer();
+    
+    // Her 5 saniyede bir kontrol et
+    const interval = setInterval(checkServer, 5000);
+    
+    return () => clearInterval(interval);
   }, [restaurantId]);
 
   // Otomatik yazdırma - yeni sipariş algılama
