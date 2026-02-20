@@ -642,6 +642,32 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
 GETIR_STEP_WAIT_SECONDS = 70  # Getir 60 saniye istiyor, güvenlik payı ile 70
 
 
+def _check_timing_wait(timestamp_str: str) -> tuple:
+    """
+    70 saniye kuralını kontrol et.
+    Returns: (should_wait: bool, remaining_seconds: int)
+    """
+    if not timestamp_str:
+        return False, 0
+    
+    try:
+        timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+        elapsed = (datetime.now(timezone.utc) - timestamp).total_seconds()
+        remaining = int(GETIR_STEP_WAIT_SECONDS - elapsed)
+        return remaining > 0, max(0, remaining)
+    except:
+        return False, 0
+
+
+def _extract_error(response) -> str:
+    """API hata mesajını çıkar"""
+    try:
+        data = response.json()
+        return data.get("message") or data.get("error") or str(data)
+    except:
+        return response.text[:200] if response.text else f"HTTP {response.status_code}"
+
+
 async def delayed_prepare(restaurant_id: str, getir_order_id: str, shiftjet_order_id: str):
     """
     70 saniye bekleyip prepare çağır (background task)
