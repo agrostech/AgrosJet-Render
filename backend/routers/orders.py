@@ -1448,17 +1448,11 @@ async def get_orders_unified(
     sort_field = "assigned_at" if panel == "courier" else "created_at"
     sort_order = 1 if panel == "courier" else -1  # Kurye için en eski önce
     
-    # DEBUG LOG
-    logger.info(f"[v2/list DEBUG] panel={panel}, query={query}, sort_field={sort_field}")
-    
     # Sorgu çalıştır
     orders = await db.orders.find(
         query, 
         {"_id": 0}
     ).sort(sort_field, sort_order).skip(offset).to_list(limit)
-    
-    # DEBUG LOG
-    logger.info(f"[v2/list DEBUG] Found {len(orders)} orders")
     
     # Kurye bilgilerini zenginleştir (restaurant ve admin paneli için)
     if panel in ["restaurant", "admin"]:
