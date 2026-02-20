@@ -62,6 +62,11 @@ export default function RestaurantAyarlar({ restaurantId }) {
 
   // QZ Tray durumunu kontrol et
   const checkQzStatus = async () => {
+    setQzStatus({ installed: false, connected: false, message: "Kontrol ediliyor..." });
+    
+    // Küçük bir gecikme ekle - kütüphanenin yüklenmesi için
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     const status = await getQzStatus();
     setQzStatus(status);
     
