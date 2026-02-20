@@ -89,17 +89,14 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             
             if new_status == "on_the_way":
                 # "Yola Çıkar" butonu tıklandığında
-                # 70 saniye kuralını uygula - gerekirse bekle
-                if not is_getir_courier:
-                    result = await trigger_getir_deliver(restaurant_id, order_id)
-                    logger.info(f"Getir trigger_deliver çağrıldı (Yola Çıkar): order={order_id}, result={result}")
-                else:
-                    # Getir Getirsin - handover çağrılabilir ama genelde Getir halleder
-                    logger.info(f"Getir Getirsin siparişi - yola çıkar Getir tarafından yönetilecek: order={order_id}")
-                    result = {"success": True, "message": "Getir Getirsin siparişi"}
+                # Restoran Getirsin: Getir API'ye bildirim YOK (sadece bizim sistemde yolda)
+                # Getir Getirsin: Getir kuryesi halleder
+                logger.info(f"Getir Yola Çıkar: order={order_id}, is_getir_courier={is_getir_courier}")
+                result = {"success": True, "message": "Sipariş yola çıktı (Getir'e teslim et ile bildirilecek)"}
                 
             elif new_status == "delivered":
                 # "Teslim Et" butonu tıklandığında
+                # Restoran Getirsin: deliver çağır (70 sn kuralı ile)
                 if not is_getir_courier:
                     result = await trigger_getir_deliver(restaurant_id, order_id)
                     logger.info(f"Getir trigger_deliver çağrıldı (Teslim Et): order={order_id}, result={result}")
