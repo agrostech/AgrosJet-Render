@@ -1186,59 +1186,32 @@ async def smart_advance_getir_order(restaurant_id: str, order_id: str, target_st
         
         elif target_status == "delivered":
             # "Teslim Et" butonu → Getir'e DELIVER gönder (sadece Restoran Getirsin)
-            
             if is_getir_courier:
-                # Getir Getirsin - deliver göndermemize gerek yok
                 return {"success": True, "message": "Getir Getirsin siparişi - teslim otomatik güncellenecek"}
             
-            # 70 saniye kuralını kontrol et
-            prepared_at_str = order.get("getir_prepared_at")
-            if prepared_at_str:
-                prepared_at = datetime.fromisoformat(prepared_at_str.replace('Z', '+00:00'))
-                elapsed = (now - prepared_at).total_seconds()
-                remaining = GETIR_STEP_WAIT_SECONDS - elapsed
-                
-                if remaining > 0:
-                    # Henüz 70 saniye geçmemiş - background task ile bekle
-                    logger.info(f"Getir deliver bekletiliyor: {getir_order_id}, {int(remaining)} saniye kaldı")
-                    asyncio.create_task(delayed_deliver(restaurant_id, getir_order_id, order_id, int(remaining)))
-                    return {
-                        "success": True,
-                        "message": f"Sipariş {int(remaining)} saniye sonra Getir'de teslim edilecek",
-                        "wait_seconds": int(remaining),
-                        "scheduled": True
-                    }
+            should_wait, remaining = _check_timing_wait(order.get("getir_prepared_at"))
             
-            # 70 saniye geçmiş - hemen deliver gönder
+            if should_wait:
+                logger.info(f"Getir deliver bekletiliyor: {getir_order_id}, {remaining} saniye")
+                asyncio.create_task(delayed_deliver(restaurant_id, getir_order_id, order_id, remaining))
+                return {"success": True, "message": f"Sipariş {remaining} saniye sonra teslim edilecek", "wait_seconds": remaining, "scheduled": True}
+            
+            # Hemen deliver gönder
             async with httpx.AsyncClient(timeout=15.0) as client:
-                response = await client.post(
-                    f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/deliver",
-                    headers=headers
-                )
+                response = await client.post(f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/deliver", headers=headers)
                 
                 if response.status_code == 200:
                     logger.info(f"Getir deliver başarılı: {getir_order_id}")
-                    await db.orders.update_one(
-                        {"id": order_id},
-                        {"$set": {
-                            "getir_delivered_at": now.isoformat(),
-                            "getir_raw.status": 900
-                        }}
-                    )
+                    await db.orders.update_one({"id": order_id}, {"$set": {"getir_delivered_at": now.isoformat(), "getir_raw.status": 900}})
                     return {"success": True, "message": "Sipariş Getir'de teslim edildi", "steps": ["deliver"]}
-                else:
-                    error = _extract_error(response)
-                    logger.warning(f"Getir deliver hatası: {getir_order_id} - {error}")
-                    
-                    # Zaman hatası ise schedule et
-                    if "time" in error.lower() or "minute" in error.lower():
-                        asyncio.create_task(delayed_deliver(restaurant_id, getir_order_id, order_id, GETIR_STEP_WAIT_SECONDS))
-                        return {
-                            "success": True,
-                            "message": "Getir 1 dakika kuralı - otomatik olarak gönderilecek",
-                            "scheduled": True
-                        }
-                    return {"success": False, "error": f"Deliver hatası: {error}"}
+                
+                error = _extract_error(response)
+                logger.warning(f"Getir deliver hatası: {getir_order_id} - {error}")
+                
+                if any(x in error.lower() for x in ["time", "minute"]):
+                    asyncio.create_task(delayed_deliver(restaurant_id, getir_order_id, order_id, GETIR_STEP_WAIT_SECONDS))
+                    return {"success": True, "message": "Getir 1 dakika kuralı - otomatik gönderilecek", "scheduled": True}
+                return {"success": False, "error": f"Deliver hatası: {error}"}
         
         else:
             return {"success": False, "error": f"Geçersiz hedef durum: {target_status}"}
@@ -1246,7 +1219,8 @@ async def smart_advance_getir_order(restaurant_id: str, order_id: str, target_st
     except Exception as e:
         logger.exception(f"Getir smart_advance exception: {getir_order_id}")
         return {"success": False, "error": str(e)}
-    
+
+
 async def handover_getir_order(restaurant_id: str, order_id: str) -> dict:
     """Getir siparişini kuryeye teslim et (handover)"""
     restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
