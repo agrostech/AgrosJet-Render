@@ -120,6 +120,7 @@ export default function IntegrationStoresManager({ restaurantId }) {
   const [stores, setStores] = useState([]);
   const [platforms, setPlatforms] = useState({});
   const [loading, setLoading] = useState(true);
+  const [expandedPlatforms, setExpandedPlatforms] = useState({});
   
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
