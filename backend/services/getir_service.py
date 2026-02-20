@@ -1308,3 +1308,147 @@ def get_cancel_reasons() -> List[dict]:
         {"id": k, "message": v} 
         for k, v in GETIR_CANCEL_REASONS.items()
     ]
+
+
+# --- Menü İşlemleri ---
+
+async def get_product_status(restaurant_id: str, product_id: str, is_chain: bool = False) -> dict:
+    """Ürün durumunu sorgula"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        endpoint = f"/products/chain-id/{product_id}/status" if is_chain else f"/products/{product_id}/status"
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(f"{GETIR_BASE_URL}{endpoint}", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Status: 100=Açık, 200=Kapalı
+                return {
+                    "success": True, 
+                    "data": data,
+                    "is_active": data.get("status") == 100
+                }
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def update_product_status(restaurant_id: str, product_id: str, status: int, is_chain: bool = False) -> dict:
+    """
+    Ürün durumunu güncelle
+    status: 100=Açık, 200=Kapalı
+    """
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        endpoint = f"/products/chain-id/{product_id}/status" if is_chain else f"/products/{product_id}/status"
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.put(
+                f"{GETIR_BASE_URL}{endpoint}",
+                headers=headers,
+                json={"status": status}
+            )
+            
+            if response.status_code == 200:
+                status_text = "açık" if status == 100 else "kapalı"
+                return {"success": True, "message": f"Ürün durumu {status_text} olarak güncellendi"}
+            else:
+                error_detail = _extract_error(response)
+                return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def activate_option(restaurant_id: str, product_id: str, is_chain: bool = False) -> dict:
+    """Opsiyon ürünü aktif et"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        if is_chain:
+            endpoint = f"/products/chain-id/{product_id}/activate-as-option"
+        else:
+            endpoint = f"/products/{product_id}/activate-as-option"
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(f"{GETIR_BASE_URL}{endpoint}", headers=headers)
+            
+            if response.status_code == 200:
+                return {"success": True, "message": "Opsiyon aktif edildi"}
+            else:
+                error_detail = _extract_error(response)
+                return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def inactivate_option(restaurant_id: str, product_id: str, is_chain: bool = False) -> dict:
+    """Opsiyon ürünü pasif yap"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        if is_chain:
+            endpoint = f"/products/chain-id/{product_id}/inactivate-as-option"
+        else:
+            endpoint = f"/products/{product_id}/inactivate-as-option"
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(f"{GETIR_BASE_URL}{endpoint}", headers=headers)
+            
+            if response.status_code == 200:
+                return {"success": True, "message": "Opsiyon pasif yapıldı"}
+            else:
+                error_detail = _extract_error(response)
+                return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def get_option_products(restaurant_id: str) -> dict:
+    """Opsiyon ürünlerini getir"""
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0})
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{GETIR_BASE_URL}/restaurants/option-products",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
