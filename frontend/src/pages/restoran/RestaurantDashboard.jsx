@@ -164,6 +164,10 @@ export default function RestaurantDashboard() {
             permissions={permissions}
           />
         );
+      case "gecmis":
+        return <RestaurantGecmisSiparisler restaurantId={user?.restaurant_id} />;
+      case "iptal":
+        return <RestaurantIptalSiparisler restaurantId={user?.restaurant_id} />;
       case "muhasebe":
         return <RestaurantMuhasebe restaurantId={user?.restaurant_id} />;
       case "raporlar":
