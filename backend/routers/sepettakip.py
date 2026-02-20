@@ -244,17 +244,22 @@ async def check_credentials(
     Restoranın Sepettakip paneline girdiği entegrasyon bilgilerinin doğrulanması.
     Bu adım başarılı olmadan sipariş akışı başlatılamaz.
     """
-    # Debug loglama
+    # Debug loglama - request
+    log_id = None
     try:
         raw_body = await raw_request.body()
-        await db.sepettakip_logs.insert_one({
+        log_doc = {
             "type": "check-credentials",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "headers": dict(raw_request.headers),
             "body": raw_body.decode('utf-8')[:2000],
             "username": request.username,
-            "api_key_present": bool(api_key)
-        })
+            "api_key_present": bool(api_key),
+            "response": None,
+            "success": None
+        }
+        insert_result = await db.sepettakip_logs.insert_one(log_doc)
+        log_id = insert_result.inserted_id
     except Exception as e:
         logger.error(f"Log kaydetme hatası: {e}")
     
@@ -263,6 +268,9 @@ async def check_credentials(
     # API Key kontrolü
     if not await verify_sepettakip_api_key(api_key):
         logger.warning("SepetTakip check-credentials: Geçersiz API Key")
+        # Log güncelle
+        if log_id:
+            await db.sepettakip_logs.update_one({"_id": log_id}, {"$set": {"response": "Geçersiz API Key", "success": False}})
         raise HTTPException(status_code=401, detail="Geçersiz API Key")
     
     # Restoran doğrulama
@@ -270,9 +278,15 @@ async def check_credentials(
     
     if not result["valid"]:
         logger.warning(f"SepetTakip check-credentials: Doğrulama başarısız - {result['error']}")
+        # Log güncelle
+        if log_id:
+            await db.sepettakip_logs.update_one({"_id": log_id}, {"$set": {"response": result['error'], "success": False}})
         raise HTTPException(status_code=400, detail=result["error"])
     
     logger.info(f"SepetTakip check-credentials: Başarılı - restaurant={result['restaurant'].get('name')}")
+    # Log güncelle - başarılı
+    if log_id:
+        await db.sepettakip_logs.update_one({"_id": log_id}, {"$set": {"response": "Başarılı", "success": True}})
     return {"status": True, "message": "Kimlik bilgileri doğrulandı"}
 
 
