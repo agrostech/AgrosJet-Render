@@ -455,7 +455,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                           </Badge>
                         </td>
                         <td className="p-2 text-xs">
-                          {order.courier_name || "-"}
+                          {getDeliveryInfo(order)}
                         </td>
                       </tr>
                     ))}
