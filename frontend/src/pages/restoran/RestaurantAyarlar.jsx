@@ -161,6 +161,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   // Test sipariş objesi
   const getTestOrder = () => ({
     order_number: "TEST-001",
+    restaurant_name: restaurantName || "Test Restoran",
     customer_name: "Test Müşteri",
     customer_phone: "0555 555 55 55",
     delivery_address: "Test Mahallesi, Test Sokak No:1 Daire:2",
