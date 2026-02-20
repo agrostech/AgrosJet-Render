@@ -335,6 +335,41 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     toast.success("Özet panoya kopyalandı!");
   };
 
+  // SepetTakip Logs handlers
+  const fetchSepettakipLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const res = await axios.get(`${API}/sepettakip/logs`);
+      setSepettakipLogs(res.data.logs || []);
+    } catch (err) {
+      console.error("Loglar yüklenemedi:", err);
+      toast.error("Loglar yüklenemedi");
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  const clearSepettakipLogs = async () => {
+    try {
+      await axios.delete(`${API}/sepettakip/logs`);
+      setSepettakipLogs([]);
+      toast.success("Loglar temizlendi");
+    } catch (err) {
+      toast.error("Temizleme başarısız");
+    }
+  };
+
+  const copyLogsToClipboard = () => {
+    const logsText = sepettakipLogs.map(log => {
+      return `[${log.timestamp}] ${log.type}\n` +
+        `Order ID: ${log.order_id || 'N/A'}\n` +
+        `Body: ${log.body?.substring(0, 500) || 'N/A'}\n` +
+        `---`;
+    }).join('\n');
+    navigator.clipboard.writeText(logsText);
+    toast.success("Loglar panoya kopyalandı!");
+  };
+
   return (
     <div className="space-y-6" data-testid="restaurant-entegrasyonlar">
       {/* Yemek Platformları - Çoklu Mağaza Desteği */}
