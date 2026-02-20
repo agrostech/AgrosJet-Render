@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, XCircle, ClipboardList, CheckCircle } from "lucide-react";
+import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, XCircle, ClipboardList, CheckCircle, Eye } from "lucide-react";
+import OrderDetailModal from "@/components/restoran/OrderDetailModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
