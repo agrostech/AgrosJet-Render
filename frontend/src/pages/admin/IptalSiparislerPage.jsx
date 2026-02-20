@@ -54,8 +54,16 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
     if (!companyId) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/orders/${companyId}?status=cancelled`);
-      let result = res.data;
+      // Yeni merkezi endpoint kullan
+      const res = await axios.get(`${API}/orders/v2/list`, {
+        params: {
+          panel: 'admin',
+          company_id: companyId,
+          status: 'cancelled',
+          limit: 500
+        }
+      });
+      let result = res.data.orders || [];
       
       // Restaurant filter
       if (filters.restaurant !== "all") {
