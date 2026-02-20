@@ -2122,35 +2122,23 @@ async def courier_order_not_ready(courier_id: str, order_id: str):
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
     courier_name = courier.get("name", "Kurye") if courier else "Kurye"
     
-    now = datetime.now(timezone.utc)
-    
-    # 5 dakika hazırlık süresi ekle
-    new_preparation_end = now + timedelta(minutes=5)
-    
-    # History entry
-    history_entry = {
-        "status": "preparing",
-        "label": "Hazırlanıyor",
-        "timestamp": now.isoformat(),
-        "note": f"Sipariş hazır değil - {courier_name} tarafından geri gönderildi (+5dk)",
-        "actor_type": "courier",
-        "actor_name": courier_name
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": {
-                "status": "preparing",
-                "courier_id": None,
-                "courier_name": None,
-                "preparation_end_at": new_preparation_end.isoformat(),
-                "updated_at": now.isoformat(),
-                "confirmed_at": None
-            },
-            "$push": {"status_history": history_entry}
-        }
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status="preparing",
+        actor_type="courier",
+        actor_name=courier_name,
+        note=f"Sipariş hazır değil - {courier_name} tarafından geri gönderildi (+5dk)",
+        preparation_time=5,
+        extra_updates={
+            "courier_id": None,
+            "courier_name": None,
+            "confirmed_at": None
+        },
+        notify_platform=False
     )
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": "Sipariş hazırlanıyor olarak işaretlendi ve atama kaldırıldı"}
 
