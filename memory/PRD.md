@@ -1,175 +1,84 @@
-# ShiftJet - Kurye Yönetim Sistemi PRD
+# ShiftJet - Restaurant Management System PRD
 
-## Orijinal Problem Tanımı
-Restoran paneli için kapsamlı kurye yönetim sistemi. Ana özellikler:
-- Çoklu platform entegrasyonları (Adisyo, Getir, Trendyol, Yemeksepeti, Migros, SepetTakip)
-- Sipariş yönetimi ve durum güncellemeleri
-- Kurye takibi ve atama
-- Muhasebe ve raporlama
-- Sessiz termal yazdırma
+## Original Problem Statement
+ShiftJet is a full-stack restaurant management system with courier tracking, order management, and multi-platform integrations (Getir, Trendyol, Adisyo, Yemeksepeti, Migros, SepetTakip).
 
-## Kullanıcı Personaları
-1. **Restoran Yöneticisi** - Siparişleri yönetir, kurye atar, raporları görür
-2. **Kurye** - Siparişleri teslim eder, konum paylaşır
-3. **Super Admin** - Tüm sistemi yönetir
+**User Language:** Turkish
 
-## Temel Gereksinimler
-
-### Entegrasyonlar
-- **Adisyo**: Polling tabanlı sipariş çekme + durum güncelleme (v2 API)
-- **Getir/Yemeksepeti/Migros**: Webhook tabanlı (placeholder)
-- **SepetTakip**: Webhook tabanlı (3. taraf yapılandırması bekliyor)
-- **Trendyol**: Polling tabanlı
-
-### Sessiz Yazdırma
-- Yerel Python sunucusu (`localhost:5555`)
-- System tray versiyonu (konsol penceresi olmadan)
-- ESC/POS termal yazıcı desteği
+## Current Session Focus
+Getir Yemek integration - fixing order status management and customer phone number bugs.
 
 ---
 
-## Tamamlanan İşler
+## What's Been Implemented
 
-### 20 Şubat 2026 (Güncel Oturum)
-- ✅ **Gelişmiş Kurye ETA Hesaplama Sistemi** tamamlandı
-  - Backend: `calculate_courier_eta_for_restaurant()` fonksiyonu
-  - Yeni endpoint: `GET /api/orders/courier/{courier_id}/eta/{restaurant_id}`
-  - Yeni endpoint: `GET /api/orders/restaurant/{restaurant_id}/couriers-with-eta`
-  - Kuryenin mevcut konumu, aktif siparişleri ve mesafeleri dikkate alan dinamik hesaplama
-  - Çoklu senaryo desteği: boşta kurye, teslimat yapan kurye, teslim alan kurye, karışık durumlar
-  - Frontend: RestaurantAnasayfa.jsx'te ETA bilgisi gösterimi
-  - Kurye dropdown'unda ETA ve rota özeti görünümü
-  - Atanmış kuryelerde dinamik ETA güncelleme (15 saniyede bir)
+### 2026-02-20 - Getir Status Fix
+- ✅ Fixed `delayed_prepare` function - was incorrectly setting status to 700 (on_the_way) instead of 500 (preparing)
+- ✅ Fixed `sync_restaurant_getir_orders` - now only accepts cancellation status from Getir, other status changes are manual (via UI buttons)
+- ✅ Customer phone number fix - uses `clientPhoneNumber` field and removes dashes
 
-### 20 Şubat 2026 (Önceki)
-- ✅ **Ürün Kategorisi Sıralama** tamamlandı
-  - Backend: `PUT /api/products/categories/reorder` endpoint
-  - Kategorilere `order` alanı eklendi
-  - Frontend: Yukarı/aşağı ok butonları ile sıralama
-  - Optimistic UI güncellemesi
-  - Sıralama Telefon Siparişi modalında da geçerli
-- ✅ **Sidebar Güncellemesi**
-  - %15 küçültüldü (w-56 → w-48)
-  - Açılır/kapanır özelliği kaldırıldı
-  - Sürekli açık, sabit genişlik
-
-### Önceki Oturumlar
-- ✅ Sessiz yazıcı sunucusu (Go ile .exe) - AgrosJet_Print_Server.exe
-- ✅ Frontend receipt tasarımı (localPrintService.js)
-- ✅ Ayarlar sayfası yeniden tasarımı (collapsible cards)
-- ✅ Sipariş sayfası UI/UX iyileştirmeleri
-- ✅ İptal seçeneği ve onay modalları
-- ✅ Restaurant Panel UI yeniden düzenleme (üst navbar)
-- ✅ Geçmiş/İptal Siparişler sayfaları
-- ✅ Admin panel bug fix (created_at opsiyonel)
+### Previous Sessions
+- Getir Yemek integration (authentication, polling, webhooks, auto-verify, scheduled prepare)
+- Trendyol Yemek integration
+- Adisyo integration
+- Restaurant management (CRUD, integrations)
+- Courier management and tracking
+- Order management with multi-platform support
+- Financial reports and accounting
 
 ---
 
-## Bekleyen İşler
+## Integration Status
 
-### P0 - Kritik
-- [ ] ~~Gelişmiş Kurye ETA Hesaplama~~ ✅ TAMAMLANDI
-
-### P1 - Yüksek Öncelik
-- [ ] Adisyo sipariş senkronizasyonu doğrulaması
-- [ ] Raporlar sayfası işlevselliği
-- [ ] Yemeksepeti entegrasyonu (kimlik bilgileri bekleniyor)
-- [ ] Adisyo webhook implementasyonu (polling yerine)
-
-### P2 - Orta Öncelik
-- [ ] Arka plan görev güvenilirliği (kurye uygulaması)
-- [ ] Mobil sidebar collapsible bug
-- [ ] Tarihsel muhasebe veri migration
-
-### P3 - Düşük Öncelik
-- [ ] QZ Tray kodlarının temizlenmesi
-- [ ] Dark mode tema
-- [ ] Motosikletim özellikleri
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Getir Yemek | IN PROGRESS | Status fix done, needs testing |
+| Trendyol Yemek | WORKING | Polling mode |
+| Adisyo | USER VERIFICATION | URL config issue |
+| SepetTakip | BLOCKED | Awaiting 3rd party |
+| Yemeksepeti | PENDING | Awaiting credentials |
+| Migros Yemek | PAUSED | Paused for Getir |
 
 ---
 
-## Bloklanmış İşler
-- **SepetTakip**: 3. taraf Base URL yapılandırması gerekli
-- **Migros/Getir**: API anahtarları bekleniyor
+## Priority Backlog
+
+### P0 - Critical
+1. Test Getir status fix in production
+2. Complete Getir test scenarios
+3. Verify phone number fix works
+
+### P1 - High Priority
+1. Migros Yemek integration
+2. SepetTakip webhook activation
+3. Reports page functionality
+
+### P2 - Medium Priority
+1. Adisyo order sync issue
+2. Background task reliability (courier app)
+3. Mobile sidebar collapse bug
+
+### P3 - Low Priority
+1. Historical accounting data migration
+2. Code refactoring (duplicate order list pages)
+3. Dark mode theme
 
 ---
 
-## Teknik Mimari
+## Key Files Reference
 
-```
-/app/
-├── backend/
-│   ├── routers/
-│   │   ├── orders.py
-│   │   │   ├── calculate_courier_eta_for_restaurant()  # YENİ
-│   │   │   ├── GET /courier/{id}/eta/{restaurant_id}   # YENİ
-│   │   │   └── GET /restaurant/{id}/couriers-with-eta  # YENİ
-│   │   └── restaurant_products.py
-│   ├── jobs/sync_orders.py (Adisyo polling - 60s)
-│   └── services/adisyo_service.py (v2 API)
-└── frontend/
-    ├── components/restoran/
-    │   └── RestaurantNavbar.jsx
-    ├── pages/restoran/
-    │   ├── RestaurantAnasayfa.jsx  # ETA gösterimi eklendi
-    │   ├── RestaurantGecmisSiparisler.jsx
-    │   ├── RestaurantIptalSiparisler.jsx
-    │   └── RestaurantUrunler.jsx
-    └── utils/localPrintService.js
-```
+### Getir Integration
+- `/app/backend/services/getir_service.py` - Core Getir API logic
+- `/app/backend/routers/getir.py` - Getir API endpoints
+- `/app/backend/routers/orders.py` - Order status notifications (notify_platform_status_change)
 
-## Test Hesapları
+### Database
+- `orders` collection - `source: "getir"`, `getir_raw.status`, `customer_phone`
+- `restaurant_integrations` - Getir credentials storage
+
+---
+
+## Test Credentials
 - Super Admin: `onurertas` / `125594`
-- Restaurant: `testrestaurant` / `password`
-- Courier: `05527370032` / `123456`
-
----
-
-## Yeni API Endpointleri
-
-### Kurye ETA Hesaplama
-```
-GET /api/orders/courier/{courier_id}/eta/{restaurant_id}
-
-Response:
-{
-    "eta_minutes": 18,
-    "eta_text": "~18 dk",
-    "distance_km": 4.05,
-    "current_orders_count": 3,
-    "route_summary": "3 teslim alım sonra",
-    "breakdown": [
-        {
-            "type": "pickup",
-            "description": "Teslim Al: Meydan Avm Terra",
-            "distance_km": 2.2,
-            "time_mins": 8,
-            "is_target": false
-        },
-        ...
-    ]
-}
-```
-
-### Kuryeler + ETA Listesi
-```
-GET /api/orders/restaurant/{restaurant_id}/couriers-with-eta
-
-Response:
-{
-    "couriers": [
-        {
-            "id": "...",
-            "name": "Test Kurye",
-            "phone": "05551234567",
-            "package_count": 1,
-            "eta": {
-                "eta_minutes": 15,
-                "eta_text": "~15 dk",
-                "route_summary": "Doğrudan geliyor"
-            }
-        }
-    ],
-    "restriction_mode": "restricted"
-}
-```
+- Restaurant (Getir test): `bostonddisparta` / `123456`
+- Getir Webhook API Key: `96d52Ht59VEM4ha5juvKfRlsl9mkGzrq0WPuL8fPhZw`
