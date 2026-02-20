@@ -75,20 +75,41 @@ class BusynessRequest(BaseModel):
     duration_minutes: Optional[int] = None  # 15, 30, 45
 
 
+# Getir Webhook API Key
+import os
+GETIR_WEBHOOK_API_KEY = os.environ.get("GETIR_WEBHOOK_API_KEY", "")
+
+
+def verify_webhook_api_key(x_api_key: str) -> bool:
+    """Webhook API key doğrulama"""
+    if not GETIR_WEBHOOK_API_KEY:
+        # Key tanımlı değilse tüm istekleri kabul et (geliştirme modu)
+        logger.warning("GETIR_WEBHOOK_API_KEY tanımlı değil, doğrulama atlandı")
+        return True
+    return x_api_key == GETIR_WEBHOOK_API_KEY
+
+
 # --- Webhook Endpoints ---
 
 @router.post("/webhook/order")
 async def webhook_new_order(
     request: Request,
     background_tasks: BackgroundTasks,
-    x_api_key: str = Header(None)
+    x_api_key: str = Header(None, alias="x-api-key")
 ):
     """
     Getir'den gelen yeni sipariş webhook'u
     
     Getir, yeni sipariş oluştuğunda bu endpoint'e POST yapar.
     30 saniye içinde onay verilmelidir!
+    
+    Header: x-api-key: [GETIR_WEBHOOK_API_KEY]
     """
+    # API Key doğrulama
+    if not verify_webhook_api_key(x_api_key):
+        logger.warning(f"Getir webhook: Geçersiz API key")
+        raise HTTPException(status_code=401, detail="Geçersiz API key")
+    
     try:
         body = await request.json()
         logger.info(f"Getir webhook order received: {body.get('id', 'unknown')}")
@@ -109,11 +130,18 @@ async def webhook_new_order(
 @router.post("/webhook/cancel")
 async def webhook_cancel_order(
     request: Request,
-    x_api_key: str = Header(None)
+    x_api_key: str = Header(None, alias="x-api-key")
 ):
     """
     Getir'den gelen sipariş iptal webhook'u
+    
+    Header: x-api-key: [GETIR_WEBHOOK_API_KEY]
     """
+    # API Key doğrulama
+    if not verify_webhook_api_key(x_api_key):
+        logger.warning(f"Getir webhook cancel: Geçersiz API key")
+        raise HTTPException(status_code=401, detail="Geçersiz API key")
+    
     try:
         body = await request.json()
         logger.info(f"Getir webhook cancel received: {body.get('id', 'unknown')}")
