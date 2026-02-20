@@ -17,14 +17,17 @@ export default function RestaurantSidebar({
       <div className="p-3 border-b border-white/20 flex-shrink-0">
         {/* Şirket Logosu */}
         {companyLogo && (
-          <div className="flex justify-center mb-3">
-            <img 
-              src={companyLogo} 
-              alt="Şirket" 
-              className="object-contain" 
-              style={{ width: '70%' }}
-            />
-          </div>
+          <>
+            <div className="flex justify-center mb-3">
+              <img 
+                src={companyLogo} 
+                alt="Şirket" 
+                className="object-contain" 
+                style={{ width: '70%' }}
+              />
+            </div>
+            <div className="border-b border-white/20 mb-3" />
+          </>
         )}
         <h1 className="font-heading text-base font-bold truncate">{restaurant?.name || "Restoran"}</h1>
         <p className="text-white/60 text-xs mt-0.5">Restoran Paneli</p>
