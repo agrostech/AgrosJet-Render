@@ -322,51 +322,32 @@ export default function RestaurantAyarlar({ restaurantId }) {
 
           {/* Kurulum Bilgisi */}
           {!serverStatus.connected && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-start gap-3">
-                <Download className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800 w-full">
-                  <p className="font-medium mb-3">Tek Tıkla Kurulum</p>
+                <Download className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-green-800 w-full">
+                  <p className="font-semibold text-lg mb-3">Kurulum</p>
                   
-                  <div className="bg-white border border-blue-300 rounded-lg p-4 mb-3">
-                    <ol className="list-decimal list-inside space-y-2 text-xs">
-                      <li><strong>Python yükleyin</strong> (python.org) - <span className="text-red-600 font-semibold">"Add to PATH"</span> işaretleyin!</li>
-                      <li>Aşağıdaki kurulum dosyasını indirin</li>
-                      <li>Dosyayı çift tıklayın, kurulum otomatik yapılacak</li>
-                      <li>Masaüstünüzde <strong>"ShiftJet Print Server.exe"</strong> oluşacak</li>
+                  <div className="bg-white border border-green-300 rounded-lg p-4 mb-4">
+                    <ol className="list-decimal list-inside space-y-2">
+                      <li>Aşağıdaki <strong>EXE dosyasını indirin</strong></li>
+                      <li><strong>Çift tıklayın</strong> - Program başlayacak</li>
+                      <li>Bu sayfayı <strong>yenileyin</strong></li>
                     </ol>
                   </div>
                   
-                  <div className="flex flex-col gap-2">
-                    <a 
-                      href="/ShiftJet_Kurulum.bat" 
-                      download="ShiftJet_Kurulum.bat"
-                      className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      Kurulum Dosyasını İndir (.bat)
-                    </a>
-                    <p className="text-xs text-center text-blue-600">
-                      Kurulum tamamlandıktan sonra .exe dosyasını çift tıklayın
-                    </p>
-                  </div>
+                  <a 
+                    href="/ShiftJet_Print_Server.exe" 
+                    download="ShiftJet_Print_Server.exe"
+                    className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:bg-green-700 transition-colors w-full"
+                  >
+                    <Download className="w-5 h-5" />
+                    ShiftJet Print Server.exe İndir
+                  </a>
                   
-                  <details className="mt-3">
-                    <summary className="text-xs cursor-pointer text-blue-700 hover:underline">
-                      Manuel kurulum (gelişmiş kullanıcılar için)
-                    </summary>
-                    <div className="mt-2 p-2 bg-blue-100 rounded text-xs">
-                      <code className="block font-mono">pip install pywin32 pillow pystray flask flask-cors pyinstaller</code>
-                      <a 
-                        href="/shiftjet_print_server_systray.py" 
-                        download="shiftjet_print_server_systray.py"
-                        className="inline-flex items-center gap-1 text-blue-700 hover:underline mt-2"
-                      >
-                        <Download className="w-3 h-3" />
-                        Python dosyasını indir
-                      </a>
-                    </div>
-                  </details>
+                  <p className="text-xs text-center text-green-600 mt-3">
+                    Hiçbir kurulum gerektirmez. İndirin, çalıştırın, bitti.
+                  </p>
                 </div>
               </div>
             </div>
