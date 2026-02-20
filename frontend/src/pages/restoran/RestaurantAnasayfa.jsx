@@ -463,6 +463,19 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     });
   };
 
+  // İleri tarihli sipariş teslimat saatini formatla
+  const formatScheduledTime = (dateString) => {
+    if (!dateString) return "";
+    try {
+      return new Date(dateString).toLocaleTimeString("tr-TR", { 
+        hour: "2-digit", 
+        minute: "2-digit" 
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   // Get payment badge with detail support
   const getPaymentBadge = (method, detail = null) => {
     const styles = {
