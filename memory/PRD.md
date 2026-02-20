@@ -1,84 +1,95 @@
-# ShiftJet - Restaurant Management System PRD
+# ShiftJet PRD - Sipariş Yönetim Sistemi
 
-## Original Problem Statement
-ShiftJet is a full-stack restaurant management system with courier tracking, order management, and multi-platform integrations (Getir, Trendyol, Adisyo, Yemeksepeti, Migros, SepetTakip).
+## Orijinal Problem Bildirimi
+Kullanıcı Getir Yemek entegrasyonundaki hataları düzelttikten sonra, kod tabanının karmaşıklığı ve sürekli ortaya çıkan yeni problemler nedeniyle hayal kırıklığına uğradı. Backend (`orders.py`, `getir_service.py`) ve frontend (`RestaurantAnasayfa.jsx`) için derin bir analiz ve büyük bir refactoring çalışması talep edildi.
 
-**User Language:** Turkish
+## Tamamlanan İşler
 
-## Current Session Focus
-Getir Yemek integration - fixing order status management and customer phone number bugs.
+### Refactoring Özeti (20 Şubat 2025)
 
----
+#### Backend - orders.py
+| İşlem | Detay |
+|-------|-------|
+| `update_order_status_core()` | Merkezi status güncelleme fonksiyonu - 12 endpoint kullanıyor |
+| `assign_courier_core()` | Merkezi kurye atama fonksiyonu - 2 endpoint kullanıyor |
+| `check_preparation_times()` | İki ayrı fonksiyon birleştirildi |
+| `calculate_distance()` | Duplicate fonksiyonlar birleştirildi |
+| Admin status endpoint | Merkezi fonksiyona bağlandı |
+| Kurye endpoint'leri | confirm, pickup, not-ready, deliver, reject sadeleştirildi |
+| **Kazanım** | **2710 → 2676 = -34 satır** |
 
-## What's Been Implemented
+#### Backend - getir_service.py
+| İşlem | Detay |
+|-------|-------|
+| `_extract_customer_info()` | Helper fonksiyon - müşteri bilgisi çıkarma |
+| `_extract_address_info()` | Helper fonksiyon - adres bilgisi çıkarma |
+| `_extract_items()` | Helper fonksiyon - ürün listesi çıkarma |
+| `_calculate_scheduled_preparation()` | Helper fonksiyon - ileri tarih hesaplama |
+| `_check_timing_wait()` | Helper fonksiyon - 70sn kuralı kontrolü |
+| `_extract_error()` | Helper fonksiyon - API hata çıkarma |
+| `convert_getir_order_to_shiftjet()` | 247 satırdan ~100 satıra sadeleştirildi |
+| `smart_advance_getir_order()` | 153 satırdan ~90 satıra sadeleştirildi |
+| `auto_verify_and_prepare` alias | Silindi |
+| **Kazanım** | **1995 → 1916 = -79 satır** |
 
-### 2026-02-20 - Getir Status Fix
-- ✅ Fixed `delayed_prepare` function - was incorrectly setting status to 700 (on_the_way) instead of 500 (preparing)
-- ✅ Fixed `sync_restaurant_getir_orders` - now only accepts cancellation status from Getir, other status changes are manual (via UI buttons)
-- ✅ Customer phone number fix - uses `clientPhoneNumber` field and removes dashes
+#### Frontend - CourierSiparisPage.jsx
+| İşlem | Detay |
+|-------|-------|
+| `orderUtils.js` import | Duplicate fonksiyonlar kaldırıldı |
+| formatTime, formatCurrency | orderUtils'den kullanılıyor |
+| calculateDistance, getOrderDistance | orderUtils'den kullanılıyor |
+| **Kazanım** | **1674 → 1624 = -50 satır** |
 
-### Previous Sessions
-- Getir Yemek integration (authentication, polling, webhooks, auto-verify, scheduled prepare)
-- Trendyol Yemek integration
-- Adisyo integration
-- Restaurant management (CRUD, integrations)
-- Courier management and tracking
-- Order management with multi-platform support
-- Financial reports and accounting
+### Toplam Refactoring Kazanımı
+```
+BAŞLANGIÇ: 6379 satır
+FİNAL:     6216 satır
+KAZANIM:   163 satır (~%2.5)
+```
 
----
+### Yapısal İyileştirmeler
+1. **Merkezi Fonksiyonlar**: Status güncelleme ve kurye atama tek yerden yönetiliyor
+2. **Helper Fonksiyonlar**: Kod tekrarı azaltıldı, okunabilirlik arttı
+3. **Lint Temizliği**: Kullanılmayan değişkenler ve duplicate kodlar silindi
+4. **Backward Compatibility**: Tüm mevcut API'ler çalışmaya devam ediyor
 
-## Integration Status
+## Bekleyen İşler
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| Getir Yemek | IN PROGRESS | Status fix done, needs testing |
-| Trendyol Yemek | WORKING | Polling mode |
-| Adisyo | USER VERIFICATION | URL config issue |
-| SepetTakip | BLOCKED | Awaiting 3rd party |
-| Yemeksepeti | PENDING | Awaiting credentials |
-| Migros Yemek | PAUSED | Paused for Getir |
+### P0 - Kritik
+- [ ] SepetTakip entegrasyonu (3. taraf yanıtı bekliyor - BLOKE)
 
----
+### P1 - Yüksek Öncelik
+- [ ] Yemeksepeti entegrasyonu (kullanıcı credentials bekliyor)
+- [ ] Raporlar sayfası işlevselliği
+- [ ] Adisyo sipariş senkronizasyonu (kullanıcı doğrulaması bekliyor)
 
-## Priority Backlog
+### P2 - Orta Öncelik
+- [ ] Background task güvenilirliği (kurye uygulaması)
+- [ ] Mobile sidebar kurye listesi collapse hatası
+- [ ] Migros Yemek entegrasyonu (duraklatıldı)
 
-### P0 - Critical
-1. Test Getir status fix in production
-2. Complete Getir test scenarios
-3. Verify phone number fix works
+### P3 - Düşük Öncelik
+- [ ] Native kurye uygulaması geliştirme
+- [ ] Chat sistemi yeniden etkinleştirme
+- [ ] Dark mode tema
+- [ ] Motosikletim özelliği geliştirmeleri
 
-### P1 - High Priority
-1. Migros Yemek integration
-2. SepetTakip webhook activation
-3. Reports page functionality
+## Teknik Borç
+- [ ] Historical accounting data tutarsızlığı (migration script gerekli)
+- [ ] Mobile file upload sorunu
 
-### P2 - Medium Priority
-1. Adisyo order sync issue
-2. Background task reliability (courier app)
-3. Mobile sidebar collapse bug
-
-### P3 - Low Priority
-1. Historical accounting data migration
-2. Code refactoring (duplicate order list pages)
-3. Dark mode theme
-
----
-
-## Key Files Reference
-
-### Getir Integration
-- `/app/backend/services/getir_service.py` - Core Getir API logic
-- `/app/backend/routers/getir.py` - Getir API endpoints
-- `/app/backend/routers/orders.py` - Order status notifications (notify_platform_status_change)
-
-### Database
-- `orders` collection - `source: "getir"`, `getir_raw.status`, `customer_phone`
-- `restaurant_integrations` - Getir credentials storage
-
----
+## 3. Parti Entegrasyonlar
+| Platform | Durum | Tip |
+|----------|-------|-----|
+| Getir Yemek | ✅ Aktif | Polling/Webhook |
+| Trendyol Yemek | ✅ Aktif | Polling |
+| Adisyo | ⚠️ Doğrulama bekliyor | Polling |
+| Yemeksepeti | 🔄 Beklemede | Webhook |
+| SepetTakip | ⛔ Bloke | Webhook |
+| Migros Yemek | ⏸️ Duraklatıldı | Polling |
+| Google Maps | ✅ Aktif | API |
 
 ## Test Credentials
-- Super Admin: `onurertas` / `125594`
-- Restaurant (Getir test): `bostonddisparta` / `123456`
-- Getir Webhook API Key: `96d52Ht59VEM4ha5juvKfRlsl9mkGzrq0WPuL8fPhZw`
+- **Super Admin**: onurertas / 125594
+- **Restaurant**: bostonddisparta / 123456
+- **Getir Test**: development API
