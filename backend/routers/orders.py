@@ -76,12 +76,8 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
         
         elif source == "getir":
             from services.getir_service import (
-                verify_getir_order,
-                prepare_getir_order,
-                handover_getir_order,
-                deliver_getir_order,
                 cancel_getir_order,
-                smart_advance_getir_order
+                trigger_getir_deliver
             )
             
             # Getir kuryesi kontrolü (deliveryType: 1=Getir Getirsin, 2=Restoran Getirsin)
@@ -93,14 +89,24 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             
             if new_status == "on_the_way":
                 # "Yola Çıkar" butonu tıklandığında
-                # Akıllı ilerleme: Getir'deki mevcut duruma göre uygun aksiyonu al
-                result = await smart_advance_getir_order(restaurant_id, order_id, "on_the_way", is_getir_courier)
-                logger.info(f"Getir smart_advance çağrıldı (Yola Çıkar): order={order_id}, result={result}")
+                # 70 saniye kuralını uygula - gerekirse bekle
+                if not is_getir_courier:
+                    result = await trigger_getir_deliver(restaurant_id, order_id)
+                    logger.info(f"Getir trigger_deliver çağrıldı (Yola Çıkar): order={order_id}, result={result}")
+                else:
+                    # Getir Getirsin - handover çağrılabilir ama genelde Getir halleder
+                    logger.info(f"Getir Getirsin siparişi - yola çıkar Getir tarafından yönetilecek: order={order_id}")
+                    result = {"success": True, "message": "Getir Getirsin siparişi"}
                 
             elif new_status == "delivered":
                 # "Teslim Et" butonu tıklandığında
-                result = await smart_advance_getir_order(restaurant_id, order_id, "delivered", is_getir_courier)
-                logger.info(f"Getir smart_advance çağrıldı (Teslim Et): order={order_id}, result={result}")
+                if not is_getir_courier:
+                    result = await trigger_getir_deliver(restaurant_id, order_id)
+                    logger.info(f"Getir trigger_deliver çağrıldı (Teslim Et): order={order_id}, result={result}")
+                else:
+                    # Getir Getirsin siparişlerinde teslim Getir kuryesi tarafından yapılır
+                    logger.info(f"Getir Getirsin siparişi - teslim Getir kuryesi tarafından yapılacak: order={order_id}")
+                    result = {"success": True, "message": "Getir Getirsin siparişi - teslim Getir kuryesi tarafından yapılacak"}
                 
             elif new_status == "cancelled":
                 # İptal
@@ -108,7 +114,7 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             
             if result:
                 if result.get("success"):
-                    logger.info(f"Getir bildirim başarılı: order={order_id}, status={new_status}")
+                    logger.info(f"Getir bildirim başarılı: order={order_id}, status={new_status}, msg={result.get('message')}")
                 else:
                     logger.warning(f"Getir bildirim hatası: order={order_id}, status={new_status}, error={result.get('error')}")
         
