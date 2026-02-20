@@ -525,8 +525,10 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     notes_parts = []
     if getir_order.get("clientNote"):
         notes_parts.append(f"MÜŞTERİ NOTU: {getir_order['clientNote']}")
-    if address.get("description") or address.get("directions"):
-        notes_parts.append(f"ADRES TARIFI: {address.get('description') or address.get('directions')}")
+    if address_description:
+        notes_parts.append(f"ADRES TARIFI: {address_description}")
+    if client_phone_number:
+        notes_parts.append(f"MÜŞTERİ TEL: {client_phone_number}")
     if is_scheduled and scheduled_date:
         notes_parts.append(f"İLERİ TARİHLİ: {scheduled_date}")
     notes_parts.append(f"TESLİMAT: {delivery_type_text}")
