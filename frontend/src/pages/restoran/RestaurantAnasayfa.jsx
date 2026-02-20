@@ -900,8 +900,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             </AlertDialogTitle>
             <AlertDialogDescription>
               {statusConfirmModal.status === 'delivered' 
-                ? `#${statusConfirmModal.order?.order_number} numaralı siparişi teslim edildi olarak işaretlemek istediğinize emin misiniz?`
-                : `#${statusConfirmModal.order?.order_number} numaralı siparişi iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
+                ? `${statusConfirmModal.order?.customer_name} siparişini teslim edildi olarak işaretlemek istediğinize emin misiniz?`
+                : `${statusConfirmModal.order?.customer_name} siparişini iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.`
               }
             </AlertDialogDescription>
           </AlertDialogHeader>
