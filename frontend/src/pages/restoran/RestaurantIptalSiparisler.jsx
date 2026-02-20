@@ -371,55 +371,70 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
                       <th className="text-left p-2 font-bold text-xs w-[120px]">Müşteri</th>
                       <th className="text-left p-2 font-bold text-xs">Adres</th>
                       <th className="text-left p-2 font-bold text-xs w-[70px]">Tutar</th>
-                      <th className="text-left p-2 font-bold text-xs w-[70px]">Ödeme</th>
+                      <th className="text-left p-2 font-bold text-xs w-[100px]">Ödeme</th>
+                      <th className="text-left p-2 font-bold text-xs w-[140px]">Mesafe / Ücret</th>
                       <th className="text-left p-2 font-bold text-xs w-[120px]">İptal Nedeni</th>
                       <th className="text-center p-2 font-bold text-xs w-[40px]"></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedOrders.map((order) => (
-                      <tr 
-                        key={order.id}
-                        className="border-b hover:bg-red-50/50 transition-colors"
-                      >
-                        <td className="p-2 text-xs whitespace-nowrap">
-                          {formatDate(order.cancelled_at || order.created_at)}
-                        </td>
-                        <td className="p-2">
-                          <div className="truncate max-w-[120px]">
-                            <span className="text-xs font-medium">{order.customer_name || "-"}</span>
-                            {order.customer_phone && (
-                              <div className="text-xs text-muted-foreground font-mono truncate">{order.customer_phone}</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-2 text-xs" title={order.delivery_address}>
-                          <div className="line-clamp-2">{order.delivery_address || "-"}</div>
-                        </td>
-                        <td className="p-2 text-xs font-semibold whitespace-nowrap">
-                          {order.total_amount?.toFixed(2) || "0.00"} ₺
-                        </td>
-                        <td className="p-2">
-                          <Badge variant="outline" className="text-xs">
-                            {getPaymentLabel(order.payment_method)}
-                          </Badge>
-                        </td>
-                        <td className="p-2 text-xs text-red-600 truncate max-w-[120px]" title={order.cancellation_reason}>
-                          {order.cancellation_reason || "-"}
-                        </td>
-                        <td className="p-2 text-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedOrder(order)}
-                            className="h-7 w-7 p-0"
-                            title="Detay"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {paginatedOrders.map((order) => {
+                      const feeInfo = getDeliveryFeeInfo(order);
+                      return (
+                        <tr 
+                          key={order.id}
+                          className="border-b hover:bg-red-50/50 transition-colors"
+                        >
+                          <td className="p-2 text-xs whitespace-nowrap">
+                            {formatDate(order.cancelled_at || order.created_at)}
+                          </td>
+                          <td className="p-2">
+                            <div className="truncate max-w-[120px]">
+                              <span className="text-xs font-medium">{order.customer_name || "-"}</span>
+                              {order.customer_phone && (
+                                <div className="text-xs text-muted-foreground font-mono truncate">{order.customer_phone}</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-2 text-xs" title={order.delivery_address}>
+                            <div className="line-clamp-2">{order.delivery_address || "-"}</div>
+                          </td>
+                          <td className="p-2 text-xs font-semibold whitespace-nowrap">
+                            {order.total_amount?.toFixed(2) || "0.00"} ₺
+                          </td>
+                          <td className="p-2">
+                            <Badge variant="outline" className="text-xs">
+                              {getPaymentLabel(order)}
+                            </Badge>
+                          </td>
+                          <td className="p-2 text-xs">
+                            <div className="space-y-0.5">
+                              <div>{feeInfo.distance.toFixed(1)} km</div>
+                              <div className="text-muted-foreground">
+                                {feeInfo.deliveryFee.toFixed(2)}₺ + {feeInfo.deliveryFeeVat.toFixed(2)}₺ KDV
+                              </div>
+                              {feeInfo.isCard && feeInfo.posCommission > 0 && (
+                                <div className="text-orange-600">POS: {feeInfo.posCommission.toFixed(2)}₺</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-2 text-xs text-red-600 truncate max-w-[120px]" title={order.cancellation_reason}>
+                            {order.cancellation_reason || "-"}
+                          </td>
+                          <td className="p-2 text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedOrder(order)}
+                              className="h-7 w-7 p-0"
+                              title="Detay"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
