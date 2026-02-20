@@ -332,7 +332,7 @@ export default function RestaurantAyarlar({ restaurantId }) {
                     <li>CMD açın ve şunu çalıştırın:</li>
                   </ol>
                   <code className="block bg-blue-100 px-2 py-1 rounded mt-1 text-xs font-mono">
-                    pip install pywin32 pillow pystray
+                    pip install pywin32 pillow pystray flask flask-cors
                   </code>
                   <ol className="list-decimal list-inside space-y-1 text-xs mt-2" start={3}>
                     <li>Aşağıdaki dosyayı indirin ve çift tıklayarak çalıştırın</li>
