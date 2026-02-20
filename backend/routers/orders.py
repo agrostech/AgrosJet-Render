@@ -1751,6 +1751,15 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
         update_fields["pos_commission"] = fees["pos_commission"]
         update_fields["distance_km"] = fees["distance_km"]
     
+    # İptal durumunda iptal bilgilerini kaydet
+    if data.status == "cancelled":
+        update_fields["cancelled_at"] = now.isoformat()
+        update_fields["cancelled_by"] = data.admin_name or "admin"
+        if data.cancel_reason_id:
+            update_fields["cancel_reason_id"] = data.cancel_reason_id
+        if data.cancel_note:
+            update_fields["cancel_note"] = data.cancel_note
+    
     # History'ye ekle
     history_entry = {
         "status": data.status,
@@ -1771,7 +1780,7 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
     
     # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
     prep_time = update_fields.get("preparation_time")
-    await notify_platform_status_change(order, data.status, prep_time)
+    await notify_platform_status_change(order, data.status, prep_time, data.cancel_reason_id, data.cancel_note)
     
     return {"message": f"Sipariş durumu güncellendi: {ORDER_STATUSES[data.status]['label']}"}
 
