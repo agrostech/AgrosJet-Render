@@ -2006,29 +2006,17 @@ async def courier_confirm_order(courier_id: str, order_id: str):
     courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
     courier_name = courier.get("name", "Kurye") if courier else "Kurye"
     
-    now = datetime.now(timezone.utc).isoformat()
-    
-    # History entry
-    history_entry = {
-        "status": "confirmed",
-        "label": "Onaylandı",
-        "timestamp": now,
-        "note": "Kurye siparişi gördü",
-        "actor_type": "courier",
-        "actor_name": courier_name
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": {
-                "status": "confirmed",
-                "confirmed_at": now,
-                "updated_at": now
-            },
-            "$push": {"status_history": history_entry}
-        }
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status="confirmed",
+        actor_type="courier",
+        actor_name=courier_name,
+        note="Kurye siparişi gördü",
+        notify_platform=False  # Confirm için platform bildirimi yok
     )
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": "Sipariş onaylandı"}
 
