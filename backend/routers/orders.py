@@ -1567,6 +1567,25 @@ async def clear_mock_orders(company_id: str):
     return {"message": f"{result.deleted_count} mock sipariş silindi"}
 
 
+@router.post("/restaurant/{restaurant_id}/generate-mock")
+async def generate_mock_for_restaurant(restaurant_id: str, count: int = 20):
+    """Restoran için mock sipariş oluştur"""
+    # Restoranın company_id'sini al
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "company_id": 1})
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    orders = await generate_mock_orders(restaurant["company_id"], count, restaurant_id)
+    return {"message": f"{len(orders)} mock sipariş oluşturuldu", "count": len(orders)}
+
+
+@router.delete("/restaurant/{restaurant_id}/clear-mock")
+async def clear_mock_orders_for_restaurant(restaurant_id: str):
+    """Restorana ait tüm mock siparişleri sil"""
+    result = await db.orders.delete_many({"restaurant_id": restaurant_id, "source": "mock"})
+    return {"message": f"{result.deleted_count} mock sipariş silindi", "count": result.deleted_count}
+
+
 # --- İstatistikler (order_id'den önce olmalı) ---
 
 @router.get("/{company_id}/stats/summary")
