@@ -140,6 +140,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           );
           
           if (result.success) {
+            markAsPrinted(order.id);
             toast.success(`Sipariş yazdırıldı: #${order.order_number}`, {
               icon: <Printer className="w-4 h-4" />,
             });
