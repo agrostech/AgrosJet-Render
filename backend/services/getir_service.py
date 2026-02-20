@@ -528,6 +528,26 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     is_scheduled = getir_order.get("isScheduled", False) or getir_order.get("isScheduledOrder", False)
     scheduled_date = getir_order.get("scheduledDate") or getir_order.get("scheduledTime")
     
+    # İleri tarihli sipariş için hazırlama süresi hesapla
+    # Formül: (teslimat_zamanı - şu_an) - 30 dakika (teslimat için gerekli süre)
+    preparation_time = None
+    preparation_end_at = None
+    if is_scheduled and scheduled_date:
+        try:
+            scheduled_dt = datetime.fromisoformat(scheduled_date.replace('Z', '+00:00'))
+            now = datetime.now(timezone.utc)
+            diff_minutes = (scheduled_dt - now).total_seconds() / 60
+            
+            # Teslimat için 30 dakika öncesine kadar hazır olmalı
+            prep_minutes = max(5, int(diff_minutes - 30))
+            
+            # Max 120 dakika ile sınırla
+            preparation_time = min(prep_minutes, 120)
+            preparation_end_at = (now + timedelta(minutes=preparation_time)).isoformat()
+            
+        except Exception as e:
+            logger.warning(f"İleri tarihli sipariş hazırlama süresi hesaplanamadı: {e}")
+    
     # Sipariş notları
     notes_parts = []
     if getir_order.get("clientNote"):
