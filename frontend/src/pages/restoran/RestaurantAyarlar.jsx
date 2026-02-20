@@ -6,19 +6,16 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Printer, Settings, Volume2, Bell, TestTube, CheckCircle2, XCircle, RefreshCw, Zap, Download } from "lucide-react";
+import { Printer, Settings, Volume2, Bell, TestTube, CheckCircle2, XCircle, RefreshCw, Zap, Download, Server } from "lucide-react";
 import { toast } from "sonner";
 import { printOrder } from "@/utils/printUtils";
 import {
-  isQzAvailable,
-  isQzConnected,
-  connectToQz,
-  getPrinters,
-  silentPrint,
-  getQzStatus,
-  getQzSettings,
-  saveQzSettings,
-} from "@/utils/qzTrayService";
+  checkLocalPrintServer,
+  getLocalPrinters,
+  printOrderLocal,
+  getLocalPrintSettings,
+  saveLocalPrintSettings,
+} from "@/utils/localPrintService";
 
 const STORAGE_KEY = "restaurant_print_settings";
 
@@ -33,12 +30,12 @@ export default function RestaurantAyarlar({ restaurantId }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [saving, setSaving] = useState(false);
   
-  // QZ Tray state
-  const [qzStatus, setQzStatus] = useState({ installed: false, connected: false, message: "Kontrol ediliyor..." });
-  const [qzSettings, setQzSettings] = useState({ enabled: false, printerName: null, paperSize: "80mm", useRawMode: true });
+  // Yerel Yazdırma Sunucusu state
+  const [serverStatus, setServerStatus] = useState({ available: false, connected: false, message: "Kontrol ediliyor..." });
+  const [localSettings, setLocalSettings] = useState({ enabled: false, printerName: null, paperSize: "80mm" });
   const [printers, setPrinters] = useState([]);
   const [loadingPrinters, setLoadingPrinters] = useState(false);
-  const [testingQz, setTestingQz] = useState(false);
+  const [testingPrint, setTestingPrint] = useState(false);
 
   // Ayarları localStorage'dan yükle
   useEffect(() => {
@@ -52,26 +49,27 @@ export default function RestaurantAyarlar({ restaurantId }) {
       }
     }
     
-    // QZ Tray ayarlarını yükle
-    const qzStored = getQzSettings(restaurantId);
-    setQzSettings(qzStored);
+    // Yerel yazdırma ayarlarını yükle
+    const localStored = getLocalPrintSettings(restaurantId);
+    setLocalSettings(localStored);
     
-    // QZ Tray durumunu kontrol et
-    checkQzStatus();
+    // Sunucu durumunu kontrol et
+    checkServerStatus();
   }, [restaurantId]);
 
-  // QZ Tray durumunu kontrol et
-  const checkQzStatus = async () => {
-    setQzStatus({ installed: false, connected: false, message: "Kontrol ediliyor..." });
+  // Sunucu durumunu kontrol et
+  const checkServerStatus = async () => {
+    setServerStatus({ available: false, connected: false, message: "Kontrol ediliyor..." });
     
-    // Küçük bir gecikme ekle - kütüphanenin yüklenmesi için
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const status = await getQzStatus();
-    setQzStatus(status);
+    const status = await checkLocalPrintServer();
+    setServerStatus(status);
     
     if (status.connected) {
-      loadPrinters();
+      setPrinters(status.printers || []);
+      // Varsayılan yazıcıyı ayarla
+      if (!localSettings.printerName && status.defaultPrinter) {
+        setLocalSettings(prev => ({ ...prev, printerName: status.defaultPrinter }));
+      }
     }
   };
 
@@ -79,9 +77,12 @@ export default function RestaurantAyarlar({ restaurantId }) {
   const loadPrinters = async () => {
     setLoadingPrinters(true);
     try {
-      const result = await getPrinters();
+      const result = await getLocalPrinters();
       if (result.success) {
         setPrinters(result.printers);
+        if (!localSettings.printerName && result.defaultPrinter) {
+          setLocalSettings(prev => ({ ...prev, printerName: result.defaultPrinter }));
+        }
       }
     } catch (e) {
       console.error("Yazıcılar yüklenemedi:", e);
@@ -90,27 +91,12 @@ export default function RestaurantAyarlar({ restaurantId }) {
     }
   };
 
-  // QZ Tray'e bağlan
-  const handleConnectQz = async () => {
-    setQzStatus(prev => ({ ...prev, message: "Bağlanıyor..." }));
-    const result = await connectToQz();
-    
-    if (result.success) {
-      setQzStatus({ installed: true, connected: true, message: "Bağlı" });
-      loadPrinters();
-      toast.success("QZ Tray bağlantısı başarılı");
-    } else {
-      setQzStatus({ installed: isQzAvailable(), connected: false, message: result.error });
-      toast.error(result.error);
-    }
-  };
-
   // Ayarları kaydet
   const handleSave = () => {
     setSaving(true);
     try {
       localStorage.setItem(`${STORAGE_KEY}_${restaurantId}`, JSON.stringify(settings));
-      saveQzSettings(restaurantId, qzSettings);
+      saveLocalPrintSettings(restaurantId, localSettings);
       toast.success("Ayarlar kaydedildi");
     } catch (e) {
       toast.error("Ayarlar kaydedilemedi");
@@ -124,9 +110,9 @@ export default function RestaurantAyarlar({ restaurantId }) {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  // QZ Ayar değişikliği
-  const updateQzSetting = (key, value) => {
-    setQzSettings(prev => ({ ...prev, [key]: value }));
+  // Yerel Ayar değişikliği
+  const updateLocalSetting = (key, value) => {
+    setLocalSettings(prev => ({ ...prev, [key]: value }));
   };
 
   // Test yazdırma (tarayıcı)
@@ -136,27 +122,26 @@ export default function RestaurantAyarlar({ restaurantId }) {
     toast.success("Test fişi yazdırma penceresine gönderildi");
   };
 
-  // QZ Tray ile test yazdırma (sessiz)
-  const handleQzTestPrint = async () => {
-    if (!qzStatus.connected) {
-      toast.error("QZ Tray bağlı değil");
+  // Yerel sunucu ile test yazdırma (sessiz)
+  const handleLocalTestPrint = async () => {
+    if (!serverStatus.connected) {
+      toast.error("Yerel yazdırma sunucusu bağlı değil");
       return;
     }
 
-    setTestingQz(true);
+    setTestingPrint(true);
     const testOrder = getTestOrder();
     
-    const result = await silentPrint(
+    const result = await printOrderLocal(
       testOrder,
-      qzSettings.printerName,
-      qzSettings.paperSize,
-      qzSettings.useRawMode
+      localSettings.printerName,
+      localSettings.paperSize
     );
 
-    setTestingQz(false);
+    setTestingPrint(false);
 
     if (result.success) {
-      toast.success(`Test fişi yazıcıya gönderildi: ${result.printer}`);
+      toast.success(`Test fişi yazıcıya gönderildi`);
     } else {
       toast.error(result.error);
     }
@@ -196,57 +181,46 @@ export default function RestaurantAyarlar({ restaurantId }) {
         </div>
       </div>
 
-      {/* QZ Tray Sessiz Yazdırma */}
+      {/* Yerel Yazdırma Sunucusu */}
       <Card className="border-2 border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Zap className="w-5 h-5 text-yellow-500" />
-            Sessiz Yazdırma (QZ Tray)
-            <Badge variant={qzStatus.connected ? "default" : "secondary"} className="ml-2">
-              {qzStatus.connected ? "Bağlı" : "Bağlı Değil"}
+            <Server className="w-5 h-5 text-green-500" />
+            Sessiz Yazdırma (Yerel Sunucu)
+            <Badge variant={serverStatus.connected ? "default" : "secondary"} className="ml-2">
+              {serverStatus.connected ? "Bağlı" : "Bağlı Değil"}
             </Badge>
           </CardTitle>
           <CardDescription>
-            Yazdırma diyaloğu olmadan doğrudan yazıcıya gönderir. Profesyonel kullanım için önerilir.
+            Yazdırma diyaloğu olmadan doğrudan yazıcıya gönderir. Bilgisayarınızda küçük bir program çalıştırmanız gerekir.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* QZ Tray Durumu */}
+          {/* Sunucu Durumu */}
           <div className="p-4 rounded-lg border bg-slate-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {qzStatus.connected ? (
+                {serverStatus.connected ? (
                   <CheckCircle2 className="w-6 h-6 text-green-500" />
                 ) : (
                   <XCircle className="w-6 h-6 text-red-500" />
                 )}
                 <div>
                   <p className="font-medium">
-                    {qzStatus.connected ? "QZ Tray Bağlı" : "QZ Tray Bağlı Değil"}
+                    {serverStatus.connected ? "Sunucu Bağlı" : "Sunucu Bağlı Değil"}
                   </p>
-                  <p className="text-xs text-muted-foreground">{qzStatus.message}</p>
+                  <p className="text-xs text-muted-foreground">{serverStatus.message}</p>
                 </div>
               </div>
               <div className="flex gap-2">
-                {(!qzStatus.installed || !qzStatus.connected) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open("https://qz.io/download", "_blank")}
-                    className="gap-1"
-                  >
-                    <Download className="w-4 h-4" />
-                    İndir
-                  </Button>
-                )}
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleConnectQz}
+                  onClick={checkServerStatus}
                   className="gap-1"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  {qzStatus.connected ? "Yenile" : "Bağlan"}
+                  Yenile
                 </Button>
               </div>
             </div>
@@ -255,8 +229,8 @@ export default function RestaurantAyarlar({ restaurantId }) {
           {/* Sessiz Yazdırma Aktif/Pasif */}
           <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-yellow-600" />
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-green-600" />
               </div>
               <div>
                 <p className="font-medium">Sessiz Yazdırma Aktif</p>
@@ -266,21 +240,21 @@ export default function RestaurantAyarlar({ restaurantId }) {
               </div>
             </div>
             <Switch
-              checked={qzSettings.enabled}
-              onCheckedChange={(checked) => updateQzSetting("enabled", checked)}
-              disabled={!qzStatus.connected}
-              data-testid="qz-enabled-switch"
+              checked={localSettings.enabled}
+              onCheckedChange={(checked) => updateLocalSetting("enabled", checked)}
+              disabled={!serverStatus.connected}
+              data-testid="local-print-enabled-switch"
             />
           </div>
 
           {/* Yazıcı Seçimi */}
-          {qzStatus.connected && (
+          {serverStatus.connected && (
             <div className="space-y-3">
               <Label className="text-sm font-semibold">Yazıcı Seç</Label>
               <div className="flex gap-2">
                 <Select
-                  value={qzSettings.printerName || ""}
-                  onValueChange={(value) => updateQzSetting("printerName", value)}
+                  value={localSettings.printerName || ""}
+                  onValueChange={(value) => updateLocalSetting("printerName", value)}
                 >
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Yazıcı seçin..." />
@@ -308,52 +282,36 @@ export default function RestaurantAyarlar({ restaurantId }) {
             </div>
           )}
 
-          {/* QZ Kağıt Boyutu */}
-          {qzStatus.connected && (
+          {/* Kağıt Boyutu */}
+          {serverStatus.connected && (
             <div className="space-y-3">
               <Label className="text-sm font-semibold">Kağıt Boyutu</Label>
               <RadioGroup
-                value={qzSettings.paperSize}
-                onValueChange={(value) => updateQzSetting("paperSize", value)}
+                value={localSettings.paperSize}
+                onValueChange={(value) => updateLocalSetting("paperSize", value)}
                 className="flex gap-4"
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="58mm" id="qz-58mm" />
-                  <Label htmlFor="qz-58mm">58mm</Label>
+                  <RadioGroupItem value="58mm" id="local-58mm" />
+                  <Label htmlFor="local-58mm">58mm</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="80mm" id="qz-80mm" />
-                  <Label htmlFor="qz-80mm">80mm</Label>
+                  <RadioGroupItem value="80mm" id="local-80mm" />
+                  <Label htmlFor="local-80mm">80mm</Label>
                 </div>
               </RadioGroup>
             </div>
           )}
 
-          {/* ESC/POS Modu */}
-          {qzStatus.connected && (
-            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors">
-              <div>
-                <p className="font-medium">ESC/POS Modu (Önerilen)</p>
-                <p className="text-xs text-muted-foreground">
-                  Termal yazıcılar için optimize edilmiş komutlar kullan
-                </p>
-              </div>
-              <Switch
-                checked={qzSettings.useRawMode}
-                onCheckedChange={(checked) => updateQzSetting("useRawMode", checked)}
-              />
-            </div>
-          )}
-
-          {/* QZ Test Yazdırma */}
-          {qzStatus.connected && (
+          {/* Test Yazdırma */}
+          {serverStatus.connected && (
             <Button
               variant="outline"
-              onClick={handleQzTestPrint}
-              disabled={testingQz || !qzSettings.printerName}
+              onClick={handleLocalTestPrint}
+              disabled={testingPrint || !localSettings.printerName}
               className="w-full gap-2"
             >
-              {testingQz ? (
+              {testingPrint ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
                 <TestTube className="w-4 h-4" />
@@ -362,23 +320,30 @@ export default function RestaurantAyarlar({ restaurantId }) {
             </Button>
           )}
 
-          {/* QZ Tray Kurulum Bilgisi */}
-          {!qzStatus.installed && (
+          {/* Kurulum Bilgisi */}
+          {!serverStatus.connected && (
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start gap-3">
                 <Download className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-2">QZ Tray Kurulumu</p>
+                  <p className="font-medium mb-2">Kurulum Adımları</p>
                   <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>
-                      <a href="https://qz.io/download" target="_blank" rel="noopener noreferrer" className="underline">
-                        qz.io/download
-                      </a> adresinden QZ Tray'i indirin
-                    </li>
-                    <li>Kurulumu tamamlayın ve QZ Tray'i başlatın</li>
-                    <li>Bu sayfayı yenileyin ve "Bağlan" butonuna tıklayın</li>
-                    <li>Yazıcınızı seçin ve test edin</li>
+                    <li>Python 3.8+ yükleyin (python.org)</li>
+                    <li>CMD açın: <code className="bg-blue-100 px-1 rounded">pip install pywin32 pillow</code></li>
+                    <li>ShiftJet Print Server programını indirin</li>
+                    <li>Programı çift tıklayarak çalıştırın</li>
+                    <li>Bu sayfayı yenileyin ve "Yenile" butonuna tıklayın</li>
                   </ol>
+                  <div className="mt-3">
+                    <a 
+                      href="/print-server/shiftjet_print_server.py" 
+                      download
+                      className="inline-flex items-center gap-1 text-blue-700 underline font-medium"
+                    >
+                      <Download className="w-3 h-3" />
+                      shiftjet_print_server.py indir
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -394,7 +359,7 @@ export default function RestaurantAyarlar({ restaurantId }) {
             Tarayıcı Yazdırma (Yedek)
           </CardTitle>
           <CardDescription>
-            QZ Tray kullanılamadığında tarayıcı üzerinden yazdırma
+            Yerel sunucu kullanılamadığında tarayıcı üzerinden yazdırma
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -407,7 +372,7 @@ export default function RestaurantAyarlar({ restaurantId }) {
               <div>
                 <p className="font-medium">Otomatik Yazdırma (Tarayıcı)</p>
                 <p className="text-xs text-muted-foreground">
-                  QZ Tray yoksa tarayıcı yazdırma penceresini aç
+                  Yerel sunucu yoksa tarayıcı yazdırma penceresini aç
                 </p>
               </div>
             </div>
