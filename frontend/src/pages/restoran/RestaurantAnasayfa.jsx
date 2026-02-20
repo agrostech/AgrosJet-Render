@@ -154,6 +154,39 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     previousOrderIdsRef.current = currentOrderIds;
   }, [orders, restaurantId]);
 
+  // Süre dolan siparişleri otomatik "ready" durumuna geçir
+  useEffect(() => {
+    const checkExpiredOrders = async () => {
+      if (!orders || orders.length === 0) return;
+      
+      for (const order of orders) {
+        // Sadece preparing durumundaki ve preparation_end_at olan siparişleri kontrol et
+        if (order.status === 'preparing' && order.preparation_end_at) {
+          const countdown = getCountdown(order.preparation_end_at);
+          
+          // Süre dolduysa otomatik olarak "ready" yap
+          if (countdown?.expired) {
+            try {
+              await onUpdateStatus(order.id, 'ready');
+              toast.info(`#${order.order_number} hazır durumuna geçirildi`, {
+                icon: <CheckCircle className="w-4 h-4 text-green-500" />,
+              });
+            } catch (err) {
+              console.error("Otomatik durum değişikliği hatası:", err);
+            }
+          }
+        }
+      }
+    };
+    
+    // Başlangıçta kontrol et
+    checkExpiredOrders();
+    
+    // Her 10 saniyede bir kontrol et
+    const interval = setInterval(checkExpiredOrders, 10000);
+    return () => clearInterval(interval);
+  }, [orders, onUpdateStatus]);
+
   // Manuel yazdırma fonksiyonu
   const handlePrintOrder = async (order) => {
     const localSettings = getLocalPrintSettings(restaurantId);
