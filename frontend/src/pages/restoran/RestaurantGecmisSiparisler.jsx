@@ -229,9 +229,9 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
 
   // Mesafe ve ücretlendirme bilgisi
   const getDeliveryFeeInfo = (order) => {
-    const distance = order.distance || order.delivery_distance || 0;
-    const deliveryFee = order.delivery_fee || order.courier_fee || 0;
-    const deliveryFeeVat = order.delivery_fee_vat || (deliveryFee * 0.10) || 0; // %10 KDV varsayımı
+    const distance = order.distance_km || order.distance || order.delivery_distance || 0;
+    const deliveryFee = order.courier_fee || order.delivery_fee || 0;
+    const deliveryFeeVat = order.delivery_fee_vat || order.courier_fee_vat || (deliveryFee * 0.10) || 0;
     const posCommission = order.pos_commission || 0;
     const isCard = order.payment_method === 'card';
     
