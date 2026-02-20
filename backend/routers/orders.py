@@ -257,8 +257,8 @@ async def calculate_courier_eta_for_restaurant(
         }
     """
     AVG_SPEED_KMH = 25  # Ortalama şehir içi motorsiklet hızı
-    PICKUP_WAIT_MINS = 1  # Restoranda bekleme süresi (dakika) - paket hazırsa hızlı alım
-    DELIVERY_WAIT_MINS = 2  # Teslimat bekleme süresi (dakika) - kapıya çıkma, ödeme vs.
+    PICKUP_WAIT_MINS = 3  # Restoranda bekleme süresi (dakika)
+    DELIVERY_WAIT_MINS = 3  # Teslimat bekleme süresi (dakika)
     
     # Kurye bilgisini al
     courier = await db.couriers.find_one(
