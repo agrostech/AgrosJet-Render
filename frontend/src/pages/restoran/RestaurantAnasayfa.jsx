@@ -264,7 +264,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       // İptal için platform bazlı sebepleri çek
       if (newStatus === 'cancelled') {
         try {
-          const res = await axios.get(`${API}/orders/${order.id}/cancel-reasons`);
+          // Siparişin kaynağına göre iptal sebeplerini çek
+          const source = order.source || 'manual';
+          const res = await axios.get(`${API}/orders/platform-cancel-reasons/${source}`);
           setCancelReasons(res.data.reasons || []);
           setSelectedCancelReason("");
           setCancelNote("");
