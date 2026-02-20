@@ -3,7 +3,25 @@
 ## Orijinal Problem Bildirimi
 Kullanıcı Getir Yemek entegrasyonundaki hataları düzelttikten sonra, kod tabanının karmaşıklığı nedeniyle büyük bir refactoring çalışması talep etti. Backend ve frontend'deki duplicate kodlar temizlendi, merkezi fonksiyonlar oluşturuldu.
 
-## Tamamlanan İşler (20 Şubat 2025)
+## Tamamlanan İşler (20 Şubat 2026)
+
+### Bug Fix: Merkezi Sipariş Endpoint'i - DB_NAME Sorunu (20 Şubat 2026)
+
+**Sorun:** `/api/orders/v2/list` endpoint'i tüm siparişler için boş array (`[]`) döndürüyordu.
+
+**Kök Neden:**
+1. Backend `.env` dosyasında `DB_NAME="test_database"` olarak ayarlanmıştı
+2. Tüm veriler `shiftjet` veritabanında bulunuyordu
+3. Async Motor client yanlış veritabanına bağlanıyordu
+
+**Çözüm:**
+1. `DB_NAME="shiftjet"` olarak düzeltildi
+2. `bostonddisparta` kullanıcısı `restaurant_users` koleksiyonuna eklendi
+3. `boston-isparta` şirketi `companies` koleksiyonuna eklendi
+
+**Sonuç:** 180+ sipariş artık başarıyla listeleniyor.
+
+---
 
 ### Büyük Mimari Değişiklik: Merkezi Sipariş Endpoint'i
 
