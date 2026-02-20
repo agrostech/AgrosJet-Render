@@ -337,12 +337,12 @@ export default function RestaurantAyarlar({ restaurantId }) {
                   </div>
                   
                   <a 
-                    href="/ShiftJet_Print_Server.exe" 
-                    download="ShiftJet_Print_Server.exe"
+                    href="/AgrosJet_Print_Server.exe" 
+                    download="AgrosJet_Print_Server.exe"
                     className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:bg-green-700 transition-colors w-full"
                   >
                     <Download className="w-5 h-5" />
-                    ShiftJet Print Server.exe İndir
+                    AgrosJet Print Server.exe İndir
                   </a>
                   
                   <p className="text-xs text-center text-green-600 mt-3">
