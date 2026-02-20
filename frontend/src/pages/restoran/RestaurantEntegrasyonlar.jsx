@@ -104,6 +104,15 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     }
   };
 
+  const fetchMigrosData = async () => {
+    try {
+      const res = await axios.get(`${API}/restaurant-integrations/${restaurantId}/migros`);
+      setMigrosData(res.data.migros);
+    } catch (err) {
+      console.error("Migros verisi yüklenemedi:", err);
+    }
+  };
+
   // Adisyo handlers
   const openAdisyoModal = () => {
     setAdisyoForm({
