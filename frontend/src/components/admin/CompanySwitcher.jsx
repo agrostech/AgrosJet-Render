@@ -44,7 +44,7 @@ export default function CompanySwitcher({
             <img 
               src={currentCompany.logo_url} 
               alt={currentCompany.name}
-              className="w-6 h-6 rounded object-cover bg-white flex-shrink-0"
+              className="w-6 h-6 rounded object-contain flex-shrink-0"
             />
           ) : (
             <div className="w-6 h-6 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
