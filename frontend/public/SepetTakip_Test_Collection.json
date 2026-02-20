@@ -1,0 +1,356 @@
+{
+  "info": {
+    "name": "SepetTakip Entegrasyon Testleri",
+    "description": "AgrosJet - SepetTakip entegrasyon checklist testleri",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://test-api.sepettakip.com"
+    },
+    {
+      "key": "courier_company",
+      "value": "agrosjet"
+    },
+    {
+      "key": "api_key",
+      "value": "4dd744ca-001e-44be-b17c-0178b0d3f704"
+    },
+    {
+      "key": "username",
+      "value": "testtakip"
+    },
+    {
+      "key": "password",
+      "value": "123456"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Kimlik Dogrulama Testleri",
+      "item": [
+        {
+          "name": "CC-01 Basarili Kimlik Dogrulama",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credentials\": {\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/check-credentials",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "check-credentials"]
+            }
+          }
+        },
+        {
+          "name": "CC-02 Hatali Kimlik Dogrulama",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credentials\": {\n    \"username\": \"{{username}}\",\n    \"password\": \"yanlis_sifre_123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/check-credentials",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "check-credentials"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Siparis Olusturma Testleri",
+      "item": [
+        {
+          "name": "ORD-01 Siparis Olusturma Test 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 125.50,\n  \"name\": \"Ahmet Yilmaz\",\n  \"phone\": \"05551112233\",\n  \"city\": \"Istanbul\",\n  \"town\": \"Kadikoy\",\n  \"neighborhood\": \"Caferaga\",\n  \"description\": \"Kirmizi bina, 2. kat\",\n  \"building_no\": \"15\",\n  \"floor\": \"2\",\n  \"door_number\": \"4\",\n  \"latitude\": 40.9884,\n  \"longitude\": 29.0290,\n  \"payment_type\": \"cash\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package"]
+            }
+          }
+        },
+        {
+          "name": "ORD-02 Siparis Olusturma Test 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 89.00,\n  \"name\": \"Mehmet Demir\",\n  \"phone\": \"05552223344\",\n  \"city\": \"Istanbul\",\n  \"town\": \"Uskudar\",\n  \"neighborhood\": \"Altunizade\",\n  \"description\": \"Site icerisi, B Blok\",\n  \"building_no\": \"7\",\n  \"floor\": \"5\",\n  \"door_number\": \"10\",\n  \"latitude\": 41.0214,\n  \"longitude\": 29.0456,\n  \"payment_type\": \"credit_card\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package"]
+            }
+          }
+        },
+        {
+          "name": "ORD-03 Siparis Olusturma Test 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 210.75,\n  \"name\": \"Ayse Kaya\",\n  \"phone\": \"05553334455\",\n  \"city\": \"Istanbul\",\n  \"town\": \"Besiktas\",\n  \"neighborhood\": \"Levent\",\n  \"description\": \"Is merkezi, resepsiyon\",\n  \"building_no\": \"42\",\n  \"floor\": \"12\",\n  \"door_number\": \"1\",\n  \"latitude\": 41.0822,\n  \"longitude\": 29.0103,\n  \"payment_type\": \"online\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package"]
+            }
+          }
+        },
+        {
+          "name": "ORD-04 Siparis Olusturma Test 4",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 67.25,\n  \"name\": \"Fatma Ozturk\",\n  \"phone\": \"05554445566\",\n  \"city\": \"Istanbul\",\n  \"town\": \"Maltepe\",\n  \"neighborhood\": \"Cevizli\",\n  \"description\": \"Yesil apartman\",\n  \"building_no\": \"23\",\n  \"floor\": \"1\",\n  \"door_number\": \"2\",\n  \"latitude\": 40.9356,\n  \"longitude\": 29.1268,\n  \"payment_type\": \"cash\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package"]
+            }
+          }
+        },
+        {
+          "name": "ORD-05 Siparis Olusturma Test 5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 156.00,\n  \"name\": \"Ali Celik\",\n  \"phone\": \"05555556677\",\n  \"city\": \"Istanbul\",\n  \"town\": \"Atasehir\",\n  \"neighborhood\": \"Barbaros\",\n  \"description\": \"Palmiye Sitesi, A Blok\",\n  \"building_no\": \"1\",\n  \"floor\": \"8\",\n  \"door_number\": \"16\",\n  \"latitude\": 40.9923,\n  \"longitude\": 29.1187,\n  \"payment_type\": \"credit_card\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package"]
+            }
+          }
+        },
+        {
+          "name": "ORD-06 Hatali Adres Testi (Koordinatsiz)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00,\n  \"name\": \"Test Hatali\",\n  \"phone\": \"05559998877\",\n  \"city\": \"\",\n  \"town\": \"\",\n  \"neighborhood\": \"\",\n  \"description\": \"\",\n  \"building_no\": \"\",\n  \"floor\": \"\",\n  \"door_number\": \"\",\n  \"payment_type\": \"cash\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Test Siparislerini Listele",
+      "item": [
+        {
+          "name": "Test Siparislerini Getir",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Durum Guncelleme Testleri",
+      "item": [
+        {
+          "name": "Siparis Iptal Testi",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"package_id\": \"BURAYA_ORDER_ID_YAZIN\",\n  \"status\": \"cancel\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/courier-company/test/package/:package_id",
+              "host": ["{{base_url}}"],
+              "path": ["courier-company", "test", "package", ":package_id"],
+              "variable": [
+                {"key": "package_id", "value": "BURAYA_ORDER_ID_YAZIN"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Kurye Durum Bildirimleri (Production URL)",
+      "description": "Bu istekler sizin production sisteminize yapilir",
+      "item": [
+        {
+          "name": "Kurye Atandi (assigned)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"BURAYA_ORDER_ID_YAZIN\",\n  \"status\": \"assigned\",\n  \"courier_eta\": \"2025-02-20T15:30:00+03:00\"\n}"
+            },
+            "url": {
+              "raw": "https://test-api.sepettakip.com/courier-company/package",
+              "host": ["https://test-api.sepettakip.com"],
+              "path": ["courier-company", "package"]
+            }
+          }
+        },
+        {
+          "name": "Teslim Alindi (picked_up)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"BURAYA_ORDER_ID_YAZIN\",\n  \"status\": \"picked_up\"\n}"
+            },
+            "url": {
+              "raw": "https://test-api.sepettakip.com/courier-company/package",
+              "host": ["https://test-api.sepettakip.com"],
+              "path": ["courier-company", "package"]
+            }
+          }
+        },
+        {
+          "name": "Teslim Edildi (delivered)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"BURAYA_ORDER_ID_YAZIN\",\n  \"status\": \"delivered\"\n}"
+            },
+            "url": {
+              "raw": "https://test-api.sepettakip.com/courier-company/package",
+              "host": ["https://test-api.sepettakip.com"],
+              "path": ["courier-company", "package"]
+            }
+          }
+        },
+        {
+          "name": "Iptal Edildi (canceled)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"BURAYA_ORDER_ID_YAZIN\",\n  \"status\": \"canceled\"\n}"
+            },
+            "url": {
+              "raw": "https://test-api.sepettakip.com/courier-company/package",
+              "host": ["https://test-api.sepettakip.com"],
+              "path": ["courier-company", "package"]
+            }
+          }
+        },
+        {
+          "name": "Reddedildi (rejected)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Courier-Company", "value": "{{courier_company}}"},
+              {"key": "Api-Key", "value": "{{api_key}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"BURAYA_ORDER_ID_YAZIN\",\n  \"status\": \"rejected\"\n}"
+            },
+            "url": {
+              "raw": "https://test-api.sepettakip.com/courier-company/package",
+              "host": ["https://test-api.sepettakip.com"],
+              "path": ["courier-company", "package"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
