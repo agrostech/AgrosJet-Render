@@ -18,11 +18,16 @@ export default function AdminSidebar({
 
   return (
     <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
-      <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2' : ''}`}>
-        {!sidebarCollapsed && (
+      <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2 flex justify-center' : ''}`}>
+        {sidebarCollapsed ? (
+          // Kapalı halde sadece logo
+          company?.logo_url && (
+            <img src={company.logo_url} alt={company.name} className="h-10 object-contain" />
+          )
+        ) : (
           <>
             {company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name} className="h-8 mb-2 object-contain" />
+              <img src={company.logo_url} alt={company.name} className="h-10 mb-2 object-contain" />
             ) : (
               <h1 className="font-heading text-lg font-bold truncate">{company?.name}</h1>
             )}
@@ -31,13 +36,6 @@ export default function AdminSidebar({
           </>
         )}
       </div>
-      
-      {/* Company Switcher - if available */}
-      {companySwitcher && (
-        <div className={`border-b border-white/20 ${sidebarCollapsed ? 'p-1' : 'p-2'}`}>
-          {companySwitcher}
-        </div>
-      )}
       
       <nav className="flex-1 py-2 overflow-y-auto">
         {navItems.map((item) => (
@@ -60,6 +58,12 @@ export default function AdminSidebar({
       </nav>
       
       <div className="border-t border-white/20">
+        {/* Company Switcher - çıkış butonunun üstünde */}
+        {companySwitcher && (
+          <div className={`border-b border-white/20 ${sidebarCollapsed ? 'p-1' : 'p-2'}`}>
+            {companySwitcher}
+          </div>
+        )}
         <Button 
           variant="ghost" 
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)} 
