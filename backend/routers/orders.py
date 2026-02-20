@@ -1079,7 +1079,7 @@ COURIER_ONLY_STATUSES = ["assigned", "confirmed"]
 
 
 # --- Mock Data Generator ---
-async def generate_mock_orders(company_id: str, count: int = 5):
+async def generate_mock_orders(company_id: str, count: int = 5, restaurant_id: str = None):
     """Test amaçlı mock sipariş oluştur - Şirketin bulunduğu şehirden"""
     
     # Şirket bilgilerini al (şehir koordinatları için)
@@ -1089,8 +1089,12 @@ async def generate_mock_orders(company_id: str, count: int = 5):
     )
     
     # Şirketin restoranlarını al (hazırlık süresi dahil)
+    restaurant_query = {"company_id": company_id, "is_archived": {"$ne": True}}
+    if restaurant_id:
+        restaurant_query["id"] = restaurant_id
+    
     restaurants = await db.restaurants.find(
-        {"company_id": company_id, "is_archived": {"$ne": True}},
+        restaurant_query,
         {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1, "preparation_time": 1}
     ).to_list(50)
     
