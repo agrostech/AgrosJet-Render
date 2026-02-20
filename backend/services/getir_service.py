@@ -439,7 +439,9 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     
     # Müşteri İletişim Telefonu (0850 ile başlayan maskelenmiş numara + pin kodu)
     # clientPhoneNumber: "+90 (850) 346-9382 / 288339" formatında geliyor
-    customer_phone = client.get("clientPhoneNumber", "")
+    # Tireleri kaldırıp temiz format yapalım
+    raw_customer_phone = client.get("clientPhoneNumber", "")
+    customer_phone = raw_customer_phone.replace("-", "") if raw_customer_phone else ""
     
     # Getir Destek Hattı (contactPhoneNumber) - bu müşteri telefonu DEĞİL!
     getir_support_phone = client.get("contactPhoneNumber", "")
