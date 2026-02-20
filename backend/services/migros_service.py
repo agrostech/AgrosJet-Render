@@ -1,0 +1,328 @@
+"""
+Migros Yemek Entegrasyon Servisi
+- AES-256-ECB Rijndael şifreleme/çözme
+- Sipariş polling
+- Durum güncelleme
+"""
+
+import base64
+import json
+import logging
+import httpx
+from typing import Optional, Dict, Any, List
+from datetime import datetime, timezone
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
+logger = logging.getLogger(__name__)
+
+# Migros Yemek API Base URLs
+MIGROS_TEST_URL = "https://test.gourmet.migrosonline.com"
+MIGROS_PROD_URL = "https://gourmet.migrosonline.com"
+
+
+class MigrosYemekService:
+    """Migros Yemek API entegrasyon servisi"""
+    
+    def __init__(self, api_key: str, secret_key: str, is_test: bool = True):
+        self.api_key = api_key
+        self.secret_key = secret_key
+        self.base_url = MIGROS_TEST_URL if is_test else MIGROS_PROD_URL
+        
+    def _get_headers(self) -> Dict[str, str]:
+        """API istekleri için header'ları döndür"""
+        return {
+            "Content-Type": "application/json",
+            "XApiKey": self.api_key
+        }
+    
+    def encrypt(self, data: Dict[str, Any]) -> str:
+        """
+        Veriyi AES-256-ECB ile şifrele
+        Migros Yemek Rijndael şifreleme formatı
+        """
+        try:
+            # JSON string'e çevir
+            json_str = json.dumps(data, ensure_ascii=False)
+            
+            # Secret key'i 32 byte'a tamamla (AES-256)
+            key = self.secret_key.encode('utf-8')
+            if len(key) < 32:
+                key = key + b'\0' * (32 - len(key))
+            elif len(key) > 32:
+                key = key[:32]
+            
+            # AES-ECB cipher oluştur
+            cipher = AES.new(key, AES.MODE_ECB)
+            
+            # PKCS7 padding uygula ve şifrele
+            padded_data = pad(json_str.encode('utf-8'), AES.block_size)
+            encrypted = cipher.encrypt(padded_data)
+            
+            # Base64 encode
+            return base64.b64encode(encrypted).decode('utf-8')
+            
+        except Exception as e:
+            logger.error(f"Migros şifreleme hatası: {e}")
+            raise
+    
+    def decrypt(self, encrypted_data: str) -> Dict[str, Any]:
+        """
+        AES-256-ECB ile şifrelenmiş veriyi çöz
+        """
+        try:
+            # Secret key'i 32 byte'a tamamla
+            key = self.secret_key.encode('utf-8')
+            if len(key) < 32:
+                key = key + b'\0' * (32 - len(key))
+            elif len(key) > 32:
+                key = key[:32]
+            
+            # AES-ECB cipher oluştur
+            cipher = AES.new(key, AES.MODE_ECB)
+            
+            # Base64 decode ve decrypt
+            encrypted_bytes = base64.b64decode(encrypted_data)
+            decrypted = cipher.decrypt(encrypted_bytes)
+            
+            # PKCS7 padding kaldır
+            unpadded = unpad(decrypted, AES.block_size)
+            
+            # JSON parse
+            return json.loads(unpadded.decode('utf-8'))
+            
+        except Exception as e:
+            logger.error(f"Migros şifre çözme hatası: {e}")
+            raise
+    
+    async def _make_request(
+        self, 
+        method: str, 
+        endpoint: str, 
+        data: Optional[Dict] = None,
+        encrypt_request: bool = True,
+        decrypt_response: bool = True
+    ) -> Dict[str, Any]:
+        """API isteği yap"""
+        url = f"{self.base_url}{endpoint}"
+        headers = self._get_headers()
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                if method == "GET":
+                    response = await client.get(url, headers=headers)
+                else:
+                    # POST için veriyi şifrele
+                    if data and encrypt_request:
+                        encrypted = self.encrypt(data)
+                        body = encrypted
+                        headers["Content-Type"] = "text/plain"
+                    else:
+                        body = json.dumps(data) if data else None
+                    
+                    response = await client.post(url, content=body, headers=headers)
+                
+                logger.info(f"Migros API {method} {endpoint}: {response.status_code}")
+                
+                if response.status_code == 200:
+                    response_text = response.text
+                    
+                    # Response'u çöz
+                    if decrypt_response and response_text:
+                        try:
+                            # Önce JSON parse dene
+                            result = json.loads(response_text)
+                            # Eğer "data" alanı encrypted ise çöz
+                            if isinstance(result, dict) and "data" in result:
+                                if isinstance(result["data"], str):
+                                    result["data"] = self.decrypt(result["data"])
+                            return result
+                        except json.JSONDecodeError:
+                            # Direkt encrypted olabilir
+                            return self.decrypt(response_text)
+                    else:
+                        return json.loads(response_text) if response_text else {}
+                else:
+                    logger.error(f"Migros API hatası: {response.status_code} - {response.text}")
+                    return {"success": False, "error": response.text, "status_code": response.status_code}
+                    
+        except Exception as e:
+            logger.error(f"Migros API isteği hatası: {e}")
+            return {"success": False, "error": str(e)}
+    
+    async def get_order_status_list(self) -> Dict[str, Any]:
+        """Sipariş durum tiplerini getir (şifreleme yok)"""
+        return await self._make_request(
+            "GET", 
+            "/Mapping/GetOrderStatusList",
+            encrypt_request=False,
+            decrypt_response=False
+        )
+    
+    async def get_cancel_reasons(self) -> Dict[str, Any]:
+        """İptal sebeplerini getir (şifreleme yok)"""
+        return await self._make_request(
+            "GET",
+            "/Mapping/v2/GetCancelReasons",
+            encrypt_request=False,
+            decrypt_response=False
+        )
+    
+    async def get_pending_orders(self, store_ids: List[int], limit: int = 20, offset: int = 0) -> Dict[str, Any]:
+        """Bekleyen siparişleri getir"""
+        data = {
+            "storeIds": store_ids,
+            "limit": limit,
+            "offset": offset
+        }
+        return await self._make_request("POST", "/Order/PendingOrdersWithStores", data)
+    
+    async def get_active_orders(self, store_ids: List[int], limit: int = 20, offset: int = 0) -> Dict[str, Any]:
+        """Aktif siparişleri getir"""
+        data = {
+            "storeIds": store_ids,
+            "limit": limit,
+            "offset": offset
+        }
+        return await self._make_request("POST", "/Order/ActiveOrdersWithStores", data)
+    
+    async def get_order_details(self, order_id: int, user_id: int) -> Dict[str, Any]:
+        """Sipariş detayını getir"""
+        data = {
+            "orderId": order_id,
+            "userId": user_id
+        }
+        return await self._make_request("POST", "/Order/GetSummarizedOrder", data)
+    
+    async def update_order_status(
+        self, 
+        order_id: int, 
+        store_id: int, 
+        status: str,
+        cancel_reason_id: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Sipariş durumunu güncelle
+        status: Approved, Rejected, Prepared, Delivery, Completed
+        """
+        data = {
+            "orderId": order_id,
+            "orderStatus": status,
+            "storeId": store_id
+        }
+        
+        if status == "Rejected" and cancel_reason_id:
+            data["cancelReasonId"] = cancel_reason_id
+            
+        return await self._make_request("POST", "/Order/v2/UpdateOrderStatus", data)
+    
+    async def cancel_order(
+        self,
+        order_id: int,
+        user_id: int,
+        cancel_reason_id: int,
+        notify_user: bool = True
+    ) -> Dict[str, Any]:
+        """Siparişi iptal et"""
+        data = {
+            "orderId": order_id,
+            "userId": user_id,
+            "cancelReasonId": cancel_reason_id,
+            "notifyUser": notify_user
+        }
+        return await self._make_request("POST", "/Order/v2/CancelOrder", data)
+    
+    async def test_connection(self) -> Dict[str, Any]:
+        """Bağlantı testi - sipariş durum listesini çek"""
+        try:
+            result = await self.get_order_status_list()
+            if "data" in result or "success" in result:
+                return {"success": True, "message": "Bağlantı başarılı", "data": result}
+            else:
+                return {"success": True, "message": "Bağlantı başarılı", "data": result}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_id: str) -> Dict[str, Any]:
+    """
+    Migros Yemek sipariş formatını ShiftJet formatına dönüştür
+    """
+    customer = migros_order.get("customer", {})
+    delivery_address = customer.get("deliveryAddress", {})
+    geo_location = delivery_address.get("geoLocation", {})
+    prices = migros_order.get("prices", {})
+    payment = migros_order.get("payment", {}).get("type", {})
+    extended = migros_order.get("extendedProperties", {})
+    
+    # Ödeme tipi dönüşümü
+    payment_type_map = {
+        "CASH_ON_DELIVERY": "cash",
+        "CREDIT_CARD_ON_DELIVERY": "card",
+        "ONLINE_PAYMENT": "online",
+        "MEAL_CARD": "meal_card"
+    }
+    payment_name = payment.get("simplifiedName", "CASH_ON_DELIVERY")
+    payment_type = payment_type_map.get(payment_name, "cash")
+    
+    # Ürünleri dönüştür
+    items = []
+    for item in migros_order.get("items", []):
+        item_data = {
+            "name": item.get("name"),
+            "quantity": item.get("amount", 1),
+            "price": item.get("price", 0) / 100,  # Kuruştan TL'ye
+            "total_price": (item.get("price", 0) * item.get("amount", 1)) / 100,
+            "note": item.get("note", ""),
+            "options": []
+        }
+        
+        # Opsiyonları ekle
+        for opt in item.get("options", []):
+            item_data["options"].append({
+                "name": f"{opt.get('headerName')}: {opt.get('itemNames')}",
+                "price": opt.get("primaryPrice", 0) / 100
+            })
+        
+        items.append(item_data)
+    
+    # Toplam tutarı hesapla (kuruştan TL'ye)
+    total_amount = prices.get("discounted", {}).get("amountAsPenny", 0) / 100
+    if total_amount == 0:
+        total_amount = prices.get("total", {}).get("amountAsPenny", 0) / 100
+    
+    return {
+        "external_id": f"migros_{migros_order.get('id')}",
+        "platform": "migros",
+        "platform_order_id": str(migros_order.get("id")),
+        "restaurant_id": restaurant_id,
+        "customer_name": customer.get("fullName", ""),
+        "customer_phone": customer.get("phoneNumber", ""),
+        "delivery_address": delivery_address.get("detail", ""),
+        "delivery_location": {
+            "latitude": geo_location.get("latitude"),
+            "longitude": geo_location.get("longitude")
+        },
+        "city": delivery_address.get("city", {}).get("name", ""),
+        "district": delivery_address.get("town", {}).get("name", ""),
+        "neighborhood": delivery_address.get("district", {}).get("name", ""),
+        "total_amount": total_amount,
+        "payment_type": payment_type,
+        "payment_method": payment.get("description", ""),
+        "is_paid": payment.get("isOnlinePayment", False),
+        "items": items,
+        "note": extended.get("orderNote", ""),
+        "contactless_delivery": extended.get("contactlessDelivery", False),
+        "ring_doorbell": extended.get("ringDoorBell", True),
+        "status": "pending",
+        "source": "migros",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "migros_data": {
+            "order_id": migros_order.get("id"),
+            "user_id": customer.get("id"),
+            "store_id": migros_order.get("store", {}).get("id"),
+            "store_group_id": migros_order.get("store", {}).get("group", {}).get("id"),
+            "delivery_provider": migros_order.get("deliveryProvider"),
+            "original_status": migros_order.get("status")
+        }
+    }
