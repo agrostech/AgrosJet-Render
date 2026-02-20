@@ -581,7 +581,7 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "total_discounted_price": total_discounted,
         "payment_method": payment,
         "payment_method_name": payment_method_name,
-        "status": mapped_status,
+        "status": initial_status,
         "notes": order_notes,
         "source": "getir",
         "created_at": created_at,
