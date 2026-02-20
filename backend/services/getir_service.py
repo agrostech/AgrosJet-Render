@@ -1,22 +1,87 @@
 """
 Getir Yemek API Entegrasyon Servisi
 - Token yönetimi (1 saat geçerli)
-- Sipariş çekme (polling)
-- Sipariş durumu güncelleme
-- Restoran çalışma durumu yönetimi
+- Sipariş çekme (polling) ve webhook
+- Sipariş durumu güncelleme (verify, prepare, handover, deliver)
+- Restoran/kurye çalışma durumu yönetimi
+- POS Status aktivasyonu
 
-API Docs: https://api-docs.getir.com
+API Docs: https://developers.getir.com/food/documentation/introduction
+Swagger: https://food-external-api-gateway.development.getirapi.com/documentation
 """
 import httpx
 import uuid
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from utils.database import db
 
 logger = logging.getLogger(__name__)
 
-GETIR_BASE_URL = "https://food-external-api.getir.com"  # Production URL
+# Environment URLs
+GETIR_TEST_URL = "https://food-external-api-gateway.development.getirapi.com"
+GETIR_PROD_URL = "https://food-external-api-gateway.getirapi.com"
+
+# Varsayılan olarak test ortamı kullan
+GETIR_BASE_URL = GETIR_TEST_URL
+
+# Ödeme yöntemleri mapping'i (Getir API docs'tan)
+GETIR_PAYMENT_METHODS = {
+    1: {"name": "MasterPass", "type": "online"},
+    2: {"name": "BKM", "type": "online"},
+    3: {"name": "Kredi/Banka Kartı", "type": "card"},
+    4: {"name": "Nakit", "type": "cash"},
+    5: {"name": "Multinet Kart", "type": "meal_card"},
+    6: {"name": "Sodexo Kart", "type": "meal_card"},
+    7: {"name": "Sodexo Çeki", "type": "meal_card"},
+    8: {"name": "Ticket Kart", "type": "meal_card"},
+    9: {"name": "Ticket Çeki", "type": "meal_card"},
+    10: {"name": "Setcard Kart", "type": "meal_card"},
+    11: {"name": "Metropol Kart", "type": "meal_card"},
+    12: {"name": "Paye Kart", "type": "meal_card"},
+    15: {"name": "MobileExpress", "type": "online"},
+    16: {"name": "Getir Finance", "type": "online"},
+    17: {"name": "Sodexo Pass Mobil", "type": "meal_card"},
+    19: {"name": "Sodexo Online", "type": "meal_card"},
+    21: {"name": "Token Flex", "type": "meal_card"},
+    22: {"name": "Ticket Online", "type": "meal_card"},
+    24: {"name": "Multinet Online", "type": "meal_card"},
+    26: {"name": "Online Ödeme", "type": "online"},
+    27: {"name": "Multinet QR", "type": "meal_card"},
+    28: {"name": "Ticket QR", "type": "meal_card"},
+    29: {"name": "Setcard QR", "type": "meal_card"},
+    30: {"name": "Metropol QR", "type": "meal_card"},
+    31: {"name": "Paye QR", "type": "meal_card"},
+    32: {"name": "TokenFlex QR", "type": "meal_card"},
+}
+
+# Sipariş durumları mapping'i
+GETIR_ORDER_STATUSES = {
+    325: "scheduled_pending",    # İleri tarihli sipariş, ön onay bekliyor
+    350: "scheduled_approved",   # İleri tarihli sipariş, ön onay alındı
+    400: "pending",              # Restoran onayı bekleniyor
+    500: "preparing",            # Sipariş hazırlanıyor
+    550: "prepared",             # Sipariş hazırlandı (Getir Getirsin)
+    600: "handed_over",          # Sipariş kuryeye teslim edildi (Getir Getirsin)
+    700: "on_the_way",           # Kurye yola çıktı
+    800: "arrived",              # Kurye adrese ulaştı (Getir Getirsin)
+    900: "delivered",            # Sipariş teslim edildi
+    1500: "cancelled_admin",     # Admin tarafından iptal
+    1600: "cancelled",           # Restoran iptal / otomatik iptal
+}
+
+# İptal sebepleri
+GETIR_CANCEL_REASONS = {
+    "5f05b1392765e85c5d0432d2": "Restoranda kurye yok, müsait değil",
+    "5f05b13f2765e85c5d0432d3": "Restoran teknik problem yaşıyor",
+    "5e1469f7916c7a55cfc2aede": "Müşteri adresi restoran servis alanı dışında",
+    "5c5b49b068f6a45d427f0a8f": "Restoran yoğun",
+    "5f0875342ce13c10cbf1c0e6": "Hava muhalefeti",
+    "5c5b495768f6a45d427f0a8d": "Restoran kapalı",
+    "5c5b49a768f6a45d427f0a8e": "Restoranda ürün eksik",
+    "5f0875342ce13c10cbf1c0e7": "Kurye müşteri adresini bulamadı",
+    "6088226bdaa34255a5693e23": "Sipariş minimum sepet tutarı altında",
+}
 
 
 async def get_getir_token(restaurant: dict) -> Optional[str]:
