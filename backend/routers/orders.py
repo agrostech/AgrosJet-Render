@@ -824,15 +824,11 @@ ORDER_STATUSES = {
 # Platform bazlı iptal sebepleri
 PLATFORM_CANCEL_REASONS = {
     "getir": [
-        {"id": "5f05b1392765e85c5d0432d2", "label": "Restoranda kurye yok, müsait değil"},
-        {"id": "5f05b13f2765e85c5d0432d3", "label": "Restoran teknik problem yaşıyor"},
-        {"id": "5e1469f7916c7a55cfc2aede", "label": "Müşteri adresi restoran servis alanı dışında"},
-        {"id": "5c5b49b068f6a45d427f0a8f", "label": "Restoran yoğun"},
-        {"id": "5f0875342ce13c10cbf1c0e6", "label": "Hava muhalefeti"},
-        {"id": "5c5b495768f6a45d427f0a8d", "label": "Restoran kapalı"},
-        {"id": "5c5b49a768f6a45d427f0a8e", "label": "Restoranda ürün eksik"},
-        {"id": "5f0875342ce13c10cbf1c0e7", "label": "Kurye müşteri adresini bulamadı"},
+        # Getir panelinde sadece bu 4 sebep kabul ediliyor
         {"id": "6088226bdaa34255a5693e23", "label": "Sipariş minimum sepet tutarı altında"},
+        {"id": "5e1469f7916c7a55cfc2aede", "label": "Müşteri adresi restoran servis alanı dışında"},
+        {"id": "5c5b49a768f6a45d427f0a8e", "label": "Restoranda ürün eksik"},
+        {"id": "5f05b13f2765e85c5d0432d3", "label": "Restoran teknik problem yaşıyor"},
     ],
     "trendyol": [
         {"id": "OUT_OF_STOCK", "label": "Ürün stokta yok"},
