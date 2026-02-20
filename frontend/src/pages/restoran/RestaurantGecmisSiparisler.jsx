@@ -532,6 +532,13 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        order={selectedOrder}
+        open={!!selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+      />
     </div>
   );
 }
