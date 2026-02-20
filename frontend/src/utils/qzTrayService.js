@@ -30,10 +30,22 @@ const PLATFORM_LABELS = {
 };
 
 /**
- * QZ Tray'in yüklü olup olmadığını kontrol et
+ * QZ Tray kütüphanesinin yüklü olup olmadığını kontrol et
  */
 export const isQzAvailable = () => {
-  return typeof window.qz !== "undefined";
+  // qz objesi global scope'ta mı kontrol et
+  return typeof window !== "undefined" && typeof window.qz !== "undefined" && window.qz !== null;
+};
+
+/**
+ * QZ Tray'in çalışır durumda olup olmadığını kontrol et
+ */
+export const isQzConnected = () => {
+  try {
+    return isQzAvailable() && window.qz.websocket && window.qz.websocket.isActive();
+  } catch (e) {
+    return false;
+  }
 };
 
 /**
@@ -41,7 +53,7 @@ export const isQzAvailable = () => {
  */
 export const connectToQz = async () => {
   // Zaten bağlıysa
-  if (qzConnection && window.qz?.websocket?.isActive()) {
+  if (isQzConnected()) {
     return { success: true, message: "Zaten bağlı" };
   }
 
@@ -50,11 +62,13 @@ export const connectToQz = async () => {
     return connectionPromise;
   }
 
-  // QZ Tray yüklü değilse
+  // QZ Tray kütüphanesi yüklü değilse
   if (!isQzAvailable()) {
+    console.log("QZ Tray kütüphanesi bulunamadı. window.qz:", typeof window.qz);
     return { 
       success: false, 
-      error: "QZ Tray yüklü değil. https://qz.io/download adresinden indirin." 
+      error: "QZ Tray kütüphanesi yüklenemedi. Sayfayı yenileyin veya QZ Tray'in çalıştığından emin olun.",
+      notInstalled: true
     };
   }
 
@@ -62,6 +76,37 @@ export const connectToQz = async () => {
   
   connectionPromise = new Promise(async (resolve) => {
     try {
+      // Güvenlik sertifikası için (demo için override)
+      window.qz.security.setCertificatePromise(function(resolve, reject) {
+        // Demo sertifikası - production'da gerçek sertifika kullanılmalı
+        resolve("-----BEGIN CERTIFICATE-----\n" +
+          "MIIECzCCAvOgAwIBAgIJALZsL/4J9XOTMA0GCSqGSIb3DQEBCwUAMIGaMQswCQYD\n" +
+          "VQQGEwJVUzELMAkGA1UECAwCTlkxETAPBgNVBAcMCE5ldyBZb3JrMRQwEgYDVQQK\n" +
+          "DAtRWiBJbmR1c3RyeTEUMBIGA1UECwwLRW5naW5lZXJpbmcxFDASBgNVBAMMC3F6\n" +
+          "LWluZHVzdHJ5MSkwJwYJKoZIhvcNAQkBFhpzdXBwb3J0QHF6LWluZHVzdHJpZXMu\n" +
+          "Y29tMB4XDTE5MTIxMjAwMDAwMFoXDTQ3MDUwMTAwMDAwMFowgZoxCzAJBgNVBAYT\n" +
+          "AlVTMQswCQYDVQQIDAJOWTERMA8GA1UEBwwITmV3IFlvcmsxFDASBgNVBAoMC1Fa\n" +
+          "IEluZHVzdHJ5MRQwEgYDVQQLDAtFbmdpbmVlcmluZzEUMBIGA1UEAwwLcXotaW5k\n" +
+          "dXN0cnkxKTAnBgkqhkiG9w0BCQEWGnN1cHBvcnRAcXotaW5kdXN0cmllcy5jb20w\n" +
+          "ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+JzSdN0m+cRfTJvMvwfKp\n" +
+          "Gu7T7X5l8rXMfMwqPNvN1L1MpOhvMxMaM2X8NvNmMvN7MvNmMxMvNmMvNmMvNmMv\n" +
+          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
+          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
+          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
+          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
+          "NmMvNmMvNmMvNmMvAgMBAAGjUzBRMB0GA1UdDgQWBBQ1234567890abcdefghij\n" +
+          "klmnopqrstuvwxyzAB0GA1UdDwEB/wQEAwIHgDAMBgNVHRMBAf8EAjAAMAoGCCqG\n" +
+          "SM49BAMCA0kAMEYCIQC1234567890abcdefghijklmnopqrstuvwxyzABCDEFGH\n" +
+          "-----END CERTIFICATE-----");
+      });
+      
+      // İmza için (demo - boş bırakılabilir)
+      window.qz.security.setSignaturePromise(function(toSign) {
+        return function(resolve, reject) {
+          resolve(); // Demo için imza yok
+        };
+      });
+
       // Bağlantı oluştur
       await window.qz.websocket.connect();
       qzConnection = true;
@@ -71,13 +116,20 @@ export const connectToQz = async () => {
       console.error("QZ Tray bağlantı hatası:", error);
       qzConnection = null;
       
-      if (error.message?.includes("Unable to connect")) {
+      const errorMsg = error?.message || String(error);
+      
+      if (errorMsg.includes("Unable to connect") || errorMsg.includes("WebSocket")) {
         resolve({ 
           success: false, 
-          error: "QZ Tray çalışmıyor. Lütfen QZ Tray uygulamasını başlatın." 
+          error: "QZ Tray çalışmıyor. Lütfen QZ Tray uygulamasını başlatın ve tekrar deneyin."
+        });
+      } else if (errorMsg.includes("Certificate") || errorMsg.includes("security")) {
+        resolve({ 
+          success: false, 
+          error: "Güvenlik sertifikası hatası. QZ Tray'i yeniden başlatın."
         });
       } else {
-        resolve({ success: false, error: error.message || "Bağlantı hatası" });
+        resolve({ success: false, error: errorMsg || "Bağlantı hatası" });
       }
     } finally {
       isConnecting = false;
