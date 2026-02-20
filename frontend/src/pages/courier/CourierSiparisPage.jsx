@@ -25,13 +25,18 @@ import {
   Store,
   User,
   FileText,
-  ChevronRight,
   RefreshCw,
-  AlertCircle,
-  Bell,
-  BellOff,
   Route,
 } from "lucide-react";
+
+// Ortak utility fonksiyonları import et
+import {
+  formatTime,
+  formatCurrency,
+  calculateDistance,
+  getOrderDistance,
+  getOrderAge,
+} from "@/utils/orderUtils";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -40,7 +45,6 @@ const createAlarmSound = () => {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     
-    // Create multiple oscillators for louder sound
     const playTone = (frequency, startTime, duration) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -56,7 +60,6 @@ const createAlarmSound = () => {
       oscillator.stop(startTime + duration);
     };
     
-    // Play alarm pattern - 6 beeps
     const now = audioContext.currentTime;
     for (let i = 0; i < 6; i++) {
       playTone(880, now + i * 0.3, 0.15);
@@ -70,7 +73,13 @@ const createAlarmSound = () => {
   }
 };
 
-// Sipariş durumları ve renkler
+// Tarih formatı (kurye paneline özel)
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+};
+
+// Sipariş durumları (kurye paneline özel renkler)
 const ORDER_STATUS_CONFIG = {
   assigned: { label: "Yeni Sipariş", color: "bg-purple-500", textColor: "text-purple-600" },
   confirmed: { label: "Onaylandı", color: "bg-blue-500", textColor: "text-blue-600" },
@@ -78,7 +87,7 @@ const ORDER_STATUS_CONFIG = {
   delivered: { label: "Teslim Edildi", color: "bg-green-500", textColor: "text-green-600" },
 };
 
-// Ödeme yöntemi - renkli
+// Ödeme yöntemi (kurye paneline özel - icon ile)
 const PAYMENT_METHODS = {
   cash: { label: "Nakit", icon: Banknote, color: "text-green-600", bg: "bg-green-50" },
   card: { label: "Kart", icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
@@ -87,7 +96,7 @@ const PAYMENT_METHODS = {
   online: { label: "Online", icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
 };
 
-// Ödeme label'ını al (yemek kartı türü varsa onu göster)
+// Ödeme label'ını al
 const getPaymentLabel = (order) => {
   const method = order.payment_method;
   if ((method === 'meal_card' || method === 'online_meal_card') && order.payment_method_detail) {
@@ -96,70 +105,11 @@ const getPaymentLabel = (order) => {
   return PAYMENT_METHODS[method]?.label || method;
 };
 
-// Zaman formatı
-const formatTime = (dateStr) => {
-  if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
-};
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(amount);
-};
-
-// Uzaklık hesaplama (Haversine formülü) - km cinsinden
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-  
-  const R = 6371; // Dünya yarıçapı (km)
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-  
-  return distance;
-};
-
-// Sipariş uzaklığını formatla
-const getOrderDistance = (order) => {
-  const restLat = order.restaurant_location?.latitude;
-  const restLng = order.restaurant_location?.longitude;
-  const delLat = order.delivery_location?.latitude;
-  const delLng = order.delivery_location?.longitude;
-  
-  const distance = calculateDistance(restLat, restLng, delLat, delLng);
-  
-  if (distance === null) return null;
-  
-  if (distance < 1) {
-    return `${Math.round(distance * 1000)} m`;
-  }
-  return `${distance.toFixed(1)} km`;
-};
-
-// Sipariş süresi hesapla (dakika cinsinden)
-const getOrderAge = (order) => {
-  if (!order.created_at) return null;
-  
-  try {
-    const createdAt = new Date(order.created_at);
-    const now = new Date();
-    const diffMs = now - createdAt;
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return "Yeni";
-    return `${diffMins} dk`;
-  } catch {
-    return null;
-  }
+// Sipariş yaşını formatla (kurye paneli için string döndürür)
+const getOrderAgeText = (order) => {
+  const age = getOrderAge(order);
+  if (!age) return null;
+  return age.text;
 };
 
 export default function CourierSiparisPage({ courierId, companyId }) {
