@@ -19,10 +19,10 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // Navigation Items
 const NAV_ITEMS = [
   { key: "anasayfa", label: "Sipariş Yönetimi", icon: ClipboardList, path: "/restoran" },
-  { key: "muhasebe", label: "Muhasebe", icon: Calculator, path: "/restoran/muhasebe" },
   { key: "raporlar", label: "Raporlar", icon: FileText, path: "/restoran/raporlar" },
-  { key: "entegrasyonlar", label: "Entegrasyonlar", icon: Link2, path: "/restoran/entegrasyonlar" },
+  { key: "muhasebe", label: "Muhasebe", icon: Calculator, path: "/restoran/muhasebe" },
   { key: "urunler", label: "Ürünler", icon: UtensilsCrossed, path: "/restoran/urunler" },
+  { key: "entegrasyonlar", label: "Entegrasyonlar", icon: Link2, path: "/restoran/entegrasyonlar" },
   { key: "ayarlar", label: "Ayarlar", icon: Settings, path: "/restoran/ayarlar" },
 ];
 
