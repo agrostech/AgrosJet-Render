@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   ClipboardList, Truck, CheckCircle, XCircle, 
-  Package, Timer, TrendingUp, Info, Phone, Calendar, Bike, UserPlus, Eye, Store, Printer
+  Package, Timer, TrendingUp, Info, Phone, Calendar, Bike, UserPlus, Eye, Store, Printer, History
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
 import OrderDetailModal from "@/components/restoran/OrderDetailModal";
@@ -44,6 +45,8 @@ import { printOrderLocal, getLocalPrintSettings, checkLocalPrintServer } from "@
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, onAssignCourier, onRefresh, restaurantId, restaurantName, permissions = {} }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("pending");
   const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
   const [availableCouriers, setAvailableCouriers] = useState([]);
