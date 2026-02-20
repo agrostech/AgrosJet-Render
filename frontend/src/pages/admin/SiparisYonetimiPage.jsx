@@ -80,10 +80,17 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const fetchOrders = useCallback(async () => {
     if (!companyId) return;
     try {
-      // Çoklu status filtresi için virgülle ayrılmış string gönder
+      // Yeni merkezi endpoint kullan
       const statusParam = statusFilters.length > 0 ? statusFilters.join(',') : 'active';
-      const res = await axios.get(`${API}/orders/${companyId}?status=${statusParam}&limit=500`);
-      setOrders(res.data);
+      const res = await axios.get(`${API}/orders/v2/list`, {
+        params: {
+          panel: 'admin',
+          company_id: companyId,
+          status: statusParam,
+          limit: 500
+        }
+      });
+      setOrders(res.data.orders || []);
     } catch (err) {
       console.error("Orders fetch error:", err);
     }
