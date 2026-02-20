@@ -656,8 +656,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     ))}
                                     <div className="border-t my-1" />
                                     <SelectItem value="on_the_way" className="text-xs">Yolda</SelectItem>
-                                    <SelectItem value="delivered" className="text-xs text-green-600">Teslim Edildi</SelectItem>
-                                    <SelectItem value="cancelled" className="text-xs text-red-600">İptal Edildi</SelectItem>
+                                    <SelectItem value="delivered" className="text-xs">Teslim Edildi</SelectItem>
+                                    <SelectItem value="cancelled" className="text-xs">İptal Edildi</SelectItem>
                                   </SelectContent>
                                 </Select>
                               )}
