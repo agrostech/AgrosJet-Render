@@ -608,6 +608,10 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "courier_id": None,
         "courier_name": None,
+        # İleri tarihli siparişler için otomatik hazırlama süresi
+        "preparation_time": preparation_time,
+        "preparation_end_at": preparation_end_at,
+        "is_scheduled": is_scheduled,
         "getir_raw": {
             "orderId": order_id,
             "status": raw_status,
