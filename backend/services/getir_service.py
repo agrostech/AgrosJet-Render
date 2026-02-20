@@ -1131,18 +1131,8 @@ async def smart_advance_getir_order(restaurant_id: str, order_id: str, target_st
     """
     Kullanıcı "Yola Çıkar" veya "Teslim Et" butonuna bastığında çağrılır.
     
-    Getir Akışı:
-    - verify = sipariş onaylandı (otomatik yapılıyor)
-    - prepare = sipariş yola çıktı ("Yola Çıkar" butonu)
-    - deliver = sipariş teslim edildi ("Teslim Et" butonu, sadece Restoran Getirsin)
-    - handover = kuryeye teslim edildi (sadece Getir Getirsin)
-    
-    Getir Kuralları:
-    - verify → prepare: 1 dakika (70sn) bekleme
-    - prepare → deliver: 1 dakika (70sn) bekleme
-    
-    Args:
-        target_status: "on_the_way" (prepare gönder) veya "delivered" (deliver gönder)
+    target_status: "on_the_way" → prepare, "delivered" → deliver/handover
+    Getir Kuralları: Her adım arasında 70sn bekleme zorunlu.
     """
     import asyncio
     
@@ -1157,6 +1147,7 @@ async def smart_advance_getir_order(restaurant_id: str, order_id: str, target_st
     getir_order_id = order.get("getir_order_id")
     if not getir_order_id:
         return {"success": False, "error": "Bu sipariş Getir siparişi değil"}
+    
     
     headers = await get_getir_headers(restaurant)
     if not headers:
