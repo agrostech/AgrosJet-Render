@@ -183,6 +183,26 @@ export default function RestaurantDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-100" data-testid="restaurant-dashboard">
+      {/* Desktop Top Bar */}
+      <header className="hidden lg:flex fixed top-0 left-48 right-0 h-14 bg-white border-b shadow-sm z-30 items-center px-6">
+        {/* Sol: Sayfa başlığı */}
+        <div className="flex-1">
+          <h1 className="text-lg font-bold text-slate-800">{getCurrentPageTitle()}</h1>
+        </div>
+        
+        {/* Orta: Şirket logosu */}
+        <div className="flex items-center justify-center">
+          {companyLogo ? (
+            <img src={companyLogo} alt="Şirket" className="h-9 object-contain" />
+          ) : (
+            <span className="font-heading text-lg font-semibold text-slate-700">{restaurant?.name}</span>
+          )}
+        </div>
+        
+        {/* Sağ: Boş alan (dengelemek için) */}
+        <div className="flex-1" />
+      </header>
+
       {/* Desktop Sidebar */}
       <RestaurantSidebar
         user={user}
