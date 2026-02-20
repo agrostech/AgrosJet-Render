@@ -621,7 +621,9 @@ export default function IntegrationStoresManager({ restaurantId }) {
                 </div>
               </CardContent>
             )}
-          </Card>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         );
       })}
 
