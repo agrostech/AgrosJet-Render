@@ -760,22 +760,36 @@ async def get_orders(
 
 
 @router.get("/restaurant/{restaurant_id}")
-async def get_orders_by_restaurant(restaurant_id: str, limit: int = 100):
-    """Restorana ait siparişleri getir - Restoran paneli için"""
-    # Today's start
+@router.get("/restaurant/{restaurant_id}")
+async def get_orders_by_restaurant(restaurant_id: str, status: Optional[str] = None, limit: int = 100):
+    """Restorana ait siparişleri getir - Restoran paneli için
+    
+    Args:
+        restaurant_id: Restoran ID
+        status: Opsiyonel durum filtresi (delivered, cancelled, pending, vb.)
+        limit: Maksimum sipariş sayısı
+    """
     from datetime import datetime, timezone, timedelta
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Bugünkü ve aktif siparişleri getir
-    query = {
-        "restaurant_id": restaurant_id,
-        "$or": [
-            {"status": {"$nin": ["delivered", "cancelled"]}},  # Aktif siparişler
-            {"created_at": {"$gte": today_start.isoformat()}}  # Bugün oluşturulanlar
-        ]
-    }
-    
-    orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
+    # Eğer belirli bir status istendiyse
+    if status:
+        query = {
+            "restaurant_id": restaurant_id,
+            "status": status
+        }
+        orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
+    else:
+        # Varsayılan: Bugünkü ve aktif siparişleri getir
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        query = {
+            "restaurant_id": restaurant_id,
+            "$or": [
+                {"status": {"$nin": ["delivered", "cancelled"]}},  # Aktif siparişler
+                {"created_at": {"$gte": today_start.isoformat()}}  # Bugün oluşturulanlar
+            ]
+        }
+        orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
     
     # Kurye bilgilerini zenginleştir (telefon ve konum)
     courier_ids = list(set(o.get("courier_id") for o in orders if o.get("courier_id")))
@@ -783,7 +797,7 @@ async def get_orders_by_restaurant(restaurant_id: str, limit: int = 100):
     if courier_ids:
         couriers = await db.couriers.find(
             {"id": {"$in": courier_ids}},
-            {"_id": 0, "id": 1, "phone": 1, "current_location": 1}
+            {"_id": 0, "id": 1, "phone": 1, "current_location": 1, "name": 1}
         ).to_list(100)
         
         courier_map = {c["id"]: c for c in couriers}
@@ -793,6 +807,8 @@ async def get_orders_by_restaurant(restaurant_id: str, limit: int = 100):
                 courier = courier_map[order["courier_id"]]
                 order["courier_phone"] = courier.get("phone")
                 order["courier_location"] = courier.get("current_location")
+                if not order.get("courier_name"):
+                    order["courier_name"] = courier.get("name")
     
     return orders
 
