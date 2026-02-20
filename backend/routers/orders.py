@@ -339,9 +339,6 @@ async def calculate_courier_eta_for_restaurant(
             }]
         }
     
-    # Ara noktaları (waypoints) oluştur
-    waypoints = []
-    
     # Siparişleri öncelik sırasına koy:
     # 1. on_the_way olanlar (teslimat yapılacak) - en önce
     # 2. assigned/confirmed (teslim alınacak) - sonra
