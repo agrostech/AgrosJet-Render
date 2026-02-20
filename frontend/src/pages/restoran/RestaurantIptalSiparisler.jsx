@@ -18,6 +18,7 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
