@@ -323,11 +323,11 @@ async def calculate_courier_eta_for_restaurant(
     # Sipariş yoksa doğrudan mesafe hesapla
     if not active_orders:
         direct_distance = calculate_distance_between_points(courier_lat, courier_lng, target_lat, target_lng)
-        eta_minutes = max(1, math.ceil((direct_distance / AVG_SPEED_KMH) * 60))
+        travel_time = max(1, math.ceil((direct_distance / AVG_SPEED_KMH) * 60))
         
         return {
-            "eta_minutes": eta_minutes,
-            "eta_text": f"~{eta_minutes} dk",
+            "eta_minutes": travel_time,
+            "eta_text": f"~{travel_time} dk",
             "distance_km": round(direct_distance, 2),
             "current_orders_count": 0,
             "route_summary": "Doğrudan geliyor",
@@ -335,7 +335,8 @@ async def calculate_courier_eta_for_restaurant(
                 "type": "direct",
                 "description": "Restorana doğrudan",
                 "distance_km": round(direct_distance, 2),
-                "time_mins": eta_minutes
+                "travel_mins": travel_time,
+                "time_mins": travel_time
             }]
         }
     
