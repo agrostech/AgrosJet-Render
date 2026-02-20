@@ -1309,17 +1309,22 @@ async def cancel_getir_order(restaurant_id: str, order_id: str, cancel_reason_id
         return {"success": False, "error": "Getir token alınamadı"}
     
     try:
-        body = {}
-        if cancel_reason_id:
-            body["cancelReasonId"] = cancel_reason_id
+        # Getir için iptal sebebi zorunlu - varsayılan olarak "Restoranda ürün eksik" kullan
+        DEFAULT_CANCEL_REASON = "5c5b49a768f6a45d427f0a8e"  # Restoranda ürün eksik
+        
+        body = {
+            "cancelReasonId": cancel_reason_id if cancel_reason_id else DEFAULT_CANCEL_REASON
+        }
         if cancel_note:
             body["cancelNote"] = cancel_note
+        
+        logger.info(f"Getir cancel request: order={getir_order_id}, body={body}")
         
         async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
                 f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/cancel",
                 headers=headers,
-                json=body if body else None
+                json=body
             )
             
             if response.status_code == 200:
@@ -1327,6 +1332,7 @@ async def cancel_getir_order(restaurant_id: str, order_id: str, cancel_reason_id
                 return {"success": True, "message": "Sipariş iptal edildi"}
             else:
                 error_detail = _extract_error(response)
+                logger.warning(f"Getir cancel hatası: {response.status_code} - {error_detail}")
                 return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
                 
     except Exception as e:
