@@ -361,7 +361,7 @@ export default function CourierDashboard() {
             <img 
               src={companyLogo} 
               alt={companyName} 
-              className="w-8 h-8 rounded-full object-cover bg-white"
+              className="w-8 h-8 rounded object-contain"
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           ) : null}
