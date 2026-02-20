@@ -174,14 +174,32 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
     setCurrentPage(1);
   };
 
-  const getPaymentLabel = (method) => {
+  const getPaymentLabel = (order) => {
+    const method = order.payment_method;
     switch (method) {
       case 'cash': return 'Nakit';
-      case 'card': return 'Kart';
-      case 'meal_card': return 'Yemek Kartı';
+      case 'card': return 'Kredi Kartı';
+      case 'meal_card': 
+        const cardType = order.meal_card_type || order.card_brand || '';
+        if (cardType.toLowerCase().includes('sodexo')) return 'Sodexo';
+        if (cardType.toLowerCase().includes('ticket')) return 'Ticket';
+        if (cardType.toLowerCase().includes('multinet')) return 'Multinet';
+        if (cardType.toLowerCase().includes('setcard')) return 'Setcard';
+        return cardType || 'Yemek Kartı';
       case 'online': return 'Online';
+      case 'online_meal_card': return 'Online';
       default: return method || '-';
     }
+  };
+
+  const getDeliveryFeeInfo = (order) => {
+    const distance = order.distance || order.delivery_distance || 0;
+    const deliveryFee = order.delivery_fee || order.courier_fee || 0;
+    const deliveryFeeVat = order.delivery_fee_vat || (deliveryFee * 0.10) || 0;
+    const posCommission = order.pos_commission || 0;
+    const isCard = order.payment_method === 'card';
+    
+    return { distance, deliveryFee, deliveryFeeVat, posCommission, isCard };
   };
 
   const handleSubPageChange = (value) => {
