@@ -110,9 +110,16 @@ const PLATFORM_CONFIG = {
     bgClass: "bg-orange-500",
     bgLightClass: "bg-orange-100",
     textClass: "text-orange-600",
-    fields: [],
-    helpText: "Bu entegrasyon henüz geliştirme aşamasındadır.",
-    disabled: true
+    fields: [
+      { key: "api_key", label: "API Key", type: "password", required: true, placeholder: "Migros API Key" },
+      { key: "secret_key", label: "Secret Key", type: "password", required: true, placeholder: "Şifreleme Secret Key" },
+      { key: "store_id", label: "Store ID", type: "text", required: true, placeholder: "Restoran ID (örn: 23000000101833)" },
+      { key: "store_group_id", label: "Zincir ID", type: "text", required: true, placeholder: "Store Group ID (örn: 1054)" },
+      { key: "is_test", label: "Test Ortamı", type: "checkbox", required: false }
+    ],
+    helpText: "API bilgilerini Migros Yemek entegrasyon ekibinden alabilirsiniz. Polling tabanlı çalışır.",
+    helpUrl: null,
+    isPolling: true
   }
 };
 
