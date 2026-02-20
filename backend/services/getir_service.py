@@ -166,8 +166,55 @@ async def get_getir_headers(restaurant: dict) -> Optional[dict]:
     }
 
 
-async def test_getir_connection(restaurant_id: str) -> dict:
-    """Getir API bağlantısını test et"""
+async def check_pos_status(app_secret: str, restaurant_secret: str) -> dict:
+    """POS durumunu kontrol et"""
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{GETIR_BASE_URL}/restaurants/pos-status",
+                json={
+                    "appSecretKey": app_secret,
+                    "restaurantSecretKey": restaurant_secret
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                # posStatus: 100 = Aktif, 200 = Pasif
+                return {"success": True, "data": data, "is_active": data.get("posStatus") == 100}
+            else:
+                return {"success": False, "error": f"API hatası: {response.status_code}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def activate_pos_status(app_secret: str, restaurant_secret: str) -> dict:
+    """POS durumunu aktif et (100)"""
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.put(
+                f"{GETIR_BASE_URL}/restaurants/pos-status",
+                json={
+                    "appSecretKey": app_secret,
+                    "restaurantSecretKey": restaurant_secret,
+                    "posStatus": 100  # Aktif
+                }
+            )
+            
+            if response.status_code == 200:
+                return {"success": True, "message": "POS durumu aktif edildi"}
+            else:
+                error_text = response.text[:200] if response.text else "Bilinmeyen hata"
+                return {"success": False, "error": f"API hatası: {response.status_code} - {error_text}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -> dict:
+    """
+    Getir API bağlantısını test et
+    activate_pos: True ise POS durumunu otomatik aktif et
+    """
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
         {"_id": 0}
@@ -185,6 +232,7 @@ async def test_getir_connection(restaurant_id: str) -> dict:
     
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
+            # 1. Login testi
             response = await client.post(
                 f"{GETIR_BASE_URL}/auth/login",
                 json={
@@ -201,12 +249,25 @@ async def test_getir_connection(restaurant_id: str) -> dict:
                     # Token'ı kaydet
                     expires_at = (datetime.now(timezone.utc) + timedelta(minutes=50)).isoformat()
                     
+                    # 2. POS durumunu kontrol et ve aktif et
+                    pos_status = await check_pos_status(app_secret, restaurant_secret)
+                    pos_activated = False
+                    
+                    if pos_status.get("success") and not pos_status.get("is_active") and activate_pos:
+                        # POS pasif, aktif et
+                        activate_result = await activate_pos_status(app_secret, restaurant_secret)
+                        pos_activated = activate_result.get("success", False)
+                        logger.info(f"Getir POS aktivasyonu: {activate_result}")
+                    elif pos_status.get("is_active"):
+                        pos_activated = True
+                    
                     await db.restaurants.update_one(
                         {"id": restaurant_id},
                         {"$set": {
                             "platform_integrations.getir.token": token,
                             "platform_integrations.getir.token_expires": expires_at,
                             "platform_integrations.getir.connected": True,
+                            "platform_integrations.getir.pos_active": pos_activated,
                             "platform_integrations.getir.last_test": datetime.now(timezone.utc).isoformat()
                         }}
                     )
