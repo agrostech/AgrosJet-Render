@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, XCircle } from "lucide-react";
+import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, XCircle, ClipboardList, CheckCircle } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function RestaurantIptalSiparisler({ restaurantId }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
