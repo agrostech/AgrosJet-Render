@@ -1376,7 +1376,6 @@ async def get_orders(
 
 
 @router.get("/restaurant/{restaurant_id}")
-@router.get("/restaurant/{restaurant_id}")
 async def get_orders_by_restaurant(restaurant_id: str, status: Optional[str] = None, limit: int = 100):
     """Restorana ait siparişleri getir - Restoran paneli için
     
