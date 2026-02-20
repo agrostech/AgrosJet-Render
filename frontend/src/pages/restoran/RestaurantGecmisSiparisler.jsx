@@ -420,12 +420,13 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b-2 border-primary">
-                      <th className="text-left p-2 font-bold text-xs">Tarih</th>
-                      <th className="text-left p-2 font-bold text-xs">Müşteri</th>
+                      <th className="text-left p-2 font-bold text-xs w-[90px]">Tarih</th>
+                      <th className="text-left p-2 font-bold text-xs w-[120px]">Müşteri</th>
                       <th className="text-left p-2 font-bold text-xs">Adres</th>
-                      <th className="text-left p-2 font-bold text-xs">Tutar</th>
-                      <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                      <th className="text-left p-2 font-bold text-xs">Kurye</th>
+                      <th className="text-left p-2 font-bold text-xs w-[70px]">Tutar</th>
+                      <th className="text-left p-2 font-bold text-xs w-[70px]">Ödeme</th>
+                      <th className="text-left p-2 font-bold text-xs w-[90px]">Kurye</th>
+                      <th className="text-center p-2 font-bold text-xs w-[40px]"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -438,18 +439,43 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                           {formatDate(order.delivered_at || order.created_at)}
                         </td>
                         <td className="p-2">
-                          <div>
+                          <div className="truncate max-w-[120px]">
                             <span className="text-xs font-medium">{order.customer_name || "-"}</span>
                             {order.customer_phone && (
-                              <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>
+                              <div className="text-xs text-muted-foreground font-mono truncate">{order.customer_phone}</div>
                             )}
                           </div>
                         </td>
-                        <td className="p-2 text-xs max-w-[200px]" title={order.delivery_address}>
+                        <td className="p-2 text-xs" title={order.delivery_address}>
                           <div className="line-clamp-2">{order.delivery_address || "-"}</div>
                         </td>
                         <td className="p-2 text-xs font-semibold whitespace-nowrap">
                           {order.total_amount?.toFixed(2) || "0.00"} ₺
+                        </td>
+                        <td className="p-2">
+                          <Badge variant="outline" className="text-xs">
+                            {getPaymentLabel(order.payment_method)}
+                          </Badge>
+                        </td>
+                        <td className="p-2 text-xs truncate max-w-[90px]">
+                          {getDeliveryInfo(order)}
+                        </td>
+                        <td className="p-2 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedOrder(order)}
+                            className="h-7 w-7 p-0"
+                            title="Detay"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
                         </td>
                         <td className="p-2">
                           <Badge variant="outline" className="text-xs">
