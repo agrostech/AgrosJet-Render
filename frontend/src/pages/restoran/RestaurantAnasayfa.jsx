@@ -691,6 +691,12 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                           >
                             <td className="p-2 text-xs">
                               <div>{formatTimeLocal(order.created_at)}</div>
+                              {/* İleri tarihli sipariş için teslimat saatini göster */}
+                              {order.getir_raw?.isScheduled && order.getir_raw?.scheduledDate && (
+                                <div className="text-[10px] text-purple-600 font-medium mt-0.5">
+                                  {formatScheduledTime(order.getir_raw.scheduledDate)} İT
+                                </div>
+                              )}
                               {order.source === "manual" && (
                                 <span className="text-[10px] text-blue-600 flex items-center gap-0.5 mt-0.5">
                                   <Phone className="w-2.5 h-2.5" />Tel
