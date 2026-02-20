@@ -413,7 +413,7 @@ function OrderDetails({
                 </div>
               )}
             </div>
-          )}}
+          )}
         </div>
       </div>
 
