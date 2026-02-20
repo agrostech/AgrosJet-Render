@@ -1457,82 +1457,40 @@ async def get_order_stats(company_id: str):
 
 # --- Tek sipariş işlemleri ---
 
-async def check_preparation_times(company_id: str):
-    """Hazırlık süresi dolan siparişleri otomatik 'Hazır' durumuna güncelle"""
+async def check_preparation_times(company_id: str = None, restaurant_id: str = None):
+    """
+    Hazırlık süresi dolan siparişleri otomatik 'Hazır' durumuna güncelle.
+    company_id veya restaurant_id parametrelerinden biri verilmeli.
+    """
     now = datetime.now(timezone.utc).isoformat()
     
-    # Hazırlanıyor durumunda ve hazırlık süresi dolmuş siparişleri bul
-    expired_orders = await db.orders.find(
-        {
-            "company_id": company_id,
-            "status": "preparing",
-            "preparation_end_at": {"$lte": now}
-        },
-        {"_id": 0, "id": 1}
-    ).to_list(100)
-    
-    # Her birini güncelle ve history'ye ekle
-    for order in expired_orders:
-        history_entry = {
-            "status": "ready",
-            "label": "Hazır",
-            "timestamp": now,
-            "note": "Hazırlık süresi doldu",
-            "actor_type": "auto",
-            "actor_name": "Otomatik"
-        }
-        
-        await db.orders.update_one(
-            {"id": order["id"]},
-            {
-                "$set": {
-                    "status": "ready",
-                    "updated_at": now
-                },
-                "$push": {"status_history": history_entry}
-            }
-        )
-    
-    return len(expired_orders)
-
-
-async def check_preparation_times_by_restaurant(restaurant_id: str):
-    """Restoran bazlı: Hazırlık süresi dolan siparişleri otomatik 'Hazır' durumuna güncelle"""
-    now = datetime.now(timezone.utc).isoformat()
+    # Query oluştur
+    query = {
+        "status": "preparing",
+        "preparation_end_at": {"$lte": now}
+    }
+    if company_id:
+        query["company_id"] = company_id
+    elif restaurant_id:
+        query["restaurant_id"] = restaurant_id
+    else:
+        return 0
     
     # Hazırlanıyor durumunda ve hazırlık süresi dolmuş siparişleri bul
-    expired_orders = await db.orders.find(
-        {
-            "restaurant_id": restaurant_id,
-            "status": "preparing",
-            "preparation_end_at": {"$lte": now}
-        },
-        {"_id": 0, "id": 1, "order_number": 1}
-    ).to_list(100)
+    expired_orders = await db.orders.find(query, {"_id": 0, "id": 1, "order_number": 1}).to_list(100)
     
-    # Her birini güncelle ve history'ye ekle
+    # Her birini merkezi fonksiyon ile güncelle
     for order in expired_orders:
-        history_entry = {
-            "status": "ready",
-            "label": "Hazır",
-            "timestamp": now,
-            "note": "Hazırlık süresi doldu",
-            "actor_type": "auto",
-            "actor_name": "Otomatik"
-        }
-        
-        await db.orders.update_one(
-            {"id": order["id"]},
-            {
-                "$set": {
-                    "status": "ready",
-                    "updated_at": now
-                },
-                "$push": {"status_history": history_entry}
-            }
+        await update_order_status_core(
+            order_id=order["id"],
+            new_status="ready",
+            actor_type="auto",
+            actor_name="Otomatik",
+            note="Hazırlık süresi doldu",
+            notify_platform=False
         )
-        
-        logger.info(f"Sipariş hazır durumuna güncellendi (bekleme süresi doldu): {order.get('order_number')}")
+        if restaurant_id:
+            logger.info(f"Sipariş hazır durumuna güncellendi (bekleme süresi doldu): {order.get('order_number')}")
     
     return len(expired_orders)
 
