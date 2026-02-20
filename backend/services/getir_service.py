@@ -534,19 +534,54 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     preparation_end_at = None
     if is_scheduled and scheduled_date:
         try:
-            scheduled_dt = datetime.fromisoformat(scheduled_date.replace('Z', '+00:00'))
-            now = datetime.now(timezone.utc)
-            diff_minutes = (scheduled_dt - now).total_seconds() / 60
+            # Farklı tarih formatlarını dene
+            scheduled_dt = None
             
-            # Teslimat için 30 dakika öncesine kadar hazır olmalı
-            prep_minutes = max(5, int(diff_minutes - 30))
+            # ISO format (2024-02-21T00:45:00.000Z veya 2024-02-21T00:45:00+03:00)
+            if isinstance(scheduled_date, str):
+                # Z'yi +00:00 ile değiştir
+                clean_date = scheduled_date.replace('Z', '+00:00')
+                
+                # Eğer timezone yoksa, Türkiye saati (+03:00) ekle
+                if '+' not in clean_date and '-' not in clean_date[-6:]:
+                    clean_date = clean_date + '+03:00'
+                
+                try:
+                    scheduled_dt = datetime.fromisoformat(clean_date)
+                except:
+                    # Alternatif: dateutil kullan
+                    from dateutil import parser
+                    scheduled_dt = parser.parse(scheduled_date)
             
-            # Max 120 dakika ile sınırla
-            preparation_time = min(prep_minutes, 120)
-            preparation_end_at = (now + timedelta(minutes=preparation_time)).isoformat()
+            if scheduled_dt:
+                # Türkiye saatine çevir (kullanıcının bulunduğu saat dilimi)
+                now = datetime.now(timezone.utc)
+                
+                # scheduled_dt'yi UTC'ye çevir (eğer zaten UTC değilse)
+                if scheduled_dt.tzinfo is None:
+                    # Timezone yoksa Türkiye saati varsay
+                    import pytz
+                    turkey_tz = pytz.timezone('Europe/Istanbul')
+                    scheduled_dt = turkey_tz.localize(scheduled_dt)
+                
+                # UTC'ye çevir
+                scheduled_dt_utc = scheduled_dt.astimezone(timezone.utc)
+                
+                diff_minutes = (scheduled_dt_utc - now).total_seconds() / 60
+                
+                logger.info(f"İleri tarihli sipariş hesaplama: scheduled={scheduled_date}, parsed={scheduled_dt_utc}, now={now}, diff={diff_minutes:.1f}dk")
+                
+                # Teslimat için 30 dakika öncesine kadar hazır olmalı
+                prep_minutes = max(5, int(diff_minutes - 30))
+                
+                # Max 120 dakika ile sınırla
+                preparation_time = min(prep_minutes, 120)
+                preparation_end_at = (now + timedelta(minutes=preparation_time)).isoformat()
+                
+                logger.info(f"İleri tarihli sipariş bekleme süresi: {preparation_time} dakika")
             
         except Exception as e:
-            logger.warning(f"İleri tarihli sipariş hazırlama süresi hesaplanamadı: {e}")
+            logger.warning(f"İleri tarihli sipariş hazırlama süresi hesaplanamadı: {e}, scheduled_date={scheduled_date}")
     
     # Sipariş notları
     notes_parts = []
