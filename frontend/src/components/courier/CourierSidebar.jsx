@@ -43,7 +43,7 @@ export default function CourierSidebar({
                 <img 
                   src={companyLogo} 
                   alt={companyName} 
-                  className="w-9 h-9 rounded-lg object-cover bg-white flex-shrink-0"
+                  className="w-9 h-9 rounded-lg object-contain flex-shrink-0"
                   onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                 />
               ) : null}
