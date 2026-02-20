@@ -60,16 +60,23 @@ class AddressInfo(BaseModel):
     town: str
     city: str
     description: Optional[str] = None
-    latitude: Optional[Union[float, List[float]]] = None
-    longitude: Optional[Union[float, List[float]]] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     
     @field_validator('latitude', 'longitude', mode='before')
     @classmethod
     def extract_from_array(cls, v):
-        """Array olarak gelen koordinatları float'a çevir"""
-        if isinstance(v, list) and len(v) > 0:
-            return float(v[0])
-        return v
+        """Array olarak gelen koordinatları float'a çevir veya boş array'i None yap"""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            if len(v) > 0:
+                return float(v[0])
+            else:
+                return None  # Boş array [] -> None
+        if isinstance(v, (int, float)):
+            return float(v)
+        return None
 
 
 class CustomerInfo(BaseModel):
