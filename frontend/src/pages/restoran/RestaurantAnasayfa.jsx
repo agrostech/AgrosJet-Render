@@ -158,28 +158,29 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
 
   // Manuel yazdırma fonksiyonu
   const handlePrintOrder = async (order) => {
-    const printSettings = getPrintSettings(restaurantId);
     const localSettings = getLocalPrintSettings(restaurantId);
     
-    // Yerel sunucu ile sessiz yazdırma (öncelikli)
+    // Siparişe restoran adını ekle
+    const orderWithRestaurant = { ...order, restaurant_name: restaurantName };
+    
+    // Yerel sunucu ile yazdırma
     if (localSettings.enabled && localSettings.printerName) {
       const result = await printOrderLocal(
-        order,
+        orderWithRestaurant,
         localSettings.printerName,
         localSettings.paperSize
       );
       
       if (result.success) {
+        markAsPrinted(order.id);
         toast.success("Fiş yazıcıya gönderildi");
         return;
       } else {
-        toast.error(`Sessiz yazdırma hatası: ${result.error}`);
+        toast.error(`Yazdırma hatası: ${result.error}`);
       }
+    } else {
+      toast.error("Yazdırma sunucusu bağlı değil. Ayarlar'dan yapılandırın.");
     }
-    
-    // Fallback: Tarayıcı yazdırma
-    printOrder(order, printSettings.paperSize);
-    toast.success("Fiş yazdırma penceresine gönderildi");
   };
 
   // Restoran teslimatı işaretleme
