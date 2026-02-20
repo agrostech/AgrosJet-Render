@@ -1690,9 +1690,8 @@ async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data
             detail="Bu restoran için kurye atama izni aktif değil"
         )
     
-    blocked_couriers = restaurant.get("blocked_couriers", [])
-    
     # Engelli kurye kontrolü
+    blocked_couriers = restaurant.get("blocked_couriers", [])
     if data.courier_id in blocked_couriers:
         raise HTTPException(status_code=400, detail="Bu kurye restoran tarafından engellenmiş")
     
@@ -1715,51 +1714,20 @@ async def assign_courier_from_restaurant(restaurant_id: str, order_id: str, data
             detail="Bu restorandan sadece halihazırda paketi olan kuryelere atama yapabilirsiniz"
         )
     
-    # Kurye bilgisini al
-    courier = await db.couriers.find_one(
-        {"id": data.courier_id}, 
-        {"_id": 0, "name": 1, "phone": 1}
-    )
-    if not courier:
-        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
-    
-    now = datetime.now(timezone.utc).isoformat()
-    
-    # History'ye ekle
-    history_entry = {
-        "status": "assigned",
-        "label": "Kurye Atandı",
-        "timestamp": now,
-        "note": f"Kurye: {courier['name']} (Restoran tarafından)",
-        "actor_type": "restaurant",
-        "actor_name": "Restoran"
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": {
-                "courier_id": data.courier_id,
-                "courier_name": courier["name"],
-                "courier_phone": courier.get("phone"),
-                "status": "assigned",
-                "assigned_at": now,
-                "updated_at": now
-            },
-            "$push": {"status_history": history_entry}
-        }
+    # Merkezi fonksiyon ile ata (fee hesaplama yok - restoran görmez)
+    result = await assign_courier_core(
+        order=order,
+        courier_id=data.courier_id,
+        actor_type="restaurant",
+        actor_name="Restoran",
+        calculate_fee=False,
+        send_push=True
     )
     
-    # Kuryeye push notification gönder
-    try:
-        from services.push_notification_service import notify_courier_new_order
-        order["order_number"] = order.get("order_number", "")
-        order["restaurant_name"] = order.get("restaurant_name", "Restoran")
-        await notify_courier_new_order(data.courier_id, order)
-    except Exception as e:
-        print(f"Push notification error: {e}")
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["error"])
     
-    return {"message": f"Sipariş {courier['name']} kuryesine atandı"}
+    return {"message": f"Sipariş {result['courier_name']} kuryesine atandı"}
 
 
 @router.get("/{company_id}/{order_id}")
