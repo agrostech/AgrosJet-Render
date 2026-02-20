@@ -115,7 +115,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         // Siparişe restoran adını ekle
         const orderWithRestaurant = { ...order, restaurant_name: restaurantName };
         
-        // Yerel sunucu ile sessiz yazdırma (öncelikli)
+        // Otomatik yazdırma aktifse yazdır
         if (localSettings.enabled && localSettings.printerName) {
           const result = await printOrderLocal(
             orderWithRestaurant,
@@ -128,31 +128,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               icon: <Printer className="w-4 h-4" />,
             });
           } else {
-            // Yerel sunucu başarısız olduysa tarayıcı yazdırmayı dene
-            console.error("Yerel sunucu yazdırma hatası:", result.error);
-            if (printSettings.autoPrint) {
-              printOrder(orderWithRestaurant, printSettings.paperSize);
-              toast.info(`Yeni sipariş (tarayıcı): #${order.order_number}`, {
-                icon: <Printer className="w-4 h-4" />,
-              });
-            }
+            console.error("Yazdırma hatası:", result.error);
+            toast.error(`Yazdırma hatası: #${order.order_number}`);
           }
-        } 
-        // Yerel sunucu yoksa tarayıcı yazdırma
-        else if (printSettings.autoPrint) {
-          printOrder(order, printSettings.paperSize);
-          toast.info(`Yeni sipariş yazdırıldı: #${order.order_number}`, {
-            icon: <Printer className="w-4 h-4" />,
-          });
-        }
-        
-        // Ses çal
-        if (printSettings.printSound) {
-          try {
-            const audio = new Audio('/notification.mp3');
-            audio.volume = 0.5;
-            audio.play().catch(() => {});
-          } catch (e) {}
         }
       }
     });
