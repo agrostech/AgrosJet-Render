@@ -155,6 +155,7 @@ export default function RestaurantDashboard() {
             onAssignCourier={handleAssignCourier}
             onRefresh={fetchOrders}
             restaurantId={user?.restaurant_id}
+            restaurantName={restaurant?.name}
             permissions={permissions}
           />
         );
