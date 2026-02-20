@@ -1145,9 +1145,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                       />
                     </div>
                     
-                    {statusConfirmModal.order?.source === 'getir' && (
+                    {statusConfirmModal.order?.source === 'getir' && !selectedCancelReason && (
                       <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                        ⚠️ Getir siparişleri için iptal sebebi seçmeniz önerilir.
+                        ⚠️ Getir siparişleri için iptal sebebi seçmeniz zorunludur.
                       </p>
                     )}
                   </div>
@@ -1162,6 +1162,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             }}>Vazgeç</AlertDialogCancel>
             <AlertDialogAction
               className={statusConfirmModal.status === 'delivered' ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              disabled={statusConfirmModal.status === 'cancelled' && statusConfirmModal.order?.source === 'getir' && !selectedCancelReason}
               onClick={confirmStatusChange}
             >
               {statusConfirmModal.status === 'delivered' ? 'Teslim Et' : 'İptal Et'}
