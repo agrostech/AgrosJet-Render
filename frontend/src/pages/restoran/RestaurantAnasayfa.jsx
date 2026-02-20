@@ -292,16 +292,25 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     return { allowed: true };
   };
 
-  // Fetch available couriers
+  // Fetch available couriers with ETA
   useEffect(() => {
     const fetchCouriers = async () => {
       if (!restaurantId) return;
       try {
-        const res = await axios.get(`${API}/orders/restaurant/${restaurantId}/available-couriers`);
+        // Yeni endpoint: ETA bilgisi dahil
+        const res = await axios.get(`${API}/orders/restaurant/${restaurantId}/couriers-with-eta`);
         setAvailableCouriers(res.data.couriers || []);
         setCourierRestrictionMode(res.data.restriction_mode || "all");
       } catch (err) {
         console.error("Kuryeler yüklenemedi:", err);
+        // Fallback: Eski endpoint
+        try {
+          const fallback = await axios.get(`${API}/orders/restaurant/${restaurantId}/available-couriers`);
+          setAvailableCouriers(fallback.data.couriers || []);
+          setCourierRestrictionMode(fallback.data.restriction_mode || "all");
+        } catch (e) {
+          console.error("Fallback da başarısız:", e);
+        }
       }
     };
     
