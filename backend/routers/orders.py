@@ -2064,20 +2064,7 @@ async def delete_order(company_id: str, order_id: str):
 
 
 # --- Kurye için Endpoints ---
-
-@router.get("/courier/{courier_id}/active")
-async def get_courier_active_orders(courier_id: str):
-    """Kuryenin aktif siparişlerini getir"""
-    orders = await db.orders.find(
-        {
-            "courier_id": courier_id,
-            "status": {"$nin": ["delivered", "cancelled"]}
-        },
-        {"_id": 0}
-    ).sort("assigned_at", 1).to_list(20)
-    
-    return orders
-
+# ESKİ get_courier_active_orders silindi - /api/orders/v2/list?panel=courier kullanın
 
 @router.post("/courier/{courier_id}/order/{order_id}/confirm")
 async def courier_confirm_order(courier_id: str, order_id: str):
