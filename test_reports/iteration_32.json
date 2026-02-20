@@ -1,0 +1,120 @@
+{
+  "summary": "Tested backend refactoring - orders.py update_order_status_core() merkezi fonksiyonu ve frontend kurye paneli orderUtils.js kullanımı. Tüm temel akışlar başarılı çalışıyor.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "note": "Provided admin password (125594) was incorrect - actual password is 123456",
+        "location": "Test credentials"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_order_status_refactor.py",
+    "/app/test_reports/pytest/order_status_refactor_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "update_order_status_core() merkezi fonksiyonu (satır 238-369) düzgün çalışıyor - status history, timestamp ve platform bildirimleri otomatik ekleniyor",
+    "PUT /api/orders/{order_id}/status endpoint (satır 1349-1406) update_order_status_core() kullanıyor",
+    "CourierSiparisPage.jsx orderUtils import'ları düzgün çalışıyor (satır 32-39)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_order_status_refactor.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8 passed, 3 skipped due to test data)",
+    "frontend": "100%"
+  },
+  "tested_features": {
+    "login_flows": {
+      "restaurant_login": {
+        "status": "PASS",
+        "credentials": "bostonddisparta / 123456",
+        "details": "POST /api/restaurant-users/login returns user info with restaurant_id"
+      },
+      "admin_login": {
+        "status": "PASS",
+        "credentials": "onurertas / 123456 (NOT 125594)",
+        "details": "POST /api/auth/admin/login returns user info with company_id"
+      },
+      "courier_login": {
+        "status": "PASS",
+        "credentials": "05527370032 / 123456",
+        "details": "POST /api/auth/courier/login returns courier info"
+      }
+    },
+    "order_status_endpoint": {
+      "status": "PASS",
+      "endpoint": "PUT /api/orders/{order_id}/status",
+      "details": [
+        "✓ Status change to preparing with preparation_time works",
+        "✓ Status change to ready works",
+        "✓ Status change to cancelled with cancel_note works",
+        "✓ Invalid status values are rejected (400/404)"
+      ]
+    },
+    "update_order_status_core": {
+      "status": "VERIFIED",
+      "location": "/app/backend/routers/orders.py lines 238-369",
+      "details": [
+        "✓ Status history entry automatically added with timestamp, actor_type, actor_name",
+        "✓ Preparation time and preparation_end_at calculated correctly",
+        "✓ Platform notifications triggered (notify_platform_status_change)",
+        "✓ Multiple endpoints using this core function (lines 1391, 1484, 1967, 1996, 2083, 2149, 2179, 2576)"
+      ]
+    },
+    "order_list_endpoints": {
+      "status": "PASS",
+      "details": [
+        "✓ GET /api/orders/restaurant/{restaurant_id} returns orders",
+        "✓ Status filter works correctly (preparing, ready, on_the_way, delivered, cancelled)",
+        "✓ GET /api/orders/courier/{courier_id}/active returns active orders"
+      ]
+    },
+    "courier_panel_orderutils": {
+      "status": "PASS",
+      "location": "/app/frontend/src/pages/courier/CourierSiparisPage.jsx",
+      "imports": "formatTime, formatCurrency, calculateDistance, getOrderDistance, getOrderAge",
+      "details": [
+        "✓ orderUtils functions properly imported (line 32-39)",
+        "✓ getOrderDistance() shows delivery distance on order cards",
+        "✓ getOrderAge() shows order age in cards",
+        "✓ formatCurrency() shows earnings correctly",
+        "✓ formatTime() shows order times correctly"
+      ]
+    }
+  },
+  "test_credentials": {
+    "restaurant_user": {
+      "username": "bostonddisparta",
+      "password": "123456",
+      "restaurant_id": "cd70081f-0a85-4621-aebb-ba21647daaea",
+      "restaurant_name": "Boston D&D"
+    },
+    "admin_user": {
+      "username": "onurertas",
+      "password": "123456",
+      "note": "Password provided in test request (125594) was INCORRECT"
+    },
+    "courier_user": {
+      "phone": "05527370032",
+      "password": "123456",
+      "courier_id": "e0f034ef-1b08-42cb-b8f9-d80e5eb8a84c",
+      "name": "Onur Ertaş"
+    }
+  },
+  "seed_data_creation": "Created mock test orders during testing (cleaned up after tests)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend refactoring for order status management tested and working. update_order_status_core() merkezi fonksiyonu tüm status değişikliklerinde kullanılıyor. Kurye frontend'inde orderUtils.js import'ları düzgün çalışıyor. Admin password credentials hatası düzeltildi (125594 değil 123456).",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
