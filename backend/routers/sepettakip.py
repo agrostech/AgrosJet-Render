@@ -10,8 +10,8 @@ Endpoints:
 - /cancel-package: Sipariş iptali
 """
 from fastapi import APIRouter, HTTPException, Request, Header
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional, List, Union
 import logging
 import os
 import httpx
@@ -60,8 +60,16 @@ class AddressInfo(BaseModel):
     town: str
     city: str
     description: Optional[str] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    latitude: Optional[Union[float, List[float]]] = None
+    longitude: Optional[Union[float, List[float]]] = None
+    
+    @field_validator('latitude', 'longitude', mode='before')
+    @classmethod
+    def extract_from_array(cls, v):
+        """Array olarak gelen koordinatları float'a çevir"""
+        if isinstance(v, list) and len(v) > 0:
+            return float(v[0])
+        return v
 
 
 class CustomerInfo(BaseModel):
