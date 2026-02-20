@@ -1566,8 +1566,6 @@ async def handle_getir_webhook_order(webhook_data: dict, x_api_key: str) -> dict
     await db.orders.insert_one(shiftjet_order)
     
     # Otomatik onay gönder (30 saniye kuralı!)
-    # İleri tarihli sipariş mi kontrol et
-    is_scheduled = shiftjet_order.get("getir_raw", {}).get("isScheduled", False)
     raw_status = webhook_data.get("status", 400)
     
     if raw_status == 325:  # İleri tarihli, ön onay bekliyor
