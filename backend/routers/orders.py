@@ -1810,33 +1810,26 @@ async def unassign_courier(company_id: str, order_id: str, admin_name: Optional[
     if order.get("status") in ["delivered", "on_the_way"]:
         raise HTTPException(status_code=400, detail="Bu durumda kurye ataması kaldırılamaz")
     
-    now = datetime.now(timezone.utc).isoformat()
     courier_name = order.get("courier_name", "Bilinmiyor")
     
-    # History'ye ekle
-    history_entry = {
-        "status": "ready",
-        "label": "Kurye Ataması Kaldırıldı",
-        "timestamp": now,
-        "note": f"Önceki kurye: {courier_name}",
-        "actor_type": "admin" if admin_name else "system",
-        "actor_name": admin_name or "Sistem"
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": {
-                "courier_id": None,
-                "courier_name": None,
-                "status": "ready",
-                "assigned_at": None,
-                "confirmed_at": None,
-                "updated_at": now
-            },
-            "$push": {"status_history": history_entry}
-        }
+    # Merkezi fonksiyon ile güncelle
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status="ready",
+        actor_type="admin" if admin_name else "system",
+        actor_name=admin_name or "Sistem",
+        note=f"Kurye ataması kaldırıldı. Önceki kurye: {courier_name}",
+        extra_updates={
+            "courier_id": None,
+            "courier_name": None,
+            "assigned_at": None,
+            "confirmed_at": None
+        },
+        notify_platform=False
     )
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": "Kurye ataması kaldırıldı"}
 
