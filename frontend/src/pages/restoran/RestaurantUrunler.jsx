@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Loader2, Link, Download, Trash2, Package, FolderOpen, Check, AlertCircle,
-  Plus, Pencil, X, ChevronDown, ChevronRight
+  Plus, Pencil, X, ChevronDown, ChevronRight, GripVertical, ArrowUp, ArrowDown
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
