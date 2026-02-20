@@ -31,7 +31,6 @@ export default function RestaurantDashboard() {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
-  const [companyLogo, setCompanyLogo] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [badges, setBadges] = useState({});
@@ -45,12 +44,6 @@ export default function RestaurantDashboard() {
   };
   
   const currentPage = getCurrentPage();
-  
-  // Mevcut sayfanın başlığını al
-  const getCurrentPageTitle = () => {
-    const item = NAV_ITEMS.find(n => n.path === location.pathname);
-    return item?.label || "Sipariş Yönetimi";
-  };
 
   // Get user from localStorage
   useEffect(() => {
@@ -64,13 +57,6 @@ export default function RestaurantDashboard() {
       id: storedUser.restaurant_id,
       name: storedUser.restaurant_name
     });
-    
-    // Şirket logosunu çek
-    if (storedUser.company_id) {
-      axios.get(`${API}/companies/${storedUser.company_id}`)
-        .then(res => setCompanyLogo(res.data.logo_url))
-        .catch(() => {});
-    }
   }, [navigate]);
 
   // Fetch orders for this restaurant
