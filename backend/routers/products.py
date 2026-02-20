@@ -243,7 +243,7 @@ async def save_products(request: SaveProductsRequest):
     category_map = {}  # category_name -> category_id
     unique_categories = set(p.category for p in request.products)
     
-    for cat_name in unique_categories:
+    for order_idx, cat_name in enumerate(sorted(unique_categories)):
         cat_id = str(uuid.uuid4())
         category_map[cat_name] = cat_id
         
@@ -252,6 +252,7 @@ async def save_products(request: SaveProductsRequest):
             "name": cat_name,
             "restaurant_id": request.restaurant_id,
             "company_id": company_id,
+            "order": order_idx,
             "created_at": now
         })
     
