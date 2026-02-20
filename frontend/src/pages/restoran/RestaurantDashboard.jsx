@@ -112,7 +112,7 @@ export default function RestaurantDashboard() {
       fetchOrders();
       fetchPermissions();
       // Polling every 2 seconds for real-time updates
-      const interval = setInterval(fetchOrders, 2000);
+      const interval = setInterval(fetchOrders, 5000); // 5 saniye
       return () => clearInterval(interval);
     }
   }, [user?.restaurant_id, fetchOrders, fetchPermissions]);
