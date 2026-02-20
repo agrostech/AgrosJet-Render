@@ -541,51 +541,101 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     confirmation_id = getir_order.get("confirmationId", "")
     order_number = confirmation_id or getir_order.get("orderNumber") or order_id[:8]
     
-    # Müşteri bilgileri
-    client = getir_order.get("client", {})
-    customer_name = client.get("name", "Müşteri")
+    # Helper fonksiyonları kullan
+    customer = _extract_customer_info(getir_order)
+    address = _extract_address_info(getir_order)
+    items = _extract_items(getir_order)
     
-    # Müşteri İletişim Telefonu (0850 ile başlayan maskelenmiş numara + pin kodu)
-    # clientPhoneNumber: "+90 (850) 346-9382 / 288339" formatında geliyor
-    # Tireleri kaldırıp temiz format yapalım
-    raw_customer_phone = client.get("clientPhoneNumber", "")
-    customer_phone = raw_customer_phone.replace("-", "") if raw_customer_phone else ""
+    # Toplam tutar
+    total_price = float(getir_order.get("totalPrice", 0))
+    total_discounted = float(getir_order.get("totalDiscountedPrice", 0))
+    total_amount = total_discounted if total_discounted > 0 else total_price
     
-    # Getir Destek Hattı (contactPhoneNumber) - bu müşteri telefonu DEĞİL!
-    getir_support_phone = client.get("contactPhoneNumber", "")
+    # Ödeme yöntemi
+    payment_method = getir_order.get("paymentMethod")
+    payment = map_getir_payment(payment_method)
+    payment_method_name = get_payment_method_name(payment_method)
     
-    # Adres bilgileri - client.deliveryAddress içinde geliyor!
-    client_delivery = client.get("deliveryAddress", {})
-    address = getir_order.get("address", {}) or getir_order.get("clientAddress", {}) or client_delivery
+    # Teslimat tipi
+    delivery_type = getir_order.get("deliveryType", 1)
+    is_getir_courier = delivery_type == 1
+    delivery_type_text = "Getir Getirsin" if is_getir_courier else "Restoran Getirsin"
     
-    # Önce client.deliveryAddress'i dene
-    address_text = client_delivery.get("address", "") or address.get("address", "")
+    # İleri tarihli sipariş
+    is_scheduled = getir_order.get("isScheduled", False) or getir_order.get("isScheduledOrder", False)
+    scheduled_date = getir_order.get("scheduledDate") or getir_order.get("scheduledTime")
+    preparation_time, preparation_end_at = _calculate_scheduled_preparation(scheduled_date) if is_scheduled else (None, None)
     
-    if not address_text:
-        address_parts = []
-        addr_source = client_delivery if client_delivery else address
-        if addr_source.get("neighborhood"):
-            address_parts.append(addr_source["neighborhood"])
-        if addr_source.get("street"):
-            address_parts.append(addr_source["street"])
-        if addr_source.get("building"):
-            address_parts.append(f"No: {addr_source['building']}")
-        if addr_source.get("aptNo"):
-            address_parts.append(f"Daire: {addr_source['aptNo']}")
-        if addr_source.get("district"):
-            address_parts.append(addr_source["district"])
-        if addr_source.get("city"):
-            address_parts.append(addr_source["city"])
-        address_text = ", ".join(filter(None, address_parts)) or "Adres belirtilmemiş"
+    # Sipariş notları
+    notes_parts = []
+    if getir_order.get("clientNote"):
+        notes_parts.append(f"MÜŞTERİ NOTU: {getir_order['clientNote']}")
+    if address["description"]:
+        notes_parts.append(f"ADRES TARIFI: {address['description']}")
+    if customer["support_phone"]:
+        notes_parts.append(f"GETİR DESTEK: {customer['support_phone']}")
+    if is_scheduled and scheduled_date:
+        notes_parts.append(f"İLERİ TARİHLİ: {scheduled_date}")
+    notes_parts.append(f"TESLİMAT: {delivery_type_text}")
     
-    # Adres tarifi
-    address_description = client_delivery.get("description", "") or address.get("description", "")
+    # Diğer bilgiler
+    verification_code = getir_order.get("verificationCode") or (confirmation_id[:4] if confirmation_id else "")
+    created_at = getir_order.get("createdAt") or getir_order.get("checkoutDate") or datetime.now(timezone.utc).isoformat()
+    raw_status = getir_order.get("status", 400)
     
-    # Koordinatlar - client.location içinde geliyor!
-    client_location = client.get("location", {})
-    location = address.get("location", {}) or client_location
-    delivery_lat = client_location.get("lat") or location.get("lat") or location.get("latitude")
-    delivery_lng = client_location.get("lon") or location.get("lon") or location.get("lng") or location.get("longitude")
+    return {
+        "id": str(uuid.uuid4()),
+        "order_number": f"GT-{order_number}",
+        "getir_order_id": order_id,
+        "getir_confirmation_id": confirmation_id,
+        "verification_code": verification_code,
+        "external_app_name": "Getir Yemek",
+        "company_id": restaurant.get("company_id"),
+        "restaurant_id": restaurant.get("id"),
+        "restaurant_name": restaurant.get("name"),
+        "restaurant_phone": restaurant.get("phone"),
+        "restaurant_location": {
+            "latitude": restaurant.get("latitude"),
+            "longitude": restaurant.get("longitude")
+        },
+        "customer_name": customer["name"],
+        "customer_phone": customer["phone"],
+        "delivery_address": address["text"],
+        "delivery_location": {
+            "latitude": address["latitude"],
+            "longitude": address["longitude"]
+        },
+        "items": items,
+        "total_amount": total_amount,
+        "total_price": total_price,
+        "total_discounted_price": total_discounted,
+        "payment_method": payment,
+        "payment_method_name": payment_method_name,
+        "status": "pending",
+        "notes": " | ".join(notes_parts),
+        "source": "getir",
+        "created_at": created_at,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "courier_id": None,
+        "courier_name": None,
+        "preparation_time": preparation_time,
+        "preparation_end_at": preparation_end_at,
+        "is_scheduled": is_scheduled,
+        "getir_raw": {
+            "orderId": order_id,
+            "status": raw_status,
+            "statusText": GETIR_ORDER_STATUSES.get(raw_status, "unknown"),
+            "deliveryType": delivery_type,
+            "deliveryTypeText": delivery_type_text,
+            "isGetirCourier": is_getir_courier,
+            "paymentMethodId": payment_method if isinstance(payment_method, int) else (payment_method.get("id") if payment_method else None),
+            "paymentMethodName": payment_method_name,
+            "isScheduled": is_scheduled,
+            "scheduledDate": scheduled_date,
+            "verificationCode": verification_code,
+            "confirmationId": confirmation_id
+        }
+    }
     
     # Ürünleri dönüştür
     items = []
