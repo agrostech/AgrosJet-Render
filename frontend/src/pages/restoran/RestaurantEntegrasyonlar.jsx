@@ -51,6 +51,19 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [testingSepettakip, setTestingSepettakip] = useState(false);
   const [savingSepettakip, setSavingSepettakip] = useState(false);
   
+  // Migros Yemek states
+  const [migrosData, setMigrosData] = useState(null);
+  const [showMigrosModal, setShowMigrosModal] = useState(false);
+  const [migrosForm, setMigrosForm] = useState({ 
+    api_key: "", 
+    secret_key: "", 
+    store_id: "", 
+    store_group_id: "",
+    is_test: true 
+  });
+  const [testingMigros, setTestingMigros] = useState(false);
+  const [savingMigros, setSavingMigros] = useState(false);
+  
   // SepetTakip Test Panel states
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [testResults, setTestResults] = useState({});
