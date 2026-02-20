@@ -218,7 +218,7 @@ async def update_order_status(
 
 
 @router.post("/poll-orders/{restaurant_id}")
-async def poll_orders(restaurant_id: str, db=Depends(get_database)):
+async def poll_orders(restaurant_id: str):
     """
     Migros Yemek siparişlerini poll et ve sisteme ekle
     """
