@@ -436,10 +436,13 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     # Müşteri bilgileri
     client = getir_order.get("client", {})
     customer_name = client.get("name", "Müşteri")
-    # 0850 ile başlayan maskelenmiş numara
-    customer_phone = client.get("contactPhoneNumber") or client.get("phoneNumber") or ""
-    # Müşteriye özel telefon (fiş için)
-    client_phone_number = client.get("clientPhoneNumber", "")
+    
+    # Müşteri İletişim Telefonu (0850 ile başlayan maskelenmiş numara + pin kodu)
+    # clientPhoneNumber: "+90 (850) 346-9382 / 288339" formatında geliyor
+    customer_phone = client.get("clientPhoneNumber", "")
+    
+    # Getir Destek Hattı (contactPhoneNumber) - bu müşteri telefonu DEĞİL!
+    getir_support_phone = client.get("contactPhoneNumber", "")
     
     # Adres bilgileri - client.deliveryAddress içinde geliyor!
     client_delivery = client.get("deliveryAddress", {})
