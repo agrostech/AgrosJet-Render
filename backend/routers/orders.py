@@ -234,6 +234,141 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
         logger.error(f"Platform bildirim hatası: source={source}, order={order_id}, status={new_status}, error={str(e)}")
 
 
+# --- Merkezi Status Güncelleme Fonksiyonu ---
+async def update_order_status_core(
+    order_id: str,
+    new_status: str,
+    actor_type: str = "system",
+    actor_name: str = "Sistem",
+    note: str = None,
+    preparation_time: int = None,
+    cancel_reason_id: str = None,
+    cancel_note: str = None,
+    extra_updates: dict = None,
+    notify_platform: bool = True
+) -> dict:
+    """
+    Merkezi sipariş durumu güncelleme fonksiyonu.
+    
+    Tüm status değişiklikleri bu fonksiyon üzerinden yapılmalı.
+    - Status history otomatik eklenir
+    - Platform bildirimi otomatik gönderilir
+    - Zaman damgaları otomatik güncellenir
+    
+    Args:
+        order_id: Sipariş ID
+        new_status: Yeni durum
+        actor_type: system | admin | courier | restaurant
+        actor_name: İşlemi yapan kişi/sistem adı
+        note: Durum değişikliği notu
+        preparation_time: Hazırlık süresi (dakika) - preparing durumu için
+        cancel_reason_id: İptal sebebi ID
+        cancel_note: İptal notu
+        extra_updates: Ek güncellemeler dict
+        notify_platform: Platform bildirimi gönderilsin mi
+        
+    Returns:
+        {"success": True/False, "order": updated_order, "error": str}
+    """
+    # Siparişi bul
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        return {"success": False, "error": "Sipariş bulunamadı"}
+    
+    now = datetime.now(timezone.utc)
+    
+    # Status label mapping
+    status_labels = {
+        "pending": "Bekliyor",
+        "preparing": "Hazırlanıyor",
+        "ready": "Hazır",
+        "assigned": "Kurye Atandı",
+        "confirmed": "Kurye Onayladı",
+        "on_the_way": "Yolda",
+        "delivered": "Teslim Edildi",
+        "cancelled": "İptal Edildi",
+        "scheduled": "İleri Tarihli"
+    }
+    
+    # Status history entry
+    history_entry = {
+        "status": new_status,
+        "label": status_labels.get(new_status, new_status.replace("_", " ").title()),
+        "timestamp": now.isoformat(),
+        "actor_type": actor_type,
+        "actor_name": actor_name
+    }
+    if note:
+        history_entry["note"] = note
+    if cancel_reason_id:
+        history_entry["cancel_reason_id"] = cancel_reason_id
+    if cancel_note:
+        history_entry["cancel_note"] = cancel_note
+    
+    # Update payload
+    update_data = {
+        "status": new_status,
+        "updated_at": now.isoformat()
+    }
+    
+    # Durum bazlı zaman damgaları
+    if new_status == "preparing" and preparation_time:
+        preparation_end = now + timedelta(minutes=preparation_time)
+        update_data["preparation_time"] = preparation_time
+        update_data["preparation_end_at"] = preparation_end.isoformat()
+        history_entry["note"] = f"Hazırlık süresi: {preparation_time} dakika"
+    
+    elif new_status == "assigned":
+        update_data["assigned_at"] = now.isoformat()
+    
+    elif new_status == "confirmed":
+        update_data["confirmed_at"] = now.isoformat()
+    
+    elif new_status == "on_the_way":
+        update_data["picked_up_at"] = now.isoformat()
+    
+    elif new_status == "delivered":
+        update_data["delivered_at"] = now.isoformat()
+    
+    elif new_status == "cancelled":
+        update_data["cancelled_at"] = now.isoformat()
+        if cancel_reason_id:
+            update_data["cancel_reason_id"] = cancel_reason_id
+        if cancel_note:
+            update_data["cancel_note"] = cancel_note
+    
+    # Extra updates (kurye atama, fee güncelleme vb.)
+    if extra_updates:
+        update_data.update(extra_updates)
+    
+    # Veritabanı güncelleme
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": update_data,
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    # Güncellenmiş siparişi al
+    updated_order = await db.orders.find_one({"id": order_id})
+    
+    # Platform bildirimi
+    if notify_platform:
+        try:
+            await notify_platform_status_change(
+                updated_order,
+                new_status,
+                preparation_time=preparation_time,
+                cancel_reason_id=cancel_reason_id,
+                cancel_note=cancel_note
+            )
+        except Exception as e:
+            logger.error(f"Platform bildirim hatası (core): {str(e)}")
+    
+    return {"success": True, "order": updated_order}
+
+
 # --- Ücret Hesaplama Fonksiyonları ---
 def calculate_distance(restaurant_location: dict, delivery_location: dict) -> float:
     """Haversine formula ile mesafe hesapla (km)"""
