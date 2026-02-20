@@ -596,6 +596,60 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     }
 
 
+async def auto_verify_and_prepare(restaurant: dict, getir_order_id: str, getir_order: dict) -> dict:
+    """
+    Yeni sipariş için otomatik verify + prepare çağır
+    
+    Getir Kuralları:
+    - Sipariş 30 saniye içinde onaylanmalı (verify)
+    - verify ve prepare arasında bekleme gerekmez (bizim için)
+    
+    Returns:
+        dict: {"success": True/False, "message": str, "error": str}
+    """
+    headers = await get_getir_headers(restaurant)
+    if not headers:
+        return {"success": False, "error": "Getir token alınamadı"}
+    
+    # İleri tarihli sipariş mı?
+    is_scheduled = getir_order.get("isScheduled", False) or getir_order.get("isScheduledOrder", False)
+    verify_endpoint = "verify-scheduled" if is_scheduled else "verify"
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            # 1. VERIFY (Onayla)
+            verify_response = await client.post(
+                f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/{verify_endpoint}",
+                headers=headers
+            )
+            
+            if verify_response.status_code != 200:
+                error_detail = _extract_error(verify_response)
+                return {"success": False, "error": f"Verify hatası: {verify_response.status_code} - {error_detail}"}
+            
+            logger.info(f"Getir auto-verify başarılı: {getir_order_id}")
+            
+            # 2. PREPARE (Hazırla) - hemen çağır
+            prepare_response = await client.post(
+                f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/prepare",
+                headers=headers
+            )
+            
+            if prepare_response.status_code != 200:
+                error_detail = _extract_error(prepare_response)
+                # Prepare başarısız olsa bile verify başarılı
+                logger.warning(f"Getir auto-prepare hatası (verify başarılı): {getir_order_id} - {error_detail}")
+                return {"success": True, "message": "Sipariş onaylandı, prepare beklemede", "prepare_error": error_detail}
+            
+            logger.info(f"Getir auto-prepare başarılı: {getir_order_id}")
+            
+            return {"success": True, "message": "Sipariş otomatik onaylandı ve hazırlanıyor"}
+            
+    except Exception as e:
+        logger.exception(f"Getir auto verify/prepare exception: {getir_order_id}")
+        return {"success": False, "error": str(e)}
+
+
 async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
     """Restoran için Getir siparişlerini senkronize et"""
     restaurant = await db.restaurants.find_one(
