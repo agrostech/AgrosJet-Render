@@ -1028,7 +1028,7 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
                     logger.info(f"Getir sipariş onaylandı: {getir_order_id} (status: {getir_status})")
                 else:
                     logger.warning(f"Getir otomatik onay hatası: {getir_order_id} - {verify_result.get('error')}")
-            except Exception as e:
+            except Exception:
                 logger.exception(f"Getir otomatik onay exception: {getir_order_id}")
     
     # Son senkronizasyon zamanını güncelle
