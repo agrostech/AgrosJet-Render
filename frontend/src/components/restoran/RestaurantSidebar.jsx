@@ -15,6 +15,17 @@ export default function RestaurantSidebar({
   return (
     <aside className="hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white z-40 w-48">
       <div className="p-3 border-b border-white/20 flex-shrink-0">
+        {/* Şirket Logosu */}
+        {companyLogo && (
+          <div className="flex justify-center mb-3">
+            <img 
+              src={companyLogo} 
+              alt="Şirket" 
+              className="object-contain" 
+              style={{ width: '70%' }}
+            />
+          </div>
+        )}
         <h1 className="font-heading text-base font-bold truncate">{restaurant?.name || "Restoran"}</h1>
         <p className="text-white/60 text-xs mt-0.5">Restoran Paneli</p>
         <p className="text-white/80 text-xs font-mono mt-0.5 truncate">Kullanıcı: {user?.name}</p>
@@ -40,17 +51,6 @@ export default function RestaurantSidebar({
       </nav>
       
       <div className="border-t border-white/20 flex-shrink-0">
-        {/* Şirket Logosu */}
-        {companyLogo && (
-          <div className="flex justify-center py-3">
-            <img 
-              src={companyLogo} 
-              alt="Şirket" 
-              className="object-contain" 
-              style={{ width: '70%' }}
-            />
-          </div>
-        )}
         <Button 
           variant="ghost" 
           onClick={onLogout} 
