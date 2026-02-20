@@ -352,11 +352,16 @@ async def calculate_courier_eta_for_restaurant(
     total_distance = 0
     total_time = 0
     breakdown = []
+    reached_target = False
+    
+    # Hedef restorana ulaşana kadar yapılan teslimat ve teslim alım sayıları
+    deliveries_before_target = 0
+    pickups_before_target = 0
     
     # 1. Önce teslimat yapılacakları işle (on_the_way)
     # En yakın teslimat noktasına git, teslim et, sonraki en yakına...
     remaining_deliveries = on_the_way_orders.copy()
-    while remaining_deliveries:
+    while remaining_deliveries and not reached_target:
         # En yakın teslimat noktasını bul
         nearest = None
         nearest_distance = float('inf')
@@ -376,6 +381,7 @@ async def calculate_courier_eta_for_restaurant(
             total_distance += nearest_distance
             travel_time = max(1, math.ceil((nearest_distance / AVG_SPEED_KMH) * 60))
             total_time += travel_time + DELIVERY_WAIT_MINS
+            deliveries_before_target += 1
             
             breakdown.append({
                 "type": "delivery",
@@ -391,13 +397,14 @@ async def calculate_courier_eta_for_restaurant(
             break
     
     # 2. Sonra teslim alınacakları işle (assigned/confirmed)
-    # Hedef restoranı da dahil et (eğer pickup listesinde değilse)
+    # Hedef restoranı da dahil et
     target_in_pickups = any(o.get("restaurant_id") == target_restaurant_id for o in pickup_orders)
     
     remaining_pickups = pickup_orders.copy()
     
     # Teslim alım noktalarını en yakın rotaya göre sırala
-    while remaining_pickups:
+    # HEDEF RESTORANA ULAŞINCA DUR!
+    while remaining_pickups and not reached_target:
         nearest = None
         nearest_distance = float('inf')
         
@@ -415,27 +422,44 @@ async def calculate_courier_eta_for_restaurant(
             
             total_distance += nearest_distance
             travel_time = max(1, math.ceil((nearest_distance / AVG_SPEED_KMH) * 60))
-            total_time += travel_time + PICKUP_WAIT_MINS
             
             # Hedef restorana varınca işaretle
             is_target = nearest.get("restaurant_id") == target_restaurant_id
             
-            breakdown.append({
-                "type": "pickup",
-                "description": f"Teslim Al: {nearest.get('restaurant_name', 'Restoran')[:25]}",
-                "distance_km": round(nearest_distance, 2),
-                "travel_mins": travel_time,
-                "wait_mins": PICKUP_WAIT_MINS,
-                "time_mins": travel_time + PICKUP_WAIT_MINS,
-                "is_target": is_target
-            })
+            if is_target:
+                # Hedef restorana ulaştık - bekleme süresi EKLEMİYORUZ (zaten oradayız)
+                total_time += travel_time
+                reached_target = True
+                
+                breakdown.append({
+                    "type": "target",
+                    "description": f"HEDEF: {nearest.get('restaurant_name', 'Restoran')[:25]}",
+                    "distance_km": round(nearest_distance, 2),
+                    "travel_mins": travel_time,
+                    "time_mins": travel_time,
+                    "is_target": True
+                })
+            else:
+                # Ara restoran - bekleme süresi ekle
+                total_time += travel_time + PICKUP_WAIT_MINS
+                pickups_before_target += 1
+                
+                breakdown.append({
+                    "type": "pickup",
+                    "description": f"Teslim Al: {nearest.get('restaurant_name', 'Restoran')[:25]}",
+                    "distance_km": round(nearest_distance, 2),
+                    "travel_mins": travel_time,
+                    "wait_mins": PICKUP_WAIT_MINS,
+                    "time_mins": travel_time + PICKUP_WAIT_MINS,
+                    "is_target": False
+                })
             
             current_lat, current_lng = rest_lat, rest_lng
         else:
             break
     
     # 3. Eğer hedef restoran pickup listesinde değilse, son olarak oraya git
-    if not target_in_pickups:
+    if not reached_target:
         final_distance = calculate_distance_between_points(current_lat, current_lng, target_lat, target_lng)
         total_distance += final_distance
         travel_time = max(1, math.ceil((final_distance / AVG_SPEED_KMH) * 60))
@@ -450,17 +474,13 @@ async def calculate_courier_eta_for_restaurant(
             "is_target": True
         })
     
-    # Özet oluştur
-    # Hedef restoran pickup listesindeyse, onu sayıdan çıkar (zaten oraya gidiyoruz)
-    delivery_count = len(on_the_way_orders)
-    other_pickups_count = len([o for o in pickup_orders if o.get("restaurant_id") != target_restaurant_id])
-    
-    if delivery_count > 0 and other_pickups_count > 0:
-        route_summary = f"{delivery_count} teslimat, {other_pickups_count} teslim alım sonra"
-    elif delivery_count > 0:
-        route_summary = f"{delivery_count} teslimat sonra"
-    elif other_pickups_count > 0:
-        route_summary = f"{other_pickups_count} teslim alım sonra"
+    # Özet oluştur - hedef restorana ulaşana kadar yapılanlar
+    if deliveries_before_target > 0 and pickups_before_target > 0:
+        route_summary = f"{deliveries_before_target} teslimat, {pickups_before_target} teslim alım sonra"
+    elif deliveries_before_target > 0:
+        route_summary = f"{deliveries_before_target} teslimat sonra"
+    elif pickups_before_target > 0:
+        route_summary = f"{pickups_before_target} teslim alım sonra"
     else:
         route_summary = "Doğrudan geliyor"
     
