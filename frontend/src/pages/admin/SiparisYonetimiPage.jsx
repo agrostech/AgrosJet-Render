@@ -890,7 +890,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               {/* İleri tarihli sipariş için teslimat saati */}
                               {order.getir_raw?.isScheduled && order.getir_raw?.scheduledDate && (
                                 <span className="text-[10px] text-purple-600 font-medium">
-                                  {formatTime(order.getir_raw.scheduledDate)} İT
+                                  {formatTime(order.getir_raw.scheduledDate)} İleri Tarih
                                 </span>
                               )}
                             </div>
