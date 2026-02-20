@@ -60,6 +60,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   // Yeni CancelModal için state
   const [actionModal, setActionModal] = useState({ open: false, order: null, actionType: null });
   const [courierETAs, setCourierETAs] = useState({}); // {courierId: etaInfo}
+  const [mockLoading, setMockLoading] = useState(false);
   
   // Otomatik yazdırma için önceki siparişleri takip et
   const previousOrderIdsRef = useRef(new Set());
