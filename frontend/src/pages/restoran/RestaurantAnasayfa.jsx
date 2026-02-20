@@ -40,6 +40,7 @@ import {
   formatCurrency
 } from "@/utils/orderUtils";
 import { printOrder, getPrintSettings } from "@/utils/printUtils";
+import { silentPrint, getQzSettings, isQzAvailable, connectToQz } from "@/utils/qzTrayService";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -56,17 +57,34 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   // Otomatik yazdırma için önceki siparişleri takip et
   const previousOrderIdsRef = useRef(new Set());
   const isFirstLoadRef = useRef(true);
+  const qzConnectedRef = useRef(false);
 
   // İzin kontrolleri
   const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
   const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
   const canMarkRestaurantDelivery = permissions.can_mark_restaurant_delivery === true; // Default false
 
+  // QZ Tray bağlantısını başlat (sayfa yüklendiğinde)
+  useEffect(() => {
+    const initQz = async () => {
+      const qzSettings = getQzSettings(restaurantId);
+      if (qzSettings.enabled && isQzAvailable()) {
+        const result = await connectToQz();
+        qzConnectedRef.current = result.success;
+        if (result.success) {
+          console.log("QZ Tray sessiz yazdırma hazır");
+        }
+      }
+    };
+    initQz();
+  }, [restaurantId]);
+
   // Otomatik yazdırma - yeni sipariş algılama
   useEffect(() => {
     if (!orders || orders.length === 0) return;
     
     const printSettings = getPrintSettings(restaurantId);
+    const qzSettings = getQzSettings(restaurantId);
     const currentOrderIds = new Set(orders.map(o => o.id));
     
     // İlk yüklemede sadece ID'leri kaydet, yazdırma
@@ -76,8 +94,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       return;
     }
     
-    // Otomatik yazdırma kapalıysa çık
-    if (!printSettings.autoPrint) {
+    // Hem QZ Tray hem tarayıcı otomatik yazdırma kapalıysa çık
+    if (!qzSettings.enabled && !printSettings.autoPrint) {
       previousOrderIdsRef.current = currentOrderIds;
       return;
     }
@@ -86,10 +104,41 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     const newOrders = orders.filter(o => !previousOrderIdsRef.current.has(o.id));
     
     // Yeni siparişleri yazdır
-    newOrders.forEach(order => {
+    newOrders.forEach(async (order) => {
       // Sadece pending veya preparing durumundaki siparişleri yazdır
       if (order.status === 'pending' || order.status === 'preparing') {
-        printOrder(order, printSettings.paperSize);
+        
+        // QZ Tray ile sessiz yazdırma (öncelikli)
+        if (qzSettings.enabled && qzSettings.printerName) {
+          const result = await silentPrint(
+            order,
+            qzSettings.printerName,
+            qzSettings.paperSize,
+            qzSettings.useRawMode
+          );
+          
+          if (result.success) {
+            toast.success(`Sipariş yazdırıldı: #${order.order_number}`, {
+              icon: <Printer className="w-4 h-4" />,
+            });
+          } else {
+            // QZ Tray başarısız olduysa tarayıcı yazdırmayı dene
+            console.error("QZ Tray yazdırma hatası:", result.error);
+            if (printSettings.autoPrint) {
+              printOrder(order, printSettings.paperSize);
+              toast.info(`Yeni sipariş (tarayıcı): #${order.order_number}`, {
+                icon: <Printer className="w-4 h-4" />,
+              });
+            }
+          }
+        } 
+        // QZ Tray yoksa tarayıcı yazdırma
+        else if (printSettings.autoPrint) {
+          printOrder(order, printSettings.paperSize);
+          toast.info(`Yeni sipariş yazdırıldı: #${order.order_number}`, {
+            icon: <Printer className="w-4 h-4" />,
+          });
+        }
         
         // Ses çal
         if (printSettings.printSound) {
@@ -99,10 +148,6 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             audio.play().catch(() => {});
           } catch (e) {}
         }
-        
-        toast.info(`Yeni sipariş yazdırıldı: #${order.order_number}`, {
-          icon: <Printer className="w-4 h-4" />,
-        });
       }
     });
     
@@ -111,8 +156,28 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   }, [orders, restaurantId]);
 
   // Manuel yazdırma fonksiyonu
-  const handlePrintOrder = (order) => {
+  const handlePrintOrder = async (order) => {
     const printSettings = getPrintSettings(restaurantId);
+    const qzSettings = getQzSettings(restaurantId);
+    
+    // QZ Tray ile sessiz yazdırma (öncelikli)
+    if (qzSettings.enabled && qzSettings.printerName) {
+      const result = await silentPrint(
+        order,
+        qzSettings.printerName,
+        qzSettings.paperSize,
+        qzSettings.useRawMode
+      );
+      
+      if (result.success) {
+        toast.success("Fiş yazıcıya gönderildi");
+        return;
+      } else {
+        toast.error(`Sessiz yazdırma hatası: ${result.error}`);
+      }
+    }
+    
+    // Fallback: Tarayıcı yazdırma
     printOrder(order, printSettings.paperSize);
     toast.success("Fiş yazdırma penceresine gönderildi");
   };
