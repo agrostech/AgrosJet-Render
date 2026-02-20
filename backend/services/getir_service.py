@@ -1400,15 +1400,6 @@ async def update_getir_restaurant_status(restaurant_id: str, is_open: bool, time
         return {"success": False, "error": str(e)}
 
 
-def _extract_error(response) -> str:
-    """API response'dan hata mesajını çıkar"""
-    try:
-        error_data = response.json()
-        return error_data.get("message", error_data.get("error", response.text[:200]))
-    except:
-        return response.text[:200] if response.text else "Bilinmeyen hata"
-
-
 async def sync_all_company_getir_orders(company_id: str) -> dict:
     """Şirketteki tüm restoranların Getir siparişlerini senkronize et"""
     restaurants = await db.restaurants.find(
