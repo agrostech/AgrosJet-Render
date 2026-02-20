@@ -772,7 +772,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                   value={order.status} 
                                   onValueChange={(newValue) => {
                                     if (newValue === 'cancelled') {
-                                      setStatusConfirmModal({ open: true, order, status: newValue });
+                                      handleStatusChange(order, newValue);
                                     } else if (newValue.startsWith('preparing_')) {
                                       onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
                                     }
@@ -800,9 +800,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                 <Select 
                                   value={order.status} 
                                   onValueChange={(newValue) => {
-                                    // delivered ve cancelled için onay modalı aç
+                                    // delivered ve cancelled için handleStatusChange kullan (iptal sebepleri için)
                                     if (newValue === 'delivered' || newValue === 'cancelled') {
-                                      setStatusConfirmModal({ open: true, order, status: newValue });
+                                      handleStatusChange(order, newValue);
                                     } else if (newValue.startsWith('preparing_')) {
                                       onUpdateStatus(order.id, 'preparing', parseInt(newValue.split('_')[1]));
                                     } else {
