@@ -50,8 +50,16 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
     if (!restaurantId) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/orders/restaurant/${restaurantId}?status=cancelled`);
-      let result = res.data || [];
+      // Yeni merkezi endpoint kullan
+      const res = await axios.get(`${API}/orders/v2/list`, {
+        params: {
+          panel: 'restaurant',
+          restaurant_id: restaurantId,
+          status: 'cancelled',
+          limit: 500
+        }
+      });
+      let result = res.data.orders || [];
       
       // Payment method filter
       if (filters.payment !== "all") {
