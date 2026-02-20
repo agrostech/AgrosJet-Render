@@ -127,7 +127,7 @@ SUPPORTED_PLATFORMS = {
     "migros": {
         "name": "Migros Yemek",
         "color": "orange",
-        "credential_fields": []
+        "credential_fields": ["api_key", "secret_key", "store_id", "store_group_id", "is_test"]
     }
 }
 
