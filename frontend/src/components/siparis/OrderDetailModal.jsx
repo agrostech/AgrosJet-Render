@@ -286,9 +286,28 @@ export function OrderDetailModal({
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-semibold mt-2 pt-2 border-t">
-                <span>Toplam</span>
-                <span>{formatCurrency(order.total_amount)}</span>
+              <div className="mt-2 pt-2 border-t">
+                {order.total_price && order.total_discounted_price && order.total_price > order.total_discounted_price ? (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Ara Toplam</span>
+                      <span className="line-through">{formatCurrency(order.total_price)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>İndirim</span>
+                      <span>-{formatCurrency(order.total_price - order.total_discounted_price)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold pt-1 border-t">
+                      <span>Toplam</span>
+                      <span className="text-green-600">{formatCurrency(order.total_amount)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between font-semibold">
+                    <span>Toplam</span>
+                    <span>{formatCurrency(order.total_amount)}</span>
+                  </div>
+                )}
               </div>
               <div className="flex items-center justify-between mt-2 pt-2 border-t">
                 <span className="text-sm text-muted-foreground">Ödeme Yöntemi</span>
