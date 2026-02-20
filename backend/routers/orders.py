@@ -369,6 +369,96 @@ async def update_order_status_core(
     return {"success": True, "order": updated_order}
 
 
+# --- Merkezi Kurye Atama Fonksiyonu ---
+async def assign_courier_core(
+    order: dict,
+    courier_id: str,
+    actor_type: str = "system",
+    actor_name: str = "Sistem",
+    calculate_fee: bool = True,
+    send_push: bool = True
+) -> dict:
+    """
+    Merkezi kurye atama fonksiyonu.
+    
+    Args:
+        order: Sipariş dict
+        courier_id: Atanacak kurye ID
+        actor_type: admin | restaurant | system
+        actor_name: İşlemi yapan kişi adı
+        calculate_fee: Kurye ücreti hesaplansın mı
+        send_push: Push notification gönderilsin mi
+        
+    Returns:
+        {"success": True/False, "courier_name": str, "error": str}
+    """
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one(
+        {"id": courier_id}, 
+        {"_id": 0, "name": 1, "phone": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+    )
+    if not courier:
+        return {"success": False, "error": "Kurye bulunamadı"}
+    
+    now = datetime.now(timezone.utc).isoformat()
+    order_id = order["id"]
+    
+    # Güncelleme verileri
+    update_data = {
+        "courier_id": courier_id,
+        "courier_name": courier["name"],
+        "courier_phone": courier.get("phone"),
+        "status": "assigned",
+        "assigned_at": now,
+        "updated_at": now
+    }
+    
+    # Fee hesaplama (isteğe bağlı)
+    if calculate_fee:
+        distance_km = 0.0
+        if order.get("restaurant_location") and order.get("delivery_location"):
+            distance_km = calculate_distance(order["restaurant_location"], order["delivery_location"])
+        
+        courier_fee = calculate_fee_from_pricing(
+            courier.get("pricing_type", "per_package"),
+            courier.get("per_package_price", 0),
+            courier.get("km_ranges", []),
+            distance_km
+        )
+        update_data["courier_fee"] = round(courier_fee, 2)
+    
+    # History entry
+    history_entry = {
+        "status": "assigned",
+        "label": "Kurye Atandı",
+        "timestamp": now,
+        "note": f"Kurye: {courier['name']}" + (f" ({actor_type})" if actor_type != "admin" else ""),
+        "actor_type": actor_type,
+        "actor_name": actor_name
+    }
+    
+    # Veritabanı güncelleme
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$set": update_data,
+            "$push": {"status_history": history_entry}
+        }
+    )
+    
+    # Push notification gönder
+    if send_push:
+        try:
+            from services.push_notification_service import notify_courier_new_order
+            order["order_number"] = order.get("order_number", "")
+            order["restaurant_name"] = order.get("restaurant_name", "Restoran")
+            await notify_courier_new_order(courier_id, order)
+        except Exception as e:
+            logger.error(f"Push notification hatası: {e}")
+    
+    return {"success": True, "courier_name": courier["name"]}
+
+
 # --- Ücret Hesaplama Fonksiyonları ---
 def calculate_distance(restaurant_location: dict, delivery_location: dict) -> float:
     """Haversine formula ile mesafe hesapla (km)"""
