@@ -926,7 +926,9 @@ async def run_test_create_order(test_number: int):
                 "expected_status": expected_status,
                 "order_id": order_id,
                 "response": response.text[:500] if response.text else None,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "sent_payload": payload,  # Gönderilen payload'ı da dön
+                "payload_has_coordinates": "latitude" in payload or "longitude" in payload
             }
             
             # Sonucu kaydet
