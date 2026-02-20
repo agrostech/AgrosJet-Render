@@ -18,7 +18,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Navigation Items
 const NAV_ITEMS = [
-  { key: "anasayfa", label: "Anasayfa", icon: Home, path: "/restoran" },
+  { key: "anasayfa", label: "Sipariş Yönetimi", icon: ClipboardList, path: "/restoran" },
   { key: "muhasebe", label: "Muhasebe", icon: Calculator, path: "/restoran/muhasebe" },
   { key: "raporlar", label: "Raporlar", icon: FileText, path: "/restoran/raporlar" },
   { key: "entegrasyonlar", label: "Entegrasyonlar", icon: Link2, path: "/restoran/entegrasyonlar" },
