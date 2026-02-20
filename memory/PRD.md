@@ -37,6 +37,11 @@ Restoran paneli için kapsamlı kurye yönetim sistemi. Ana özellikler:
   - Flask sunucusu arka planda çalışıyor
   - Yazıcı seçimi, test yazdırma menüsü
   - Windows bildirimleri
+- ✅ Tek tıkla kurulum batch dosyası oluşturuldu
+  - `/app/frontend/public/ShiftJet_Kurulum.bat`
+  - Otomatik kütüphane kurulumu
+  - PyInstaller ile .exe oluşturma
+  - Masaüstüne "ShiftJet Print Server.exe" koyar
 
 ### Önceki Oturumlar
 - ✅ Adisyo entegrasyonu yenilendi (v2 API)
