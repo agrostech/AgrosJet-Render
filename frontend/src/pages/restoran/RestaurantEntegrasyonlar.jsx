@@ -197,17 +197,28 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
       <IntegrationStoresManager restaurantId={restaurantId} />
 
       {/* Diğer Entegrasyonlar - Adisyo POS (Tek Mağaza) */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Store className="w-5 h-5" />
-            <CardTitle className="text-lg">POS ve Kurye Entegrasyonları</CardTitle>
-          </div>
-          <CardDescription>
-            POS sistemleri ve kurye yönlendirme entegrasyonları
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Collapsible open={posCardOpen} onOpenChange={setPosCardOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-3 cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-2">
+                {posCardOpen ? (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                )}
+                <Store className="w-5 h-5" />
+                <div>
+                  <CardTitle className="text-lg">POS ve Kurye Entegrasyonları</CardTitle>
+                  <CardDescription>
+                    POS sistemleri ve kurye yönlendirme entegrasyonları
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
           {/* Adisyo POS */}
           <div className="p-4 rounded-lg border">
             <div className="flex items-start justify-between">
