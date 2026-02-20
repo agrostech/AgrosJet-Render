@@ -66,7 +66,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     if (restaurantId) {
       fetchAdisyoData();
       fetchSepettakipData();
-      fetchMigrosData();
     }
   }, [restaurantId]);
 
