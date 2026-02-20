@@ -291,12 +291,30 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
         return {"success": False, "error": f"Bağlantı hatası: {str(e)}"}
 
 
-def map_getir_status(status: str) -> str:
+def map_getir_status(status: Any) -> str:
     """Getir status'unu ShiftJet durumuna çevir"""
-    status_lower = (status or "").lower()
+    # Eğer numerik status ise
+    if isinstance(status, int):
+        status_text = GETIR_ORDER_STATUSES.get(status, "pending")
+        if status_text in ["pending", "scheduled_pending"]:
+            return "pending"
+        elif status_text in ["preparing", "scheduled_approved"]:
+            return "preparing"
+        elif status_text == "prepared":
+            return "ready"
+        elif status_text in ["handed_over", "on_the_way", "arrived"]:
+            return "on_the_way"
+        elif status_text == "delivered":
+            return "delivered"
+        elif status_text in ["cancelled", "cancelled_admin"]:
+            return "cancelled"
+        return "preparing"
+    
+    # String status
+    status_lower = (str(status) or "").lower()
     
     status_map = {
-        "pending": "preparing",
+        "pending": "pending",
         "approved": "preparing",
         "verified": "preparing",
         "preparing": "preparing",
@@ -311,23 +329,54 @@ def map_getir_status(status: str) -> str:
     return status_map.get(status_lower, "preparing")
 
 
-def map_getir_payment(payment_method: dict) -> str:
+def map_getir_payment(payment_method: Any) -> str:
     """Getir ödeme yöntemini ShiftJet'e çevir"""
     if not payment_method:
         return "online"
     
-    payment_type = (payment_method.get("type") or payment_method.get("name") or "").lower()
+    # Numerik payment method ID
+    if isinstance(payment_method, int):
+        pm_info = GETIR_PAYMENT_METHODS.get(payment_method, {"type": "online"})
+        return pm_info["type"]
     
-    if "cash" in payment_type or "nakit" in payment_type:
-        return "cash"
-    elif "card" in payment_type or "kart" in payment_type:
-        if "online" in payment_type:
+    # Dict format
+    if isinstance(payment_method, dict):
+        pm_id = payment_method.get("id") or payment_method.get("paymentMethod")
+        if isinstance(pm_id, int):
+            pm_info = GETIR_PAYMENT_METHODS.get(pm_id, {"type": "online"})
+            return pm_info["type"]
+        
+        # Text-based detection
+        payment_type = (payment_method.get("type") or payment_method.get("name") or "").lower()
+        
+        if "cash" in payment_type or "nakit" in payment_type:
+            return "cash"
+        elif "card" in payment_type or "kart" in payment_type:
+            if "online" in payment_type:
+                return "online"
+            return "card"
+        elif "online" in payment_type:
             return "online"
-        return "card"
-    elif "online" in payment_type:
-        return "online"
+        elif any(x in payment_type for x in ["sodexo", "ticket", "multinet", "setcard", "metropol", "paye"]):
+            return "meal_card"
     
     return "online"
+
+
+def get_payment_method_name(payment_method: Any) -> str:
+    """Ödeme yöntemi adını döndür"""
+    if isinstance(payment_method, int):
+        pm_info = GETIR_PAYMENT_METHODS.get(payment_method, {})
+        return pm_info.get("name", "Online Ödeme")
+    
+    if isinstance(payment_method, dict):
+        pm_id = payment_method.get("id") or payment_method.get("paymentMethod")
+        if isinstance(pm_id, int):
+            pm_info = GETIR_PAYMENT_METHODS.get(pm_id, {})
+            return pm_info.get("name", payment_method.get("name", "Online Ödeme"))
+        return payment_method.get("name", "Online Ödeme")
+    
+    return "Online Ödeme"
 
 
 async def fetch_getir_active_orders(restaurant_id: str) -> dict:
