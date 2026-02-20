@@ -369,6 +369,8 @@ async def test_store_connection(restaurant_id: str, store_id: str):
         result = await test_yemeksepeti_connection(restaurant_id)
     elif platform == "adisyo":
         result = await test_adisyo_connection(restaurant_id)
+    elif platform == "migros":
+        result = await test_migros_connection(store.get("credentials", {}))
     
     # Sonucu store'a yaz
     if result.get("success"):
