@@ -573,14 +573,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="inline-flex mb-4">
-              <TabsTrigger value="pending" className="flex items-center gap-2 px-6" data-testid="tab-pending">
+              <TabsTrigger value="pending" className="flex items-center justify-center gap-2 w-36" data-testid="tab-pending">
                 <ClipboardList className="w-4 h-4" />
                 <span>Bekleyen</span>
                 {stats.pending > 0 && (
                   <Badge variant="secondary" className="ml-1">{stats.pending}</Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="on_the_way" className="flex items-center gap-2 px-6" data-testid="tab-on-the-way">
+              <TabsTrigger value="on_the_way" className="flex items-center justify-center gap-2 w-36" data-testid="tab-on-the-way">
                 <Truck className="w-4 h-4" />
                 <span>Yolda</span>
                 {stats.onTheWay > 0 && (
