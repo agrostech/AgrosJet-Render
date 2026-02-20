@@ -12,6 +12,8 @@ import RestaurantRaporlar from "./RestaurantRaporlar";
 import RestaurantEntegrasyonlar from "./RestaurantEntegrasyonlar";
 import RestaurantUrunler from "./RestaurantUrunler";
 import RestaurantAyarlar from "./RestaurantAyarlar";
+import RestaurantGecmisSiparisler from "./RestaurantGecmisSiparisler";
+import RestaurantIptalSiparisler from "./RestaurantIptalSiparisler";
 import Footer from "@/components/Footer";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
