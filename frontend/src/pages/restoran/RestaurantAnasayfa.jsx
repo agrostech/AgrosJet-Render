@@ -250,6 +250,24 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     }
   };
 
+  // Durum değişikliği - onay gerektiren durumlar için modal aç
+  const handleStatusChange = (order, newStatus) => {
+    // delivered ve cancelled için onay modalı aç
+    if (newStatus === 'delivered' || newStatus === 'cancelled') {
+      setStatusConfirmModal({ open: true, order, status: newStatus });
+    } else {
+      handleRestaurantDeliveryStatus(order.id, newStatus);
+    }
+  };
+
+  // Onay modalından durum değişikliğini onayla
+  const confirmStatusChange = () => {
+    if (statusConfirmModal.order && statusConfirmModal.status) {
+      handleRestaurantDeliveryStatus(statusConfirmModal.order.id, statusConfirmModal.status);
+    }
+    setStatusConfirmModal({ open: false, order: null, status: null });
+  };
+
   // Restoran teslimatı işaretlenebilir mi kontrol et
   const canMarkAsRestaurantDelivery = (order) => {
     if (!canMarkRestaurantDelivery) return { allowed: false, reason: "İzniniz yok" };
