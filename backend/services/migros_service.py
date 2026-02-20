@@ -115,8 +115,8 @@ class MigrosYemekService:
                     # POST için veriyi şifrele
                     if data and encrypt_request:
                         encrypted = self.encrypt(data)
-                        body = encrypted
-                        headers["Content-Type"] = "text/plain"
+                        # Şifrelenmiş veri {"value": "..."} formatında gönderilmeli
+                        body = json.dumps({"value": encrypted})
                     else:
                         body = json.dumps(data) if data else None
                     
