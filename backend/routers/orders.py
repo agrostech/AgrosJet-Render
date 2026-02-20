@@ -373,14 +373,16 @@ async def calculate_courier_eta_for_restaurant(
             del_lat, del_lng = get_location_coords(nearest.get("delivery_location"))
             
             total_distance += nearest_distance
-            travel_time = math.ceil((nearest_distance / AVG_SPEED_KMH) * 60)
-            total_time += travel_time + DELIVERY_TIME_MINS
+            travel_time = max(1, math.ceil((nearest_distance / AVG_SPEED_KMH) * 60))
+            total_time += travel_time + DELIVERY_WAIT_MINS
             
             breakdown.append({
                 "type": "delivery",
                 "description": f"Teslimat: {nearest.get('delivery_address', 'Adres')[:30]}...",
                 "distance_km": round(nearest_distance, 2),
-                "time_mins": travel_time + DELIVERY_TIME_MINS
+                "travel_mins": travel_time,
+                "wait_mins": DELIVERY_WAIT_MINS,
+                "time_mins": travel_time + DELIVERY_WAIT_MINS
             })
             
             current_lat, current_lng = del_lat, del_lng
