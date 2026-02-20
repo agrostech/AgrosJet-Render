@@ -1355,13 +1355,7 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
     
     # Kurye atandıysa sadece belirli işlemlere izin ver
     if order.get("courier_id"):
-        # İptal edilebilir
-        if data.status == "cancelled":
-            pass  # İzin ver
-        # Bekleme süresi güncellenebilir (kurye ataması iptal olur)
-        elif data.status == "preparing":
-            pass  # İzin ver, aşağıda courier_id = None yapılacak
-        else:
+        if data.status not in ["cancelled", "preparing"]:
             raise HTTPException(
                 status_code=403, 
                 detail="Kurye atandıktan sonra sadece bekleme süresi güncellenebilir veya sipariş iptal edilebilir"
@@ -1375,44 +1369,39 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
             detail=f"Bu durum restoran tarafından seçilemez. İzin verilen durumlar: {', '.join(allowed_statuses)}"
         )
     
-    now = datetime.now(timezone.utc)
-    
-    update_fields = {
-        "status": data.status,
-        "updated_at": now.isoformat()
-    }
+    # Extra güncellemeler
+    extra_updates = {}
     
     # Kurye atanmışken bekleme süresi güncellenirse kurye atamasını iptal et
     if order.get("courier_id") and data.status == "preparing":
-        update_fields["courier_id"] = None
-        update_fields["courier_name"] = None
-        update_fields["courier_assigned_at"] = None
+        extra_updates["courier_id"] = None
+        extra_updates["courier_name"] = None
+        extra_updates["courier_assigned_at"] = None
     
-    # Hazırlanıyor durumuna geçişte geri sayım
-    if data.status == "preparing":
-        # Eğer scheduled siparişse, restoran hazırlık süresini kullan
-        prep_time = data.preparation_time or order.get("preparation_time") or 15
-        preparation_end_at = now + timedelta(minutes=prep_time)
-        update_fields["preparation_time"] = prep_time
-        update_fields["preparation_end_at"] = preparation_end_at.isoformat()
-        # Scheduled durumundan çıkıyorsa is_scheduled'ı false yap
-        if order.get("status") == "scheduled":
-            update_fields["is_scheduled"] = False
+    # Scheduled durumundan çıkıyorsa
+    if data.status == "preparing" and order.get("status") == "scheduled":
+        extra_updates["is_scheduled"] = False
     
-    # İptal durumunda iptal bilgilerini kaydet
+    # İptal durumunda ek bilgiler
     if data.status == "cancelled":
-        update_fields["cancelled_at"] = now.isoformat()
-        update_fields["cancelled_by"] = "restaurant"
-        if data.cancel_reason_id:
-            update_fields["cancel_reason_id"] = data.cancel_reason_id
-        if data.cancel_note:
-            update_fields["cancel_note"] = data.cancel_note
+        extra_updates["cancelled_by"] = "restaurant"
     
-    await db.orders.update_one({"id": order_id}, {"$set": update_fields})
+    # Merkezi fonksiyon ile güncelle
+    prep_time = data.preparation_time or (15 if data.status == "preparing" else None)
+    result = await update_order_status_core(
+        order_id=order_id,
+        new_status=data.status,
+        actor_type="restaurant",
+        actor_name="Restoran",
+        preparation_time=prep_time,
+        cancel_reason_id=data.cancel_reason_id,
+        cancel_note=data.cancel_note,
+        extra_updates=extra_updates if extra_updates else None,
+        notify_platform=True
+    )
     
-    # Platform'a bildirim gönder (Trendyol, Adisyo vb.)
-    prep_time = update_fields.get("preparation_time")
-    await notify_platform_status_change(order, data.status, prep_time, data.cancel_reason_id, data.cancel_note)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
     
     return {"message": "Sipariş durumu güncellendi", "status": data.status}
 
