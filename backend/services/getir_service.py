@@ -421,6 +421,119 @@ async def fetch_getir_active_orders(restaurant_id: str) -> dict:
         return {"success": False, "error": str(e), "orders": []}
 
 
+# --- Getir Order Conversion Helper Fonksiyonları ---
+
+def _extract_customer_info(getir_order: dict) -> dict:
+    """Getir siparişinden müşteri bilgilerini çıkar"""
+    client = getir_order.get("client", {})
+    raw_phone = client.get("clientPhoneNumber", "")
+    return {
+        "name": client.get("name", "Müşteri"),
+        "phone": raw_phone.replace("-", "") if raw_phone else "",
+        "support_phone": client.get("contactPhoneNumber", "")
+    }
+
+
+def _extract_address_info(getir_order: dict) -> dict:
+    """Getir siparişinden adres bilgilerini çıkar"""
+    client = getir_order.get("client", {})
+    client_delivery = client.get("deliveryAddress", {})
+    address = getir_order.get("address", {}) or getir_order.get("clientAddress", {}) or client_delivery
+    
+    address_text = client_delivery.get("address", "") or address.get("address", "")
+    
+    if not address_text:
+        addr_source = client_delivery if client_delivery else address
+        parts = []
+        for key in ["neighborhood", "street"]:
+            if addr_source.get(key):
+                parts.append(addr_source[key])
+        if addr_source.get("building"):
+            parts.append(f"No: {addr_source['building']}")
+        if addr_source.get("aptNo"):
+            parts.append(f"Daire: {addr_source['aptNo']}")
+        for key in ["district", "city"]:
+            if addr_source.get(key):
+                parts.append(addr_source[key])
+        address_text = ", ".join(filter(None, parts)) or "Adres belirtilmemiş"
+    
+    client_location = client.get("location", {})
+    location = address.get("location", {}) or client_location
+    
+    return {
+        "text": address_text,
+        "description": client_delivery.get("description", "") or address.get("description", ""),
+        "latitude": client_location.get("lat") or location.get("lat") or location.get("latitude"),
+        "longitude": client_location.get("lon") or location.get("lon") or location.get("lng") or location.get("longitude")
+    }
+
+
+def _extract_items(getir_order: dict) -> list:
+    """Getir siparişinden ürün listesini çıkar"""
+    items = []
+    for product in getir_order.get("products", []):
+        item_name = product.get("name", "Ürün")
+        if isinstance(item_name, dict):
+            item_name = item_name.get("tr", item_name.get("en", "Ürün"))
+        
+        quantity = int(product.get("count", product.get("quantity", 1)))
+        price = float(product.get("price", product.get("priceWithOption", 0)))
+        
+        option_names = []
+        for opt_cat in product.get("optionCategories", []):
+            for opt in opt_cat.get("options", []):
+                opt_name = opt.get("name", "")
+                if isinstance(opt_name, dict):
+                    opt_name = opt_name.get("tr", opt_name.get("en", ""))
+                if opt_name:
+                    option_names.append(str(opt_name))
+        
+        if option_names:
+            item_name += f" ({', '.join(option_names)})"
+        
+        items.append({
+            "name": item_name,
+            "quantity": quantity,
+            "price": price / quantity if quantity > 0 else price,
+            "notes": product.get("note", "")
+        })
+    return items
+
+
+def _calculate_scheduled_preparation(scheduled_date: str) -> tuple:
+    """İleri tarihli sipariş için hazırlama süresi hesapla"""
+    if not scheduled_date:
+        return None, None
+    
+    try:
+        if isinstance(scheduled_date, str):
+            clean_date = scheduled_date.replace('Z', '+00:00')
+            if '+' not in clean_date and '-' not in clean_date[-6:]:
+                clean_date = clean_date + '+03:00'
+            
+            try:
+                scheduled_dt = datetime.fromisoformat(clean_date)
+            except:
+                from dateutil import parser
+                scheduled_dt = parser.parse(scheduled_date)
+            
+            if scheduled_dt:
+                now = datetime.now(timezone.utc)
+                if scheduled_dt.tzinfo is None:
+                    import pytz
+                    scheduled_dt = pytz.timezone('Europe/Istanbul').localize(scheduled_dt)
+                
+                diff_minutes = (scheduled_dt.astimezone(timezone.utc) - now).total_seconds() / 60
+                prep_minutes = max(5, min(int(diff_minutes - 30), 120))
+                
+                logger.info(f"İleri tarihli sipariş: prep_time={prep_minutes}dk")
+                return prep_minutes, (now + timedelta(minutes=prep_minutes)).isoformat()
+    except Exception as e:
+        logger.warning(f"İleri tarihli hazırlama süresi hesaplanamadı: {e}")
+    
+    return None, None
+
+
 async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -> dict:
     """Getir sipariş formatını ShiftJet sipariş formatına çevir"""
     
