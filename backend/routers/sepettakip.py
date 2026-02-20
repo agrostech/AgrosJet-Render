@@ -816,14 +816,14 @@ async def run_test_create_order(test_number: int):
     
     test_code = f"ORD-0{test_number}"
     
-    # Test verileri
+    # Test verileri - payment_type: cash, card, pos, onlinecard, sodexo, multinet, ticket
     test_data = {
         1: {"amount": 125.50, "name": "Ahmet Yılmaz", "phone": "05551112233", "city": "İstanbul", "town": "Kadıköy", "neighborhood": "Caferağa", "description": "Kırmızı bina", "building_no": "15", "floor": "2", "door_number": "4", "latitude": 40.9884, "longitude": 29.0290, "payment_type": "cash"},
-        2: {"amount": 89.00, "name": "Mehmet Demir", "phone": "05552223344", "city": "İstanbul", "town": "Üsküdar", "neighborhood": "Altunizade", "description": "Site içi B Blok", "building_no": "7", "floor": "5", "door_number": "10", "latitude": 41.0214, "longitude": 29.0456, "payment_type": "credit_card"},
-        3: {"amount": 210.75, "name": "Ayşe Kaya", "phone": "05553334455", "city": "İstanbul", "town": "Beşiktaş", "neighborhood": "Levent", "description": "İş merkezi", "building_no": "42", "floor": "12", "door_number": "1", "latitude": 41.0822, "longitude": 29.0103, "payment_type": "online"},
+        2: {"amount": 89.00, "name": "Mehmet Demir", "phone": "05552223344", "city": "İstanbul", "town": "Üsküdar", "neighborhood": "Altunizade", "description": "Site içi B Blok", "building_no": "7", "floor": "5", "door_number": "10", "latitude": 41.0214, "longitude": 29.0456, "payment_type": "card"},
+        3: {"amount": 210.75, "name": "Ayşe Kaya", "phone": "05553334455", "city": "İstanbul", "town": "Beşiktaş", "neighborhood": "Levent", "description": "İş merkezi", "building_no": "42", "floor": "12", "door_number": "1", "latitude": 41.0822, "longitude": 29.0103, "payment_type": "onlinecard"},
         4: {"amount": 67.25, "name": "Fatma Öztürk", "phone": "05554445566", "city": "İstanbul", "town": "Maltepe", "neighborhood": "Cevizli", "description": "Yeşil apartman", "building_no": "23", "floor": "1", "door_number": "2", "latitude": 40.9356, "longitude": 29.1268, "payment_type": "cash"},
-        5: {"amount": 156.00, "name": "Ali Çelik", "phone": "05555556677", "city": "İstanbul", "town": "Ataşehir", "neighborhood": "Barbaros", "description": "Palmiye Sitesi A Blok", "building_no": "1", "floor": "8", "door_number": "16", "latitude": 40.9923, "longitude": 29.1187, "payment_type": "credit_card"},
-        6: {"amount": 50.00, "name": "Test Hatalı", "phone": "05559998877", "city": "", "town": "", "neighborhood": "", "description": "", "building_no": "", "floor": "", "door_number": "", "payment_type": "cash"}  # Hatalı adres
+        5: {"amount": 156.00, "name": "Ali Çelik", "phone": "05555556677", "city": "İstanbul", "town": "Ataşehir", "neighborhood": "Barbaros", "description": "Palmiye Sitesi A Blok", "building_no": "1", "floor": "8", "door_number": "16", "latitude": 40.9923, "longitude": 29.1187, "payment_type": "sodexo"},
+        6: {"amount": 50.00, "name": "Test Hatalı", "phone": "05559998877", "city": "", "town": "", "neighborhood": "", "description": "", "building_no": "", "floor": "", "door_number": "", "payment_type": "cash"}  # Hatalı adres - 400 bekleniyor
     }
     
     payload = test_data.get(test_number)
