@@ -21,6 +21,8 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // Navigation Items
 const NAV_ITEMS = [
   { key: "anasayfa", label: "Sipariş Yönetimi", icon: ClipboardList, path: "/restoran" },
+  { key: "gecmis", label: "Geçmiş Siparişler", icon: ClipboardList, path: "/restoran/gecmis-siparisler", hidden: true },
+  { key: "iptal", label: "İptal Siparişler", icon: ClipboardList, path: "/restoran/iptal-siparisler", hidden: true },
   { key: "raporlar", label: "Raporlar", icon: FileText, path: "/restoran/raporlar" },
   { key: "muhasebe", label: "Muhasebe", icon: Calculator, path: "/restoran/muhasebe" },
   { key: "urunler", label: "Ürünler", icon: UtensilsCrossed, path: "/restoran/urunler" },
