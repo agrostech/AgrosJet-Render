@@ -128,7 +128,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Ayarlar</h1>
-        <p className="text-sm text-muted-foreground">Restoran ve yazdırma ayarları</p>
+        <p className="text-sm text-muted-foreground">Restoran Ayarları</p>
       </div>
 
       {/* Otomatik Yazdırma */}
