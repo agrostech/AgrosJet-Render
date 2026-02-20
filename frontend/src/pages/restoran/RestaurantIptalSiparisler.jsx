@@ -461,6 +461,13 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        order={selectedOrder}
+        open={!!selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+      />
     </div>
   );
 }
