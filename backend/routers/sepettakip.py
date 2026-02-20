@@ -748,21 +748,48 @@ async def run_test_check_credentials(success: bool = True):
     success=True -> CC-01 (Başarılı)
     success=False -> CC-02 (Hatalı)
     """
-    # Restoran bilgilerini al
+    # Restoran bilgilerini al - tüm olası alanları kontrol et
     restaurant = await db.restaurants.find_one(
         {"sepettakip_restaurant_id": "934"},
-        {"_id": 0, "sepettakip_username": 1, "sepettakip_password": 1}
+        {"_id": 0}
     )
+    
+    if not restaurant:
+        # Alternatif arama
+        restaurant = await db.restaurants.find_one(
+            {"sepettakip_credentials.restaurant_id": "934"},
+            {"_id": 0}
+        )
     
     if not restaurant:
         return {
             "success": False,
             "test_code": "CC-01" if success else "CC-02",
-            "error": "934 ID'li restoran bulunamadı"
+            "error": "934 ID'li restoran bulunamadı. Lütfen SepetTakip entegrasyonunu yapılandırın."
         }
     
-    username = restaurant.get("sepettakip_username", "testtakip")
-    password = restaurant.get("sepettakip_password", "123456") if success else "yanlis_sifre_test"
+    # Username ve password'u tüm olası alanlardan al
+    username = (
+        restaurant.get("sepettakip_username") or 
+        restaurant.get("sepettakip_credentials", {}).get("username") or
+        restaurant.get("sepettakip_restaurant_id") or
+        "934"
+    )
+    
+    stored_password = (
+        restaurant.get("sepettakip_password") or 
+        restaurant.get("sepettakip_credentials", {}).get("password")
+    )
+    
+    if not stored_password:
+        return {
+            "success": False,
+            "test_code": "CC-01" if success else "CC-02",
+            "error": "Restoran için SepetTakip şifresi yapılandırılmamış. Entegrasyon ayarlarından şifre girin."
+        }
+    
+    # CC-02 için yanlış şifre kullan
+    password = stored_password if success else "yanlis_sifre_test_12345"
     
     try:
         headers = {
