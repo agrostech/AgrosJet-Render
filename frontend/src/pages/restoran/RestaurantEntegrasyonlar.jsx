@@ -364,7 +364,9 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
             </div>
           </div>
         </CardContent>
-      </Card>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Adisyo Modal */}
       <Dialog open={showAdisyoModal} onOpenChange={setShowAdisyoModal}>
