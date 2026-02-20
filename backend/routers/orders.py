@@ -2508,22 +2508,6 @@ async def restaurant_update_delivery_status(order_id: str, restaurant_id: str, n
     # İzin verilen durumlar
 
 
-# --- Platform İptal Sebepleri ---
-@router.get("/platform-cancel-reasons/{source}")
-async def get_cancel_reasons_by_platform(source: str):
-    """
-    Platform bazlı iptal sebeplerini döndür
-    
-    source: getir, trendyol, yemeksepeti, adisyo, manual, vb.
-    """
-    reasons = PLATFORM_CANCEL_REASONS.get(source, PLATFORM_CANCEL_REASONS["default"])
-    return {
-        "success": True,
-        "source": source,
-        "reasons": reasons
-    }
-
-
 @router.get("/{order_id}/cancel-reasons")
 async def get_order_cancel_reasons(order_id: str):
     """
