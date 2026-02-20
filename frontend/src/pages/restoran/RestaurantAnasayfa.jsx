@@ -533,14 +533,6 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                   <Badge variant="secondary" className="ml-1">{stats.onTheWay}</Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="delivered" className="flex items-center gap-2" data-testid="tab-delivered">
-                <CheckCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Teslim</span>
-              </TabsTrigger>
-              <TabsTrigger value="cancelled" className="flex items-center gap-2" data-testid="tab-cancelled">
-                <XCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">İptal</span>
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-0">
