@@ -139,13 +139,14 @@ async def verify_restaurant_credentials(username: str, password: str) -> dict:
     username: Restoran ID veya benzersiz tanımlayıcı
     password: Restoran için oluşturulan şifre
     """
-    # Restoran ara - sepettakip_credentials alanına bak
+    # Restoran ara - farklı alanlarda olabilir
     restaurant = await db.restaurants.find_one(
         {
             "$or": [
                 {"sepettakip_credentials.username": username},
+                {"sepettakip_username": username},
                 {"sepettakip_restaurant_id": username},
-                {"id": username}  # ID ile de eşleşebilir
+                {"id": username}
             ]
         },
         {"_id": 0}
@@ -154,11 +155,18 @@ async def verify_restaurant_credentials(username: str, password: str) -> dict:
     if not restaurant:
         return {"valid": False, "restaurant": None, "error": "Restoran bulunamadı"}
     
-    # Şifre kontrolü
-    stored_password = restaurant.get("sepettakip_credentials", {}).get("password")
+    # Şifre kontrolü - farklı alanlarda olabilir
+    stored_password = (
+        restaurant.get("sepettakip_credentials", {}).get("password") or 
+        restaurant.get("sepettakip_password")
+    )
     
     if stored_password and stored_password != password:
         return {"valid": False, "restaurant": None, "error": "Şifre hatalı"}
+    
+    # Şifre yoksa da geç (opsiyonel olabilir)
+    if not stored_password:
+        logger.warning(f"Restoran {username} için şifre tanımlanmamış, geçiliyor")
     
     return {"valid": True, "restaurant": restaurant}
 
