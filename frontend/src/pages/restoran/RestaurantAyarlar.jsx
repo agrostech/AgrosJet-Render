@@ -55,14 +55,18 @@ export default function RestaurantAyarlar({ restaurantId }) {
     
     // Sunucu durumunu kontrol et
     checkServerStatus();
+  }, [restaurantId]);
+
+  // Bağlı değilse otomatik kontrol et
+  useEffect(() => {
+    if (serverStatus.connected) return;
     
-    // Bağlı değilse her 3 saniyede bir kontrol et
     const interval = setInterval(() => {
       checkServerStatus();
     }, 3000);
     
     return () => clearInterval(interval);
-  }, [restaurantId]);
+  }, [serverStatus.connected]);
 
   // Sunucu durumunu kontrol et
   const checkServerStatus = async () => {
