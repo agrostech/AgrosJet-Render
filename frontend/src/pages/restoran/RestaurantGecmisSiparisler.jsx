@@ -210,8 +210,49 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     }
   };
 
+  const handleSubPageChange = (value) => {
+    if (value === 'aktif') navigate('/restoran');
+    else if (value === 'gecmis') navigate('/restoran/gecmis-siparisler');
+    else if (value === 'iptal') navigate('/restoran/iptal-siparisler');
+  };
+
   return (
     <div className="space-y-4">
+      {/* Header with Sub-tabs */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
+            <p className="text-sm text-muted-foreground">Geçmiş siparişler</p>
+          </div>
+        </div>
+        
+        {/* Alt Sekmeler */}
+        <div className="flex gap-1 border-b">
+          <button
+            onClick={() => handleSubPageChange('aktif')}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ClipboardList className="w-4 h-4" />
+            Aktif Siparişler
+          </button>
+          <button
+            onClick={() => handleSubPageChange('gecmis')}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-primary text-primary transition-colors"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Geçmiş Siparişler
+          </button>
+          <button
+            onClick={() => handleSubPageChange('iptal')}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <XCircle className="w-4 h-4" />
+            İptal Siparişler
+          </button>
+        </div>
+      </div>
+
       {/* Compact Filters */}
       <Card>
         <CardContent className="p-3">
