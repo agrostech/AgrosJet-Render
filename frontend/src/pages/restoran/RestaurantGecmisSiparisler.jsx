@@ -476,20 +476,6 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                   </tbody>
                 </table>
               </div>
-                        </td>
-                        <td className="p-2">
-                          <Badge variant="outline" className="text-xs">
-                            {getPaymentLabel(order.payment_method)}
-                          </Badge>
-                        </td>
-                        <td className="p-2 text-xs">
-                          {getDeliveryInfo(order)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
               
               {/* Pagination Controls */}
               {totalPages > 1 && (
