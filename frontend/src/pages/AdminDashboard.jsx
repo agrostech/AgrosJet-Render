@@ -353,7 +353,7 @@ export default function AdminDashboard() {
         />
 
         {/* Main Content */}
-        <main className={`flex-1 overflow-x-auto transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'}`}>
+        <main className={`flex-1 overflow-x-auto transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'} lg:mt-14`}>
           <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
             <Routes>
               {/* Sipariş Yönetimi varsayılan sayfa */}
