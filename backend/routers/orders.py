@@ -2223,7 +2223,7 @@ async def courier_reject_order(courier_id: str, order_id: str, reason: Optional[
         new_status="ready",
         actor_type="courier",
         actor_name=courier_name,
-        note=f"Kurye reddetti" + (f", Sebep: {reason}" if reason else ""),
+        note="Kurye reddetti" + (f", Sebep: {reason}" if reason else ""),
         extra_updates={
             "courier_id": None,
             "courier_name": None,
