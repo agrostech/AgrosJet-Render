@@ -1487,46 +1487,7 @@ async def get_orders_unified(
     }
 
 
-@router.get("/{company_id}")
-async def get_orders(
-    company_id: str, 
-    status: Optional[str] = None,
-    courier_id: Optional[str] = None,
-    restaurant_id: Optional[str] = None,
-    limit: int = 200,
-    include_restaurant_delivery: bool = False
-):
-    """Şirkete ait siparişleri getir"""
-    # Önce hazırlık süresi dolan siparişleri güncelle
-    await check_preparation_times(company_id)
-    
-    query = {"company_id": company_id}
-    
-    # Restoran teslimatı siparişlerini varsayılan olarak hariç tut (yönetici paneli için)
-    if not include_restaurant_delivery:
-        query["is_restaurant_delivery"] = {"$ne": True}
-    
-    if status:
-        if status == "active":
-            # Aktif siparişler: teslim edilmemiş ve iptal edilmemiş
-            query["status"] = {"$nin": ["delivered", "cancelled"]}
-        elif "," in status:
-            # Çoklu status filtresi (virgülle ayrılmış)
-            status_list = [s.strip() for s in status.split(",") if s.strip()]
-            if status_list:
-                query["status"] = {"$in": status_list}
-        else:
-            query["status"] = status
-    
-    if courier_id:
-        query["courier_id"] = courier_id
-    
-    if restaurant_id:
-        query["restaurant_id"] = restaurant_id
-    
-    orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).to_list(limit)
-    
-    return orders
+# ESKİ get_orders silindi - /api/orders/v2/list?panel=admin kullanın
 
 
 @router.get("/restaurant/{restaurant_id}")
