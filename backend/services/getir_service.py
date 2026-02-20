@@ -698,22 +698,24 @@ async def delayed_deliver(restaurant_id: str, getir_order_id: str, shiftjet_orde
         logger.exception(f"Getir delayed_deliver exception: {getir_order_id}")
 
 
-async def auto_verify_and_schedule_prepare(restaurant: dict, getir_order_id: str, getir_order: dict, shiftjet_order_id: str) -> dict:
+async def auto_verify_order(restaurant: dict, getir_order_id: str, getir_order: dict, shiftjet_order_id: str) -> dict:
     """
-    Yeni sipariş için:
-    1. Hemen verify çağır (30 saniye kuralı)
-    2. 70 saniye sonra otomatik prepare çağır (background task)
+    Yeni sipariş için sadece VERIFY çağır.
+    
+    PREPARE kullanıcı "Yola Çıkar" butonuna bastığında gönderilecek!
+    (70 saniye kuralına uyarak)
+    
+    Getir Akışı:
+    - verify = sipariş onaylandı
+    - prepare = sipariş yola çıktı (kullanıcı manuel tetikler)
+    - deliver = sipariş teslim edildi (kullanıcı manuel tetikler)
     
     Returns:
         dict: {"success": True/False, "message": str, "error": str}
     """
-    import asyncio
-    
     headers = await get_getir_headers(restaurant)
     if not headers:
         return {"success": False, "error": "Getir token alınamadı"}
-    
-    restaurant_id = restaurant.get("id")
     
     # İleri tarihli sipariş mı?
     is_scheduled = getir_order.get("isScheduled", False) or getir_order.get("isScheduledOrder", False)
@@ -721,7 +723,7 @@ async def auto_verify_and_schedule_prepare(restaurant: dict, getir_order_id: str
     
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            # 1. VERIFY (Onayla) - HEMEN
+            # VERIFY (Onayla) - HEMEN
             verify_response = await client.post(
                 f"{GETIR_BASE_URL}/food-orders/{getir_order_id}/{verify_endpoint}",
                 headers=headers
@@ -743,19 +745,24 @@ async def auto_verify_and_schedule_prepare(restaurant: dict, getir_order_id: str
                 }}
             )
             
-            # 2. PREPARE - 70 saniye sonra (background task)
-            asyncio.create_task(delayed_prepare(restaurant_id, getir_order_id, shiftjet_order_id))
-            logger.info(f"Getir prepare {GETIR_STEP_WAIT_SECONDS} saniye sonra çağrılacak: {getir_order_id}")
+            # NOT: PREPARE artık burada schedule EDİLMİYOR!
+            # Kullanıcı "Yola Çıkar" butonuna bastığında gönderilecek
             
             return {
                 "success": True, 
-                "message": f"Sipariş onaylandı, {GETIR_STEP_WAIT_SECONDS} saniye sonra hazırlanıyor durumuna geçecek",
+                "message": "Sipariş onaylandı (verify). Yola çıkarmak için 'Yola Çıkar' butonunu kullanın.",
                 "verified_at": verify_time.isoformat()
             }
             
     except Exception as e:
         logger.exception(f"Getir auto verify exception: {getir_order_id}")
         return {"success": False, "error": str(e)}
+
+
+# Eski fonksiyon adı için alias (geriye uyumluluk)
+async def auto_verify_and_schedule_prepare(restaurant: dict, getir_order_id: str, getir_order: dict, shiftjet_order_id: str) -> dict:
+    """DEPRECATED: auto_verify_order kullanın. Bu fonksiyon artık sadece verify yapıyor."""
+    return await auto_verify_order(restaurant, getir_order_id, getir_order, shiftjet_order_id)
 
 
 async def trigger_getir_deliver(restaurant_id: str, order_id: str) -> dict:
