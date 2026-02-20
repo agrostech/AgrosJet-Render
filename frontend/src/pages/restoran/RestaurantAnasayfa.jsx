@@ -588,7 +588,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                   <Badge variant="secondary" className="ml-1">{stats.onTheWay}</Badge>
                 )}
               </TabsTrigger>
-            </TabsList>
+              </TabsList>
+            </div>
 
             <TabsContent value={activeTab} className="mt-0">
               {loading ? (
