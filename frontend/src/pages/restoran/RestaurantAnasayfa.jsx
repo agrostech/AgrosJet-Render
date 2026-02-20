@@ -607,7 +607,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                         <th className="text-left p-2 font-bold text-xs">Müşteri</th>
                         <th className="text-left p-2 font-bold text-xs">Adres</th>
                         <th className="text-left p-2 font-bold text-xs">Mesafe</th>
-                        <th className="text-left p-2 font-bold text-xs">Ücret</th>
+                        <th className="text-left p-2 font-bold text-xs">Tutar</th>
                         <th className="text-left p-2 font-bold text-xs">Ödeme</th>
                         <th className="text-left p-2 font-bold text-xs">Durum</th>
                         <th className="text-left p-2 font-bold text-xs">Kurye</th>
