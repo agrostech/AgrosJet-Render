@@ -56,6 +56,11 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [testResults, setTestResults] = useState({});
   const [runningTest, setRunningTest] = useState(null);
   const [testOrders, setTestOrders] = useState([]);
+  
+  // SepetTakip Logs states
+  const [showLogs, setShowLogs] = useState(false);
+  const [sepettakipLogs, setSepettakipLogs] = useState([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   useEffect(() => {
     if (restaurantId) {
