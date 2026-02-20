@@ -68,8 +68,16 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
     if (!companyId) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/orders/${companyId}?status=delivered`);
-      let result = res.data;
+      // Yeni merkezi endpoint kullan
+      const res = await axios.get(`${API}/orders/v2/list`, {
+        params: {
+          panel: 'admin',
+          company_id: companyId,
+          status: 'delivered',
+          limit: 500
+        }
+      });
+      let result = res.data.orders || [];
       
       // Restaurant filter
       if (filters.restaurant !== "all") {
