@@ -72,18 +72,22 @@ const PLATFORM_CONFIG = {
     bgLightClass: "bg-purple-100",
     textClass: "text-purple-600",
     fields: [
-      { key: "app_secret_key", label: "App Secret Key", type: "password", required: true },
-      { key: "restaurant_secret_key", label: "Restaurant Secret Key", type: "password", required: true },
-      { key: "restaurant_id", label: "Getir Restaurant ID", type: "text", required: true, description: "Getir panelindeki restoran ID'niz" }
+      { key: "app_secret_key", label: "App Secret Key", type: "password", required: true, placeholder: "f00ab688e4330f67..." },
+      { key: "restaurant_secret_key", label: "Restaurant Secret Key", type: "password", required: true, placeholder: "a04f73c8e4caf7f5..." },
+      { key: "restaurant_id", label: "Getir Restaurant ID", type: "text", required: false, placeholder: "699817751a105bfd0b93ef38", description: "Getir tarafından verilen restoran ID (opsiyonel)" }
     ],
-    helpText: "API bilgilerinizi Getir İş Ortağı panelinden alabilirsiniz. Webhook entegrasyonu otomatik yapılandırılmıştır.",
+    helpText: "API bilgilerinizi Getir entegrasyon e-postasından alabilirsiniz. İlk bağlantıda POS durumu otomatik aktif edilir.",
     helpUrl: null,
     isWebhook: true,
+    isPolling: true, // Hem webhook hem polling destekler
     webhookInfo: {
-      orderEndpoint: "/api/webhooks/getir/order",
-      cancelEndpoint: "/api/webhooks/getir/cancel",
-      statusEndpoint: "/api/webhooks/getir/restaurant-status",
-      apiKey: "agrosjet-getir-wh-9f3k7x2m4p"
+      orderEndpoint: "/api/getir/webhook/order",
+      cancelEndpoint: "/api/getir/webhook/cancel",
+      note: "Bu webhook URL'lerini Getir entegrasyon ekibine iletmeniz gerekmektedir."
+    },
+    statusInfo: {
+      "30saniye": "Sipariş 30 saniye içinde onaylanmalıdır",
+      "1dakika": "verify → prepare → deliver arasında en az 1 dakika beklenmeli"
     }
   },
   yemeksepeti: {
