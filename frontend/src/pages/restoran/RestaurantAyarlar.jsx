@@ -160,8 +160,9 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
                     Yazdırma sunucusu bağlı değil. Programı indirip çalıştırın.
                   </p>
                   <a 
-                    href="/AgrosJet_Print_Server.exe" 
-                    download="AgrosJet_Print_Server.exe"
+                    href="https://drive.google.com/drive/folders/1czq5cwE2jJJ8gupvbiRYUlxUgz-B3RUz"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800"
                   >
                     <Download className="w-4 h-4" />
