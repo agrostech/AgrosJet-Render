@@ -2584,55 +2584,6 @@ async def get_order_cancel_reasons(order_id: str):
         "reasons": reasons
     }
 
-    allowed_statuses = ["preparing", "confirmed", "on_the_way", "delivered"]
-    if new_status not in allowed_statuses:
-        raise HTTPException(status_code=400, detail=f"Geçersiz durum. İzin verilenler: {', '.join(allowed_statuses)}")
-    
-    now = datetime.now(timezone.utc)
-    
-    # Status label mapping
-    status_labels = {
-        "preparing": "Hazırlanıyor",
-        "confirmed": "Onaylandı",
-        "on_the_way": "Yolda",
-        "delivered": "Teslim Edildi"
-    }
-    
-    update_data = {
-        "status": new_status,
-        "updated_at": now.isoformat()
-    }
-    
-    if new_status == "delivered":
-        update_data["delivered_at"] = now.isoformat()
-    
-    # Status history'ye ekle
-    history_entry = {
-        "status": new_status,
-        "label": status_labels.get(new_status, new_status),
-        "timestamp": now.isoformat(),
-        "note": "Restoran tarafından güncellendi",
-        "actor_type": "restaurant",
-        "actor_name": "Restoran Teslimatı"
-    }
-    
-    await db.orders.update_one(
-        {"id": order_id},
-        {
-            "$set": update_data,
-            "$push": {"status_history": history_entry}
-        }
-    )
-    
-    logger.info(f"Restoran teslimatı sipariş durumu güncellendi: {order_id} -> {new_status}")
-    
-    return {
-        "message": f"Sipariş durumu güncellendi: {status_labels.get(new_status, new_status)}",
-        "order_id": order_id,
-        "new_status": new_status
-    }
-
-
 
 # --- Kurye ETA Endpoint ---
 
