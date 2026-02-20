@@ -194,6 +194,33 @@ export default function RestaurantUrunler({ restaurantId }) {
     }
   };
 
+  // Kategori sıralaması değiştir
+  const moveCategoryOrder = async (categoryId, direction) => {
+    const categories = [...savedProducts.categories];
+    const index = categories.findIndex(c => c.id === categoryId);
+    
+    if (direction === 'up' && index > 0) {
+      [categories[index], categories[index - 1]] = [categories[index - 1], categories[index]];
+    } else if (direction === 'down' && index < categories.length - 1) {
+      [categories[index], categories[index + 1]] = [categories[index + 1], categories[index]];
+    } else {
+      return;
+    }
+    
+    // Backend'e yeni sıralamayı gönder
+    const categoryOrders = categories.map((c, i) => ({ id: c.id, order: i }));
+    
+    try {
+      await axios.put(`${API}/products/categories/reorder`, {
+        restaurant_id: restaurantId,
+        category_orders: categoryOrders
+      });
+      loadSavedProducts();
+    } catch (err) {
+      toast.error("Sıralama kaydedilemedi");
+    }
+  };
+
   // =====================
   // PRODUCT CRUD
   // =====================
