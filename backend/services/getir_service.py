@@ -480,6 +480,10 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     
     for product in products:
         item_name = product.get("name", "Ürün")
+        # name dict ise Türkçe adı al
+        if isinstance(item_name, dict):
+            item_name = item_name.get("tr", item_name.get("en", "Ürün"))
+        
         quantity = int(product.get("count", product.get("quantity", 1)))
         price = float(product.get("price", product.get("priceWithOption", 0)))
         
@@ -489,8 +493,11 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         for opt_cat in options:
             for opt in opt_cat.get("options", []):
                 opt_name = opt.get("name", "")
+                # name dict ise Türkçe adı al
+                if isinstance(opt_name, dict):
+                    opt_name = opt_name.get("tr", opt_name.get("en", ""))
                 if opt_name:
-                    option_names.append(opt_name)
+                    option_names.append(str(opt_name))
         
         if option_names:
             item_name += f" ({', '.join(option_names)})"
