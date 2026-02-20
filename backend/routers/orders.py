@@ -1166,6 +1166,9 @@ async def get_orders_by_restaurant(restaurant_id: str, status: Optional[str] = N
     """
     from datetime import datetime, timezone, timedelta
     
+    # Önce hazırlık süresi dolan siparişleri "Hazır" durumuna güncelle
+    await check_preparation_times_by_restaurant(restaurant_id)
+    
     # Eğer belirli bir status istendiyse
     if status:
         query = {
