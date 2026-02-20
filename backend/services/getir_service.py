@@ -437,29 +437,42 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     client = getir_order.get("client", {})
     customer_name = client.get("name", "Müşteri")
     # 0850 ile başlayan maskelenmiş numara
-    customer_phone = client.get("phoneNumber") or client.get("contactPhoneNumber") or ""
+    customer_phone = client.get("contactPhoneNumber") or client.get("phoneNumber") or ""
+    # Müşteriye özel telefon (fiş için)
+    client_phone_number = client.get("clientPhoneNumber", "")
     
-    # Adres bilgileri
-    address = getir_order.get("address", {}) or getir_order.get("clientAddress", {})
-    address_text = address.get("address", "")
+    # Adres bilgileri - client.deliveryAddress içinde geliyor!
+    client_delivery = client.get("deliveryAddress", {})
+    address = getir_order.get("address", {}) or getir_order.get("clientAddress", {}) or client_delivery
+    
+    # Önce client.deliveryAddress'i dene
+    address_text = client_delivery.get("address", "") or address.get("address", "")
+    
     if not address_text:
         address_parts = []
-        if address.get("neighborhood"):
-            address_parts.append(address["neighborhood"])
-        if address.get("street"):
-            address_parts.append(address["street"])
-        if address.get("building"):
-            address_parts.append(f"No: {address['building']}")
-        if address.get("apartment"):
-            address_parts.append(f"Daire: {address['apartment']}")
-        if address.get("district"):
-            address_parts.append(address["district"])
+        addr_source = client_delivery if client_delivery else address
+        if addr_source.get("neighborhood"):
+            address_parts.append(addr_source["neighborhood"])
+        if addr_source.get("street"):
+            address_parts.append(addr_source["street"])
+        if addr_source.get("building"):
+            address_parts.append(f"No: {addr_source['building']}")
+        if addr_source.get("aptNo"):
+            address_parts.append(f"Daire: {addr_source['aptNo']}")
+        if addr_source.get("district"):
+            address_parts.append(addr_source["district"])
+        if addr_source.get("city"):
+            address_parts.append(addr_source["city"])
         address_text = ", ".join(filter(None, address_parts)) or "Adres belirtilmemiş"
     
-    # Koordinatlar
-    location = address.get("location", {})
-    delivery_lat = location.get("lat") or location.get("latitude")
-    delivery_lng = location.get("lon") or location.get("lng") or location.get("longitude")
+    # Adres tarifi
+    address_description = client_delivery.get("description", "") or address.get("description", "")
+    
+    # Koordinatlar - client.location içinde geliyor!
+    client_location = client.get("location", {})
+    location = address.get("location", {}) or client_location
+    delivery_lat = client_location.get("lat") or location.get("lat") or location.get("latitude")
+    delivery_lng = client_location.get("lon") or location.get("lon") or location.get("lng") or location.get("longitude")
     
     # Ürünleri dönüştür
     items = []
