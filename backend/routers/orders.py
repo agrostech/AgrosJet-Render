@@ -80,7 +80,8 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                 prepare_getir_order,
                 handover_getir_order,
                 deliver_getir_order,
-                cancel_getir_order
+                cancel_getir_order,
+                smart_advance_getir_order
             )
             
             # Getir kuryesi kontrolü (deliveryType: 1=Getir Getirsin, 2=Restoran Getirsin)
@@ -90,29 +91,16 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             result = None
             getir_order_id = order.get("getir_order_id")
             
-            # NOT: verify ve prepare artık sipariş geldiğinde otomatik yapılıyor
-            # Bu fonksiyon sadece kullanıcı aksiyonlarını handle ediyor
-            
             if new_status == "on_the_way":
                 # "Yola Çıkar" butonu tıklandığında
-                if is_getir_courier:
-                    # Getir Getirsin: Kuryeye teslim (handover)
-                    result = await handover_getir_order(restaurant_id, order_id)
-                    logger.info(f"Getir handover çağrıldı (Getir Getirsin): order={order_id}")
-                else:
-                    # Restoran Getirsin: Deliver çağır (yola çıktı = teslim sürecine girdi)
-                    result = await deliver_getir_order(restaurant_id, order_id)
-                    logger.info(f"Getir deliver çağrıldı (Restoran Getirsin - Yola Çıkar): order={order_id}")
+                # Akıllı ilerleme: Getir'deki mevcut duruma göre uygun aksiyonu al
+                result = await smart_advance_getir_order(restaurant_id, order_id, "on_the_way", is_getir_courier)
+                logger.info(f"Getir smart_advance çağrıldı (Yola Çıkar): order={order_id}, result={result}")
                 
             elif new_status == "delivered":
                 # "Teslim Et" butonu tıklandığında
-                if not is_getir_courier:
-                    # Restoran Getirsin: Deliver çağır (sadece henüz çağrılmadıysa)
-                    # Not: Restoran Getirsin'de yola çıkar ile deliver aynı endpoint
-                    # Getir'de bir kez deliver çağrıldığında tamamlanır
-                    result = await deliver_getir_order(restaurant_id, order_id)
-                    logger.info(f"Getir deliver çağrıldı (Restoran Getirsin - Teslim Et): order={order_id}")
-                # Getir Getirsin siparişlerinde teslim Getir kuryesi tarafından yapılır
+                result = await smart_advance_getir_order(restaurant_id, order_id, "delivered", is_getir_courier)
+                logger.info(f"Getir smart_advance çağrıldı (Teslim Et): order={order_id}, result={result}")
                 
             elif new_status == "cancelled":
                 # İptal
