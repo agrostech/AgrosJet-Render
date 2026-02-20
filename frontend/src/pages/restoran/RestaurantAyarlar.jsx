@@ -125,6 +125,12 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
 
   return (
     <div className="space-y-6" data-testid="restaurant-ayarlar-page">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Ayarlar</h1>
+        <p className="text-sm text-muted-foreground">Restoran ve yazdırma ayarları</p>
+      </div>
+
       {/* Otomatik Yazdırma */}
       <Card>
         <Collapsible open={openSections.print} onOpenChange={() => toggleSection("print")}>
