@@ -251,14 +251,25 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     try {
       const res = await axios.post(`${API}/sepettakip/run-test/create-order/${testNumber}`);
       setTestResults(prev => ({ ...prev, [testCode]: res.data }));
+      
+      // Koordinat kontrolü
+      const hasCoords = res.data.payload_has_coordinates;
+      const coordWarning = hasCoords ? " ⚠️ PAYLOAD'DA KOORDINAT VAR!" : " ✅ Koordinat yok";
+      
       if (res.data.success) {
-        toast.success(`${testCode} başarılı! Order ID: ${res.data.order_id || 'N/A'}`);
+        toast.success(`${testCode} başarılı!${coordWarning} Order ID: ${res.data.order_id || 'N/A'}`);
         fetchTestOrders();
       } else if (testNumber === 6 && res.data.status_code === 400) {
-        toast.success(`${testCode} başarılı! (Hatalı adres reddedildi)`);
+        toast.success(`${testCode} başarılı! (Hatalı adres reddedildi)${coordWarning}`);
       } else {
-        toast.error(`${testCode}: ${res.data.error || res.data.response || 'Hata'}`);
+        toast.error(`${testCode}: ${res.data.error || res.data.response || 'Hata'}${coordWarning}`);
       }
+      
+      // Console'a detaylı bilgi
+      console.log(`${testCode} Sonuç:`, res.data);
+      console.log(`Gönderilen Payload:`, res.data.sent_payload);
+      console.log(`Koordinat var mı:`, hasCoords);
+      
     } catch (err) {
       toast.error(`${testCode} hatası: ${err.response?.data?.detail || err.message}`);
     } finally {
