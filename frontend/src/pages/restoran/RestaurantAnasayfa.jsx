@@ -52,6 +52,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [restaurantDeliveryConfirm, setRestaurantDeliveryConfirm] = useState(null);
   const [unmarkDeliveryConfirm, setUnmarkDeliveryConfirm] = useState(null);
+  const [statusConfirmModal, setStatusConfirmModal] = useState({ open: false, order: null, status: null });
   
   // Otomatik yazdırma için önceki siparişleri takip et
   const previousOrderIdsRef = useRef(new Set());
