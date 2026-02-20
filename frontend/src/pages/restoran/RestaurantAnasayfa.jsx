@@ -58,11 +58,27 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const previousOrderIdsRef = useRef(new Set());
   const isFirstLoadRef = useRef(true);
   const localServerAvailableRef = useRef(false);
+  
+  // Yazdırılan siparişleri takip et
+  const [printedOrders, setPrintedOrders] = useState(() => {
+    const stored = localStorage.getItem(`printed_orders_${restaurantId}`);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
 
   // İzin kontrolleri
   const canViewCourierPhone = permissions.can_view_courier_phone !== false; // Default true
   const canViewCourierLocation = permissions.can_view_courier_location !== false; // Default true
   const canMarkRestaurantDelivery = permissions.can_mark_restaurant_delivery === true; // Default false
+
+  // Yazdırılan siparişleri localStorage'a kaydet
+  const markAsPrinted = (orderId) => {
+    setPrintedOrders(prev => {
+      const newSet = new Set(prev);
+      newSet.add(orderId);
+      localStorage.setItem(`printed_orders_${restaurantId}`, JSON.stringify([...newSet]));
+      return newSet;
+    });
+  };
 
   // Yerel yazdırma sunucusu bağlantısını kontrol et (periyodik)
   useEffect(() => {
