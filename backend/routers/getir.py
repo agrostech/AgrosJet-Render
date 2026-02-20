@@ -418,3 +418,341 @@ async def activate_pos(restaurant_id: str):
         )
     
     return result
+
+
+# --- Menü İşlemleri ---
+
+class ProductStatusRequest(BaseModel):
+    product_id: str
+    status: int  # 100=Açık, 200=Kapalı
+    is_chain: bool = False
+
+
+class OptionActionRequest(BaseModel):
+    product_id: str
+    is_chain: bool = False
+
+
+@router.get("/menu/{restaurant_id}/products")
+async def get_menu_products(restaurant_id: str):
+    """Restoran menüsünü getir"""
+    result = await get_getir_restaurant_menu(restaurant_id)
+    return result
+
+
+@router.get("/menu/{restaurant_id}/option-products")
+async def get_menu_option_products(restaurant_id: str):
+    """Opsiyon ürünlerini getir"""
+    result = await get_option_products(restaurant_id)
+    return result
+
+
+@router.get("/menu/{restaurant_id}/product/{product_id}/status")
+async def get_menu_product_status(restaurant_id: str, product_id: str, is_chain: bool = False):
+    """Ürün durumunu sorgula"""
+    result = await get_product_status(restaurant_id, product_id, is_chain)
+    return result
+
+
+@router.put("/menu/{restaurant_id}/product/status")
+async def update_menu_product_status(restaurant_id: str, data: ProductStatusRequest):
+    """
+    Ürün durumunu güncelle (açık/kapalı)
+    status: 100=Açık, 200=Kapalı
+    """
+    result = await update_product_status(restaurant_id, data.product_id, data.status, data.is_chain)
+    return result
+
+
+@router.post("/menu/{restaurant_id}/option/activate")
+async def activate_menu_option(restaurant_id: str, data: OptionActionRequest):
+    """Opsiyon ürünü aktif et"""
+    result = await activate_option(restaurant_id, data.product_id, data.is_chain)
+    return result
+
+
+@router.post("/menu/{restaurant_id}/option/inactivate")
+async def inactivate_menu_option(restaurant_id: str, data: OptionActionRequest):
+    """Opsiyon ürünü pasif yap (kapat)"""
+    result = await inactivate_option(restaurant_id, data.product_id, data.is_chain)
+    return result
+
+
+# --- Sipariş Fişi (Receipt) ---
+
+@router.get("/orders/{order_id}/receipt")
+async def get_order_receipt(order_id: str):
+    """
+    Getir sipariş fişi verilerini döndür
+    
+    Sipariş fişinde olması gereken alanlar (Getir gereksinimleri):
+    - Getir Logosu
+    - Sipariş Notu
+    - İndirimli toplam
+    - Ürün notu
+    - 0850 ile başlayan müşteri numarası
+    - Sipariş Doğrulama Kodu
+    - Ürün detayları
+    - Teslimat tipi
+    - Sipariş Tarihi
+    - Ödeme Yöntemi
+    """
+    # Siparişi bul
+    order = await db.orders.find_one(
+        {"id": order_id},
+        {"_id": 0}
+    )
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    if order.get("source") != "getir":
+        raise HTTPException(status_code=400, detail="Bu sipariş Getir siparişi değil")
+    
+    getir_raw = order.get("getir_raw", {})
+    
+    # Ödeme yöntemi bilgisi
+    payment_method_id = getir_raw.get("paymentMethodId")
+    payment_method_info = GETIR_PAYMENT_METHODS.get(payment_method_id, {})
+    payment_method_name = getir_raw.get("paymentMethodName") or payment_method_info.get("name", "Online Ödeme")
+    
+    # Teslimat tipi
+    delivery_type = getir_raw.get("deliveryType", 1)
+    delivery_type_text = "Getir Getirsin" if delivery_type == 1 else "Restoran Getirsin"
+    
+    # Sipariş fişi verileri
+    receipt_data = {
+        "logo_url": "https://cdn.getir.com/getirweb-images/common/getir-logo-purple.svg",
+        "order_number": order.get("order_number"),
+        "confirmation_id": order.get("getir_confirmation_id") or getir_raw.get("confirmationId"),
+        "verification_code": order.get("verification_code") or getir_raw.get("verificationCode"),
+        
+        # Müşteri bilgileri
+        "customer_name": order.get("customer_name"),
+        "customer_phone": order.get("customer_phone"),  # 0850 ile başlayan numara
+        "delivery_address": order.get("delivery_address"),
+        
+        # Sipariş detayları
+        "order_date": order.get("created_at"),
+        "delivery_type": delivery_type,
+        "delivery_type_text": delivery_type_text,
+        "payment_method": order.get("payment_method"),
+        "payment_method_name": payment_method_name,
+        
+        # Ürünler
+        "items": order.get("items", []),
+        
+        # Tutarlar
+        "total_price": order.get("total_price", order.get("total_amount", 0)),
+        "total_discounted_price": order.get("total_discounted_price", 0),
+        "total_amount": order.get("total_amount", 0),
+        
+        # Notlar
+        "order_notes": order.get("notes"),
+        
+        # İleri tarihli sipariş
+        "is_scheduled": getir_raw.get("isScheduled", False),
+        "scheduled_date": getir_raw.get("scheduledDate"),
+        
+        # Getir kuryesi mi?
+        "is_getir_courier": getir_raw.get("isGetirCourier", delivery_type == 1),
+        
+        # Ham veri (debug için)
+        "raw_status": getir_raw.get("status"),
+        "raw_status_text": getir_raw.get("statusText")
+    }
+    
+    return {
+        "success": True,
+        "receipt": receipt_data
+    }
+
+
+@router.get("/orders/{order_id}/receipt/html")
+async def get_order_receipt_html(order_id: str):
+    """
+    Getir sipariş fişi HTML formatında
+    Yazdırma için optimize edilmiş
+    """
+    # Siparişi bul
+    order = await db.orders.find_one(
+        {"id": order_id},
+        {"_id": 0}
+    )
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    
+    if order.get("source") != "getir":
+        raise HTTPException(status_code=400, detail="Bu sipariş Getir siparişi değil")
+    
+    getir_raw = order.get("getir_raw", {})
+    
+    # Ödeme yöntemi
+    payment_method_id = getir_raw.get("paymentMethodId")
+    payment_method_info = GETIR_PAYMENT_METHODS.get(payment_method_id, {})
+    payment_method_name = getir_raw.get("paymentMethodName") or payment_method_info.get("name", "Online Ödeme")
+    
+    # Teslimat tipi
+    delivery_type = getir_raw.get("deliveryType", 1)
+    delivery_type_text = "Getir Getirsin" if delivery_type == 1 else "Restoran Getirsin"
+    
+    # Tarih formatla
+    order_date = order.get("created_at", "")
+    if order_date:
+        try:
+            from datetime import datetime
+            dt = datetime.fromisoformat(order_date.replace('Z', '+00:00'))
+            order_date_formatted = dt.strftime("%d.%m.%Y %H:%M")
+        except:
+            order_date_formatted = order_date
+    else:
+        order_date_formatted = "-"
+    
+    # Ürünleri HTML'e çevir
+    items_html = ""
+    for item in order.get("items", []):
+        item_name = item.get("name", "Ürün")
+        quantity = item.get("quantity", 1)
+        price = item.get("price", 0)
+        total = quantity * price
+        notes = item.get("notes", "")
+        
+        items_html += f"""
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #eee;">{item_name}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">{quantity}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">₺{price:.2f}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">₺{total:.2f}</td>
+        </tr>
+        """
+        if notes:
+            items_html += f"""
+            <tr>
+                <td colspan="4" style="padding: 4px 8px; font-size: 12px; color: #666; font-style: italic;">
+                    Ürün Notu: {notes}
+                </td>
+            </tr>
+            """
+    
+    # Toplam tutarlar
+    total_price = order.get("total_price", order.get("total_amount", 0))
+    total_discounted = order.get("total_discounted_price", 0)
+    total_amount = order.get("total_amount", 0)
+    
+    discount_html = ""
+    if total_discounted and total_discounted != total_price:
+        discount = total_price - total_discounted
+        discount_html = f"""
+        <tr>
+            <td colspan="3" style="padding: 8px; text-align: right;">İndirim:</td>
+            <td style="padding: 8px; text-align: right; color: green;">-₺{discount:.2f}</td>
+        </tr>
+        """
+    
+    # Sipariş notu
+    order_notes = order.get("notes", "")
+    notes_parts = order_notes.split(" | ") if order_notes else []
+    customer_note = ""
+    address_note = ""
+    for part in notes_parts:
+        if part.startswith("MÜŞTERİ NOTU:"):
+            customer_note = part.replace("MÜŞTERİ NOTU:", "").strip()
+        elif part.startswith("ADRES TARIFI:"):
+            address_note = part.replace("ADRES TARIFI:", "").strip()
+    
+    notes_html = ""
+    if customer_note:
+        notes_html += f'<p><strong>Sipariş Notu:</strong> {customer_note}</p>'
+    if address_note:
+        notes_html += f'<p><strong>Adres Tarifi:</strong> {address_note}</p>'
+    
+    # İleri tarihli sipariş
+    scheduled_html = ""
+    if getir_raw.get("isScheduled"):
+        scheduled_date = getir_raw.get("scheduledDate", "")
+        scheduled_html = f'<p style="color: orange; font-weight: bold;">⏰ İLERİ TARİHLİ SİPARİŞ: {scheduled_date}</p>'
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Getir Sipariş Fişi - {order.get('order_number')}</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; }}
+            .header {{ text-align: center; margin-bottom: 20px; }}
+            .logo {{ width: 120px; margin-bottom: 10px; }}
+            .order-info {{ margin-bottom: 15px; }}
+            .order-info p {{ margin: 5px 0; }}
+            .verification-code {{ 
+                font-size: 24px; 
+                font-weight: bold; 
+                color: #5D3EBC; 
+                text-align: center;
+                padding: 10px;
+                border: 2px dashed #5D3EBC;
+                margin: 15px 0;
+            }}
+            table {{ width: 100%; border-collapse: collapse; }}
+            th {{ background: #5D3EBC; color: white; padding: 10px; text-align: left; }}
+            .total-row {{ font-weight: bold; background: #f5f5f5; }}
+            .footer {{ margin-top: 20px; text-align: center; font-size: 12px; color: #666; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <img src="https://cdn.getir.com/getirweb-images/common/getir-logo-purple.svg" alt="Getir" class="logo">
+            <h2>Sipariş Fişi</h2>
+        </div>
+        
+        <div class="verification-code">
+            Doğrulama Kodu: {order.get('verification_code') or getir_raw.get('verificationCode') or order.get('getir_confirmation_id', '')[:4]}
+        </div>
+        
+        <div class="order-info">
+            <p><strong>Sipariş No:</strong> {order.get('order_number')}</p>
+            <p><strong>Tarih:</strong> {order_date_formatted}</p>
+            <p><strong>Teslimat Tipi:</strong> {delivery_type_text}</p>
+            <p><strong>Ödeme Yöntemi:</strong> {payment_method_name}</p>
+        </div>
+        
+        {scheduled_html}
+        
+        <div class="customer-info">
+            <p><strong>Müşteri:</strong> {order.get('customer_name', '-')}</p>
+            <p><strong>Telefon:</strong> {order.get('customer_phone', '-')}</p>
+            <p><strong>Adres:</strong> {order.get('delivery_address', '-')}</p>
+        </div>
+        
+        {notes_html}
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Ürün</th>
+                    <th style="text-align: center;">Adet</th>
+                    <th style="text-align: right;">Fiyat</th>
+                    <th style="text-align: right;">Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {items_html}
+                {discount_html}
+                <tr class="total-row">
+                    <td colspan="3" style="padding: 10px; text-align: right;">İndirimli Toplam:</td>
+                    <td style="padding: 10px; text-align: right;">₺{total_amount:.2f}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <p>Getir Yemek - AgrosJet POS Entegrasyonu</p>
+            <p>Bu fiş {order_date_formatted} tarihinde oluşturulmuştur.</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content=html)
