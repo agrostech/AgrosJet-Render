@@ -459,29 +459,19 @@ async def assign_courier_core(
 
 
 # --- Ücret Hesaplama Fonksiyonları ---
-def calculate_distance(restaurant_location: dict, delivery_location: dict) -> float:
-    """Haversine formula ile mesafe hesapla (km)"""
-    if not restaurant_location or not delivery_location:
-        return 0.0
+def calculate_distance(restaurant_location: dict = None, delivery_location: dict = None, 
+                       lat1: float = None, lng1: float = None, lat2: float = None, lng2: float = None) -> float:
+    """
+    Haversine formula ile mesafe hesapla (km).
+    Ya location dict'leri ya da doğrudan koordinatlar verilebilir.
+    """
+    # Location dict'lerinden koordinat çıkar
+    if restaurant_location and delivery_location:
+        lat1 = restaurant_location.get("latitude") or restaurant_location.get("lat") or 0
+        lng1 = restaurant_location.get("longitude") or restaurant_location.get("lng") or 0
+        lat2 = delivery_location.get("latitude") or delivery_location.get("lat") or 0
+        lng2 = delivery_location.get("longitude") or delivery_location.get("lng") or 0
     
-    R = 6371  # Dünya yarıçapı km
-    lat1 = restaurant_location.get("latitude") or restaurant_location.get("lat") or 0
-    lon1 = restaurant_location.get("longitude") or restaurant_location.get("lng") or 0
-    lat2 = delivery_location.get("latitude") or delivery_location.get("lat") or 0
-    lon2 = delivery_location.get("longitude") or delivery_location.get("lng") or 0
-    
-    if not all([lat1, lon1, lat2, lon2]):
-        return 0.0
-    
-    dLat = math.radians(lat2 - lat1)
-    dLon = math.radians(lon2 - lon1)
-    a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    return R * c
-
-
-def calculate_distance_between_points(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    """İki koordinat arası mesafe hesapla (km) - Haversine"""
     if not all([lat1, lng1, lat2, lng2]):
         return 0.0
     
@@ -491,6 +481,12 @@ def calculate_distance_between_points(lat1: float, lng1: float, lat2: float, lng
     a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
     return R * c
+
+
+# Backward compatibility alias
+def calculate_distance_between_points(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """İki koordinat arası mesafe hesapla (km) - calculate_distance wrapper"""
+    return calculate_distance(lat1=lat1, lng1=lng1, lat2=lat2, lng2=lng2)
 
 
 def get_location_coords(location: dict) -> tuple:
