@@ -1075,6 +1075,125 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Migros Yemek Modal */}
+      <Dialog open={showMigrosModal} onOpenChange={setShowMigrosModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Migros Yemek Entegrasyonu</DialogTitle>
+            <DialogDescription>
+              Migros Yemek API bilgilerinizi girerek entegrasyonu başlatın
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>API Key</Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.migros_api_key ? "text" : "password"}
+                  value={migrosForm.api_key}
+                  onChange={(e) => setMigrosForm(prev => ({ ...prev, api_key: e.target.value }))}
+                  placeholder="Migros API Key"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, migros_api_key: !prev.migros_api_key }))}
+                >
+                  {showSecrets.migros_api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Secret Key</Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.migros_secret_key ? "text" : "password"}
+                  value={migrosForm.secret_key}
+                  onChange={(e) => setMigrosForm(prev => ({ ...prev, secret_key: e.target.value }))}
+                  placeholder="Şifreleme için Secret Key"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, migros_secret_key: !prev.migros_secret_key }))}
+                >
+                  {showSecrets.migros_secret_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Store ID</Label>
+                <Input
+                  type="text"
+                  value={migrosForm.store_id}
+                  onChange={(e) => setMigrosForm(prev => ({ ...prev, store_id: e.target.value }))}
+                  placeholder="Restoran ID"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Zincir ID</Label>
+                <Input
+                  type="text"
+                  value={migrosForm.store_group_id}
+                  onChange={(e) => setMigrosForm(prev => ({ ...prev, store_group_id: e.target.value }))}
+                  placeholder="Store Group ID"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="migros_is_test"
+                checked={migrosForm.is_test}
+                onChange={(e) => setMigrosForm(prev => ({ ...prev, is_test: e.target.checked }))}
+                className="rounded"
+              />
+              <Label htmlFor="migros_is_test" className="text-sm cursor-pointer">
+                Test ortamını kullan
+              </Label>
+            </div>
+
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={testMigrosConnection}
+                disabled={testingMigros}
+              >
+                {testingMigros ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                Bağlantı Testi
+              </Button>
+            </div>
+
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800">
+                <strong>Not:</strong> API bilgilerini Migros Yemek entegrasyon ekibinden alabilirsiniz. 
+                Test ortamı seçili olduğunda test.gourmet.migrosonline.com adresine bağlanılır.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMigrosModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={saveMigrosConfig} disabled={savingMigros}>
+              {savingMigros ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
