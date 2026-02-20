@@ -77,7 +77,9 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
         elif source == "getir":
             from services.getir_service import (
                 cancel_getir_order,
-                trigger_getir_deliver
+                trigger_getir_deliver,
+                handover_getir_order,
+                smart_advance_getir_order
             )
             
             # Getir kuryesi kontrolü (deliveryType: 1=Getir Getirsin, 2=Restoran Getirsin)
@@ -89,10 +91,10 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             
             if new_status == "on_the_way":
                 # "Yola Çıkar" butonu tıklandığında
-                # Restoran Getirsin: Getir API'ye bildirim YOK (sadece bizim sistemde yolda)
-                # Getir Getirsin: Getir kuryesi halleder
+                # smart_advance_getir_order fonksiyonu Getir'deki mevcut duruma göre
+                # gerekli adımları otomatik atar (prepare, handover, deliver)
                 logger.info(f"Getir Yola Çıkar: order={order_id}, is_getir_courier={is_getir_courier}")
-                result = {"success": True, "message": "Sipariş yola çıktı (Getir'e teslim et ile bildirilecek)"}
+                result = await smart_advance_getir_order(restaurant_id, order_id, "on_the_way", is_getir_courier)
                 
             elif new_status == "delivered":
                 # "Teslim Et" butonu tıklandığında
