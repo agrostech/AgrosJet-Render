@@ -222,7 +222,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
         if (cardType.toLowerCase().includes('setcard')) return 'Setcard';
         return cardType || 'Yemek Kartı';
       case 'online': return 'Online';
-      case 'online_meal_card': return 'Online';
+      case 'online_meal_card': return 'Online Yemek Kartı';
       default: return method || '-';
     }
   };
