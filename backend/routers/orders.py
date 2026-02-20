@@ -111,8 +111,8 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                     result = {"success": True, "message": "Getir Getirsin siparişi - teslim Getir kuryesi tarafından yapılacak"}
                 
             elif new_status == "cancelled":
-                # İptal
-                result = await cancel_getir_order(restaurant_id, order_id)
+                # İptal - iptal sebebi ve notu ile birlikte gönder
+                result = await cancel_getir_order(restaurant_id, order_id, cancel_reason_id, cancel_note)
             
             if result:
                 if result.get("success"):
