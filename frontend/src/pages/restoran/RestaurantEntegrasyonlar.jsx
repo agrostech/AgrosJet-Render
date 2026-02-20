@@ -405,6 +405,79 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     toast.success("Loglar panoya kopyalandı!");
   };
 
+  // Migros Yemek handlers
+  const openMigrosModal = () => {
+    setMigrosForm({
+      api_key: "",
+      secret_key: "",
+      store_id: migrosData?.store_id || "",
+      store_group_id: migrosData?.store_group_id || "",
+      is_test: migrosData?.is_test !== false
+    });
+    setShowMigrosModal(true);
+  };
+
+  const testMigrosConnection = async () => {
+    if (!migrosForm.api_key || !migrosForm.secret_key || !migrosForm.store_id) {
+      toast.error("Lütfen tüm alanları doldurun");
+      return;
+    }
+    setTestingMigros(true);
+    try {
+      const res = await axios.post(`${API}/migros/test-connection`, {
+        api_key: migrosForm.api_key,
+        secret_key: migrosForm.secret_key,
+        store_id: parseInt(migrosForm.store_id),
+        store_group_id: parseInt(migrosForm.store_group_id),
+        is_test: migrosForm.is_test
+      });
+      if (res.data.success) {
+        toast.success("Migros Yemek bağlantısı başarılı!");
+      } else {
+        toast.error(`Bağlantı başarısız: ${res.data.error}`);
+      }
+    } catch (err) {
+      toast.error(`Test hatası: ${err.response?.data?.detail || err.message}`);
+    } finally {
+      setTestingMigros(false);
+    }
+  };
+
+  const saveMigrosConfig = async () => {
+    if (!migrosForm.api_key || !migrosForm.secret_key || !migrosForm.store_id) {
+      toast.error("Lütfen tüm alanları doldurun");
+      return;
+    }
+    setSavingMigros(true);
+    try {
+      await axios.put(`${API}/restaurant-integrations/${restaurantId}/migros`, {
+        api_key: migrosForm.api_key,
+        secret_key: migrosForm.secret_key,
+        store_id: parseInt(migrosForm.store_id),
+        store_group_id: parseInt(migrosForm.store_group_id),
+        is_test: migrosForm.is_test
+      });
+      toast.success("Migros Yemek entegrasyonu kaydedildi!");
+      setShowMigrosModal(false);
+      fetchMigrosData();
+    } catch (err) {
+      toast.error(`Kaydetme hatası: ${err.response?.data?.detail || err.message}`);
+    } finally {
+      setSavingMigros(false);
+    }
+  };
+
+  const removeMigrosIntegration = async () => {
+    if (!confirm("Migros Yemek entegrasyonunu kaldırmak istediğinizden emin misiniz?")) return;
+    try {
+      await axios.delete(`${API}/restaurant-integrations/${restaurantId}/migros`);
+      toast.success("Migros Yemek entegrasyonu kaldırıldı");
+      setMigrosData(null);
+    } catch (err) {
+      toast.error(`Kaldırma hatası: ${err.response?.data?.detail || err.message}`);
+    }
+  };
+
   return (
     <div className="space-y-6" data-testid="restaurant-entegrasyonlar">
       {/* Yemek Platformları - Çoklu Mağaza Desteği */}
