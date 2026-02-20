@@ -906,12 +906,6 @@ async def trigger_getir_deliver(restaurant_id: str, order_id: str) -> dict:
         }
 
 
-# Eski fonksiyon - geriye uyumluluk için
-async def auto_verify_and_prepare(restaurant: dict, getir_order_id: str, getir_order: dict) -> dict:
-    """Eski fonksiyon - artık auto_verify_and_schedule_prepare kullanılıyor"""
-    return await auto_verify_and_schedule_prepare(restaurant, getir_order_id, getir_order, "")
-
-
 async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
     """Restoran için Getir siparişlerini senkronize et"""
     restaurant = await db.restaurants.find_one(
