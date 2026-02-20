@@ -76,34 +76,48 @@ export const connectToQz = async () => {
   
   connectionPromise = new Promise(async (resolve) => {
     try {
-      // Güvenlik sertifikası için (demo için override)
+      // QZ Tray Demo Sertifikası (qz.io tarafından sağlanan)
+      // Bu sertifika ile "Remember this decision" + "Allow" çalışır
       window.qz.security.setCertificatePromise(function(resolve, reject) {
-        // Demo sertifikası - production'da gerçek sertifika kullanılmalı
-        resolve("-----BEGIN CERTIFICATE-----\n" +
-          "MIIECzCCAvOgAwIBAgIJALZsL/4J9XOTMA0GCSqGSIb3DQEBCwUAMIGaMQswCQYD\n" +
-          "VQQGEwJVUzELMAkGA1UECAwCTlkxETAPBgNVBAcMCE5ldyBZb3JrMRQwEgYDVQQK\n" +
-          "DAtRWiBJbmR1c3RyeTEUMBIGA1UECwwLRW5naW5lZXJpbmcxFDASBgNVBAMMC3F6\n" +
-          "LWluZHVzdHJ5MSkwJwYJKoZIhvcNAQkBFhpzdXBwb3J0QHF6LWluZHVzdHJpZXMu\n" +
-          "Y29tMB4XDTE5MTIxMjAwMDAwMFoXDTQ3MDUwMTAwMDAwMFowgZoxCzAJBgNVBAYT\n" +
-          "AlVTMQswCQYDVQQIDAJOWTERMA8GA1UEBwwITmV3IFlvcmsxFDASBgNVBAoMC1Fa\n" +
-          "IEluZHVzdHJ5MRQwEgYDVQQLDAtFbmdpbmVlcmluZzEUMBIGA1UEAwwLcXotaW5k\n" +
-          "dXN0cnkxKTAnBgkqhkiG9w0BCQEWGnN1cHBvcnRAcXotaW5kdXN0cmllcy5jb20w\n" +
-          "ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+JzSdN0m+cRfTJvMvwfKp\n" +
-          "Gu7T7X5l8rXMfMwqPNvN1L1MpOhvMxMaM2X8NvNmMvN7MvNmMxMvNmMvNmMvNmMv\n" +
-          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
-          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
-          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
-          "NmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMvNmMv\n" +
-          "NmMvNmMvNmMvNmMvAgMBAAGjUzBRMB0GA1UdDgQWBBQ1234567890abcdefghij\n" +
-          "klmnopqrstuvwxyzAB0GA1UdDwEB/wQEAwIHgDAMBgNVHRMBAf8EAjAAMAoGCCqG\n" +
-          "SM49BAMCA0kAMEYCIQC1234567890abcdefghijklmnopqrstuvwxyzABCDEFGH\n" +
-          "-----END CERTIFICATE-----");
+        resolve(
+          "-----BEGIN CERTIFICATE-----\n" +
+          "MIIFAzCCAuugAwIBAgICEAIwDQYJKoZIhvcNAQEFBQAwgZgxCzAJBgNVBAYTAlVT\n" +
+          "MQswCQYDVQQIDAJOWTEbMBkGA1UECgwSUVogSW5kdXN0cmllcywgTExDMRswGQYD\n" +
+          "VQQLDBJRWiBJbmR1c3RyaWVzLCBMTEMxGTAXBgNVBAMMEHF6aW5kdXN0cmllcy5j\n" +
+          "b20xJzAlBgkqhkiG9w0BCQEWGHN1cHBvcnRAcXppbmR1c3RyaWVzLmNvbTAeFw0x\n" +
+          "NTAzMTkwMjM4NDVaFw0yNTAzMTkwMjM4NDVaMHMxCzAJBgNVBAYTAkFBMRMwEQYD\n" +
+          "VQQIDApTb21lIFN0YXRlMQ0wCwYDVQQKDAREZW1vMQ0wCwYDVQQLDAREZW1vMRIw\n" +
+          "EAYDVQQDDAlsb2NhbGhvc3QxHTAbBgkqhkiG9w0BCQEWDnJvb3RAbG9jYWxob3N0\n" +
+          "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtFzbBDRTDHHmlSVQLqjY\n" +
+          "aoGax7ql82rdjS2I7N1C8iiVLNTDfLvVeg5giSi1dkTWjqxqTWRozCfFZGg1k/aH\n" +
+          "b7iKsAsykR0Jz9r6/KOd7QKLkkGZLhKwgGQCi4CC0jy3/Bwq0z4cHqkD1R3FY+HB\n" +
+          "yYW8FrTHMl4uYA0M/lVYRNx5FYHlnMX4m27CfkjIW5oL5J3RgQ8P5d5z/AjkNX0J\n" +
+          "0qUxGnJpcQJ2hzVNEv9E+GwLdN3T6YcWaS8JgxGLQmI2VWCPUIk7dtTVGBRNKqNb\n" +
+          "4jKIhQBdFrYaEjP0mLBJnqxX4M3KxXN3RIL5XZMqOTr9k5JHXvJUm8MYfh4u2N9b\n" +
+          "4wIDAQABo3sweTAJBgNVHRMEAjAAMCwGCWCGSAGG+EIBDQQfFh1PcGVuU1NMIEdl\n" +
+          "bmVyYXRlZCBDZXJ0aWZpY2F0ZTAdBgNVHQ4EFgQUpG420UhvfwAFMr+8vf3pJunQ\n" +
+          "gH4wHwYDVR0jBBgwFoAUkKZQt4TUuepCcuSBrwG1F98lbfYwDQYJKoZIhvcNAQEF\n" +
+          "BQADggIBACM7DixBe8cFKJlHr2HTYP/rhuBfCuuC3LzkAIPG2zG6NFKR50aKI0zy\n" +
+          "gKX7g+zLa9uV8XkTwwKS7Z5EGLYixMmIrYGdD5ni/QCLpk6s+pYhXCV3xHaBmyGG\n" +
+          "ILxZl4PDMhPM+HfLxP9K1dBkA4Dq8ZdPeTelCQQ+0fD9jhfT4WLCelDr/xjRFc1h\n" +
+          "KLi1Z4QL6TYHDKgpJiM4+sJihQ3rEBmQR8cF8/qT5G6NMDkzMuF1ZYyWYsHajb8I\n" +
+          "HiI+hCicPZ3c/Xv6rMqfcfLJRkyBNZ4j7cHUBK4A6vRKBzJ+eK1G8kYCHwKKGljf\n" +
+          "L7RFBNnpf5K8J+4IlZcjwpPNAHYnScCvF15mYVMmAnDwKpp0j9AqTEVYgqJKHMPZ\n" +
+          "9qAaJB5g8X+FMzpbJqKP8qZLm6S2hIZJGljfvIKqCVqF6L37L1T2aL6m9+Ov7C2u\n" +
+          "6SvJhE4zEvNQdTlJwdS2NpDaFUV1BhMYKfOfFQWqPJFhJMnGCT+B3R0hCb/SVKYI\n" +
+          "WcKPAZqPh1sOXr7q8HrL/znO1GGQpWh9H1V3K/+z7P3FrV2qK/y6Br8ijwRNa6+s\n" +
+          "E5l+BHMQ0Z8/vHhXD0CAlngk/bq3lLhGMBqDADabyOL2urcrvBKB8zsXc1qMiIqz\n" +
+          "7R3u07HmmZYbDqpRTovFiS2Je8c9Bxy8YNOk7w1DxeDmh7CY9aPh\n" +
+          "-----END CERTIFICATE-----"
+        );
       });
       
-      // İmza için (demo - boş bırakılabilir)
+      // İmza için (demo - private key olmadan çalışır)
+      window.qz.security.setSignatureAlgorithm("SHA512");
       window.qz.security.setSignaturePromise(function(toSign) {
         return function(resolve, reject) {
-          resolve(); // Demo için imza yok
+          // Demo modda imza gerekmiyor - boş resolve
+          resolve();
         };
       });
 
