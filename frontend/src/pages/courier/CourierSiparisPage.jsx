@@ -416,8 +416,16 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setRefreshing(true);
     try {
-      const res = await axios.get(`${API}/orders/courier/${courierId}/active`);
-      const newOrders = res.data;
+      // Yeni merkezi endpoint kullan
+      const res = await axios.get(`${API}/orders/v2/list`, {
+        params: {
+          panel: 'courier',
+          courier_id: courierId,
+          status: 'active',
+          limit: 50
+        }
+      });
+      const newOrders = res.data.orders || [];
       setOrders(newOrders);
       
       // Check for new assigned orders
