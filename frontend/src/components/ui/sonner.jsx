@@ -10,6 +10,7 @@ const Toaster = ({
     <Sonner
       theme={theme}
       className="toaster group"
+      duration={2000}
       toastOptions={{
         classNames: {
           toast:
