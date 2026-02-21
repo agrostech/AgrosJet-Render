@@ -133,7 +133,7 @@ export default function HakedisTable({
                   <td className="p-3 text-right">
                     {courier.hourly_rate > 0 ? (
                       <div className="flex flex-col items-end">
-                        <span className="font-mono text-amber-700 font-semibold">
+                        <span className="font-mono text-slate-700">
                           {formatMoney(courier.hourly_earnings || 0)}
                         </span>
                         <span className="text-[10px] text-slate-400">
