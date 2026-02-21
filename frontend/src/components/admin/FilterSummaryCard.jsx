@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Store, Bike } from "lucide-react";
+import { Store, Bike, Clock } from "lucide-react";
 
 /**
  * Filtreleme sonucu özet kartı
@@ -10,7 +10,8 @@ export default function FilterSummaryCard({
   restaurantFilter, 
   courierFilter, 
   restaurants, 
-  couriers 
+  couriers,
+  hourlyData = null  // { active_hours, hourly_rate, hourly_earnings }
 }) {
   // Filtreleme yapılmadıysa gösterme
   if (restaurantFilter === "all" && courierFilter === "all") {
