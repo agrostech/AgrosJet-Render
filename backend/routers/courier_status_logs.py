@@ -92,7 +92,7 @@ async def get_today_logs(courier_id: str):
         try:
             last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
             current_active_minutes = int((datetime.now(timezone.utc) - last_time).total_seconds() / 60)
-        except:
+        except (ValueError, TypeError):
             pass
     
     total_active_minutes += current_active_minutes
