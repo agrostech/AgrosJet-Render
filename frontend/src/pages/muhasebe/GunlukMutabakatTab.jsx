@@ -517,7 +517,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     </th>
                     <th className="text-left p-2 font-semibold text-xs text-slate-600">Kurye</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={2}>Sipariş (Sistem)</th>
-                    <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={4}>Tahsilat (Giriş)</th>
+                    <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={hasMealCardCollection ? 5 : 4}>Tahsilat (Giriş)</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={4}>Fark</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600 w-16">Durum</th>
                   </tr>
@@ -530,6 +530,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     <th className="p-1 text-center w-24">%1</th>
                     <th className="p-1 text-center w-24">%10</th>
                     <th className="p-1 text-center w-24">%20</th>
+                    {hasMealCardCollection && <th className="p-1 text-center w-24">Y.Kartı</th>}
                     <th className="p-1 text-center">Nakit</th>
                     <th className="p-1 text-center">Kart</th>
                     <th className="p-1 text-center">Y.Yüzde</th>
