@@ -294,16 +294,7 @@ export function CourierDetailModal({
           {/* Son Konum */}
           <div className="flex items-center justify-between px-2 py-1.5 sm:py-2 bg-slate-50 rounded text-xs sm:text-sm">
             <span className="text-muted-foreground">Son Konum</span>
-            <span className={`font-medium px-1.5 sm:px-2 py-0.5 rounded text-xs ${
-              courier.current_location?.updated_at 
-                ? (() => {
-                    const timeAgo = getLocationTimeAgo(courier.current_location.updated_at);
-                    if (timeAgo === "Şimdi" || timeAgo?.includes("sn")) return "bg-green-100 text-green-700";
-                    if (timeAgo?.includes("dk") && parseInt(timeAgo) <= 5) return "bg-green-100 text-green-700";
-                    return "bg-yellow-100 text-yellow-700";
-                  })()
-                : "bg-slate-100 text-slate-600"
-            }`}>
+            <span className="font-medium px-1.5 sm:px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600">
               {courier.current_location?.updated_at 
                 ? getLocationTimeAgo(courier.current_location.updated_at)
                 : "Yok"}
