@@ -551,25 +551,6 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     total_discounted = float(getir_order.get("totalDiscountedPrice", 0))
     total_amount = total_discounted if total_discounted > 0 else total_price
     
-    # Kampanya/İndirim bilgisi
-    promotions = getir_order.get("promotions") or getir_order.get("appliedPromotions") or []
-    discounts = getir_order.get("discounts") or []
-    coupon_code = getir_order.get("couponCode") or getir_order.get("usedCoupon") or ""
-    
-    # Kampanya detaylarını çıkar
-    campaign_info = []
-    for promo in promotions:
-        promo_name = promo.get("name") or promo.get("title") or promo.get("description") or ""
-        promo_amount = promo.get("discountAmount") or promo.get("amount") or 0
-        if promo_name:
-            campaign_info.append({"name": promo_name, "amount": float(promo_amount)})
-    
-    for disc in discounts:
-        disc_name = disc.get("name") or disc.get("title") or disc.get("reason") or "İndirim"
-        disc_amount = disc.get("amount") or disc.get("discountAmount") or 0
-        if disc_amount:
-            campaign_info.append({"name": disc_name, "amount": float(disc_amount)})
-    
     # Ödeme yöntemi
     payment_method = getir_order.get("paymentMethod")
     payment = map_getir_payment(payment_method)
@@ -628,9 +609,6 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "total_amount": total_amount,
         "total_price": total_price,
         "total_discounted_price": total_discounted,
-        "discount_amount": total_price - total_discounted if total_discounted > 0 else 0,
-        "campaigns": campaign_info,
-        "coupon_code": coupon_code,
         "payment_method": payment,
         "payment_method_name": payment_method_name,
         "status": "pending",
@@ -655,10 +633,7 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
             "isScheduled": is_scheduled,
             "scheduledDate": scheduled_date,
             "verificationCode": verification_code,
-            "confirmationId": confirmation_id,
-            "promotions": promotions,
-            "discounts": discounts,
-            "couponCode": coupon_code
+            "confirmationId": confirmation_id
         }
     }
 
