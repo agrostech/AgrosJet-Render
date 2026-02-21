@@ -3,14 +3,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Printer, X } from "lucide-react";
 
-// Getir Yemek Logosu - Mor arka plan beyaz yazı
+// Getir Yemek Logosu - Resim
+const GETIR_LOGO_URL = "https://customer-assets.emergentagent.com/job_38fbd95d-aa19-44b0-b411-ca675322d416/artifacts/fcdcgicl_getirlogo.png";
+
 const GetirLogo = () => (
-  <svg viewBox="0 0 200 60" className="w-full h-auto">
-    <rect width="200" height="60" rx="8" fill="#5D3EBC"/>
-    <text x="100" y="42" textAnchor="middle" fill="white" fontSize="26" fontWeight="bold" fontFamily="Arial, sans-serif">
-      getir yemek
-    </text>
-  </svg>
+  <img 
+    src={GETIR_LOGO_URL} 
+    alt="Getir Yemek" 
+    className="w-full h-auto max-w-[180px] mx-auto"
+    style={{ maxWidth: "180px", height: "auto" }}
+  />
 );
 
 // Tarih formatlama
