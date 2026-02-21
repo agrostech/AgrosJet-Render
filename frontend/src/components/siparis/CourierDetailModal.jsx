@@ -319,10 +319,10 @@ export function CourierDetailModal({
           </div>
           
           {/* Bugünkü Çalışma Özeti */}
-          <div className="px-2 py-2 bg-amber-50 rounded border border-amber-100">
+          <div className="px-2 py-2 bg-slate-50 rounded border border-slate-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-amber-800">Bugünkü Çalışma</span>
-              <span className="text-xs font-semibold text-amber-700">
+              <span className="text-xs font-medium text-slate-700">Bugünkü Çalışma</span>
+              <span className="text-xs font-semibold text-slate-800">
                 {workLogs.total_active_hours} saat aktif
               </span>
             </div>
@@ -330,16 +330,11 @@ export function CourierDetailModal({
               <div className="flex flex-wrap gap-1">
                 {workLogs.logs.slice(-8).map((log, i) => {
                   const time = new Date(log.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-                  const statusColors = {
-                    active: 'bg-green-100 text-green-700 border-green-200',
-                    on_break: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-                    offline: 'bg-slate-100 text-slate-600 border-slate-200'
-                  };
                   const statusLabels = { active: 'Aktif', on_break: 'Mola', offline: 'Çevrimdışı' };
                   return (
                     <div 
                       key={i} 
-                      className={`px-1.5 py-0.5 rounded text-[10px] border ${statusColors[log.new_status] || statusColors.offline}`}
+                      className="px-1.5 py-0.5 rounded text-[10px] border border-slate-200 bg-white text-slate-600"
                     >
                       {time} → {statusLabels[log.new_status] || log.new_status}
                     </div>
@@ -347,7 +342,7 @@ export function CourierDetailModal({
                 })}
               </div>
             ) : (
-              <div className="text-[10px] text-amber-600">Henüz durum değişikliği yok</div>
+              <div className="text-[10px] text-slate-500">Henüz durum değişikliği yok</div>
             )}
           </div>
           
