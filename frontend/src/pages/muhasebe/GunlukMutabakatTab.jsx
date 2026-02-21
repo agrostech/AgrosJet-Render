@@ -52,6 +52,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   const [dateRange, setDateRange] = useState(null);
   const [summary, setSummary] = useState({ total_couriers: 0, completed_couriers: 0, processed_couriers: 0 });
   const [weeklyData, setWeeklyData] = useState(null);
+  const [hasMealCardCollection, setHasMealCardCollection] = useState(false);
   
   const [selectedIds, setSelectedIds] = useState([]);
   const [editedCollections, setEditedCollections] = useState({});
