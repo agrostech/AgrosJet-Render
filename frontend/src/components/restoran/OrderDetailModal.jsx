@@ -469,6 +469,26 @@ function OrderDetails({
         </div>
       )}
 
+      {/* Getir Fiş Yazdır Butonu */}
+      {isGetirOrder && (
+        <div className="pt-2">
+          <Button 
+            onClick={() => setShowGetirReceipt(true)}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Printer className="w-4 h-4 mr-2" />
+            Getir Fişi Yazdır
+          </Button>
+        </div>
+      )}
+
+      {/* Getir Fiş Modal */}
+      <GetirReceiptModal 
+        open={showGetirReceipt} 
+        onClose={() => setShowGetirReceipt(false)} 
+        order={order} 
+      />
+
       {/* Kapat Butonu */}
       <div className="pt-2">
         <Button variant="outline" className="w-full" onClick={() => onClose(false)}>
