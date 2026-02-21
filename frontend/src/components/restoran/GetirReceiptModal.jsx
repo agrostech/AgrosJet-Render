@@ -105,9 +105,10 @@ export default function GetirReceiptModal({ open, onClose, order }) {
             text-align: center;
             margin-bottom: 8px;
           }
-          .logo svg {
-            width: 60mm;
+          .logo img {
+            width: 50mm;
             height: auto;
+            margin: 0 auto;
           }
           .divider {
             border-top: 1px dashed #000;
