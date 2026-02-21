@@ -238,6 +238,8 @@ function CourierCollapsible({
   onCourierClick,
   onCourierHover
 }) {
+  const sortedCouriers = sortCouriersAlphabetically(couriers);
+  
   return (
     <Collapsible defaultOpen={defaultOpen}>
       <CollapsibleTrigger className={`flex items-center justify-between w-full px-2 py-1.5 ${bgColor} rounded text-xs font-semibold ${textColor} ${hoverColor} transition-colors`}>
@@ -248,10 +250,10 @@ function CourierCollapsible({
         <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
       <CollapsibleContent className="pt-1">
-        {couriers.length === 0 ? (
+        {sortedCouriers.length === 0 ? (
           <p className="text-xs text-muted-foreground px-2 py-1">-</p>
         ) : (
-          couriers.map(c => (
+          sortedCouriers.map(c => (
             <CourierItem
               key={c.id}
               courier={c}
