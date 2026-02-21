@@ -189,11 +189,7 @@ export function CourierDetailModal({
               </SelectContent>
             </Select>
             {/* Kalan Mola Süresi - Her zaman göster */}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
-              breakInfo.remaining > 10 ? 'bg-green-100 text-green-700' :
-              breakInfo.remaining > 0 ? 'bg-yellow-100 text-yellow-700' :
-              'bg-red-100 text-red-700'
-            }`}>
+            <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
               <Clock className="w-3 h-3" />
               <span>Mola: {breakInfo.remaining}/{breakInfo.dailyLimit} dk</span>
             </div>
