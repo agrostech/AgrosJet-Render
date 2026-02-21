@@ -183,7 +183,7 @@ export default function HakedisTable({
               {formatMoney((summary.total_amount || 0) - (summary.total_hourly_earnings || 0))}
             </td>
             {hasHourlyRates && (
-              <td className="p-3 text-right font-mono text-amber-700">
+              <td className="p-3 text-right font-mono text-slate-700">
                 {formatMoney(summary.total_hourly_earnings || 0)}
               </td>
             )}
