@@ -10,17 +10,12 @@ export default function HakedisAutoSettings({
   lastAutoRun,
   saving 
 }) {
-  // 15 dk sonraki saati hesapla
+  // 1 saat sonraki saati hesapla
   const getAutoRunTime = () => {
     if (!closingTime) return null;
     const [h, m] = closingTime.split(':').map(Number);
-    let targetM = m + 15;
-    let targetH = h;
-    if (targetM >= 60) {
-      targetM -= 60;
-      targetH = (targetH + 1) % 24;
-    }
-    return `${String(targetH).padStart(2, '0')}:${String(targetM).padStart(2, '0')}`;
+    const targetH = (h + 1) % 24;
+    return `${String(targetH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   };
   
   const autoRunTime = getAutoRunTime();
