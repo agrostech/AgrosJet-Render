@@ -39,6 +39,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
   const [courierFilter, setCourierFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [showSummaryCard, setShowSummaryCard] = useState(false);
+  const [courierHourlyData, setCourierHourlyData] = useState(null);
   
   // Applied filter values (set only when filter button is clicked)
   const [appliedRestaurantFilter, setAppliedRestaurantFilter] = useState("all");
