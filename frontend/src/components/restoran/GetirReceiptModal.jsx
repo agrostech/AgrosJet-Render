@@ -353,6 +353,15 @@ export default function GetirReceiptModal({ open, onClose, order }) {
               </>
             )}
 
+            {/* Plastik Çatal Bıçak İstemiyor */}
+            {doNotSendCutlery && (
+              <div className="note-box border-2 border-black p-2 my-2 bg-gray-100">
+                <div className="text-[11px] font-bold text-center">
+                  ⚠️ ÇATAL-BIÇAK-PEÇETE GÖNDERMEYİN
+                </div>
+              </div>
+            )}
+
             {/* Alt Bilgi */}
             <div className="divider-double border-t-2 border-black my-2"></div>
             <div className="footer text-center text-[10px] mt-3">
