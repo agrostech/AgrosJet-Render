@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Printer, Settings, TestTube, CheckCircle2, XCircle, RefreshCw, Download, ChevronDown, Save } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Printer, Settings, TestTube, CheckCircle2, XCircle, RefreshCw, Download, ChevronDown, Save, Bell, Play, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   checkLocalPrintServer,
@@ -15,6 +16,12 @@ import {
   getLocalPrintSettings,
   saveLocalPrintSettings,
 } from "@/utils/localPrintService";
+import {
+  playNotificationSound,
+  NOTIFICATION_SOUNDS,
+  getNotificationSettings,
+  saveNotificationSettings,
+} from "@/utils/notificationSounds";
 
 export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [localSettings, setLocalSettings] = useState({ enabled: false, printerName: null, paperSize: "80mm" });
