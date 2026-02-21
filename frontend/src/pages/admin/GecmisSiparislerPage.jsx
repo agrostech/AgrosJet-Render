@@ -472,6 +472,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
           courierFilter={appliedCourierFilter}
           restaurants={restaurants}
           couriers={couriers}
+          hourlyData={courierHourlyData}
         />
       )}
 
