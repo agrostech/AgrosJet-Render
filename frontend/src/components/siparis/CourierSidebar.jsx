@@ -296,6 +296,7 @@ function CourierItem({
 }) {
   const packageCounts = counts || { assigned: 0, confirmed: 0, onTheWay: 0 };
   const breakInfo = showBreakTime ? getRemainingBreakTime(courier) : null;
+  const locationStale = !isOffline && isLocationStale(courier);
   
   return (
     <div 
@@ -304,6 +305,9 @@ function CourierItem({
       onMouseEnter={onHover}
     >
       <div className="flex items-center gap-2">
+        {locationStale && (
+          <MapPin className="w-3 h-3 text-red-500" title="Konum güncel değil" />
+        )}
         <Bike className={`w-3 h-3 ${iconColor}`} />
         <span className="truncate">{courier.name}</span>
       </div>
