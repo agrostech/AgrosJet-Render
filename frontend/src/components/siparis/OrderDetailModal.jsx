@@ -341,9 +341,9 @@ export function OrderDetailModal({
 
             {/* Courier */}
             {order.courier_name ? (
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Bike className="w-5 h-5 text-green-600" />
+                  <Bike className="w-5 h-5 text-slate-500" />
                   <div>
                     <p className="font-medium">{order.courier_name}</p>
                     <p className="text-sm text-muted-foreground">Kurye</p>
