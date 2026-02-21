@@ -759,17 +759,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
 
         {/* Map with Courier List */}
         <div className="flex gap-4">
-          <CourierSidebarDesktop
-            couriersNotOnDelivery={couriersNotOnDelivery}
-            couriersOnDelivery={couriersOnDelivery}
-            courierPackageCounts={courierPackageCounts}
-            onCourierClick={handleCourierClick}
-            onCourierHover={handleCourierHover}
-            shifts={shifts}
-            shiftAssignments={shiftAssignments}
-            leaves={leaves}
-          />
-
           <Card className="flex-1">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
@@ -781,6 +770,17 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <div ref={mapRef} className="w-full h-[450px] md:h-[520px] rounded-b-lg" style={{ zIndex: 1 }} />
             </CardContent>
           </Card>
+
+          <CourierSidebarDesktop
+            couriersNotOnDelivery={couriersNotOnDelivery}
+            couriersOnDelivery={couriersOnDelivery}
+            courierPackageCounts={courierPackageCounts}
+            onCourierClick={handleCourierClick}
+            onCourierHover={handleCourierHover}
+            shifts={shifts}
+            shiftAssignments={shiftAssignments}
+            leaves={leaves}
+          />
         </div>
 
         {/* Orders Table */}
