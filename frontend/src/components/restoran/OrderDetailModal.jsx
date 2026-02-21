@@ -21,7 +21,9 @@ import {
   Bike,
   Calendar,
   Map,
+  Printer,
 } from "lucide-react";
+import GetirReceiptModal from "./GetirReceiptModal";
 
 // Sipariş durumları
 const ORDER_STATUS_CONFIG = {
