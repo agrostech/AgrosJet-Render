@@ -204,12 +204,12 @@ function CourierGroup({
   
   return (
     <div>
-      <div className={`flex items-center gap-2 px-2 py-1 ${bgColor} rounded text-sm font-semibold ${textColor} mb-1`}>
+      <div className={`flex items-center gap-2 px-2 py-1 ${bgColor} rounded text-xs font-semibold ${textColor} mb-1`}>
         <div className={`w-2 h-2 rounded-full ${dotColor}`} />
         {title} ({couriers.length})
       </div>
       {sortedCouriers.length === 0 ? (
-        <p className="text-sm text-muted-foreground px-2">-</p>
+        <p className="text-xs text-muted-foreground px-2">-</p>
       ) : (
         sortedCouriers.map(c => (
           <CourierItem
