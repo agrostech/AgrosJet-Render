@@ -241,8 +241,9 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                 <TableRow>
                   <TableHead>Yönetici</TableHead>
                   <TableHead className="text-right">Tahsilat</TableHead>
-                  <TableHead className="text-right text-green-600">Nakit</TableHead>
-                  <TableHead className="text-right text-blue-600">Kart</TableHead>
+                  <TableHead className="text-right">Nakit</TableHead>
+                  <TableHead className="text-right">Kart</TableHead>
+                  {hasMealCard && <TableHead className="text-right">Y.Kartı</TableHead>}
                   <TableHead className="text-right">Toplam</TableHead>
                   <TableHead className="text-center">Son Sıfırlama</TableHead>
                   <TableHead className="text-right">İşlem</TableHead>
@@ -267,12 +268,22 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                     <TableCell className="text-right">
                       {admin.collection_count}
                     </TableCell>
-                    <TableCell className="text-right text-green-600 font-medium">
+                    <TableCell className="text-right font-medium">
                       {formatCurrency(admin.total_cash)}
                     </TableCell>
-                    <TableCell className="text-right text-blue-600 font-medium">
-                      {formatCurrency(admin.total_card)}
+                    <TableCell className="text-right">
+                      <div className="font-medium">{formatCurrency(admin.total_card)}</div>
+                      {(admin.total_card_1 > 0 || admin.total_card_10 > 0 || admin.total_card_20 > 0) && (
+                        <div className="text-[10px] text-muted-foreground">
+                          %1: {formatCurrency(admin.total_card_1)} | %10: {formatCurrency(admin.total_card_10)} | %20: {formatCurrency(admin.total_card_20)}
+                        </div>
+                      )}
                     </TableCell>
+                    {hasMealCard && (
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(admin.total_meal_card)}
+                      </TableCell>
+                    )}
                     <TableCell className="text-right font-bold">
                       {formatCurrency(admin.total_balance)}
                     </TableCell>
