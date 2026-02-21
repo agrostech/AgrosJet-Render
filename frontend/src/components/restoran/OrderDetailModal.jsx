@@ -233,6 +233,26 @@ export default function OrderDetailModal({
             onClose={onClose}
           />
         )}
+
+        {/* Getir Fiş Yazdır Butonu */}
+        {isGetirOrder && (
+          <div className="pt-2 mt-4">
+            <Button 
+              onClick={() => setShowGetirReceipt(true)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Getir Fişi Yazdır
+            </Button>
+          </div>
+        )}
+
+        {/* Getir Fiş Modal */}
+        <GetirReceiptModal 
+          open={showGetirReceipt} 
+          onClose={() => setShowGetirReceipt(false)} 
+          order={order} 
+        />
       </DialogContent>
     </Dialog>
   );
