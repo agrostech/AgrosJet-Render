@@ -141,8 +141,8 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                       <th className="text-left p-2 font-medium">Kurye</th>
                       <th className="text-right p-2 font-medium">Sipariş</th>
                       <th className="text-right p-2 font-medium">Paket</th>
-                      {reportData.couriers?.some(c => c.hourly_rate > 0) && (
-                        <th className="text-right p-2 font-medium text-amber-600">
+                      {reportData.couriers?.some(x => x.hourly_rate > 0) && (
+                        <th className="text-right p-2 font-medium">
                           <span className="flex items-center justify-end gap-1">
                             <Clock className="w-3 h-3" />
                             Saatlik
