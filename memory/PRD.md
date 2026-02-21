@@ -5,6 +5,14 @@ Kullanıcı Getir Yemek entegrasyonundaki hataları düzelttikten sonra, kod tab
 
 ## Tamamlanan İşler (21 Şubat 2026)
 
+### YENİ: Otomatik Hakediş İşleme Zamanı Güncellendi (21 Şubat 2026)
+- **Önceki**: Şirket kapanış saatinden 15 dakika sonra
+- **Şimdi**: Şirket kapanış saatinden 1 saat sonra
+- **Dosya**: `/app/backend/server.py` (satır 174-236)
+- **Mantık**: `target_hour = (close_h + 1) % 24` - gece yarısını da doğru handle ediyor
+
+---
+
 ### YENİ: Kurye Durum Log ve Saatlik Kazanç Sistemi
 
 **Özellik Özeti:**
