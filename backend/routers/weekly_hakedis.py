@@ -137,7 +137,7 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
-    # Şirkete ait kuryeleri getir
+    # Şirkete ait kuryeleri getir (hourly_rate dahil)
     couriers = await db.couriers.find(
         {
             "$or": [
@@ -146,14 +146,14 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
             ],
             "is_archived": {"$ne": True}
         },
-        {"_id": 0, "id": 1, "name": 1, "phone": 1}
+        {"_id": 0, "id": 1, "name": 1, "phone": 1, "hourly_rate": 1}
     ).to_list(1000)
     
     courier_map = {c["id"]: c for c in couriers}
     courier_ids = list(courier_map.keys())
     
     if not courier_ids:
-        return {"couriers": [], "summary": {"total_amount": 0, "total_orders": 0}}
+        return {"couriers": [], "summary": {"total_amount": 0, "total_orders": 0, "total_hourly_earnings": 0}}
     
     # Teslim edilen siparişleri getir
     pipeline = [
@@ -180,6 +180,29 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     
     results = await db.orders.aggregate(pipeline).to_list(1000)
     hakedis_map = {r["_id"]: r for r in results}
+    
+    # Saatlik çalışma sürelerini hesapla
+    start_date = start_dt.strftime("%Y-%m-%d")
+    end_date = end_dt.strftime("%Y-%m-%d")
+    
+    active_hours_pipeline = [
+        {
+            "$match": {
+                "courier_id": {"$in": courier_ids},
+                "date": {"$gte": start_date, "$lte": end_date},
+                "old_status": "active"
+            }
+        },
+        {
+            "$group": {
+                "_id": "$courier_id",
+                "total_active_minutes": {"$sum": "$duration_minutes"}
+            }
+        }
+    ]
+    
+    active_hours_results = await db.courier_status_logs.aggregate(active_hours_pipeline).to_list(1000)
+    active_hours_map = {r["_id"]: r["total_active_minutes"] for r in active_hours_results}
     
     # Hafta açıklaması
     week_description = get_week_description(start_dt, end_dt)
