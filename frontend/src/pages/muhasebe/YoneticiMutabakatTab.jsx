@@ -453,8 +453,8 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
       <Dialog open={!!resetAdmin} onOpenChange={() => { setResetAdmin(null); setResetNote(""); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-600">
-              <AlertTriangle className="w-5 h-5" />
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
               Bakiye Sıfırlama
             </DialogTitle>
             <DialogDescription>
@@ -463,19 +463,33 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-xs text-amber-700">Nakit</div>
-                  <div className="text-lg font-bold text-green-600">{formatCurrency(resetAdmin?.total_cash)}</div>
+            <div className="bg-slate-50 border rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Nakit:</span>
+                  <span className="font-medium">{formatCurrency(resetAdmin?.total_cash)}</span>
                 </div>
-                <div>
-                  <div className="text-xs text-amber-700">Kart</div>
-                  <div className="text-lg font-bold text-blue-600">{formatCurrency(resetAdmin?.total_card)}</div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kart (%1):</span>
+                  <span className="font-medium">{formatCurrency(resetAdmin?.total_card_1)}</span>
                 </div>
-                <div>
-                  <div className="text-xs text-amber-700">Toplam</div>
-                  <div className="text-lg font-bold">{formatCurrency(resetAdmin?.total_balance)}</div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kart (%10):</span>
+                  <span className="font-medium">{formatCurrency(resetAdmin?.total_card_10)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kart (%20):</span>
+                  <span className="font-medium">{formatCurrency(resetAdmin?.total_card_20)}</span>
+                </div>
+                {hasMealCard && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Yemek Kartı:</span>
+                    <span className="font-medium">{formatCurrency(resetAdmin?.total_meal_card)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between col-span-2 pt-2 border-t">
+                  <span className="font-medium">Toplam:</span>
+                  <span className="font-bold">{formatCurrency(resetAdmin?.total_balance)}</span>
                 </div>
               </div>
             </div>
