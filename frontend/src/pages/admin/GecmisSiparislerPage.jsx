@@ -115,11 +115,39 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
   }, [companyId]);
 
   // Handle filter button click
-  const handleFilter = () => {
+  const handleFilter = async () => {
     setCurrentPage(1);
     setShowSummaryCard(true);
     setAppliedRestaurantFilter(restaurantFilter);
     setAppliedCourierFilter(courierFilter);
+    
+    // Kurye filtresi seçildiyse saatlik kazanç bilgisini çek
+    if (courierFilter !== "all" && startDateTime && endDateTime) {
+      try {
+        const start = startDateTime.split('T')[0];
+        const end = endDateTime.split('T')[0];
+        const res = await axios.get(`${API}/courier-status-logs/courier/${courierFilter}/range`, {
+          params: { start_date: start, end_date: end }
+        });
+        
+        // Kuryenin hourly_rate bilgisini al
+        const courier = couriers.find(c => c.id === courierFilter);
+        const hourlyRate = courier?.hourly_rate || 0;
+        const activeHours = res.data?.total_active_hours || 0;
+        const hourlyEarnings = activeHours * hourlyRate;
+        
+        setCourierHourlyData({
+          active_hours: activeHours,
+          hourly_rate: hourlyRate,
+          hourly_earnings: hourlyEarnings
+        });
+      } catch (err) {
+        setCourierHourlyData(null);
+      }
+    } else {
+      setCourierHourlyData(null);
+    }
+    
     fetchAndFilterOrders({
       restaurant: restaurantFilter,
       courier: courierFilter,
