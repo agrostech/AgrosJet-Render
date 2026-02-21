@@ -15,7 +15,7 @@ export function CourierSidebarDesktop({
   leaves = []
 }) {
   return (
-    <Card className="w-72 flex-shrink-0 hidden lg:block">
+    <Card className="w-64 flex-shrink-0 hidden lg:block">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Users className="w-4 h-4" />
