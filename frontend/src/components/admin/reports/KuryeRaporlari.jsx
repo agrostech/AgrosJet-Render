@@ -156,19 +156,21 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-left p-2 font-medium">Kurye</th>
-                      <th className="text-right p-2 font-medium">Sipariş</th>
                       <th className="text-right p-2 font-medium">Paket</th>
-                      {reportData.couriers?.some(x => x.hourly_rate > 0) && (
-                        <th className="text-right p-2 font-medium">
-                          <span className="flex items-center justify-end gap-1">
-                            <Clock className="w-3 h-3" />
-                            Saatlik
-                          </span>
-                        </th>
-                      )}
+                      <th className="text-right p-2 font-medium">
+                        <span className="flex items-center justify-end gap-1">
+                          <Clock className="w-3 h-3" />
+                          Saat
+                        </span>
+                      </th>
+                      <th className="text-right p-2 font-medium">Paket Ü.</th>
+                      <th className="text-right p-2 font-medium">Saatlik Ü.</th>
                       <th className="text-right p-2 font-medium">Toplam</th>
-                      <th className="text-right p-2 font-medium">Nakit</th>
-                      <th className="text-right p-2 font-medium">Kart</th>
+                      <th className="text-right p-2 font-medium text-green-600">Nakit</th>
+                      <th className="text-right p-2 font-medium text-green-600">K.Kartı</th>
+                      {reportData.hasMealCardCollection && (
+                        <th className="text-right p-2 font-medium text-green-600">Y.Kartı</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -200,22 +202,15 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                           </span>
                         </td>
                         <td className="p-2 text-right">{c.orderCount}</td>
+                        <td className="p-2 text-right text-slate-600">{c.active_hours}s</td>
                         <td className="p-2 text-right text-red-600">{c.earnings.toFixed(2)}₺</td>
-                        {reportData.couriers?.some(x => x.hourly_rate > 0) && (
-                          <td className="p-2 text-right">
-                            {c.hourly_rate > 0 ? (
-                              <div className="flex flex-col items-end">
-                                <span className="text-slate-700 font-medium">{c.hourly_earnings.toFixed(2)}₺</span>
-                                <span className="text-[10px] text-slate-400">{c.active_hours}s × {c.hourly_rate}₺</span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-300">-</span>
-                            )}
-                          </td>
-                        )}
+                        <td className="p-2 text-right text-slate-700">{c.hourly_earnings.toFixed(2)}₺</td>
                         <td className="p-2 text-right font-medium text-slate-800">{(c.total_earnings || c.earnings).toFixed(2)}₺</td>
                         <td className="p-2 text-right text-green-600">{c.cash.toFixed(2)}₺</td>
                         <td className="p-2 text-right text-green-600">{c.card.toFixed(2)}₺</td>
+                        {reportData.hasMealCardCollection && (
+                          <td className="p-2 text-right text-green-600">{(c.meal_card || 0).toFixed(2)}₺</td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
