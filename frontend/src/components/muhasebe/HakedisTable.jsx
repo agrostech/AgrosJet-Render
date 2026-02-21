@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { MapPin, CheckCircle2 } from "lucide-react";
+import { MapPin, CheckCircle2, Clock } from "lucide-react";
 
 const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL';
@@ -21,6 +21,9 @@ export default function HakedisTable({
   // İşlenmiş kuryeler (geri alma için)
   const processedCouriers = couriers.filter(c => c.is_processed);
   const allProcessedSelected = processedCouriers.length > 0 && processedCouriers.every(c => selectedIds.includes(c.courier_id));
+  
+  // Saatlik ücretli kurye var mı kontrol et
+  const hasHourlyRates = couriers.some(c => c.hourly_rate > 0);
   
   return (
     <div className="overflow-x-auto">
@@ -44,7 +47,16 @@ export default function HakedisTable({
             <th className="text-left p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider hidden sm:table-cell">Telefon</th>
             <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Sipariş</th>
             <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider hidden md:table-cell">Mesafe</th>
-            <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Hakediş</th>
+            <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Paket</th>
+            {hasHourlyRates && (
+              <th className="text-right p-3 font-semibold text-xs text-amber-600 uppercase tracking-wider">
+                <span className="flex items-center justify-end gap-1">
+                  <Clock className="w-3 h-3" />
+                  Saatlik
+                </span>
+              </th>
+            )}
+            <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Toplam</th>
             <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider w-24">
               <div className="flex flex-col items-center gap-0.5">
                 <span>Durum</span>
@@ -109,9 +121,30 @@ export default function HakedisTable({
                 <td className="p-3 text-center text-xs hidden md:table-cell">
                   <span className="flex items-center justify-center gap-1 text-slate-600">
                     <MapPin className="w-3 h-3" />
-                    {courier.distance_km.toFixed(1)} km
+                    {courier.distance_km?.toFixed(1) || 0} km
                   </span>
                 </td>
+                <td className="p-3 text-right">
+                  <span className="font-mono text-slate-700">
+                    {formatMoney(courier.package_amount || courier.amount)}
+                  </span>
+                </td>
+                {hasHourlyRates && (
+                  <td className="p-3 text-right">
+                    {courier.hourly_rate > 0 ? (
+                      <div className="flex flex-col items-end">
+                        <span className="font-mono text-amber-700 font-semibold">
+                          {formatMoney(courier.hourly_earnings || 0)}
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          {courier.active_hours?.toFixed(1) || 0}s × {courier.hourly_rate}₺
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-300">-</span>
+                    )}
+                  </td>
+                )}
                 <td className="p-3 text-right">
                   <span className="font-semibold font-mono text-slate-800">
                     {formatMoney(courier.amount)}
@@ -146,6 +179,14 @@ export default function HakedisTable({
               {summary.total_orders}
             </td>
             <td className="p-3 hidden md:table-cell"></td>
+            <td className="p-3 text-right font-mono text-slate-700">
+              {formatMoney((summary.total_amount || 0) - (summary.total_hourly_earnings || 0))}
+            </td>
+            {hasHourlyRates && (
+              <td className="p-3 text-right font-mono text-amber-700">
+                {formatMoney(summary.total_hourly_earnings || 0)}
+              </td>
+            )}
             <td className="p-3 text-right font-mono text-slate-800">
               {formatMoney(summary.total_amount)}
             </td>
