@@ -180,9 +180,11 @@ async def get_courier_report(
     total_earnings = sum(c["earnings"] for c in couriers)
     total_cash = sum(c["cash"] for c in couriers)
     total_card = sum(c["card"] for c in couriers)
+    total_meal_card = sum(c["meal_card"] for c in couriers)
     total_modified = sum(c["modified_count"] for c in couriers)
     total_hourly_earnings = sum(c["hourly_earnings"] for c in couriers)
     total_combined = sum(c["total_earnings"] for c in couriers)
+    total_active_hours = sum(c["active_hours"] for c in couriers)
     
     return {
         "summary": {
@@ -190,11 +192,14 @@ async def get_courier_report(
             "totalEarnings": total_earnings,
             "totalCash": total_cash,
             "totalCard": total_card,
+            "totalMealCard": total_meal_card,
             "totalModified": total_modified,
             "totalHourlyEarnings": total_hourly_earnings,
-            "totalCombined": total_combined
+            "totalCombined": total_combined,
+            "totalActiveHours": total_active_hours
         },
-        "couriers": couriers
+        "couriers": couriers,
+        "hasMealCardCollection": has_meal_card_collection
     }
 
 
