@@ -290,9 +290,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const initMap = () => {
     if (!mapRef.current || !window.L || mapInstanceRef.current) return;
     
-    const centerLat = company?.city_lat || 39.0;
-    const centerLng = company?.city_lng || 35.0;
-    const zoomLevel = company?.city_lat ? 13 : 6;
+    // Isparta koordinatları varsayılan olarak
+    const centerLat = company?.city_lat || 37.7648;
+    const centerLng = company?.city_lng || 30.5566;
+    const zoomLevel = 13;
     
     const map = window.L.map(mapRef.current, {
       scrollWheelZoom: false,
