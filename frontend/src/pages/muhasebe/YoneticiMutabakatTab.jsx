@@ -172,17 +172,31 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
         <Card className="border bg-white shadow-sm">
           <CardContent className="p-4 text-center">
             <Banknote className="w-5 h-5 mx-auto mb-2 text-green-500" />
-            <p className="text-2xl font-bold text-green-600">{formatCurrency(data?.summary?.total_cash)}</p>
+            <p className="text-2xl font-bold text-slate-800">{formatCurrency(data?.summary?.total_cash)}</p>
             <p className="text-xs text-slate-500">Toplam Nakit</p>
           </CardContent>
         </Card>
         <Card className="border bg-white shadow-sm">
           <CardContent className="p-4 text-center">
             <CreditCard className="w-5 h-5 mx-auto mb-2 text-blue-500" />
-            <p className="text-2xl font-bold text-blue-600">{formatCurrency(data?.summary?.total_card)}</p>
+            <p className="text-2xl font-bold text-slate-800">{formatCurrency(data?.summary?.total_card)}</p>
             <p className="text-xs text-slate-500">Toplam Kart</p>
+            {(data?.summary?.total_card_1 > 0 || data?.summary?.total_card_10 > 0 || data?.summary?.total_card_20 > 0) && (
+              <div className="text-[10px] text-muted-foreground mt-1">
+                %1: {formatCurrency(data?.summary?.total_card_1)} | %10: {formatCurrency(data?.summary?.total_card_10)} | %20: {formatCurrency(data?.summary?.total_card_20)}
+              </div>
+            )}
           </CardContent>
         </Card>
+        {hasMealCard && (
+          <Card className="border bg-white shadow-sm">
+            <CardContent className="p-4 text-center">
+              <UtensilsCrossed className="w-5 h-5 mx-auto mb-2 text-orange-500" />
+              <p className="text-2xl font-bold text-slate-800">{formatCurrency(data?.summary?.total_meal_card)}</p>
+              <p className="text-xs text-slate-500">Yemek Kartı</p>
+            </CardContent>
+          </Card>
+        )}
         <Card className="border bg-white shadow-sm">
           <CardContent className="p-4 text-center">
             <Wallet className="w-5 h-5 mx-auto mb-2 text-slate-500" />
