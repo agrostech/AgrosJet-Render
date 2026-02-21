@@ -203,9 +203,9 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                         </td>
                         <td className="p-2 text-right">{c.orderCount}</td>
                         <td className="p-2 text-right text-slate-600">{c.active_hours}s</td>
-                        <td className="p-2 text-right text-red-600">{c.earnings.toFixed(2)}₺</td>
-                        <td className="p-2 text-right text-slate-700">{c.hourly_earnings.toFixed(2)}₺</td>
-                        <td className="p-2 text-right font-medium text-slate-800">{(c.total_earnings || c.earnings).toFixed(2)}₺</td>
+                        <td className="p-2 text-right">{c.earnings.toFixed(2)}₺</td>
+                        <td className="p-2 text-right">{c.hourly_earnings.toFixed(2)}₺</td>
+                        <td className="p-2 text-right font-medium text-red-600">{(c.total_earnings || c.earnings).toFixed(2)}₺</td>
                         <td className="p-2 text-right text-green-600">{c.cash.toFixed(2)}₺</td>
                         <td className="p-2 text-right text-green-600">{c.card.toFixed(2)}₺</td>
                         {reportData.hasMealCardCollection && (
