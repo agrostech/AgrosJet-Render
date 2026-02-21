@@ -390,6 +390,9 @@ function CourierItem({
         {missedShift && (
           <Clock className="w-3 h-3 text-red-500" title="Vardiyası var ama çevrimdışı" />
         )}
+        {onLeaveToday && (
+          <CalendarOff className="w-3 h-3 text-slate-700" title="Bugün izinli" />
+        )}
         <Bike className={`w-3 h-3 ${iconColor}`} />
         <span className="truncate">{courier.name}</span>
       </div>
