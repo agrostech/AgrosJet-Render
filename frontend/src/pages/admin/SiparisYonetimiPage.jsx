@@ -46,7 +46,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [statusFilters, setStatusFilters] = useState(["preparing", "ready", "assigned", "confirmed", "on_the_way"]);
+  const [statusFilters, setStatusFilters] = useState(["pending", "preparing", "ready", "assigned", "confirmed", "on_the_way"]);
   const [searchQuery, setSearchQuery] = useState("");
   const [mainTab, setMainTab] = useState("active");
   const [, setTick] = useState(0);
