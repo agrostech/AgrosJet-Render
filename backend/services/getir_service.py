@@ -636,7 +636,9 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
             "isScheduled": is_scheduled,
             "scheduledDate": scheduled_date,
             "verificationCode": verification_code,
-            "confirmationId": confirmation_id
+            "confirmationId": confirmation_id,
+            "doNotSendCutlery": getir_order.get("doNotSendCutlery", False),
+            "clientNote": getir_order.get("clientNote", "")
         }
     }
 
