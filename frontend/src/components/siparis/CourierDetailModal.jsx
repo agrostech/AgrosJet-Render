@@ -303,12 +303,12 @@ export function CourierDetailModal({
           
           {/* Sipariş Listesi */}
           <div className="w-full overflow-hidden">
-            <div className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2 px-1">
+            <div className="text-xs text-muted-foreground mb-1 px-1">
               Siparişler ({courierOrders.length})
             </div>
-            <div className="space-y-1.5 sm:space-y-2 max-h-[180px] sm:max-h-[250px] overflow-y-auto overflow-x-hidden w-full">
+            <div className="space-y-1 max-h-[200px] overflow-y-auto overflow-x-hidden w-full">
               {courierOrders.length === 0 ? (
-                <div className="text-center py-4 sm:py-6 text-muted-foreground text-xs sm:text-sm">
+                <div className="text-center py-3 text-muted-foreground text-xs">
                   Aktif sipariş yok
                 </div>
               ) : (
@@ -318,17 +318,17 @@ export function CourierDetailModal({
                   return (
                     <div 
                       key={order.id} 
-                      className={`p-2 sm:p-3 rounded border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow w-full overflow-hidden`}
+                      className={`px-2 py-1.5 rounded border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow w-full overflow-hidden`}
                       onClick={() => onOrderClick(order)}
                     >
-                      <div className="flex items-start gap-2">
-                        <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-[10px] sm:text-xs font-bold flex-shrink-0`}>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-5 h-5 rounded-full ${statusInfo.color} text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0`}>
                           {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0 overflow-hidden">
-                          <div className="flex items-center justify-between">
-                            <div className="text-xs sm:text-sm font-medium truncate">{order.restaurant_name}</div>
-                            <div className="flex flex-col items-end text-[10px] sm:text-xs text-muted-foreground">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-medium truncate">{order.restaurant_name}</span>
+                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground flex-shrink-0">
                               <span>{formatTime(order.created_at)}</span>
                               {orderAge && (
                                 <span className={orderAge.mins > 35 ? 'text-red-600 font-medium' : ''}>
@@ -337,15 +337,14 @@ export function CourierDetailModal({
                               )}
                             </div>
                           </div>
-                          <div className="text-[10px] sm:text-xs text-muted-foreground truncate">{order.customer_name}</div>
-                          <div className="text-[10px] sm:text-xs text-slate-600 truncate">{order.delivery_address}</div>
-                          <div className="flex items-center gap-2 text-[10px] sm:text-xs mt-1">
-                            <span className="font-medium">{formatCurrency(order.total_amount)}</span>
-                            <span className={`px-1 sm:px-1.5 py-0.5 rounded ${
-                              order.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
-                            </span>
+                          <div className="flex items-center justify-between gap-2 mt-0.5">
+                            <span className="text-[10px] text-slate-500 truncate flex-1">{order.delivery_address}</span>
+                            <div className="flex items-center gap-1.5 text-[10px] flex-shrink-0">
+                              <span className="font-medium">{formatCurrency(order.total_amount)}</span>
+                              <span className="text-slate-500">
+                                {order.payment_method === 'cash' ? 'Nakit' : 'Kart'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
