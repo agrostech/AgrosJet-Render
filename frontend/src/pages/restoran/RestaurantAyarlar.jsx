@@ -44,6 +44,12 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     const localStored = getLocalPrintSettings(restaurantId);
     setLocalSettings(localStored);
     setSavedSettings(localStored);
+    
+    // Bildirim ayarlarını yükle
+    const notifStored = getNotificationSettings(restaurantId);
+    setNotificationSettings(notifStored);
+    setSavedNotificationSettings(notifStored);
+    
     checkServerStatus();
   }, [restaurantId]);
 
@@ -52,6 +58,12 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     const changed = JSON.stringify(localSettings) !== JSON.stringify(savedSettings);
     setHasChanges(changed);
   }, [localSettings, savedSettings]);
+
+  // Bildirim değişiklik kontrolü
+  useEffect(() => {
+    const changed = JSON.stringify(notificationSettings) !== JSON.stringify(savedNotificationSettings);
+    setHasNotificationChanges(changed);
+  }, [notificationSettings, savedNotificationSettings]);
 
   // Bağlı değilse otomatik kontrol
   useEffect(() => {
