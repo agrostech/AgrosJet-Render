@@ -765,6 +765,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             courierPackageCounts={courierPackageCounts}
             onCourierClick={handleCourierClick}
             onCourierHover={handleCourierHover}
+            shifts={shifts}
+            shiftAssignments={shiftAssignments}
+            leaves={leaves}
           />
 
           <Card className="flex-1">
