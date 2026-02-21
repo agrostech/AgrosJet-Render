@@ -49,12 +49,7 @@ export default function HakedisTable({
             <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider hidden md:table-cell">Mesafe</th>
             <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Paket</th>
             {hasHourlyRates && (
-              <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">
-                <span className="flex items-center justify-end gap-1">
-                  <Clock className="w-3 h-3" />
-                  Saatlik
-                </span>
-              </th>
+              <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Saatlik</th>
             )}
             <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Toplam</th>
             <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider w-24">
