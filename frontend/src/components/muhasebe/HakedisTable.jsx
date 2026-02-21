@@ -14,18 +14,21 @@ export default function HakedisTable({
   summary,
   isCurrentWeek = false
 }) {
-  // İşlenmemiş ve tutarı > 0 olan kuryeler (hakediş ekleme için)
-  const selectableCouriers = couriers.filter(c => !c.is_processed && c.amount > 0);
+  // Sadece hakediş tutarı > 0 olan kuryeleri göster
+  const visibleCouriers = couriers.filter(c => c.amount > 0);
+  
+  // İşlenmemiş kuryeler (hakediş ekleme için)
+  const selectableCouriers = visibleCouriers.filter(c => !c.is_processed);
   const allUnprocessedSelected = selectableCouriers.length > 0 && selectableCouriers.every(c => selectedIds.includes(c.courier_id));
   
   // İşlenmiş kuryeler (geri alma için)
-  const processedCouriers = couriers.filter(c => c.is_processed);
+  const processedCouriers = visibleCouriers.filter(c => c.is_processed);
   const allProcessedSelected = processedCouriers.length > 0 && processedCouriers.every(c => selectedIds.includes(c.courier_id));
   
-  // Toplam çalışma saati
-  const totalActiveHours = couriers.reduce((sum, c) => sum + (c.active_hours || 0), 0);
-  const totalDistance = couriers.reduce((sum, c) => sum + (c.distance_km || 0), 0);
-  const totalPackageAmount = couriers.reduce((sum, c) => sum + (c.package_amount || 0), 0);
+  // Toplamlar
+  const totalActiveHours = visibleCouriers.reduce((sum, c) => sum + (c.active_hours || 0), 0);
+  const totalDistance = visibleCouriers.reduce((sum, c) => sum + (c.distance_km || 0), 0);
+  const totalPackageAmount = visibleCouriers.reduce((sum, c) => sum + (c.package_amount || 0), 0);
   
   return (
     <div className="overflow-x-auto">
