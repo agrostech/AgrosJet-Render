@@ -184,6 +184,7 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     # Saatlik çalışma sürelerini hesapla
     start_date = start_dt.strftime("%Y-%m-%d")
     end_date = end_dt.strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
     active_hours_pipeline = [
         {
@@ -203,6 +204,31 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     
     active_hours_results = await db.courier_status_logs.aggregate(active_hours_pipeline).to_list(1000)
     active_hours_map = {r["_id"]: r["total_active_minutes"] for r in active_hours_results}
+    
+    # Şu an aktif olan kuryeler için gerçek zamanlı hesaplama
+    # (son log'dan şimdiye kadar olan süreyi ekle)
+    if today >= start_date and today <= end_date:
+        for courier_id in courier_ids:
+            courier_info = courier_map.get(courier_id, {})
+            # Kuryenin mevcut durumunu kontrol et
+            courier_doc = await db.couriers.find_one(
+                {"id": courier_id}, 
+                {"_id": 0, "availability_status": 1}
+            )
+            if courier_doc and courier_doc.get("availability_status") == "active":
+                # Son log'u bul
+                last_log = await db.courier_status_logs.find_one(
+                    {"courier_id": courier_id, "date": today},
+                    sort=[("timestamp", -1)]
+                )
+                if last_log and last_log.get("timestamp"):
+                    try:
+                        last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
+                        now = datetime.now(timezone.utc)
+                        current_active_minutes = int((now - last_time).total_seconds() / 60)
+                        active_hours_map[courier_id] = active_hours_map.get(courier_id, 0) + current_active_minutes
+                    except (ValueError, TypeError):
+                        pass
     
     # Hafta açıklaması
     week_description = get_week_description(start_dt, end_dt)
