@@ -614,7 +614,7 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "total_discounted_price": total_discounted,
         "payment_method": payment,
         "payment_method_name": payment_method_name,
-        "status": "pending",
+        "status": "preparing",  # Getir siparişleri otomatik onaylandığı için direkt hazırlanıyor
         "notes": " | ".join(notes_parts),
         "source": "getir",
         "created_at": created_at,
