@@ -108,28 +108,38 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     return () => clearInterval(interval);
   }, [restaurantId]);
 
-  // Otomatik yazdırma - yeni sipariş algılama
+  // Otomatik yazdırma ve sesli bildirim - yeni sipariş algılama
   useEffect(() => {
     if (!orders || orders.length === 0) return;
     
     const localSettings = getLocalPrintSettings(restaurantId);
+    const notificationSettings = getNotificationSettings(restaurantId);
     const currentOrderIds = new Set(orders.map(o => o.id));
     
-    // İlk yüklemede sadece ID'leri kaydet, yazdırma yapma
+    // İlk yüklemede sadece ID'leri kaydet, yazdırma/bildirim yapma
     if (isFirstLoadRef.current) {
       previousOrderIdsRef.current = currentOrderIds;
       isFirstLoadRef.current = false;
       return;
     }
     
-    // Otomatik yazdırma kapalıysa çık
+    // Yeni siparişleri bul
+    const newOrders = orders.filter(o => !previousOrderIdsRef.current.has(o.id));
+    
+    // Yeni sipariş varsa sesli bildirim çal
+    if (newOrders.length > 0 && notificationSettings.enabled) {
+      // Sadece pending veya preparing durumundaki yeni siparişler için ses çal
+      const hasNewActiveOrder = newOrders.some(o => o.status === 'pending' || o.status === 'preparing');
+      if (hasNewActiveOrder) {
+        playNotificationSound(notificationSettings.soundId, notificationSettings.volume);
+      }
+    }
+    
+    // Otomatik yazdırma kapalıysa sadece ID'leri güncelle
     if (!localSettings.enabled) {
       previousOrderIdsRef.current = currentOrderIds;
       return;
     }
-    
-    // Yeni siparişleri bul
-    const newOrders = orders.filter(o => !previousOrderIdsRef.current.has(o.id));
     
     // Yeni siparişleri yazdır
     newOrders.forEach(async (order) => {
