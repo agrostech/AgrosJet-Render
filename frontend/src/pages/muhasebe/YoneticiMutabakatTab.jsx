@@ -368,8 +368,9 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                         <TableRow className="bg-muted/50">
                           <TableHead className="text-xs">Kurye</TableHead>
                           <TableHead className="text-xs text-right">Tahsilat</TableHead>
-                          <TableHead className="text-xs text-right text-green-600">Nakit</TableHead>
-                          <TableHead className="text-xs text-right text-blue-600">Kart</TableHead>
+                          <TableHead className="text-xs text-right">Nakit</TableHead>
+                          <TableHead className="text-xs text-right">Kart</TableHead>
+                          {hasMealCard && <TableHead className="text-xs text-right">Y.Kartı</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -377,8 +378,18 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                           <TableRow key={c._id}>
                             <TableCell className="text-sm">{c.courier_name}</TableCell>
                             <TableCell className="text-sm text-right">{c.count}</TableCell>
-                            <TableCell className="text-sm text-right text-green-600">{formatCurrency(c.total_cash)}</TableCell>
-                            <TableCell className="text-sm text-right text-blue-600">{formatCurrency(c.total_card)}</TableCell>
+                            <TableCell className="text-sm text-right">{formatCurrency(c.total_cash)}</TableCell>
+                            <TableCell className="text-sm text-right">
+                              <div>{formatCurrency(c.total_card)}</div>
+                              {(c.total_card_1 > 0 || c.total_card_10 > 0 || c.total_card_20 > 0) && (
+                                <div className="text-[9px] text-muted-foreground">
+                                  %1: {formatCurrency(c.total_card_1)} | %10: {formatCurrency(c.total_card_10)} | %20: {formatCurrency(c.total_card_20)}
+                                </div>
+                              )}
+                            </TableCell>
+                            {hasMealCard && (
+                              <TableCell className="text-sm text-right">{formatCurrency(c.total_meal_card)}</TableCell>
+                            )}
                           </TableRow>
                         ))}
                       </TableBody>
