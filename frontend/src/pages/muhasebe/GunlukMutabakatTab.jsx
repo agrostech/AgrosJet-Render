@@ -306,67 +306,63 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
 
   return (
     <div className="space-y-4" data-testid="gunluk-mutabakat-tab">
-      {/* Haftalık Özet Bar */}
-      <Card className="border bg-white shadow-sm">
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigateWeek('prev')}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
+      {/* Haftalık Gün Seçici - Minimal */}
+      <div className="flex items-center gap-1 bg-white border rounded-lg p-1.5 shadow-sm">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => navigateWeek('prev')}
+          className="h-8 w-8 p-0 shrink-0"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        
+        <div className="flex-1 flex gap-1 overflow-x-auto scrollbar-hide">
+          {weeklyData?.days.map((day) => {
+            const isSelected = day.date === selectedDate;
+            const isFuture = day.status === 'future';
             
-            <div className="flex-1 flex gap-1 overflow-x-auto">
-              {weeklyData?.days.map((day) => (
-                <button
-                  key={day.date}
-                  onClick={() => setSelectedDate(day.date)}
-                  disabled={day.status === 'future'}
-                  className={`flex-1 min-w-[70px] p-2 rounded-lg text-center transition-all ${
-                    day.date === selectedDate
-                      ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
-                      : day.status === 'future'
-                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                      : day.status === 'processed'
-                      ? 'bg-green-100 hover:bg-green-200 text-green-700'
-                      : day.status === 'complete'
-                      ? 'bg-blue-100 hover:bg-blue-200 text-blue-700'
-                      : day.status === 'partial'
-                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-700'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600'
-                  }`}
-                  data-testid={`day-${day.date}`}
-                >
-                  <div className="text-xs font-medium">{day.day_name}</div>
-                  <div className="text-lg font-bold">{day.day_number}</div>
-                  {day.status !== 'future' && day.total_with_orders > 0 ? (
-                    <div className="text-[9px] space-y-0.5">
-                      <div className="text-blue-600">T: {day.completed}/{day.total_with_orders}</div>
-                      <div className="text-green-600">M: {day.processed}/{day.total_with_orders}</div>
-                    </div>
-                  ) : day.status !== 'future' ? (
-                    <div className="text-[10px] text-slate-400">0 kurye</div>
-                  ) : (
-                    <div className="text-[10px]">-</div>
-                  )}
-                </button>
-              ))}
-            </div>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigateWeek('next')}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            return (
+              <button
+                key={day.date}
+                onClick={() => !isFuture && setSelectedDate(day.date)}
+                disabled={isFuture}
+                className={`
+                  flex-1 min-w-[56px] py-1.5 px-1 rounded-md text-center transition-all
+                  ${isSelected 
+                    ? 'bg-slate-900 text-white shadow-sm' 
+                    : isFuture 
+                      ? 'text-slate-300 cursor-not-allowed'
+                      : 'hover:bg-slate-100 text-slate-600'
+                  }
+                `}
+                data-testid={`day-${day.date}`}
+              >
+                <div className={`text-[10px] font-medium ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                  {day.day_name}
+                </div>
+                <div className="text-sm font-semibold">{day.day_number}</div>
+                {!isFuture && day.total_with_orders > 0 && (
+                  <div className={`flex items-center justify-center gap-0.5 text-[9px] ${isSelected ? 'text-slate-400' : ''}`}>
+                    <span className={isSelected ? 'text-blue-300' : 'text-blue-500'}>{day.completed}</span>
+                    <span className={isSelected ? 'text-slate-500' : 'text-slate-300'}>/</span>
+                    <span className={isSelected ? 'text-green-300' : 'text-green-500'}>{day.processed}</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => navigateWeek('next')}
+          className="h-8 w-8 p-0 shrink-0"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
 
       {/* Aksiyon Butonları */}
       <div className="flex flex-wrap items-center justify-between gap-2">
