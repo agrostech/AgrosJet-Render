@@ -570,6 +570,9 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     notes_parts = []
     if getir_order.get("clientNote"):
         notes_parts.append(f"MÜŞTERİ NOTU: {getir_order['clientNote']}")
+    # Plastik çatal bıçak istemiyor mu?
+    if getir_order.get("doNotSendCutlery") or getir_order.get("isEcoFriendly"):
+        notes_parts.append("MÜŞTERİ NOTU: Lütfen plastik çatal, bıçak, peçete göndermeyin.")
     if address["description"]:
         notes_parts.append(f"ADRES TARIFI: {address['description']}")
     if customer["support_phone"]:
