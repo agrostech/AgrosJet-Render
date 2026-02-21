@@ -174,7 +174,7 @@ export default function HakedisTable({
             </td>
             {hasHourlyRates && (
               <td className="p-3 text-right font-mono text-slate-700">
-                {formatMoney(summary.total_hourly_earnings || 0)}
+                {couriers.reduce((sum, c) => sum + (c.active_hours || 0), 0).toFixed(1)}s
               </td>
             )}
             <td className="p-3 text-right font-mono text-slate-800">
