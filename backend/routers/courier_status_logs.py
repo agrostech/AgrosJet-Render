@@ -100,9 +100,24 @@ async def create_status_log(
 
 
 @router.get("/courier/{courier_id}/today")
-async def get_today_logs(courier_id: str):
-    """Kuryenin bugünkü durum geçmişi"""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None)):
+    """Kuryenin bugünkü durum geçmişi (şirket iş gününe göre)"""
+    now = datetime.now(timezone.utc)
+    
+    # Şirket açılış saatini al
+    if company_id:
+        opening_time, _ = await get_company_work_hours(company_id)
+    else:
+        # Kuryenin şirketini bul
+        courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "company_id": 1, "company_ids": 1})
+        if courier:
+            c_id = courier.get("company_id") or (courier.get("company_ids", [None])[0] if courier.get("company_ids") else None)
+            opening_time, _ = await get_company_work_hours(c_id)
+        else:
+            opening_time = "06:00"
+    
+    # Bugünün iş gününü hesapla
+    today = get_business_date(now, opening_time)
     
     logs = await db.courier_status_logs.find(
         {"courier_id": courier_id, "date": today},
@@ -125,7 +140,7 @@ async def get_today_logs(courier_id: str):
         last_log = logs[-1]
         try:
             last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
-            current_active_minutes = int((datetime.now(timezone.utc) - last_time).total_seconds() / 60)
+            current_active_minutes = int((now - last_time).total_seconds() / 60)
         except (ValueError, TypeError):
             pass
     
@@ -135,7 +150,8 @@ async def get_today_logs(courier_id: str):
         "logs": logs,
         "total_active_minutes": total_active_minutes,
         "total_active_hours": round(total_active_minutes / 60, 2),
-        "current_status": current_status
+        "current_status": current_status,
+        "business_date": today
     }
 
 
