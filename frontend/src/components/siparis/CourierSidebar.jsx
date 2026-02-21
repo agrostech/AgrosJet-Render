@@ -175,6 +175,15 @@ const sortCouriersAlphabetically = (courierList) => {
   });
 };
 
+// Kuryenin konumu eski mi kontrol et (2 dakikadan fazla)
+const isLocationStale = (courier) => {
+  if (!courier.current_location?.updated_at) return true;
+  const updatedAt = new Date(courier.current_location.updated_at);
+  const now = new Date();
+  const diffMinutes = (now - updatedAt) / (1000 * 60);
+  return diffMinutes > 2;
+};
+
 // Kurye grubu (desktop - collapsible olmayan)
 function CourierGroup({
   title,
