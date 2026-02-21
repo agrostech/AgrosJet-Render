@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { MapPin, CheckCircle2, Clock } from "lucide-react";
+import { MapPin, CheckCircle2 } from "lucide-react";
 
 const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL';
