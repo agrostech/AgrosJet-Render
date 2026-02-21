@@ -408,8 +408,9 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                         <TableRow className="bg-muted/50">
                           <TableHead className="text-xs">Tarih</TableHead>
                           <TableHead className="text-xs">Kurye</TableHead>
-                          <TableHead className="text-xs text-right text-green-600">Nakit</TableHead>
-                          <TableHead className="text-xs text-right text-blue-600">Kart</TableHead>
+                          <TableHead className="text-xs text-right">Nakit</TableHead>
+                          <TableHead className="text-xs text-right">Kart</TableHead>
+                          {hasMealCard && <TableHead className="text-xs text-right">Y.Kartı</TableHead>}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -417,8 +418,18 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                           <TableRow key={i}>
                             <TableCell className="text-xs">{formatDate(col.date)}</TableCell>
                             <TableCell className="text-sm">{col.courier_name}</TableCell>
-                            <TableCell className="text-sm text-right text-green-600">{formatCurrency(col.cash_amount)}</TableCell>
-                            <TableCell className="text-sm text-right text-blue-600">{formatCurrency(col.card_total)}</TableCell>
+                            <TableCell className="text-sm text-right">{formatCurrency(col.cash_amount)}</TableCell>
+                            <TableCell className="text-sm text-right">
+                              <div>{formatCurrency(col.card_total)}</div>
+                              {(col.card_percent_1 > 0 || col.card_percent_10 > 0 || col.card_percent_20 > 0) && (
+                                <div className="text-[9px] text-muted-foreground">
+                                  %1: {formatCurrency(col.card_percent_1)} | %10: {formatCurrency(col.card_percent_10)} | %20: {formatCurrency(col.card_percent_20)}
+                                </div>
+                              )}
+                            </TableCell>
+                            {hasMealCard && (
+                              <TableCell className="text-sm text-right">{formatCurrency(col.meal_card_amount)}</TableCell>
+                            )}
                           </TableRow>
                         ))}
                       </TableBody>
