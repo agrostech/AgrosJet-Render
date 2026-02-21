@@ -156,7 +156,8 @@ export function CourierDetailModal({
 
   if (!courier) return null;
 
-  const breakInfo = courier.availability_status === 'on_break' ? getRemainingBreakTime(courier) : null;
+  // Mola bilgisi - her durumda göster
+  const breakInfo = getRemainingBreakTime(courier);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -166,7 +167,7 @@ export function CourierDetailModal({
             <Bike className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             <span className="truncate flex-1">{courier.name}</span>
           </DialogTitle>
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
             <Select
               value={courier.availability_status || 'offline'}
               onValueChange={(value) => onUpdateStatus(courier.id, value)}
@@ -187,13 +188,15 @@ export function CourierDetailModal({
                 <SelectItem value="offline" className="text-xs">Çevrimdışı</SelectItem>
               </SelectContent>
             </Select>
-            {/* Mola Süresi */}
-            {breakInfo && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
-                <Clock className="w-3 h-3" />
-                <span>{breakInfo.remaining} dk kaldı</span>
-              </div>
-            )}
+            {/* Kalan Mola Süresi - Her zaman göster */}
+            <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+              breakInfo.remaining > 10 ? 'bg-green-100 text-green-700' :
+              breakInfo.remaining > 0 ? 'bg-yellow-100 text-yellow-700' :
+              'bg-red-100 text-red-700'
+            }`}>
+              <Clock className="w-3 h-3" />
+              <span>Mola: {breakInfo.remaining}/{breakInfo.dailyLimit} dk</span>
+            </div>
           </div>
         </DialogHeader>
         
