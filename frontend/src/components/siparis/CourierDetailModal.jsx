@@ -66,8 +66,8 @@ export function CourierDetailModal({
     
     const fetchTodayShifts = async () => {
       try {
-        // Bugünün gün adı
-        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        // Bugünün gün adı (Türkçe)
+        const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
         const today = days[new Date().getDay()];
         
         // Vardiya atamalarını al
