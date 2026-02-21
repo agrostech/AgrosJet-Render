@@ -148,6 +148,23 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // Bildirim ayarları fonksiyonları
+  const updateNotificationSetting = (key, value) => {
+    setNotificationSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handlePlaySound = (soundId) => {
+    setPlayingSound(soundId);
+    playNotificationSound(soundId, notificationSettings.volume);
+    setTimeout(() => setPlayingSound(null), 1500);
+  };
+
+  const handleSaveNotificationSettings = () => {
+    saveNotificationSettings(restaurantId, notificationSettings);
+    setSavedNotificationSettings(notificationSettings);
+    toast.success("Bildirim ayarları kaydedildi");
+  };
+
   return (
     <div className="space-y-6" data-testid="restaurant-ayarlar-page">
       {/* Header */}
