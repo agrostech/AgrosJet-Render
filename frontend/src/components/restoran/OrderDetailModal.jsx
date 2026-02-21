@@ -109,11 +109,13 @@ export default function OrderDetailModal({
   canViewCourierLocation = true 
 }) {
   const [activeTab, setActiveTab] = useState("details");
+  const [showGetirReceipt, setShowGetirReceipt] = useState(false);
 
   // Modal kapandığında tab'ı sıfırla
   useEffect(() => {
     if (!open) {
       setActiveTab("details");
+      setShowGetirReceipt(false);
     }
   }, [open]);
 
@@ -125,6 +127,7 @@ export default function OrderDetailModal({
   const sourceInfo = ORDER_SOURCES[order.source] || ORDER_SOURCES.manual;
   const SourceIcon = sourceInfo.icon;
   const distance = getOrderDistance(order);
+  const isGetirOrder = order.source === "getir";
 
   // Haritada aç
   const openInMaps = (lat, lng) => {
