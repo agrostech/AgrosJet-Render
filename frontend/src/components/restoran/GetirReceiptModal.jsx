@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, X } from "lucide-react";
 
 // Getir Yemek Logosu - Resim
-const GETIR_LOGO_URL = "https://customer-assets.emergentagent.com/job_38fbd95d-aa19-44b0-b411-ca675322d416/artifacts/fcdcgicl_getirlogo.png";
+const GETIR_LOGO_URL = "https://customer-assets.emergentagent.com/job_38fbd95d-aa19-44b0-b411-ca675322d416/artifacts/c9lqogtk_getirlogo.png";
 
 const GetirLogo = () => (
   <img 
