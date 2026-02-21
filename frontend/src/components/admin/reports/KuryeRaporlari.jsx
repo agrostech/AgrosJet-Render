@@ -98,7 +98,14 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
             {/* Summary - Compact */}
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-3 text-muted-foreground">
               <span>Sipariş: <strong className="text-foreground">{reportData.summary?.totalOrders || 0}</strong></span>
-              <span>Hakediş: <strong className="text-red-600">{(reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong></span>
+              <span>Paket: <strong className="text-red-600">{(reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong></span>
+              {reportData.summary?.totalHourlyEarnings > 0 && (
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-amber-500" />
+                  Saatlik: <strong className="text-amber-600">{(reportData.summary?.totalHourlyEarnings || 0).toFixed(2)}₺</strong>
+                </span>
+              )}
+              <span>Toplam Hakediş: <strong className="text-purple-600">{(reportData.summary?.totalCombined || reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong></span>
               <span>Nakit: <strong className="text-green-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</strong></span>
               <span>Kart: <strong className="text-green-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</strong></span>
               {reportData.summary?.totalModified > 0 && (
