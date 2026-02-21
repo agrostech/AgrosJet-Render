@@ -55,10 +55,27 @@ export function CourierDetailModal({
   const mapInstanceRef = useRef(null);
   const ordersRef = useRef(courierOrders);
   const [todayShifts, setTodayShifts] = useState([]);
+  const [workLogs, setWorkLogs] = useState({ logs: [], total_active_hours: 0 });
   
   useEffect(() => {
     ordersRef.current = courierOrders;
   }, [courierOrders]);
+
+  // Bugünkü çalışma loglarını al
+  useEffect(() => {
+    if (!open || !courier?.id) return;
+    
+    const fetchWorkLogs = async () => {
+      try {
+        const res = await axios.get(`${API}/courier-status-logs/courier/${courier.id}/today`);
+        setWorkLogs(res.data || { logs: [], total_active_hours: 0 });
+      } catch (err) {
+        setWorkLogs({ logs: [], total_active_hours: 0 });
+      }
+    };
+    
+    fetchWorkLogs();
+  }, [open, courier?.id]);
 
   // Bugünkü vardiyaları al
   useEffect(() => {
