@@ -236,7 +236,7 @@ export function CourierDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[92vw] max-w-[360px] sm:max-w-[500px] lg:max-w-[550px] p-3 sm:p-5 overflow-hidden">
+      <DialogContent className="w-[95vw] max-w-[420px] sm:max-w-[550px] lg:max-w-[650px] p-4 sm:p-6 overflow-hidden">
         <DialogHeader className="pb-1 sm:pb-2 pr-8">
           <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
             <Bike className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
