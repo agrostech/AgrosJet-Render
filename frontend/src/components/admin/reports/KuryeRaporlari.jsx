@@ -188,7 +188,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                           <td className="p-2 text-right">
                             {c.hourly_rate > 0 ? (
                               <div className="flex flex-col items-end">
-                                <span className="text-amber-600 font-medium">{c.hourly_earnings.toFixed(2)}₺</span>
+                                <span className="text-slate-700 font-medium">{c.hourly_earnings.toFixed(2)}₺</span>
                                 <span className="text-[10px] text-slate-400">{c.active_hours}s × {c.hourly_rate}₺</span>
                               </div>
                             ) : (
@@ -196,7 +196,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
                             )}
                           </td>
                         )}
-                        <td className="p-2 text-right font-medium text-purple-600">{(c.total_earnings || c.earnings).toFixed(2)}₺</td>
+                        <td className="p-2 text-right font-medium text-slate-800">{(c.total_earnings || c.earnings).toFixed(2)}₺</td>
                         <td className="p-2 text-right text-green-600">{c.cash.toFixed(2)}₺</td>
                         <td className="p-2 text-right text-green-600">{c.card.toFixed(2)}₺</td>
                       </tr>
