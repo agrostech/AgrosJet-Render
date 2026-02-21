@@ -322,9 +322,9 @@ function CourierItem({
           <span className="text-xs px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">{packageCounts.confirmed}</span>
         )}
         {showOnTheWay && packageCounts.onTheWay > 0 && (
-          <span className="text-[10px] px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded">{packageCounts.onTheWay}</span>
+          <span className="text-xs px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded">{packageCounts.onTheWay}</span>
         )}
-        <ChevronRight className="w-3 h-3 text-muted-foreground" />
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
       </div>
     </div>
   );
