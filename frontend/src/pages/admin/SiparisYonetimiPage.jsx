@@ -349,7 +349,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     });
     markersRef.current = [];
 
-    // Restaurant markers
+    // Restaurant markers (düşük zIndex)
     restaurants.forEach(r => {
       if (r.latitude && r.longitude) {
         try {
@@ -359,7 +359,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               html: `<div style="width:12px;height:12px;background:#9ca3af;border-radius:50% !important;border:1px solid #6b7280;"></div>`,
               iconSize: [12, 12],
               iconAnchor: [6, 6]
-            })
+            }),
+            zIndexOffset: 100  // Restoran marker'ları altta
           }).addTo(map);
           marker.bindPopup(`<strong>${r.name}</strong>`);
           markersRef.current.push(marker);
@@ -367,7 +368,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
       }
     });
 
-    // Courier markers
+    // Courier markers (yüksek zIndex - her zaman üstte)
     const visibleCouriers = [...(couriersByStatus.active || []), ...(couriersByStatus.on_break || [])];
     
     const getCourierColorByOrderStatus = (courier) => {
@@ -413,7 +414,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               `,
               iconSize: [22, 22],
               iconAnchor: [11, 11]
-            })
+            }),
+            zIndexOffset: 1000  // Kurye marker'ları her zaman üstte
           }).addTo(map);
           marker.on('click', () => {
             setSelectedCourier(courier);
