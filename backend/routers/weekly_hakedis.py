@@ -232,12 +232,22 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     courier_list = []
     total_amount = 0
     total_orders = 0
+    total_hourly_earnings = 0
     
     for courier_id, courier in courier_map.items():
         hakedis = hakedis_map.get(courier_id, {})
-        amount = round(hakedis.get("total_amount", 0), 2)
+        package_amount = round(hakedis.get("total_amount", 0), 2)
         orders = hakedis.get("total_orders", 0)
         distance = round(hakedis.get("total_distance", 0), 2)
+        
+        # Saatlik kazanç hesapla
+        active_minutes = active_hours_map.get(courier_id, 0)
+        active_hours = round(active_minutes / 60, 2)
+        hourly_rate = courier.get("hourly_rate") or 0
+        hourly_earnings = round(active_hours * hourly_rate, 2)
+        
+        # Toplam hakediş = paket kazancı + saatlik kazanç
+        amount = round(package_amount + hourly_earnings, 2)
         
         # İşlenmiş mi kontrol et
         processed_info = processed_map.get(courier_id)
@@ -255,14 +265,19 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
             "courier_name": courier.get("name", ""),
             "courier_phone": courier.get("phone", ""),
             "amount": amount,
+            "package_amount": package_amount,
             "order_count": orders,
             "distance_km": distance,
+            "active_hours": active_hours,
+            "hourly_rate": hourly_rate,
+            "hourly_earnings": hourly_earnings,
             "is_processed": is_processed,
             "transaction_id": transaction_id
         })
         
         total_amount += amount
         total_orders += orders
+        total_hourly_earnings += hourly_earnings
     
     # Hakediş'e göre sırala
     courier_list.sort(key=lambda x: x["amount"], reverse=True)
@@ -271,7 +286,8 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
         "couriers": courier_list,
         "summary": {
             "total_amount": round(total_amount, 2),
-            "total_orders": total_orders
+            "total_orders": total_orders,
+            "total_hourly_earnings": round(total_hourly_earnings, 2)
         },
         "week_description": week_description,
         "filter": {
