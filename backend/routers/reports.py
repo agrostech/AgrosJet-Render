@@ -128,6 +128,7 @@ async def get_courier_report(
                 "earnings": 0,
                 "cash": 0,
                 "card": 0,
+                "meal_card": 0,
                 "modified_count": 0,
                 "active_hours": active_hours,
                 "hourly_rate": hourly_rate,
@@ -140,19 +141,25 @@ async def get_courier_report(
         
         payment_method = order.get("payment_method", "")
         payment_details = order.get("payment_details", {})
+        total_amount = order.get("total_amount", 0) or 0
         
         # Parçalı ödeme kontrolü
         if payment_method == "mixed" or (payment_details.get("cash_amount", 0) > 0 and payment_details.get("card_amount", 0) > 0):
             c["cash"] += payment_details.get("cash_amount", 0) or 0
             c["card"] += payment_details.get("card_amount", 0) or 0
+            c["meal_card"] += payment_details.get("meal_card_amount", 0) or 0
             if payment_details.get("original_method"):
                 c["modified_count"] += 1
         elif payment_method == "cash":
-            c["cash"] += order.get("total_amount", 0) or 0
+            c["cash"] += total_amount
             if payment_details.get("original_method"):
                 c["modified_count"] += 1
         elif payment_method == "card":
-            c["card"] += order.get("total_amount", 0) or 0
+            c["card"] += total_amount
+            if payment_details.get("original_method"):
+                c["modified_count"] += 1
+        elif payment_method == "meal_card" or "yemek" in payment_method.lower():
+            c["meal_card"] += total_amount
             if payment_details.get("original_method"):
                 c["modified_count"] += 1
     
