@@ -145,7 +145,7 @@ export default function HakedisTable({
             <td className="p-3"></td>
             <td className="p-3 text-slate-700">Toplam</td>
             <td className="p-3 text-center text-slate-700">{summary.total_orders}</td>
-            <td className="p-3 text-center text-slate-700">{totalActiveHours.toFixed(1)}s</td>
+            <td className="p-3 text-center text-slate-700">{totalActiveHours.toFixed(2)}s</td>
             <td className="p-3 text-center hidden md:table-cell text-slate-600">{totalDistance.toFixed(1)} km</td>
             <td className="p-3 text-right font-mono text-slate-700">{formatMoney(totalPackageAmount)}</td>
             <td className="p-3 text-right font-mono text-slate-700">{formatMoney(summary.total_hourly_earnings || 0)}</td>
