@@ -113,6 +113,7 @@ export function AssignCourierModal({ open, onOpenChange, shift, day, availableCo
 // İzin Ekle Modal
 export function AddLeaveModal({ open, onOpenChange, day, availableCouriers, onAddLeave }) {
   const dayLabel = DAYS.find(d => d.key === day)?.label;
+  const sortedCouriers = sortCouriersAlphabetically(availableCouriers);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -123,10 +124,10 @@ export function AddLeaveModal({ open, onOpenChange, day, availableCouriers, onAd
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-          {availableCouriers.length === 0 ? (
+          {sortedCouriers.length === 0 ? (
             <p className="text-center text-muted-foreground py-4 text-sm">İzin eklenebilecek kurye yok</p>
           ) : (
-            availableCouriers.map(courier => (
+            sortedCouriers.map(courier => (
               <button
                 key={courier.id}
                 onClick={() => onAddLeave(courier.id)}
