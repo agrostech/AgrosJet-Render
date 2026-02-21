@@ -3,6 +3,51 @@
 ## Orijinal Problem Bildirimi
 Kullanıcı Getir Yemek entegrasyonundaki hataları düzelttikten sonra, kod tabanının karmaşıklığı nedeniyle büyük bir refactoring çalışması talep etti. Backend ve frontend'deki duplicate kodlar temizlendi, merkezi fonksiyonlar oluşturuldu.
 
+## Tamamlanan İşler (21 Şubat 2026)
+
+### YENİ: Kurye Durum Log ve Saatlik Kazanç Sistemi
+
+**Özellik Özeti:**
+- Kurye durum değişiklikleri (active/on_break/offline) otomatik olarak loglanıyor
+- Kuryeler için saat ücreti tanımlanabiliyor (opsiyonel)
+- Saatlik kazanç = Aktif Saat × Saat Ücreti
+- Toplam Hakediş = Paket Kazancı + Saatlik Kazanç
+
+**Yapılan Değişiklikler:**
+
+1. **Backend - Yeni Router:** `/app/backend/routers/courier_status_logs.py`
+   - `POST /api/courier-status-logs` - Durum değişikliği log kaydı
+   - `GET /api/courier-status-logs/courier/{id}/today` - Bugünkü loglar
+   - `GET /api/courier-status-logs/courier/{id}/range` - Tarih aralığı logları
+   - `POST /api/courier-status-logs/company/{id}/weekly-active-hours` - Haftalık aktif saatler
+
+2. **Backend - Güncellemeler:**
+   - `couriers.py`: Ücretlendirme'ye `hourly_rate` eklendi, availability değişikliklerinde log kaydı
+   - `weekly_hakedis.py`: Saatlik kazanç hesaplaması eklendi
+   - `reports.py`: Kurye raporlarına saatlik kazanç entegrasyonu
+
+3. **Frontend - Güncellemeler:**
+   - `KuryelerPage.jsx`: Ücretlendirme modalına "Saatlik Ücret" alanı eklendi
+   - `HakedisTable.jsx`: Saatlik kazanç kolonu eklendi (Paket + Saatlik + Toplam)
+   - `KuryeRaporlari.jsx`: Kurye raporlarında saatlik kazanç gösterimi
+   - `FilterSummaryCard.jsx`: Geçmiş siparişlerde kurye filtrelerken saatlik kazanç gösterimi
+
+**Hesaplama Formülü:**
+```
+Haftalık Hakediş = 
+  (Teslim Edilen Siparişler × Paket Başı Ücret) +
+  (Aktif Saat × Saat Ücreti)
+```
+
+---
+
+### UI/UX: Harita Başlangıç Görünümü Isparta'ya Ayarlandı (21 Şubat 2026)
+- `SiparisYonetimiPage.jsx` dosyasında `initMap()` fonksiyonu güncellendi
+- Varsayılan koordinatlar: Isparta (`37.7648, 30.5566`)
+- Zoom seviyesi: `13` (şehir detayı)
+
+---
+
 ## Tamamlanan İşler (20 Şubat 2026)
 
 ### Bug Fix: Merkezi Sipariş Endpoint'i - DB_NAME Sorunu (20 Şubat 2026)
