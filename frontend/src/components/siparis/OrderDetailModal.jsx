@@ -425,15 +425,7 @@ export function OrderDetailModal({
                             {entryTime.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
                           </span>
                           <span className="text-xs text-muted-foreground">•</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded ${
-                            entry.actor_type === 'auto' 
-                              ? 'bg-blue-100 text-blue-700' 
-                              : entry.actor_type === 'admin'
-                                ? 'bg-purple-100 text-purple-700'
-                                : entry.actor_type === 'courier'
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-slate-100 text-slate-700'
-                          }`}>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
                             {entry.actor_type === 'auto' ? 'Otomatik' : 
                              entry.actor_type === 'admin' ? `${entry.actor_name}` :
                              entry.actor_type === 'courier' ? `${entry.actor_name}` :
