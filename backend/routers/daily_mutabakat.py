@@ -23,6 +23,7 @@ class CollectionInput(BaseModel):
     card_percent_1: float = 0
     card_percent_10: float = 0
     card_percent_20: float = 0
+    meal_card_amount: float = 0
 
 
 class SaveCollectionRequest(BaseModel):
