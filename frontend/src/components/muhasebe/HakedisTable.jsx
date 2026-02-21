@@ -178,8 +178,15 @@ export default function HakedisTable({
               {formatMoney((summary.total_amount || 0) - (summary.total_hourly_earnings || 0))}
             </td>
             {hasHourlyRates && (
-              <td className="p-3 text-right font-mono text-slate-700">
-                {couriers.reduce((sum, c) => sum + (c.active_hours || 0), 0).toFixed(1)}s
+              <td className="p-3 text-right">
+                <div className="flex flex-col items-end">
+                  <span className="font-mono text-slate-700">
+                    {formatMoney(summary.total_hourly_earnings || 0)}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {couriers.reduce((sum, c) => sum + (c.active_hours || 0), 0).toFixed(1)}s
+                  </span>
+                </div>
               </td>
             )}
             <td className="p-3 text-right font-mono text-slate-800">
