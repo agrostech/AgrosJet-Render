@@ -1,14 +1,15 @@
 import { useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bike } from "lucide-react";
+import { Bike, Clock } from "lucide-react";
 import { 
   ORDER_STATUSES, 
   getLocationTimeAgo, 
   getCourierInitials,
   formatTime,
   formatCurrency,
-  getOrderAge
+  getOrderAge,
+  getRemainingBreakTime
 } from "@/utils/orderUtils";
 
 export function CourierDetailModal({
