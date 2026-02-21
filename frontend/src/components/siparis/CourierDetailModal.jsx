@@ -268,6 +268,20 @@ export function CourierDetailModal({
               <Clock className="w-3 h-3" />
               <span>Mola: {breakInfo.remaining}/{breakInfo.dailyLimit} dk</span>
             </div>
+            {/* Bugünkü Vardiya */}
+            {todayShifts.length > 0 && (
+              <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                <Calendar className="w-3 h-3" />
+                <span>
+                  {mergeConsecutiveShifts(todayShifts).map((s, i) => (
+                    <span key={i}>
+                      {i > 0 && ', '}
+                      {s.start}-{s.end}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            )}
           </div>
         </DialogHeader>
         
