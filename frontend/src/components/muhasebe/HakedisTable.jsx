@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { MapPin, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL';
@@ -22,8 +22,10 @@ export default function HakedisTable({
   const processedCouriers = couriers.filter(c => c.is_processed);
   const allProcessedSelected = processedCouriers.length > 0 && processedCouriers.every(c => selectedIds.includes(c.courier_id));
   
-  // Saatlik ücretli kurye var mı kontrol et
-  const hasHourlyRates = couriers.some(c => c.hourly_rate > 0);
+  // Toplam çalışma saati
+  const totalActiveHours = couriers.reduce((sum, c) => sum + (c.active_hours || 0), 0);
+  const totalDistance = couriers.reduce((sum, c) => sum + (c.distance_km || 0), 0);
+  const totalPackageAmount = couriers.reduce((sum, c) => sum + (c.package_amount || 0), 0);
   
   return (
     <div className="overflow-x-auto">
@@ -31,31 +33,25 @@ export default function HakedisTable({
         <thead>
           <tr className="border-b bg-slate-50">
             <th className="p-3 w-10">
-              {/* Tümünü seç header - işlenmemişler için */}
-              <div className="flex flex-col gap-1">
-                <Checkbox
-                  checked={allUnprocessedSelected}
-                  onCheckedChange={onToggleSelectAll}
-                  disabled={selectableCouriers.length === 0}
-                  className="data-[state=checked]:bg-primary"
-                  data-testid="select-all-checkbox"
-                  title="Bekleyenleri seç"
-                />
-              </div>
+              <Checkbox
+                checked={allUnprocessedSelected}
+                onCheckedChange={onToggleSelectAll}
+                disabled={selectableCouriers.length === 0}
+                className="data-[state=checked]:bg-primary"
+                data-testid="select-all-checkbox"
+                title="Bekleyenleri seç"
+              />
             </th>
             <th className="text-left p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Kurye</th>
-            <th className="text-left p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider hidden sm:table-cell">Telefon</th>
-            <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Sipariş</th>
+            <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Paket Sayısı</th>
+            <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Çalışma Saati</th>
             <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider hidden md:table-cell">Mesafe</th>
-            <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Paket</th>
-            {hasHourlyRates && (
-              <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Saatlik</th>
-            )}
+            <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Paket Ücreti</th>
+            <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Saatlik Ücret</th>
             <th className="text-right p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider">Toplam</th>
             <th className="text-center p-3 font-semibold text-xs text-slate-600 uppercase tracking-wider w-24">
               <div className="flex flex-col items-center gap-0.5">
                 <span>Durum</span>
-                {/* İşlenmişleri seç butonu - sadece current week'te göster */}
                 {isCurrentWeek && processedCouriers.length > 0 && (
                   <button
                     onClick={onToggleSelectAllProcessed}
@@ -74,9 +70,7 @@ export default function HakedisTable({
           </tr>
         </thead>
         <tbody>
-          {couriers.map((courier, idx) => {
-            // İşlenmemiş ve tutarı > 0 olanlar hakediş için seçilebilir
-            // İşlenmiş olanlar geri alma için seçilebilir (sadece current week)
+          {couriers.map((courier) => {
             const isProcessed = courier.is_processed;
             const canSelectForApply = !isProcessed && courier.amount > 0;
             const canSelectForRevert = isProcessed && isCurrentWeek;
@@ -105,40 +99,27 @@ export default function HakedisTable({
                 <td className="p-3">
                   <span className="font-medium text-slate-800">{courier.courier_name}</span>
                 </td>
-                <td className="p-3 text-xs text-slate-500 font-mono hidden sm:table-cell">
-                  {courier.courier_phone || "-"}
+                <td className="p-3 text-center">
+                  <span className="font-semibold text-slate-700">{courier.order_count}</span>
                 </td>
                 <td className="p-3 text-center">
-                  <span className="font-semibold text-slate-700">
-                    {courier.order_count}
-                  </span>
+                  <span className="text-slate-600">{(courier.active_hours || 0).toFixed(1)}s</span>
                 </td>
                 <td className="p-3 text-center text-xs hidden md:table-cell">
-                  <span className="flex items-center justify-center gap-1 text-slate-600">
-                    <MapPin className="w-3 h-3" />
-                    {courier.distance_km?.toFixed(1) || 0} km
-                  </span>
+                  <span className="text-slate-600">{(courier.distance_km || 0).toFixed(1)} km</span>
                 </td>
                 <td className="p-3 text-right">
-                  <span className="font-mono text-slate-700">
-                    {formatMoney(courier.package_amount || courier.amount)}
-                  </span>
+                  <span className="font-mono text-slate-700">{formatMoney(courier.package_amount || 0)}</span>
                 </td>
-                {hasHourlyRates && (
-                  <td className="p-3 text-right">
-                    {courier.hourly_rate > 0 ? (
-                      <span className="font-mono text-slate-700">
-                        {formatMoney(courier.hourly_earnings || 0)} <span className="text-[10px] text-slate-400">({courier.active_hours?.toFixed(1) || 0}s)</span>
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-300">-</span>
-                    )}
-                  </td>
-                )}
                 <td className="p-3 text-right">
-                  <span className="font-semibold font-mono text-slate-800">
-                    {formatMoney(courier.amount)}
-                  </span>
+                  {courier.hourly_rate > 0 ? (
+                    <span className="font-mono text-slate-700">{formatMoney(courier.hourly_earnings || 0)}</span>
+                  ) : (
+                    <span className="text-slate-300">-</span>
+                  )}
+                </td>
+                <td className="p-3 text-right">
+                  <span className="font-semibold font-mono text-slate-800">{formatMoney(courier.amount)}</span>
                 </td>
                 <td className="p-3 text-center">
                   {isProcessed ? (
@@ -164,22 +145,12 @@ export default function HakedisTable({
           <tr className="bg-slate-100 font-semibold border-t-2">
             <td className="p-3"></td>
             <td className="p-3 text-slate-700">Toplam</td>
-            <td className="p-3 hidden sm:table-cell"></td>
-            <td className="p-3 text-center text-slate-700">
-              {summary.total_orders}
-            </td>
-            <td className="p-3 hidden md:table-cell"></td>
-            <td className="p-3 text-right font-mono text-slate-700">
-              {formatMoney((summary.total_amount || 0) - (summary.total_hourly_earnings || 0))}
-            </td>
-            {hasHourlyRates && (
-              <td className="p-3 text-right font-mono text-slate-700">
-                {formatMoney(summary.total_hourly_earnings || 0)} <span className="text-[10px] text-slate-400">({couriers.reduce((sum, c) => sum + (c.active_hours || 0), 0).toFixed(1)}s)</span>
-              </td>
-            )}
-            <td className="p-3 text-right font-mono text-slate-800">
-              {formatMoney(summary.total_amount)}
-            </td>
+            <td className="p-3 text-center text-slate-700">{summary.total_orders}</td>
+            <td className="p-3 text-center text-slate-700">{totalActiveHours.toFixed(1)}s</td>
+            <td className="p-3 text-center hidden md:table-cell text-slate-600">{totalDistance.toFixed(1)} km</td>
+            <td className="p-3 text-right font-mono text-slate-700">{formatMoney(totalPackageAmount)}</td>
+            <td className="p-3 text-right font-mono text-slate-700">{formatMoney(summary.total_hourly_earnings || 0)}</td>
+            <td className="p-3 text-right font-mono text-slate-800">{formatMoney(summary.total_amount)}</td>
             <td className="p-3"></td>
           </tr>
         </tfoot>
