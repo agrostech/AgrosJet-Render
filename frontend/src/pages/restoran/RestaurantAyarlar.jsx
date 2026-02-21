@@ -30,8 +30,14 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [printers, setPrinters] = useState([]);
   const [loadingPrinters, setLoadingPrinters] = useState(false);
   const [testingPrint, setTestingPrint] = useState(false);
-  const [openSections, setOpenSections] = useState({ print: false });
+  const [openSections, setOpenSections] = useState({ print: false, notification: true });
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Bildirim ayarları state'leri
+  const [notificationSettings, setNotificationSettings] = useState({ enabled: true, soundId: 'alert1', volume: 1.0 });
+  const [savedNotificationSettings, setSavedNotificationSettings] = useState({ enabled: true, soundId: 'alert1', volume: 1.0 });
+  const [hasNotificationChanges, setHasNotificationChanges] = useState(false);
+  const [playingSound, setPlayingSound] = useState(null);
 
   // Ayarları yükle
   useEffect(() => {
