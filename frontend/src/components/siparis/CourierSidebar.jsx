@@ -300,7 +300,7 @@ function CourierItem({
   
   return (
     <div 
-      className={`flex items-center justify-between gap-2 px-2 py-1.5 text-xs ${hoverColor} rounded cursor-pointer ${isOffline ? 'text-muted-foreground' : ''}`}
+      className={`flex items-center justify-between gap-2 px-2 py-1.5 text-sm ${hoverColor} rounded cursor-pointer ${isOffline ? 'text-muted-foreground' : ''}`}
       onClick={onClick}
       onMouseEnter={onHover}
     >
@@ -308,18 +308,18 @@ function CourierItem({
         {locationStale && (
           <MapPin className="w-3 h-3 text-red-500" title="Konum güncel değil" />
         )}
-        <Bike className={`w-3 h-3 ${iconColor}`} />
+        <Bike className={`w-3.5 h-3.5 ${iconColor}`} />
         <span className="truncate">{courier.name}</span>
       </div>
       <div className="flex items-center gap-1">
         {showBreakTime && breakInfo && (
-          <span className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">{breakInfo.remaining}dk</span>
+          <span className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">{breakInfo.remaining}dk</span>
         )}
         {packageCounts.assigned > 0 && (
-          <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{packageCounts.assigned}</span>
+          <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{packageCounts.assigned}</span>
         )}
         {packageCounts.confirmed > 0 && (
-          <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">{packageCounts.confirmed}</span>
+          <span className="text-xs px-1.5 py-0.5 bg-indigo-100 text-indigo-800 rounded">{packageCounts.confirmed}</span>
         )}
         {showOnTheWay && packageCounts.onTheWay > 0 && (
           <span className="text-[10px] px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded">{packageCounts.onTheWay}</span>
