@@ -495,6 +495,10 @@ async def update_courier_pricing(courier_id: str, data: CourierPricingUpdate):
         update_data["km_ranges"] = [r.dict() for r in data.km_ranges]
         update_data["per_package_price"] = None
     
+    # Saatlik ücret (opsiyonel - None ise silinir, 0 ise 0 olarak kalır)
+    if data.hourly_rate is not None:
+        update_data["hourly_rate"] = data.hourly_rate if data.hourly_rate > 0 else None
+    
     await db.couriers.update_one(
         {"id": courier_id},
         {"$set": update_data}
@@ -506,14 +510,15 @@ async def update_courier_pricing(courier_id: str, data: CourierPricingUpdate):
 @router.get("/couriers/{courier_id}/pricing")
 async def get_courier_pricing(courier_id: str):
     """Kurye ücretlendirme ayarlarını getir"""
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1})
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "hourly_rate": 1})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
     return {
         "pricing_type": courier.get("pricing_type"),
         "per_package_price": courier.get("per_package_price"),
-        "km_ranges": courier.get("km_ranges")
+        "km_ranges": courier.get("km_ranges"),
+        "hourly_rate": courier.get("hourly_rate")
     }
 
 
