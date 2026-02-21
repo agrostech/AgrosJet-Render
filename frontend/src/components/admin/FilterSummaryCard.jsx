@@ -119,6 +119,9 @@ export default function FilterSummaryCard({
 
   // Kurye filtrelemesi yapıldıysa
   if (courierFilter !== "all") {
+    // Toplam hakediş = paket hakediş + saatlik kazanç
+    const totalHakedis = totals.kuryeHakedis + (hourlyData?.hourly_earnings || 0);
+    
     return (
       <Card className="mb-4 border bg-muted/30">
         <CardContent className="p-4">
@@ -132,9 +135,23 @@ export default function FilterSummaryCard({
           
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Toplam Hakediş:</span>
+              <span className="text-muted-foreground">Paket Hakediş:</span>
               <span className="font-medium text-red-600">{totals.kuryeHakedis.toFixed(2)}₺</span>
             </div>
+            {hourlyData && hourlyData.hourly_rate > 0 && (
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 rounded">
+                <Clock className="w-3 h-3 text-amber-600" />
+                <span className="text-amber-700">Saatlik:</span>
+                <span className="font-medium text-amber-700">{hourlyData.hourly_earnings.toFixed(2)}₺</span>
+                <span className="text-xs text-amber-500">({hourlyData.active_hours}s × {hourlyData.hourly_rate}₺)</span>
+              </div>
+            )}
+            {hourlyData && hourlyData.hourly_rate > 0 && (
+              <div className="flex items-center gap-1 border-l pl-3">
+                <span className="text-muted-foreground font-medium">Toplam Hakediş:</span>
+                <span className="font-bold text-purple-600">{totalHakedis.toFixed(2)}₺</span>
+              </div>
+            )}
             <div className="flex items-center gap-1">
               <span className="text-muted-foreground">Toplam Nakit:</span>
               <span className="font-medium text-green-600">{totals.nakitToplam.toFixed(2)}₺</span>
