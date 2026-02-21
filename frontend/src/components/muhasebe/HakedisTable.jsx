@@ -127,14 +127,9 @@ export default function HakedisTable({
                 {hasHourlyRates && (
                   <td className="p-3 text-right">
                     {courier.hourly_rate > 0 ? (
-                      <div className="flex flex-col items-end">
-                        <span className="font-mono text-slate-700">
-                          {formatMoney(courier.hourly_earnings || 0)}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          {courier.active_hours?.toFixed(1) || 0}s
-                        </span>
-                      </div>
+                      <span className="font-mono text-slate-700">
+                        {formatMoney(courier.hourly_earnings || 0)} <span className="text-[10px] text-slate-400">({courier.active_hours?.toFixed(1) || 0}s)</span>
+                      </span>
                     ) : (
                       <span className="text-xs text-slate-300">-</span>
                     )}
