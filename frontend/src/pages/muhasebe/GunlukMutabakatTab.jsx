@@ -451,28 +451,34 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
 
       {/* Özet Kartları */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="border bg-slate-50">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-slate-700">{summary.total_couriers}</div>
-            <div className="text-xs text-slate-500">Toplam Kurye</div>
+        <Card className="border bg-white shadow-sm">
+          <CardContent className="p-4 text-center">
+            <Users className="w-5 h-5 mx-auto mb-2 text-slate-500" />
+            <p className="text-2xl font-bold text-slate-800">{summary.total_couriers}</p>
+            <p className="text-xs text-slate-500">Toplam Kurye</p>
           </CardContent>
         </Card>
-        <Card className="border bg-blue-50">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-blue-700">{summary.completed_couriers}</div>
-            <div className="text-xs text-blue-600">Tahsilat Girilen</div>
+        <Card className="border bg-white shadow-sm">
+          <CardContent className="p-4 text-center">
+            <ClipboardCheck className="w-5 h-5 mx-auto mb-2 text-blue-500" />
+            <p className="text-2xl font-bold text-slate-800">{summary.completed_couriers}</p>
+            <p className="text-xs text-slate-500">Tahsilat Girilen</p>
           </CardContent>
         </Card>
-        <Card className="border bg-green-50">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-green-700">{summary.processed_couriers}</div>
-            <div className="text-xs text-green-600">Mütabakat Tamamlanan</div>
+        <Card className="border bg-white shadow-sm">
+          <CardContent className="p-4 text-center">
+            <div className="w-5 h-5 mx-auto mb-2 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-green-600 text-xs font-bold">✓</span>
+            </div>
+            <p className="text-2xl font-bold text-green-600">{summary.processed_couriers}</p>
+            <p className="text-xs text-slate-500">Mütabakat Tamamlanan</p>
           </CardContent>
         </Card>
-        <Card className="border bg-amber-50">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-amber-700">{selectedIds.length}</div>
-            <div className="text-xs text-amber-600">Seçili Kurye</div>
+        <Card className="border bg-white shadow-sm">
+          <CardContent className="p-4 text-center">
+            <Scale className="w-5 h-5 mx-auto mb-2 text-amber-500" />
+            <p className="text-2xl font-bold text-slate-800">{selectedIds.length}</p>
+            <p className="text-xs text-slate-500">Seçili Kurye</p>
           </CardContent>
         </Card>
       </div>
