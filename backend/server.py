@@ -171,9 +171,9 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
-    # Add weekly hakedis auto-process job - runs every minute to check if 15 min past closing time
+    # Add weekly hakedis auto-process job - runs every minute to check if 1 hour past closing time
     async def auto_process_weekly_hakedis():
-        """Haftalık hakediş otomatik işleme - bitiş saatinden 15 dk sonra"""
+        """Haftalık hakediş otomatik işleme - bitiş saatinden 1 saat sonra"""
         from datetime import datetime, timezone, timedelta
         try:
             now = datetime.now(timezone.utc)
@@ -201,12 +201,9 @@ async def lifespan(app: FastAPI):
                 closing_time = company.get("closing_time", "22:00")
                 close_h, close_m = map(int, closing_time.split(':'))
                 
-                # Kapanış saatinden 15 dk sonra mı?
-                target_minute = close_m + 15
-                target_hour = close_h
-                if target_minute >= 60:
-                    target_minute -= 60
-                    target_hour = (target_hour + 1) % 24
+                # Kapanış saatinden 1 saat sonra mı?
+                target_hour = (close_h + 1) % 24
+                target_minute = close_m
                 
                 if current_hour == target_hour and current_minute == target_minute:
                     # Bugün zaten çalıştı mı?
