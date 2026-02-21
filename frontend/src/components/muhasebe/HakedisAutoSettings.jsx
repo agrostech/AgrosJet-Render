@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Clock, Zap } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Clock, Settings } from "lucide-react";
 
 export default function HakedisAutoSettings({ 
   enabled, 
@@ -21,35 +21,40 @@ export default function HakedisAutoSettings({
   const autoRunTime = getAutoRunTime();
   
   return (
-    <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg border">
-      <div className="flex items-center gap-2">
-        <Zap className={`w-4 h-4 ${enabled ? 'text-amber-500' : 'text-slate-400'}`} />
-        <div className="flex flex-col">
-          <Label className="text-sm font-medium cursor-pointer" htmlFor="auto-hakedis">
-            Otomatik İşleme
-          </Label>
-          {autoRunTime && (
-            <span className="text-xs text-slate-500 flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              Her hafta {autoRunTime}'de çalışır
-            </span>
-          )}
+    <Card className="border bg-white shadow-sm">
+      <CardContent className="py-3 px-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Settings className="w-4 h-4 text-slate-500" />
+            <div>
+              <p className="text-sm font-medium">Otomatik İşleme</p>
+              <p className="text-xs text-muted-foreground">
+                Her hafta {autoRunTime}'de otomatik hakediş
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {lastAutoRun && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Son: {new Date(lastAutoRun).toLocaleDateString('tr-TR')}
+              </span>
+            )}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="auto-hakedis"
+                checked={enabled}
+                onCheckedChange={onToggle}
+                disabled={saving}
+                data-testid="auto-hakedis-toggle"
+              />
+              <Label htmlFor="auto-hakedis" className="text-sm">
+                {enabled ? "Açık" : "Kapalı"}
+              </Label>
+            </div>
+          </div>
         </div>
-      </div>
-      <Switch
-        id="auto-hakedis"
-        checked={enabled}
-        onCheckedChange={onToggle}
-        disabled={saving}
-        data-testid="auto-hakedis-toggle"
-      />
-      {lastAutoRun && (
-        <span className="text-xs text-slate-400 ml-auto hidden sm:block">
-          Son: {new Date(lastAutoRun).toLocaleDateString('tr-TR', { 
-            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
-          })}
-        </span>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
