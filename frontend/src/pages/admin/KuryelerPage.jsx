@@ -67,6 +67,7 @@ export default function KuryelerPage({ companyId }) {
   const [pricingType, setPricingType] = useState("per_package");
   const [perPackagePrice, setPerPackagePrice] = useState("");
   const [kmRanges, setKmRanges] = useState(DEFAULT_KM_RANGES);
+  const [hourlyRate, setHourlyRate] = useState("");
   
   // Payment Methods Modal State
   const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
