@@ -9,7 +9,10 @@ export function CourierSidebarDesktop({
   couriersOnDelivery,
   courierPackageCounts,
   onCourierClick,
-  onCourierHover
+  onCourierHover,
+  shifts = [],
+  shiftAssignments = [],
+  leaves = []
 }) {
   return (
     <Card className="w-72 flex-shrink-0 hidden lg:block">
@@ -32,6 +35,9 @@ export function CourierSidebarDesktop({
           iconColor="text-green-600"
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
         />
         
         {/* Dağıtımda Kuryeler */}
@@ -47,6 +53,9 @@ export function CourierSidebarDesktop({
           showOnTheWay
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
         />
         
         {/* Moladaki Kuryeler */}
@@ -62,6 +71,9 @@ export function CourierSidebarDesktop({
           showBreakTime
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
         />
         
         {/* Çevrimdışı Kuryeler */}
@@ -77,6 +89,9 @@ export function CourierSidebarDesktop({
           isOffline
           onCourierClick={onCourierClick}
           onCourierHover={onCourierHover}
+          shifts={shifts}
+          shiftAssignments={shiftAssignments}
+          leaves={leaves}
         />
       </CardContent>
     </Card>
