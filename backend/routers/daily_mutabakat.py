@@ -457,6 +457,7 @@ async def get_couriers_with_data(company_id: str, date: str):
                 "card_percent_10": collection.get("card_percent_10", 0) if collection else 0,
                 "card_percent_20": collection.get("card_percent_20", 0) if collection else 0,
                 "card_total": collection.get("card_total", 0) if collection else 0,
+                "meal_card_amount": collection.get("meal_card_amount", 0) if collection else 0,
                 "admin_name": collection.get("admin_name", "") if collection else ""
             },
             "has_collection": has_collection,
@@ -497,7 +498,8 @@ async def get_couriers_with_data(company_id: str, date: str):
             "total_couriers": couriers_with_orders,
             "completed_couriers": completed_count,
             "processed_couriers": processed_count
-        }
+        },
+        "hasMealCardCollection": has_meal_card_collection
     }
 
 
