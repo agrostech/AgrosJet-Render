@@ -45,7 +45,7 @@ async def create_status_log(
         try:
             last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
             duration_minutes = int((now - last_time).total_seconds() / 60)
-        except:
+        except (ValueError, TypeError):
             pass
     
     log_entry = {
