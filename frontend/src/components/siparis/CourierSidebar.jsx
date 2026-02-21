@@ -352,11 +352,17 @@ function CourierItem({
   showBreakTime,
   isOffline,
   onClick,
-  onHover
+  onHover,
+  shifts = [],
+  shiftAssignments = [],
+  leaves = []
 }) {
   const packageCounts = counts || { assigned: 0, confirmed: 0, onTheWay: 0 };
   const breakInfo = showBreakTime ? getRemainingBreakTime(courier) : null;
   const locationStale = !isOffline && isLocationStale(courier);
+  
+  // Çevrimdışı ama aktif vardiyası var mı?
+  const missedShift = isOffline && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
   
   return (
     <div 
