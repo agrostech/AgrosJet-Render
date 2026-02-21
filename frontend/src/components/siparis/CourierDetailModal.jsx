@@ -54,10 +54,55 @@ export function CourierDetailModal({
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const ordersRef = useRef(courierOrders);
+  const [todayShifts, setTodayShifts] = useState([]);
   
   useEffect(() => {
     ordersRef.current = courierOrders;
   }, [courierOrders]);
+
+  // Bugünkü vardiyaları al
+  useEffect(() => {
+    if (!open || !courier || !company?.id) return;
+    
+    const fetchTodayShifts = async () => {
+      try {
+        // Bugünün gün adı
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const today = days[new Date().getDay()];
+        
+        // Vardiya atamalarını al
+        const res = await axios.get(`${API}/companies/${company.id}/shift-assignments`);
+        const assignments = res.data || [];
+        
+        // Bugün bu kuryeye atanmış vardiyaları filtrele
+        const courierAssignments = assignments.filter(
+          a => a.courier_id === courier.id && a.day === today
+        );
+        
+        if (courierAssignments.length > 0) {
+          // Vardiya detaylarını al
+          const shiftsRes = await axios.get(`${API}/companies/${company.id}/shifts`);
+          const allShifts = shiftsRes.data || [];
+          
+          const courierShifts = courierAssignments
+            .map(a => {
+              const shift = allShifts.find(s => s.id === a.shift_id);
+              return shift ? { start_time: shift.start_time, end_time: shift.end_time } : null;
+            })
+            .filter(Boolean);
+          
+          setTodayShifts(courierShifts);
+        } else {
+          setTodayShifts([]);
+        }
+      } catch (err) {
+        console.error("Vardiya bilgisi alınamadı:", err);
+        setTodayShifts([]);
+      }
+    };
+    
+    fetchTodayShifts();
+  }, [open, courier?.id, company?.id]);
 
   // Kurye haritası
   useEffect(() => {
