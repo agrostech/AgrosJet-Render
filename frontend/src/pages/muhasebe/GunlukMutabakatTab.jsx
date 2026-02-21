@@ -321,6 +321,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
           {weeklyData?.days.map((day) => {
             const isSelected = day.date === selectedDate;
             const isFuture = day.status === 'future';
+            const isFullyComplete = day.total_with_orders > 0 && 
+              day.completed === day.total_with_orders && 
+              day.processed === day.total_with_orders;
             
             return (
               <button
@@ -342,12 +345,21 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                   {day.day_name}
                 </div>
                 <div className="text-sm font-semibold">{day.day_number}</div>
-                {!isFuture && day.total_with_orders > 0 && (
-                  <div className={`flex items-center justify-center gap-0.5 text-[9px] ${isSelected ? 'text-slate-400' : ''}`}>
-                    <span className={isSelected ? 'text-blue-300' : 'text-blue-500'}>{day.completed}</span>
-                    <span className={isSelected ? 'text-slate-500' : 'text-slate-300'}>/</span>
-                    <span className={isSelected ? 'text-green-300' : 'text-green-500'}>{day.processed}</span>
-                  </div>
+                {!isFuture && day.total_with_orders > 0 ? (
+                  isFullyComplete ? (
+                    <div className={`text-[10px] ${isSelected ? 'text-green-400' : 'text-green-500'}`}>
+                      <CheckCircle2 className="w-3 h-3 mx-auto" />
+                    </div>
+                  ) : (
+                    <div className={`text-[9px] space-y-0.5 ${isSelected ? 'text-white' : ''}`}>
+                      <div className={isSelected ? 'text-blue-300' : 'text-blue-600'}>T: {day.completed}/{day.total_with_orders}</div>
+                      <div className={isSelected ? 'text-green-300' : 'text-green-600'}>M: {day.processed}/{day.total_with_orders}</div>
+                    </div>
+                  )
+                ) : !isFuture ? (
+                  <div className={`text-[10px] ${isSelected ? 'text-slate-400' : 'text-slate-400'}`}>0 kurye</div>
+                ) : (
+                  <div className="text-[10px]">-</div>
                 )}
               </button>
             );
