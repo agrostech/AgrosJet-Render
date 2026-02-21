@@ -992,12 +992,13 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
         is_scheduled_order = shiftjet_order.get("is_scheduled", False)
         
         if not is_scheduled_order:
-            # Normal sipariş - ürünlere göre hazırlama süresi hesapla
+            # Normal sipariş - restoran hazırlama süresini kullan
             try:
                 from routers.orders import calculate_preparation_time_async
                 prep_time = await calculate_preparation_time_async(restaurant_id, shiftjet_order.get("items", []))
             except:
-                prep_time = 20  # Default 20 dakika
+                # Restoran ayarından al, yoksa 15 dakika
+                prep_time = restaurant.get("preparation_time", 15)
             
             prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
             shiftjet_order["preparation_time"] = prep_time
