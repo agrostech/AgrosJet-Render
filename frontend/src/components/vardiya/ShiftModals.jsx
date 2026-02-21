@@ -158,6 +158,8 @@ export function BulkAssignModal({
   bulkAssigning, 
   onBulkAssign 
 }) {
+  const sortedCouriers = sortCouriersAlphabetically(couriers);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -189,10 +191,10 @@ export function BulkAssignModal({
             <div className="text-center py-8">
               <LoadingSpinner size="default" text="Kuryeler atanıyor..." />
             </div>
-          ) : couriers.length === 0 ? (
+          ) : sortedCouriers.length === 0 ? (
             <p className="text-center text-muted-foreground py-4 text-sm">Kurye bulunamadı</p>
           ) : (
-            couriers.map(courier => (
+            sortedCouriers.map(courier => (
               <button
                 key={courier.id}
                 onClick={() => onBulkAssign(courier.id)}
