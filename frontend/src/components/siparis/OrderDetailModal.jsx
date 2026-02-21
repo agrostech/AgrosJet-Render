@@ -218,7 +218,7 @@ export function OrderDetailModal({
                 </div>
               )}
               {order.verification_code && (
-                <div className="px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-bold text-xs">
+                <div className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 font-bold text-xs">
                   Doğrulama: {order.verification_code}
                 </div>
               )}
@@ -226,7 +226,7 @@ export function OrderDetailModal({
 
             {/* Restaurant */}
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-              <Store className="w-5 h-5 text-red-500 mt-0.5" />
+              <Store className="w-5 h-5 text-slate-500 mt-0.5" />
               <div>
                 <p className="font-medium">{order.restaurant_name}</p>
                 <p className="text-sm text-muted-foreground">Restoran</p>
@@ -235,7 +235,7 @@ export function OrderDetailModal({
 
             {/* Customer */}
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-              <User className="w-5 h-5 text-blue-500 mt-0.5" />
+              <User className="w-5 h-5 text-slate-500 mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">{order.customer_name}</p>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
@@ -245,15 +245,15 @@ export function OrderDetailModal({
               </div>
               <a 
                 href={`tel:${order.customer_phone}`}
-                className="p-2 bg-green-100 rounded-full hover:bg-green-200"
+                className="p-2 bg-slate-100 rounded-full hover:bg-slate-200"
               >
-                <Phone className="w-4 h-4 text-green-600" />
+                <Phone className="w-4 h-4 text-slate-600" />
               </a>
             </div>
 
             {/* Delivery Address */}
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-              <MapPin className="w-3 h-3 text-orange-500 mt-0.5" />
+              <MapPin className="w-3 h-3 text-slate-500 mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">{order.delivery_address}</p>
                 {order.notes && (() => {
@@ -261,12 +261,12 @@ export function OrderDetailModal({
                   return (
                     <div className="mt-2 space-y-1">
                       {parsedNotes.customer && (
-                        <p className="text-sm text-blue-600">
+                        <p className="text-sm text-slate-600">
                           <span className="font-medium">Müşteri Notu:</span> {parsedNotes.customer}
                         </p>
                       )}
                       {parsedNotes.kitchen && (
-                        <p className="text-sm text-orange-600">
+                        <p className="text-sm text-slate-600">
                           <span className="font-medium">Mutfak Notu:</span> {parsedNotes.kitchen}
                         </p>
                       )}
@@ -282,10 +282,10 @@ export function OrderDetailModal({
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2 bg-blue-100 rounded-full hover:bg-blue-200"
+                className="p-2 bg-slate-100 rounded-full hover:bg-slate-200"
                 onClick={() => setActiveTab("location")}
               >
-                <Navigation className="w-4 h-4 text-blue-600" />
+                <Navigation className="w-4 h-4 text-slate-600" />
               </Button>
             </div>
 
