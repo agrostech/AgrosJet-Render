@@ -85,9 +85,7 @@ export default function HakedisTable({
                 key={courier.courier_id}
                 className={`border-b hover:bg-slate-50 transition-colors ${
                   isProcessed ? 'bg-green-50/50' : ''
-                } ${courier.amount === 0 ? 'opacity-50' : ''} ${
-                  isSelected && isProcessed ? 'bg-amber-50/70' : ''
-                }`}
+                } ${isSelected && isProcessed ? 'bg-amber-50/70' : ''}`}
                 data-testid={`courier-row-${courier.courier_id}`}
               >
                 <td className="p-3">
