@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bike, Clock } from "lucide-react";
+import { Bike, Clock, Calendar } from "lucide-react";
 import { 
   ORDER_STATUSES, 
   getLocationTimeAgo, 
@@ -11,6 +12,35 @@ import {
   getOrderAge,
   getRemainingBreakTime
 } from "@/utils/orderUtils";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Ardışık vardiyaları birleştir
+const mergeConsecutiveShifts = (shifts) => {
+  if (!shifts || shifts.length === 0) return [];
+  
+  // Saate göre sırala
+  const sorted = [...shifts].sort((a, b) => {
+    return a.start_time.localeCompare(b.start_time);
+  });
+  
+  const merged = [];
+  let current = { start: sorted[0].start_time, end: sorted[0].end_time };
+  
+  for (let i = 1; i < sorted.length; i++) {
+    const shift = sorted[i];
+    // Eğer önceki vardiya bitiş saati = bu vardiya başlangıç saati ise birleştir
+    if (current.end === shift.start_time) {
+      current.end = shift.end_time;
+    } else {
+      merged.push(current);
+      current = { start: shift.start_time, end: shift.end_time };
+    }
+  }
+  merged.push(current);
+  
+  return merged;
+};
 
 export function CourierDetailModal({
   open,
