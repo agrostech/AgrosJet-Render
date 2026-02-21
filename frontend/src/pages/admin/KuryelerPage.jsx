@@ -182,10 +182,12 @@ export default function KuryelerPage({ companyId }) {
       setPricingType(res.data.pricing_type || "per_package");
       setPerPackagePrice(res.data.per_package_price?.toString() || "");
       setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
+      setHourlyRate(res.data.hourly_rate?.toString() || "");
     } catch (err) {
       setPricingType("per_package");
       setPerPackagePrice("");
       setKmRanges(DEFAULT_KM_RANGES);
+      setHourlyRate("");
     }
     setShowPricingModal(true);
   };
@@ -196,7 +198,8 @@ export default function KuryelerPage({ companyId }) {
       const payload = {
         pricing_type: pricingType,
         per_package_price: pricingType === "per_package" ? parseFloat(perPackagePrice) || 0 : null,
-        km_ranges: pricingType === "per_km" ? kmRanges : null
+        km_ranges: pricingType === "per_km" ? kmRanges : null,
+        hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null
       };
       await axios.put(`${API}/couriers/${selectedCourier.id}/pricing`, payload);
       toast.success("Ücretlendirme kaydedildi");
