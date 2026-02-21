@@ -107,7 +107,7 @@ export default function HakedisTable({
                   <span className="text-slate-600">{(courier.active_hours || 0).toFixed(2)}s</span>
                 </td>
                 <td className="p-3 text-center text-xs hidden md:table-cell">
-                  <span className="text-slate-600">{(courier.distance_km || 0).toFixed(1)} km</span>
+                  <span className="text-slate-600">{(courier.distance_km || 0).toFixed(2)} km</span>
                 </td>
                 <td className="p-3 text-right">
                   <span className="font-mono text-slate-700">{formatMoney(courier.package_amount || 0)}</span>
