@@ -14,7 +14,7 @@ export function CourierSidebarDesktop({
   return (
     <Card className="w-72 flex-shrink-0 hidden lg:block">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
+        <CardTitle className="text-base flex items-center gap-2">
           <Users className="w-4 h-4" />
           Kuryeler
         </CardTitle>
