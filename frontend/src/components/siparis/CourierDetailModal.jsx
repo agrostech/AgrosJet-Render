@@ -323,7 +323,7 @@ export function CourierDetailModal({
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-slate-700">Bugünkü Çalışma</span>
               <span className="text-xs font-semibold text-slate-800">
-                {workLogs.total_active_hours} saat aktif
+                {workLogs.total_active_hours?.toFixed(2) || '0.00'} saat aktif
               </span>
             </div>
             {workLogs.logs && workLogs.logs.length > 0 ? (
