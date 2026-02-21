@@ -476,6 +476,29 @@ export default function KuryelerPage({ companyId }) {
                 </div>
               </div>
             )}
+
+            {/* Saatlik Ücret - Her zaman görünür */}
+            <div className="border-t pt-4 mt-4">
+              <div className="space-y-2 p-4 bg-amber-50 rounded-lg">
+                <Label className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  Saatlik Ücret (₺)
+                  <span className="text-xs text-muted-foreground font-normal">(Opsiyonel)</span>
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={hourlyRate}
+                  onChange={(e) => setHourlyRate(e.target.value)}
+                  placeholder="Tanımlı değil"
+                  className="bg-white"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Tanımlıysa, paket kazancına ek olarak aktif çalışma saati × bu ücret hesaplanır.
+                </p>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPricingModal(false)}>
