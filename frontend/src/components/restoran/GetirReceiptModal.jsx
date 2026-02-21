@@ -63,10 +63,16 @@ export default function GetirReceiptModal({ open, onClose, order }) {
   // Sipariş notu
   const orderNotes = order.notes || "";
   
-  // Müşteri notu (notes içinden çıkar)
-  const clientNote = orderNotes.includes("MÜŞTERİ NOTU:") 
-    ? orderNotes.split("MÜŞTERİ NOTU:")[1]?.split("|")[0]?.trim() 
-    : "";
+  // Müşteri notu (notes içinden çıkar - sadece müşteri notunu al, diğer bilgileri hariç tut)
+  const extractClientNote = (notes) => {
+    if (!notes.includes("MÜŞTERİ NOTU:")) return "";
+    const afterMusteriNotu = notes.split("MÜŞTERİ NOTU:")[1] || "";
+    // | veya GETİR veya TESLİMAT ile başlayan kısmı kes
+    const cleanNote = afterMusteriNotu.split(/\s*\|\s*GETİR|\s*\|\s*TESLİMAT|\s*\|/)[0]?.trim();
+    // Sondaki noktayı koru
+    return cleanNote || "";
+  };
+  const clientNote = extractClientNote(orderNotes);
 
   // Yazdırma fonksiyonu
   const handlePrint = () => {
