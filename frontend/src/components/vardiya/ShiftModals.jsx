@@ -62,9 +62,20 @@ export function AddShiftModal({ open, onOpenChange, onSubmit }) {
   );
 }
 
+// Kuryeleri alfabetik sırala
+const sortCouriersAlphabetically = (courierList) => {
+  if (!courierList || courierList.length === 0) return [];
+  return [...courierList].sort((a, b) => {
+    const nameA = (a.name || '').toLocaleLowerCase('tr');
+    const nameB = (b.name || '').toLocaleLowerCase('tr');
+    return nameA.localeCompare(nameB, 'tr');
+  });
+};
+
 // Kurye Ata Modal
 export function AssignCourierModal({ open, onOpenChange, shift, day, availableCouriers, onAssign }) {
   const dayLabel = DAYS.find(d => d.key === day)?.label;
+  const sortedCouriers = sortCouriersAlphabetically(availableCouriers);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,10 +86,10 @@ export function AssignCourierModal({ open, onOpenChange, shift, day, availableCo
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-          {availableCouriers.length === 0 ? (
+          {sortedCouriers.length === 0 ? (
             <p className="text-center text-muted-foreground py-4 text-sm">Atanabilecek kurye yok</p>
           ) : (
-            availableCouriers.map(courier => (
+            sortedCouriers.map(courier => (
               <button
                 key={courier.id}
                 onClick={() => onAssign(courier.id)}
