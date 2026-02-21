@@ -509,6 +509,7 @@ async def save_collection(company_id: str, data: SaveCollectionRequest):
             "card_percent_10": courier.card_percent_10,
             "card_percent_20": courier.card_percent_20,
             "card_total": card_total,
+            "meal_card_amount": courier.meal_card_amount,
             "admin_id": data.admin_id,
             "admin_name": data.admin_name,
             "created_at": datetime.now(timezone.utc).isoformat()
