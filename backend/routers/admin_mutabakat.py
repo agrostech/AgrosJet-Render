@@ -27,6 +27,20 @@ async def get_admin_balances(company_id: str):
     Şirketteki tüm yöneticilerin tahsilat bakiyelerini getir
     Son sıfırlamadan itibaren biriken nakit ve kart toplamları
     """
+    # Şirkete ait restoranların meal_card ayarlarını kontrol et
+    restaurants_with_meal_card = await db.restaurants.find(
+        {
+            "company_id": company_id,
+            "is_archived": {"$ne": True}
+        },
+        {"_id": 0, "id": 1, "collection_settings": 1}
+    ).to_list(500)
+    
+    has_meal_card_collection = any(
+        r.get("collection_settings", {}).get("meal_card_collection") == "courier"
+        for r in restaurants_with_meal_card
+    )
+    
     # Şirketteki tüm yöneticileri al
     admins = await db.admins.find(
         {
@@ -68,7 +82,11 @@ async def get_admin_balances(company_id: str):
                 "$group": {
                     "_id": None,
                     "total_cash": {"$sum": "$cash_amount"},
+                    "total_card_1": {"$sum": {"$ifNull": ["$card_percent_1", 0]}},
+                    "total_card_10": {"$sum": {"$ifNull": ["$card_percent_10", 0]}},
+                    "total_card_20": {"$sum": {"$ifNull": ["$card_percent_20", 0]}},
                     "total_card": {"$sum": "$card_total"},
+                    "total_meal_card": {"$sum": {"$ifNull": ["$meal_card_amount", 0]}},
                     "collection_count": {"$sum": 1},
                     "courier_count": {"$addToSet": "$courier_id"}
                 }
@@ -80,12 +98,20 @@ async def get_admin_balances(company_id: str):
         if result:
             data = result[0]
             total_cash = data["total_cash"] or 0
+            total_card_1 = data["total_card_1"] or 0
+            total_card_10 = data["total_card_10"] or 0
+            total_card_20 = data["total_card_20"] or 0
             total_card = data["total_card"] or 0
+            total_meal_card = data["total_meal_card"] or 0
             collection_count = data["collection_count"] or 0
             courier_count = len(data["courier_count"]) if data["courier_count"] else 0
         else:
             total_cash = 0
+            total_card_1 = 0
+            total_card_10 = 0
+            total_card_20 = 0
             total_card = 0
+            total_meal_card = 0
             collection_count = 0
             courier_count = 0
         
@@ -94,8 +120,12 @@ async def get_admin_balances(company_id: str):
             "admin_name": admin["name"],
             "role": admin.get("role", "admin"),
             "total_cash": round(total_cash, 2),
+            "total_card_1": round(total_card_1, 2),
+            "total_card_10": round(total_card_10, 2),
+            "total_card_20": round(total_card_20, 2),
             "total_card": round(total_card, 2),
-            "total_balance": round(total_cash + total_card, 2),
+            "total_meal_card": round(total_meal_card, 2),
+            "total_balance": round(total_cash + total_card + total_meal_card, 2),
             "collection_count": collection_count,
             "courier_count": courier_count,
             "last_reset": reset_date,
@@ -111,14 +141,19 @@ async def get_admin_balances(company_id: str):
     # Toplam özet
     summary = {
         "total_cash": round(sum(a["total_cash"] for a in admin_balances), 2),
+        "total_card_1": round(sum(a["total_card_1"] for a in admin_balances), 2),
+        "total_card_10": round(sum(a["total_card_10"] for a in admin_balances), 2),
+        "total_card_20": round(sum(a["total_card_20"] for a in admin_balances), 2),
         "total_card": round(sum(a["total_card"] for a in admin_balances), 2),
+        "total_meal_card": round(sum(a["total_meal_card"] for a in admin_balances), 2),
         "total_balance": round(sum(a["total_balance"] for a in admin_balances), 2),
         "admin_count": len([a for a in admin_balances if a["total_balance"] > 0])
     }
     
     return {
         "admins": admin_balances,
-        "summary": summary
+        "summary": summary,
+        "hasMealCardCollection": has_meal_card_collection
     }
 
 
