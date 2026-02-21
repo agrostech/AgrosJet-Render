@@ -374,6 +374,9 @@ function CourierItem({
   // Çevrimdışı ama aktif vardiyası var mı?
   const missedShift = isOffline && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
   
+  // Bugün izinli mi? (sadece çevrimdışı için)
+  const onLeaveToday = isOffline && hasLeaveToday(courier, leaves);
+  
   return (
     <div 
       className={`flex items-center justify-between gap-2 px-2 py-1.5 text-xs ${hoverColor} rounded cursor-pointer ${isOffline ? 'text-muted-foreground' : ''}`}
