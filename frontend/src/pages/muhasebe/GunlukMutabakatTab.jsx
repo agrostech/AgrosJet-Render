@@ -71,6 +71,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
       setCouriers(res.data.couriers);
       setDateRange(res.data.date_range);
       setSummary(res.data.summary);
+      setHasMealCardCollection(res.data.hasMealCardCollection || false);
       setSelectedIds([]);
       setEditedCollections({});
     } catch (err) {
