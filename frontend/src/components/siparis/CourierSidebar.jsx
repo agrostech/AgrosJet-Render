@@ -374,6 +374,9 @@ function CourierItem({
         {locationStale && (
           <MapPin className="w-3 h-3 text-red-500" title="Konum güncel değil" />
         )}
+        {missedShift && (
+          <Clock className="w-3 h-3 text-red-500" title="Vardiyası var ama çevrimdışı" />
+        )}
         <Bike className={`w-3 h-3 ${iconColor}`} />
         <span className="truncate">{courier.name}</span>
       </div>
