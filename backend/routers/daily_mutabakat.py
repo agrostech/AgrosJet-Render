@@ -343,6 +343,20 @@ async def get_couriers_with_data(company_id: str, date: str):
     settings = await get_company_settings(company_id)
     start_dt, end_dt = calculate_date_range(date, settings["opening_time"], settings["closing_time"])
     
+    # Şirkete ait restoranların meal_card ayarlarını kontrol et
+    restaurants_with_meal_card = await db.restaurants.find(
+        {
+            "company_id": company_id,
+            "is_archived": {"$ne": True}
+        },
+        {"_id": 0, "id": 1, "collection_settings": 1}
+    ).to_list(500)
+    
+    has_meal_card_collection = any(
+        r.get("collection_settings", {}).get("meal_card_collection") == "courier"
+        for r in restaurants_with_meal_card
+    )
+    
     # Şirkete bağlı kuryeleri getir
     query = {"company_id": company_id, "is_archived": {"$ne": True}, "is_active": {"$ne": False}}
     relations = await db.company_couriers.find(query, {"_id": 0, "courier_id": 1}).to_list(1000)
@@ -360,7 +374,8 @@ async def get_couriers_with_data(company_id: str, date: str):
                 "total_couriers": 0,
                 "completed_couriers": 0,
                 "processed_couriers": 0
-            }
+            },
+            "hasMealCardCollection": has_meal_card_collection
         }
     
     # Kurye detaylarını getir
