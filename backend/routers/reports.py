@@ -17,12 +17,24 @@ async def get_courier_report(
     end_datetime: str = Query(...),
     courier_id: Optional[str] = Query(None)
 ):
-    """Kurye bazlı sipariş raporu - parçalı ödeme desteği ile"""
+    """Kurye bazlı sipariş raporu - parçalı ödeme ve saatlik kazanç desteği ile"""
+    from datetime import datetime
+    
     # Tarih formatını düzelt
     if len(start_datetime) == 16:
         start_datetime = start_datetime + ":00"
     if len(end_datetime) == 16:
         end_datetime = end_datetime + ":59"
+    
+    # Tarih string'lerini date formatına çevir (log sorgusu için)
+    try:
+        start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
+        start_date = start_dt.strftime("%Y-%m-%d")
+        end_date = end_dt.strftime("%Y-%m-%d")
+    except:
+        start_date = start_datetime[:10]
+        end_date = end_datetime[:10]
     
     # Temel filtre
     match_filter = {
@@ -51,12 +63,49 @@ async def get_courier_report(
         }
     ).to_list(5000)
     
+    # Şirketteki kuryelerin hourly_rate bilgilerini al
+    courier_ids = list(set(o.get("courier_id") for o in orders if o.get("courier_id")))
+    couriers_info = {}
+    if courier_ids:
+        couriers_cursor = db.couriers.find(
+            {"id": {"$in": courier_ids}},
+            {"_id": 0, "id": 1, "hourly_rate": 1}
+        )
+        async for c in couriers_cursor:
+            couriers_info[c["id"]] = c.get("hourly_rate") or 0
+    
+    # Aktif süreleri hesapla (log'lardan)
+    active_hours_map = {}
+    if courier_ids:
+        active_pipeline = [
+            {
+                "$match": {
+                    "courier_id": {"$in": courier_ids},
+                    "date": {"$gte": start_date, "$lte": end_date},
+                    "old_status": "active"
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$courier_id",
+                    "total_active_minutes": {"$sum": "$duration_minutes"}
+                }
+            }
+        ]
+        active_results = await db.courier_status_logs.aggregate(active_pipeline).to_list(1000)
+        active_hours_map = {r["_id"]: r["total_active_minutes"] for r in active_results}
+    
     # Kurye bazlı hesaplama
     courier_data = {}
     
     for order in orders:
         cid = order.get("courier_id")
         if cid not in courier_data:
+            hourly_rate = couriers_info.get(cid, 0)
+            active_minutes = active_hours_map.get(cid, 0)
+            active_hours = round(active_minutes / 60, 2)
+            hourly_earnings = round(active_hours * hourly_rate, 2)
+            
             courier_data[cid] = {
                 "id": cid,
                 "name": order.get("courier_name") or "Bilinmiyor",
@@ -64,7 +113,10 @@ async def get_courier_report(
                 "earnings": 0,
                 "cash": 0,
                 "card": 0,
-                "modified_count": 0
+                "modified_count": 0,
+                "active_hours": active_hours,
+                "hourly_rate": hourly_rate,
+                "hourly_earnings": hourly_earnings
             }
         
         c = courier_data[cid]
@@ -88,6 +140,10 @@ async def get_courier_report(
             c["card"] += order.get("total_amount", 0) or 0
             if payment_details.get("original_method"):
                 c["modified_count"] += 1
+    
+    # Toplam hakediş hesapla (paket + saatlik)
+    for c in courier_data.values():
+        c["total_earnings"] = round(c["earnings"] + c["hourly_earnings"], 2)
     
     # Kurye atanmamış olanları işaretle
     if None in courier_data:
