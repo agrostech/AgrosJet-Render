@@ -228,9 +228,20 @@ const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves) => {
   for (const assignment of courierAssignments) {
     const shift = shifts.find(s => s.id === assignment.shift_id);
     if (shift) {
-      // Basit string karşılaştırması (HH:MM formatı)
-      if (currentTime >= shift.start_time && currentTime < shift.end_time) {
-        return true;
+      const startTime = shift.start_time;
+      const endTime = shift.end_time;
+      
+      // Gece yarısını geçen vardiya kontrolü (örn: 22:00 - 00:00 veya 22:00 - 06:00)
+      if (endTime <= startTime) {
+        // Gece yarısını geçen vardiya: currentTime >= startTime VEYA currentTime < endTime
+        if (currentTime >= startTime || currentTime < endTime) {
+          return true;
+        }
+      } else {
+        // Normal vardiya: currentTime >= startTime VE currentTime < endTime
+        if (currentTime >= startTime && currentTime < endTime) {
+          return true;
+        }
       }
     }
   }
