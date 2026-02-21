@@ -339,6 +339,7 @@ from routers.sepettakip import router as sepettakip_router
 from routers.adisyo_webhook import router as adisyo_webhook_router
 from routers.migros import router as migros_router
 from routers.getir import router as getir_router
+from routers.courier_status_logs import router as courier_status_logs_router
 
 # Set db for products router
 set_products_db(db)
