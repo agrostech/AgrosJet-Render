@@ -252,7 +252,10 @@ function CourierGroup({
   showBreakTime,
   isOffline,
   onCourierClick,
-  onCourierHover
+  onCourierHover,
+  shifts = [],
+  shiftAssignments = [],
+  leaves = []
 }) {
   const sortedCouriers = sortCouriersAlphabetically(couriers);
   
@@ -277,6 +280,9 @@ function CourierGroup({
             isOffline={isOffline}
             onClick={() => onCourierClick(c)}
             onHover={() => onCourierHover(c)}
+            shifts={shifts}
+            shiftAssignments={shiftAssignments}
+            leaves={leaves}
           />
         ))
       )}
