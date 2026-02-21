@@ -29,12 +29,11 @@ import {
   Wallet,
   RotateCcw,
   ChevronRight,
-  Calendar,
-  Clock,
   Search,
   AlertTriangle,
   CheckCircle2,
-  History
+  History,
+  UtensilsCrossed
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -79,6 +78,7 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
   const [historyData, setHistoryData] = useState(null);
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
+  const hasMealCard = data?.hasMealCardCollection;
 
   const fetchData = useCallback(async () => {
     if (!companyId) return;
