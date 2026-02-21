@@ -171,7 +171,8 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
           cash_amount: getCollectionValue(courier, 'cash_amount'),
           card_percent_1: getCollectionValue(courier, 'card_percent_1'),
           card_percent_10: getCollectionValue(courier, 'card_percent_10'),
-          card_percent_20: getCollectionValue(courier, 'card_percent_20')
+          card_percent_20: getCollectionValue(courier, 'card_percent_20'),
+          meal_card_amount: getCollectionValue(courier, 'meal_card_amount')
         };
       });
 
