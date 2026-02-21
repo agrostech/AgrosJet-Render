@@ -3,12 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Printer, X } from "lucide-react";
 
-// Getir Logosu - Mor arka plan beyaz yazı
+// Getir Yemek Logosu - Mor arka plan beyaz yazı
 const GetirLogo = () => (
   <svg viewBox="0 0 200 60" className="w-full h-auto">
     <rect width="200" height="60" rx="8" fill="#5D3EBC"/>
-    <text x="100" y="42" textAnchor="middle" fill="white" fontSize="32" fontWeight="bold" fontFamily="Arial, sans-serif">
-      getir
+    <text x="100" y="42" textAnchor="middle" fill="white" fontSize="26" fontWeight="bold" fontFamily="Arial, sans-serif">
+      getir yemek
     </text>
   </svg>
 );
