@@ -63,19 +63,42 @@ GET /api/orders/v2/list?panel=admin|restaurant|courier&...
 4. **Helper fonksiyonlar** - `_extract_customer_info`, `_extract_address_info`, `_check_timing_wait`
 5. **Duplicate fonksiyonlar silindi** - `calculate_distance`, `check_preparation_times`
 
+## Tamamlanan İşler (21 Şubat 2026)
+
+### UI/UX: Harita Başlangıç Görünümü Isparta'ya Ayarlandı
+**Değişiklik:** `SiparisYonetimiPage.jsx` dosyasında `initMap()` fonksiyonu güncellendi.
+- Varsayılan koordinatlar: Isparta (`37.7648, 30.5566`)
+- Zoom seviyesi: `13` (şehir detayı)
+- Şirket verisi yoksa bile harita Isparta'ya odaklanır
+- Türkiye görünümü ve zoom animasyonu ortadan kalktı
+
+### Kurye Durum İkonları (Önceki Fork)
+- Eski konum için kırmızı konum ikonu (2 dakikadan eski)
+- Vardiyalı çevrimdışı kuryeler için kırmızı saat ikonu
+- İzinli kuryeler için siyah takvim ikonu
+- Kurye modalında vardiya/mola bilgisi gösterimi
+
+### Ses Bildirimi Sistemi (Önceki Fork)
+- Restoran ayarlarında yeni sipariş ses bildirimi
+- 5 farklı ses seçeneği ve ses önizleme
+- Tarayıcı bildirim izni entegrasyonu
+
 ## Bekleyen İşler
 
 ### P0 - Kritik
 - [x] `/api/orders/v2/list` bug fix - DB_NAME sorunu (✅ Düzeltildi - 20 Şubat 2026)
+- [x] Harita başlangıç görünümü Isparta'ya ayarlandı (✅ 21 Şubat 2026)
 - [ ] SepetTakip entegrasyonu (3. taraf yanıtı bekliyor - BLOKE)
 
 ### P1 - Yüksek Öncelik  
 - [ ] Yemeksepeti entegrasyonu (credentials bekliyor)
 - [ ] Raporlar sayfası işlevselliği
+- [ ] Migros Yemek entegrasyonu (duraklatıldı)
 
 ### P2 - Orta Öncelik
 - [ ] Background task güvenilirliği (kurye uygulaması)
-- [ ] Migros Yemek entegrasyonu (duraklatıldı)
+- [ ] Geçmiş muhasebe verisi tutarsızlığı (migration script gerekli)
+- [ ] Mobil dosya yükleme sorunu
 
 ## 3. Parti Entegrasyonlar
 | Platform | Durum |
