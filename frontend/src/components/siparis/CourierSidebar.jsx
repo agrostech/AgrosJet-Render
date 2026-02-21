@@ -238,6 +238,16 @@ const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves) => {
   return false;
 };
 
+// Kuryenin bugün izinli olup olmadığını kontrol et
+const hasLeaveToday = (courier, leaves) => {
+  if (!leaves || leaves.length === 0) return false;
+  
+  const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
+  const today = days[new Date().getDay()];
+  
+  return leaves.some(l => l.courier_id === courier.id && l.day === today);
+};
+
 // Kurye grubu (desktop - collapsible olmayan)
 function CourierGroup({
   title,
