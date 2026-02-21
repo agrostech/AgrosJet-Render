@@ -263,15 +263,31 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "$group": {
                 "_id": None,
                 "total_cash": {"$sum": "$cash_amount"},
-                "total_card": {"$sum": "$card_total"}
+                "total_card_1": {"$sum": {"$ifNull": ["$card_percent_1", 0]}},
+                "total_card_10": {"$sum": {"$ifNull": ["$card_percent_10", 0]}},
+                "total_card_20": {"$sum": {"$ifNull": ["$card_percent_20", 0]}},
+                "total_card": {"$sum": "$card_total"},
+                "total_meal_card": {"$sum": {"$ifNull": ["$meal_card_amount", 0]}}
             }
         }
     ]
     
     result = await db.daily_mutabakat_collections.aggregate(pipeline).to_list(1)
     
-    cash_at_reset = result[0]["total_cash"] if result else 0
-    card_at_reset = result[0]["total_card"] if result else 0
+    if result:
+        cash_at_reset = result[0]["total_cash"] or 0
+        card_1_at_reset = result[0]["total_card_1"] or 0
+        card_10_at_reset = result[0]["total_card_10"] or 0
+        card_20_at_reset = result[0]["total_card_20"] or 0
+        card_at_reset = result[0]["total_card"] or 0
+        meal_card_at_reset = result[0]["total_meal_card"] or 0
+    else:
+        cash_at_reset = 0
+        card_1_at_reset = 0
+        card_10_at_reset = 0
+        card_20_at_reset = 0
+        card_at_reset = 0
+        meal_card_at_reset = 0
     
     # Sıfırlama kaydı oluştur
     reset_record = {
@@ -283,8 +299,12 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
         "reset_by_id": data.reset_by_id,
         "reset_by_name": data.reset_by_name,
         "cash_at_reset": round(cash_at_reset, 2),
+        "card_1_at_reset": round(card_1_at_reset, 2),
+        "card_10_at_reset": round(card_10_at_reset, 2),
+        "card_20_at_reset": round(card_20_at_reset, 2),
         "card_at_reset": round(card_at_reset, 2),
-        "total_at_reset": round(cash_at_reset + card_at_reset, 2),
+        "meal_card_at_reset": round(meal_card_at_reset, 2),
+        "total_at_reset": round(cash_at_reset + card_at_reset + meal_card_at_reset, 2),
         "note": data.note
     }
     
@@ -294,8 +314,12 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
         "message": f"{admin['name']} bakiyesi sıfırlandı",
         "reset_amount": {
             "cash": round(cash_at_reset, 2),
+            "card_1": round(card_1_at_reset, 2),
+            "card_10": round(card_10_at_reset, 2),
+            "card_20": round(card_20_at_reset, 2),
             "card": round(card_at_reset, 2),
-            "total": round(cash_at_reset + card_at_reset, 2)
+            "meal_card": round(meal_card_at_reset, 2),
+            "total": round(cash_at_reset + card_at_reset + meal_card_at_reset, 2)
         }
     }
 
