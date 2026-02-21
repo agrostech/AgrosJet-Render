@@ -139,17 +139,17 @@ export default function FilterSummaryCard({
               <span className="font-medium text-red-600">{totals.kuryeHakedis.toFixed(2)}₺</span>
             </div>
             {hourlyData && hourlyData.hourly_rate > 0 && (
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 rounded">
-                <Clock className="w-3 h-3 text-amber-600" />
-                <span className="text-amber-700">Saatlik:</span>
-                <span className="font-medium text-amber-700">{hourlyData.hourly_earnings.toFixed(2)}₺</span>
-                <span className="text-xs text-amber-500">({hourlyData.active_hours}s × {hourlyData.hourly_rate}₺)</span>
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded">
+                <Clock className="w-3 h-3 text-slate-500" />
+                <span className="text-slate-600">Saatlik:</span>
+                <span className="font-medium text-red-600">{hourlyData.hourly_earnings.toFixed(2)}₺</span>
+                <span className="text-xs text-slate-400">({hourlyData.active_hours}s × {hourlyData.hourly_rate}₺)</span>
               </div>
             )}
             {hourlyData && hourlyData.hourly_rate > 0 && (
               <div className="flex items-center gap-1 border-l pl-3">
                 <span className="text-muted-foreground font-medium">Toplam Hakediş:</span>
-                <span className="font-bold text-purple-600">{totalHakedis.toFixed(2)}₺</span>
+                <span className="font-bold text-red-600">{totalHakedis.toFixed(2)}₺</span>
               </div>
             )}
             <div className="flex items-center gap-1">
