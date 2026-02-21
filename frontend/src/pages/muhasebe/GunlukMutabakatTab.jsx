@@ -21,7 +21,8 @@ import {
   CreditCard,
   AlertCircle,
   Users,
-  ClipboardCheck
+  ClipboardCheck,
+  UtensilsCrossed
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
