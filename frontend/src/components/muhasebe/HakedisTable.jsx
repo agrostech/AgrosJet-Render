@@ -73,7 +73,7 @@ export default function HakedisTable({
           </tr>
         </thead>
         <tbody>
-          {couriers.map((courier) => {
+          {visibleCouriers.map((courier) => {
             const isProcessed = courier.is_processed;
             const canSelectForApply = !isProcessed && courier.amount > 0;
             const canSelectForRevert = isProcessed && isCurrentWeek;
