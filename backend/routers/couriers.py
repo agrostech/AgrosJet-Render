@@ -469,6 +469,7 @@ class CourierPricingUpdate(BaseModel):
     pricing_type: str  # "per_package" veya "per_km"
     per_package_price: Optional[float] = None
     km_ranges: Optional[List[KmRange]] = None
+    hourly_rate: Optional[float] = None  # Saatlik ücret (opsiyonel)
 
 
 @router.put("/couriers/{courier_id}/pricing")
