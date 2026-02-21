@@ -36,6 +36,21 @@ async def get_courier_report(
         start_date = start_datetime[:10]
         end_date = end_datetime[:10]
     
+    # Şirkete ait restoranların meal_card ayarlarını kontrol et
+    # Eğer herhangi bir restoranda meal_card_collection == "courier" ise yemek kartı gösterilecek
+    restaurants_with_meal_card = await db.restaurants.find(
+        {
+            "company_id": company_id,
+            "is_archived": {"$ne": True}
+        },
+        {"_id": 0, "id": 1, "collection_settings": 1}
+    ).to_list(500)
+    
+    has_meal_card_collection = any(
+        r.get("collection_settings", {}).get("meal_card_collection") == "courier"
+        for r in restaurants_with_meal_card
+    )
+    
     # Temel filtre
     match_filter = {
         "company_id": company_id,
