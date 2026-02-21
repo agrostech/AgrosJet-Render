@@ -165,6 +165,16 @@ export function CourierSidebarMobile({
   );
 }
 
+// Kuryeleri alfabetik sırala
+const sortCouriersAlphabetically = (courierList) => {
+  if (!courierList || courierList.length === 0) return [];
+  return [...courierList].sort((a, b) => {
+    const nameA = (a.name || '').toLocaleLowerCase('tr');
+    const nameB = (b.name || '').toLocaleLowerCase('tr');
+    return nameA.localeCompare(nameB, 'tr');
+  });
+};
+
 // Kurye grubu (desktop - collapsible olmayan)
 function CourierGroup({
   title,
@@ -181,16 +191,18 @@ function CourierGroup({
   onCourierClick,
   onCourierHover
 }) {
+  const sortedCouriers = sortCouriersAlphabetically(couriers);
+  
   return (
     <div>
       <div className={`flex items-center gap-2 px-2 py-1 ${bgColor} rounded text-xs font-semibold ${textColor} mb-1`}>
         <div className={`w-2 h-2 rounded-full ${dotColor}`} />
         {title} ({couriers.length})
       </div>
-      {couriers.length === 0 ? (
+      {sortedCouriers.length === 0 ? (
         <p className="text-xs text-muted-foreground px-2">-</p>
       ) : (
-        couriers.map(c => (
+        sortedCouriers.map(c => (
           <CourierItem
             key={c.id}
             courier={c}
