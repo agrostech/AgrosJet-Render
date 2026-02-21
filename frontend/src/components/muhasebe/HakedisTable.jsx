@@ -104,7 +104,7 @@ export default function HakedisTable({
                   <span className="font-semibold text-slate-700">{courier.order_count}</span>
                 </td>
                 <td className="p-3 text-center">
-                  <span className="text-slate-600">{(courier.active_hours || 0).toFixed(1)}s</span>
+                  <span className="text-slate-600">{(courier.active_hours || 0).toFixed(2)}s</span>
                 </td>
                 <td className="p-3 text-center text-xs hidden md:table-cell">
                   <span className="text-slate-600">{(courier.distance_km || 0).toFixed(1)} km</span>
