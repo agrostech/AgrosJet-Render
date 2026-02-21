@@ -11,7 +11,7 @@ import os
 from datetime import datetime, timezone, timedelta
 
 # Backend URL
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL') or 'https://isparta-map.preview.emergentagent.com'
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL') or 'https://earning-tracker-app.preview.emergentagent.com'
 BASE_URL = BASE_URL.rstrip('/')
 
 # Test credentials
