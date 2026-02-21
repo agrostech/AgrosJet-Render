@@ -96,16 +96,22 @@ export const calculateDistance = (lat1, lon1, lat2, lon2) => {
 export const getRemainingBreakTime = (courier) => {
   const dailyLimit = courier.daily_break_limit || 30;
   let usedTime = courier.used_break_time || 0;
+  let currentBreakMinutes = 0;
   
   if (courier.availability_status === 'on_break' && courier.break_start_time) {
     const startTime = new Date(courier.break_start_time);
     const now = new Date();
-    const currentBreakMinutes = Math.floor((now - startTime) / 60000);
+    currentBreakMinutes = Math.floor((now - startTime) / 60000);
     usedTime += currentBreakMinutes;
   }
   
   const remaining = Math.max(0, dailyLimit - usedTime);
-  return { remaining, dailyLimit, usedTime };
+  return { 
+    remaining,          // Kalan günlük mola süresi
+    dailyLimit,         // Günlük toplam mola hakkı
+    usedTime,           // Bugün kullanılan toplam mola
+    currentBreak: currentBreakMinutes  // Şu anki molanın süresi
+  };
 };
 
 // Sipariş uzaklığını formatla
