@@ -559,10 +559,15 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                           <div className="text-xs text-muted-foreground">{reset.note}</div>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="text-xs text-green-600">N: {formatCurrency(reset.cash_at_reset)}</div>
-                        <div className="text-xs text-blue-600">K: {formatCurrency(reset.card_at_reset)}</div>
-                        <div className="text-sm font-medium">{formatCurrency(reset.total_at_reset)}</div>
+                      <TableCell className="text-right text-sm">
+                        <div className="space-y-0.5">
+                          <div>Nakit: {formatCurrency(reset.cash_at_reset)}</div>
+                          <div>Kart: {formatCurrency(reset.card_at_reset)}</div>
+                          {reset.meal_card_at_reset > 0 && (
+                            <div>Y.Kartı: {formatCurrency(reset.meal_card_at_reset)}</div>
+                          )}
+                          <div className="font-bold pt-1 border-t">{formatCurrency(reset.total_at_reset)}</div>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
