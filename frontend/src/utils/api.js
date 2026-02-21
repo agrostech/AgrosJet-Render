@@ -1,5 +1,5 @@
 /**
- * API Helper for ShiftJet Kurye Yönetim Sistemi
+ * API Helper for AgrosJet Kurye Yönetim Sistemi
  * Simple API call helpers without permission headers
  */
 

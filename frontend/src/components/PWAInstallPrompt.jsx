@@ -26,7 +26,7 @@ export function PWAInstallPrompt() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-base text-slate-900">
-                ShiftJet'i Ana Ekrana Ekle
+                AgrosJet'i Ana Ekrana Ekle
               </h3>
               <p className="text-sm text-slate-500 mt-1">
                 Daha hızlı erişim için uygulamayı telefonunuza yükleyin

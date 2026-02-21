@@ -370,7 +370,7 @@ const generateEscPosReceipt = (order, paperSize = "80mm") => {
   // Footer
   receipt.push(CENTER);
   receipt.push(line("-", width) + "\n");
-  receipt.push("ShiftJet Siparis Sistemi\n");
+  receipt.push("AgrosJet Siparis Sistemi\n");
   receipt.push(line("-", width) + "\n");
   
   // Boşluk ve kesme
@@ -448,7 +448,7 @@ const generateHtmlReceipt = (order, paperSize = "80mm") => {
       
       <div class="footer">
         --------------------------------<br>
-        ShiftJet Siparis Sistemi
+        AgrosJet Siparis Sistemi
       </div>
     </body>
     </html>

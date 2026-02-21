@@ -557,7 +557,7 @@ export function useAccountingTab({
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
-      doc.text("© 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+      doc.text("© 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosJet.", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
     }
 
     const safeName = selectedEntity.name.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g, '_');

@@ -110,10 +110,10 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
         <div className="w-full max-w-md">
           <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-2">
-            ShiftJet
+            AgrosJet
           </h1>
           <p className="text-muted-foreground text-sm mb-8">
-            ShiftJet yönetim sistemine hoş geldiniz. Lütfen giriş yapınız.
+            AgrosJet yönetim sistemine hoş geldiniz. Lütfen giriş yapınız.
           </p>
 
           <Tabs defaultValue="courier" className="w-full">
@@ -311,7 +311,7 @@ export default function LoginPage() {
 
           {/* Footer */}
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            © 2026 ShiftJet. Tüm hakları saklıdır. Powered by AgrosJet.
+            © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosJet.
           </p>
         </div>
       </div>
@@ -326,7 +326,7 @@ export default function LoginPage() {
         <div className="w-full h-full bg-black/50 flex items-end p-12">
           <div className="text-white">
             <h2 className="font-heading text-4xl font-bold mb-2">
-              ShiftJet
+              AgrosJet
             </h2>
             <p className="text-white/80">
               Kurye Yönetim Sistemi

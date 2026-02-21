@@ -140,7 +140,7 @@ const generate58mmReceipt = (order) => {
 
       <div class="footer">
         --------------------------------<br>
-        ShiftJet Sipariş Sistemi
+        AgrosJet Sipariş Sistemi
       </div>
     </body>
     </html>
@@ -320,7 +320,7 @@ const generate80mmReceipt = (order) => {
 
       <div class="footer">
         ════════════════════════════════════<br>
-        ShiftJet Sipariş Yönetim Sistemi<br>
+        AgrosJet Sipariş Yönetim Sistemi<br>
         ════════════════════════════════════
       </div>
     </body>

@@ -33,7 +33,7 @@ export default function SistemPage({ companyId }) {
     smtp_user: "",
     smtp_password: "",
     from_email: "",
-    from_name: "ShiftJet",
+    from_name: "AgrosJet",
     enabled: true,
     // Bildirim türleri
     notify_muhasebe: true,
@@ -108,7 +108,7 @@ export default function SistemPage({ companyId }) {
           smtp_user: res.data.smtp_user || "",
           smtp_password: res.data.smtp_password_masked || "",
           from_email: res.data.from_email || "",
-          from_name: res.data.from_name || "ShiftJet",
+          from_name: res.data.from_name || "AgrosJet",
           enabled: res.data.enabled !== false,
           notify_muhasebe: res.data.notify_muhasebe !== false,
           notify_zimmet: res.data.notify_zimmet !== false,
@@ -658,7 +658,7 @@ export default function SistemPage({ companyId }) {
                     value={emailSettings.from_name} 
                     onChange={(e) => setEmailSettings({...emailSettings, from_name: e.target.value})}
                     className="mt-1 h-10 md:h-11 border-2 text-sm"
-                    placeholder="ShiftJet"
+                    placeholder="AgrosJet"
                   />
                 </div>
               </div>

@@ -294,7 +294,7 @@ function SirketlerPage() {
                 value={newCompany.name} 
                 onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })} 
                 className="mt-1 h-12 border-2" 
-                placeholder="Örn: ShiftJet İstanbul"
+                placeholder="Örn: AgrosJet İstanbul"
                 required 
               />
             </div>
@@ -1288,7 +1288,7 @@ export default function SystemDashboard() {
           </div>
           
           <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
-            © 2026 ShiftJet. Tüm hakları saklıdır.
+            © 2026 AgrosJet. Tüm hakları saklıdır.
           </footer>
         </main>
       </div>

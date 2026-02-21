@@ -15,7 +15,7 @@ export function LoadingSpinner({ className, size = "default", text }) {
       <div className={cn("relative", sizeClasses[size])}>
         <img 
           src={SHIFTJET_LOGO} 
-          alt="ShiftJet" 
+          alt="AgrosJet" 
           className={cn(
             "w-full h-full object-contain animate-spin-slow",
             sizeClasses[size]
