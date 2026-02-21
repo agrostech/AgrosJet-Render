@@ -4,7 +4,7 @@ Kurye Durum Log Sistemi
 - Aktif süre hesaplama
 - Saatlik kazanç hesaplama
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -23,6 +23,36 @@ class StatusLogEntry(BaseModel):
     changed_by_name: Optional[str] = None
 
 
+async def get_company_work_hours(company_id: str):
+    """Şirket açılış/kapanış saatlerini getir"""
+    if not company_id:
+        return "06:00", "06:00"
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "opening_time": 1, "closing_time": 1}
+    )
+    if not company:
+        return "06:00", "06:00"
+    return company.get("opening_time", "06:00"), company.get("closing_time", "06:00")
+
+
+def get_business_date(timestamp: datetime, opening_time: str) -> str:
+    """
+    Şirket açılış saatine göre iş gününü hesapla.
+    Örn: Açılış 06:00 ise, 05:30'da yapılan işlem önceki güne ait.
+    """
+    open_h, open_m = map(int, opening_time.split(":"))
+    
+    # Timestamp'in saatini kontrol et
+    if timestamp.hour < open_h or (timestamp.hour == open_h and timestamp.minute < open_m):
+        # Açılış saatinden önce - önceki iş günü
+        business_day = timestamp - timedelta(days=1)
+    else:
+        business_day = timestamp
+    
+    return business_day.strftime("%Y-%m-%d")
+
+
 async def create_status_log(
     courier_id: str,
     old_status: str,
@@ -33,6 +63,10 @@ async def create_status_log(
 ):
     """Durum değişikliği logu oluştur"""
     now = datetime.now(timezone.utc)
+    
+    # Şirket çalışma saatlerini al
+    opening_time, _ = await get_company_work_hours(company_id)
+    business_date = get_business_date(now, opening_time)
     
     # Bir önceki log'u bul ve süre hesapla
     last_log = await db.courier_status_logs.find_one(
@@ -57,8 +91,8 @@ async def create_status_log(
         "changed_by": changed_by,
         "changed_by_name": changed_by_name,
         "timestamp": now.isoformat(),
-        "duration_minutes": duration_minutes,  # Önceki durumda kalınan süre
-        "date": now.strftime("%Y-%m-%d")  # Günlük gruplama için
+        "duration_minutes": duration_minutes,
+        "date": business_date  # İş günü (şirket açılış saatine göre)
     }
     
     await db.courier_status_logs.insert_one(log_entry)
