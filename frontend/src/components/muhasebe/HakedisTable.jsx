@@ -132,10 +132,8 @@ export default function HakedisTable({
                       <CheckCircle2 className="w-3 h-3" />
                       {isSelected ? 'Seçildi' : 'İşlendi'}
                     </span>
-                  ) : courier.amount > 0 ? (
-                    <span className="text-xs text-slate-400">Bekliyor</span>
                   ) : (
-                    <span className="text-xs text-slate-300">-</span>
+                    <span className="text-xs text-slate-400">Bekliyor</span>
                   )}
                 </td>
               </tr>
