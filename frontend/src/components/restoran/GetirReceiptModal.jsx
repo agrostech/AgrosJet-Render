@@ -67,12 +67,16 @@ export default function GetirReceiptModal({ open, onClose, order }) {
   const extractClientNote = (notes) => {
     if (!notes.includes("MÜŞTERİ NOTU:")) return "";
     const afterMusteriNotu = notes.split("MÜŞTERİ NOTU:")[1] || "";
-    // | veya GETİR veya TESLİMAT ile başlayan kısmı kes
-    const cleanNote = afterMusteriNotu.split(/\s*\|\s*GETİR|\s*\|\s*TESLİMAT|\s*\|/)[0]?.trim();
-    // Sondaki noktayı koru
+    // | veya GETİR veya TESLİMAT veya ADRES ile başlayan kısmı kes
+    const cleanNote = afterMusteriNotu.split(/\s*\|\s*GETİR|\s*\|\s*TESLİMAT|\s*\|\s*ADRES|\s*\|\s*İLERİ|\s*\|/)[0]?.trim();
     return cleanNote || "";
   };
   const clientNote = extractClientNote(orderNotes);
+  
+  // Plastik çatal bıçak istememe
+  const doNotSendCutlery = order.getir_raw?.doNotSendCutlery || 
+    orderNotes.includes("plastik çatal") || 
+    orderNotes.includes("çatal, bıçak");
 
   // Yazdırma fonksiyonu
   const handlePrint = () => {
