@@ -306,7 +306,7 @@ export function CourierDetailModal({
             <div className="text-xs text-muted-foreground mb-1 px-1">
               Siparişler ({courierOrders.length})
             </div>
-            <div className="space-y-1 max-h-[250px] overflow-y-auto overflow-x-hidden w-full">
+            <div className="space-y-1 max-h-[310px] overflow-y-auto overflow-x-hidden w-full">
               {courierOrders.length === 0 ? (
                 <div className="text-center py-3 text-muted-foreground text-xs">
                   Aktif sipariş yok
