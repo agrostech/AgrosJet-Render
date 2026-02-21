@@ -184,6 +184,45 @@ const isLocationStale = (courier) => {
   return diffMinutes > 2;
 };
 
+// Kuryenin şu an aktif vardiyası var mı kontrol et
+const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves) => {
+  if (!shifts || !shiftAssignments) return false;
+  
+  // Bugünün gün adı (Türkçe)
+  const days = ['pazar', 'pazartesi', 'sali', 'carsamba', 'persembe', 'cuma', 'cumartesi'];
+  const today = days[new Date().getDay()];
+  
+  // Bugün izinli mi kontrol et
+  if (leaves && leaves.length > 0) {
+    const hasLeaveToday = leaves.some(l => l.courier_id === courier.id && l.day === today);
+    if (hasLeaveToday) return false;
+  }
+  
+  // Bu kuryenin bugünkü vardiya atamalarını bul
+  const courierAssignments = shiftAssignments.filter(
+    a => a.courier_id === courier.id && a.day === today
+  );
+  
+  if (courierAssignments.length === 0) return false;
+  
+  // Şu anki saat
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+  // Herhangi bir vardiya şu an aktif mi kontrol et
+  for (const assignment of courierAssignments) {
+    const shift = shifts.find(s => s.id === assignment.shift_id);
+    if (shift) {
+      // Basit string karşılaştırması (HH:MM formatı)
+      if (currentTime >= shift.start_time && currentTime < shift.end_time) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+};
+
 // Kurye grubu (desktop - collapsible olmayan)
 function CourierGroup({
   title,
