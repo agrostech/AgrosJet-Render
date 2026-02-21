@@ -262,6 +262,7 @@ class AvailabilityStatusUpdate(BaseModel):
 async def update_courier_availability(courier_id: str, data: AvailabilityStatusUpdate):
     """Update courier availability status (active/on_break/offline)"""
     from datetime import datetime, timezone
+    from routers.courier_status_logs import create_status_log
     
     valid_statuses = ["active", "on_break", "offline"]
     if data.availability_status not in valid_statuses:
@@ -274,6 +275,11 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     
     current_status = courier.get("availability_status", "offline")
     now = datetime.now(timezone.utc)
+    
+    # Durum değişmediyse log tutma
+    if current_status == data.availability_status:
+        status_labels = {"active": "Aktif", "on_break": "Molada", "offline": "Çevrimdışı"}
+        return {"message": f"Kurye zaten {status_labels[data.availability_status]} durumunda"}
     
     update_data = {"availability_status": data.availability_status}
     
@@ -311,6 +317,21 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
         {"id": courier_id},
         {"$set": update_data}
     )
+    
+    # Durum değişikliği logu kaydet
+    company_id = courier.get("company_id") or (courier.get("company_ids", [None])[0] if courier.get("company_ids") else None)
+    changed_by = "admin" if data.force else "courier"
+    
+    try:
+        await create_status_log(
+            courier_id=courier_id,
+            old_status=current_status,
+            new_status=data.availability_status,
+            changed_by=changed_by,
+            company_id=company_id
+        )
+    except Exception as e:
+        print(f"Status log creation failed: {e}")
     
     status_labels = {"active": "Aktif", "on_break": "Molada", "offline": "Çevrimdışı"}
     return {"message": f"Kurye durumu güncellendi: {status_labels[data.availability_status]}"}
