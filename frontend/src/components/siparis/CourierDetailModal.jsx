@@ -264,13 +264,13 @@ export function CourierDetailModal({
               </SelectContent>
             </Select>
             {/* Kalan Mola Süresi - Her zaman göster */}
-            <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
+            <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-600">
               <Clock className="w-3 h-3" />
               <span>Mola: {breakInfo.remaining}/{breakInfo.dailyLimit} dk</span>
             </div>
             {/* Bugünkü Vardiya */}
             {todayShifts.length > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+              <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-600">
                 <Calendar className="w-3 h-3" />
                 <span>
                   {mergeConsecutiveShifts(todayShifts).map((s, i) => (
