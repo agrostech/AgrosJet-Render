@@ -288,7 +288,7 @@ export function CourierDetailModal({
         <div className="space-y-2 sm:space-y-3 w-full overflow-hidden">
           {/* Harita */}
           <div className="rounded-lg overflow-hidden border w-full">
-            <div ref={mapRef} className="h-[150px] sm:h-[200px] w-full bg-slate-100" />
+            <div ref={mapRef} className="h-[180px] sm:h-[220px] w-full bg-slate-100" />
           </div>
           
           {/* Son Konum */}
