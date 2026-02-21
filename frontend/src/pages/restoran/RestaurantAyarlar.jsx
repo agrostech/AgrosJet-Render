@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Slider } from "@/components/ui/slider";
-import { Printer, Settings, TestTube, CheckCircle2, XCircle, RefreshCw, Download, ChevronDown, Save, Bell, Play, Volume2 } from "lucide-react";
+import { Printer, TestTube, CheckCircle2, XCircle, RefreshCw, Download, ChevronDown, Save, Bell, Play, Volume2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import {
   checkLocalPrintServer,
@@ -21,6 +21,8 @@ import {
   NOTIFICATION_SOUNDS,
   getNotificationSettings,
   saveNotificationSettings,
+  requestNotificationPermission,
+  getNotificationPermission,
 } from "@/utils/notificationSounds";
 
 export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
@@ -30,14 +32,15 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [printers, setPrinters] = useState([]);
   const [loadingPrinters, setLoadingPrinters] = useState(false);
   const [testingPrint, setTestingPrint] = useState(false);
-  const [openSections, setOpenSections] = useState({ print: false, notification: true });
+  const [openSections, setOpenSections] = useState({ print: false, notification: false });
   const [hasChanges, setHasChanges] = useState(false);
 
   // Bildirim ayarları state'leri
-  const [notificationSettings, setNotificationSettings] = useState({ enabled: true, soundId: 'alert1', volume: 1.0 });
-  const [savedNotificationSettings, setSavedNotificationSettings] = useState({ enabled: true, soundId: 'alert1', volume: 1.0 });
+  const [notificationSettings, setNotificationSettings] = useState({ enabled: true, soundId: 'ses1', volume: 1.0 });
+  const [savedNotificationSettings, setSavedNotificationSettings] = useState({ enabled: true, soundId: 'ses1', volume: 1.0 });
   const [hasNotificationChanges, setHasNotificationChanges] = useState(false);
-  const [playingSound, setPlayingSound] = useState(null);
+  const [playingSound, setPlayingSound] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState('default');
 
   // Ayarları yükle
   useEffect(() => {
@@ -49,6 +52,9 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     const notifStored = getNotificationSettings(restaurantId);
     setNotificationSettings(notifStored);
     setSavedNotificationSettings(notifStored);
+    
+    // Bildirim izni durumunu kontrol et
+    setNotificationPermission(getNotificationPermission());
     
     checkServerStatus();
   }, [restaurantId]);
@@ -153,10 +159,20 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     setNotificationSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const handlePlaySound = (soundId) => {
-    setPlayingSound(soundId);
-    playNotificationSound(soundId, notificationSettings.volume);
-    setTimeout(() => setPlayingSound(null), 1500);
+  const handlePlaySound = () => {
+    setPlayingSound(true);
+    playNotificationSound(notificationSettings.soundId, notificationSettings.volume);
+    setTimeout(() => setPlayingSound(false), 2500);
+  };
+
+  const handleRequestPermission = async () => {
+    const result = await requestNotificationPermission();
+    setNotificationPermission(result.permission);
+    if (result.permission === 'granted') {
+      toast.success("Bildirim izni verildi");
+    } else if (result.permission === 'denied') {
+      toast.error("Bildirim izni reddedildi");
+    }
   };
 
   const handleSaveNotificationSettings = () => {
@@ -200,12 +216,22 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
           
           <CollapsibleContent>
             <CardContent className="space-y-5">
+              {/* Bildirim İzni Uyarısı */}
+              {notificationPermission !== 'granted' && (
+                <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm text-amber-800">Bildirim izni gerekli</span>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={handleRequestPermission}>
+                    İzin Ver
+                  </Button>
+                </div>
+              )}
+
               {/* Bildirim Açık/Kapalı */}
               <div className="flex items-center justify-between py-2">
-                <div>
-                  <Label htmlFor="notification-enabled">Sesli Bildirim</Label>
-                  <p className="text-xs text-muted-foreground">Yeni sipariş geldiğinde ses çal</p>
-                </div>
+                <Label htmlFor="notification-enabled">Sesli Bildirim</Label>
                 <Switch
                   id="notification-enabled"
                   checked={notificationSettings.enabled}
@@ -215,56 +241,38 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
 
               {notificationSettings.enabled && (
                 <>
-                  {/* Ses Seçimi */}
-                  <div className="space-y-3">
+                  {/* Ses Seçimi - Dropdown */}
+                  <div className="space-y-2">
                     <Label>Bildirim Sesi</Label>
-                    <div className="grid gap-2">
-                      {NOTIFICATION_SOUNDS.map((sound) => (
-                        <div
-                          key={sound.id}
-                          className={`flex items-center justify-between p-3 border rounded-lg transition-all cursor-pointer ${
-                            notificationSettings.soundId === sound.id
-                              ? "border-slate-900 bg-slate-50"
-                              : "border-slate-200 hover:border-slate-300"
-                          }`}
-                          onClick={() => updateNotificationSetting("soundId", sound.id)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                notificationSettings.soundId === sound.id
-                                  ? "border-slate-900"
-                                  : "border-slate-300"
-                              }`}
-                            >
-                              {notificationSettings.soundId === sound.id && (
-                                <div className="w-2 h-2 rounded-full bg-slate-900" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">{sound.name}</p>
-                              <p className="text-xs text-muted-foreground">{sound.description}</p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePlaySound(sound.id);
-                            }}
-                            disabled={playingSound === sound.id}
-                            className="gap-1"
-                          >
-                            {playingSound === sound.id ? (
-                              <Volume2 className="w-4 h-4 animate-pulse" />
-                            ) : (
-                              <Play className="w-4 h-4" />
-                            )}
-                            Dinle
-                          </Button>
-                        </div>
-                      ))}
+                    <div className="flex gap-2">
+                      <Select
+                        value={notificationSettings.soundId}
+                        onValueChange={(value) => updateNotificationSetting("soundId", value)}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Ses seçin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {NOTIFICATION_SOUNDS.map((sound) => (
+                            <SelectItem key={sound.id} value={sound.id}>
+                              {sound.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        onClick={handlePlaySound}
+                        disabled={playingSound}
+                        className="gap-2"
+                      >
+                        {playingSound ? (
+                          <Volume2 className="w-4 h-4 animate-pulse" />
+                        ) : (
+                          <Play className="w-4 h-4" />
+                        )}
+                        Dinle
+                      </Button>
                     </div>
                   </div>
 
