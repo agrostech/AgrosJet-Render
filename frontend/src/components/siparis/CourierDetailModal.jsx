@@ -318,7 +318,7 @@ export function CourierDetailModal({
                   return (
                     <div 
                       key={order.id} 
-                      className={`px-2 py-1.5 rounded border ${statusInfo.bgLight} cursor-pointer hover:shadow-sm transition-shadow w-full overflow-hidden`}
+                      className="px-2 py-1.5 rounded border border-slate-200 bg-white cursor-pointer hover:shadow-sm transition-shadow w-full overflow-hidden"
                       onClick={() => onOrderClick(order)}
                     >
                       <div className="flex items-center gap-2">
