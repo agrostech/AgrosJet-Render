@@ -173,6 +173,135 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
         <p className="text-sm text-muted-foreground">Restoran Ayarları</p>
       </div>
 
+      {/* Sesli Bildirim Ayarları */}
+      <Card>
+        <Collapsible open={openSections.notification} onOpenChange={() => toggleSection("notification")}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5" />
+                  <div>
+                    <CardTitle className="text-lg">Sesli Bildirim</CardTitle>
+                    <CardDescription>Yeni sipariş geldiğinde sesli uyarı</CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {notificationSettings.enabled ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-slate-400" />
+                  )}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${openSections.notification ? "rotate-180" : ""}`} />
+                </div>
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent>
+            <CardContent className="space-y-5">
+              {/* Bildirim Açık/Kapalı */}
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label htmlFor="notification-enabled">Sesli Bildirim</Label>
+                  <p className="text-xs text-muted-foreground">Yeni sipariş geldiğinde ses çal</p>
+                </div>
+                <Switch
+                  id="notification-enabled"
+                  checked={notificationSettings.enabled}
+                  onCheckedChange={(checked) => updateNotificationSetting("enabled", checked)}
+                />
+              </div>
+
+              {notificationSettings.enabled && (
+                <>
+                  {/* Ses Seçimi */}
+                  <div className="space-y-3">
+                    <Label>Bildirim Sesi</Label>
+                    <div className="grid gap-2">
+                      {NOTIFICATION_SOUNDS.map((sound) => (
+                        <div
+                          key={sound.id}
+                          className={`flex items-center justify-between p-3 border rounded-lg transition-all cursor-pointer ${
+                            notificationSettings.soundId === sound.id
+                              ? "border-slate-900 bg-slate-50"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                          onClick={() => updateNotificationSetting("soundId", sound.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                notificationSettings.soundId === sound.id
+                                  ? "border-slate-900"
+                                  : "border-slate-300"
+                              }`}
+                            >
+                              {notificationSettings.soundId === sound.id && (
+                                <div className="w-2 h-2 rounded-full bg-slate-900" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{sound.name}</p>
+                              <p className="text-xs text-muted-foreground">{sound.description}</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePlaySound(sound.id);
+                            }}
+                            disabled={playingSound === sound.id}
+                            className="gap-1"
+                          >
+                            {playingSound === sound.id ? (
+                              <Volume2 className="w-4 h-4 animate-pulse" />
+                            ) : (
+                              <Play className="w-4 h-4" />
+                            )}
+                            Dinle
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Ses Seviyesi */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Ses Seviyesi</Label>
+                      <span className="text-sm text-muted-foreground">{Math.round(notificationSettings.volume * 100)}%</span>
+                    </div>
+                    <Slider
+                      value={[notificationSettings.volume]}
+                      onValueChange={([value]) => updateNotificationSetting("volume", value)}
+                      max={1}
+                      min={0.1}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Kaydet Butonu */}
+              <div className="pt-2">
+                <Button
+                  onClick={handleSaveNotificationSettings}
+                  disabled={!hasNotificationChanges}
+                  className="gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {hasNotificationChanges ? "Kaydet" : "Kaydedildi"}
+                </Button>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
       {/* Otomatik Yazdırma */}
       <Card>
         <Collapsible open={openSections.print} onOpenChange={() => toggleSection("print")}>
