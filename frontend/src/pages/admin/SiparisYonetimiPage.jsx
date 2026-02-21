@@ -138,11 +138,28 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     }
   }, [companyId]);
 
+  // Vardiya ve izin verilerini çek
+  const fetchShiftData = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const [shiftsRes, assignmentsRes, leavesRes] = await Promise.all([
+        axios.get(`${API}/companies/${companyId}/shifts`),
+        axios.get(`${API}/companies/${companyId}/shift-assignments`),
+        axios.get(`${API}/companies/${companyId}/leaves`).catch(() => ({ data: [] }))
+      ]);
+      setShifts(shiftsRes.data || []);
+      setShiftAssignments(assignmentsRes.data || []);
+      setLeaves(leavesRes.data || []);
+    } catch (err) {
+      console.error("Shift data fetch error:", err);
+    }
+  }, [companyId]);
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    await Promise.all([fetchOrders(), fetchCouriers(), fetchRestaurants(), fetchCompany()]);
+    await Promise.all([fetchOrders(), fetchCouriers(), fetchRestaurants(), fetchCompany(), fetchShiftData()]);
     setLoading(false);
-  }, [fetchOrders, fetchCouriers, fetchRestaurants, fetchCompany]);
+  }, [fetchOrders, fetchCouriers, fetchRestaurants, fetchCompany, fetchShiftData]);
 
   useEffect(() => {
     fetchAll();
