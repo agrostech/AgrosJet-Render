@@ -204,7 +204,11 @@ async def get_admin_details(
                 "_id": "$courier_id",
                 "courier_name": {"$first": "$courier_name"},
                 "total_cash": {"$sum": "$cash_amount"},
+                "total_card_1": {"$sum": {"$ifNull": ["$card_percent_1", 0]}},
+                "total_card_10": {"$sum": {"$ifNull": ["$card_percent_10", 0]}},
+                "total_card_20": {"$sum": {"$ifNull": ["$card_percent_20", 0]}},
                 "total_card": {"$sum": "$card_total"},
+                "total_meal_card": {"$sum": {"$ifNull": ["$meal_card_amount", 0]}},
                 "count": {"$sum": 1}
             }
         },
