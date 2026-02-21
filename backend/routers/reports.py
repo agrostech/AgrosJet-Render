@@ -32,7 +32,7 @@ async def get_courier_report(
         end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
         start_date = start_dt.strftime("%Y-%m-%d")
         end_date = end_dt.strftime("%Y-%m-%d")
-    except:
+    except (ValueError, TypeError):
         start_date = start_datetime[:10]
         end_date = end_datetime[:10]
     
