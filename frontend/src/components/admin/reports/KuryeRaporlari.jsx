@@ -95,19 +95,36 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
       {reportData && (
         <Card>
           <CardContent className="p-3">
-            {/* Summary - Compact */}
+            {/* Summary - Updated Layout */}
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-3 text-muted-foreground">
-              <span>Sipariş: <strong className="text-foreground">{reportData.summary?.totalOrders || 0}</strong></span>
-              <span>Paket: <strong className="text-red-600">{(reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong></span>
-              {reportData.summary?.totalHourlyEarnings > 0 && (
+              <span className="flex items-center gap-1">
+                <Package className="w-3 h-3 text-slate-500" />
+                Paket Sayısı: <strong className="text-foreground">{reportData.summary?.totalOrders || 0}</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3 text-slate-500" />
+                Çalışma Saati: <strong className="text-foreground">{(reportData.summary?.totalActiveHours || 0).toFixed(2)}s</strong>
+              </span>
+              <span>Paket Ücreti: <strong className="text-red-600">{(reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong></span>
+              <span>Saatlik Ücret: <strong className="text-slate-700">{(reportData.summary?.totalHourlyEarnings || 0).toFixed(2)}₺</strong></span>
+              <span className="flex items-center gap-1">
+                <Wallet className="w-3 h-3 text-slate-500" />
+                Toplam Hakediş: <strong className="text-slate-800">{(reportData.summary?.totalCombined || reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <Banknote className="w-3 h-3 text-green-500" />
+                Nakit: <strong className="text-green-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <CreditCard className="w-3 h-3 text-green-500" />
+                Kredi Kartı: <strong className="text-green-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</strong>
+              </span>
+              {reportData.hasMealCardCollection && (
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-slate-500" />
-                  Saatlik: <strong className="text-slate-700">{(reportData.summary?.totalHourlyEarnings || 0).toFixed(2)}₺</strong>
+                  <UtensilsCrossed className="w-3 h-3 text-green-500" />
+                  Yemek Kartı: <strong className="text-green-600">{(reportData.summary?.totalMealCard || 0).toFixed(2)}₺</strong>
                 </span>
               )}
-              <span>Toplam Hakediş: <strong className="text-slate-800">{(reportData.summary?.totalCombined || reportData.summary?.totalEarnings || 0).toFixed(2)}₺</strong></span>
-              <span>Nakit: <strong className="text-green-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</strong></span>
-              <span>Kart: <strong className="text-green-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</strong></span>
               {reportData.summary?.totalModified > 0 && (
                 <span className="text-amber-600">Ödeme Değ.: <strong>{reportData.summary.totalModified}</strong></span>
               )}
