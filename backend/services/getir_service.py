@@ -628,6 +628,9 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "total_amount": total_amount,
         "total_price": total_price,
         "total_discounted_price": total_discounted,
+        "discount_amount": total_price - total_discounted if total_discounted > 0 else 0,
+        "campaigns": campaign_info,
+        "coupon_code": coupon_code,
         "payment_method": payment,
         "payment_method_name": payment_method_name,
         "status": "pending",
@@ -652,7 +655,10 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
             "isScheduled": is_scheduled,
             "scheduledDate": scheduled_date,
             "verificationCode": verification_code,
-            "confirmationId": confirmation_id
+            "confirmationId": confirmation_id,
+            "promotions": promotions,
+            "discounts": discounts,
+            "couponCode": coupon_code
         }
     }
 
