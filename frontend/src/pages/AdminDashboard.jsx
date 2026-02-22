@@ -37,9 +37,37 @@ export default function AdminDashboard() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [badges, setBadges] = useState({});
   
+  // Admin aktiflik durumu
+  const [adminStatus, setAdminStatus] = useState("offline");
+  const [hasLinkedCourier, setHasLinkedCourier] = useState(false);
+  
   // Multi-company state
   const [activeCompanyId, setActiveCompanyId] = useState(null);
   const [accessibleCompanies, setAccessibleCompanies] = useState([]);
+
+  // Fetch admin status
+  const fetchAdminStatus = useCallback(async (adminId) => {
+    if (!adminId) return;
+    try {
+      const res = await axios.get(`${API}/admins/${adminId}/status`);
+      setAdminStatus(res.data.availability_status || "offline");
+      setHasLinkedCourier(!!res.data.linked_courier_id);
+    } catch (err) {
+      console.error("Admin status fetch error:", err);
+    }
+  }, []);
+
+  // Toggle admin status
+  const handleToggleAdminStatus = async () => {
+    if (!user?.id) return;
+    try {
+      const res = await axios.post(`${API}/admins/${user.id}/toggle-status`);
+      setAdminStatus(res.data.new_status);
+      toast.success(res.data.new_status === "active" ? "Aktif oldunuz" : "Pasif oldunuz");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Durum değiştirilemedi");
+    }
+  };
 
   // Fetch pending orders count for badge
   const fetchBadges = useCallback(async () => {
