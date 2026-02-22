@@ -261,8 +261,9 @@ class AvailabilityStatusUpdate(BaseModel):
 @router.put("/couriers/{courier_id}/availability")
 async def update_courier_availability(courier_id: str, data: AvailabilityStatusUpdate):
     """Update courier availability status (active/on_break/offline)"""
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from routers.courier_status_logs import create_status_log
+    from routers.shift_violations import log_violation
     
     valid_statuses = ["active", "on_break", "offline"]
     if data.availability_status not in valid_statuses:
@@ -332,6 +333,51 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
         )
     except Exception as e:
         print(f"Status log creation failed: {e}")
+    
+    # === VARDIYA İHLALİ KONTROLÜ ===
+    # Kurye aktif olduğunda vardiyası var mı kontrol et
+    if data.availability_status == "active" and company_id:
+        try:
+            # Türkiye saati
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
+            today_key = days_map[now_turkey.weekday()]
+            
+            # Bugün bu kuryenin vardiyası var mı?
+            assignment = await db.shift_assignments.find_one({
+                "company_id": company_id,
+                "courier_id": courier_id,
+                "day": today_key
+            })
+            
+            # Admin-kurye ise yönetici olarak logla
+            if not assignment:
+                if courier.get("is_admin_linked"):
+                    admin = await db.admins.find_one(
+                        {"linked_courier_id": courier_id},
+                        {"_id": 0, "id": 1, "name": 1}
+                    )
+                    if admin:
+                        await log_violation(
+                            company_id=company_id,
+                            entity_type="admin",
+                            entity_id=admin["id"],
+                            entity_name=admin["name"],
+                            violation_type="active_without_shift",
+                            details={"linked_courier_id": courier_id, "triggered_by": "courier_activation"}
+                        )
+                else:
+                    await log_violation(
+                        company_id=company_id,
+                        entity_type="courier",
+                        entity_id=courier_id,
+                        entity_name=courier.get("name", ""),
+                        violation_type="active_without_shift",
+                        details={"triggered_by": "courier_activation"}
+                    )
+        except Exception as e:
+            print(f"Shift violation check failed: {e}")
     
     status_labels = {"active": "Aktif", "on_break": "Molada", "offline": "Çevrimdışı"}
     return {"message": f"Kurye durumu güncellendi: {status_labels[data.availability_status]}"}
