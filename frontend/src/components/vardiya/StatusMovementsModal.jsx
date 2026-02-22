@@ -80,18 +80,24 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
   const fetchEntities = useCallback(async () => {
     if (!companyId) return;
     try {
-      const endpoint = activeTab === "courier" 
-        ? `${API}/companies/${companyId}/couriers`
-        : `${API}/companies/${companyId}/admins`;
+      let endpoint;
+      if (activeTab === "courier") {
+        endpoint = `${API}/companies/${companyId}/couriers`;
+      } else {
+        endpoint = `${API}/admins?company_id=${companyId}`;
+      }
       
       const res = await axios.get(endpoint);
       const data = res.data;
       
-      // Format entities for dropdown
-      const formatted = data.map(e => ({
-        id: e.id,
-        name: e.name || e.username || "İsimsiz"
-      }));
+      // Format entities for dropdown and sort alphabetically
+      const formatted = data
+        .map(e => ({
+          id: e.id,
+          name: e.name || e.username || "İsimsiz"
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+      
       setEntities(formatted);
     } catch (err) {
       console.error("Kişiler yüklenemedi:", err);
