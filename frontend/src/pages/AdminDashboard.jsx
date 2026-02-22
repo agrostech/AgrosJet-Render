@@ -188,7 +188,7 @@ export default function AdminDashboard() {
   const allNavItems = [
     { path: "/admin", label: "Sipariş Yönetimi", icon: ClipboardList, key: "siparisler", permKey: null },
     { path: "/admin/guncel-durum", label: "Güncel Durum", icon: LayoutDashboard, key: "guncel", permKey: null },
-    { path: "/admin/vardiyalar", label: "Vardiyalar", icon: Clock, key: "vardiya", permKey: "vardiya" },
+    { path: "/admin/vardiyalar", label: "Vardiya Yönetimi", icon: Clock, key: "vardiya", permKey: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
     { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan", permKey: "market" },
