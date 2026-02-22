@@ -510,8 +510,6 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                                     "triggered_by": "courier_deactivation"
                                 }
                             )
-                                }
-                            )
         except Exception as e:
             print(f"Late deactivation check failed: {e}")
     
