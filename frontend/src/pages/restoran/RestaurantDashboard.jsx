@@ -102,20 +102,58 @@ export default function RestaurantDashboard() {
     try {
       const res = await axios.get(`${API}/restaurant-permissions/${user.restaurant_id}`);
       setPermissions(res.data.permissions || {});
+      return res.data.permissions_updated_at;
     } catch (err) {
       console.error("İzinler yüklenemedi:", err);
+      return null;
+    }
+  }, [user?.restaurant_id]);
+
+  // İzin değişikliği kontrolü için ref
+  const permissionsUpdatedAtRef = React.useRef(null);
+
+  // İzin değişikliği kontrol fonksiyonu
+  const checkPermissionsUpdate = useCallback(async () => {
+    if (!user?.restaurant_id) return;
+    
+    try {
+      const res = await axios.get(`${API}/restaurant-permissions/${user.restaurant_id}`);
+      const newUpdatedAt = res.data.permissions_updated_at;
+      
+      // İlk yüklemede sadece kaydet
+      if (permissionsUpdatedAtRef.current === null) {
+        permissionsUpdatedAtRef.current = newUpdatedAt;
+        return;
+      }
+      
+      // Değişiklik varsa sayfayı yenile
+      if (newUpdatedAt && newUpdatedAt !== permissionsUpdatedAtRef.current) {
+        toast.info("İzinler güncellendi, sayfa yenileniyor...");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }
+    } catch (err) {
+      // Sessizce hata yut
     }
   }, [user?.restaurant_id]);
 
   useEffect(() => {
     if (user?.restaurant_id) {
       fetchOrders();
-      fetchPermissions();
-      // Polling every 2 seconds for real-time updates
-      const interval = setInterval(fetchOrders, 5000); // 5 saniye
-      return () => clearInterval(interval);
+      fetchPermissions().then(updatedAt => {
+        permissionsUpdatedAtRef.current = updatedAt;
+      });
+      // Polling every 5 seconds for orders
+      const orderInterval = setInterval(fetchOrders, 5000);
+      // Polling every 10 seconds for permission changes
+      const permissionInterval = setInterval(checkPermissionsUpdate, 10000);
+      return () => {
+        clearInterval(orderInterval);
+        clearInterval(permissionInterval);
+      };
     }
-  }, [user?.restaurant_id, fetchOrders, fetchPermissions]);
+  }, [user?.restaurant_id, fetchOrders, fetchPermissions, checkPermissionsUpdate]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
