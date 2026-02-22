@@ -534,6 +534,7 @@ async def toggle_admin_status(admin_id: str):
                     # Admin'in aktif olma zamanını kontrol et
                     last_active_at_str = admin.get("last_active_at")
                     base_minutes = latest_end_minutes  # Varsayılan: vardiya bitiş saati
+                    activated_after_shift = False  # Vardiya bittikten sonra mı aktif oldu?
                     
                     if last_active_at_str:
                         try:
@@ -544,13 +545,24 @@ async def toggle_admin_status(admin_id: str):
                             # Eğer aktif olma zamanı vardiya bitişinden sonraysa, süreyi aktivasyon zamanından hesapla
                             if activated_minutes > latest_end_minutes + tolerance:
                                 base_minutes = activated_minutes
+                                activated_after_shift = True
                         except Exception as e:
                             print(f"Error parsing last_active_at: {e}")
                     
                     late_minutes = current_minutes - base_minutes
                     
-                    # Tolerans süresini aşarsa ihlal logla
-                    if late_minutes > tolerance:
+                    # Tolerans kontrolü: Vardiya bittikten sonra aktif olanlar için tolerans YOK
+                    should_log = False
+                    if activated_after_shift:
+                        # Vardiya dışında aktif olduysa, tolerans yok - her türlü logla
+                        if late_minutes > 0:
+                            should_log = True
+                    else:
+                        # Vardiya süresinde aktif olduysa, tolerans uygula
+                        if late_minutes > tolerance:
+                            should_log = True
+                    
+                    if should_log:
                         await log_violation(
                             company_id=company_id,
                             entity_type="admin",
@@ -563,7 +575,7 @@ async def toggle_admin_status(admin_id: str):
                                 "shift_end_time": latest_ended_shift["end_time"],
                                 "deactivated_at": now_turkey.strftime("%H:%M"),
                                 "late_minutes": late_minutes,
-                                "tolerance_minutes": tolerance,
+                                "tolerance_minutes": tolerance if not activated_after_shift else 0,
                                 "triggered_by": "admin_deactivation"
                             }
                         )
