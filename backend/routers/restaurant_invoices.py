@@ -1,6 +1,6 @@
 """
 Restaurant Invoice System
-Restoran fatura yönetimi - Haftalık bazda
+Restoran fatura yönetimi - Haftalık bazda eksik fatura oluşturma, aylık görüntüleme
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
@@ -44,58 +44,45 @@ async def get_company_work_hours(company_id: str) -> tuple:
     return company.get("opening_time", "09:00"), company.get("closing_time", "23:00")
 
 
-def get_weeks_list(opening_time: str, closing_time: str, count: int = 8) -> List[dict]:
+def get_weeks_in_month(year: int, month: int, opening_time: str, closing_time: str) -> List[dict]:
     """
-    Hafta listesi oluştur.
+    Bir ay içindeki hafta aralıklarını döndür.
     Haftalar Pazartesi açılış -> Pazartesi kapanış şeklinde.
     """
-    now = datetime.now(timezone.utc)
     open_h, open_m = map(int, opening_time.split(':'))
     close_h, close_m = map(int, closing_time.split(':'))
     
+    # Ayın ilk günü
+    first_day = datetime(year, month, 1, tzinfo=timezone.utc)
+    
+    # Ayın son günü
+    if month == 12:
+        last_day = datetime(year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(days=1)
+    else:
+        last_day = datetime(year, month + 1, 1, tzinfo=timezone.utc) - timedelta(days=1)
+    
+    # İlk günün haftasının pazartesisini bul
+    days_since_monday = first_day.weekday()
+    first_monday = first_day - timedelta(days=days_since_monday)
+    first_monday = first_monday.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
+    
     weeks = []
+    current_monday = first_monday
     
-    # Bu haftanın pazartesisini bul
-    days_since_monday = now.weekday()
-    this_monday = now - timedelta(days=days_since_monday)
-    this_monday = this_monday.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
-    
-    for i in range(count):
-        week_start = this_monday - timedelta(weeks=i)
+    while current_monday <= last_day:
+        week_start = current_monday
         week_end = week_start + timedelta(days=7)
-        week_end = week_end.replace(hour=close_h, minute=close_m)
-        
-        # Hafta hala devam ediyor mu?
-        is_current = week_start <= now < week_end
-        is_complete = now >= week_end
+        week_end = week_end.replace(hour=close_h, minute=close_m, second=0, microsecond=0)
         
         weeks.append({
             "week_start": week_start.isoformat(),
             "week_end": week_end.isoformat(),
-            "week_start_display": week_start.strftime("%d.%m.%Y"),
-            "week_end_display": week_end.strftime("%d.%m.%Y"),
-            "is_current": is_current,
-            "is_complete": is_complete,
-            "label": f"{week_start.strftime('%d.%m')} - {week_end.strftime('%d.%m.%Y')}"
+            "week_label": f"{week_start.strftime('%d.%m')} - {week_end.strftime('%d.%m')}"
         })
+        
+        current_monday = current_monday + timedelta(weeks=1)
     
     return weeks
-
-
-def get_week_date_range(week_start_str: str, opening_time: str, closing_time: str) -> tuple:
-    """Hafta başlangıç/bitiş datetime objelerini döndür"""
-    week_start = datetime.fromisoformat(week_start_str.replace('Z', '+00:00'))
-    if week_start.tzinfo is None:
-        week_start = week_start.replace(tzinfo=timezone.utc)
-    
-    open_h, open_m = map(int, opening_time.split(':'))
-    close_h, close_m = map(int, closing_time.split(':'))
-    
-    week_start = week_start.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
-    week_end = week_start + timedelta(days=7)
-    week_end = week_end.replace(hour=close_h, minute=close_m, second=0, microsecond=0)
-    
-    return week_start, week_end
 
 
 # ========== Invoice Settings Endpoints ==========
@@ -137,27 +124,43 @@ async def update_invoice_settings(restaurant_id: str, settings: InvoiceSettings)
     return {"message": "Fatura ayarları güncellendi"}
 
 
-# ========== Week List Endpoint ==========
+# ========== Restaurants List Endpoint ==========
 
-@router.get("/restaurant-invoices/{company_id}/weeks")
-async def get_weeks(company_id: str, count: int = 8):
-    """Hafta listesini getir"""
-    opening_time, closing_time = await get_company_work_hours(company_id)
-    weeks = get_weeks_list(opening_time, closing_time, count)
-    return weeks
-
-
-# ========== Missing Invoices Endpoint ==========
-
-@router.get("/restaurant-invoices/{company_id}/week/{week_start}")
-async def get_week_invoices(company_id: str, week_start: str):
-    """
-    Belirli bir hafta için restoran faturalarını getir.
-    Eksik faturalar ve alınan faturaları döndürür.
-    """
-    opening_time, closing_time = await get_company_work_hours(company_id)
-    week_start_dt, week_end_dt = get_week_date_range(week_start, opening_time, closing_time)
+@router.get("/restaurant-invoices/{company_id}/restaurants")
+async def get_restaurants_with_invoice_settings(company_id: str):
+    """Fatura ayarı olan tüm restoranları getir"""
+    restaurants = await db.restaurants.find(
+        {
+            "company_id": company_id,
+            "is_archived": {"$ne": True},
+            "invoice_settings": {"$exists": True}
+        },
+        {"_id": 0, "id": 1, "name": 1, "invoice_settings": 1}
+    ).to_list(500)
     
+    # Sadece en az bir ayarı açık olan restoranları filtrele
+    filtered = []
+    for r in restaurants:
+        settings = r.get("invoice_settings", {})
+        if any([settings.get("cash"), settings.get("credit_card"), settings.get("online"), 
+                settings.get("meal_card"), settings.get("online_meal_card")]):
+            filtered.append({
+                "restaurant_id": r["id"],
+                "restaurant_name": r["name"],
+                "invoice_settings": settings
+            })
+    
+    return filtered
+
+
+# ========== All Missing Invoices Endpoint ====================
+
+@router.get("/restaurant-invoices/{company_id}/missing")
+async def get_all_missing_invoices(company_id: str):
+    """
+    Tüm zamanların eksik faturalarını getir.
+    Haftalık bazda oluşturulmuş, tamamlanmamış tüm kayıtları döndürür.
+    """
     # Fatura ayarı olan restoranları getir
     restaurants = await db.restaurants.find(
         {
@@ -168,16 +171,76 @@ async def get_week_invoices(company_id: str, week_start: str):
         {"_id": 0}
     ).to_list(500)
     
-    # Bu hafta için mevcut fatura kayıtlarını getir
-    invoice_records = await db.restaurant_invoices.find(
+    restaurant_map = {r["id"]: r for r in restaurants}
+    
+    # Tamamlanmamış fatura kayıtlarını getir
+    incomplete_records = await db.restaurant_invoices.find(
         {
             "company_id": company_id,
-            "week_start": week_start
+            "is_complete": {"$ne": True}
+        },
+        {"_id": 0}
+    ).sort("week_start", -1).to_list(500)
+    
+    missing_invoices = []
+    
+    for record in incomplete_records:
+        restaurant = restaurant_map.get(record["restaurant_id"])
+        if not restaurant:
+            continue
+        
+        settings = restaurant.get("invoice_settings", {})
+        
+        missing_invoices.append({
+            "record_id": record.get("id"),
+            "restaurant_id": record["restaurant_id"],
+            "restaurant_name": record.get("restaurant_name", restaurant.get("name")),
+            "week_start": record["week_start"],
+            "week_label": record.get("week_label", ""),
+            "required_amount": record.get("required_amount", 0),
+            "verified_amount": record.get("verified_amount", 0),
+            "remaining_amount": record.get("required_amount", 0) - record.get("verified_amount", 0),
+            "breakdown": record.get("breakdown", {}),
+            "invoice_settings": settings,
+            "invoices": record.get("invoices", [])
+        })
+    
+    return missing_invoices
+
+
+# ========== Generate Weekly Missing Invoices ====================
+
+@router.post("/restaurant-invoices/{company_id}/generate-weekly")
+async def generate_weekly_missing_invoices(company_id: str, week_start: str):
+    """
+    Belirli bir hafta için eksik fatura kayıtlarını oluştur.
+    Bu endpoint haftalık cron job ile veya manuel çağrılabilir.
+    """
+    opening_time, closing_time = await get_company_work_hours(company_id)
+    
+    # Parse week_start
+    week_start_dt = datetime.fromisoformat(week_start.replace('Z', '+00:00'))
+    if week_start_dt.tzinfo is None:
+        week_start_dt = week_start_dt.replace(tzinfo=timezone.utc)
+    
+    open_h, open_m = map(int, opening_time.split(':'))
+    close_h, close_m = map(int, closing_time.split(':'))
+    
+    week_start_dt = week_start_dt.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
+    week_end_dt = week_start_dt + timedelta(days=7)
+    week_end_dt = week_end_dt.replace(hour=close_h, minute=close_m, second=0, microsecond=0)
+    
+    week_label = f"{week_start_dt.strftime('%d.%m')} - {week_end_dt.strftime('%d.%m.%Y')}"
+    
+    # Fatura ayarı olan restoranları getir
+    restaurants = await db.restaurants.find(
+        {
+            "company_id": company_id,
+            "is_archived": {"$ne": True},
+            "invoice_settings": {"$exists": True}
         },
         {"_id": 0}
     ).to_list(500)
-    
-    invoice_map = {r["restaurant_id"]: r for r in invoice_records}
     
     # Haftalık sipariş toplamlarını hesapla
     order_pipeline = [
@@ -232,15 +295,12 @@ async def get_week_invoices(company_id: str, week_start: str):
         elif payment in ["online_meal_card", "online_yemek_karti"]:
             restaurant_totals[rid]["online_meal_card"] += total
     
-    # Sonuçları oluştur
-    missing_invoices = []
-    received_invoices = []
+    created_count = 0
     
     for restaurant in restaurants:
         rid = restaurant["id"]
         settings = restaurant.get("invoice_settings", {})
         totals = restaurant_totals.get(rid, {})
-        record = invoice_map.get(rid)
         
         # Fatura gereken toplamı hesapla
         required_amount = 0
@@ -270,52 +330,137 @@ async def get_week_invoices(company_id: str, week_start: str):
         if required_amount == 0:
             continue
         
-        invoice_data = {
+        # Mevcut kayıt var mı kontrol et
+        existing = await db.restaurant_invoices.find_one({
+            "company_id": company_id,
+            "restaurant_id": rid,
+            "week_start": week_start
+        })
+        
+        if existing:
+            continue  # Zaten var, atla
+        
+        # Yeni kayıt oluştur
+        new_record = {
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
             "restaurant_id": rid,
             "restaurant_name": restaurant["name"],
+            "week_start": week_start,
+            "week_label": week_label,
             "required_amount": required_amount,
             "breakdown": breakdown,
-            "invoice_settings": settings
+            "invoices": [],
+            "verified_amount": 0,
+            "is_complete": False,
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
-        
-        if record:
-            invoice_data["record_id"] = record.get("id")
-            invoice_data["invoices"] = record.get("invoices", [])
-            invoice_data["verified_amount"] = record.get("verified_amount", 0)
-            invoice_data["is_complete"] = record.get("is_complete", False)
-            invoice_data["remaining_amount"] = required_amount - record.get("verified_amount", 0)
-            
-            if record.get("is_complete"):
-                received_invoices.append(invoice_data)
-            else:
-                missing_invoices.append(invoice_data)
-        else:
-            invoice_data["record_id"] = None
-            invoice_data["invoices"] = []
-            invoice_data["verified_amount"] = 0
-            invoice_data["is_complete"] = False
-            invoice_data["remaining_amount"] = required_amount
-            missing_invoices.append(invoice_data)
+        await db.restaurant_invoices.insert_one(new_record)
+        created_count += 1
     
-    # Toplam istatistikler
-    total_required = sum(inv["required_amount"] for inv in missing_invoices + received_invoices)
-    total_verified = sum(inv["verified_amount"] for inv in received_invoices)
-    total_missing = total_required - total_verified
+    return {"message": f"{created_count} eksik fatura kaydı oluşturuldu", "count": created_count}
+
+
+# ========== Month Invoices Endpoint ====================
+
+@router.get("/restaurant-invoices/{company_id}/month/{year}/{month}")
+async def get_month_invoices(company_id: str, year: int, month: int):
+    """
+    Belirli bir ay için yüklenen tüm faturaları getir.
+    """
+    # Ay başlangıç ve bitiş
+    month_start = datetime(year, month, 1, tzinfo=timezone.utc)
+    if month == 12:
+        month_end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+    else:
+        month_end = datetime(year, month + 1, 1, tzinfo=timezone.utc)
+    
+    # Bu ay yüklenen faturaları olan kayıtları getir
+    records = await db.restaurant_invoices.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    month_invoices = []
+    
+    for record in records:
+        for inv in record.get("invoices", []):
+            uploaded_at = inv.get("uploaded_at", "")
+            if uploaded_at:
+                try:
+                    upload_date = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
+                    if month_start <= upload_date < month_end:
+                        month_invoices.append({
+                            **inv,
+                            "restaurant_id": record["restaurant_id"],
+                            "restaurant_name": record.get("restaurant_name", ""),
+                            "week_start": record["week_start"],
+                            "week_label": record.get("week_label", ""),
+                            "required_amount": record.get("required_amount", 0)
+                        })
+                except:
+                    pass
+    
+    # Tarihe göre sırala (en yeni en üstte)
+    month_invoices.sort(key=lambda x: x.get("uploaded_at", ""), reverse=True)
+    
+    return month_invoices
+
+
+# ========== Restaurant Month Invoices Endpoint ====================
+
+@router.get("/restaurant-invoices/{company_id}/restaurant/{restaurant_id}/month/{year}/{month}")
+async def get_restaurant_month_invoices(company_id: str, restaurant_id: str, year: int, month: int):
+    """
+    Belirli bir restoran için belirli bir aydaki faturaları getir.
+    """
+    # Ay başlangıç ve bitiş
+    month_start = datetime(year, month, 1, tzinfo=timezone.utc)
+    if month == 12:
+        month_end = datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+    else:
+        month_end = datetime(year, month + 1, 1, tzinfo=timezone.utc)
+    
+    # Restoranın kayıtlarını getir
+    records = await db.restaurant_invoices.find(
+        {
+            "company_id": company_id,
+            "restaurant_id": restaurant_id
+        },
+        {"_id": 0}
+    ).to_list(100)
+    
+    invoices = []
+    total_required = 0
+    total_verified = 0
+    
+    for record in records:
+        # Hafta bu ay içinde mi?
+        week_start = record.get("week_start", "")
+        try:
+            week_date = datetime.fromisoformat(week_start.replace('Z', '+00:00'))
+            if month_start <= week_date < month_end:
+                total_required += record.get("required_amount", 0)
+                total_verified += record.get("verified_amount", 0)
+                
+                for inv in record.get("invoices", []):
+                    invoices.append({
+                        **inv,
+                        "week_start": week_start,
+                        "week_label": record.get("week_label", ""),
+                        "record_required_amount": record.get("required_amount", 0)
+                    })
+        except:
+            pass
+    
+    # Tarihe göre sırala
+    invoices.sort(key=lambda x: x.get("uploaded_at", ""), reverse=True)
     
     return {
-        "week_start": week_start,
-        "week_end": week_end_dt.isoformat(),
-        "week_label": f"{week_start_dt.strftime('%d.%m')} - {week_end_dt.strftime('%d.%m.%Y')}",
-        "missing_invoices": missing_invoices,
-        "received_invoices": received_invoices,
-        "stats": {
-            "total_restaurants": len(missing_invoices) + len(received_invoices),
-            "missing_count": len(missing_invoices),
-            "received_count": len(received_invoices),
-            "total_required": total_required,
-            "total_verified": total_verified,
-            "total_missing": total_missing
-        }
+        "invoices": invoices,
+        "total_required": total_required,
+        "total_verified": total_verified,
+        "total_remaining": total_required - total_verified
     }
 
 
@@ -421,6 +566,8 @@ async def verify_invoice(company_id: str, data: InvoiceVerify):
     
     # Toplam onaylanan tutarı hesapla
     total_verified = sum(inv.get("verified_amount", 0) for inv in invoices if inv.get("verified"))
+    required_amount = record.get("required_amount", 0)
+    is_complete = total_verified >= required_amount
     
     await db.restaurant_invoices.update_one(
         {"id": record["id"]},
@@ -428,7 +575,7 @@ async def verify_invoice(company_id: str, data: InvoiceVerify):
             "$set": {
                 "invoices": invoices,
                 "verified_amount": total_verified,
-                "is_complete": True  # Bir fatura onaylandığında tamamlandı say
+                "is_complete": is_complete
             }
         }
     )
@@ -436,7 +583,8 @@ async def verify_invoice(company_id: str, data: InvoiceVerify):
     return {
         "message": "Fatura onaylandı",
         "verified_amount": data.amount,
-        "total_verified": total_verified
+        "total_verified": total_verified,
+        "is_complete": is_complete
     }
 
 
@@ -486,6 +634,7 @@ async def delete_invoice(company_id: str, invoice_id: str):
     else:
         # Toplam onaylanan tutarı yeniden hesapla
         total_verified = sum(inv.get("verified_amount", 0) for inv in invoices if inv.get("verified"))
+        required_amount = record.get("required_amount", 0)
         
         await db.restaurant_invoices.update_one(
             {"id": record["id"]},
@@ -493,7 +642,7 @@ async def delete_invoice(company_id: str, invoice_id: str):
                 "$set": {
                     "invoices": invoices,
                     "verified_amount": total_verified,
-                    "is_complete": total_verified > 0
+                    "is_complete": total_verified >= required_amount
                 }
             }
         )
