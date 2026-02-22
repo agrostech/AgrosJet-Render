@@ -190,9 +190,14 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     };
   }, [fetchAll, fetchOrders, fetchCouriers]);
 
-  // Filtrelenmiş ve sıralanmış siparişler (arama + durum filtresi + sıralama)
+  // Filtrelenmiş ve sıralanmış siparişler (durum filtresi + arama + sıralama)
   const filteredAndSortedOrders = useMemo(() => {
     let result = orders;
+    
+    // Durum filtresi (statusFilters boşsa tüm siparişleri göster)
+    if (statusFilters.length > 0) {
+      result = result.filter(order => statusFilters.includes(order.status));
+    }
     
     // Arama filtresi
     if (searchQuery.trim()) {
@@ -221,7 +226,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     });
     
     return result;
-  }, [orders, searchQuery, sortOrder]);
+  }, [orders, statusFilters, searchQuery, sortOrder]);
 
   // Toplam sayfa sayısı
   const totalPages = useMemo(() => {
