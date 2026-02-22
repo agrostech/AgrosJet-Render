@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://admin-reconcile-test.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shift-tracking-1.preview.emergentagent.com')
 
 class TestPermissionRemoval:
     """Tests to verify permission system has been removed"""

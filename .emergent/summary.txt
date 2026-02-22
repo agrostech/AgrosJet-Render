@@ -1,80 +1,87 @@
 <analysis>**original_problem_statement:**
-The initial request in this session was to introduce a new Yönetici Mütabakatı (Admin Reconciliation) feature to track funds collected by managers from couriers. This involved creating a new page, backend logic for balance accumulation and resetting, and integrating it with the Cariler (Current Accounts) page to automatically track shortfalls.
+The initial request was to build an Admin Reconciliation feature, which evolved into an Admin-as-Courier model. This session's work began by finalizing that feature and fixing related bugs.
 
-This evolved into several UI/UX enhancements, bug fixes, and a major rebranding effort. The most critical bug was fixing the business day logic to correctly handle timezones, ensuring orders were assigned to the correct day's reconciliation sheet.
+The user then requested a complete overhaul of the **Restaurant Invoice system**, which was successfully implemented.
 
-The final and current task is a complete refactoring of the Kurye Mütabakatı (Courier Reconciliation) page. The user wants to simplify the workflow from a multi-step, bulk-action process to a single-action, per-row process, where each courier has their own Save and Reset buttons.
+The current and major focus is a new **Vardiya Yönetimi (Shift Management)** feature. The user requested to replace the old Vardiyalar page with a new layout containing a Vardiya Takibi (Shift Tracking) card and a Vardiya Yönetimi (Shift Management) table. The core of this feature is a Vardiya İhlalleri Geçmişi (Shift Violations History) system to log various infractions (e.g., starting late, leaving early, being active without a shift) for both couriers and admins.
+
+The implementation evolved significantly based on user feedback, moving from a simple polling mechanism to a highly efficient, event-driven architecture for checking violations. The latest request is to add a grace period (tolerance) to these checks.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application is stable. Several major features and bug fixes were completed in this session.
-- **Admin Reconciliation:** A new tab, Yönetici Mütabakatı, has been created under Muhasebe. It tracks all cash and card collections made by each administrator. Superadmins can reset an admin's balance, and any shortfall is automatically posted as a debit to the admin's account in the Cariler (Current Accounts) tab.
-- **Admins in Current Accounts:** Administrators are now automatically listed as vendors in the Cariler page, allowing their financial balances to be tracked. These admin accounts have a distinct UI and cannot be deleted.
-- **Meal Card Integration:** Yemek Kartı (Meal Card) has been added as a payment type throughout the reconciliation process. UI elements like table columns and input fields for meal cards are conditionally rendered based on restaurant settings.
-- **Bug Fixes:** A critical bug in the business day/timezone logic has been resolved. A bug preventing the correct display of the on shift icon for shifts crossing midnight has been fixed. Resetting a courier reconciliation now correctly deletes the associated collection record.
-- **Rebranding:** All instances of ShiftJet have been replaced with AgrosJet, and unused printing-related files have been removed.
-- **Refactoring in Progress:** The agent has started the backend work for the Kurye Mütabakatı page refactor by creating a new Pydantic model and a placeholder for a new API endpoint.
+The application is stable. The Admin-as-Courier and Restaurant Invoice systems are complete and verified.
+
+The new Vardiya Yönetimi (Shift Management) feature is substantially built but not yet complete.
+*   **Backend:** A new  router and  DB collection have been created. An event-driven architecture is in place to log violations based on three triggers: user status changes (active/inactive) and dynamically scheduled jobs that run at each shift's start time. The scheduler logic is efficient and only creates jobs for existing shifts, loading them on startup.
+*   **Frontend:** The  has been completely rewritten with the new two-card layout. A  component has been created to display logs, which includes filtering by courier/admin and by week.
+
+The final piece of the violation logic, a time tolerance, is being added.
 
 **Last working item**:
-- Last item agent was working: The agent began refactoring the Kurye Mütabakatı (Courier Reconciliation) page to simplify its workflow. A new backend model () and an API endpoint () were created to handle saving and processing reconciliation for a single courier in one action. The implementation of the endpoint logic and the frontend changes have not started yet.
-- Status: **IN PROGRESS**
-- Agent Testing Done: N
-- Which testing method agent to use? both
-- User Testing Done: N
+-   Last item agent was working: The user requested to add a grace period to the shift violation checks to avoid logging minor time discrepancies. The agent proposed a plan to implement a configurable +/- 5-minute tolerance for shift start and end times.
+-   Status: **IN PROGRESS**
+-   Agent Testing Done: N
+-   Which testing method agent to use? both
+-   User Testing Done: N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Refactor Kurye Mütabakatı (Courier Reconciliation) Page (P0)**
-    - Description: The current workflow requires selecting couriers via checkboxes and using bulk action buttons. The user wants this replaced with a simpler, per-row action model. Each row will have a Save button to perform collection and reconciliation simultaneously, and a Reset button (for superadmins) to undo the entire process.
-    - Attempted fixes: A new backend endpoint and Pydantic model have been created in  and  respectively. No further logic has been implemented.
-    - Next debug checklist:
-        1.  **Backend:** Implement the logic for the new  endpoint in . This should combine the functionality of the old  and  endpoints.
-        2.  **Frontend:** Modify  to:
-            - Remove the checkboxes and the bulk action buttons (, , ).
-            - Add a Kaydet button within each courier's table row.
-            - Add a Sıfırla button within each row, visible only to superadmins.
-            - Update the event handlers to call the new single-courier endpoints.
-    - Status: IN PROGRESS
-    - Is recurring issue? N
-    - Should Test frontend/backend/both after fix? Both
-- **Issue 2: Historical Accounting Data Inconsistency (P2)**
-    - Description: (From previous fork) Old transactions with  are not showing up.
-    - Status: NOT STARTED
-- **Issue 3: Mobile File Upload Issue (P2)**
-    - Description: (From previous fork) A known, recurring issue with file uploads on mobile devices.
-    - Status: NOT STARTED
+-   **Issue 1: Implement Shift Time Tolerance (P0)**
+    -   Description: A configurable tolerance (e.g., 5 minutes) needs to be added to all shift violation checks to prevent unfair logging for being slightly early or late. This will affect checks for starting a shift, ending a shift, and being active without a shift.
+    -   Status: **IN PROGRESS**
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix? Both
+-   **Issue 2: Kurye Bulunamadı (Courier Not Found) Error on Termination (P2)**
+    -   Description: User reported an error during courier termination. A fix was applied in a previous session by relaxing a status check, but it is awaiting user verification.
+    -   Status: **USER VERIFICATION PENDING**
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix? Backend
+-   **Issue 3: Historical Accounting Data Inconsistency (P2)**
+    -   Description: From a previous fork, old transactions with  are not appearing in the accounting tabs.
+    -   Status: **NOT STARTED**
+-   **Issue 4: Mobile File Upload Issue (P3)**
+    -   Description: A known, recurring issue with file uploads on mobile devices.
+    -   Status: **NOT STARTED**
 
 **In progress Task List**:
-- **Task 1: Complete Kurye Mütabakatı Page Refactor (P0)**
-    - Description: This is the highest priority task, which involves a significant UI and backend logic change to simplify the courier reconciliation process as detailed in Issue 1.
-    - Where to resume: Implement the logic in the newly created endpoint  in , then proceed to update the frontend component .
-    - Status: IN PROGRESS
-    - Should Test frontend/backend/both after fix? Both
+-   **Task 1: Complete the Shift Violation System (P0)**
+    -   Where to resume: Implement the tolerance logic as agreed upon in the last user message (#461). This requires modifying the backend:
+        1.  Add a  field to the  model/collection.
+        2.  Update the event-driven checks in  and  to factor in this tolerance when a user changes their status.
+        3.  Update the dynamic scheduler in  to trigger the not active at shift start check *after* the tolerance period (e.g., at 08:05 for an 08:00 shift).
+    -   What will be achieved with this? The shift violation system will be fair and flexible, completing the feature as per the user's requirements.
+    -   Status: **IN PROGRESS**
+    -   Should Test frontend/backend/both after fix? Both
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks:**
-    - P1 - Finalize Migros Yemek integration.
-    - P1 - Complete Yemeksepeti Integration.
-    - P1 - Implement Restaurant Reports () Page functionality.
-- **Future Tasks:**
-    - P1 - Develop a Native Courier App.
-    - P1 - Re-enable and Enhance the Chat System.
-    - P2 - Refactor Login Page (User considered splitting it but decided to postpone).
-    - P2 - Implement Google Maps Integration.
-    - P2 - Refactor Order History Pages ().
-    - P2 - Implement a Dark Mode theme.
-    - P3 - Implement Redis caching for the order list endpoint.
-    - P3 - Add enhancements to the Motosikletim feature.
+-   **Upcoming Tasks (P1):**
+    -   Finalize Migros Yemek integration.
+    -   Complete Yemeksepeti Integration.
+    -   Implement Restaurant Reports () Page functionality.
+-   **Future Tasks (P2-P3):**
+    -   Develop a Native Courier App.
+    -   Re-enable and Enhance the Chat System.
+    -   Refactor the Login Page.
+    -   Implement Google Maps Integration.
+    -   Refactor Order History Pages ().
+    -   Implement a Dark Mode theme.
+    -   Implement Redis caching for the order list endpoint.
+    -   Add enhancements to the Motosikletim feature.
 
 **Completed work in this session**
-- **Feature: Admin Reconciliation ():** Created a new page for superadmins to track and reset the financial balances of managers who collect payments from couriers. Shortfalls during reset are automatically logged as debit transactions in the manager's current account.
-- **Feature: Admins in Current Accounts ():** System administrators are now automatically added to the Cariler list, allowing for integrated financial tracking.
-- **Feature: Meal Card Integration:** Fully integrated Yemek Kartı as a payment type in both Kurye Mütabakatı and Yönetici Mütabakatı, with conditional UI rendering based on company-wide settings.
-- **Bug Fix: Business Day & Timezone Logic:** Resolved a critical issue where orders were being assigned to the wrong reconciliation day due to incorrect handling of UTC vs. local time for company working hours.
-- **Bug Fix: Shift Icon Logic:** Fixed an issue where the on shift icon wasn't appearing for shifts that crossed midnight.
-- **Bug Fix: Reconciliation Reversal:** Ensured that reversing a courier's reconciliation now correctly deletes the associated collection record, thus correcting the administrator's balance.
-- **Rebranding & Cleanup:** Replaced all hardcoded ShiftJet references with AgrosJet across the frontend and removed obsolete QZ Tray printer files.
-- **UI/UX Enhancements:** Standardized the design of summary cards and settings components across various accounting tabs for a more consistent user experience.
+-   **Feature: Finalized Restaurant Invoice System**: Implemented WhatsApp Reminder and Delete Missing Invoice features.
+-   **UI Improvement: Courier Invoice Reminders**: Updated the courier invoice reminder UI to match the improved design from the restaurant invoice tab.
+-   **Refactor: Admin  Removal**: Removed the redundant  field for admins from the UI, confirming that the backend correctly uses the linked courier's rate for wage calculations.
+-   **Major Feature: Shift Management & Violations System**:
+    -   Created the new Vardiya Yönetimi page with a two-card layout.
+    -   Implemented a highly efficient, event-driven backend for logging shift violations.
+    -   Refactored the scheduler to be dynamic, creating jobs only for specific shift start times.
+    -   Built the UI to display and filter violation logs.
+-   **Bug Fixes**:
+    -   Fixed non-working delete button in the new shift management grid.
+    -   Fixed a bug preventing admin-linked couriers from appearing in the shift table.
+    -   Resolved multiple critical bugs in the violation logging logic (e.g., handling status correctly, fixing admin lookups, preventing duplicate logs, and correctly managing back-to-back shifts).
+    -   Fixed a UI bug in the week selector that showed an incorrect This Week range.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: Historical Accounting Data Inconsistency**: Old transactions with  are not showing up. Status: NOT STARTED.
@@ -89,55 +96,53 @@ The application is stable. Several major features and bug fixes were completed i
 
 
 **Key Technical Concepts**
--   **Single-Action Workflow Refactoring:** The primary ongoing task is to convert a complex, multi-step bulk UI into a simplified, single-action, per-row workflow to improve user experience.
--   **Timezone-Aware Date Calculations:** Fixed a critical bug by ensuring backend date range calculations correctly account for the offset between server UTC and the company's local timezone, which is essential for accurate daily financial reporting.
--   **Coupled Financial Modules:** The system now links actions across different accounting modules. For example, a reset action in the Admin Reconciliation module automatically creates a corrective transaction in the separate Current Accounts (Cariler) module.
--   **Dynamic Conditional UI:** The  feature's UI (table columns, summary cards, input fields) is dynamically rendered based on a single backend flag (), allowing the interface to adapt to different company configurations without code changes.
+-   **Event-Driven Architecture:** Shifted the violation system from an inefficient polling model (checking all users every X minutes) to an event-driven model. Checks are now triggered by specific actions (status changes, scheduled shift start times), making the system highly efficient and scalable.
+-   **Dynamic Job Scheduling (APScheduler):** Implemented a sophisticated scheduling system where jobs are dynamically created, updated, and deleted in response to CRUD operations on shifts. The scheduler state is persisted by re-populating jobs from the database on server startup.
+-   **Timezone-Aware Logic:** Corrected backend logic to use the application's local timezone ('Europe/Istanbul') for all shift-related time comparisons, ensuring accuracy.
+-   **Complex Business Logic:** Handled tricky edge cases in the violation logic, such as couriers with back-to-back shifts, to ensure logs are accurate and fair.
 
 **key DB schema**
--   **admin_mutabakat_resets (New Collection)**: Stores a log of when an admin's balance was reset.
-    -   
--   **daily_mutabakat_collections (Modified)**:
-    -   Added  to track meal card collections.
--   **vendors (Modified)**:
-    -   Added  to flag vendors that are automatically created from system users.
-
-**changes in tech stack**
--   None.
+-   **shift_violations (New Collection)**: 
+-   **companies (To be Modified)**: A new field  needs to be added to store the grace period for shifts.
 
 **All files of reference**
--   : The frontend component that is the target of the current major refactoring task.
--   : The backend router containing the business logic for courier reconciliation. The new endpoint for the refactor is being added here.
--   : The newly created Admin Reconciliation page.
--   : The newly created backend service for the Admin Reconciliation feature.
+-   : The core of the dynamic scheduling logic.
+-   : Contains the main violation checking logic.
+-   : Contains the event-driven check for courier status changes.
+-   : Contains the event-driven check for admin status changes.
+-   : The main UI file for the new shift management feature.
+-   : The UI for viewing violation logs.
 
 **key api endpoints**
--   **CREATED** : New endpoint for the refactoring task (logic pending).
--   **CREATED** : A full set of new endpoints to manage Admin Reconciliation (get balances, get details, reset balance, view history).
--   **MODIFIED** : Now also deletes the corresponding  document to ensure financial consistency.
--   **MODIFIED** : Logic was overhauled to correctly handle timezones and to return  data.
--   **MODIFIED** : Now includes system administrators in the list of vendors.
--   **MODIFIED** : Now accepts  and automatically creates shortfall transactions in the  collection.
+-   **CREATED** 
+-   **CREATED** 
+-   **MODIFIED**  (now triggers violation checks)
+-   **MODIFIED**  (now triggers violation checks)
+-   **MODIFIED**  (now triggers scheduler updates)
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   The current and highest priority task is the refactoring of the Kurye Mütabakatı page. You need to complete the implementation of the new backend endpoint and then perform a significant rewrite of the corresponding frontend component.
--   The user is very detail-oriented. The goal of the refactor is to simplify the UX, so pay close attention to making the new flow intuitive.
--   The  feature's visibility is controlled by restaurant settings. If it's not appearing during testing, it's likely because no restaurant is configured with .
+-   Your immediate and highest priority task is to implement the **+/- 5-minute tolerance** for shift violations as planned.
+-   The violation checking architecture is now **event-driven and dynamic**, not polling-based. Do not change this architecture. The logic is intentionally split across three trigger points:
+    1.  User becomes **active** (checks for active without shift).
+    2.  User becomes **inactive** (checks for left shift early/late).
+    3.  A **scheduled job** at the shift's start time (checks for not active at shift start).
+-   The scheduler () is stateful and rebuilds its jobs from the database on server start. It must not contain a generic, recurring check everything job.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **Request:** User asked to automatically add administrators to the Cariler (Current Accounts) list. (Completed)
-2.  **Request:** User specified a new flow for the Admin Reconciliation reset process: the modal should allow inputting the amount physically collected, and any shortfall should automatically create a debit transaction in the admin's Cari account. (Completed)
-3.  **Bug Report:** User reported that an order from 03:25 was appearing on the wrong day's reconciliation sheet, indicating a bug in the business day logic. (Completed)
-4.  **Clarification:** User confirmed the company's business hours are 02:00 - 02:00, which helped debug the timezone issue. (NA)
-5.  **Question:** User asked if resetting a courier's reconciliation also reverses the collection from the admin's balance. (Led to a bug fix)
-6.  **Request:** User proposed the major refactor of the Kurye Mütabakatı page, suggesting the process is unnecessarily complex. (In Progress)
-7.  **Elaboration:** User detailed the refactor: remove checkboxes and bulk buttons, add a Save button to each row that handles both collection and reconciliation, and add a Reset button per row for superadmins. (In Progress)
+10. **Request:** Implement a +/- 5-minute tolerance for shift start/end times. (IN PROGRESS)
+9.  **User:** Agreed with the plan to implement tolerance. (ACKNOWLEDGED)
+8.  **Question:** User asked about adding a grace period (tolerance) for shift check-in/out to avoid logs for being a few minutes off. (ANSWERED)
+7.  **Request:** The week selector format should be  and This Week should point to the current week. (DONE)
+6.  **Bug Report:** The week selector shows the wrong format and points to the previous week. (ACKNOWLEDGED)
+5.  **Request:** Add a weekly filter to the violation logs and format the date to include the day of the week (e.g., 22.02.26 Pzt). (DONE)
+4.  **Bug Report:** A courier with back-to-back shifts (15-16 and 16-17) was incorrectly logged for Vardiya bitti ama çevrimdışı olmadı at 16:31. (DONE)
+3.  **Request:** When a courier/admin goes offline, check how many minutes late they are compared to their shift end time. (DONE)
+2.  **Suggestion:** Instead of a scheduler for shift end, add the check to the go offline event. (DONE)
+1.  **Request:** Add a scheduler check for the shift end time to log users who are still active. (SUPERSEDED by suggestion #2)
 
 **Project Health Check:**
--   **Stable:** The application is running, and recently completed features are working.
--   **Mocked:** The application relies on existing test data in the database.
--   **No Broken Parts:** Several critical bugs were identified and fixed during the session.
+-   **Stable**: The application is running. A major feature is in the final stages of implementation.
 
 **3rd Party Integrations**
 -   
@@ -147,6 +152,7 @@ The application is stable. Several major features and bug fixes were completed i
 -   
 -   
 -    (via Leaflet)
+-    (backend for dynamic job scheduling)
 
 **Testing status**
 -   Testing agent used after significant changes: NO
@@ -158,4 +164,4 @@ The application is stable. Several major features and bug fixes were completed i
 -   **Company Admin:**  / 
 
 **What agent forgot to execute**
--   The agent correctly followed the user's instructions and was in the process of implementing the latest request when the session ended. No tasks were forgotten.</analysis>
+-   The agent has been closely following the user's instructions and refactoring requests. No tasks appear to have been overlooked. The current work is a direct continuation of the user's latest request.</analysis>
