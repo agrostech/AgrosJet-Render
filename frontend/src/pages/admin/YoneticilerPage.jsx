@@ -160,6 +160,9 @@ export default function YoneticilerPage({ companyId }) {
       if (editData.password) {
         updatePayload.password = editData.password;
       }
+      if (editData.hourly_rate !== "" && editData.hourly_rate !== selectedAdmin.hourly_rate) {
+        updatePayload.hourly_rate = parseFloat(editData.hourly_rate) || 0;
+      }
       
       if (Object.keys(updatePayload).length === 0) {
         toast.error("Değişiklik yapılmadı");
@@ -181,6 +184,23 @@ export default function YoneticilerPage({ companyId }) {
       toast.error(err.response?.data?.detail || "Güncelleme başarısız");
     } finally {
       setEditLoading(false);
+    }
+  };
+
+  const handleLinkCourier = async () => {
+    setLinkLoading(true);
+    try {
+      await axios.put(`${API}/admins/${selectedAdmin.id}`, {
+        linked_courier_id: linkData.linked_courier_id || ""
+      });
+      toast.success(linkData.linked_courier_id ? "Kurye bağlandı" : "Kurye bağlantısı kaldırıldı");
+      setShowLinkModal(false);
+      fetchAdmins();
+      fetchCouriers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    } finally {
+      setLinkLoading(false);
     }
   };
 
