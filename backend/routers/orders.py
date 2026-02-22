@@ -1502,6 +1502,23 @@ async def update_order_status_simple(order_id: str, data: OrderStatusUpdate):
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
+    # İzin kontrolü - Restoran teslimatı olan siparişler için bu izin aranmaz
+    if not order.get("is_restaurant_delivery"):
+        restaurant_id = order.get("restaurant_id")
+        if restaurant_id:
+            restaurant = await db.restaurants.find_one(
+                {"id": restaurant_id},
+                {"_id": 0, "permissions": 1}
+            )
+            permissions = restaurant.get("permissions", {}) if restaurant else {}
+            # Varsayılan değer True (can_change_order_status)
+            can_change_status = permissions.get("can_change_order_status", True)
+            if not can_change_status:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Sipariş durumu değiştirme izniniz bulunmuyor"
+                )
+    
     # Kurye atandıysa sadece belirli işlemlere izin ver
     if order.get("courier_id"):
         if data.status not in ["cancelled", "preparing"]:
