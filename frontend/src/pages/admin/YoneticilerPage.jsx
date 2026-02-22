@@ -55,7 +55,7 @@ export default function YoneticilerPage({ companyId }) {
   const [permissionsData, setPermissionsData] = useState({});
   const [permLoading, setPermLoading] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
-  const [editData, setEditData] = useState({ name: "", username: "", password: "", hourly_rate: "" });
+  const [editData, setEditData] = useState({ name: "", username: "", password: "" });
   const [editLoading, setEditLoading] = useState(false);
   const [linkData, setLinkData] = useState({ linked_courier_id: "" });
   const [linkLoading, setLinkLoading] = useState(false);
