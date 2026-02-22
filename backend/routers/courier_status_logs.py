@@ -138,11 +138,16 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
     """Kuryenin bugünkü durum logları ve aktiflik süresi"""
     now = datetime.now(timezone.utc)
     
+    # Kurye bilgilerini al
+    courier = await db.couriers.find_one(
+        {"id": courier_id}, 
+        {"_id": 0, "company_id": 1, "company_ids": 1, "availability_status": 1, "last_active_at": 1, "is_admin_linked": 1}
+    )
+    
     # Şirket açılış saatini al
     if company_id:
         opening_time, _ = await get_company_work_hours(company_id)
     else:
-        courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "company_id": 1, "company_ids": 1})
         if courier:
             c_id = courier.get("company_id") or (courier.get("company_ids", [None])[0] if courier.get("company_ids") else None)
             opening_time, _ = await get_company_work_hours(c_id)
@@ -152,11 +157,42 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
     # Bugünün iş gününü hesapla
     today = get_business_date(now, opening_time)
     
-    # Durum loglarını getir (sadece görsel için)
-    logs = await db.courier_status_logs.find(
+    # Kurye durum loglarını getir
+    courier_logs = await db.courier_status_logs.find(
         {"courier_id": courier_id, "date": today},
         {"_id": 0}
     ).sort("timestamp", 1).to_list(100)
+    
+    # Admin-linked kurye ise, admin loglarını da getir
+    admin_logs = []
+    if courier and courier.get("is_admin_linked"):
+        # Bu kuryeye bağlı admin'i bul
+        admin = await db.admins.find_one(
+            {"linked_courier_id": courier_id},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        if admin:
+            admin_logs_raw = await db.admin_status_logs.find(
+                {"admin_id": admin["id"], "date": today},
+                {"_id": 0}
+            ).sort("timestamp", 1).to_list(100)
+            
+            # Admin loglarını kurye log formatına dönüştür
+            for log in admin_logs_raw:
+                admin_logs.append({
+                    "courier_id": courier_id,
+                    "company_id": log.get("company_id"),
+                    "status": log.get("status"),
+                    "changed_by": "admin_panel",
+                    "changed_by_name": admin.get("name"),
+                    "timestamp": log.get("timestamp"),
+                    "date": log.get("date"),
+                    "source": "admin"  # Admin panelinden geldiğini belirt
+                })
+    
+    # Tüm logları birleştir ve zamana göre sırala
+    all_logs = courier_logs + admin_logs
+    all_logs.sort(key=lambda x: x.get("timestamp", ""))
     
     # Aktiflik sayacından oku
     daily_active = await db.courier_daily_active.find_one(
@@ -165,14 +201,24 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
     )
     total_active_minutes = daily_active.get("active_minutes", 0) if daily_active else 0
     
-    # Eğer şu an aktif ise, anlık süreyi ekle
-    courier = await db.couriers.find_one(
-        {"id": courier_id}, 
-        {"_id": 0, "availability_status": 1, "last_active_at": 1}
-    )
+    # Admin aktiflik süresini de ekle (admin-linked ise)
+    if courier and courier.get("is_admin_linked"):
+        admin = await db.admins.find_one(
+            {"linked_courier_id": courier_id},
+            {"_id": 0, "id": 1}
+        )
+        if admin:
+            admin_daily_active = await db.admin_daily_active.find_one(
+                {"admin_id": admin["id"], "date": today},
+                {"_id": 0, "active_minutes": 1}
+            )
+            if admin_daily_active:
+                total_active_minutes += admin_daily_active.get("active_minutes", 0)
+    
     current_status = courier.get("availability_status", "offline") if courier else "offline"
     
-    if current_status == "active" and courier.get("last_active_at"):
+    # Eğer şu an aktif ise, anlık süreyi ekle
+    if current_status == "active" and courier and courier.get("last_active_at"):
         try:
             last_active = datetime.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
             current_active_minutes = int((now - last_active).total_seconds() / 60)
@@ -181,7 +227,7 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
             pass
     
     return {
-        "logs": logs,
+        "logs": all_logs,
         "total_active_minutes": total_active_minutes,
         "total_active_hours": round(total_active_minutes / 60, 2),
         "current_status": current_status,
