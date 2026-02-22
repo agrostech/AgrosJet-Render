@@ -229,57 +229,72 @@ async def unarchive_accounting_restaurant(restaurant_id: str):
 # --- Cariler (Vendors) ---
 @router.get("/companies/{company_id}/vendors")
 async def get_vendors(company_id: str, include_archived: bool = False):
-    """Get all vendors for a company, including admins as auto-generated vendors"""
-    # GET işlemi - yetki kontrolü yok
+    """
+    Get all vendors for a company.
+    Artık yöneticiler için otomatik cari oluşturulmaz.
+    Yöneticilerin bağlı kurye hesapları cari olarak gösterilir.
+    """
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
     vendors = await db.vendors.find(query, {"_id": 0}).to_list(500)
     
-    # Yöneticileri otomatik olarak ekle (vendor olarak)
+    # Eski is_auto_admin vendor'ları filtrele (artık kullanılmıyor)
+    vendors = [v for v in vendors if not v.get("is_auto_admin")]
+    
+    # Yöneticilerin bağlı kurye hesaplarını ekle (cari olarak gösterilecek)
     admin_query = {
         "$or": [
             {"company_id": company_id},
             {"role": "superadmin"}
         ],
-        "is_archived": {"$ne": True}
+        "is_archived": {"$ne": True},
+        "linked_courier_id": {"$exists": True, "$ne": None}
     }
-    admins = await db.admins.find(admin_query, {"_id": 0, "id": 1, "name": 1, "phone": 1, "role": 1}).to_list(100)
+    admins = await db.admins.find(admin_query, {"_id": 0, "id": 1, "name": 1, "linked_courier_id": 1, "role": 1}).to_list(100)
     
-    # Mevcut vendor ID'lerini topla
-    existing_vendor_ids = set(v.get("id") for v in vendors)
-    existing_admin_vendor_ids = set(v.get("admin_id") for v in vendors if v.get("admin_id"))
+    # Bağlı kuryeleri getir
+    linked_courier_ids = [a["linked_courier_id"] for a in admins if a.get("linked_courier_id")]
+    linked_couriers = {}
+    if linked_courier_ids:
+        couriers = await db.couriers.find(
+            {"id": {"$in": linked_courier_ids}},
+            {"_id": 0, "id": 1, "name": 1, "phone": 1, "balance": 1}
+        ).to_list(100)
+        linked_couriers = {c["id"]: c for c in couriers}
+    
+    # Mevcut vendor ID'lerini topla (mükerrer kontrolü için)
+    existing_courier_ids = set()
+    for v in vendors:
+        if v.get("linked_courier_id"):
+            existing_courier_ids.add(v["linked_courier_id"])
     
     for admin in admins:
-        # Bu admin zaten vendor olarak eklenmişse atla
-        admin_vendor_id = f"admin_{admin['id']}"
-        if admin_vendor_id in existing_vendor_ids or admin["id"] in existing_admin_vendor_ids:
+        courier_id = admin.get("linked_courier_id")
+        if not courier_id or courier_id in existing_courier_ids:
             continue
         
-        # Yöneticiyi vendor olarak ekle (otomatik)
+        courier = linked_couriers.get(courier_id, {})
+        
+        # Yöneticiyi cari olarak ekle (kurye bilgileriyle)
         admin_vendor = {
-            "id": admin_vendor_id,
+            "id": f"admin_courier_{courier_id}",
             "admin_id": admin["id"],
+            "linked_courier_id": courier_id,
             "name": f"{admin['name']} (Yönetici)",
-            "phone": admin.get("phone", ""),
-            "address": "",
+            "phone": courier.get("phone", ""),
+            "balance": courier.get("balance", 0),
             "company_id": company_id,
             "is_archived": False,
-            "is_auto_admin": True,  # Otomatik eklenen yönetici
+            "is_admin_courier": True,  # Yönetici-kurye bağlantısı
             "role": admin.get("role", "admin"),
             "created_at": datetime.now(timezone.utc).isoformat()
         }
-        
-        # Veritabanına kaydet (upsert)
-        await db.vendors.update_one(
-            {"id": admin_vendor_id},
-            {"$setOnInsert": admin_vendor},
-            upsert=True
-        )
         vendors.append(admin_vendor)
+        existing_courier_ids.add(courier_id)
     
     # Yöneticileri önce göster
-    vendors.sort(key=lambda x: (not x.get("is_auto_admin", False), x.get("name", "").lower()))
+    vendors.sort(key=lambda x: (not x.get("is_admin_courier", False), x.get("name", "").lower()))
     
     return vendors
 
