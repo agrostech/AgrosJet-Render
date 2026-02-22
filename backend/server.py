@@ -246,23 +246,118 @@ async def lifespan(app: FastAPI):
             
             for company in companies:
                 try:
-                    await check_and_log_violations_internal(company["id"])
+                    await check_shift_start_violations(company["id"])
                 except Exception as e:
-                    print(f"Shift violation check error for company {company['id']}: {e}")
+                    print(f"Shift start violation check error for company {company['id']}: {e}")
         except Exception as e:
-            print(f"Shift violation check job error: {e}")
+            print(f"Shift start violation check job error: {e}")
+    
+    async def check_shift_start_violations(company_id: str):
+        """
+        Vardiya başlangıç saatlerinde kontrol yap.
+        Sadece şu an başlayan vardiyalar için aktif olmayan kuryeleri logla.
+        """
+        from datetime import timezone, timedelta
+        
+        # Türkiye saati
+        turkey_tz = timezone(timedelta(hours=3))
+        now = datetime.now(turkey_tz)
+        current_time = now.strftime("%H:%M")
+        
+        days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
+        today_key = days_map[now.weekday()]
+        
+        # Şu an başlayan vardiyaları bul
+        shifts = await db.shifts.find({
+            "company_id": company_id,
+            "start_time": current_time
+        }, {"_id": 0}).to_list(100)
+        
+        if not shifts:
+            return
+        
+        shift_ids = [s["id"] for s in shifts]
+        
+        # Bu vardiyalara atanmış kuryeler
+        assignments = await db.shift_assignments.find({
+            "company_id": company_id,
+            "day": today_key,
+            "shift_id": {"$in": shift_ids}
+        }, {"_id": 0}).to_list(500)
+        
+        if not assignments:
+            return
+        
+        courier_ids = [a["courier_id"] for a in assignments]
+        
+        # Kuryelerin durumlarını al
+        couriers = await db.couriers.find(
+            {"id": {"$in": courier_ids}},
+            {"_id": 0, "id": 1, "name": 1, "availability_status": 1, "is_admin_linked": 1}
+        ).to_list(500)
+        
+        courier_map = {c["id"]: c for c in couriers}
+        
+        # Admin-kurye bağlantılarını al
+        admin_linked_ids = [c["id"] for c in couriers if c.get("is_admin_linked")]
+        admin_map = {}
+        if admin_linked_ids:
+            admins = await db.admins.find(
+                {"linked_courier_id": {"$in": admin_linked_ids}},
+                {"_id": 0, "id": 1, "name": 1, "linked_courier_id": 1, "is_active": 1}
+            ).to_list(100)
+            admin_map = {a["linked_courier_id"]: a for a in admins}
+        
+        from routers.shift_violations import log_violation
+        
+        for a in assignments:
+            courier = courier_map.get(a["courier_id"])
+            if not courier:
+                continue
+            
+            courier_active = courier.get("availability_status") in ["available", "active"]
+            admin_info = admin_map.get(a["courier_id"])
+            
+            if admin_info:
+                admin_active = admin_info.get("is_active", False)
+                # İkisinden biri aktifse sorun yok
+                if admin_active or courier_active:
+                    continue
+                
+                # Yönetici olarak logla
+                await log_violation(
+                    company_id=company_id,
+                    entity_type="admin",
+                    entity_id=admin_info["id"],
+                    entity_name=admin_info["name"],
+                    violation_type="shift_started_not_active",
+                    details={"linked_courier_id": a["courier_id"], "shift_id": a["shift_id"], "triggered_by": "shift_start"}
+                )
+            else:
+                if courier_active:
+                    continue
+                
+                # Kurye olarak logla
+                await log_violation(
+                    company_id=company_id,
+                    entity_type="courier",
+                    entity_id=a["courier_id"],
+                    entity_name=courier.get("name", ""),
+                    violation_type="shift_started_not_active",
+                    details={"shift_id": a["shift_id"], "triggered_by": "shift_start"}
+                )
     
     scheduler.add_job(
         check_shift_violations,
-        'interval',
-        minutes=5,  # Her 5 dakikada bir kontrol et
+        'cron',
+        minute='*',  # Her dakika kontrol et (vardiya başlangıç saatlerini yakala)
         id="shift_violation_check",
-        name="Shift Violation Check",
+        name="Shift Start Violation Check",
         replace_existing=True
     )
     
     scheduler.start()
-    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m), shift violations (5m)")
+    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m), shift start check (1m)")
     
     yield
     
