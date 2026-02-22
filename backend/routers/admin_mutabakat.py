@@ -336,87 +336,125 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
     missing_card_20 = round(card_20_at_reset - received_card_20, 2)
     missing_meal_card = round(meal_card_at_reset - received_meal_card, 2)
     
-    # Yöneticinin vendor_id'sini bul veya oluştur
-    admin_vendor_id = f"admin_{admin_id}"
-    
-    # Eksik tutarlar için Cariler'e işlem ekle
+    # Eksik tutarlar için bağlı kurye hesabına işlem ekle
     transactions_added = []
+    total_missing = 0
     
     if missing_cash > 0:
         tx = {
             "id": str(uuid.uuid4()),
-            "entity_id": admin_vendor_id,
-            "entity_type": "vendor",
+            "entity_id": linked_courier_id,
+            "entity_type": "courier",
+            "courier_id": linked_courier_id,
+            "courier_name": linked_courier["name"],
             "company_id": company_id,
             "type": "given",
             "amount": missing_cash,
-            "description": "Mütabakat Sıfırlama - Eksik Nakit",
+            "description": f"Yönetici Mütabakat Sıfırlama - Eksik Nakit ({admin['name']})",
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
+            "is_admin_mutabakat": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.transactions.insert_one(tx)
+        total_missing += missing_cash
         transactions_added.append({"type": "cash", "amount": missing_cash})
+        
+        # Kurye bakiyesini güncelle
+        await db.couriers.update_one(
+            {"id": linked_courier_id},
+            {"$inc": {"balance": missing_cash}}
+        )
     
     if missing_card_1 > 0:
         tx = {
             "id": str(uuid.uuid4()),
-            "entity_id": admin_vendor_id,
-            "entity_type": "vendor",
+            "entity_id": linked_courier_id,
+            "entity_type": "courier",
+            "courier_id": linked_courier_id,
+            "courier_name": linked_courier["name"],
             "company_id": company_id,
             "type": "given",
             "amount": missing_card_1,
-            "description": "Mütabakat Sıfırlama - Eksik Kart (%1)",
+            "description": f"Yönetici Mütabakat Sıfırlama - Eksik Kart %1 ({admin['name']})",
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
+            "is_admin_mutabakat": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.transactions.insert_one(tx)
+        total_missing += missing_card_1
         transactions_added.append({"type": "card_1", "amount": missing_card_1})
+        
+        await db.couriers.update_one(
+            {"id": linked_courier_id},
+            {"$inc": {"balance": missing_card_1}}
+        )
     
     if missing_card_10 > 0:
         tx = {
             "id": str(uuid.uuid4()),
-            "entity_id": admin_vendor_id,
-            "entity_type": "vendor",
+            "entity_id": linked_courier_id,
+            "entity_type": "courier",
+            "courier_id": linked_courier_id,
+            "courier_name": linked_courier["name"],
             "company_id": company_id,
             "type": "given",
             "amount": missing_card_10,
-            "description": "Mütabakat Sıfırlama - Eksik Kart (%10)",
+            "description": f"Yönetici Mütabakat Sıfırlama - Eksik Kart %10 ({admin['name']})",
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
+            "is_admin_mutabakat": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.transactions.insert_one(tx)
+        total_missing += missing_card_10
         transactions_added.append({"type": "card_10", "amount": missing_card_10})
+        
+        await db.couriers.update_one(
+            {"id": linked_courier_id},
+            {"$inc": {"balance": missing_card_10}}
+        )
     
     if missing_card_20 > 0:
         tx = {
             "id": str(uuid.uuid4()),
-            "entity_id": admin_vendor_id,
-            "entity_type": "vendor",
+            "entity_id": linked_courier_id,
+            "entity_type": "courier",
+            "courier_id": linked_courier_id,
+            "courier_name": linked_courier["name"],
             "company_id": company_id,
             "type": "given",
             "amount": missing_card_20,
-            "description": "Mütabakat Sıfırlama - Eksik Kart (%20)",
+            "description": f"Yönetici Mütabakat Sıfırlama - Eksik Kart %20 ({admin['name']})",
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
+            "is_admin_mutabakat": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.transactions.insert_one(tx)
+        total_missing += missing_card_20
         transactions_added.append({"type": "card_20", "amount": missing_card_20})
+        
+        await db.couriers.update_one(
+            {"id": linked_courier_id},
+            {"$inc": {"balance": missing_card_20}}
+        )
     
     if missing_meal_card > 0:
         tx = {
             "id": str(uuid.uuid4()),
-            "entity_id": admin_vendor_id,
-            "entity_type": "vendor",
+            "entity_id": linked_courier_id,
+            "entity_type": "courier",
+            "courier_id": linked_courier_id,
+            "courier_name": linked_courier["name"],
             "company_id": company_id,
             "type": "given",
             "amount": missing_meal_card,
-            "description": "Mütabakat Sıfırlama - Eksik Yemek Kartı",
+            "description": f"Yönetici Mütabakat Sıfırlama - Eksik Yemek Kartı ({admin['name']})",
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
+            "is_admin_mutabakat": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.transactions.insert_one(tx)
