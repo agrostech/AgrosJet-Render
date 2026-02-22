@@ -81,7 +81,7 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
     if (!companyId) return;
     try {
       const endpoint = activeTab === "courier" 
-        ? `${API}/couriers/company/${companyId}`
+        ? `${API}/companies/${companyId}/couriers`
         : `${API}/companies/${companyId}/admins`;
       
       const res = await axios.get(endpoint);
