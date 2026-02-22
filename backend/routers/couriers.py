@@ -338,21 +338,57 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     # Kurye aktif olduğunda vardiyası var mı kontrol et
     if data.availability_status == "active" and company_id:
         try:
+            from utils.shift_scheduler import get_company_tolerance
+            
             # Türkiye saati
             turkey_tz = timezone(timedelta(hours=3))
             now_turkey = datetime.now(turkey_tz)
             days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
             today_key = days_map[now_turkey.weekday()]
+            current_minutes = now_turkey.hour * 60 + now_turkey.minute
             
             # Bugün bu kuryenin vardiyası var mı?
-            assignment = await db.shift_assignments.find_one({
+            assignments = await db.shift_assignments.find({
                 "company_id": company_id,
                 "courier_id": courier_id,
                 "day": today_key
-            })
+            }, {"_id": 0, "shift_id": 1}).to_list(10)
+            
+            # Tolerans süresini al
+            tolerance = await get_company_tolerance(company_id)
+            
+            # Vardiya var mı kontrol et (tolerans dahil)
+            has_valid_shift = False
+            if assignments:
+                shift_ids = [a["shift_id"] for a in assignments]
+                shifts = await db.shifts.find(
+                    {"id": {"$in": shift_ids}},
+                    {"_id": 0, "start_time": 1, "end_time": 1}
+                ).to_list(10)
+                
+                for shift in shifts:
+                    start_h, start_m = map(int, shift["start_time"].split(":"))
+                    end_h, end_m = map(int, shift["end_time"].split(":"))
+                    start_minutes = start_h * 60 + start_m
+                    end_minutes = end_h * 60 + end_m
+                    
+                    # Tolerans ile genişletilmiş aralık (erken giriş için)
+                    effective_start = start_minutes - tolerance
+                    
+                    # Gece geçişi kontrolü
+                    if end_minutes <= start_minutes:
+                        # Gece vardiyası
+                        if current_minutes >= effective_start or current_minutes < end_minutes + tolerance:
+                            has_valid_shift = True
+                            break
+                    else:
+                        # Normal vardiya - tolerans ile genişletilmiş aralık
+                        if effective_start <= current_minutes < end_minutes + tolerance:
+                            has_valid_shift = True
+                            break
             
             # Admin-kurye ise yönetici olarak logla
-            if not assignment:
+            if not has_valid_shift:
                 if courier.get("is_admin_linked"):
                     admin = await db.admins.find_one(
                         {"linked_courier_id": courier_id},
