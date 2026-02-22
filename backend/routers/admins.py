@@ -77,6 +77,10 @@ class AdminResponse(BaseModel):
     company_id: Optional[str] = None
     company_ids: Optional[List[str]] = None
     email: Optional[str] = None
+    linked_courier_id: Optional[str] = None
+    hourly_rate: Optional[float] = None
+    availability_status: Optional[str] = None
+    last_active_at: Optional[str] = None
     created_at: str
 
 
