@@ -19,6 +19,12 @@ class ResetRequest(BaseModel):
     reset_by_id: str
     reset_by_name: str
     note: Optional[str] = None
+    # Alınan tutarlar
+    received_cash: float = 0
+    received_card_1: float = 0
+    received_card_10: float = 0
+    received_card_20: float = 0
+    received_meal_card: float = 0
 
 
 @router.get("/{company_id}")
