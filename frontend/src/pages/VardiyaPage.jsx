@@ -461,6 +461,12 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         isSuperAdmin={isSuperAdmin}
       />
 
+      <StatusMovementsModal
+        open={showMovementsModal}
+        onOpenChange={setShowMovementsModal}
+        companyId={companyId}
+      />
+
       {/* Vardiya Silme Onay Modalı */}
       <ConfirmModal
         open={showDeleteConfirm}
