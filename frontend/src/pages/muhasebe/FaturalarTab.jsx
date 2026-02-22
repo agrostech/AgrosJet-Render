@@ -184,7 +184,11 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
           onVerifyWithAmount={handleVerifyWithAmount}
         />
 
-        <MissingInvoicesCard missingInvoices={missingInvoices} />
+        <MissingInvoicesCard 
+          missingInvoices={missingInvoices} 
+          isSuperAdmin={isSuperAdmin}
+          onDismiss={dismissMissingInvoice}
+        />
 
         <CouriersListCard
           couriers={couriersSummary}
