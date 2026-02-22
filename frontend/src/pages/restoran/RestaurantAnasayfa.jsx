@@ -44,6 +44,7 @@ import {
 } from "@/utils/orderUtils";
 import { printOrderLocal, getLocalPrintSettings, checkLocalPrintServer } from "@/utils/localPrintService";
 import { playNotificationSound, getNotificationSettings } from "@/utils/notificationSounds";
+import { playCourierAssignmentSound, getCourierAssignmentSettings } from "@/utils/courierAssignmentSounds";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -67,6 +68,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const previousOrderIdsRef = useRef(new Set());
   const isFirstLoadRef = useRef(true);
   const localServerAvailableRef = useRef(false);
+  
+  // Kurye ataması takibi için
+  const previousCourierAssignmentsRef = useRef(new Map()); // orderId -> courierId
   
   // Yazdırılan siparişleri takip et
   const [printedOrders, setPrintedOrders] = useState(() => {
