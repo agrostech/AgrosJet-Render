@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronRight, ChevronDown, Bike, Users, MapPin, Clock, CalendarOff } from "lucide-react";
+import { ChevronRight, ChevronDown, Bike, Users, MapPin, Clock, CalendarOff, UserCog } from "lucide-react";
 import { getRemainingBreakTime } from "@/utils/orderUtils";
 
 // Kurye listesi bileşeni - Desktop versiyonu
