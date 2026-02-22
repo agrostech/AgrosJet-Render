@@ -397,6 +397,68 @@ async def toggle_admin_status(admin_id: str):
         except Exception as e:
             print(f"Admin shift violation check failed: {e}")
     
+    # === VARDIYA BİTİŞ SONRASI GEÇ KAPAMA KONTROLÜ ===
+    # Admin pasif olduğunda vardiya bitiş saatinden ne kadar geç olduğunu kontrol et
+    if new_status == "offline" and company_id and linked_courier_id:
+        try:
+            from routers.shift_violations import log_violation
+            
+            # Türkiye saati
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
+            today_key = days_map[now_turkey.weekday()]
+            current_minutes = now_turkey.hour * 60 + now_turkey.minute
+            
+            # Bugün bu admin'in bağlı kuryesinin vardiyalarını bul
+            assignments = await db.shift_assignments.find({
+                "company_id": company_id,
+                "courier_id": linked_courier_id,
+                "day": today_key
+            }, {"_id": 0, "shift_id": 1}).to_list(10)
+            
+            if assignments:
+                shift_ids = [a["shift_id"] for a in assignments]
+                shifts = await db.shifts.find(
+                    {"id": {"$in": shift_ids}},
+                    {"_id": 0, "id": 1, "end_time": 1}
+                ).to_list(10)
+                
+                # En son biten vardiyayı bul
+                latest_ended_shift = None
+                latest_end_minutes = -1
+                
+                for shift in shifts:
+                    end_h, end_m = map(int, shift["end_time"].split(":"))
+                    end_minutes = end_h * 60 + end_m
+                    
+                    if end_minutes <= current_minutes and end_minutes > latest_end_minutes:
+                        latest_ended_shift = shift
+                        latest_end_minutes = end_minutes
+                
+                # Eğer bitmiş vardiya varsa ve geç kapatıldıysa log kaydet
+                if latest_ended_shift and latest_end_minutes > 0:
+                    late_minutes = current_minutes - latest_end_minutes
+                    
+                    if late_minutes > 0:  # En az 1 dakika geç
+                        await log_violation(
+                            company_id=company_id,
+                            entity_type="admin",
+                            entity_id=admin_id,
+                            entity_name=admin.get("name", ""),
+                            violation_type="still_active_after_shift_end",
+                            details={
+                                "linked_courier_id": linked_courier_id,
+                                "shift_id": latest_ended_shift["id"],
+                                "shift_end_time": latest_ended_shift["end_time"],
+                                "deactivated_at": now_turkey.strftime("%H:%M"),
+                                "late_minutes": late_minutes,
+                                "triggered_by": "admin_deactivation"
+                            }
+                        )
+        except Exception as e:
+            print(f"Admin late deactivation check failed: {e}")
+    
     return {
         "message": f"Durum değiştirildi: {new_status}",
         "new_status": new_status
