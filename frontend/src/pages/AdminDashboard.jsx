@@ -361,8 +361,8 @@ export default function AdminDashboard() {
           <div className="p-4 md:p-6 min-h-[calc(100vh-80px)]">
             <Routes>
               {/* Sipariş Yönetimi varsayılan sayfa */}
-              <Route index element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} />} />
-              <Route path="siparis-yonetimi" element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} />} />
+              <Route index element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} linkedCourierStatus={linkedCourierStatus} />} />
+              <Route path="siparis-yonetimi" element={<SiparisYonetimiPage companyId={activeCompanyId} adminName={user.name || user.username} isSuperAdmin={isSuperAdmin} adminStatus={adminStatus} linkedCourierStatus={linkedCourierStatus} />} />
               <Route path="gecmis-siparisler" element={<GecmisSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} adminName={user.name || user.username} />} />
               <Route path="iptal-siparisler" element={<IptalSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
               <Route path="restoranlar" element={<RestoranlarPage companyId={activeCompanyId} />} />
