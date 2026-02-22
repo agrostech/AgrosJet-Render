@@ -1,15 +1,51 @@
 """
 Durum Hareketleri API
 - Kurye ve Admin durum değişiklik loglarını getir
-- Belirli bir gün için filtreleme
+- Belirli bir iş günü için filtreleme (şirket açılış-kapanış saatlerine göre)
 """
 from fastapi import APIRouter, Query
-from typing import Optional, List
-from datetime import datetime, timezone
+from typing import Optional
+from datetime import datetime, timezone, timedelta
 
 from utils.database import db
 
 router = APIRouter(prefix="/api/status-movements", tags=["Durum Hareketleri"])
+
+
+async def get_company_opening_time(company_id: str) -> str:
+    """Şirket açılış saatini getir"""
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "opening_time": 1}
+    )
+    if company and company.get("opening_time"):
+        return company["opening_time"]
+    return "06:00"
+
+
+def get_business_day_range(date_str: str, opening_time: str):
+    """
+    İş günü aralığını hesapla.
+    
+    Örnek: date=2024-02-22, opening_time=06:00
+    Başlangıç: 2024-02-22 06:00:00
+    Bitiş: 2024-02-23 06:00:00
+    
+    Bu şekilde tam 24 saatlik iş günü verisi çekilir.
+    """
+    # Parse date
+    base_date = datetime.strptime(date_str, "%Y-%m-%d")
+    
+    # Parse opening time
+    open_hour, open_minute = map(int, opening_time.split(":"))
+    
+    # İş günü başlangıcı: seçilen gün + açılış saati
+    start_dt = base_date.replace(hour=open_hour, minute=open_minute, second=0, microsecond=0)
+    
+    # İş günü bitişi: ertesi gün + açılış saati
+    end_dt = start_dt + timedelta(days=1)
+    
+    return start_dt.isoformat(), end_dt.isoformat()
 
 
 @router.get("/{company_id}")
@@ -20,14 +56,24 @@ async def get_status_movements(
     entity_id: Optional[str] = Query(None, description="Belirli bir kişi için filtre")
 ):
     """
-    Belirli bir gün için kurye veya admin durum hareketlerini getir.
-    Sonuçlar zamana göre sıralı döner.
+    Belirli bir iş günü için kurye veya admin durum hareketlerini getir.
+    İş günü, şirket açılış saatinden ertesi gün açılış saatine kadardır.
+    Sonuçlar yeniden eskiye sıralı döner.
     """
     logs = []
     
+    # Şirket açılış saatini al
+    opening_time = await get_company_opening_time(company_id)
+    
+    # İş günü aralığını hesapla
+    start_time, end_time = get_business_day_range(date, opening_time)
+    
     if entity_type == "courier":
-        # Kurye loglarını çek
-        query = {"company_id": company_id, "date": date}
+        # Kurye loglarını çek - timestamp aralığına göre
+        query = {
+            "company_id": company_id,
+            "timestamp": {"$gte": start_time, "$lt": end_time}
+        }
         if entity_id:
             query["courier_id"] = entity_id
         
@@ -56,8 +102,11 @@ async def get_status_movements(
             })
     
     else:  # admin
-        # Admin loglarını çek
-        query = {"company_id": company_id, "date": date}
+        # Admin loglarını çek - timestamp aralığına göre
+        query = {
+            "company_id": company_id,
+            "timestamp": {"$gte": start_time, "$lt": end_time}
+        }
         if entity_id:
             query["admin_id"] = entity_id
         
@@ -89,5 +138,7 @@ async def get_status_movements(
         "logs": logs,
         "total": len(logs),
         "date": date,
-        "entity_type": entity_type
+        "entity_type": entity_type,
+        "business_day_start": start_time,
+        "business_day_end": end_time
     }
