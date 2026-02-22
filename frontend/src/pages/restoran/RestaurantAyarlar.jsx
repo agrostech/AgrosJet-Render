@@ -340,7 +340,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
               </div>
 
               {/* ==================== KURYE ATAMASI BİLDİRİMİ ==================== */}
-              <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="space-y-4 p-4 bg-slate-50 rounded-lg border">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Bike className="w-4 h-4 text-green-600" />
