@@ -119,6 +119,9 @@ export default function AdminDashboard() {
     }
     setUser(parsed);
     
+    // Fetch admin status
+    fetchAdminStatus(parsed.id);
+    
     // Set accessible companies and active company
     const companies = parsed.accessible_companies || [];
     if (companies.length > 0) {
