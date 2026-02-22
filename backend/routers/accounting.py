@@ -361,15 +361,24 @@ async def create_transaction(
     """Create a new transaction"""
     created_at = parse_custom_date(data.custom_date)
     
+    # Admin-kurye bağlantısı için entity_type ve entity_id dönüştürme
+    # Frontend'den vendor entity ile admin_courier_{id} gelirse, courier olarak kaydet
+    actual_entity_type = data.entity_type
+    actual_entity_id = data.entity_id
+    
+    if data.entity_type == "vendor" and data.entity_id.startswith("admin_courier_"):
+        actual_entity_type = "courier"
+        actual_entity_id = data.entity_id.replace("admin_courier_", "")
+    
     transaction = {
         "id": str(uuid.uuid4()),
-        "entity_type": data.entity_type,
-        "entity_id": data.entity_id,
+        "entity_type": actual_entity_type,
+        "entity_id": actual_entity_id,
         "company_id": data.company_id,
         "type": data.type,
         "amount": data.amount,
         "description": data.description or ("Verilen" if data.type == "payment_in" else "Alınan"),
-        "is_hakedis": data.is_hakedis if data.entity_type == "courier" else False,
+        "is_hakedis": data.is_hakedis if actual_entity_type == "courier" else False,
         "created_at": created_at
     }
     await db.transactions.insert_one(transaction)
