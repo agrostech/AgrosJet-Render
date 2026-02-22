@@ -77,7 +77,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     try {
       const [shiftsRes, assignmentsRes, leavesRes] = await Promise.all([
         axios.get(`${API}/companies/${companyId}/shifts`),
-        axios.get(`${API}/companies/${companyId}/shift-assignments`),
+        axios.get(`${API}/companies/${companyId}/shift-assignments?include_admin_linked=true`),
         axios.get(`${API}/companies/${companyId}/leaves`),
       ]);
       setTrackingData({
