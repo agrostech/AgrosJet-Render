@@ -1,166 +1,91 @@
-# ShiftJet PRD - Sipariş Yönetim Sistemi
+# AgrosJet - Kurye Yönetim Sistemi PRD
 
-## Orijinal Problem Bildirimi
-Kullanıcı Getir Yemek entegrasyonundaki hataları düzelttikten sonra, kod tabanının karmaşıklığı nedeniyle büyük bir refactoring çalışması talep etti. Backend ve frontend'deki duplicate kodlar temizlendi, merkezi fonksiyonlar oluşturuldu.
+## Original Problem Statement
+AgrosJet, restoran siparişlerini yöneten ve kurye dağıtım süreçlerini koordine eden kapsamlı bir kurye yönetim sistemidir. Sistem; sipariş takibi, kurye yönetimi, muhasebe işlemleri (mütabakat, tahsilat, hakediş) ve restoran entegrasyonlarını içerir.
 
-## Tamamlanan İşler (21 Şubat 2026)
+## User Personas
+- **Superadmin**: Tüm sistem yönetimi, muhasebe, kurye ve restoran yönetimi
+- **Admin/Yönetici**: Şirkete bağlı operasyonlar, kurye koordinasyonu
+- **Kurye**: Sipariş teslimi, mesai takibi
+- **Restoran Kullanıcısı**: Sipariş takibi
 
-### YENİ: Otomatik Hakediş İşleme Zamanı Güncellendi (21 Şubat 2026)
-- **Önceki**: Şirket kapanış saatinden 15 dakika sonra
-- **Şimdi**: Şirket kapanış saatinden 1 saat sonra
-- **Dosya**: `/app/backend/server.py` (satır 174-236)
-- **Mantık**: `target_hour = (close_h + 1) % 24` - gece yarısını da doğru handle ediyor
-
----
-
-### YENİ: Kurye Durum Log ve Saatlik Kazanç Sistemi
-
-**Özellik Özeti:**
-- Kurye durum değişiklikleri (active/on_break/offline) otomatik olarak loglanıyor
-- Kuryeler için saat ücreti tanımlanabiliyor (opsiyonel)
-- Saatlik kazanç = Aktif Saat × Saat Ücreti
-- Toplam Hakediş = Paket Kazancı + Saatlik Kazanç
-
-**Yapılan Değişiklikler:**
-
-1. **Backend - Yeni Router:** `/app/backend/routers/courier_status_logs.py`
-   - `POST /api/courier-status-logs` - Durum değişikliği log kaydı
-   - `GET /api/courier-status-logs/courier/{id}/today` - Bugünkü loglar
-   - `GET /api/courier-status-logs/courier/{id}/range` - Tarih aralığı logları
-   - `POST /api/courier-status-logs/company/{id}/weekly-active-hours` - Haftalık aktif saatler
-
-2. **Backend - Güncellemeler:**
-   - `couriers.py`: Ücretlendirme'ye `hourly_rate` eklendi, availability değişikliklerinde log kaydı
-   - `weekly_hakedis.py`: Saatlik kazanç hesaplaması eklendi
-   - `reports.py`: Kurye raporlarına saatlik kazanç entegrasyonu
-
-3. **Frontend - Güncellemeler:**
-   - `KuryelerPage.jsx`: Ücretlendirme modalına "Saatlik Ücret" alanı eklendi
-   - `HakedisTable.jsx`: Saatlik kazanç kolonu eklendi (Paket + Saatlik + Toplam)
-   - `KuryeRaporlari.jsx`: Kurye raporlarında saatlik kazanç gösterimi
-   - `FilterSummaryCard.jsx`: Geçmiş siparişlerde kurye filtrelerken saatlik kazanç gösterimi
-
-**Hesaplama Formülü:**
-```
-Haftalık Hakediş = 
-  (Teslim Edilen Siparişler × Paket Başı Ücret) +
-  (Aktif Saat × Saat Ücreti)
-```
+## Core Requirements
+1. Sipariş yönetimi ve takibi
+2. Kurye atama ve mesai yönetimi
+3. Muhasebe ve mütabakat işlemleri
+4. Restoran entegrasyonları (Getir, Trendyol, Yemeksepeti, Adisyo, Migros)
+5. Raporlama
 
 ---
 
-### UI/UX: Harita Başlangıç Görünümü Isparta'ya Ayarlandı (21 Şubat 2026)
-- `SiparisYonetimiPage.jsx` dosyasında `initMap()` fonksiyonu güncellendi
-- Varsayılan koordinatlar: Isparta (`37.7648, 30.5566`)
-- Zoom seviyesi: `13` (şehir detayı)
+## What's Been Implemented
+
+### Session: 2026-02-22 - Kurye Mütabakatı Refaktörü
+
+**Completed:**
+- ✅ "Kurye Mütabakatı" (Günlük Mütabakat) sayfası tamamen refaktör edildi
+- ✅ Checkbox ve toplu aksiyon butonları kaldırıldı
+- ✅ Her kurye satırına bireysel "Kaydet" butonu eklendi (tahsilat + mütabakat tek seferde)
+- ✅ Her satıra "Sıfırla" butonu eklendi (sadece superadmin için görünür)
+- ✅ Backend'de yeni endpoint'ler oluşturuldu:
+  - `POST /api/daily-mutabakat/{company_id}/save-and-process-single-courier`
+  - `POST /api/daily-mutabakat/{company_id}/revert-single-courier`
+
+### Previous Sessions (Completed)
+- ✅ Yönetici Mütabakatı sayfası
+- ✅ Cariler'de admin hesapları
+- ✅ Yemek kartı entegrasyonu
+- ✅ Business day/timezone bug fix
+- ✅ Shift icon bug fix
+- ✅ ShiftJet → AgrosJet rebranding
 
 ---
 
-## Tamamlanan İşler (20 Şubat 2026)
+## Prioritized Backlog
 
-### Bug Fix: Merkezi Sipariş Endpoint'i - DB_NAME Sorunu (20 Şubat 2026)
+### P0 (Critical)
+- None currently
 
-**Sorun:** `/api/orders/v2/list` endpoint'i tüm siparişler için boş array (`[]`) döndürüyordu.
+### P1 (High Priority)
+- Migros Yemek entegrasyonu finalize
+- Yemeksepeti entegrasyonu tamamlama
+- Raporlar sayfası işlevselliği
 
-**Kök Neden:**
-1. Backend `.env` dosyasında `DB_NAME="test_database"` olarak ayarlanmıştı
-2. Tüm veriler `shiftjet` veritabanında bulunuyordu
-3. Async Motor client yanlış veritabanına bağlanıyordu
+### P2 (Medium Priority)
+- Native Kurye Uygulaması
+- Chat sistemi re-enable
+- Google Maps entegrasyonu
+- Dark Mode tema
+- Geçmiş Siparişler sayfası refaktör
+- Login sayfası refaktör
 
-**Çözüm:**
-1. `DB_NAME="shiftjet"` olarak düzeltildi
-2. `bostonddisparta` kullanıcısı `restaurant_users` koleksiyonuna eklendi
-3. `boston-isparta` şirketi `companies` koleksiyonuna eklendi
-
-**Sonuç:** 180+ sipariş artık başarıyla listeleniyor.
+### P3 (Low Priority)
+- Redis caching for order list
+- Motosikletim özellik geliştirmeleri
 
 ---
 
-### Büyük Mimari Değişiklik: Merkezi Sipariş Endpoint'i
+## Known Issues (Not Started)
+1. **Historical Accounting Data Inconsistency**: Old transactions with `entity_type: "business"` not showing
+2. **Mobile File Upload Issue**: Recurring issue with file uploads on mobile devices
 
-**ESKİ YAPI (3 ayrı endpoint):**
-```
-GET /api/orders/{company_id}                    → Admin
-GET /api/orders/restaurant/{restaurant_id}      → Restoran
-GET /api/orders/courier/{courier_id}/active     → Kurye
-```
+---
 
-**YENİ YAPI (1 merkezi endpoint):**
-```
-GET /api/orders/v2/list?panel=admin|restaurant|courier&...
-```
+## Tech Stack
+- **Frontend**: React, Tailwind CSS, Shadcn/UI
+- **Backend**: FastAPI, Python
+- **Database**: MongoDB
+- **Integrations**: Getir, Trendyol, Yemeksepeti, Adisyo, SepetTakip, Migros
 
-### Kazanımlar:
+---
 
-| Metrik | Değer |
-|--------|-------|
-| Kod tekrarı | **3x → 1x** |
-| Bug fix süresi | **3x daha hızlı** |
-| Tutarlılık | **Garanti** |
-| Ölçeklenebilirlik | **Çok daha iyi** |
+## Key Files Reference
+- `/app/frontend/src/pages/muhasebe/GunlukMutabakatTab.jsx` - Kurye Mütabakatı UI
+- `/app/backend/routers/daily_mutabakat.py` - Mütabakat backend logic
+- `/app/frontend/src/pages/muhasebe/YoneticiMutabakatTab.jsx` - Yönetici Mütabakatı
+- `/app/backend/routers/admin_mutabakat.py` - Admin mütabakat backend
 
-### Refactoring Özeti:
+---
 
-| Dosya | Başlangıç | Final | Değişim |
-|-------|-----------|-------|---------|
-| orders.py | 2710 | 2727 | +17 (merkezi endpoint eklendi) |
-| getir_service.py | 1995 | 1916 | **-79** |
-| CourierSiparisPage.jsx | 1674 | 1632 | **-42** |
-| **TOPLAM** | 6379 | 6275 | **-104 satır** |
-
-### Yapısal İyileştirmeler:
-
-1. **`update_order_status_core()`** - Merkezi status güncelleme (12+ endpoint kullanıyor)
-2. **`assign_courier_core()`** - Merkezi kurye atama (2 endpoint kullanıyor)
-3. **`get_orders_unified()`** - Merkezi sipariş listeleme (TÜM paneller)
-4. **Helper fonksiyonlar** - `_extract_customer_info`, `_extract_address_info`, `_check_timing_wait`
-5. **Duplicate fonksiyonlar silindi** - `calculate_distance`, `check_preparation_times`
-
-## Tamamlanan İşler (21 Şubat 2026)
-
-### UI/UX: Harita Başlangıç Görünümü Isparta'ya Ayarlandı
-**Değişiklik:** `SiparisYonetimiPage.jsx` dosyasında `initMap()` fonksiyonu güncellendi.
-- Varsayılan koordinatlar: Isparta (`37.7648, 30.5566`)
-- Zoom seviyesi: `13` (şehir detayı)
-- Şirket verisi yoksa bile harita Isparta'ya odaklanır
-- Türkiye görünümü ve zoom animasyonu ortadan kalktı
-
-### Kurye Durum İkonları (Önceki Fork)
-- Eski konum için kırmızı konum ikonu (2 dakikadan eski)
-- Vardiyalı çevrimdışı kuryeler için kırmızı saat ikonu
-- İzinli kuryeler için siyah takvim ikonu
-- Kurye modalında vardiya/mola bilgisi gösterimi
-
-### Ses Bildirimi Sistemi (Önceki Fork)
-- Restoran ayarlarında yeni sipariş ses bildirimi
-- 5 farklı ses seçeneği ve ses önizleme
-- Tarayıcı bildirim izni entegrasyonu
-
-## Bekleyen İşler
-
-### P0 - Kritik
-- [x] `/api/orders/v2/list` bug fix - DB_NAME sorunu (✅ Düzeltildi - 20 Şubat 2026)
-- [x] Harita başlangıç görünümü Isparta'ya ayarlandı (✅ 21 Şubat 2026)
-- [ ] SepetTakip entegrasyonu (3. taraf yanıtı bekliyor - BLOKE)
-
-### P1 - Yüksek Öncelik  
-- [ ] Yemeksepeti entegrasyonu (credentials bekliyor)
-- [ ] Raporlar sayfası işlevselliği
-- [ ] Migros Yemek entegrasyonu (duraklatıldı)
-
-### P2 - Orta Öncelik
-- [ ] Background task güvenilirliği (kurye uygulaması)
-- [ ] Geçmiş muhasebe verisi tutarsızlığı (migration script gerekli)
-- [ ] Mobil dosya yükleme sorunu
-
-## 3. Parti Entegrasyonlar
-| Platform | Durum |
-|----------|-------|
-| Getir Yemek | ✅ Aktif |
-| Trendyol Yemek | ✅ Aktif |
-| Adisyo | ⚠️ Doğrulama bekliyor |
-| SepetTakip | ⛔ Bloke |
-
-## Test Credentials
-- **Super Admin**: onurertas / 125594
-- **Restaurant**: bostonddisparta / 123456
+## Credentials
+- **Superadmin**: `superadmin` / `123456`
