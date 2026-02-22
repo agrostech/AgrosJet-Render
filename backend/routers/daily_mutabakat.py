@@ -102,6 +102,7 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     card_percent_1 = 0
     card_percent_10 = 0
     card_percent_20 = 0
+    meal_card_total = 0
     order_count = 0
     modified_payment_count = 0  # Ödeme yöntemi değiştirilen sipariş sayısı
     
