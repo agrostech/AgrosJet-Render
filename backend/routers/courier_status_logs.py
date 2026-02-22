@@ -135,14 +135,13 @@ async def create_status_log(
 
 @router.get("/courier/{courier_id}/today")
 async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None)):
-    """Kuryenin bugünkü durum geçmişi (şirket iş gününe göre)"""
+    """Kuryenin bugünkü durum logları ve aktiflik süresi"""
     now = datetime.now(timezone.utc)
     
     # Şirket açılış saatini al
     if company_id:
         opening_time, _ = await get_company_work_hours(company_id)
     else:
-        # Kuryenin şirketini bul
         courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "company_id": 1, "company_ids": 1})
         if courier:
             c_id = courier.get("company_id") or (courier.get("company_ids", [None])[0] if courier.get("company_ids") else None)
@@ -153,32 +152,33 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
     # Bugünün iş gününü hesapla
     today = get_business_date(now, opening_time)
     
+    # Durum loglarını getir (sadece görsel için)
     logs = await db.courier_status_logs.find(
         {"courier_id": courier_id, "date": today},
         {"_id": 0}
     ).sort("timestamp", 1).to_list(100)
     
-    # Toplam aktif süre hesapla
-    total_active_minutes = sum(
-        log.get("duration_minutes", 0) 
-        for log in logs 
-        if log.get("old_status") == "active"
+    # Aktiflik sayacından oku
+    daily_active = await db.courier_daily_active.find_one(
+        {"courier_id": courier_id, "date": today},
+        {"_id": 0, "active_minutes": 1}
     )
+    total_active_minutes = daily_active.get("active_minutes", 0) if daily_active else 0
     
-    # Eğer şu an aktif ise, son log'dan şimdiye kadar olan süreyi ekle
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "availability_status": 1})
+    # Eğer şu an aktif ise, anlık süreyi ekle
+    courier = await db.couriers.find_one(
+        {"id": courier_id}, 
+        {"_id": 0, "availability_status": 1, "last_active_at": 1}
+    )
     current_status = courier.get("availability_status", "offline") if courier else "offline"
     
-    current_active_minutes = 0
-    if current_status == "active" and logs:
-        last_log = logs[-1]
+    if current_status == "active" and courier.get("last_active_at"):
         try:
-            last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
-            current_active_minutes = int((now - last_time).total_seconds() / 60)
+            last_active = datetime.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
+            current_active_minutes = int((now - last_active).total_seconds() / 60)
+            total_active_minutes += current_active_minutes
         except (ValueError, TypeError):
             pass
-    
-    total_active_minutes += current_active_minutes
     
     return {
         "logs": logs,
@@ -191,7 +191,11 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
 
 @router.get("/courier/{courier_id}/range")
 async def get_logs_by_range(courier_id: str, start_date: str, end_date: str):
-    """Belirli tarih aralığındaki durum logları"""
+    """Belirli tarih aralığındaki durum logları ve aktiflik süresi"""
+    now = datetime.now(timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+    
+    # Durum loglarını getir (görsel için)
     logs = await db.courier_status_logs.find(
         {
             "courier_id": courier_id,
@@ -200,24 +204,42 @@ async def get_logs_by_range(courier_id: str, start_date: str, end_date: str):
         {"_id": 0}
     ).sort("timestamp", 1).to_list(1000)
     
-    # Günlük aktif süreleri hesapla
-    daily_summary = {}
-    for log in logs:
-        date = log.get("date")
-        if date not in daily_summary:
-            daily_summary[date] = {"active_minutes": 0, "break_minutes": 0}
-        
-        duration = log.get("duration_minutes", 0)
-        old_status = log.get("old_status")
-        
-        if old_status == "active":
-            daily_summary[date]["active_minutes"] += duration
-        elif old_status == "on_break":
-            daily_summary[date]["break_minutes"] += duration
+    # Aktiflik sayacından oku
+    daily_records = await db.courier_daily_active.find(
+        {
+            "courier_id": courier_id,
+            "date": {"$gte": start_date, "$lte": end_date}
+        },
+        {"_id": 0, "date": 1, "active_minutes": 1}
+    ).to_list(100)
     
-    total_active_minutes = sum(d["active_minutes"] for d in daily_summary.values())
+    daily_summary = {r["date"]: {"active_minutes": r["active_minutes"]} for r in daily_records}
+    total_active_minutes = sum(r["active_minutes"] for r in daily_records)
+    
+    # Eğer bugün aralıkta ve kurye aktif ise, anlık süreyi ekle
+    if start_date <= today <= end_date:
+        courier = await db.couriers.find_one(
+            {"id": courier_id}, 
+            {"_id": 0, "availability_status": 1, "last_active_at": 1}
+        )
+        if courier and courier.get("availability_status") == "active" and courier.get("last_active_at"):
+            try:
+                last_active = datetime.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
+                current_active_minutes = int((now - last_active).total_seconds() / 60)
+                total_active_minutes += current_active_minutes
+                if today in daily_summary:
+                    daily_summary[today]["active_minutes"] += current_active_minutes
+                else:
+                    daily_summary[today] = {"active_minutes": current_active_minutes}
+            except (ValueError, TypeError):
+                pass
     
     return {
+        "logs": logs,
+        "daily_summary": daily_summary,
+        "total_active_minutes": total_active_minutes,
+        "total_active_hours": round(total_active_minutes / 60, 2)
+    }
         "logs": logs,
         "daily_summary": daily_summary,
         "total_active_minutes": total_active_minutes,
