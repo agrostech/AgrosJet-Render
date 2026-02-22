@@ -345,14 +345,17 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
             # Bağlı admin'i bul
             linked_admin = await db.admins.find_one(
                 {"linked_courier_id": courier_id},
-                {"_id": 0, "id": 1, "status": 1, "company_id": 1}
+                {"_id": 0, "id": 1, "availability_status": 1, "status": 1, "company_id": 1}
             )
             
-            if linked_admin and linked_admin.get("status") == "active":
+            # Admin aktif mi kontrol et (availability_status veya status alanı)
+            admin_status = linked_admin.get("availability_status") or linked_admin.get("status") if linked_admin else None
+            
+            if linked_admin and admin_status == "active":
                 # Admin'i çevrimdışı yap
                 await db.admins.update_one(
                     {"id": linked_admin["id"]},
-                    {"$set": {"status": "offline"}}
+                    {"$set": {"status": "offline", "availability_status": "offline"}}
                 )
                 
                 # Admin status log oluştur
