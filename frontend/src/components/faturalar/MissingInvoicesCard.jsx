@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle, Trash2, Phone, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
