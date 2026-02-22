@@ -3,11 +3,10 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, LayoutDashboard, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown, Building2, Store, ClipboardList } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, MoreHorizontal, ChevronDown, Building2, Store, ClipboardList } from "lucide-react";
 
 // Page components
 import VardiyaPage from "./VardiyaPage";
-import GuncelDurumPage from "./GuncelDurumPage";
 import MuhasebePage from "./MuhasebePage";
 import ZimmetPage from "./ZimmetPage";
 import KuryelerPage from "./admin/KuryelerPage";
