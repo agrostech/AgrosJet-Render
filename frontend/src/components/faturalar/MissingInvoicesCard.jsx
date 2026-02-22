@@ -88,6 +88,7 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
   };
 
   return (
+    <>
     <div className="border-2 border-border bg-white">
       <div className="p-3 border-b-2 border-border bg-red-50">
         <div className="flex items-center justify-between">
@@ -96,11 +97,24 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
             <h3 className="font-semibold text-sm text-red-700">Eksik Faturalar</h3>
             <span className="text-xs text-red-500">({filteredInvoices.length})</span>
           </div>
+          
+          {/* WhatsApp reminder button - only when a courier is selected */}
+          {selectedCourier && selectedCourierData && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openReminderModal}
+              className="h-8 text-xs gap-1 border-green-300 text-green-700 hover:bg-green-50"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              Hatırlat
+            </Button>
+          )}
         </div>
         
         {/* Courier Filter */}
         {couriersWithMissing.length > 0 && (
-          <div className="mt-2 space-y-2">
+          <div className="mt-2">
             <div className="flex items-center gap-2">
               <Filter className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
               <select
@@ -117,17 +131,6 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
                 ))}
               </select>
             </div>
-            {selectedCourier && selectedCourierData?.phone && (
-              <Button
-                size="sm"
-                onClick={handleWhatsAppReminder}
-                className="w-full h-9 bg-green-600 hover:bg-green-700 text-sm"
-                data-testid="whatsapp-reminder-btn"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp ile Hatırlat
-              </Button>
-            )}
           </div>
         )}
       </div>
