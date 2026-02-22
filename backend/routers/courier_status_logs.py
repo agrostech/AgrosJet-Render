@@ -61,38 +61,72 @@ async def create_status_log(
     changed_by_name: Optional[str] = None,
     company_id: Optional[str] = None
 ):
-    """Durum değişikliği logu oluştur"""
+    """
+    Durum değişikliği logu oluştur ve aktiflik sayacını güncelle
+    
+    Mantık:
+    - Kurye aktif olduğunda: last_active_at kaydedilir
+    - Kurye aktiften çıktığında: geçen süre courier_daily_active'e eklenir
+    - Log sadece durum değişikliğini kaydeder (duration yok)
+    """
     now = datetime.now(timezone.utc)
     
     # Şirket çalışma saatlerini al
     opening_time, _ = await get_company_work_hours(company_id)
     business_date = get_business_date(now, opening_time)
     
-    # Bir önceki log'u bul ve süre hesapla
-    last_log = await db.courier_status_logs.find_one(
-        {"courier_id": courier_id},
-        sort=[("timestamp", -1)]
-    )
+    # Kurye aktif OLDUĞUNDA → last_active_at kaydet
+    if new_status == "active" and old_status != "active":
+        await db.couriers.update_one(
+            {"id": courier_id},
+            {"$set": {"last_active_at": now.isoformat()}}
+        )
     
-    duration_minutes = 0
-    if last_log and last_log.get("timestamp"):
-        try:
-            last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
-            duration_minutes = int((now - last_time).total_seconds() / 60)
-        except (ValueError, TypeError):
-            pass
+    # Kurye aktiften ÇIKTIĞINDA → sayacı güncelle
+    if old_status == "active" and new_status != "active":
+        courier = await db.couriers.find_one(
+            {"id": courier_id},
+            {"_id": 0, "last_active_at": 1}
+        )
+        
+        if courier and courier.get("last_active_at"):
+            try:
+                last_active = datetime.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
+                active_minutes = int((now - last_active).total_seconds() / 60)
+                
+                if active_minutes > 0:
+                    # courier_daily_active sayacını güncelle
+                    await db.courier_daily_active.update_one(
+                        {"courier_id": courier_id, "date": business_date},
+                        {
+                            "$inc": {"active_minutes": active_minutes},
+                            "$setOnInsert": {
+                                "courier_id": courier_id,
+                                "date": business_date,
+                                "company_id": company_id
+                            }
+                        },
+                        upsert=True
+                    )
+            except (ValueError, TypeError):
+                pass
+        
+        # last_active_at'ı temizle
+        await db.couriers.update_one(
+            {"id": courier_id},
+            {"$unset": {"last_active_at": ""}}
+        )
     
+    # Sadece durum değişikliği logu (duration yok)
     log_entry = {
         "id": str(uuid.uuid4()),
         "courier_id": courier_id,
         "company_id": company_id,
-        "old_status": old_status,
-        "new_status": new_status,
+        "status": new_status,
         "changed_by": changed_by,
         "changed_by_name": changed_by_name,
         "timestamp": now.isoformat(),
-        "duration_minutes": duration_minutes,
-        "date": business_date  # İş günü (şirket açılış saatine göre)
+        "date": business_date
     }
     
     await db.courier_status_logs.insert_one(log_entry)
