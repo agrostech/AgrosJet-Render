@@ -109,6 +109,80 @@ async def get_courier_report(
         ]
         active_results = await db.courier_status_logs.aggregate(active_pipeline).to_list(1000)
         active_hours_map = {r["_id"]: r["total_active_minutes"] for r in active_results}
+        
+        # Eksik aktif süreleri hesapla
+        # Eğer kurye bir günde "active" durumuna geçmiş ama kapanış logu yoksa
+        from datetime import timezone, timedelta
+        now = datetime.now(timezone.utc)
+        today = now.strftime("%Y-%m-%d")
+        
+        for cid in courier_ids:
+            # Tarih aralığındaki tüm logları al
+            courier_logs = await db.courier_status_logs.find(
+                {
+                    "courier_id": cid,
+                    "date": {"$gte": start_date, "$lte": end_date}
+                },
+                {"_id": 0, "date": 1, "new_status": 1, "timestamp": 1}
+            ).sort("timestamp", 1).to_list(500)
+            
+            if not courier_logs:
+                continue
+            
+            # Her gün için son durumu kontrol et
+            days_last_log = {}
+            for log in courier_logs:
+                log_date = log.get("date")
+                days_last_log[log_date] = log
+            
+            for log_date, last_log in days_last_log.items():
+                if last_log.get("new_status") == "active":
+                    try:
+                        last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
+                        log_date_dt = datetime.strptime(log_date, "%Y-%m-%d")
+                        next_day = (log_date_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+                        
+                        # Sonraki günde log var mı?
+                        next_day_log = await db.courier_status_logs.find_one(
+                            {"courier_id": cid, "date": next_day},
+                            sort=[("timestamp", 1)]
+                        )
+                        
+                        if next_day_log:
+                            next_time = datetime.fromisoformat(next_day_log["timestamp"].replace('Z', '+00:00'))
+                            additional_minutes = int((next_time - last_time).total_seconds() / 60)
+                        elif log_date == today:
+                            # Bugün ve hala aktif
+                            courier_doc = await db.couriers.find_one(
+                                {"id": cid}, 
+                                {"_id": 0, "availability_status": 1}
+                            )
+                            if courier_doc and courier_doc.get("availability_status") == "active":
+                                additional_minutes = int((now - last_time).total_seconds() / 60)
+                            else:
+                                additional_minutes = 0
+                        else:
+                            # Geçmiş gün - şirket kapanış saatine kadar hesapla
+                            company = await db.companies.find_one({"id": company_id}, {"_id": 0, "closing_time": 1})
+                            closing_time = company.get("closing_time", "23:59") if company else "23:59"
+                            close_h, close_m = map(int, closing_time.split(":"))
+                            
+                            if close_h < 6:
+                                close_dt = (log_date_dt + timedelta(days=1)).replace(hour=close_h, minute=close_m)
+                            else:
+                                close_dt = log_date_dt.replace(hour=close_h, minute=close_m)
+                            
+                            close_dt = close_dt.replace(tzinfo=timezone.utc)
+                            
+                            if close_dt > last_time:
+                                additional_minutes = int((close_dt - last_time).total_seconds() / 60)
+                            else:
+                                additional_minutes = 0
+                        
+                        if additional_minutes > 0 and additional_minutes < 1440:
+                            active_hours_map[cid] = active_hours_map.get(cid, 0) + additional_minutes
+                    except (ValueError, TypeError):
+                        pass
     
     # Kurye bazlı hesaplama
     courier_data = {}
