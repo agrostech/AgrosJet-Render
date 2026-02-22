@@ -130,7 +130,7 @@ export default function RestaurantDashboard() {
         payload.preparation_time = preparationTime;
       }
       await axios.put(`${API}/orders/${orderId}/status`, payload);
-      toast.success("Sipariş durumu güncellendi");
+      // Bildirim kapatıldı - kullanıcı isteği
       fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
