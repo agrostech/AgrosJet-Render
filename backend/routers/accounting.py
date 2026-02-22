@@ -229,12 +229,58 @@ async def unarchive_accounting_restaurant(restaurant_id: str):
 # --- Cariler (Vendors) ---
 @router.get("/companies/{company_id}/vendors")
 async def get_vendors(company_id: str, include_archived: bool = False):
-    """Get all vendors for a company"""
+    """Get all vendors for a company, including admins as auto-generated vendors"""
     # GET işlemi - yetki kontrolü yok
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
     vendors = await db.vendors.find(query, {"_id": 0}).to_list(500)
+    
+    # Yöneticileri otomatik olarak ekle (vendor olarak)
+    admin_query = {
+        "$or": [
+            {"company_id": company_id},
+            {"role": "superadmin"}
+        ],
+        "is_archived": {"$ne": True}
+    }
+    admins = await db.admins.find(admin_query, {"_id": 0, "id": 1, "name": 1, "phone": 1, "role": 1}).to_list(100)
+    
+    # Mevcut vendor ID'lerini topla
+    existing_vendor_ids = set(v.get("id") for v in vendors)
+    existing_admin_vendor_ids = set(v.get("admin_id") for v in vendors if v.get("admin_id"))
+    
+    for admin in admins:
+        # Bu admin zaten vendor olarak eklenmişse atla
+        admin_vendor_id = f"admin_{admin['id']}"
+        if admin_vendor_id in existing_vendor_ids or admin["id"] in existing_admin_vendor_ids:
+            continue
+        
+        # Yöneticiyi vendor olarak ekle (otomatik)
+        admin_vendor = {
+            "id": admin_vendor_id,
+            "admin_id": admin["id"],
+            "name": f"{admin['name']} (Yönetici)",
+            "phone": admin.get("phone", ""),
+            "address": "",
+            "company_id": company_id,
+            "is_archived": False,
+            "is_auto_admin": True,  # Otomatik eklenen yönetici
+            "role": admin.get("role", "admin"),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Veritabanına kaydet (upsert)
+        await db.vendors.update_one(
+            {"id": admin_vendor_id},
+            {"$setOnInsert": admin_vendor},
+            upsert=True
+        )
+        vendors.append(admin_vendor)
+    
+    # Yöneticileri önce göster
+    vendors.sort(key=lambda x: (not x.get("is_auto_admin", False), x.get("name", "").lower()))
+    
     return vendors
 
 @router.post("/companies/{company_id}/vendors")
