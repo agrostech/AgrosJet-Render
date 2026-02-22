@@ -66,9 +66,9 @@ export default function StatusDropdown({
   if (!hasPermission) {
     // Hazırlanıyor durumunda countdown varsa dakikalı göster
     let displayLabel = statusInfo.label;
-    if (status === "preparing" && getCountdown) {
-      const countdown = getCountdown(order);
-      if (countdown && !countdown.expired) {
+    if ((status === "preparing" || status === "scheduled") && order.preparation_end_at && getCountdown) {
+      const countdown = getCountdown(order.preparation_end_at);
+      if (countdown && !countdown.expired && countdown.text) {
         displayLabel = countdown.text;
       }
     }
