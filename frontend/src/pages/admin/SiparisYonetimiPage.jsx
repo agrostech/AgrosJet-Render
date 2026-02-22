@@ -190,8 +190,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     };
   }, [fetchAll, fetchOrders, fetchCouriers]);
 
-  // Filtrelenmiş siparişler (arama + durum filtresi)
-  const filteredOrders = useMemo(() => {
+  // Filtrelenmiş ve sıralanmış siparişler (arama + durum filtresi + sıralama)
+  const filteredAndSortedOrders = useMemo(() => {
     let result = orders;
     
     // Arama filtresi
@@ -213,8 +213,32 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
       });
     }
     
+    // Sıralama
+    result = [...result].sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+    
     return result;
-  }, [orders, searchQuery]);
+  }, [orders, searchQuery, sortOrder]);
+
+  // Toplam sayfa sayısı
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredAndSortedOrders.length / pageSize);
+  }, [filteredAndSortedOrders.length, pageSize]);
+
+  // Sayfalanmış siparişler
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredAndSortedOrders.slice(startIndex, endIndex);
+  }, [filteredAndSortedOrders, currentPage, pageSize]);
+
+  // Sayfa değiştiğinde veya filtre değiştiğinde ilk sayfaya dön
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilters, sortOrder, pageSize]);
 
   // Computed values
   const couriersOnDelivery = useMemo(() => {
