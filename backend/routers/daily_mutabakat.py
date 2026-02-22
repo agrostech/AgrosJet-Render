@@ -51,6 +51,35 @@ class RevertMutabakatRequest(BaseModel):
     admin_name: str
 
 
+class SingleCourierSaveRequest(BaseModel):
+    """Tek kurye için tahsilat kaydet ve mütabakat işle"""
+    courier_id: str
+    courier_name: str
+    date: str
+    start_datetime: str
+    end_datetime: str
+    cash_amount: float = 0
+    card_percent_1: float = 0
+    card_percent_10: float = 0
+    card_percent_20: float = 0
+    meal_card_amount: float = 0
+    admin_id: str
+    admin_name: str
+    # Sipariş verileri (mütabakat hesaplaması için)
+    order_cash: float = 0
+    order_card_1: float = 0
+    order_card_10: float = 0
+    order_card_20: float = 0
+
+
+class SingleCourierRevertRequest(BaseModel):
+    """Tek kurye için mütabakat sıfırla"""
+    courier_id: str
+    date: str
+    admin_id: str
+    admin_name: str
+
+
 # ============ HELPER FUNCTIONS ============
 async def get_company_settings(company_id: str):
     """Şirket ayarlarını (açılış/kapanış saati) getir"""
