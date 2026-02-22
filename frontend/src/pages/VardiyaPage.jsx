@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Clock, Pencil, Check, Users, Search, PointerIcon } from "lucide-react";
+import { X, Clock, Pencil, Check, Users, Search, PointerIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import {
   useVardiyaData,
@@ -10,17 +12,30 @@ import {
   AssignCourierModal,
   AddLeaveModal,
   BulkAssignModal,
+  VardiyaTakibiCard,
+  VardiyaIhlalleriModal,
 } from "@/components/vardiya";
 
-export default function VardiyaPage({ companyId }) {
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+export default function VardiyaPage({ companyId, isSuperAdmin }) {
   const [showAddShiftModal, setShowAddShiftModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
+  const [showIhlallerModal, setShowIhlallerModal] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [bulkAssigning, setBulkAssigning] = useState(false);
   const [courierFilter, setCourierFilter] = useState("");
+
+  // Vardiya takibi için ek veriler
+  const [trackingData, setTrackingData] = useState({
+    shifts: [],
+    assignments: [],
+    leaves: []
+  });
+  const [trackingLoading, setTrackingLoading] = useState(true);
 
   const {
     shifts,
@@ -47,7 +62,40 @@ export default function VardiyaPage({ companyId }) {
     getAvailableCouriersForShift,
     getAvailableCouriersForLeave,
     getAvailableCouriersForBulkAssign,
+    refetch,
   } = useVardiyaData(companyId);
+
+  // Vardiya takibi verilerini çek
+  const fetchTrackingData = useCallback(async () => {
+    if (!companyId) return;
+    setTrackingLoading(true);
+    try {
+      const [shiftsRes, assignmentsRes, leavesRes] = await Promise.all([
+        axios.get(`${API}/companies/${companyId}/shifts`),
+        axios.get(`${API}/companies/${companyId}/shift-assignments`),
+        axios.get(`${API}/companies/${companyId}/leaves`),
+      ]);
+      setTrackingData({
+        shifts: shiftsRes.data,
+        assignments: assignmentsRes.data,
+        leaves: leavesRes.data
+      });
+    } catch (err) {
+      console.error("Takip verileri yüklenemedi:", err);
+    } finally {
+      setTrackingLoading(false);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    fetchTrackingData();
+  }, [fetchTrackingData]);
+
+  // Vardiya yönetimi değişikliklerinde takip verilerini de güncelle
+  const refreshAll = () => {
+    refetch();
+    fetchTrackingData();
+  };
 
   const openAssignModal = (shift, day) => {
     setSelectedShift(shift);
@@ -63,7 +111,6 @@ export default function VardiyaPage({ companyId }) {
   const handleCellClick = (e, shiftId, day) => {
     if (!editMode) return;
     
-    // Çoklu seçim modu aktifse veya CTRL tuşu basılıysa
     if (multiSelectMode || e.ctrlKey || e.metaKey) {
       e.preventDefault();
       toggleCellSelection(shiftId, day);
@@ -76,12 +123,14 @@ export default function VardiyaPage({ companyId }) {
   const onAssignCourier = (courierId) => {
     handleAssignCourier(selectedShift.id, courierId, selectedDay, () => {
       setShowAssignModal(false);
+      fetchTrackingData();
     });
   };
 
   const onAddLeave = (courierId) => {
     handleAddLeave(courierId, selectedDay, () => {
       setShowLeaveModal(false);
+      fetchTrackingData();
     });
   };
 
@@ -89,6 +138,7 @@ export default function VardiyaPage({ companyId }) {
     setBulkAssigning(true);
     await handleBulkAssign(courierId, () => {
       setShowBulkAssignModal(false);
+      fetchTrackingData();
     });
     setBulkAssigning(false);
   };
@@ -96,131 +146,180 @@ export default function VardiyaPage({ companyId }) {
   if (loading) return <PageLoading />;
 
   return (
-    <div data-testid="admin-vardiya-page">
+    <div data-testid="admin-vardiya-page" className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h2 className="font-heading text-xl font-bold tracking-tight">Vardiya Yönetimi</h2>
         <div className="flex gap-2 flex-wrap">
-          {editMode && selectedCells.length > 0 && (
-            <>
-              <Button 
-                onClick={() => setShowBulkAssignModal(true)} 
-                size="sm" 
-                className="font-semibold bg-green-600 hover:bg-green-700"
-                data-testid="bulk-assign-btn"
-              >
-                <Users className="w-4 h-4 mr-1" />
-                {selectedCells.length} Vardiyaya Kurye Ekle
-              </Button>
-              <Button 
-                onClick={clearSelection} 
-                size="sm" 
-                variant="outline"
-                className="font-semibold border-2"
-                data-testid="clear-selection-btn"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Seçimi Temizle
-              </Button>
-            </>
-          )}
-          {/* Mobilde Çoklu Seçim Modu Butonu */}
-          {editMode && (
-            <Button
-              onClick={toggleMultiSelectMode}
-              size="sm"
-              variant={multiSelectMode ? "default" : "outline"}
-              className={`font-semibold md:hidden ${multiSelectMode ? "bg-purple-600 hover:bg-purple-700" : "border-2"}`}
-              data-testid="multi-select-mode-btn"
-            >
-              <PointerIcon className="w-4 h-4 mr-1" />
-              {multiSelectMode ? "Seçim Aktif" : "Çoklu Seçim"}
-            </Button>
-          )}
-          <Button 
-            onClick={() => { setEditMode(!editMode); clearSelection(); if (multiSelectMode) toggleMultiSelectMode(); }} 
-            variant={editMode ? "default" : "outline"}
+          <Button
+            variant="outline"
             size="sm"
-            className={`font-semibold ${editMode ? "" : "border-2"}`}
-            data-testid="edit-mode-btn"
+            onClick={() => setShowIhlallerModal(true)}
+            className="font-semibold border-2 border-amber-300 text-amber-700 hover:bg-amber-50"
+            data-testid="show-violations-btn"
           >
-            {editMode ? <Check className="w-4 h-4 mr-1" /> : <Pencil className="w-4 h-4 mr-1" />}
-            {editMode ? "Tamam" : "Düzenle"}
+            <AlertTriangle className="w-4 h-4 mr-1" />
+            İhlaller
           </Button>
-          {editMode && (
-            <Button onClick={() => setShowAddShiftModal(true)} size="sm" className="font-semibold" data-testid="add-shift-btn">
-              <Clock className="w-4 h-4 mr-1" />
-              Vardiya Ekle
-            </Button>
-          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refreshAll}
+            className="border-2 font-semibold"
+          >
+            <RefreshCw className="w-4 h-4 mr-1" />
+            Yenile
+          </Button>
         </div>
       </div>
 
-      {/* Toplu seçim ipucu */}
-      {editMode && selectedCells.length === 0 && !ctrlPressed && !multiSelectMode && (
-        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-[10px] sm:text-xs text-blue-700">
-          <strong>İpucu:</strong> <span className="hidden md:inline">Ctrl tuşuna basılı tutarak birden fazla vardiya kutucuğu seçebilir, ardından toplu kurye atayabilirsiniz.</span>
-          <span className="md:hidden">&quot;Çoklu Seçim&quot; butonuna basarak birden fazla vardiya seçebilir, ardından toplu kurye atayabilirsiniz.</span>
-        </div>
-      )}
-      {editMode && (ctrlPressed || multiSelectMode) && (
-        <div className="mb-3 p-2 bg-green-50 border border-green-300 rounded text-[10px] sm:text-xs text-green-700 font-medium">
-          <strong>Toplu Seçim Aktif</strong> - Seçili: {selectedCells.length} {selectedCells.length === 0 && <span className="text-green-600">(Vardiyalara dokunarak seçim yapın)</span>}
-        </div>
-      )}
-
-      {/* Kurye Filtresi */}
-      <div className="mb-3">
-        <div className="relative max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Kurye adı ile filtrele..."
-            value={courierFilter}
-            onChange={(e) => setCourierFilter(e.target.value)}
-            className="pl-9 h-9 border-2 text-sm"
-            data-testid="courier-filter-input"
-          />
-        </div>
-        {courierFilter && (
-          <div className="mt-1 text-xs text-muted-foreground">
-            Filtrelenen: &quot;{courierFilter}&quot; içeren kuryeler gösteriliyor
-          </div>
-        )}
-      </div>
-
-      {/* Grid veya Boş State */}
-      {shifts.length === 0 ? (
-        <div className="border-2 border-border p-8 bg-white text-center">
-          <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">Henüz vardiya eklenmemiş</p>
-          <Button onClick={() => { setEditMode(true); setShowAddShiftModal(true); }} variant="outline" className="border-2">
-            İlk Vardiyayı Ekle
-          </Button>
+      {/* Vardiya Takibi Kartı */}
+      {trackingLoading ? (
+        <div className="border-2 border-border bg-white p-8 text-center">
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-slate-400" />
         </div>
       ) : (
-        <ShiftGrid
-          shifts={shifts}
-          editMode={editMode}
-          ctrlPressed={ctrlPressed}
-          multiSelectMode={multiSelectMode}
-          isCellSelected={isCellSelected}
-          getAssignmentsForCell={getAssignmentsForCell}
-          getLeavesForDay={getLeavesForDay}
-          onCellClick={handleCellClick}
-          onDeleteShift={handleDeleteShift}
-          onRemoveAssignment={handleRemoveAssignment}
-          onRemoveLeave={handleRemoveLeave}
-          onOpenAssignModal={openAssignModal}
-          onOpenLeaveModal={openLeaveModal}
-          courierFilter={courierFilter}
+        <VardiyaTakibiCard
+          shifts={trackingData.shifts}
+          assignments={trackingData.assignments}
+          leaves={trackingData.leaves}
         />
       )}
+
+      {/* Vardiya Yönetimi Kartı */}
+      <div className="border-2 border-border bg-white p-4 space-y-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 pb-3 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-100">
+              <Clock className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-heading font-bold text-lg">Vardiya Yönetimi</h3>
+              <p className="text-sm text-muted-foreground">Vardiya ve kurye atamaları</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            {editMode && selectedCells.length > 0 && (
+              <>
+                <Button 
+                  onClick={() => setShowBulkAssignModal(true)} 
+                  size="sm" 
+                  className="font-semibold bg-green-600 hover:bg-green-700"
+                  data-testid="bulk-assign-btn"
+                >
+                  <Users className="w-4 h-4 mr-1" />
+                  {selectedCells.length} Vardiyaya Kurye Ekle
+                </Button>
+                <Button 
+                  onClick={clearSelection} 
+                  size="sm" 
+                  variant="outline"
+                  className="font-semibold border-2"
+                  data-testid="clear-selection-btn"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Seçimi Temizle
+                </Button>
+              </>
+            )}
+            {editMode && (
+              <Button
+                onClick={toggleMultiSelectMode}
+                size="sm"
+                variant={multiSelectMode ? "default" : "outline"}
+                className={`font-semibold md:hidden ${multiSelectMode ? "bg-purple-600 hover:bg-purple-700" : "border-2"}`}
+                data-testid="multi-select-mode-btn"
+              >
+                <PointerIcon className="w-4 h-4 mr-1" />
+                {multiSelectMode ? "Seçim Aktif" : "Çoklu Seçim"}
+              </Button>
+            )}
+            <Button 
+              onClick={() => { setEditMode(!editMode); clearSelection(); if (multiSelectMode) toggleMultiSelectMode(); }} 
+              variant={editMode ? "default" : "outline"}
+              size="sm"
+              className={`font-semibold ${editMode ? "" : "border-2"}`}
+              data-testid="edit-mode-btn"
+            >
+              {editMode ? <Check className="w-4 h-4 mr-1" /> : <Pencil className="w-4 h-4 mr-1" />}
+              {editMode ? "Tamam" : "Düzenle"}
+            </Button>
+            {editMode && (
+              <Button onClick={() => setShowAddShiftModal(true)} size="sm" className="font-semibold" data-testid="add-shift-btn">
+                <Clock className="w-4 h-4 mr-1" />
+                Vardiya Ekle
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Toplu seçim ipucu */}
+        {editMode && selectedCells.length === 0 && !ctrlPressed && !multiSelectMode && (
+          <div className="p-2 bg-blue-50 border border-blue-200 rounded text-[10px] sm:text-xs text-blue-700">
+            <strong>İpucu:</strong> <span className="hidden md:inline">Ctrl tuşuna basılı tutarak birden fazla vardiya kutucuğu seçebilir, ardından toplu kurye atayabilirsiniz.</span>
+            <span className="md:hidden">&quot;Çoklu Seçim&quot; butonuna basarak birden fazla vardiya seçebilir, ardından toplu kurye atayabilirsiniz.</span>
+          </div>
+        )}
+        {editMode && (ctrlPressed || multiSelectMode) && (
+          <div className="p-2 bg-green-50 border border-green-300 rounded text-[10px] sm:text-xs text-green-700 font-medium">
+            <strong>Toplu Seçim Aktif</strong> - Seçili: {selectedCells.length} {selectedCells.length === 0 && <span className="text-green-600">(Vardiyalara dokunarak seçim yapın)</span>}
+          </div>
+        )}
+
+        {/* Kurye Filtresi */}
+        <div>
+          <div className="relative max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Kurye adı ile filtrele..."
+              value={courierFilter}
+              onChange={(e) => setCourierFilter(e.target.value)}
+              className="pl-9 h-9 border-2 text-sm"
+              data-testid="courier-filter-input"
+            />
+          </div>
+          {courierFilter && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Filtrelenen: &quot;{courierFilter}&quot; içeren kuryeler gösteriliyor
+            </div>
+          )}
+        </div>
+
+        {/* Grid veya Boş State */}
+        {shifts.length === 0 ? (
+          <div className="border border-slate-200 rounded-lg p-8 bg-slate-50 text-center">
+            <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">Henüz vardiya eklenmemiş</p>
+            <Button onClick={() => { setEditMode(true); setShowAddShiftModal(true); }} variant="outline" className="border-2">
+              İlk Vardiyayı Ekle
+            </Button>
+          </div>
+        ) : (
+          <ShiftGrid
+            shifts={shifts}
+            editMode={editMode}
+            ctrlPressed={ctrlPressed}
+            multiSelectMode={multiSelectMode}
+            isCellSelected={isCellSelected}
+            getAssignmentsForCell={getAssignmentsForCell}
+            getLeavesForDay={getLeavesForDay}
+            onCellClick={handleCellClick}
+            onDeleteShift={handleDeleteShift}
+            onRemoveAssignment={(assignmentId) => { handleRemoveAssignment(assignmentId); fetchTrackingData(); }}
+            onRemoveLeave={(leaveId) => { handleRemoveLeave(leaveId); fetchTrackingData(); }}
+            onOpenAssignModal={openAssignModal}
+            onOpenLeaveModal={openLeaveModal}
+            courierFilter={courierFilter}
+          />
+        )}
+      </div>
 
       {/* Modals */}
       <AddShiftModal
         open={showAddShiftModal}
         onOpenChange={setShowAddShiftModal}
-        onSubmit={handleAddShift}
+        onSubmit={(data) => { handleAddShift(data); fetchTrackingData(); }}
       />
 
       <AssignCourierModal
@@ -248,6 +347,13 @@ export default function VardiyaPage({ companyId }) {
         couriers={getAvailableCouriersForBulkAssign()}
         bulkAssigning={bulkAssigning}
         onBulkAssign={onBulkAssign}
+      />
+
+      <VardiyaIhlalleriModal
+        open={showIhlallerModal}
+        onOpenChange={setShowIhlallerModal}
+        companyId={companyId}
+        isSuperAdmin={isSuperAdmin}
       />
     </div>
   );
