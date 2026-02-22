@@ -186,7 +186,6 @@ export default function AdminDashboard() {
   // Menü öğeleri - sayfa bazlı izin kontrolü
   const allNavItems = [
     { path: "/admin", label: "Sipariş Yönetimi", icon: ClipboardList, key: "siparisler", permKey: null },
-    { path: "/admin/guncel-durum", label: "Güncel Durum", icon: LayoutDashboard, key: "guncel", permKey: null },
     { path: "/admin/vardiyalar", label: "Vardiya Yönetimi", icon: Clock, key: "vardiya", permKey: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
@@ -200,7 +199,7 @@ export default function AdminDashboard() {
 
   // İzin kontrolü ile filtreleme
   const NAV_ITEMS = allNavItems.filter((item) => {
-    if (!item.permKey) return true; // Sipariş Yönetimi ve Güncel Durum herkese açık
+    if (!item.permKey) return true; // Sipariş Yönetimi herkese açık
     if (isSuperAdmin) return true; // Superadmin her şeyi görür
     if (item.permKey === "yoneticiler") return false; // Yöneticiler sadece superadmin
     // Restoranlar tüm adminlere açık
