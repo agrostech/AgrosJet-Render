@@ -11,10 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 // Hazırlama süreleri
 const PREPARATION_TIMES = [
   { value: 5, label: "5 dakika" },
-  { value: 10, label: "10 dakika" },
   { value: 15, label: "15 dakika" },
-  { value: 20, label: "20 dakika" },
-  { value: 25, label: "25 dakika" },
   { value: 30, label: "30 dakika" },
   { value: 45, label: "45 dakika" },
   { value: 60, label: "60 dakika" },
