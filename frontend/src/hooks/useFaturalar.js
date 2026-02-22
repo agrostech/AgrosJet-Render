@@ -153,6 +153,18 @@ export function useFaturalar(companyId, year, month) {
     return res.data;
   };
 
+  const dismissMissingInvoice = async (transactionId) => {
+    try {
+      await axios.delete(`${API}/invoices/missing/${transactionId}`);
+      toast.success("Eksik fatura kaydı silindi");
+      await refetch();
+    } catch (err) {
+      console.error("Dismiss missing invoice error:", err);
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+      throw err;
+    }
+  };
+
   return {
     couriersSummary,
     monthInvoices,
@@ -166,6 +178,7 @@ export function useFaturalar(companyId, year, month) {
     downloadBulk,
     verifyInvoice,
     verifyInvoiceWithAmount,
-    uploadInvoiceByAdmin
+    uploadInvoiceByAdmin,
+    dismissMissingInvoice
   };
 }
