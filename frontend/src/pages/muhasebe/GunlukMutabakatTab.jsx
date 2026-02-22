@@ -300,28 +300,28 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
             </Card>
             <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <Banknote className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <Banknote className="w-4 h-4 mx-auto mb-1 text-green-600" />
                 <p className="text-lg font-bold text-slate-800">{formatMoney(pendingCash)}</p>
                 <p className="text-[10px] text-slate-500">Bekleyen Nakit</p>
               </CardContent>
             </Card>
             <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <CreditCard className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <CreditCard className="w-4 h-4 mx-auto mb-1 text-blue-600" />
                 <p className="text-lg font-bold text-slate-800">{formatMoney(pendingCard)}</p>
                 <p className="text-[10px] text-slate-500">Bekleyen Kart</p>
               </CardContent>
             </Card>
             <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <Banknote className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <Banknote className="w-4 h-4 mx-auto mb-1 text-green-600" />
                 <p className="text-lg font-bold text-slate-800">{formatMoney(processedCash)}</p>
                 <p className="text-[10px] text-slate-500">İşlenen Nakit</p>
               </CardContent>
             </Card>
             <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <CreditCard className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <CreditCard className="w-4 h-4 mx-auto mb-1 text-blue-600" />
                 <p className="text-lg font-bold text-slate-800">{formatMoney(processedCard)}</p>
                 <p className="text-[10px] text-slate-500">İşlenen Kart</p>
               </CardContent>
