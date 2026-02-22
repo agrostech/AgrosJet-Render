@@ -33,6 +33,11 @@ PERMISSION_DEFINITIONS = {
         "label": "Restoran Teslimatı İşaretleme",
         "description": "Siparişi restoran teslimatı olarak işaretleyebilir. Bu siparişler mütabakat ve raporlara dahil edilmez.",
         "default": False
+    },
+    "can_change_order_status": {
+        "label": "Sipariş Durumu Değiştirme",
+        "description": "Sipariş durumunu değiştirebilir (Hazırlanıyor, Hazır vb.). Restoran teslimatı olan siparişler için bu izin aranmaz.",
+        "default": True
     }
 }
 
