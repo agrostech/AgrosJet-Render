@@ -665,8 +665,19 @@ async def get_admin_status(admin_id: str):
     if not admin:
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
     
+    # Bağlı kuryenin durumunu da getir
+    linked_courier_status = None
+    if admin.get("linked_courier_id"):
+        courier = await db.couriers.find_one(
+            {"id": admin["linked_courier_id"]},
+            {"_id": 0, "availability_status": 1}
+        )
+        if courier:
+            linked_courier_status = courier.get("availability_status", "offline")
+    
     return {
         "availability_status": admin.get("availability_status", "offline"),
         "last_active_at": admin.get("last_active_at"),
-        "linked_courier_id": admin.get("linked_courier_id")
+        "linked_courier_id": admin.get("linked_courier_id"),
+        "linked_courier_status": linked_courier_status
     }
