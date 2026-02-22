@@ -842,12 +842,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 {searchQuery ? (
                   <p>"{searchQuery}" için sonuç bulunamadı</p>
                 ) : orders.length === 0 ? (
-                  <>
-                    <p>Sipariş bulunamadı</p>
-                    <Button variant="link" onClick={handleGenerateMock}>
-                      Test için mock sipariş oluştur
-                    </Button>
-                  </>
+                  <p>Sipariş bulunamadı</p>
                 ) : (
                   <p>Seçili filtrelere uygun sipariş yok</p>
                 )}
