@@ -817,8 +817,12 @@ async def revert_mutabakat(company_id: str, data: RevertMutabakatRequest):
             "date": data.date
         })
         
-        # NOT: Tahsilat kaydı silinmez, sadece mütabakat geri alınır
-        # Tahsilat değerleri korunur
+        # Tahsilat kaydını da sil (Yönetici mütabakat bakiyesi için gerekli)
+        await db.daily_mutabakat_collections.delete_one({
+            "company_id": company_id,
+            "courier_id": courier_id,
+            "date": data.date
+        })
         
         reverted_count += 1
     
