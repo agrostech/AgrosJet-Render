@@ -39,6 +39,7 @@ export default function StatusDropdown({
   onCancelClick,
   getCountdown,
   disabled = false,
+  canChangeStatus = true, // Sipariş durumu değiştirme izni
 }) {
   const status = order.status;
   const statusInfo = ORDER_STATUSES[status] || { label: status, color: "bg-gray-100" };
@@ -52,6 +53,22 @@ export default function StatusDropdown({
       <span 
         className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center opacity-70 whitespace-nowrap min-w-[135px]`}
         data-testid={`order-status-badge-${order.id}`}
+      >
+        {statusInfo.label}
+      </span>
+    );
+  }
+
+  // İzin kontrolü - Restoran teslimatı olan siparişler için bu izin aranmaz
+  const hasPermission = isRestaurantDelivery || canChangeStatus;
+  
+  // İzin yoksa statik badge göster
+  if (!hasPermission) {
+    return (
+      <span 
+        className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center whitespace-nowrap min-w-[135px]`}
+        data-testid={`order-status-badge-${order.id}`}
+        title="Durum değiştirme izniniz yok"
       >
         {statusInfo.label}
       </span>
