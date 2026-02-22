@@ -14,6 +14,14 @@ Kurye yönetim sistemi için admin reconciliation özelliği ve admin-kurye bağ
 ## What's Been Implemented
 
 ### Session: 2025-02-22 (Latest)
+- **Durum Hareketleri (Status Movements) Modal Eklendi:**
+  - Vardiya Yönetimi sayfasına "Hareketler" butonu eklendi
+  - Kurye ve Yönetici durum değişikliklerini (Aktif, Offline, Molada) gösteren modal
+  - Günlük tarih seçici ile geçmiş günlere bakabilme
+  - Kişi bazında filtreleme
+  - Backend: `/api/status-movements/{company_id}` endpoint oluşturuldu
+  - Frontend: `StatusMovementsModal.jsx` component oluşturuldu
+
 - **Vardiya Yönetimi Sayfası Yeniden Tasarlandı:**
   - Sayfa adı "Vardiyalar" -> "Vardiya Yönetimi" olarak değişti
   - Üstte "Vardiya Takibi" kartı (Güncel Durum'dan taşındı)
