@@ -38,6 +38,7 @@ export default function AdminDashboard() {
   
   // Admin aktiflik durumu
   const [adminStatus, setAdminStatus] = useState("offline");
+  const [linkedCourierStatus, setLinkedCourierStatus] = useState("offline");
   const [hasLinkedCourier, setHasLinkedCourier] = useState(false);
   
   // Multi-company state
@@ -51,6 +52,7 @@ export default function AdminDashboard() {
       const res = await axios.get(`${API}/admins/${adminId}/status`);
       setAdminStatus(res.data.availability_status || "offline");
       setHasLinkedCourier(!!res.data.linked_courier_id);
+      setLinkedCourierStatus(res.data.linked_courier_status || "offline");
     } catch (err) {
       console.error("Admin status fetch error:", err);
     }
