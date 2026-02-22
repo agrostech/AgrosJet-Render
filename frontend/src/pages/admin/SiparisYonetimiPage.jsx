@@ -1114,8 +1114,21 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                       )}
                                       {sortedOffline.length > 0 && (
                                         <>
-                                          <div className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1">Çevrimdışı</div>
-                                          {sortedOffline.map(c => renderCourierItem(c, false))}
+                                          <div 
+                                            className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1 cursor-pointer hover:bg-slate-200 flex items-center justify-between"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              setOfflineCouriersExpanded(prev => ({
+                                                ...prev,
+                                                [order.id]: !prev[order.id]
+                                              }));
+                                            }}
+                                          >
+                                            <span>Çevrimdışı ({sortedOffline.length})</span>
+                                            <ChevronDown className={`w-3 h-3 transition-transform ${offlineCouriersExpanded[order.id] ? 'rotate-180' : ''}`} />
+                                          </div>
+                                          {offlineCouriersExpanded[order.id] && sortedOffline.map(c => renderCourierItem(c, false))}
                                         </>
                                       )}
                                     </>
