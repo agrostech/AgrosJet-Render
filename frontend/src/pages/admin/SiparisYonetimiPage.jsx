@@ -39,7 +39,7 @@ import IptalSiparislerPage from "./IptalSiparislerPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin = false }) {
+export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin = false, adminStatus = "offline" }) {
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [couriersByStatus, setCouriersByStatus] = useState({ active: [], on_break: [], offline: [] });
@@ -51,6 +51,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [searchQuery, setSearchQuery] = useState("");
   const [mainTab, setMainTab] = useState("active");
   const [, setTick] = useState(0);
+  
+  // Admin aktif mi kontrolü
+  const isAdminActive = adminStatus === "active";
   
   // Modal states
   const [showAssignModal, setShowAssignModal] = useState(false);
