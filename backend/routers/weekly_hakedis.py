@@ -205,30 +205,85 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     active_hours_results = await db.courier_status_logs.aggregate(active_hours_pipeline).to_list(1000)
     active_hours_map = {r["_id"]: r["total_active_minutes"] for r in active_hours_results}
     
-    # Şu an aktif olan kuryeler için gerçek zamanlı hesaplama
-    # (son log'dan şimdiye kadar olan süreyi ekle)
-    if today >= start_date and today <= end_date:
-        for courier_id in courier_ids:
-            courier_info = courier_map.get(courier_id, {})
-            # Kuryenin mevcut durumunu kontrol et
-            courier_doc = await db.couriers.find_one(
-                {"id": courier_id}, 
-                {"_id": 0, "availability_status": 1}
-            )
-            if courier_doc and courier_doc.get("availability_status") == "active":
-                # Son log'u bul
-                last_log = await db.courier_status_logs.find_one(
-                    {"courier_id": courier_id, "date": today},
-                    sort=[("timestamp", -1)]
-                )
-                if last_log and last_log.get("timestamp"):
-                    try:
-                        last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
-                        now = datetime.now(timezone.utc)
-                        current_active_minutes = int((now - last_time).total_seconds() / 60)
-                        active_hours_map[courier_id] = active_hours_map.get(courier_id, 0) + current_active_minutes
-                    except (ValueError, TypeError):
-                        pass
+    # Eksik aktif süreleri hesapla
+    # Eğer kurye bir günde "active" durumuna geçmiş ama o gün için kapanış logu yoksa
+    # son log'dan sonraki süreyi de hesapla
+    now = datetime.now(timezone.utc)
+    
+    for courier_id in courier_ids:
+        # Tarih aralığındaki tüm logları al
+        courier_logs = await db.courier_status_logs.find(
+            {
+                "courier_id": courier_id,
+                "date": {"$gte": start_date, "$lte": end_date}
+            },
+            {"_id": 0, "date": 1, "new_status": 1, "timestamp": 1}
+        ).sort("timestamp", 1).to_list(500)
+        
+        if not courier_logs:
+            continue
+        
+        # Her gün için son durumu kontrol et
+        days_last_log = {}
+        for log in courier_logs:
+            log_date = log.get("date")
+            days_last_log[log_date] = log
+        
+        for log_date, last_log in days_last_log.items():
+            # Eğer günün son logu "active" durumuna geçiş ise
+            # ve sonraki gün için log yoksa veya bu bugün ise
+            if last_log.get("new_status") == "active":
+                try:
+                    last_time = datetime.fromisoformat(last_log["timestamp"].replace('Z', '+00:00'))
+                    
+                    # Sonraki günün başlangıç zamanını veya şu anı kullan
+                    log_date_dt = datetime.strptime(log_date, "%Y-%m-%d")
+                    next_day = (log_date_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+                    
+                    # Sonraki günde log var mı?
+                    next_day_log = await db.courier_status_logs.find_one(
+                        {"courier_id": courier_id, "date": next_day},
+                        sort=[("timestamp", 1)]
+                    )
+                    
+                    if next_day_log:
+                        # Sonraki günün ilk loguna kadar olan süreyi hesapla
+                        next_time = datetime.fromisoformat(next_day_log["timestamp"].replace('Z', '+00:00'))
+                        additional_minutes = int((next_time - last_time).total_seconds() / 60)
+                    elif log_date == today:
+                        # Bugün ve hala aktif - şu ana kadar hesapla
+                        courier_doc = await db.couriers.find_one(
+                            {"id": courier_id}, 
+                            {"_id": 0, "availability_status": 1}
+                        )
+                        if courier_doc and courier_doc.get("availability_status") == "active":
+                            additional_minutes = int((now - last_time).total_seconds() / 60)
+                        else:
+                            additional_minutes = 0
+                    else:
+                        # Geçmiş gün ve sonraki günde log yok - makul bir süre ekle (gece yarısına kadar)
+                        # Ama bu çok uzun olabilir, o yüzden şirket kapanış saatine kadar hesapla
+                        company = await db.companies.find_one({"id": company_id}, {"_id": 0, "closing_time": 1})
+                        closing_time = company.get("closing_time", "23:59") if company else "23:59"
+                        close_h, close_m = map(int, closing_time.split(":"))
+                        
+                        # Kapanış saati ertesi güne geçiyorsa
+                        if close_h < 6:  # Gece yarısından sonra kapanış
+                            close_dt = (log_date_dt + timedelta(days=1)).replace(hour=close_h, minute=close_m)
+                        else:
+                            close_dt = log_date_dt.replace(hour=close_h, minute=close_m)
+                        
+                        close_dt = close_dt.replace(tzinfo=timezone.utc)
+                        
+                        if close_dt > last_time:
+                            additional_minutes = int((close_dt - last_time).total_seconds() / 60)
+                        else:
+                            additional_minutes = 0
+                    
+                    if additional_minutes > 0 and additional_minutes < 1440:  # Max 24 saat
+                        active_hours_map[courier_id] = active_hours_map.get(courier_id, 0) + additional_minutes
+                except (ValueError, TypeError) as e:
+                    pass
     
     # Hafta açıklaması
     week_description = get_week_description(start_dt, end_dt)
