@@ -213,13 +213,13 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                 <div
                   key={v.id}
                   onClick={() => handleMobileSelect(v)}
-                  className={`p-3 border-b border-border cursor-pointer transition-colors ${selectedEntity?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"} ${v.is_auto_admin ? "bg-blue-50/50" : ""}`}
+                  className={`p-3 border-b border-border cursor-pointer transition-colors ${selectedEntity?.id === v.id ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-slate-50"} ${v.is_admin_courier ? "bg-blue-50/50" : ""}`}
                   data-testid={`vendor-item-${v.id}`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
                       <p className="font-semibold text-sm truncate">{v.name}</p>
-                      {v.is_auto_admin && (
+                      {v.is_admin_courier && (
                         <span className="text-[9px] bg-blue-100 text-blue-700 px-1 py-0.5 rounded shrink-0">
                           {v.role === 'superadmin' ? 'S.Admin' : 'Yönetici'}
                         </span>
