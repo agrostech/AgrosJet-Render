@@ -226,8 +226,12 @@ function MonthInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSe
 }
 
 // ==================== Missing Invoices Card (All Time) ====================
-function MissingInvoicesCard({ missingInvoices }) {
+function MissingInvoicesCard({ missingInvoices, isSuperAdmin, onDeleteInvoice, onRefresh }) {
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderTarget, setReminderTarget] = useState(null);
+  const [restaurantUsers, setRestaurantUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   // Group by restaurant
   const restaurantGroups = missingInvoices.reduce((acc, inv) => {
@@ -250,6 +254,10 @@ function MissingInvoicesCard({ missingInvoices }) {
     ? missingInvoices.filter(r => r.restaurant_id === selectedRestaurant)
     : missingInvoices;
 
+  const selectedRestaurantData = selectedRestaurant 
+    ? restaurantGroups[selectedRestaurant] 
+    : null;
+
   const getBreakdownText = (breakdown) => {
     const parts = [];
     if (breakdown?.cash) parts.push(`Nakit: ${formatMoney(breakdown.cash)}`);
@@ -260,85 +268,245 @@ function MissingInvoicesCard({ missingInvoices }) {
     return parts.join(" • ");
   };
 
+  // Open WhatsApp reminder modal
+  const openReminderModal = async () => {
+    if (!selectedRestaurantData) return;
+    
+    setReminderTarget(selectedRestaurantData);
+    setShowReminderModal(true);
+    setLoadingUsers(true);
+    
+    try {
+      const res = await axios.get(`${API}/restaurant-users/restaurant/${selectedRestaurant}`);
+      setRestaurantUsers(res.data.filter(u => u.is_active !== false));
+    } catch (err) {
+      console.error("Kullanıcılar yüklenemedi:", err);
+      setRestaurantUsers([]);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  // Generate WhatsApp message
+  const generateWhatsAppMessage = (userName) => {
+    if (!reminderTarget) return "";
+    
+    const invoiceDetails = reminderTarget.weeks.map(w => 
+      `• ${w.week_label}: ${formatMoney(w.remaining_amount)}`
+    ).join("\n");
+    
+    const message = `Merhaba ${userName},
+
+Eksik faturalarınız bulunmaktadır:
+
+${invoiceDetails}
+
+Toplam: ${formatMoney(reminderTarget.total_remaining)}
+
+Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
+    
+    return encodeURIComponent(message);
+  };
+
+  // Send WhatsApp reminder
+  const sendWhatsAppReminder = (user) => {
+    if (!user.phone) {
+      toast.error("Bu kullanıcının telefon numarası yok");
+      return;
+    }
+    
+    // Clean phone number
+    let phone = user.phone.replace(/\D/g, '');
+    if (phone.startsWith('0')) {
+      phone = '90' + phone.slice(1);
+    } else if (!phone.startsWith('90')) {
+      phone = '90' + phone;
+    }
+    
+    const message = generateWhatsAppMessage(user.name);
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    setShowReminderModal(false);
+  };
+
   return (
-    <div className="border-2 border-border bg-white">
-      <div className="p-3 border-b-2 border-border bg-red-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            <h3 className="font-semibold text-sm text-red-700">Eksik Faturalar</h3>
-            <span className="text-xs text-red-500">({filteredInvoices.length})</span>
+    <>
+      <div className="border-2 border-border bg-white">
+        <div className="p-3 border-b-2 border-border bg-red-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-red-500" />
+              <h3 className="font-semibold text-sm text-red-700">Eksik Faturalar</h3>
+              <span className="text-xs text-red-500">({filteredInvoices.length})</span>
+            </div>
+            
+            {/* WhatsApp reminder button - only when a restaurant is selected */}
+            {selectedRestaurant && selectedRestaurantData && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={openReminderModal}
+                className="h-8 text-xs gap-1 border-green-300 text-green-700 hover:bg-green-50"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                Hatırlat
+              </Button>
+            )}
           </div>
+          
+          {restaurantList.length > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+              <select
+                value={selectedRestaurant}
+                onChange={(e) => setSelectedRestaurant(e.target.value)}
+                className="flex-1 h-9 text-sm border border-red-200 rounded px-2 bg-white"
+              >
+                <option value="">Tüm Restoranlar</option>
+                {restaurantList.map(r => (
+                  <option key={r.restaurant_id} value={r.restaurant_id}>
+                    {r.restaurant_name} ({r.weeks.length} hafta - {formatMoney(r.total_remaining)})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
         
-        {restaurantList.length > 1 && (
-          <div className="mt-2 flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-            <select
-              value={selectedRestaurant}
-              onChange={(e) => setSelectedRestaurant(e.target.value)}
-              className="flex-1 h-9 text-sm border border-red-200 rounded px-2 bg-white"
-            >
-              <option value="">Tüm Restoranlar</option>
-              {restaurantList.map(r => (
-                <option key={r.restaurant_id} value={r.restaurant_id}>
-                  {r.restaurant_name} ({r.weeks.length} hafta)
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-      </div>
-      
-      <div className="max-h-96 overflow-y-auto">
-        {filteredInvoices.length === 0 ? (
-          <div className="p-8 text-center text-green-600 text-sm">
-            <Check className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            Tüm faturalar alındı
-          </div>
-        ) : (
-          <div className="divide-y divide-border">
-            {filteredInvoices.map((item) => (
-              <div key={`${item.restaurant_id}-${item.week_start}`} className="p-3 hover:bg-red-50/50">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate">{item.restaurant_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Hafta: {item.week_label}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">
-                      {getBreakdownText(item.breakdown)}
-                    </p>
-                    {item.verified_amount > 0 && (
-                      <p className="text-[10px] text-green-600 mt-0.5">
-                        Alınan: {formatMoney(item.verified_amount)}
+        <div className="max-h-96 overflow-y-auto">
+          {filteredInvoices.length === 0 ? (
+            <div className="p-8 text-center text-green-600 text-sm">
+              <Check className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              Tüm faturalar alındı
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredInvoices.map((item) => (
+                <div key={`${item.restaurant_id}-${item.week_start}`} className="p-3 hover:bg-red-50/50">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{item.restaurant_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Hafta: {item.week_label}
                       </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-sm font-semibold font-mono text-red-600">
-                      {formatMoney(item.remaining_amount)}
-                    </span>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                        {getBreakdownText(item.breakdown)}
+                      </p>
+                      {item.verified_amount > 0 && (
+                        <p className="text-[10px] text-green-600 mt-0.5">
+                          Alınan: {formatMoney(item.verified_amount)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-sm font-semibold font-mono text-red-600">
+                        {formatMoney(item.remaining_amount)}
+                      </span>
+                      {isSuperAdmin && item.record_id && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onDeleteInvoice(item.record_id)}
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                          title="Sil"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Total summary */}
+        {filteredInvoices.length > 0 && (
+          <div className="p-3 border-t border-border bg-red-50/50">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-red-700 font-medium">Toplam Eksik:</span>
+              <span className="font-bold text-red-600">
+                {formatMoney(filteredInvoices.reduce((sum, i) => sum + i.remaining_amount, 0))}
+              </span>
+            </div>
           </div>
         )}
       </div>
-      
-      {/* Total summary */}
-      {filteredInvoices.length > 0 && (
-        <div className="p-3 border-t border-border bg-red-50/50">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-red-700 font-medium">Toplam Eksik:</span>
-            <span className="font-bold text-red-600">
-              {formatMoney(filteredInvoices.reduce((sum, i) => sum + i.remaining_amount, 0))}
-            </span>
-          </div>
-        </div>
-      )}
-    </div>
+
+      {/* WhatsApp Reminder Modal */}
+      <Dialog open={showReminderModal} onOpenChange={setShowReminderModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-green-600" />
+              WhatsApp ile Hatırlat
+            </DialogTitle>
+          </DialogHeader>
+          
+          {reminderTarget && (
+            <div className="space-y-4">
+              <div className="bg-slate-50 p-3 rounded-lg">
+                <p className="font-semibold">{reminderTarget.restaurant_name}</p>
+                <p className="text-sm text-red-600 font-mono mt-1">
+                  Toplam Eksik: {formatMoney(reminderTarget.total_remaining)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {reminderTarget.weeks.length} hafta eksik fatura
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-2">Kime hatırlatmak istiyorsunuz?</h4>
+                
+                {loadingUsers ? (
+                  <div className="py-4 text-center">
+                    <Loader2 className="w-6 h-6 mx-auto animate-spin text-muted-foreground" />
+                  </div>
+                ) : restaurantUsers.length === 0 ? (
+                  <div className="py-4 text-center text-muted-foreground text-sm">
+                    <User className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    Bu restoranın kullanıcısı yok
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {restaurantUsers.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{user.name}</p>
+                          {user.phone ? (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Phone className="w-3 h-3" />
+                              {user.phone}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-red-500">Telefon yok</p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => sendWhatsAppReminder(user)}
+                          disabled={!user.phone}
+                          className="h-8 gap-1 bg-green-600 hover:bg-green-700"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Hatırlat
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReminderModal(false)}>
+              Kapat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
