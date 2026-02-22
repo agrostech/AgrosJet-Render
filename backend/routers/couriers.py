@@ -540,64 +540,59 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                 
                 # DURUM 2: Aktif vardiyası yok ama bitmiş vardiya var → Geç mi kapattı?
                 elif latest_ended_shift and latest_end_minutes > 0:
-                    late_minutes = current_minutes - latest_end_minutes
+                    # Kuryenin aktif olma zamanını kontrol et
+                    activated_at_str = courier.get("activated_at")
+                    base_minutes = latest_end_minutes  # Varsayılan: vardiya bitiş saati
+                    
+                    if activated_at_str:
+                        try:
+                            activated_at = datetime.fromisoformat(activated_at_str.replace('Z', '+00:00'))
+                            activated_at_turkey = activated_at.astimezone(turkey_tz)
+                            activated_minutes = activated_at_turkey.hour * 60 + activated_at_turkey.minute
+                            
+                            # Eğer aktif olma zamanı vardiya bitişinden sonraysa, süreyi aktivasyon zamanından hesapla
+                            if activated_minutes > latest_end_minutes + tolerance:
+                                base_minutes = activated_minutes
+                        except Exception as e:
+                            print(f"Error parsing activated_at: {e}")
+                    
+                    late_minutes = current_minutes - base_minutes
                     
                     # Tolerans süresini aşarsa ihlal logla
                     if late_minutes > tolerance:
-                        # Çift ihlal kontrolü: Kullanıcı vardiya bittikten SONRA mı aktif oldu?
-                        # Eğer öyleyse, "geç kapattı" ihlalini loglama (zaten "vardiyası yok ama aktif" loglanacak/loglandı)
-                        should_log_late_violation = True
-                        
-                        # Kuryenin aktif olma zamanını kontrol et
-                        activated_at_str = courier.get("activated_at")
-                        if activated_at_str:
-                            try:
-                                activated_at = datetime.fromisoformat(activated_at_str.replace('Z', '+00:00'))
-                                activated_at_turkey = activated_at.astimezone(turkey_tz)
-                                activated_minutes = activated_at_turkey.hour * 60 + activated_at_turkey.minute
-                                
-                                # Eğer aktif olma zamanı vardiya bitişinden sonraysa, bu ihlali loglama
-                                # (Çünkü "vardiyası yok ama aktif" ihlali zaten loglandı/loglanacak)
-                                if activated_minutes > latest_end_minutes + tolerance:
-                                    should_log_late_violation = False
-                                    print(f"Skipping 'still_active_after_shift_end' - activated after shift ended for courier {courier_id}")
-                            except Exception as e:
-                                print(f"Error parsing activated_at: {e}")
-                        
-                        if should_log_late_violation:
-                            if admin_info:
-                                await log_violation(
-                                    company_id=company_id,
-                                    entity_type="admin",
-                                    entity_id=admin_info["id"],
-                                    entity_name=admin_info["name"],
-                                    violation_type="still_active_after_shift_end",
-                                    details={
-                                        "linked_courier_id": courier_id,
-                                        "shift_id": latest_ended_shift["id"],
-                                        "shift_end_time": latest_ended_shift["end_time"],
-                                        "deactivated_at": now_turkey.strftime("%H:%M"),
-                                        "late_minutes": late_minutes,
-                                        "tolerance_minutes": tolerance,
-                                        "triggered_by": "courier_deactivation"
-                                    }
-                                )
-                            else:
-                                await log_violation(
-                                    company_id=company_id,
-                                    entity_type="courier",
-                                    entity_id=courier_id,
-                                    entity_name=courier.get("name", ""),
-                                    violation_type="still_active_after_shift_end",
-                                    details={
-                                        "shift_id": latest_ended_shift["id"],
-                                        "shift_end_time": latest_ended_shift["end_time"],
-                                        "deactivated_at": now_turkey.strftime("%H:%M"),
-                                        "late_minutes": late_minutes,
-                                        "tolerance_minutes": tolerance,
-                                        "triggered_by": "courier_deactivation"
-                                    }
-                                )
+                        if admin_info:
+                            await log_violation(
+                                company_id=company_id,
+                                entity_type="admin",
+                                entity_id=admin_info["id"],
+                                entity_name=admin_info["name"],
+                                violation_type="still_active_after_shift_end",
+                                details={
+                                    "linked_courier_id": courier_id,
+                                    "shift_id": latest_ended_shift["id"],
+                                    "shift_end_time": latest_ended_shift["end_time"],
+                                    "deactivated_at": now_turkey.strftime("%H:%M"),
+                                    "late_minutes": late_minutes,
+                                    "tolerance_minutes": tolerance,
+                                    "triggered_by": "courier_deactivation"
+                                }
+                            )
+                        else:
+                            await log_violation(
+                                company_id=company_id,
+                                entity_type="courier",
+                                entity_id=courier_id,
+                                entity_name=courier.get("name", ""),
+                                violation_type="still_active_after_shift_end",
+                                details={
+                                    "shift_id": latest_ended_shift["id"],
+                                    "shift_end_time": latest_ended_shift["end_time"],
+                                    "deactivated_at": now_turkey.strftime("%H:%M"),
+                                    "late_minutes": late_minutes,
+                                    "tolerance_minutes": tolerance,
+                                    "triggered_by": "courier_deactivation"
+                                }
+                            )
         except Exception as e:
             print(f"Late deactivation check failed: {e}")
     
