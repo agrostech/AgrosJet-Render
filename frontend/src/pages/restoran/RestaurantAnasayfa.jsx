@@ -930,7 +930,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                           <div className="flex flex-col">
                                             <div className="flex items-center gap-2">
                                               <span className="font-medium">{courier.name}</span>
-                                              {courier.eta?.eta_text && (
+                                              {permissions.can_view_courier_eta !== false && courier.eta?.eta_text && (
                                                 <span className="text-blue-600 text-[10px]">
                                                   {courier.eta.eta_text}
                                                 </span>
@@ -940,7 +940,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                               {courier.package_count > 0 && (
                                                 <span>{courier.package_count} paket</span>
                                               )}
-                                              {courier.eta?.route_summary && courier.eta.route_summary !== "Doğrudan geliyor" && (
+                                              {permissions.can_view_courier_eta !== false && courier.eta?.route_summary && courier.eta.route_summary !== "Doğrudan geliyor" && (
                                                 <span>• {courier.eta.route_summary}</span>
                                               )}
                                             </div>
