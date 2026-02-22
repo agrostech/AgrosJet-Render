@@ -379,6 +379,90 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
         except Exception as e:
             print(f"Shift violation check failed: {e}")
     
+    # === VARDIYA BİTİŞ SONRASI GEÇ KAPAMA KONTROLÜ ===
+    # Kurye pasif olduğunda vardiya bitiş saatinden ne kadar geç olduğunu kontrol et
+    if data.availability_status == "offline" and company_id:
+        try:
+            # Türkiye saati
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
+            today_key = days_map[now_turkey.weekday()]
+            current_minutes = now_turkey.hour * 60 + now_turkey.minute
+            
+            # Bugün bu kuryenin vardiyalarını bul
+            assignments = await db.shift_assignments.find({
+                "company_id": company_id,
+                "courier_id": courier_id,
+                "day": today_key
+            }, {"_id": 0, "shift_id": 1}).to_list(10)
+            
+            if assignments:
+                shift_ids = [a["shift_id"] for a in assignments]
+                shifts = await db.shifts.find(
+                    {"id": {"$in": shift_ids}},
+                    {"_id": 0, "id": 1, "end_time": 1}
+                ).to_list(10)
+                
+                # En son biten vardiyayı bul (bitiş saati geçmiş olanlar arasında en geç biten)
+                latest_ended_shift = None
+                latest_end_minutes = -1
+                
+                for shift in shifts:
+                    end_h, end_m = map(int, shift["end_time"].split(":"))
+                    end_minutes = end_h * 60 + end_m
+                    
+                    # Gece geçişi kontrolü (bitiş < başlangıç demek gece vardiyası)
+                    # Şimdilik basit kontrol: bitiş saati şu anki saatten küçükse bitmiş demektir
+                    if end_minutes <= current_minutes and end_minutes > latest_end_minutes:
+                        latest_ended_shift = shift
+                        latest_end_minutes = end_minutes
+                
+                # Eğer bitmiş vardiya varsa ve geç kapatıldıysa log kaydet
+                if latest_ended_shift and latest_end_minutes > 0:
+                    late_minutes = current_minutes - latest_end_minutes
+                    
+                    if late_minutes > 0:  # En az 1 dakika geç
+                        # Admin-kurye mi?
+                        if courier.get("is_admin_linked"):
+                            admin = await db.admins.find_one(
+                                {"linked_courier_id": courier_id},
+                                {"_id": 0, "id": 1, "name": 1}
+                            )
+                            if admin:
+                                await log_violation(
+                                    company_id=company_id,
+                                    entity_type="admin",
+                                    entity_id=admin["id"],
+                                    entity_name=admin["name"],
+                                    violation_type="still_active_after_shift_end",
+                                    details={
+                                        "linked_courier_id": courier_id,
+                                        "shift_id": latest_ended_shift["id"],
+                                        "shift_end_time": latest_ended_shift["end_time"],
+                                        "deactivated_at": now_turkey.strftime("%H:%M"),
+                                        "late_minutes": late_minutes,
+                                        "triggered_by": "courier_deactivation"
+                                    }
+                                )
+                        else:
+                            await log_violation(
+                                company_id=company_id,
+                                entity_type="courier",
+                                entity_id=courier_id,
+                                entity_name=courier.get("name", ""),
+                                violation_type="still_active_after_shift_end",
+                                details={
+                                    "shift_id": latest_ended_shift["id"],
+                                    "shift_end_time": latest_ended_shift["end_time"],
+                                    "deactivated_at": now_turkey.strftime("%H:%M"),
+                                    "late_minutes": late_minutes,
+                                    "triggered_by": "courier_deactivation"
+                                }
+                            )
+        except Exception as e:
+            print(f"Late deactivation check failed: {e}")
+    
     status_labels = {"active": "Aktif", "on_break": "Molada", "offline": "Çevrimdışı"}
     return {"message": f"Kurye durumu güncellendi: {status_labels[data.availability_status]}"}
 
