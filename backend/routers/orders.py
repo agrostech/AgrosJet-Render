@@ -2593,7 +2593,7 @@ async def unmark_restaurant_delivery(order_id: str, restaurant_id: str):
                     # Süre dolmuş, 15 dakika ile yeniden başlat
                     previous_prep_time = 15
                     previous_prep_end_at = (now + timedelta(minutes=15)).isoformat()
-            except:
+            except (ValueError, TypeError):
                 # Parse hatası, 15 dakika ile başlat
                 previous_prep_time = 15
                 previous_prep_end_at = (now + timedelta(minutes=15)).isoformat()
