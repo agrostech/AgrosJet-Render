@@ -346,7 +346,7 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setResetAdmin(admin)}
+                            onClick={() => openResetModal(admin)}
                             className="h-7 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                           >
                             <RotateCcw className="w-4 h-4" />
