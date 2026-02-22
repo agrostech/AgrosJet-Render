@@ -483,16 +483,28 @@ async def toggle_admin_status(admin_id: str):
                             active_shift = shift
                             break
                     else:
-                        # Normal vardiya (tolerans dahil - erken çıkış kontrolü için)
-                        # Eğer vardiya bitiş saatinden tolerans kadar ÖNCE çıkıyorsa ihlal
-                        if start_minutes <= current_minutes < (end_minutes - tolerance):
-                            active_shift = shift
-                            break
+                        # Normal vardiya
+                        # Tolerans dahilinde kapanıyorsa ihlal yok
+                        if start_minutes <= current_minutes < end_minutes:
+                            # Vardiya hala devam ediyor, erken çıkış kontrolü
+                            if current_minutes < (end_minutes - tolerance):
+                                active_shift = shift
+                                break
+                            # Tolerans aralığında, sorun yok
+                            else:
+                                active_shift = None
+                                break
                     
-                    # Bitmiş vardiyaları takip et
-                    if end_minutes <= current_minutes and end_minutes > latest_end_minutes:
-                        latest_ended_shift = shift
-                        latest_end_minutes = end_minutes
+                    # Bitmiş vardiyaları takip et (tolerans dışında kalan en son biten)
+                    if end_minutes <= current_minutes:
+                        minutes_since_end = current_minutes - end_minutes
+                        # Tolerans dahilinde bittiyse, ihlal yok - atla
+                        if minutes_since_end <= tolerance:
+                            continue
+                        # Tolerans aşıldı, en son biteni bul
+                        if end_minutes > latest_end_minutes:
+                            latest_ended_shift = shift
+                            latest_end_minutes = end_minutes
                 
                 # DURUM 1: Şu an aktif vardiyası var ama çevrimdışı oluyor (tolerans dahilinde değil)
                 if active_shift:
