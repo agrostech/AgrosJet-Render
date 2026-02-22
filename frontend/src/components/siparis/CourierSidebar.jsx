@@ -382,8 +382,12 @@ function CourierItem({
   const breakInfo = showBreakTime ? getRemainingBreakTime(courier) : null;
   const locationStale = !isOffline && isLocationStale(courier);
   
+  // Admin-kurye mi kontrol et
+  const isAdminLinked = courier.is_admin_linked;
+  
   // Çevrimdışı ama aktif vardiyası var mı?
-  const missedShift = isOffline && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
+  // Admin-kurye için bu kontrolü yapma (admin panelinden aktif olabilir)
+  const missedShift = isOffline && !isAdminLinked && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
   
   // Bugün izinli mi? (sadece çevrimdışı için)
   const onLeaveToday = isOffline && hasLeaveToday(courier, leaves);
@@ -404,7 +408,11 @@ function CourierItem({
         {onLeaveToday && (
           <CalendarOff className="w-3 h-3 text-slate-700" title="Bugün izinli" />
         )}
-        <Bike className={`w-3 h-3 ${iconColor}`} />
+        {isAdminLinked ? (
+          <UserCog className={`w-3 h-3 ${iconColor}`} title="Yönetici" />
+        ) : (
+          <Bike className={`w-3 h-3 ${iconColor}`} />
+        )}
         <span className="truncate">{courier.name}</span>
       </div>
       <div className="flex items-center gap-1">
