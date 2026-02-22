@@ -669,6 +669,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <RefreshCw className="w-4 h-4 mr-2" />
               Yenile
             </Button>
+            <NotificationsPopover companyId={companyId} />
           </div>
         )}
       </div>
