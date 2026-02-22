@@ -3,7 +3,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { 
   AlertTriangle, Users, Briefcase, Filter, Trash2, 
-  Clock, UserX, UserCheck, Coffee, RefreshCw, LogOut
+  Clock, UserX, UserCheck, Coffee, RefreshCw, LogOut,
+  ChevronLeft, ChevronRight, Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,10 +33,34 @@ const VIOLATION_COLORS = {
   "break_limit_exceeded": "text-purple-600 bg-purple-50"
 };
 
-const formatDateTime = (dateStr) => {
+const DAY_NAMES = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+
+const formatDateTimeWithDay = (dateStr) => {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
-  return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const dayName = DAY_NAMES[d.getDay()];
+  const dateFormatted = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  const timeFormatted = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  return `${dateFormatted} ${dayName} ${timeFormatted}`;
+};
+
+// Haftanın başlangıç ve bitiş tarihlerini hesapla (Pazartesi - Pazar)
+const getWeekRange = (date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Pazartesi'ye ayarla
+  const monday = new Date(d.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  return { start: monday, end: sunday };
+};
+
+const formatWeekLabel = (start, end) => {
+  const startStr = start.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+  const endStr = end.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return `${startStr} - ${endStr}`;
 };
 
 export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, isSuperAdmin }) {
@@ -46,9 +71,28 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
   const [selectedEntity, setSelectedEntity] = useState("");
   const [violationTypes, setViolationTypes] = useState({});
   
+  // Hafta seçici
+  const [selectedWeek, setSelectedWeek] = useState(() => getWeekRange(new Date()));
+  
   // Delete confirmation
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+  const goToPreviousWeek = () => {
+    const newStart = new Date(selectedWeek.start);
+    newStart.setDate(newStart.getDate() - 7);
+    setSelectedWeek(getWeekRange(newStart));
+  };
+
+  const goToNextWeek = () => {
+    const newStart = new Date(selectedWeek.start);
+    newStart.setDate(newStart.getDate() + 7);
+    setSelectedWeek(getWeekRange(newStart));
+  };
+
+  const goToCurrentWeek = () => {
+    setSelectedWeek(getWeekRange(new Date()));
+  };
 
   const fetchEntities = useCallback(async () => {
     if (!companyId) return;
