@@ -331,13 +331,18 @@ export function CourierDetailModal({
                 {workLogs.logs.slice(-8).map((log, i) => {
                   const time = new Date(log.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                   const statusLabels = { active: 'Aktif', on_break: 'Mola', offline: 'Çevrimdışı' };
-                  const logStatus = log.status || log.new_status; // Backend'de status olarak kaydediliyor
+                  const logStatus = log.status || log.new_status;
+                  const isAdminLog = log.source === 'admin';
                   return (
                     <div 
                       key={i} 
-                      className="px-1.5 py-0.5 rounded text-[10px] border border-slate-200 bg-white text-slate-600"
+                      className={`px-1.5 py-0.5 rounded text-[10px] border bg-white ${
+                        isAdminLog ? 'border-blue-300 text-blue-700' : 'border-slate-200 text-slate-600'
+                      }`}
+                      title={isAdminLog ? 'Yönetici panelinden' : 'Kurye panelinden'}
                     >
                       {time} → {statusLabels[logStatus] || logStatus}
+                      {isAdminLog && <span className="ml-0.5 text-[8px]">(Y)</span>}
                     </div>
                   );
                 })}
