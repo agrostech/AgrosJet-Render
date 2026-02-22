@@ -451,26 +451,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   };
 
   // Handlers
-  const handleGenerateMock = async () => {
-    try {
-      const res = await axios.post(`${API}/orders/${companyId}/generate-mock?count=5`);
-      toast.success(res.data.message);
-      fetchOrders();
-    } catch (err) {
-      toast.error("Mock sipariş oluşturulamadı");
-    }
-  };
-
-  const handleClearMock = async () => {
-    try {
-      const res = await axios.delete(`${API}/orders/${companyId}/clear-mock`);
-      toast.success(res.data.message);
-      fetchOrders();
-    } catch (err) {
-      toast.error("Mock siparişler silinemedi");
-    }
-  };
-
   const handleUpdateCourierStatus = async (courierId, newStatus) => {
     try {
       await axios.put(`${API}/couriers/${courierId}/availability`, {
