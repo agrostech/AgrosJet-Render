@@ -59,6 +59,8 @@ class AdminUpdate(BaseModel):
     name: Optional[str] = None
     password: Optional[str] = None
     email: Optional[str] = None
+    linked_courier_id: Optional[str] = None
+    hourly_rate: Optional[float] = None
 
 
 class PermissionsUpdate(BaseModel):
