@@ -132,6 +132,19 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
             {filteredInvoices.map((tx) => {
               const displayAmount = tx.display_amount || tx.amount;
               const isShortfall = tx.missing_type === 'shortfall';
+              const isDeleting = deletingId === tx.id;
+              
+              const handleDelete = async () => {
+                if (!window.confirm(`${tx.courier_name} - ${tx.description} kaydını silmek istediğinizden emin misiniz?`)) {
+                  return;
+                }
+                setDeletingId(tx.id);
+                try {
+                  await onDismiss(tx.id);
+                } finally {
+                  setDeletingId(null);
+                }
+              };
               
               return (
                 <div key={tx.id} className={`p-3 hover:bg-red-50/50 ${isShortfall ? 'bg-amber-50/30' : ''}`}>
@@ -155,9 +168,23 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
                         </p>
                       )}
                     </div>
-                    <span className={`text-sm font-semibold font-mono flex-shrink-0 ${isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
-                      {formatMoney(displayAmount)}
-                    </span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className={`text-sm font-semibold font-mono ${isShortfall ? 'text-amber-600' : 'text-red-600'}`}>
+                        {formatMoney(displayAmount)}
+                      </span>
+                      {isSuperAdmin && onDismiss && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100"
+                          title="Kaydı Sil"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
