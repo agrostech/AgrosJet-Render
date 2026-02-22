@@ -341,6 +341,9 @@ export default function AdminDashboard() {
           onProfileClick={() => setShowProfileModal(true)}
           onLogout={handleLogout}
           badges={badges}
+          adminStatus={adminStatus}
+          onToggleStatus={handleToggleAdminStatus}
+          hasLinkedCourier={hasLinkedCourier}
           companySwitcher={
             accessibleCompanies.length > 1 ? (
               <CompanySwitcher
