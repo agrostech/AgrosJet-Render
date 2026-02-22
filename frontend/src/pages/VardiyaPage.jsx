@@ -26,6 +26,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
   const [showIhlallerModal, setShowIhlallerModal] = useState(false);
+  const [showMovementsModal, setShowMovementsModal] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [bulkAssigning, setBulkAssigning] = useState(false);
