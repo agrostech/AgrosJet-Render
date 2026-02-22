@@ -101,16 +101,23 @@ async def get_shift_assignments(company_id: str, include_admin_linked: bool = Fa
     # GET işlemi - kurye panelinden de erişilebilir
     assignments = await db.shift_assignments.find({"company_id": company_id}, {"_id": 0}).to_list(1000)
     
-    # is_admin_linked kuryeleri filtrele (Güncel Durum'da gösterilmeyecek)
-    if not include_admin_linked:
-        courier_ids = list(set(a["courier_id"] for a in assignments))
-        if courier_ids:
-            admin_linked_couriers = await db.couriers.find(
-                {"id": {"$in": courier_ids}, "is_admin_linked": True},
-                {"_id": 0, "id": 1}
-            ).to_list(1000)
-            admin_linked_ids = set(c["id"] for c in admin_linked_couriers)
-            assignments = [a for a in assignments if a["courier_id"] not in admin_linked_ids]
+    # Kurye bilgilerini al (is_admin_linked dahil)
+    courier_ids = list(set(a["courier_id"] for a in assignments))
+    if courier_ids:
+        couriers = await db.couriers.find(
+            {"id": {"$in": courier_ids}},
+            {"_id": 0, "id": 1, "is_admin_linked": 1}
+        ).to_list(1000)
+        courier_map = {c["id"]: c for c in couriers}
+        
+        # Her assignment'a is_admin_linked bilgisi ekle
+        for a in assignments:
+            courier = courier_map.get(a["courier_id"], {})
+            a["is_admin_linked"] = courier.get("is_admin_linked", False)
+        
+        # is_admin_linked kuryeleri filtrele (Güncel Durum'da gösterilmeyecek)
+        if not include_admin_linked:
+            assignments = [a for a in assignments if not a.get("is_admin_linked")]
     
     return assignments
 
