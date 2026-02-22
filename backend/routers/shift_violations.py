@@ -173,15 +173,23 @@ async def check_and_log_violations_internal(company_id: str):
         if courier_id in couriers_with_any_shift:
             continue
         
+        # Kurye aktif mi? (available veya active)
+        courier_active = courier.get("availability_status") in ["available", "active"]
+        
         # Admin-kurye mi?
         admin_info = admin_courier_map.get(courier_id)
-        if admin_info:
-            admin = await db.users.find_one(
-                {"id": admin_info["id"]},
-                {"_id": 0, "is_active": 1}
+        
+        # is_admin_linked True ama admin_info yoksa, admin bilgisini doğrudan çek
+        if not admin_info and courier.get("is_admin_linked"):
+            admin_doc = await db.users.find_one(
+                {"linked_courier_id": courier_id},
+                {"_id": 0, "id": 1, "name": 1, "is_active": 1}
             )
-            admin_active = admin.get("is_active", False) if admin else False
-            courier_active = courier.get("availability_status") == "available"
+            if admin_doc:
+                admin_info = admin_doc
+        
+        if admin_info:
+            admin_active = admin_info.get("is_active", False)
             
             if admin_active or courier_active:
                 # Son 10 dakikada aynı ihlal loglandı mı?
@@ -200,7 +208,7 @@ async def check_and_log_violations_internal(company_id: str):
                 violations_logged.append(v)
         else:
             # Normal kurye
-            if courier.get("availability_status") == "available":
+            if courier_active:
                 # Son 10 dakikada aynı ihlal loglandı mı?
                 if (courier_id, "active_without_shift") in recent_keys:
                     continue
