@@ -677,15 +677,48 @@ async def get_couriers_with_availability(company_id: str):
         {"_id": 0}
     ).to_list(500)
     
-    # Set default availability if not set
+    # Admin-kurye bağlantıları için admin durumlarını çek
+    admin_linked_courier_ids = [c["id"] for c in couriers if c.get("is_admin_linked")]
+    admin_statuses = {}
+    
+    if admin_linked_courier_ids:
+        # Bu kuryelerle bağlantılı adminleri bul
+        admins = await db.admins.find(
+            {"linked_courier_id": {"$in": admin_linked_courier_ids}},
+            {"_id": 0, "linked_courier_id": 1, "status": 1}
+        ).to_list(100)
+        
+        for admin in admins:
+            admin_statuses[admin["linked_courier_id"]] = admin.get("status", "offline")
+    
+    # Set default availability if not set and calculate effective status
     for c in couriers:
         if "availability_status" not in c:
             c["availability_status"] = "offline"
+        
+        # Admin-kurye için efektif durum hesapla
+        # Kurye VEYA Admin aktifse → aktif say
+        if c.get("is_admin_linked"):
+            courier_status = c.get("availability_status", "offline")
+            admin_status = admin_statuses.get(c["id"], "offline")
+            
+            # Admin veya kurye aktifse → efektif olarak aktif
+            if courier_status == "active" or admin_status == "active":
+                c["effective_status"] = "active"
+            elif courier_status == "on_break":
+                c["effective_status"] = "on_break"
+            else:
+                c["effective_status"] = "offline"
+            
+            # Admin durumunu da ekle (frontend'de kullanılabilir)
+            c["admin_status"] = admin_status
+        else:
+            c["effective_status"] = c.get("availability_status", "offline")
     
-    # Group by availability
-    active = [c for c in couriers if c.get("availability_status") == "active"]
-    on_break = [c for c in couriers if c.get("availability_status") == "on_break"]
-    offline = [c for c in couriers if c.get("availability_status") == "offline"]
+    # Group by effective availability (admin-kurye'ler için her iki paneli de dikkate al)
+    active = [c for c in couriers if c.get("effective_status") == "active"]
+    on_break = [c for c in couriers if c.get("effective_status") == "on_break"]
+    offline = [c for c in couriers if c.get("effective_status") == "offline"]
     
     return {
         "active": active,
