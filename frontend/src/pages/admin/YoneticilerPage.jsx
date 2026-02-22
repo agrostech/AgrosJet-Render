@@ -45,16 +45,20 @@ const PERMISSION_ITEMS = [
 
 export default function YoneticilerPage({ companyId }) {
   const [admins, setAdmins] = useState([]);
+  const [couriers, setCouriers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPermModal, setShowPermModal] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [permissionsData, setPermissionsData] = useState({});
   const [permLoading, setPermLoading] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ name: "", username: "", password: "" });
-  const [editData, setEditData] = useState({ name: "", username: "", password: "" });
+  const [editData, setEditData] = useState({ name: "", username: "", password: "", hourly_rate: "" });
   const [editLoading, setEditLoading] = useState(false);
+  const [linkData, setLinkData] = useState({ linked_courier_id: "" });
+  const [linkLoading, setLinkLoading] = useState(false);
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -71,8 +75,20 @@ export default function YoneticilerPage({ companyId }) {
     }
   };
 
+  const fetchCouriers = async () => {
+    try {
+      const res = await axios.get(`${API}/couriers/${companyId}`);
+      setCouriers(res.data);
+    } catch (err) {
+      console.error("Kuryeler yüklenemedi");
+    }
+  };
+
   useEffect(() => {
-    if (companyId) fetchAdmins();
+    if (companyId) {
+      fetchAdmins();
+      fetchCouriers();
+    }
   }, [companyId]);
 
   const handleAddAdmin = async (e) => {
