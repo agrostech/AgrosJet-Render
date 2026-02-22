@@ -1287,6 +1287,9 @@ export default function RestoranlarPage({ companyId }) {
                       <div>
                         <p className="font-medium text-sm">{user.name}</p>
                         <p className="text-xs text-muted-foreground">@{user.username}</p>
+                        {user.phone && (
+                          <p className="text-xs text-muted-foreground">{user.phone}</p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs px-2 py-1 rounded ${user.is_active !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
