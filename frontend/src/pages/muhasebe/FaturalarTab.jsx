@@ -33,7 +33,8 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
     downloadBulk,
     verifyInvoice,
     verifyInvoiceWithAmount,
-    uploadInvoiceByAdmin
+    uploadInvoiceByAdmin,
+    dismissMissingInvoice
   } = useFaturalar(companyId, selectedYear, selectedMonth);
 
   const [courierLoading, setCourierLoading] = useState(false);
