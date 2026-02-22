@@ -2502,10 +2502,14 @@ async def mark_restaurant_delivery(order_id: str, restaurant_id: str):
     # İşaretle
     now = datetime.now(timezone.utc)
     
+    # Önceki durumu ve hazırlık bilgilerini kaydet (geri aktarıldığında kullanılacak)
     update_data = {
         "is_restaurant_delivery": True,
         "restaurant_delivery_marked_at": now.isoformat(),
         "restaurant_delivery_marked_by": restaurant_id,
+        "status_before_restaurant_delivery": order.get("status"),
+        "preparation_time_before_restaurant_delivery": order.get("preparation_time"),
+        "preparation_end_at_before_restaurant_delivery": order.get("preparation_end_at"),
         "courier_id": None,
         "courier_name": None,
         "courier_phone": None,
