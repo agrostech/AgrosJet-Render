@@ -172,12 +172,21 @@ async def delete_product_type(
 # --- Ürünler Endpoint'leri ---
 @router.get("/companies/{company_id}/products")
 async def get_products(company_id: str, skip: int = 0, limit: int = 50):
-    """Şirketin ürünlerini getir (pagination)"""
+    """Şirketin zimmet ürünlerini getir (pagination)
+    
+    Not: restaurant_id alanı olan ürünler restoran menü ürünleridir,
+    zimmet ürünleri değildir.
+    """
     # GET işlemi - yetki kontrolü yok
-    total = await db.products.count_documents({"company_id": company_id})
+    # restaurant_id olmayan zimmet ürünlerini filtrele
+    query = {
+        "company_id": company_id,
+        "restaurant_id": {"$exists": False}
+    }
+    total = await db.products.count_documents(query)
     
     products = await db.products.find(
-        {"company_id": company_id},
+        query,
         {"_id": 0}
     ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
