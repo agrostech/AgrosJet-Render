@@ -52,8 +52,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [mainTab, setMainTab] = useState("active");
   const [, setTick] = useState(0);
   
-  // Admin aktif mi kontrolü
-  const isAdminActive = adminStatus === "active";
+  // Admin aktif mi kontrolü (süper admin her zaman aktif sayılır)
+  const isAdminActive = isSuperAdmin || adminStatus === "active";
   
   // Modal states
   const [showAssignModal, setShowAssignModal] = useState(false);
