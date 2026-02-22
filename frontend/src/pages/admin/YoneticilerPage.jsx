@@ -125,8 +125,19 @@ export default function YoneticilerPage({ companyId }) {
 
   const openEditModal = (admin) => {
     setSelectedAdmin(admin);
-    setEditData({ name: admin.name, username: admin.username, password: "" });
+    setEditData({ 
+      name: admin.name, 
+      username: admin.username, 
+      password: "",
+      hourly_rate: admin.hourly_rate || ""
+    });
     setShowEditModal(true);
+  };
+
+  const openLinkModal = (admin) => {
+    setSelectedAdmin(admin);
+    setLinkData({ linked_courier_id: admin.linked_courier_id || "" });
+    setShowLinkModal(true);
   };
 
   const openPermModal = (admin) => {
