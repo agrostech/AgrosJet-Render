@@ -1,15 +1,26 @@
 # AgrosJet - Kurye Yönetim Sistemi PRD
 
 ## Original Problem Statement
-Kurye yönetim sistemi için admin reconciliation özelliği ve admin-kurye bağlantı sistemi geliştirilmesi.
+Kurye yönetim sistemi için admin reconciliation özelliği ve admin-kurye bağlantı sistemi geliştirilmesi. Ayrıca aylık bazlı restoran fatura sistemi.
 
 ## Core Requirements
 1. Admin hesaplarının kurye hesaplarına bağlanması (Admin-as-Courier)
 2. Adminlerin aktif çalışma sürelerinin kurye sistemi üzerinden takibi
 3. Admin hakedişlerinin bağlı kurye hesabı üzerinden yönetilmesi
 4. Cariler'de admin-kurye hesaplarının doğru gösterimi
+5. Aylık restoran fatura sistemi (4 kartlı tasarım)
 
 ## What's Been Implemented
+
+### Session: 2025-02-22 (Latest)
+- **Restoran Fatura Sistemi Tamamlandı:**
+  - 4 kartlı tasarım (Ay Faturaları, Eksik Faturalar, Restoranlar, Restoran Faturaları)
+  - Aylık bazlı fatura görüntüleme
+  - WhatsApp ile hatırlatma özelliği (eksik fatura olan restoranın kullanıcılarına mesaj)
+  - Eksik fatura kaydı silme özelliği (sadece superadmin)
+  - `DELETE /api/restaurant-invoices/{company_id}/missing/{record_id}` endpoint eklendi
+  - Restoran kullanıcıları için telefon numarası alanı
+  - Fatura ayarları modalı (hangi ödeme yöntemleri için fatura gerekli)
 
 ### Session: 2025-02-22
 - **Bug Fix:** Cariler'de admin-kurye bakiyelerinin gösterilmemesi sorunu düzeltildi
