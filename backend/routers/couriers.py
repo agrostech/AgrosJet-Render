@@ -418,15 +418,20 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     # === VARDIYA KAPANIŞ KONTROLÜ ===
     # Kurye pasif olduğunda:
     # 1. Şu an aktif vardiyası varsa → "Vardiya bitmeden çevrimdışı" ihlali
-    # 2. Yoksa, bitmiş vardiyası varsa → "Geç kapattı" ihlali
+    # 2. Yoksa, bitmiş vardiyası varsa → "Geç kapattı" ihlali (tolerans dahilinde değilse)
     if data.availability_status == "offline" and company_id:
         try:
+            from utils.shift_scheduler import get_company_tolerance
+            
             # Türkiye saati
             turkey_tz = timezone(timedelta(hours=3))
             now_turkey = datetime.now(turkey_tz)
             days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
             today_key = days_map[now_turkey.weekday()]
             current_minutes = now_turkey.hour * 60 + now_turkey.minute
+            
+            # Tolerans süresini al
+            tolerance = await get_company_tolerance(company_id)
             
             # Bugün bu kuryenin vardiyalarını bul
             assignments = await db.shift_assignments.find({
@@ -460,8 +465,9 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                             active_shift = shift
                             break
                     else:
-                        # Normal vardiya
-                        if start_minutes <= current_minutes < end_minutes:
+                        # Normal vardiya (tolerans dahil - erken çıkış kontrolü için)
+                        # Eğer vardiya bitiş saatinden tolerans kadar ÖNCE çıkıyorsa ihlal
+                        if start_minutes <= current_minutes < (end_minutes - tolerance):
                             active_shift = shift
                             break
                     
@@ -478,7 +484,7 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                         {"_id": 0, "id": 1, "name": 1}
                     )
                 
-                # DURUM 1: Şu an aktif vardiyası var ama çevrimdışı oluyor
+                # DURUM 1: Şu an aktif vardiyası var ama çevrimdışı oluyor (tolerans dahilinde değil)
                 if active_shift:
                     if admin_info:
                         await log_violation(
@@ -514,7 +520,8 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                 elif latest_ended_shift and latest_end_minutes > 0:
                     late_minutes = current_minutes - latest_end_minutes
                     
-                    if late_minutes > 0:  # En az 1 dakika geç
+                    # Tolerans süresini aşarsa ihlal logla
+                    if late_minutes > tolerance:
                         if admin_info:
                             await log_violation(
                                 company_id=company_id,
@@ -528,6 +535,7 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                                     "shift_end_time": latest_ended_shift["end_time"],
                                     "deactivated_at": now_turkey.strftime("%H:%M"),
                                     "late_minutes": late_minutes,
+                                    "tolerance_minutes": tolerance,
                                     "triggered_by": "courier_deactivation"
                                 }
                             )
@@ -543,6 +551,7 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                                     "shift_end_time": latest_ended_shift["end_time"],
                                     "deactivated_at": now_turkey.strftime("%H:%M"),
                                     "late_minutes": late_minutes,
+                                    "tolerance_minutes": tolerance,
                                     "triggered_by": "courier_deactivation"
                                 }
                             )
