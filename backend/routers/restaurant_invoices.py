@@ -398,7 +398,7 @@ async def get_month_invoices(company_id: str, year: int, month: int):
                             "week_label": record.get("week_label", ""),
                             "required_amount": record.get("required_amount", 0)
                         })
-                except:
+                except Exception:
                     pass
     
     # Tarihe göre sırala (en yeni en üstte)
