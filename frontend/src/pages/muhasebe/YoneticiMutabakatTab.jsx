@@ -352,8 +352,15 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => openResetModal(admin)}
+                            onClick={() => {
+                              if (!admin.has_linked_courier) {
+                                toast.error("Bu yöneticinin bağlı kurye hesabı yok. Önce Yöneticiler sayfasından kurye hesabı bağlayın.");
+                                return;
+                              }
+                              openResetModal(admin);
+                            }}
                             className="h-7 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                            title={!admin.has_linked_courier ? "Kurye hesabı bağlı değil" : "Sıfırla"}
                           >
                             <RotateCcw className="w-4 h-4" />
                           </Button>
