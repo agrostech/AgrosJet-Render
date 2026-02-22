@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { 
   AlertTriangle, Users, Briefcase, Filter, Trash2, 
-  Clock, UserX, UserCheck, Coffee, RefreshCw, ChevronDown
+  Clock, UserX, UserCheck, Coffee, RefreshCw, LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,7 @@ const VIOLATION_ICONS = {
   "shift_started_not_active": UserX,
   "active_without_shift": UserCheck,
   "offline_before_shift_end": Clock,
+  "still_active_after_shift_end": LogOut,
   "break_limit_exceeded": Coffee
 };
 
@@ -27,6 +28,7 @@ const VIOLATION_COLORS = {
   "shift_started_not_active": "text-red-600 bg-red-50",
   "active_without_shift": "text-amber-600 bg-amber-50",
   "offline_before_shift_end": "text-orange-600 bg-orange-50",
+  "still_active_after_shift_end": "text-blue-600 bg-blue-50",
   "break_limit_exceeded": "text-purple-600 bg-purple-50"
 };
 
