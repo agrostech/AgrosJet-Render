@@ -102,6 +102,20 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     fetchTrackingData();
   };
 
+  // Vardiya silme işlemi
+  const handleDeleteShift = (shiftId) => {
+    setPendingDeleteShiftId(shiftId);
+    setShowDeleteConfirm(true);
+  };
+
+  const onConfirmDeleteShift = async () => {
+    if (!pendingDeleteShiftId) return;
+    await confirmDeleteShift(pendingDeleteShiftId);
+    setShowDeleteConfirm(false);
+    setPendingDeleteShiftId(null);
+    fetchTrackingData();
+  };
+
   const openAssignModal = (shift, day) => {
     setSelectedShift(shift);
     setSelectedDay(day);
