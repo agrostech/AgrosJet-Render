@@ -806,11 +806,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         );
                       }}
                       className={`px-2 py-0.5 text-xs rounded border transition-all flex items-center gap-1 ${
-                        isActive ? status.activeColor + " font-medium shadow-sm ring-1 ring-inset ring-current/20" : status.color + " opacity-50 hover:opacity-80"
+                        isActive ? status.activeColor + " font-medium shadow-sm ring-1 ring-inset ring-current/20" : status.color + " opacity-70 hover:opacity-100"
                       }`}
                     >
                       {status.label}
-                      {count > 0 && <span className="text-[10px] font-bold">({count})</span>}
+                      <span className="text-[10px] font-bold">({count})</span>
                     </button>
                   );
                 })}
