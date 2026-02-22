@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -14,6 +15,8 @@ const formatMoney = (amount) => {
 export function MissingInvoicesCard({ missingInvoices, isSuperAdmin, onDismiss }) {
   const [selectedCourier, setSelectedCourier] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   // Get unique couriers who have missing invoices
   const couriersWithMissing = useMemo(() => {
