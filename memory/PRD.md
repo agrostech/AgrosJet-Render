@@ -66,6 +66,11 @@ Kurye yönetim sistemi için admin reconciliation özelliği ve admin-kurye bağ
 - `GET /api/restaurant-invoices/{company_id}/month/{year}/{month}`: Ay faturaları
 - `GET /api/restaurant-invoices/{company_id}/restaurants`: Fatura ayarı olan restoranlar
 - `DELETE /api/restaurant-invoices/{company_id}/missing/{record_id}`: Eksik fatura kaydı silme
+- `GET /api/shift-violations/{company_id}`: Vardiya ihlalleri listesi
+- `GET /api/shift-violations/{company_id}/summary`: İhlal özeti
+- `GET /api/shift-violations/{company_id}/entities`: İhlali olan kuryeler/yöneticiler
+- `POST /api/shift-violations/{company_id}/check`: Manuel ihlal kontrolü
+- `DELETE /api/shift-violations/{company_id}/{violation_id}`: İhlal kaydı silme
 
 ## Prioritized Backlog
 
