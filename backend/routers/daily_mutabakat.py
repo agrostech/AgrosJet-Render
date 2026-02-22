@@ -910,6 +910,255 @@ async def reset_collection(company_id: str, data: ResetCollectionRequest):
     }
 
 
+@router.post("/{company_id}/save-and-process-single-courier")
+async def save_and_process_single_courier(company_id: str, data: SingleCourierSaveRequest):
+    """
+    Tek kurye için tahsilat kaydet VE mütabakat işle (tek aksiyonda)
+    """
+    # 1. Tahsilat kaydı oluştur/güncelle
+    card_total = data.card_percent_1 + data.card_percent_10 + data.card_percent_20
+    
+    collection = {
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "courier_name": data.courier_name,
+        "date": data.date,
+        "start_datetime": data.start_datetime,
+        "end_datetime": data.end_datetime,
+        "cash_amount": data.cash_amount,
+        "card_percent_1": data.card_percent_1,
+        "card_percent_10": data.card_percent_10,
+        "card_percent_20": data.card_percent_20,
+        "card_total": card_total,
+        "meal_card_amount": data.meal_card_amount,
+        "admin_id": data.admin_id,
+        "admin_name": data.admin_name,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.daily_mutabakat_collections.update_one(
+        {"company_id": company_id, "courier_id": data.courier_id, "date": data.date},
+        {"$set": collection},
+        upsert=True
+    )
+    
+    # 2. Zaten işlenmiş mi kontrol et
+    existing = await db.daily_mutabakat_processed.find_one({
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "date": data.date
+    })
+    if existing:
+        return {"message": "Kurye zaten mütabakat yapılmış", "already_processed": True}
+    
+    # 3. Farkları hesapla (request'teki sipariş verilerini kullan)
+    cash_diff = data.order_cash - data.cash_amount
+    card_diff_1 = data.order_card_1 - data.card_percent_1
+    card_diff_10 = data.order_card_10 - data.card_percent_10
+    card_diff_20 = data.order_card_20 - data.card_percent_20
+    card_diff = card_diff_1 + card_diff_10 + card_diff_20
+    
+    # Komisyon hesapla
+    system_commission = (
+        data.order_card_1 * 0.01 +
+        data.order_card_10 * 0.10 +
+        data.order_card_20 * 0.20
+    )
+    collection_commission = (
+        data.card_percent_1 * 0.01 +
+        data.card_percent_10 * 0.10 +
+        data.card_percent_20 * 0.20
+    )
+    commission_penalty = collection_commission - system_commission
+    
+    # 4. Bakiye işlemleri oluştur
+    date_label = datetime.strptime(data.date, "%Y-%m-%d").strftime("%d.%m.%Y")
+    transactions_created = 0
+    
+    # Nakit farkı - Sadece kurye borçluysa
+    if cash_diff > 0.01:
+        await db.transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
+            "entity_type": "courier",
+            "entity_id": data.courier_id,
+            "entity_name": data.courier_name,
+            "type": "payment_out",
+            "amount": cash_diff,
+            "description": f"{date_label} tarihli mütabakat - Nakit eksik teslim",
+            "admin_id": data.admin_id,
+            "admin_name": data.admin_name,
+            "is_mutabakat": True,
+            "mutabakat_date": data.date,
+            "mutabakat_type": "cash",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        await db.couriers.update_one(
+            {"id": data.courier_id},
+            {"$inc": {"balance": cash_diff}}
+        )
+        transactions_created += 1
+    
+    # Kart farkı - Sadece kurye borçluysa
+    if card_diff > 0.01:
+        await db.transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
+            "entity_type": "courier",
+            "entity_id": data.courier_id,
+            "entity_name": data.courier_name,
+            "type": "payment_out",
+            "amount": card_diff,
+            "description": f"{date_label} tarihli mütabakat - Kredi kartı eksik teslim",
+            "admin_id": data.admin_id,
+            "admin_name": data.admin_name,
+            "is_mutabakat": True,
+            "mutabakat_date": data.date,
+            "mutabakat_type": "card",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        await db.couriers.update_one(
+            {"id": data.courier_id},
+            {"$inc": {"balance": card_diff}}
+        )
+        transactions_created += 1
+    
+    # Komisyon cezası - Sadece kurye borçluysa
+    if commission_penalty > 0.01:
+        await db.transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "company_id": company_id,
+            "entity_type": "courier",
+            "entity_id": data.courier_id,
+            "entity_name": data.courier_name,
+            "type": "payment_out",
+            "amount": commission_penalty,
+            "description": f"{date_label} tarihli mütabakat - Yanlış yüzde farkı",
+            "admin_id": data.admin_id,
+            "admin_name": data.admin_name,
+            "is_mutabakat": True,
+            "mutabakat_date": data.date,
+            "mutabakat_type": "commission",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        await db.couriers.update_one(
+            {"id": data.courier_id},
+            {"$inc": {"balance": commission_penalty}}
+        )
+        transactions_created += 1
+    
+    # 5. İşlenmiş olarak kaydet
+    await db.daily_mutabakat_processed.insert_one({
+        "id": str(uuid.uuid4()),
+        "company_id": company_id,
+        "courier_id": data.courier_id,
+        "courier_name": data.courier_name,
+        "date": data.date,
+        "order_data": {
+            "cash_total": data.order_cash,
+            "card_percent_1": data.order_card_1,
+            "card_percent_10": data.order_card_10,
+            "card_percent_20": data.order_card_20,
+            "card_total": data.order_card_1 + data.order_card_10 + data.order_card_20
+        },
+        "collection_data": {
+            "cash_amount": data.cash_amount,
+            "card_percent_1": data.card_percent_1,
+            "card_percent_10": data.card_percent_10,
+            "card_percent_20": data.card_percent_20,
+            "card_total": card_total,
+            "meal_card_amount": data.meal_card_amount
+        },
+        "differences": {
+            "cash": cash_diff,
+            "card": card_diff,
+            "commission": commission_penalty,
+            "total": cash_diff + card_diff + commission_penalty
+        },
+        "admin_id": data.admin_id,
+        "admin_name": data.admin_name,
+        "processed_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "message": f"{data.courier_name} mütabakatı tamamlandı",
+        "transactions_created": transactions_created,
+        "differences": {
+            "cash": cash_diff,
+            "card": card_diff,
+            "commission": commission_penalty,
+            "total": cash_diff + card_diff + commission_penalty
+        }
+    }
+
+
+@router.post("/{company_id}/revert-single-courier")
+async def revert_single_courier(company_id: str, data: SingleCourierRevertRequest):
+    """
+    Tek kurye için mütabakatı geri al (Sadece SuperAdmin)
+    Hem mütabakat hem tahsilat kaydını siler
+    """
+    courier_id = data.courier_id
+    
+    # İşlenmiş kaydı bul
+    processed = await db.daily_mutabakat_processed.find_one({
+        "company_id": company_id,
+        "courier_id": courier_id,
+        "date": data.date
+    }, {"_id": 0})
+    
+    if not processed:
+        raise HTTPException(status_code=404, detail="Mütabakat kaydı bulunamadı")
+    
+    # İlgili transaction'ları sil ve bakiyeyi geri al
+    transactions = await db.transactions.find({
+        "company_id": company_id,
+        "entity_id": courier_id,
+        "is_mutabakat": True,
+        "mutabakat_date": data.date
+    }, {"_id": 0}).to_list(100)
+    
+    for txn in transactions:
+        if txn["type"] == "given":
+            await db.couriers.update_one(
+                {"id": courier_id},
+                {"$inc": {"balance": -txn["amount"]}}
+            )
+        else:
+            await db.couriers.update_one(
+                {"id": courier_id},
+                {"$inc": {"balance": -txn["amount"]}}
+            )
+    
+    # Transaction'ları sil
+    await db.transactions.delete_many({
+        "company_id": company_id,
+        "entity_id": courier_id,
+        "is_mutabakat": True,
+        "mutabakat_date": data.date
+    })
+    
+    # İşlenmiş kaydını sil
+    await db.daily_mutabakat_processed.delete_one({
+        "company_id": company_id,
+        "courier_id": courier_id,
+        "date": data.date
+    })
+    
+    # Tahsilat kaydını da sil
+    await db.daily_mutabakat_collections.delete_one({
+        "company_id": company_id,
+        "courier_id": courier_id,
+        "date": data.date
+    })
+    
+    return {
+        "message": "Mütabakat sıfırlandı",
+        "courier_id": courier_id
+    }
+
+
 @router.get("/{company_id}/weekly-summary")
 async def get_weekly_summary(company_id: str, week_start: str = None):
     """
