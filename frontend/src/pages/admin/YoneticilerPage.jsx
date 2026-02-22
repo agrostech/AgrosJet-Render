@@ -307,28 +307,40 @@ export default function YoneticilerPage({ companyId }) {
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
-        {admins.map((a) => (
-          <div key={a.id} className="border-2 border-border p-4 bg-white">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <p className="font-bold">{a.name}</p>
-                <p className="font-mono text-sm text-muted-foreground">{a.username}</p>
+        {admins.map((a) => {
+          const linkedCourier = couriers.find(c => c.id === a.linked_courier_id);
+          return (
+            <div key={a.id} className="border-2 border-border p-4 bg-white">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <p className="font-bold">{a.name}</p>
+                  <p className="font-mono text-sm text-muted-foreground">{a.username}</p>
+                  {linkedCourier && (
+                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                      <Link2 className="w-3 h-3" />
+                      {linkedCourier.name}
+                    </p>
+                  )}
+                </div>
+                <span className={`px-2 py-1 text-xs font-semibold ${a.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
+                  {a.role === "superadmin" ? "Süper Admin" : "Admin"}
+                </span>
               </div>
-              <span className={`px-2 py-1 text-xs font-semibold ${a.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
-                {a.role === "superadmin" ? "Süper Admin" : "Admin"}
-              </span>
+              {a.role !== "superadmin" && (
+                <div className="flex gap-2 flex-wrap">
+                  <Button size="sm" variant="outline" onClick={() => openLinkModal(a)} className="flex-1 border-2">
+                    <Link2 className="w-4 h-4 mr-1" /> Kurye
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="flex-1 border-2">
+                    <Shield className="w-4 h-4 mr-1" /> İzinler
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="flex-1 border-2">Düzenle</Button>
+                  <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="border-2">Sil</Button>
+                </div>
+              )}
             </div>
-            {a.role !== "superadmin" && (
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="flex-1 border-2">
-                  <Shield className="w-4 h-4 mr-1" /> İzinler
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="flex-1 border-2">Düzenle</Button>
-                <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="border-2">Sil</Button>
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* İzin Modalı */}
