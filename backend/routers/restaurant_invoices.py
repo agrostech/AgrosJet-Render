@@ -450,7 +450,7 @@ async def get_restaurant_month_invoices(company_id: str, restaurant_id: str, yea
                         "week_label": record.get("week_label", ""),
                         "record_required_amount": record.get("required_amount", 0)
                     })
-        except:
+        except Exception:
             pass
     
     # Tarihe göre sırala
