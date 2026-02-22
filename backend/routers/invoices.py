@@ -741,6 +741,31 @@ async def get_missing_invoices(company_id: str):
     return transactions
 
 
+@router.delete("/missing/{transaction_id}")
+async def dismiss_missing_invoice(transaction_id: str):
+    """
+    Eksik fatura kaydını sil/kapat (SuperAdmin only - frontend'de kontrol edilir)
+    Transaction'ı tamamen silmez, sadece invoice_dismissed olarak işaretler
+    """
+    # Transaction'ı bul
+    tx = await db.transactions.find_one({"id": transaction_id}, {"_id": 0})
+    if not tx:
+        raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+    
+    # İşlemi "dismissed" olarak işaretle
+    await db.transactions.update_one(
+        {"id": transaction_id},
+        {
+            "$set": {
+                "invoice_dismissed": True,
+                "invoice_dismissed_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"message": "Eksik fatura kaydı silindi"}
+
+
 @router.get("/company/{company_id}/couriers-summary")
 async def get_couriers_invoice_summary(company_id: str, year: int = None, month: int = None):
     """Get invoice summary per courier for a company"""
