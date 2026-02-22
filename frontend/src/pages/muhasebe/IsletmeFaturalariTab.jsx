@@ -1,26 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { 
   ChevronLeft, ChevronRight, Upload, FileText, AlertCircle, 
-  Store, Receipt, Download, Trash2, CheckCircle, Eye, Loader2,
-  Archive, Check, Circle, User, Filter, AlertTriangle
+  Store, Download, Trash2, CheckCircle, Eye, Loader2,
+  Archive, Check, Circle, Filter
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Utility functions
-const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleDateString('tr-TR');
-};
-
 const formatDateTime = (dateStr) => {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
@@ -31,52 +25,40 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount || 0)) + ' TL';
 };
 
-// ==================== Week Selector ====================
-function WeekSelector({ weeks, selectedIndex, onPrev, onNext }) {
-  const currentWeek = weeks[selectedIndex];
-  
+const MONTH_NAMES = [
+  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+];
+
+// ==================== Month Selector ====================
+function MonthSelector({ year, month, onPrev, onNext }) {
   return (
-    <Card>
-      <CardContent className="py-3">
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={onPrev}
-            disabled={selectedIndex >= weeks.length - 1}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          
-          <div className="text-center">
-            <p className="font-semibold">{currentWeek?.label || "Yükleniyor..."}</p>
-            <p className="text-xs text-muted-foreground">
-              {currentWeek?.is_current ? "Bu Hafta" : currentWeek?.is_complete ? "Tamamlandı" : ""}
-            </p>
-          </div>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={onNext}
-            disabled={selectedIndex <= 0}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+    <div className="border-2 border-border bg-white p-3">
+      <div className="flex items-center justify-between">
+        <Button variant="outline" size="sm" onClick={onPrev}>
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        
+        <div className="text-center">
+          <p className="font-semibold">{MONTH_NAMES[month - 1]} {year}</p>
         </div>
-      </CardContent>
-    </Card>
+        
+        <Button variant="outline" size="sm" onClick={onNext}>
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
   );
 }
 
-// ==================== Week Invoices Card ====================
-function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSelectAll, onDownloadBulk, onView, onVerifyWithAmount }) {
-  const [verifyModal, setVerifyModal] = useState({ open: false, invoice: null, restaurant: null });
+// ==================== Month Invoices Card ====================
+function MonthInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSelectAll, onDownloadBulk, onView, onVerifyWithAmount }) {
+  const [verifyModal, setVerifyModal] = useState({ open: false, invoice: null });
   const [invoiceAmount, setInvoiceAmount] = useState("");
   const [verifying, setVerifying] = useState(false);
 
-  const handleOpenVerifyModal = (invoice, restaurant) => {
-    setVerifyModal({ open: true, invoice, restaurant });
+  const handleOpenVerifyModal = (invoice) => {
+    setVerifyModal({ open: true, invoice });
     setInvoiceAmount(invoice.verified_amount > 0 ? invoice.verified_amount.toString() : "");
   };
 
@@ -85,16 +67,11 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
     setVerifying(true);
     try {
       await onVerifyWithAmount(verifyModal.invoice.invoice_id, parseFloat(invoiceAmount));
-      setVerifyModal({ open: false, invoice: null, restaurant: null });
+      setVerifyModal({ open: false, invoice: null });
     } finally {
       setVerifying(false);
     }
   };
-
-  // Flatten all invoices from all restaurants
-  const allInvoices = invoices.flatMap(r => 
-    (r.invoices || []).map(inv => ({ ...inv, restaurant_name: r.restaurant_name, restaurant_id: r.restaurant_id, required_amount: r.required_amount }))
-  );
 
   return (
     <>
@@ -103,13 +80,13 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
               <Archive className="w-4 h-4 text-primary" />
-              <h3 className="font-semibold text-sm">Hafta Faturaları</h3>
-              <span className="text-xs text-muted-foreground">({allInvoices.length})</span>
+              <h3 className="font-semibold text-sm">Ay Faturaları</h3>
+              <span className="text-xs text-muted-foreground">({invoices.length})</span>
             </div>
-            {allInvoices.length > 0 && (
+            {invoices.length > 0 && (
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="ghost" onClick={onSelectAll} className="h-8 text-xs">
-                  {selectedInvoices.length === allInvoices.length ? 'Seçimi Kaldır' : 'Tümünü Seç'}
+                  {selectedInvoices.length === invoices.length ? 'Seçimi Kaldır' : 'Tümünü Seç'}
                 </Button>
                 {selectedInvoices.length > 0 && (
                   <Button size="sm" onClick={onDownloadBulk} className="h-8 text-xs gap-1">
@@ -122,14 +99,14 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
           </div>
         </div>
         <div className="max-h-96 overflow-y-auto">
-          {allInvoices.length === 0 ? (
+          {invoices.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
               <Archive className="w-12 h-12 mx-auto mb-2 opacity-20" />
-              Bu haftada yüklenen fatura yok
+              Bu ayda yüklenen fatura yok
             </div>
           ) : (
             <div className="divide-y divide-border">
-              {allInvoices.map((invoice) => (
+              {invoices.map((invoice) => (
                 <div 
                   key={invoice.invoice_id} 
                   className={`p-3 hover:bg-slate-50 ${
@@ -153,6 +130,9 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
                         <p className="text-xs text-muted-foreground truncate">
                           {invoice.filename} • {formatDateTime(invoice.uploaded_at)}
                         </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Hafta: {invoice.week_label}
+                        </p>
                       </div>
                     </div>
                     
@@ -174,7 +154,7 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleOpenVerifyModal(invoice, { restaurant_name: invoice.restaurant_name, required_amount: invoice.required_amount })}
+                        onClick={() => handleOpenVerifyModal(invoice)}
                         className={`h-8 w-8 p-0 ${invoice.verified ? 'text-green-600 hover:text-green-700' : 'text-slate-400 hover:text-green-600'}`}
                         title={invoice.verified ? "Kontrol edildi" : "Kontrol et"}
                       >
@@ -190,7 +170,7 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
       </div>
 
       {/* Verify Modal */}
-      <Dialog open={verifyModal.open} onOpenChange={(open) => !open && setVerifyModal({ open: false, invoice: null, restaurant: null })}>
+      <Dialog open={verifyModal.open} onOpenChange={(open) => !open && setVerifyModal({ open: false, invoice: null })}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -202,10 +182,11 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
           {verifyModal.invoice && (
             <div className="space-y-4">
               <div className="bg-slate-50 p-3 rounded-lg">
-                <p className="font-semibold">{verifyModal.restaurant?.restaurant_name}</p>
+                <p className="font-semibold">{verifyModal.invoice.restaurant_name}</p>
                 <p className="text-sm text-muted-foreground">{verifyModal.invoice.filename}</p>
+                <p className="text-xs text-muted-foreground">Hafta: {verifyModal.invoice.week_label}</p>
                 <p className="text-lg font-bold font-mono text-red-600 mt-2">
-                  Beklenen: {formatMoney(verifyModal.restaurant?.required_amount)}
+                  Beklenen: {formatMoney(verifyModal.invoice.required_amount)}
                 </p>
               </div>
 
@@ -226,7 +207,7 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setVerifyModal({ open: false, invoice: null, restaurant: null })}>İptal</Button>
+                <Button variant="outline" onClick={() => setVerifyModal({ open: false, invoice: null })}>İptal</Button>
                 <Button 
                   onClick={handleVerify} 
                   disabled={verifying || !invoiceAmount}
@@ -244,9 +225,26 @@ function WeekInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSel
   );
 }
 
-// ==================== Missing Invoices Card ====================
+// ==================== Missing Invoices Card (All Time) ====================
 function MissingInvoicesCard({ missingInvoices, onUpload }) {
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
+
+  // Group by restaurant
+  const restaurantGroups = missingInvoices.reduce((acc, inv) => {
+    if (!acc[inv.restaurant_id]) {
+      acc[inv.restaurant_id] = {
+        restaurant_id: inv.restaurant_id,
+        restaurant_name: inv.restaurant_name,
+        total_remaining: 0,
+        weeks: []
+      };
+    }
+    acc[inv.restaurant_id].total_remaining += inv.remaining_amount;
+    acc[inv.restaurant_id].weeks.push(inv);
+    return acc;
+  }, {});
+
+  const restaurantList = Object.values(restaurantGroups);
 
   const filteredInvoices = selectedRestaurant 
     ? missingInvoices.filter(r => r.restaurant_id === selectedRestaurant)
@@ -273,7 +271,7 @@ function MissingInvoicesCard({ missingInvoices, onUpload }) {
           </div>
         </div>
         
-        {missingInvoices.length > 1 && (
+        {restaurantList.length > 1 && (
           <div className="mt-2 flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
             <select
@@ -282,9 +280,9 @@ function MissingInvoicesCard({ missingInvoices, onUpload }) {
               className="flex-1 h-9 text-sm border border-red-200 rounded px-2 bg-white"
             >
               <option value="">Tüm Restoranlar</option>
-              {missingInvoices.map(r => (
+              {restaurantList.map(r => (
                 <option key={r.restaurant_id} value={r.restaurant_id}>
-                  {r.restaurant_name}
+                  {r.restaurant_name} ({r.weeks.length} hafta)
                 </option>
               ))}
             </select>
@@ -301,22 +299,25 @@ function MissingInvoicesCard({ missingInvoices, onUpload }) {
         ) : (
           <div className="divide-y divide-border">
             {filteredInvoices.map((item) => (
-              <div key={item.restaurant_id} className="p-3 hover:bg-red-50/50">
+              <div key={`${item.restaurant_id}-${item.week_start}`} className="p-3 hover:bg-red-50/50">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm truncate">{item.restaurant_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Hafta: {item.week_label}
+                    </p>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
                       {getBreakdownText(item.breakdown)}
                     </p>
                     {item.verified_amount > 0 && (
                       <p className="text-[10px] text-green-600 mt-0.5">
-                        Alınan: {formatMoney(item.verified_amount)} → Kalan: {formatMoney(item.remaining_amount)}
+                        Alınan: {formatMoney(item.verified_amount)}
                       </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-sm font-semibold font-mono text-red-600">
-                      {formatMoney(item.remaining_amount || item.required_amount)}
+                      {formatMoney(item.remaining_amount)}
                     </span>
                     <Button size="sm" variant="outline" onClick={() => onUpload(item)} className="h-8 text-xs gap-1">
                       <Upload className="w-3 h-3" />
@@ -329,52 +330,59 @@ function MissingInvoicesCard({ missingInvoices, onUpload }) {
           </div>
         )}
       </div>
+      
+      {/* Total summary */}
+      {filteredInvoices.length > 0 && (
+        <div className="p-3 border-t border-border bg-red-50/50">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-red-700 font-medium">Toplam Eksik:</span>
+            <span className="font-bold text-red-600">
+              {formatMoney(filteredInvoices.reduce((sum, i) => sum + i.remaining_amount, 0))}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // ==================== Restaurants List Card ====================
 function RestaurantsListCard({ restaurants, selectedRestaurant, onSelect }) {
-  // Combine missing and received
-  const allRestaurants = restaurants;
-  
   return (
     <div className="border-2 border-border bg-white">
       <div className="p-3 border-b-2 border-border bg-slate-50">
         <div className="flex items-center gap-2">
           <Store className="w-4 h-4 text-primary" />
           <h3 className="font-semibold text-sm">Restoranlar</h3>
-          <span className="text-xs text-muted-foreground">({allRestaurants.length})</span>
+          <span className="text-xs text-muted-foreground">({restaurants.length})</span>
         </div>
       </div>
       <div className="max-h-96 overflow-y-auto divide-y divide-border">
-        {allRestaurants.length === 0 ? (
+        {restaurants.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground text-sm">
-            Fatura bekleyen restoran yok
+            Fatura ayarı olan restoran yok
           </div>
         ) : (
-          allRestaurants.map((restaurant) => (
+          restaurants.map((restaurant) => (
             <div
               key={restaurant.restaurant_id}
               onClick={() => onSelect(selectedRestaurant?.restaurant_id === restaurant.restaurant_id ? null : restaurant)}
               className={`p-3 cursor-pointer hover:bg-slate-50 transition-colors ${
                 selectedRestaurant?.restaurant_id === restaurant.restaurant_id ? 'bg-primary/5 border-l-4 border-l-primary' : ''
-              } ${restaurant.is_complete ? 'bg-green-50/30' : ''}`}
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">{restaurant.restaurant_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    Beklenen: {formatMoney(restaurant.required_amount)}
+                    {[
+                      restaurant.invoice_settings?.cash && "Nakit",
+                      restaurant.invoice_settings?.credit_card && "KK",
+                      restaurant.invoice_settings?.online && "Online",
+                      restaurant.invoice_settings?.meal_card && "YK",
+                      restaurant.invoice_settings?.online_meal_card && "OYK"
+                    ].filter(Boolean).join(", ")}
                   </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className={`text-sm font-semibold ${
-                    (restaurant.invoices?.length || 0) > 0 ? 'text-green-600' : 'text-muted-foreground'
-                  }`}>
-                    {restaurant.invoices?.length || 0}
-                  </span>
                 </div>
               </div>
             </div>
@@ -386,7 +394,7 @@ function RestaurantsListCard({ restaurants, selectedRestaurant, onSelect }) {
 }
 
 // ==================== Restaurant Invoices Card ====================
-function RestaurantInvoicesCard({ selectedRestaurant, loading, onView, onDelete, onUpload }) {
+function RestaurantInvoicesCard({ selectedRestaurant, restaurantData, loading, onView, onDelete, onUpload, year, month }) {
   if (!selectedRestaurant) {
     return (
       <div className="border-2 border-border bg-white">
@@ -404,16 +412,7 @@ function RestaurantInvoicesCard({ selectedRestaurant, loading, onView, onDelete,
     );
   }
 
-  const invoices = selectedRestaurant.invoices || [];
-  const getBreakdownText = (breakdown) => {
-    const parts = [];
-    if (breakdown?.cash) parts.push(`Nakit: ${formatMoney(breakdown.cash)}`);
-    if (breakdown?.credit_card) parts.push(`KK: ${formatMoney(breakdown.credit_card)}`);
-    if (breakdown?.online) parts.push(`Online: ${formatMoney(breakdown.online)}`);
-    if (breakdown?.meal_card) parts.push(`YK: ${formatMoney(breakdown.meal_card)}`);
-    if (breakdown?.online_meal_card) parts.push(`OYK: ${formatMoney(breakdown.online_meal_card)}`);
-    return parts.join(" • ");
-  };
+  const invoices = restaurantData?.invoices || [];
 
   return (
     <div className="border-2 border-border bg-white">
@@ -424,35 +423,41 @@ function RestaurantInvoicesCard({ selectedRestaurant, loading, onView, onDelete,
             <h3 className="font-semibold text-sm">{selectedRestaurant.restaurant_name}</h3>
             {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
           </div>
-          <Button size="sm" variant="outline" onClick={() => onUpload(selectedRestaurant)} className="h-8 text-xs gap-1">
-            <Upload className="w-3 h-3" />
-            Yükle
-          </Button>
         </div>
       </div>
       
       {/* Summary */}
-      <div className="p-3 bg-slate-50/50 border-b border-border">
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p className="text-muted-foreground text-xs">Beklenen</p>
-            <p className="font-semibold text-red-600">{formatMoney(selectedRestaurant.required_amount)}</p>
+      {restaurantData && (
+        <div className="p-3 bg-slate-50/50 border-b border-border">
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            <div>
+              <p className="text-muted-foreground text-xs">Beklenen</p>
+              <p className="font-semibold text-red-600">{formatMoney(restaurantData.total_required)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Onaylanan</p>
+              <p className="font-semibold text-green-600">{formatMoney(restaurantData.total_verified)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Kalan</p>
+              <p className="font-semibold text-orange-600">{formatMoney(restaurantData.total_remaining)}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Onaylanan</p>
-            <p className="font-semibold text-green-600">{formatMoney(selectedRestaurant.verified_amount)}</p>
-          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            {MONTH_NAMES[month - 1]} {year}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          {getBreakdownText(selectedRestaurant.breakdown)}
-        </p>
-      </div>
+      )}
       
       <div className="max-h-64 overflow-y-auto">
-        {invoices.length === 0 ? (
+        {loading ? (
+          <div className="p-8 text-center">
+            <Loader2 className="w-8 h-8 mx-auto animate-spin text-muted-foreground" />
+          </div>
+        ) : invoices.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground text-sm">
             <FileText className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            Henüz fatura yüklenmemiş
+            Bu ayda fatura yok
           </div>
         ) : (
           <div className="divide-y divide-border">
@@ -468,6 +473,9 @@ function RestaurantInvoicesCard({ selectedRestaurant, loading, onView, onDelete,
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {formatDateTime(invoice.uploaded_at)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Hafta: {invoice.week_label}
                       {invoice.verified && invoice.verified_amount && (
                         <span className="ml-2 text-green-600">
                           Onaylanan: {formatMoney(invoice.verified_amount)}
@@ -495,13 +503,19 @@ function RestaurantInvoicesCard({ selectedRestaurant, loading, onView, onDelete,
 
 // ==================== Main Component ====================
 export default function IsletmeFaturalariTab({ companyId, adminId, adminName, isSuperAdmin }) {
-  // Week selection
-  const [weeks, setWeeks] = useState([]);
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
-  const [weekData, setWeekData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  
+  const [restaurants, setRestaurants] = useState([]);
+  const [missingInvoices, setMissingInvoices] = useState([]);
+  const [monthInvoices, setMonthInvoices] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [restaurantData, setRestaurantData] = useState(null);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
+  
+  const [loading, setLoading] = useState(true);
+  const [restaurantLoading, setRestaurantLoading] = useState(false);
   
   // Upload modal
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -517,56 +531,74 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
-  // Fetch weeks
-  const fetchWeeks = useCallback(async () => {
+  // Fetch all data
+  const fetchData = useCallback(async () => {
     if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/restaurant-invoices/${companyId}/weeks`);
-      setWeeks(res.data);
-    } catch (err) {
-      console.error("Haftalar yüklenemedi:", err);
-    }
-  }, [companyId]);
-
-  // Fetch week data
-  const fetchWeekData = useCallback(async () => {
-    if (!companyId || weeks.length === 0) return;
-    
-    const week = weeks[selectedWeekIndex];
-    if (!week) return;
-    
     setLoading(true);
+    
     try {
-      const res = await axios.get(`${API}/restaurant-invoices/${companyId}/week/${week.week_start}`);
-      setWeekData(res.data);
-      setSelectedRestaurant(null);
+      const [restaurantsRes, missingRes, monthRes] = await Promise.all([
+        axios.get(`${API}/restaurant-invoices/${companyId}/restaurants`),
+        axios.get(`${API}/restaurant-invoices/${companyId}/missing`),
+        axios.get(`${API}/restaurant-invoices/${companyId}/month/${selectedYear}/${selectedMonth}`)
+      ]);
+      
+      setRestaurants(restaurantsRes.data);
+      setMissingInvoices(missingRes.data);
+      setMonthInvoices(monthRes.data);
     } catch (err) {
-      console.error("Hafta verileri yüklenemedi:", err);
+      console.error("Veri yüklenemedi:", err);
+      toast.error("Veriler yüklenemedi");
     } finally {
       setLoading(false);
     }
-  }, [companyId, weeks, selectedWeekIndex]);
+  }, [companyId, selectedYear, selectedMonth]);
 
-  useEffect(() => {
-    fetchWeeks();
-  }, [fetchWeeks]);
-
-  useEffect(() => {
-    if (weeks.length > 0) {
-      fetchWeekData();
+  // Fetch restaurant data
+  const fetchRestaurantData = useCallback(async () => {
+    if (!companyId || !selectedRestaurant) {
+      setRestaurantData(null);
+      return;
     }
-  }, [weeks, selectedWeekIndex, fetchWeekData]);
+    
+    setRestaurantLoading(true);
+    try {
+      const res = await axios.get(
+        `${API}/restaurant-invoices/${companyId}/restaurant/${selectedRestaurant.restaurant_id}/month/${selectedYear}/${selectedMonth}`
+      );
+      setRestaurantData(res.data);
+    } catch (err) {
+      console.error("Restoran verileri yüklenemedi:", err);
+      setRestaurantData(null);
+    } finally {
+      setRestaurantLoading(false);
+    }
+  }, [companyId, selectedRestaurant, selectedYear, selectedMonth]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    fetchRestaurantData();
+  }, [fetchRestaurantData]);
 
   // Navigation
-  const handlePrevWeek = () => {
-    if (selectedWeekIndex < weeks.length - 1) {
-      setSelectedWeekIndex(selectedWeekIndex + 1);
+  const handlePrevMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedMonth(12);
+      setSelectedYear(selectedYear - 1);
+    } else {
+      setSelectedMonth(selectedMonth - 1);
     }
   };
 
-  const handleNextWeek = () => {
-    if (selectedWeekIndex > 0) {
-      setSelectedWeekIndex(selectedWeekIndex - 1);
+  const handleNextMonth = () => {
+    if (selectedMonth === 12) {
+      setSelectedMonth(1);
+      setSelectedYear(selectedYear + 1);
+    } else {
+      setSelectedMonth(selectedMonth + 1);
     }
   };
 
@@ -580,9 +612,7 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
   };
 
   const handleSelectAll = () => {
-    const allIds = [...(weekData?.missing_invoices || []), ...(weekData?.received_invoices || [])]
-      .flatMap(r => (r.invoices || []).map(inv => inv.invoice_id));
-    
+    const allIds = monthInvoices.map(inv => inv.invoice_id);
     if (selectedInvoices.length === allIds.length) {
       setSelectedInvoices([]);
     } else {
@@ -591,8 +621,8 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
   };
 
   // Upload handlers
-  const openUploadModal = (restaurant) => {
-    setUploadTarget(restaurant);
+  const openUploadModal = (target) => {
+    setUploadTarget(target);
     setUploadFile(null);
     setShowUploadModal(true);
   };
@@ -604,7 +634,7 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
     const formData = new FormData();
     formData.append("file", uploadFile);
     formData.append("restaurant_id", uploadTarget.restaurant_id);
-    formData.append("week_start", weeks[selectedWeekIndex].week_start);
+    formData.append("week_start", uploadTarget.week_start);
     formData.append("admin_id", adminId || "");
     formData.append("admin_name", adminName || "");
     
@@ -614,7 +644,8 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
       });
       toast.success("Fatura yüklendi");
       setShowUploadModal(false);
-      fetchWeekData();
+      fetchData();
+      if (selectedRestaurant) fetchRestaurantData();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Yükleme başarısız");
     } finally {
@@ -632,7 +663,8 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
         admin_name: adminName || ""
       });
       toast.success("Fatura onaylandı");
-      fetchWeekData();
+      fetchData();
+      if (selectedRestaurant) fetchRestaurantData();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Onaylama başarısız");
       throw err;
@@ -661,7 +693,8 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
     try {
       await axios.delete(`${API}/restaurant-invoices/${companyId}/invoice/${pendingDeleteId}`);
       toast.success("Fatura silindi");
-      fetchWeekData();
+      fetchData();
+      if (selectedRestaurant) fetchRestaurantData();
     } catch (err) {
       toast.error("Silme başarısız");
     } finally {
@@ -676,7 +709,6 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
       toast.error("En az bir fatura seçin");
       return;
     }
-    // For now, just download one by one
     for (const id of selectedInvoices) {
       try {
         const res = await axios.get(`${API}/restaurant-invoices/${companyId}/download/${id}`);
@@ -695,54 +727,50 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
     return <div className="p-4 text-center text-muted-foreground">Şirket seçilmedi</div>;
   }
 
-  if (loading && weeks.length === 0) return <PageLoading />;
-
-  // Combine all restaurants for the list
-  const allRestaurants = [...(weekData?.missing_invoices || []), ...(weekData?.received_invoices || [])];
+  if (loading) return <PageLoading />;
 
   return (
     <div className="space-y-4" data-testid="isletme-faturalari-tab">
-      <WeekSelector
-        weeks={weeks}
-        selectedIndex={selectedWeekIndex}
-        onPrev={handlePrevWeek}
-        onNext={handleNextWeek}
+      <MonthSelector
+        year={selectedYear}
+        month={selectedMonth}
+        onPrev={handlePrevMonth}
+        onNext={handleNextMonth}
       />
 
-      {loading ? (
-        <PageLoading />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <WeekInvoicesCard
-            invoices={allRestaurants}
-            selectedInvoices={selectedInvoices}
-            onToggleSelection={handleToggleSelection}
-            onSelectAll={handleSelectAll}
-            onDownloadBulk={handleDownloadBulk}
-            onView={handleViewInvoice}
-            onVerifyWithAmount={handleVerifyWithAmount}
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MonthInvoicesCard
+          invoices={monthInvoices}
+          selectedInvoices={selectedInvoices}
+          onToggleSelection={handleToggleSelection}
+          onSelectAll={handleSelectAll}
+          onDownloadBulk={handleDownloadBulk}
+          onView={handleViewInvoice}
+          onVerifyWithAmount={handleVerifyWithAmount}
+        />
 
-          <MissingInvoicesCard 
-            missingInvoices={weekData?.missing_invoices || []}
-            onUpload={openUploadModal}
-          />
+        <MissingInvoicesCard 
+          missingInvoices={missingInvoices}
+          onUpload={openUploadModal}
+        />
 
-          <RestaurantsListCard
-            restaurants={allRestaurants}
-            selectedRestaurant={selectedRestaurant}
-            onSelect={setSelectedRestaurant}
-          />
+        <RestaurantsListCard
+          restaurants={restaurants}
+          selectedRestaurant={selectedRestaurant}
+          onSelect={setSelectedRestaurant}
+        />
 
-          <RestaurantInvoicesCard
-            selectedRestaurant={selectedRestaurant}
-            loading={false}
-            onView={handleViewInvoice}
-            onDelete={handleDeleteInvoice}
-            onUpload={openUploadModal}
-          />
-        </div>
-      )}
+        <RestaurantInvoicesCard
+          selectedRestaurant={selectedRestaurant}
+          restaurantData={restaurantData}
+          loading={restaurantLoading}
+          onView={handleViewInvoice}
+          onDelete={handleDeleteInvoice}
+          onUpload={openUploadModal}
+          year={selectedYear}
+          month={selectedMonth}
+        />
+      </div>
 
       {/* Upload Modal */}
       <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
@@ -760,6 +788,11 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
               <p className="text-lg font-bold text-red-600">
                 {formatMoney(uploadTarget?.remaining_amount || uploadTarget?.required_amount)}
               </p>
+              {uploadTarget?.week_label && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Hafta: {uploadTarget.week_label}
+                </p>
+              )}
             </div>
             
             <div>
