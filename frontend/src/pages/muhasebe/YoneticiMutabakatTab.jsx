@@ -286,6 +286,11 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                             Süper Admin
                           </Badge>
                         )}
+                        {!admin.has_linked_courier && (
+                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                            Kurye Bağlı Değil
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {admin.courier_count} kuryeden tahsilat
