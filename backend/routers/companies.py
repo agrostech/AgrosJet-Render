@@ -155,3 +155,35 @@ async def update_working_hours(company_id: str, data: WorkingHoursUpdate):
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
     return {"message": "Çalışma saatleri güncellendi"}
+
+
+
+# --- Shift Tolerance Settings ---
+class ShiftToleranceUpdate(BaseModel):
+    shift_tolerance_minutes: int = 5
+
+
+@router.get("/companies/{company_id}/shift-tolerance")
+async def get_shift_tolerance(company_id: str):
+    """Şirket vardiya tolerans ayarını getir"""
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "shift_tolerance_minutes": 1})
+    if not company:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    return {
+        "shift_tolerance_minutes": company.get("shift_tolerance_minutes", 5)
+    }
+
+
+@router.put("/companies/{company_id}/shift-tolerance")
+async def update_shift_tolerance(company_id: str, data: ShiftToleranceUpdate):
+    """Şirket vardiya tolerans ayarını güncelle (dakika cinsinden)"""
+    if data.shift_tolerance_minutes < 0 or data.shift_tolerance_minutes > 30:
+        raise HTTPException(status_code=400, detail="Tolerans 0-30 dakika arasında olmalı")
+    
+    result = await db.companies.update_one(
+        {"id": company_id},
+        {"$set": {"shift_tolerance_minutes": data.shift_tolerance_minutes}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    return {"message": f"Vardiya toleransı güncellendi: {data.shift_tolerance_minutes} dakika"}
