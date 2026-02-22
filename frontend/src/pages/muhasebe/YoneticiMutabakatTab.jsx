@@ -149,6 +149,7 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
       
       setResetAdmin(null);
       setResetNote("");
+      setReceivedAmounts({ cash: 0, card_1: 0, card_10: 0, card_20: 0, meal_card: 0 });
       fetchData();
     } catch (err) {
       console.error("Sıfırlama hatası:", err);
@@ -156,6 +157,18 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
     } finally {
       setResetLoading(false);
     }
+  };
+  
+  // Reset modal açıldığında varsayılan değerleri set et
+  const openResetModal = (admin) => {
+    setResetAdmin(admin);
+    setReceivedAmounts({
+      cash: admin.total_cash || 0,
+      card_1: admin.total_card_1 || 0,
+      card_10: admin.total_card_10 || 0,
+      card_20: admin.total_card_20 || 0,
+      meal_card: admin.total_meal_card || 0
+    });
   };
 
   const filteredAdmins = data?.admins?.filter(a => 
