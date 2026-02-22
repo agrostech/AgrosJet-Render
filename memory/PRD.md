@@ -9,18 +9,30 @@ Kurye yönetim sistemi için admin reconciliation özelliği ve admin-kurye bağ
 3. Admin hakedişlerinin bağlı kurye hesabı üzerinden yönetilmesi
 4. Cariler'de admin-kurye hesaplarının doğru gösterimi
 5. Aylık restoran fatura sistemi (4 kartlı tasarım)
+6. Vardiya İhlalleri takip sistemi
 
 ## What's Been Implemented
 
 ### Session: 2025-02-22 (Latest)
+- **Vardiya Yönetimi Sayfası Yeniden Tasarlandı:**
+  - Sayfa adı "Vardiyalar" -> "Vardiya Yönetimi" olarak değişti
+  - Üstte "Vardiya Takibi" kartı (Güncel Durum'dan taşındı)
+  - Altta "Vardiya Yönetimi" kartı (mevcut atama tablosu)
+  - "Vardiya İhlalleri Geçmişi" modalı eklendi (Kuryeler/Yöneticiler sekmeleri)
+  - Backend: `/api/shift-violations/` endpoint'leri oluşturuldu
+  - İhlal türleri: Vardiyası başladı ama aktif değil, Vardiyası yok ama aktif, Vardiya bitmeden çevrimdışı, Mola limitini aştı
+  - Kurye/yönetici bazlı filtreleme
+  - Superadmin için silme özellikleri
+
 - **Restoran Fatura Sistemi Tamamlandı:**
   - 4 kartlı tasarım (Ay Faturaları, Eksik Faturalar, Restoranlar, Restoran Faturaları)
-  - Aylık bazlı fatura görüntüleme
-  - WhatsApp ile hatırlatma özelliği (eksik fatura olan restoranın kullanıcılarına mesaj)
-  - Eksik fatura kaydı silme özelliği (sadece superadmin)
-  - `DELETE /api/restaurant-invoices/{company_id}/missing/{record_id}` endpoint eklendi
-  - Restoran kullanıcıları için telefon numarası alanı
-  - Fatura ayarları modalı (hangi ödeme yöntemleri için fatura gerekli)
+  - WhatsApp ile hatırlatma özelliği
+  - Eksik fatura kaydı silme (superadmin)
+  - Kurye eksik fatura kartına da WhatsApp hatırlatma modal tasarımı eklendi
+
+- **Yönetici Saatlik Ücret Düzeltmesi:**
+  - Yönetici düzenleme modalından gereksiz "Saatlik Ücret" alanı kaldırıldı
+  - Tablodaki değer artık bağlı kuryenin saatlik ücretinden alınıyor
 
 ### Session: 2025-02-22
 - **Bug Fix:** Cariler'de admin-kurye bakiyelerinin gösterilmemesi sorunu düzeltildi
