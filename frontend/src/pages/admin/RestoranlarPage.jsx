@@ -185,6 +185,39 @@ export default function RestoranlarPage({ companyId }) {
     }
   };
 
+  // Invoice Settings Management
+  const openInvoiceSettingsModal = async (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setShowInvoiceSettingsModal(true);
+    setLoadingInvoiceSettings(true);
+    try {
+      const res = await axios.get(`${API}/restaurants/${restaurant.id}/invoice-settings`);
+      setInvoiceSettings(res.data.settings);
+    } catch (err) {
+      console.error("Fatura ayarları yüklenemedi:", err);
+      setInvoiceSettings({
+        cash: false,
+        credit_card: false,
+        online: false,
+        meal_card: false,
+        online_meal_card: false
+      });
+    } finally {
+      setLoadingInvoiceSettings(false);
+    }
+  };
+
+  const handleSaveInvoiceSettings = async () => {
+    if (!selectedRestaurant) return;
+    try {
+      await axios.put(`${API}/restaurants/${selectedRestaurant.id}/invoice-settings`, invoiceSettings);
+      toast.success("Fatura ayarları kaydedildi");
+      setShowInvoiceSettingsModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    }
+  };
+
   // Restaurant Users Management
   const openUsersModal = async (restaurant) => {
     setSelectedRestaurant(restaurant);
