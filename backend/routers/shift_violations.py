@@ -250,6 +250,8 @@ async def log_violation(
     }
     
     await db.shift_violations.insert_one(violation)
+    # MongoDB adds _id, remove it before returning
+    violation.pop("_id", None)
     return violation
 
 
