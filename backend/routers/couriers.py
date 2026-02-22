@@ -338,6 +338,35 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     except Exception as e:
         print(f"Status log creation failed: {e}")
     
+    # === ADMIN-KURYE SENKRONIZASYONU ===
+    # Kurye panelinden aktif olunduğunda, bağlı admin hesabını çevrimdışı yap
+    if data.availability_status == "active" and courier.get("is_admin_linked"):
+        try:
+            # Bağlı admin'i bul
+            linked_admin = await db.admins.find_one(
+                {"linked_courier_id": courier_id},
+                {"_id": 0, "id": 1, "status": 1, "company_id": 1}
+            )
+            
+            if linked_admin and linked_admin.get("status") == "active":
+                # Admin'i çevrimdışı yap
+                await db.admins.update_one(
+                    {"id": linked_admin["id"]},
+                    {"$set": {"status": "offline"}}
+                )
+                
+                # Admin status log oluştur
+                from routers.admin_status_logs import create_admin_status_log
+                await create_admin_status_log(
+                    admin_id=linked_admin["id"],
+                    new_status="offline",
+                    changed_by="system",
+                    company_id=linked_admin.get("company_id")
+                )
+                print(f"Admin {linked_admin['id']} auto-deactivated due to courier panel activation")
+        except Exception as e:
+            print(f"Admin sync failed: {e}")
+    
     # === VARDIYA İHLALİ KONTROLÜ ===
     # Kurye aktif olduğunda vardiyası var mı kontrol et
     if data.availability_status == "active" and company_id:
