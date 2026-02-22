@@ -331,12 +331,13 @@ export function CourierDetailModal({
                 {workLogs.logs.slice(-8).map((log, i) => {
                   const time = new Date(log.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
                   const statusLabels = { active: 'Aktif', on_break: 'Mola', offline: 'Çevrimdışı' };
+                  const logStatus = log.status || log.new_status; // Backend'de status olarak kaydediliyor
                   return (
                     <div 
                       key={i} 
                       className="px-1.5 py-0.5 rounded text-[10px] border border-slate-200 bg-white text-slate-600"
                     >
-                      {time} → {statusLabels[log.new_status] || log.new_status}
+                      {time} → {statusLabels[logStatus] || logStatus}
                     </div>
                   );
                 })}
