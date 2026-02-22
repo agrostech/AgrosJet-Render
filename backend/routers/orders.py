@@ -2573,19 +2573,47 @@ async def unmark_restaurant_delivery(order_id: str, restaurant_id: str):
     
     now = datetime.now(timezone.utc)
     
+    # Restoran teslimatı öncesi duruma dön
+    # Eğer önceki durum kaydedilmişse onu kullan, yoksa "preparing" olarak başlat
+    previous_status = order.get("status_before_restaurant_delivery", "preparing")
+    previous_prep_time = order.get("preparation_time_before_restaurant_delivery")
+    previous_prep_end_at = order.get("preparation_end_at_before_restaurant_delivery")
+    
+    # Eğer önceki durum "preparing" ise ve hazırlık süresi dolmuşsa, yeni süre başlat
+    # Süre dolmuşsa 15 dakika ile yeniden başlat
+    if previous_status == "preparing":
+        if previous_prep_end_at:
+            try:
+                prep_end = datetime.fromisoformat(previous_prep_end_at.replace('Z', '+00:00'))
+                if prep_end <= now:
+                    # Süre dolmuş, 15 dakika ile yeniden başlat
+                    previous_prep_time = 15
+                    previous_prep_end_at = (now + timedelta(minutes=15)).isoformat()
+            except:
+                # Parse hatası, 15 dakika ile başlat
+                previous_prep_time = 15
+                previous_prep_end_at = (now + timedelta(minutes=15)).isoformat()
+        else:
+            # Hazırlık süresi yoksa 15 dakika ile başlat
+            previous_prep_time = 15
+            previous_prep_end_at = (now + timedelta(minutes=15)).isoformat()
+    
     update_data = {
         "is_restaurant_delivery": False,
         "restaurant_delivery_unmarked_at": now.isoformat(),
-        "status": "ready",  # Hazır durumuna geri al
+        "status": previous_status,
+        "preparation_time": previous_prep_time,
+        "preparation_end_at": previous_prep_end_at,
         "updated_at": now.isoformat()
     }
     
     # Status history'ye ekle
+    status_label = "Hazırlanıyor" if previous_status == "preparing" else ORDER_STATUSES.get(previous_status, {}).get("label", previous_status)
     history_entry = {
-        "status": "ready",
-        "label": "Kurye Şirketine Aktarıldı",
+        "status": previous_status,
+        "label": f"Kurye Şirketine Aktarıldı ({status_label})",
         "timestamp": now.isoformat(),
-        "note": "Restoran teslimatı iptal edildi, sipariş kurye şirketine aktarıldı",
+        "note": f"Restoran teslimatı iptal edildi, sipariş kurye şirketine aktarıldı. Durum: {status_label}",
         "actor_type": "restaurant",
         "actor_name": "Restoran"
     }
@@ -2598,11 +2626,12 @@ async def unmark_restaurant_delivery(order_id: str, restaurant_id: str):
         }
     )
     
-    logger.info(f"Restoran teslimatı iptal edildi: {order_id}, restaurant: {restaurant_id}")
+    logger.info(f"Restoran teslimatı iptal edildi: {order_id}, restaurant: {restaurant_id}, status: {previous_status}")
     
     return {
         "message": "Sipariş kurye şirketine aktarıldı",
-        "order_id": order_id
+        "order_id": order_id,
+        "status": previous_status
     }
 
 
