@@ -240,16 +240,14 @@ async def get_logs_by_range(courier_id: str, start_date: str, end_date: str):
         "total_active_minutes": total_active_minutes,
         "total_active_hours": round(total_active_minutes / 60, 2)
     }
-        "logs": logs,
-        "daily_summary": daily_summary,
-        "total_active_minutes": total_active_minutes,
-        "total_active_hours": round(total_active_minutes / 60, 2)
-    }
 
 
 @router.post("/company/{company_id}/weekly-active-hours")
 async def get_weekly_active_hours(company_id: str, week_start: str, week_end: str):
-    """Haftalık aktif saatleri tüm kuryeler için hesapla"""
+    """Haftalık aktif saatleri tüm kuryeler için hesapla - courier_daily_active tablosundan"""
+    now = datetime.now(timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+    
     try:
         start_dt = datetime.fromisoformat(week_start.replace('Z', '+00:00'))
         end_dt = datetime.fromisoformat(week_end.replace('Z', '+00:00'))
@@ -267,31 +265,41 @@ async def get_weekly_active_hours(company_id: str, week_start: str, week_end: st
             ],
             "is_archived": {"$ne": True}
         },
-        {"_id": 0, "id": 1, "name": 1, "hourly_rate": 1}
+        {"_id": 0, "id": 1, "name": 1, "hourly_rate": 1, "availability_status": 1, "last_active_at": 1}
     ).to_list(1000)
     
     courier_ids = [c["id"] for c in couriers]
     courier_map = {c["id"]: c for c in couriers}
     
-    # Tüm logları çek
+    # courier_daily_active tablosundan aktif süreleri al
     pipeline = [
         {
             "$match": {
                 "courier_id": {"$in": courier_ids},
-                "date": {"$gte": start_date, "$lte": end_date},
-                "old_status": "active"
+                "date": {"$gte": start_date, "$lte": end_date}
             }
         },
         {
             "$group": {
                 "_id": "$courier_id",
-                "total_active_minutes": {"$sum": "$duration_minutes"}
+                "total_active_minutes": {"$sum": "$active_minutes"}
             }
         }
     ]
     
-    results = await db.courier_status_logs.aggregate(pipeline).to_list(1000)
+    results = await db.courier_daily_active.aggregate(pipeline).to_list(1000)
     active_hours_map = {r["_id"]: r["total_active_minutes"] for r in results}
+    
+    # Şu an aktif kuryeler için anlık süre ekle
+    if start_date <= today <= end_date:
+        for courier in couriers:
+            if courier.get("availability_status") == "active" and courier.get("last_active_at"):
+                try:
+                    last_active = datetime.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
+                    current_minutes = int((now - last_active).total_seconds() / 60)
+                    active_hours_map[courier["id"]] = active_hours_map.get(courier["id"], 0) + current_minutes
+                except (ValueError, TypeError):
+                    pass
     
     # Sonuçları derle
     courier_hours = []
