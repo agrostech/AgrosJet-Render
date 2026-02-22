@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, Settings, Power } from "lucide-react";
 
 export default function AdminSidebar({ 
   user, 
@@ -11,10 +11,14 @@ export default function AdminSidebar({
   onProfileClick,
   onLogout,
   badges = {},
-  companySwitcher = null
+  companySwitcher = null,
+  adminStatus = "offline",
+  onToggleStatus = null,
+  hasLinkedCourier = false
 }) {
   const location = useLocation();
   const isSuperAdmin = user?.role === "superadmin";
+  const isActive = adminStatus === "active";
 
   return (
     <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
