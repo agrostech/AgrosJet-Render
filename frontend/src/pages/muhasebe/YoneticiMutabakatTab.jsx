@@ -71,6 +71,13 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
   const [resetAdmin, setResetAdmin] = useState(null);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetNote, setResetNote] = useState("");
+  const [receivedAmounts, setReceivedAmounts] = useState({
+    cash: 0,
+    card_1: 0,
+    card_10: 0,
+    card_20: 0,
+    meal_card: 0
+  });
   
   // History modal
   const [historyAdmin, setHistoryAdmin] = useState(null);
