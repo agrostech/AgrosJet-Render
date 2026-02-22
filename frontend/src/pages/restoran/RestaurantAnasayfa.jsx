@@ -178,6 +178,46 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     previousOrderIdsRef.current = currentOrderIds;
   }, [orders, restaurantId]);
 
+  // Kurye ataması bildirimi
+  useEffect(() => {
+    if (!orders || orders.length === 0) return;
+    
+    const courierSettings = getCourierAssignmentSettings(restaurantId);
+    if (!courierSettings.enabled) return;
+    
+    // İlk yüklemede sadece mevcut atamaları kaydet
+    if (previousCourierAssignmentsRef.current.size === 0 && orders.length > 0) {
+      orders.forEach(order => {
+        if (order.courier_id) {
+          previousCourierAssignmentsRef.current.set(order.id, order.courier_id);
+        }
+      });
+      return;
+    }
+    
+    // Yeni kurye ataması olup olmadığını kontrol et
+    let hasNewAssignment = false;
+    
+    orders.forEach(order => {
+      const previousCourierId = previousCourierAssignmentsRef.current.get(order.id);
+      
+      // Daha önce kurye atanmamış ve şimdi atanmışsa
+      if (!previousCourierId && order.courier_id) {
+        hasNewAssignment = true;
+      }
+      
+      // Güncel durumu kaydet
+      if (order.courier_id) {
+        previousCourierAssignmentsRef.current.set(order.id, order.courier_id);
+      }
+    });
+    
+    // Yeni atama varsa ses çal
+    if (hasNewAssignment) {
+      playCourierAssignmentSound(courierSettings.soundId, courierSettings.volume, 2);
+    }
+  }, [orders, restaurantId]);
+
   // Süre dolan siparişleri otomatik "ready" durumuna geçir
   useEffect(() => {
     const checkExpiredOrders = async () => {
