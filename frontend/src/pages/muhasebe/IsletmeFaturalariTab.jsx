@@ -8,7 +8,7 @@ import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { 
   ChevronLeft, ChevronRight, FileText, AlertCircle, 
   Store, Download, Trash2, CheckCircle, Eye, Loader2,
-  Archive, Check, Circle, Filter
+  Archive, Check, Circle, Filter, MessageCircle, Phone, User
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
