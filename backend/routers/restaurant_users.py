@@ -114,6 +114,7 @@ async def create_restaurant_user(data: RestaurantUserCreate):
         "username": username,
         "password_hash": hash_password(data.password),
         "name": data.name,
+        "phone": data.phone,
         "restaurant_id": data.restaurant_id,
         "is_active": True,
         "created_at": datetime.now(timezone.utc).isoformat()
