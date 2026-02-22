@@ -880,8 +880,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                         {order.courier_phone}
                                       </a>
                                     )}
-                                    {/* Dinamik ETA - assigned/confirmed durumunda göster */}
-                                    {['assigned', 'confirmed'].includes(order.status) && order.courier_id && (() => {
+                                    {/* Dinamik ETA - assigned/confirmed durumunda göster (izin varsa) */}
+                                    {permissions.can_view_courier_eta !== false && ['assigned', 'confirmed'].includes(order.status) && order.courier_id && (() => {
                                       const eta = courierETAs[order.courier_id];
                                       if (eta?.eta_text) {
                                         return (
