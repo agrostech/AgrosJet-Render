@@ -47,7 +47,18 @@ export default function RestoranlarPage({ companyId }) {
   const [showPreparationModal, setShowPreparationModal] = useState(false);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [showInvoiceSettingsModal, setShowInvoiceSettingsModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  
+  // Invoice settings state
+  const [invoiceSettings, setInvoiceSettings] = useState({
+    cash: false,
+    credit_card: false,
+    online: false,
+    meal_card: false,
+    online_meal_card: false
+  });
+  const [loadingInvoiceSettings, setLoadingInvoiceSettings] = useState(false);
   
   // Blocked couriers state
   const [blockedCouriers, setBlockedCouriers] = useState([]);
