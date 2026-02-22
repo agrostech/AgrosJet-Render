@@ -60,6 +60,14 @@ async def create_shift(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.shifts.insert_one(shift)
+    
+    # Vardiya ihlali scheduler job'ını ekle
+    try:
+        from utils.shift_scheduler import update_shift_jobs_on_change
+        await update_shift_jobs_on_change(new_start_time=data.start_time)
+    except Exception as e:
+        print(f"Failed to update shift jobs: {e}")
+    
     return {"message": "Vardiya oluşturuldu", "id": shift["id"]}
 
 @router.put("/shifts/{shift_id}")
