@@ -24,6 +24,12 @@ import {
   requestNotificationPermission,
   getNotificationPermission,
 } from "@/utils/notificationSounds";
+import {
+  playCourierAssignmentSound,
+  COURIER_ASSIGNMENT_SOUNDS,
+  getCourierAssignmentSettings,
+  saveCourierAssignmentSettings,
+} from "@/utils/courierAssignmentSounds";
 
 export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [localSettings, setLocalSettings] = useState({ enabled: false, printerName: null, paperSize: "80mm" });
@@ -32,7 +38,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [printers, setPrinters] = useState([]);
   const [loadingPrinters, setLoadingPrinters] = useState(false);
   const [testingPrint, setTestingPrint] = useState(false);
-  const [openSections, setOpenSections] = useState({ print: false, notification: false });
+  const [openSections, setOpenSections] = useState({ print: false, notification: false, courierAssignment: false });
   const [hasChanges, setHasChanges] = useState(false);
 
   // Bildirim ayarları state'leri
@@ -41,6 +47,12 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [hasNotificationChanges, setHasNotificationChanges] = useState(false);
   const [playingSound, setPlayingSound] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState('default');
+
+  // Kurye ataması bildirim ayarları state'leri
+  const [courierSettings, setCourierSettings] = useState({ enabled: true, soundId: 'onay1', volume: 1.0 });
+  const [savedCourierSettings, setSavedCourierSettings] = useState({ enabled: true, soundId: 'onay1', volume: 1.0 });
+  const [hasCourierChanges, setHasCourierChanges] = useState(false);
+  const [playingCourierSound, setPlayingCourierSound] = useState(false);
 
   // Ayarları yükle
   useEffect(() => {
