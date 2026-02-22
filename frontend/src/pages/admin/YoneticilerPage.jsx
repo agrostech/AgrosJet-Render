@@ -246,36 +246,61 @@ export default function YoneticilerPage({ companyId }) {
               <TableHead className="font-bold text-xs">İsim</TableHead>
               <TableHead className="font-bold text-xs">Kullanıcı Adı</TableHead>
               <TableHead className="font-bold text-xs">Rol</TableHead>
+              <TableHead className="font-bold text-xs">Bağlı Kurye</TableHead>
+              <TableHead className="font-bold text-xs">Saatlik Ücret</TableHead>
               <TableHead className="font-bold text-xs text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {admins.map((a) => (
-              <TableRow key={a.id} className="border-b border-border hover:bg-slate-50">
-                <TableCell className="font-medium">{a.name}</TableCell>
-                <TableCell className="font-mono text-sm">{a.username}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 text-xs font-semibold ${a.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
-                    {a.role === "superadmin" ? "Süper Admin" : "Admin"}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  {a.role !== "superadmin" && (
-                    <div className="flex gap-2 justify-end">
-                      <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="h-8 px-3 border-2 hover:bg-amber-50 hover:text-amber-600" data-testid={`perm-admin-${a.id}`}>
-                        <Shield className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-admin-${a.id}`}>
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+            {admins.map((a) => {
+              const linkedCourier = couriers.find(c => c.id === a.linked_courier_id);
+              return (
+                <TableRow key={a.id} className="border-b border-border hover:bg-slate-50">
+                  <TableCell className="font-medium">{a.name}</TableCell>
+                  <TableCell className="font-mono text-sm">{a.username}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 text-xs font-semibold ${a.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"}`}>
+                      {a.role === "superadmin" ? "Süper Admin" : "Admin"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {linkedCourier ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
+                        <Link2 className="w-3 h-3" />
+                        {linkedCourier.name}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {a.hourly_rate ? (
+                      <span className="font-mono text-sm">{a.hourly_rate} TL</span>
+                    ) : (
+                      <span className="text-xs text-slate-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {a.role !== "superadmin" && (
+                      <div className="flex gap-2 justify-end">
+                        <Button size="sm" variant="outline" onClick={() => openLinkModal(a)} className="h-8 px-3 border-2 hover:bg-green-50 hover:text-green-600" title="Kurye Bağla">
+                          <Link2 className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => openPermModal(a)} className="h-8 px-3 border-2 hover:bg-amber-50 hover:text-amber-600" data-testid={`perm-admin-${a.id}`}>
+                          <Shield className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => openEditModal(a)} className="h-8 px-3 border-2 hover:bg-blue-50 hover:text-blue-600" data-testid={`edit-admin-${a.id}`}>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDeleteAdmin(a.id)} className="h-8 px-3 border-2 hover:bg-red-50 hover:text-red-600" data-testid={`delete-admin-${a.id}`}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
