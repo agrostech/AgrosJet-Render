@@ -673,20 +673,18 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         </td>
                         
                         {/* Yemek Kartı */}
-                        {hasMealCardCollection && (
-                          <td className="p-1 text-center">
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={getCollectionValue(courier, 'meal_card_amount') || ''}
-                              onChange={(e) => handleInputChange(courier.id, 'meal_card_amount', e.target.value)}
-                              disabled={courier.has_collection}
-                              className="h-7 text-xs text-center w-24 mx-auto"
-                              placeholder="0"
-                            />
-                          </td>
-                        )}
+                        <td className="p-1 text-center" style={{ display: hasMealCardCollection ? 'table-cell' : 'none' }}>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={getCollectionValue(courier, 'meal_card_amount') || ''}
+                            onChange={(e) => handleInputChange(courier.id, 'meal_card_amount', e.target.value)}
+                            disabled={courier.has_collection}
+                            className="h-7 text-xs text-center w-24 mx-auto"
+                            placeholder="0"
+                          />
+                        </td>
                         
                         {/* Farklar - Nakit */}
                         <td className="p-1 text-center">
