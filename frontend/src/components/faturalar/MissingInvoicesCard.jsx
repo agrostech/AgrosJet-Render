@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle } from "lucide-react";
+import { AlertCircle, Check, Filter, MessageCircle, AlertTriangle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const formatDate = (dateStr) => {
@@ -11,8 +11,9 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount)) + ' TL';
 };
 
-export function MissingInvoicesCard({ missingInvoices }) {
+export function MissingInvoicesCard({ missingInvoices, isSuperAdmin, onDismiss }) {
   const [selectedCourier, setSelectedCourier] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
 
   // Get unique couriers who have missing invoices
   const couriersWithMissing = useMemo(() => {
