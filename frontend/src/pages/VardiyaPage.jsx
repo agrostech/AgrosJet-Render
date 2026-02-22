@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { X, Clock, Pencil, Check, Users, Search, PointerIcon, AlertTriangle, RefreshCw } from "lucide-react";
+import { X, Clock, Pencil, Check, Users, Search, PointerIcon, AlertTriangle, RefreshCw, Settings } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import {
   useVardiyaData,
@@ -41,6 +41,11 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     leaves: []
   });
   const [trackingLoading, setTrackingLoading] = useState(true);
+  
+  // Tolerans ayarı
+  const [toleranceMinutes, setToleranceMinutes] = useState(5);
+  const [showToleranceInput, setShowToleranceInput] = useState(false);
+  const [tempTolerance, setTempTolerance] = useState(5);
 
   const {
     shifts,
