@@ -198,6 +198,28 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
           </div>
         </div>
       )}
+
+      {/* Silme Onay Modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Eksik Fatura Kaydını Sil"
+        description={pendingDelete ? `${pendingDelete.courier_name} - ${pendingDelete.description} için eksik fatura kaydını silmek istediğinizden emin misiniz?` : ""}
+        confirmText="Sil"
+        cancelText="İptal"
+        variant="destructive"
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          setDeletingId(pendingDelete.id);
+          try {
+            await onDismiss(pendingDelete.id);
+          } finally {
+            setDeletingId(null);
+            setConfirmOpen(false);
+            setPendingDelete(null);
+          }
+        }}
+      />
     </div>
   );
 }
