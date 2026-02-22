@@ -244,15 +244,34 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
     """
     Yönetici bakiyesini sıfırla (sadece süper admin yapabilir)
     Mevcut bakiye kaydedilir ve yeni dönem başlar
+    Eksik tutarlar bağlı kurye hesabına borç olarak işlenir
     """
     # Yöneticiyi kontrol et
     admin = await db.admins.find_one(
         {"id": admin_id},
-        {"_id": 0, "id": 1, "name": 1}
+        {"_id": 0, "id": 1, "name": 1, "linked_courier_id": 1}
     )
     
     if not admin:
         raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
+    
+    linked_courier_id = admin.get("linked_courier_id")
+    
+    # Bağlı kurye yoksa uyarı ver
+    if not linked_courier_id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Bu yöneticinin bağlı kurye hesabı yok. Önce Yöneticiler sayfasından kurye hesabı bağlayın."
+        )
+    
+    # Bağlı kurye bilgilerini al
+    linked_courier = await db.couriers.find_one(
+        {"id": linked_courier_id},
+        {"_id": 0, "id": 1, "name": 1}
+    )
+    
+    if not linked_courier:
+        raise HTTPException(status_code=404, detail="Bağlı kurye hesabı bulunamadı")
     
     # Mevcut bakiyeyi hesapla
     last_reset = await db.admin_mutabakat_resets.find_one(
