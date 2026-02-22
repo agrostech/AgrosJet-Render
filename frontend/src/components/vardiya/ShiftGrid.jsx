@@ -207,9 +207,13 @@ function ShiftCell({
             <div className="max-h-[40px] sm:max-h-[60px] overflow-y-auto space-y-0.5 scrollbar-thin">
               {filteredAssignments.map(a => {
                 const isHighlighted = courierFilter && a.courier_name?.toLowerCase().includes(courierFilter.toLowerCase());
+                const isAdmin = a.is_admin_linked;
                 return (
-                  <div key={a.id} className={`flex items-center justify-between px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-[9px] group ${isHighlighted ? 'bg-yellow-200' : 'bg-blue-50/80'}`}>
-                    <span className="font-medium truncate max-w-[30px] sm:max-w-none" title={a.courier_name}>{a.courier_name}</span>
+                  <div key={a.id} className={`flex items-center justify-between px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-[9px] group ${isHighlighted ? 'bg-yellow-200' : isAdmin ? 'bg-purple-100' : 'bg-blue-50/80'}`}>
+                    <span className={`font-medium truncate max-w-[30px] sm:max-w-none flex items-center gap-0.5 ${isAdmin ? 'text-purple-700' : ''}`} title={a.courier_name}>
+                      {isAdmin && <Briefcase className="w-2 h-2 sm:w-2.5 sm:h-2.5 flex-shrink-0" />}
+                      {a.courier_name}
+                    </span>
                     {editMode && !isSelectionMode && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onRemoveAssignment(a.id); }}
