@@ -648,3 +648,25 @@ async def delete_invoice(company_id: str, invoice_id: str):
         )
     
     return {"message": "Fatura silindi"}
+
+
+# ========== Delete Missing Invoice Record Endpoint ==========
+
+@router.delete("/restaurant-invoices/{company_id}/missing/{record_id}")
+async def delete_missing_invoice_record(company_id: str, record_id: str):
+    """
+    Eksik fatura kaydını tamamen sil.
+    Bu işlem sadece superadmin tarafından yapılabilir.
+    """
+    record = await db.restaurant_invoices.find_one({
+        "id": record_id,
+        "company_id": company_id
+    })
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    
+    # Kaydı sil
+    await db.restaurant_invoices.delete_one({"id": record_id})
+    
+    return {"message": "Eksik fatura kaydı silindi"}
