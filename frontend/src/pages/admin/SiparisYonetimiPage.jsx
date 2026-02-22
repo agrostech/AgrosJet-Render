@@ -931,6 +931,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             </span>
                           </td>
                           <td className="p-2" onClick={(e) => e.stopPropagation()}>
+                            {isAdminActive ? (
                             <Select 
                               value={order.status} 
                               onValueChange={(newValue) => {
@@ -963,8 +964,14 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 ))}
                               </SelectContent>
                             </Select>
+                            ) : (
+                              <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50`}>
+                                {statusInfo.label}
+                              </span>
+                            )}
                           </td>
                           <td className="p-2" onClick={(e) => e.stopPropagation()}>
+                            {isAdminActive ? (
                             <Select 
                               value={order.courier_id || ""}
                               onValueChange={(value) => {
