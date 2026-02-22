@@ -1954,10 +1954,12 @@ async def update_order_status(company_id: str, order_id: str, data: OrderStatusU
         )
     
     # Extra güncellemeleri hazırla
-    extra_updates = {
-        "preparation_end_at": None,  # Durum değiştiğinde sıfırla
-        "preparation_time": None
-    }
+    extra_updates = {}
+    
+    # Hazırlanıyor dışındaki durumlarda preparation bilgilerini sıfırla
+    if data.status != "preparing":
+        extra_updates["preparation_end_at"] = None
+        extra_updates["preparation_time"] = None
     
     # Kurye ataması kaldırılacak durumlara geçişte kurye bilgisini sil
     if data.status in COURIER_REMOVAL_STATUSES:
