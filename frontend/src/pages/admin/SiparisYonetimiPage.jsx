@@ -1059,6 +1059,14 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 )}
                               </SelectContent>
                             </Select>
+                            ) : (
+                              <span className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${
+                                order.courier_name ? "bg-green-100 text-green-700 font-medium" : "bg-slate-100 text-slate-500"
+                              }`}>
+                                <Bike className="w-3 h-3" />
+                                {order.courier_name || "-"}
+                              </span>
+                            )}
                           </td>
                         </tr>
                       );
