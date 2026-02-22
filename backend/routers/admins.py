@@ -248,6 +248,40 @@ async def update_admin(admin_id: str, data: AdminUpdate):
         update_data["password"] = hash_password(data.password)
     if data.email is not None:
         update_data["email"] = data.email
+    if data.hourly_rate is not None:
+        update_data["hourly_rate"] = data.hourly_rate
+    
+    # Kurye bağlantısı
+    if data.linked_courier_id is not None:
+        if data.linked_courier_id == "":
+            # Bağlantıyı kaldır
+            old_courier_id = admin.get("linked_courier_id")
+            if old_courier_id:
+                await db.couriers.update_one(
+                    {"id": old_courier_id},
+                    {"$unset": {"is_admin_linked": "", "linked_admin_id": ""}}
+                )
+            update_data["linked_courier_id"] = None
+        else:
+            # Yeni bağlantı
+            courier = await db.couriers.find_one({"id": data.linked_courier_id})
+            if not courier:
+                raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+            
+            # Eski bağlantıyı kaldır
+            old_courier_id = admin.get("linked_courier_id")
+            if old_courier_id and old_courier_id != data.linked_courier_id:
+                await db.couriers.update_one(
+                    {"id": old_courier_id},
+                    {"$unset": {"is_admin_linked": "", "linked_admin_id": ""}}
+                )
+            
+            # Yeni kuryeyi işaretle
+            await db.couriers.update_one(
+                {"id": data.linked_courier_id},
+                {"$set": {"is_admin_linked": True, "linked_admin_id": admin_id}}
+            )
+            update_data["linked_courier_id"] = data.linked_courier_id
     
     if not update_data:
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
@@ -255,3 +289,158 @@ async def update_admin(admin_id: str, data: AdminUpdate):
     await db.admins.update_one({"id": admin_id}, {"$set": update_data})
     
     return {"message": "Yönetici güncellendi", "password_changed": bool(data.password)}
+
+
+# --- Admin Aktiflik Yönetimi ---
+@router.post("/admins/{admin_id}/toggle-status")
+async def toggle_admin_status(admin_id: str):
+    """
+    Admin aktif/pasif durumunu değiştir.
+    Admin aktif olursa bağlı kurye pasif olur ve vice versa.
+    """
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
+    
+    current_status = admin.get("availability_status", "offline")
+    new_status = "offline" if current_status == "active" else "active"
+    now = datetime.now(timezone.utc)
+    
+    company_id = admin.get("company_id")
+    linked_courier_id = admin.get("linked_courier_id")
+    
+    # Admin aktif OLUYORSA
+    if new_status == "active":
+        # Admin'i aktif yap
+        await db.admins.update_one(
+            {"id": admin_id},
+            {"$set": {
+                "availability_status": "active",
+                "last_active_at": now.isoformat()
+            }}
+        )
+        
+        # Bağlı kurye varsa pasif yap
+        if linked_courier_id:
+            courier = await db.couriers.find_one({"id": linked_courier_id}, {"_id": 0, "availability_status": 1, "last_active_at": 1})
+            if courier and courier.get("availability_status") == "active":
+                # Kuryenin aktiflik süresini kaydet
+                await _save_courier_active_time(linked_courier_id, courier.get("last_active_at"), company_id)
+                
+                # Kurye pasif yap
+                await db.couriers.update_one(
+                    {"id": linked_courier_id},
+                    {"$set": {"availability_status": "offline"}, "$unset": {"last_active_at": ""}}
+                )
+                
+                # Kurye log
+                await db.courier_status_logs.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "courier_id": linked_courier_id,
+                    "company_id": company_id,
+                    "status": "offline",
+                    "changed_by": "admin_toggle",
+                    "changed_by_name": admin.get("name"),
+                    "timestamp": now.isoformat(),
+                    "date": now.strftime("%Y-%m-%d")
+                })
+    
+    # Admin pasif OLUYORSA
+    else:
+        # Admin'in aktiflik süresini kaydet
+        await _save_admin_active_time(admin_id, admin.get("last_active_at"), company_id, linked_courier_id)
+        
+        # Admin'i pasif yap
+        await db.admins.update_one(
+            {"id": admin_id},
+            {"$set": {"availability_status": "offline"}, "$unset": {"last_active_at": ""}}
+        )
+    
+    # Admin durum logu
+    await db.admin_status_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "admin_id": admin_id,
+        "company_id": company_id,
+        "status": new_status,
+        "timestamp": now.isoformat(),
+        "date": now.strftime("%Y-%m-%d")
+    })
+    
+    return {
+        "message": f"Durum değiştirildi: {new_status}",
+        "new_status": new_status
+    }
+
+
+async def _save_admin_active_time(admin_id: str, last_active_at: str, company_id: str, linked_courier_id: str = None):
+    """Admin aktiflik süresini kaydet (bağlı kurye'nin daily_active tablosuna)"""
+    if not last_active_at:
+        return
+    
+    try:
+        now = datetime.now(timezone.utc)
+        last_active = datetime.fromisoformat(last_active_at.replace('Z', '+00:00'))
+        active_minutes = int((now - last_active).total_seconds() / 60)
+        
+        if active_minutes > 0 and linked_courier_id:
+            # Bağlı kurye'nin daily_active tablosuna kaydet
+            today = now.strftime("%Y-%m-%d")
+            await db.courier_daily_active.update_one(
+                {"courier_id": linked_courier_id, "date": today},
+                {
+                    "$inc": {"active_minutes": active_minutes},
+                    "$setOnInsert": {
+                        "courier_id": linked_courier_id,
+                        "date": today,
+                        "company_id": company_id
+                    }
+                },
+                upsert=True
+            )
+    except (ValueError, TypeError):
+        pass
+
+
+async def _save_courier_active_time(courier_id: str, last_active_at: str, company_id: str):
+    """Kurye aktiflik süresini kaydet"""
+    if not last_active_at:
+        return
+    
+    try:
+        now = datetime.now(timezone.utc)
+        last_active = datetime.fromisoformat(last_active_at.replace('Z', '+00:00'))
+        active_minutes = int((now - last_active).total_seconds() / 60)
+        
+        if active_minutes > 0:
+            today = now.strftime("%Y-%m-%d")
+            await db.courier_daily_active.update_one(
+                {"courier_id": courier_id, "date": today},
+                {
+                    "$inc": {"active_minutes": active_minutes},
+                    "$setOnInsert": {
+                        "courier_id": courier_id,
+                        "date": today,
+                        "company_id": company_id
+                    }
+                },
+                upsert=True
+            )
+    except (ValueError, TypeError):
+        pass
+
+
+@router.get("/admins/{admin_id}/status")
+async def get_admin_status(admin_id: str):
+    """Admin'in aktiflik durumunu getir"""
+    admin = await db.admins.find_one(
+        {"id": admin_id}, 
+        {"_id": 0, "availability_status": 1, "last_active_at": 1, "linked_courier_id": 1}
+    )
+    if not admin:
+        raise HTTPException(status_code=404, detail="Yönetici bulunamadı")
+    
+    return {
+        "availability_status": admin.get("availability_status", "offline"),
+        "last_active_at": admin.get("last_active_at"),
+        "linked_courier_id": admin.get("linked_courier_id")
+    }
