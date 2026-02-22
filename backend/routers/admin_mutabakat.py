@@ -47,7 +47,7 @@ async def get_admin_balances(company_id: str):
         for r in restaurants_with_meal_card
     )
     
-    # Şirketteki tüm yöneticileri al
+    # Şirketteki tüm yöneticileri al (linked_courier_id dahil)
     admins = await db.admins.find(
         {
             "$or": [
@@ -56,13 +56,14 @@ async def get_admin_balances(company_id: str):
             ],
             "is_archived": {"$ne": True}
         },
-        {"_id": 0, "id": 1, "name": 1, "role": 1}
+        {"_id": 0, "id": 1, "name": 1, "role": 1, "linked_courier_id": 1}
     ).to_list(100)
     
     admin_balances = []
     
     for admin in admins:
         admin_id = admin["id"]
+        linked_courier_id = admin.get("linked_courier_id")
         
         # Son sıfırlama tarihini bul
         last_reset = await db.admin_mutabakat_resets.find_one(
