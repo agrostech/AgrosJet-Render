@@ -299,6 +299,107 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
         card_at_reset = 0
         meal_card_at_reset = 0
     
+    # Alınan tutarları al
+    received_cash = data.received_cash or 0
+    received_card_1 = data.received_card_1 or 0
+    received_card_10 = data.received_card_10 or 0
+    received_card_20 = data.received_card_20 or 0
+    received_card = received_card_1 + received_card_10 + received_card_20
+    received_meal_card = data.received_meal_card or 0
+    
+    # Eksik tutarları hesapla
+    missing_cash = round(cash_at_reset - received_cash, 2)
+    missing_card_1 = round(card_1_at_reset - received_card_1, 2)
+    missing_card_10 = round(card_10_at_reset - received_card_10, 2)
+    missing_card_20 = round(card_20_at_reset - received_card_20, 2)
+    missing_meal_card = round(meal_card_at_reset - received_meal_card, 2)
+    
+    # Yöneticinin vendor_id'sini bul veya oluştur
+    admin_vendor_id = f"admin_{admin_id}"
+    
+    # Eksik tutarlar için Cariler'e işlem ekle
+    transactions_added = []
+    
+    if missing_cash > 0:
+        tx = {
+            "id": str(uuid.uuid4()),
+            "entity_id": admin_vendor_id,
+            "entity_type": "vendor",
+            "company_id": company_id,
+            "type": "given",
+            "amount": missing_cash,
+            "description": "Mütabakat Sıfırlama - Eksik Nakit",
+            "admin_id": data.reset_by_id,
+            "admin_name": data.reset_by_name,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.transactions.insert_one(tx)
+        transactions_added.append({"type": "cash", "amount": missing_cash})
+    
+    if missing_card_1 > 0:
+        tx = {
+            "id": str(uuid.uuid4()),
+            "entity_id": admin_vendor_id,
+            "entity_type": "vendor",
+            "company_id": company_id,
+            "type": "given",
+            "amount": missing_card_1,
+            "description": "Mütabakat Sıfırlama - Eksik Kart (%1)",
+            "admin_id": data.reset_by_id,
+            "admin_name": data.reset_by_name,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.transactions.insert_one(tx)
+        transactions_added.append({"type": "card_1", "amount": missing_card_1})
+    
+    if missing_card_10 > 0:
+        tx = {
+            "id": str(uuid.uuid4()),
+            "entity_id": admin_vendor_id,
+            "entity_type": "vendor",
+            "company_id": company_id,
+            "type": "given",
+            "amount": missing_card_10,
+            "description": "Mütabakat Sıfırlama - Eksik Kart (%10)",
+            "admin_id": data.reset_by_id,
+            "admin_name": data.reset_by_name,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.transactions.insert_one(tx)
+        transactions_added.append({"type": "card_10", "amount": missing_card_10})
+    
+    if missing_card_20 > 0:
+        tx = {
+            "id": str(uuid.uuid4()),
+            "entity_id": admin_vendor_id,
+            "entity_type": "vendor",
+            "company_id": company_id,
+            "type": "given",
+            "amount": missing_card_20,
+            "description": "Mütabakat Sıfırlama - Eksik Kart (%20)",
+            "admin_id": data.reset_by_id,
+            "admin_name": data.reset_by_name,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.transactions.insert_one(tx)
+        transactions_added.append({"type": "card_20", "amount": missing_card_20})
+    
+    if missing_meal_card > 0:
+        tx = {
+            "id": str(uuid.uuid4()),
+            "entity_id": admin_vendor_id,
+            "entity_type": "vendor",
+            "company_id": company_id,
+            "type": "given",
+            "amount": missing_meal_card,
+            "description": "Mütabakat Sıfırlama - Eksik Yemek Kartı",
+            "admin_id": data.reset_by_id,
+            "admin_name": data.reset_by_name,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.transactions.insert_one(tx)
+        transactions_added.append({"type": "meal_card", "amount": missing_meal_card})
+    
     # Sıfırlama kaydı oluştur
     reset_record = {
         "id": str(uuid.uuid4()),
@@ -315,6 +416,15 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
         "card_at_reset": round(card_at_reset, 2),
         "meal_card_at_reset": round(meal_card_at_reset, 2),
         "total_at_reset": round(cash_at_reset + card_at_reset + meal_card_at_reset, 2),
+        "received_cash": received_cash,
+        "received_card_1": received_card_1,
+        "received_card_10": received_card_10,
+        "received_card_20": received_card_20,
+        "received_card": received_card,
+        "received_meal_card": received_meal_card,
+        "missing_cash": missing_cash if missing_cash > 0 else 0,
+        "missing_card": round(max(0, missing_card_1) + max(0, missing_card_10) + max(0, missing_card_20), 2),
+        "missing_meal_card": missing_meal_card if missing_meal_card > 0 else 0,
         "note": data.note
     }
     
