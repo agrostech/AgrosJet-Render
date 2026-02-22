@@ -384,7 +384,7 @@ async def create_transaction(
     await db.transactions.insert_one(transaction)
     
     # Get entity name for log
-    entity_name = await get_entity_name(data.entity_type, data.entity_id)
+    entity_name = await get_entity_name(actual_entity_type, actual_entity_id)
     
     # Create activity log
     if data.admin_id and data.admin_name:
@@ -393,8 +393,8 @@ async def create_transaction(
             "admin_id": data.admin_id,
             "admin_name": data.admin_name,
             "action": "transaction_created",
-            "entity_type": data.entity_type,
-            "entity_id": data.entity_id,
+            "entity_type": actual_entity_type,
+            "entity_id": actual_entity_id,
             "entity_name": entity_name,
             "details": {
                 "transaction_id": transaction["id"],
@@ -407,9 +407,9 @@ async def create_transaction(
     
     # Auto-credit JetPuan for hakediş transactions (payment_in to courier - kırmızı buton)
     # Sadece add_jetpuan=True ise JetPuan eklenir
-    if data.entity_type == "courier" and data.is_hakedis and data.type == "payment_in" and data.add_jetpuan:
+    if actual_entity_type == "courier" and data.is_hakedis and data.type == "payment_in" and data.add_jetpuan:
         try:
-            jetpuan_amount = await calculate_and_credit_points(data.entity_id, data.amount)
+            jetpuan_amount = await calculate_and_credit_points(actual_entity_id, data.amount)
             if jetpuan_amount > 0:
                 # Log the JetPuan credit
                 if data.admin_id and data.admin_name:
@@ -419,7 +419,7 @@ async def create_transaction(
                         "admin_name": data.admin_name,
                         "action": "jetpuan_credited",
                         "entity_type": "courier",
-                        "entity_id": data.entity_id,
+                        "entity_id": actual_entity_id,
                         "entity_name": entity_name,
                         "details": {
                             "hakedis_amount": data.amount,
