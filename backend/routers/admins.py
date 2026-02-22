@@ -435,10 +435,11 @@ async def toggle_admin_status(admin_id: str):
     # === VARDIYA KAPANIŞ KONTROLÜ ===
     # Admin pasif olduğunda:
     # 1. Şu an aktif vardiyası varsa → "Vardiya bitmeden çevrimdışı" ihlali
-    # 2. Yoksa, bitmiş vardiyası varsa → "Geç kapattı" ihlali
+    # 2. Yoksa, bitmiş vardiyası varsa → "Geç kapattı" ihlali (tolerans dahilinde değilse)
     if new_status == "offline" and company_id and linked_courier_id:
         try:
             from routers.shift_violations import log_violation
+            from utils.shift_scheduler import get_company_tolerance
             
             # Türkiye saati
             turkey_tz = timezone(timedelta(hours=3))
@@ -446,6 +447,9 @@ async def toggle_admin_status(admin_id: str):
             days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
             today_key = days_map[now_turkey.weekday()]
             current_minutes = now_turkey.hour * 60 + now_turkey.minute
+            
+            # Tolerans süresini al
+            tolerance = await get_company_tolerance(company_id)
             
             # Bugün bu admin'in bağlı kuryesinin vardiyalarını bul
             assignments = await db.shift_assignments.find({
@@ -479,8 +483,9 @@ async def toggle_admin_status(admin_id: str):
                             active_shift = shift
                             break
                     else:
-                        # Normal vardiya
-                        if start_minutes <= current_minutes < end_minutes:
+                        # Normal vardiya (tolerans dahil - erken çıkış kontrolü için)
+                        # Eğer vardiya bitiş saatinden tolerans kadar ÖNCE çıkıyorsa ihlal
+                        if start_minutes <= current_minutes < (end_minutes - tolerance):
                             active_shift = shift
                             break
                     
@@ -489,7 +494,7 @@ async def toggle_admin_status(admin_id: str):
                         latest_ended_shift = shift
                         latest_end_minutes = end_minutes
                 
-                # DURUM 1: Şu an aktif vardiyası var ama çevrimdışı oluyor
+                # DURUM 1: Şu an aktif vardiyası var ama çevrimdışı oluyor (tolerans dahilinde değil)
                 if active_shift:
                     await log_violation(
                         company_id=company_id,
@@ -510,7 +515,8 @@ async def toggle_admin_status(admin_id: str):
                 elif latest_ended_shift and latest_end_minutes > 0:
                     late_minutes = current_minutes - latest_end_minutes
                     
-                    if late_minutes > 0:  # En az 1 dakika geç
+                    # Tolerans süresini aşarsa ihlal logla
+                    if late_minutes > tolerance:
                         await log_violation(
                             company_id=company_id,
                             entity_type="admin",
@@ -523,6 +529,7 @@ async def toggle_admin_status(admin_id: str):
                                 "shift_end_time": latest_ended_shift["end_time"],
                                 "deactivated_at": now_turkey.strftime("%H:%M"),
                                 "late_minutes": late_minutes,
+                                "tolerance_minutes": tolerance,
                                 "triggered_by": "admin_deactivation"
                             }
                         )
