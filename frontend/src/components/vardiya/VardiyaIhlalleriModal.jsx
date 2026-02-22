@@ -46,10 +46,12 @@ const formatDateTimeWithDay = (dateStr) => {
 
 // Haftanın başlangıç ve bitiş tarihlerini hesapla (Pazartesi - Pazar)
 const getWeekRange = (date) => {
-  const d = new Date(date);
+  // Türkiye saatine göre hesapla
+  const d = new Date(date.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Pazartesi'ye ayarla
-  const monday = new Date(d.setDate(diff));
+  const monday = new Date(d);
+  monday.setDate(diff);
   monday.setHours(0, 0, 0, 0);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
@@ -58,9 +60,13 @@ const getWeekRange = (date) => {
 };
 
 const formatWeekLabel = (start, end) => {
-  const startStr = start.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
-  const endStr = end.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  return `${startStr} - ${endStr}`;
+  const formatDate = (d) => {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear()).slice(-2);
+    return `${day}.${month}.${year}`;
+  };
+  return `${formatDate(start)} - ${formatDate(end)}`;
 };
 
 export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, isSuperAdmin }) {
