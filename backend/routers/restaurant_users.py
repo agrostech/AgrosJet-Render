@@ -19,11 +19,13 @@ class RestaurantUserCreate(BaseModel):
     username: str
     password: str
     name: str
+    phone: Optional[str] = None
     restaurant_id: str
 
 
 class RestaurantUserUpdate(BaseModel):
     name: Optional[str] = None
+    phone: Optional[str] = None
     password: Optional[str] = None
     is_active: Optional[bool] = None
 
