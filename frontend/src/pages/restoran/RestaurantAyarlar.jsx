@@ -204,6 +204,23 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     toast.success("Bildirim ayarları kaydedildi");
   };
 
+  // Kurye ataması ayarları fonksiyonları
+  const updateCourierSetting = (key, value) => {
+    setCourierSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handlePlayCourierSound = () => {
+    setPlayingCourierSound(true);
+    playCourierAssignmentSound(courierSettings.soundId, courierSettings.volume, 2);
+    setTimeout(() => setPlayingCourierSound(false), 3000);
+  };
+
+  const handleSaveCourierSettings = () => {
+    saveCourierAssignmentSettings(restaurantId, courierSettings);
+    setSavedCourierSettings(courierSettings);
+    toast.success("Kurye ataması bildirim ayarları kaydedildi");
+  };
+
   return (
     <div className="space-y-6" data-testid="restaurant-ayarlar-page">
       {/* Header */}
