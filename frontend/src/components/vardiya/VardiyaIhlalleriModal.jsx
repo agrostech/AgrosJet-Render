@@ -340,7 +340,12 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
                                 </span>
                               )}
                             </p>
-                            {v.details?.shift_end_time && (
+                            {v.details?.activated_at && v.details?.activated_after_shift && (
+                              <p className="text-xs text-muted-foreground">
+                                Aktif olduğu saat: {v.details.activated_at} → Kapanış: {v.details.deactivated_at}
+                              </p>
+                            )}
+                            {v.details?.shift_end_time && !v.details?.activated_after_shift && (
                               <p className="text-xs text-muted-foreground">
                                 Vardiya bitişi: {v.details.shift_end_time} → Kapanış: {v.details.deactivated_at}
                               </p>
