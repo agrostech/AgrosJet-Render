@@ -1395,6 +1395,98 @@ export default function RestoranlarPage({ companyId }) {
         restaurant={selectedRestaurant}
         onSaved={fetchRestaurants}
       />
+
+      {/* Invoice Settings Modal */}
+      <Dialog open={showInvoiceSettingsModal} onOpenChange={setShowInvoiceSettingsModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-blue-600" />
+              Fatura Ayarları - {selectedRestaurant?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {loadingInvoiceSettings ? (
+            <div className="py-8 text-center text-muted-foreground">Yükleniyor...</div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                İşletme hangi ödeme yöntemleri için fatura kesecek?
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Banknote className="w-4 h-4 text-green-600" />
+                    <span className="font-medium">Nakit</span>
+                  </div>
+                  <Switch
+                    checked={invoiceSettings.cash}
+                    onCheckedChange={(checked) => setInvoiceSettings(prev => ({ ...prev, cash: checked }))}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="w-4 h-4 text-blue-600" />
+                    <span className="font-medium">Kredi Kartı</span>
+                  </div>
+                  <Switch
+                    checked={invoiceSettings.credit_card}
+                    onCheckedChange={(checked) => setInvoiceSettings(prev => ({ ...prev, credit_card: checked }))}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Store className="w-4 h-4 text-purple-600" />
+                    <span className="font-medium">Online</span>
+                  </div>
+                  <Switch
+                    checked={invoiceSettings.online}
+                    onCheckedChange={(checked) => setInvoiceSettings(prev => ({ ...prev, online: checked }))}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="w-4 h-4 text-orange-600" />
+                    <span className="font-medium">Yemek Kartı</span>
+                  </div>
+                  <Switch
+                    checked={invoiceSettings.meal_card}
+                    onCheckedChange={(checked) => setInvoiceSettings(prev => ({ ...prev, meal_card: checked }))}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="w-4 h-4 text-cyan-600" />
+                    <span className="font-medium">Online Yemek Kartı</span>
+                  </div>
+                  <Switch
+                    checked={invoiceSettings.online_meal_card}
+                    onCheckedChange={(checked) => setInvoiceSettings(prev => ({ ...prev, online_meal_card: checked }))}
+                  />
+                </div>
+              </div>
+              
+              <p className="text-xs text-muted-foreground">
+                Seçilen ödeme yöntemlerinin haftalık toplamı için restorandan fatura beklenecektir.
+              </p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInvoiceSettingsModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveInvoiceSettings}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
