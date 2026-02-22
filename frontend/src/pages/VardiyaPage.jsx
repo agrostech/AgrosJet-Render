@@ -195,7 +195,53 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h2 className="font-heading text-xl font-bold tracking-tight">Vardiya Yönetimi</h2>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Tolerans Ayarı */}
+          <div className="flex items-center gap-1 text-xs">
+            {showToleranceInput ? (
+              <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded">
+                <span className="text-slate-500">Tolerans:</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="30"
+                  value={tempTolerance}
+                  onChange={(e) => setTempTolerance(parseInt(e.target.value) || 0)}
+                  className="w-14 h-6 text-xs px-1 border"
+                  data-testid="tolerance-input"
+                />
+                <span className="text-slate-500">dk</span>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-6 px-1"
+                  onClick={handleUpdateTolerance}
+                >
+                  <Check className="w-3 h-3 text-green-600" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-6 px-1"
+                  onClick={() => { setShowToleranceInput(false); setTempTolerance(toleranceMinutes); }}
+                >
+                  <X className="w-3 h-3 text-red-500" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs bg-slate-100 hover:bg-slate-200"
+                onClick={() => setShowToleranceInput(true)}
+                title="Vardiya giriş/çıkış toleransı"
+                data-testid="tolerance-btn"
+              >
+                <Settings className="w-3 h-3 mr-1" />
+                Tolerans: ±{toleranceMinutes} dk
+              </Button>
+            )}
+          </div>
           <Button
             variant="outline"
             size="sm"
