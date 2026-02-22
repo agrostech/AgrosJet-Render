@@ -541,6 +541,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                   </tr>
                 </thead>
                 <tbody>
+                  {console.log('[GunlukMutabakat] Rendering tbody, hasMealCardCollection:', hasMealCardCollection)}
                   {couriers.map((courier) => {
                     const isSelected = selectedIds.includes(courier.id);
                     const isProcessed = courier.is_processed;
