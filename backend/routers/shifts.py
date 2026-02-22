@@ -96,10 +96,22 @@ async def delete_shift(
     return {"message": "Vardiya silindi"}
 
 @router.get("/companies/{company_id}/shift-assignments")
-async def get_shift_assignments(company_id: str):
+async def get_shift_assignments(company_id: str, include_admin_linked: bool = False):
     """Get all shift assignments for a company"""
     # GET işlemi - kurye panelinden de erişilebilir
     assignments = await db.shift_assignments.find({"company_id": company_id}, {"_id": 0}).to_list(1000)
+    
+    # is_admin_linked kuryeleri filtrele (Güncel Durum'da gösterilmeyecek)
+    if not include_admin_linked:
+        courier_ids = list(set(a["courier_id"] for a in assignments))
+        if courier_ids:
+            admin_linked_couriers = await db.couriers.find(
+                {"id": {"$in": courier_ids}, "is_admin_linked": True},
+                {"_id": 0, "id": 1}
+            ).to_list(1000)
+            admin_linked_ids = set(c["id"] for c in admin_linked_couriers)
+            assignments = [a for a in assignments if a["courier_id"] not in admin_linked_ids]
+    
     return assignments
 
 @router.post("/shifts/{shift_id}/assign")
