@@ -274,7 +274,7 @@ export default function CarilerTab({ companyId, adminId, adminName, companyLogo,
                 </div>
                 
                 {/* Alt satır (mobilde) / Sağ taraf (masaüstünde): Butonlar */}
-                {!showArchived && (
+                {!showArchived && !selectedEntity.is_auto_admin && (
                   <div className="flex items-center gap-2 justify-end">
                     <Button variant="outline" size="sm" onClick={() => {
                       setConfirmConfig({
