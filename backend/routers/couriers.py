@@ -284,6 +284,10 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     
     update_data = {"availability_status": data.availability_status}
     
+    # Aktif olma zamanını kaydet (vardiya ihlal kontrolü için)
+    if data.availability_status == "active" and current_status != "active":
+        update_data["activated_at"] = now.isoformat()
+    
     # Molaya çıkış kontrolü
     if data.availability_status == "on_break" and current_status != "on_break":
         # Mola limitini kontrol et (force=True ise admin atlaması)
