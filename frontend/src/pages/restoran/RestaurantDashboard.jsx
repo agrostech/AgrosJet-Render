@@ -128,10 +128,7 @@ export default function RestaurantDashboard() {
       
       // Değişiklik varsa sayfayı yenile
       if (newUpdatedAt && newUpdatedAt !== permissionsUpdatedAtRef.current) {
-        toast.info("İzinler güncellendi, sayfa yenileniyor...");
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        window.location.reload();
       }
     } catch (err) {
       // Sessizce hata yut
