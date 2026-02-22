@@ -109,6 +109,24 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     refetch();
     fetchTrackingData();
   };
+  
+  // Tolerans güncelleme
+  const handleUpdateTolerance = async () => {
+    if (tempTolerance < 0 || tempTolerance > 30) {
+      toast.error("Tolerans 0-30 dakika arasında olmalı");
+      return;
+    }
+    try {
+      await axios.put(`${API}/companies/${companyId}/shift-tolerance`, {
+        shift_tolerance_minutes: tempTolerance
+      });
+      setToleranceMinutes(tempTolerance);
+      setShowToleranceInput(false);
+      toast.success(`Tolerans ${tempTolerance} dakika olarak güncellendi`);
+    } catch (err) {
+      toast.error("Tolerans güncellenemedi");
+    }
+  };
 
   // Vardiya silme işlemi
   const handleDeleteShift = (shiftId) => {
