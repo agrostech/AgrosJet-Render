@@ -535,22 +535,43 @@ async def toggle_admin_status(admin_id: str):
                     
                     # Tolerans süresini aşarsa ihlal logla
                     if late_minutes > tolerance:
-                        await log_violation(
-                            company_id=company_id,
-                            entity_type="admin",
-                            entity_id=admin_id,
-                            entity_name=admin.get("name", ""),
-                            violation_type="still_active_after_shift_end",
-                            details={
-                                "linked_courier_id": linked_courier_id,
-                                "shift_id": latest_ended_shift["id"],
-                                "shift_end_time": latest_ended_shift["end_time"],
-                                "deactivated_at": now_turkey.strftime("%H:%M"),
-                                "late_minutes": late_minutes,
-                                "tolerance_minutes": tolerance,
-                                "triggered_by": "admin_deactivation"
-                            }
-                        )
+                        # Çift ihlal kontrolü: Bugün aynı admin için "vardiyası yok ama aktif" ihlali var mı?
+                        # Eğer varsa, "geç kapattı" ihlalini loglama (zaten vardiya dışında aktif olmuş)
+                        
+                        # Bugünün başlangıcı (06:00 iş günü başlangıcı)
+                        today_start = now_turkey.replace(hour=6, minute=0, second=0, microsecond=0)
+                        if now_turkey.hour < 6:
+                            today_start = today_start - timedelta(days=1)
+                        
+                        # Bugün "active_without_shift" ihlali var mı kontrol et
+                        existing_violation = await db.shift_violations.find_one({
+                            "company_id": company_id,
+                            "entity_type": "admin",
+                            "entity_id": admin_id,
+                            "violation_type": "active_without_shift",
+                            "timestamp": {"$gte": today_start.isoformat()}
+                        })
+                        
+                        # Eğer bugün zaten "vardiyası yok ama aktif" ihlali varsa, bu ihlali loglama
+                        if existing_violation:
+                            print(f"Skipping 'still_active_after_shift_end' - already has 'active_without_shift' today for admin {admin_id}")
+                        else:
+                            await log_violation(
+                                company_id=company_id,
+                                entity_type="admin",
+                                entity_id=admin_id,
+                                entity_name=admin.get("name", ""),
+                                violation_type="still_active_after_shift_end",
+                                details={
+                                    "linked_courier_id": linked_courier_id,
+                                    "shift_id": latest_ended_shift["id"],
+                                    "shift_end_time": latest_ended_shift["end_time"],
+                                    "deactivated_at": now_turkey.strftime("%H:%M"),
+                                    "late_minutes": late_minutes,
+                                    "tolerance_minutes": tolerance,
+                                    "triggered_by": "admin_deactivation"
+                                }
+                            )
         except Exception as e:
             print(f"Admin late deactivation check failed: {e}")
     
