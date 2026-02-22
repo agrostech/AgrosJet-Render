@@ -469,6 +469,7 @@ async def toggle_admin_status(admin_id: str):
                 active_shift = None
                 latest_ended_shift = None
                 latest_end_minutes = -1
+                within_tolerance = False  # Tolerans dahilinde biten vardiya var mı?
                 
                 for shift in shifts:
                     start_h, start_m = map(int, shift["start_time"].split(":"))
@@ -483,28 +484,33 @@ async def toggle_admin_status(admin_id: str):
                             active_shift = shift
                             break
                     else:
-                        # Normal vardiya
-                        # Tolerans dahilinde kapanıyorsa ihlal yok
+                        # Normal vardiya - hala devam ediyor mu?
                         if start_minutes <= current_minutes < end_minutes:
                             # Vardiya hala devam ediyor, erken çıkış kontrolü
                             if current_minutes < (end_minutes - tolerance):
                                 active_shift = shift
                                 break
-                            # Tolerans aralığında, sorun yok
+                            # Tolerans aralığında
                             else:
-                                active_shift = None
+                                within_tolerance = True
                                 break
                     
-                    # Bitmiş vardiyaları takip et (tolerans dışında kalan en son biten)
+                    # Bitmiş vardiyaları kontrol et
                     if end_minutes <= current_minutes:
                         minutes_since_end = current_minutes - end_minutes
-                        # Tolerans dahilinde bittiyse, ihlal yok - atla
+                        # Tolerans dahilinde bittiyse, ihlal yok
                         if minutes_since_end <= tolerance:
-                            continue
-                        # Tolerans aşıldı, en son biteni bul
-                        if end_minutes > latest_end_minutes:
-                            latest_ended_shift = shift
-                            latest_end_minutes = end_minutes
+                            within_tolerance = True
+                        else:
+                            # Tolerans aşıldı, en son biteni bul
+                            if end_minutes > latest_end_minutes:
+                                latest_ended_shift = shift
+                                latest_end_minutes = end_minutes
+                
+                # Tolerans dahilinde bir vardiya varsa hiç ihlal yok
+                if within_tolerance:
+                    latest_ended_shift = None
+                    active_shift = None
                 
                 # DURUM 1: Şu an aktif vardiyası var ama çevrimdışı oluyor (tolerans dahilinde değil)
                 if active_shift:
