@@ -350,6 +350,111 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
         </Collapsible>
       </Card>
 
+      {/* Kurye Ataması Bildirimi */}
+      <Card>
+        <Collapsible open={openSections.courierAssignment} onOpenChange={() => toggleSection("courierAssignment")}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-green-600" />
+                  <div>
+                    <CardTitle className="text-lg">Kurye Ataması Bildirimi</CardTitle>
+                    <CardDescription>Siparişe kurye atandığında sesli bildirim</CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${courierSettings.enabled ? "bg-green-500" : "bg-slate-300"}`} />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${openSections.courierAssignment ? "rotate-180" : ""}`} />
+                </div>
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent>
+            <CardContent className="space-y-4">
+              {/* Açma/Kapama */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="courier-notification-switch">Kurye Ataması Sesi</Label>
+                <Switch
+                  id="courier-notification-switch"
+                  checked={courierSettings.enabled}
+                  onCheckedChange={(checked) => updateCourierSetting("enabled", checked)}
+                />
+              </div>
+
+              {courierSettings.enabled && (
+                <>
+                  {/* Ses Seçimi */}
+                  <div className="space-y-2">
+                    <Label>Onay Sesi</Label>
+                    <div className="flex gap-2">
+                      <Select
+                        value={courierSettings.soundId}
+                        onValueChange={(value) => updateCourierSetting("soundId", value)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Ses seçin" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COURIER_ASSIGNMENT_SOUNDS.map((sound) => (
+                            <SelectItem key={sound.id} value={sound.id}>
+                              {sound.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        onClick={handlePlayCourierSound}
+                        disabled={playingCourierSound}
+                        className="gap-2"
+                      >
+                        {playingCourierSound ? (
+                          <Volume2 className="w-4 h-4 animate-pulse" />
+                        ) : (
+                          <Play className="w-4 h-4" />
+                        )}
+                        Dinle (2x)
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Ses 2 kez arka arkaya çalınacak</p>
+                  </div>
+
+                  {/* Ses Seviyesi */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Ses Seviyesi</Label>
+                      <span className="text-sm text-muted-foreground">{Math.round(courierSettings.volume * 100)}%</span>
+                    </div>
+                    <Slider
+                      value={[courierSettings.volume]}
+                      onValueChange={([value]) => updateCourierSetting("volume", value)}
+                      max={1}
+                      min={0.1}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Kaydet Butonu */}
+              <div className="pt-2">
+                <Button
+                  onClick={handleSaveCourierSettings}
+                  disabled={!hasCourierChanges}
+                  className="gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {hasCourierChanges ? "Kaydet" : "Kaydedildi"}
+                </Button>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
       {/* Otomatik Yazdırma */}
       <Card>
         <Collapsible open={openSections.print} onOpenChange={() => toggleSection("print")}>
