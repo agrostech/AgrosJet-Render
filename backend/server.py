@@ -389,6 +389,7 @@ app.include_router(adisyo_webhook_router)
 app.include_router(migros_router)
 app.include_router(getir_router)
 app.include_router(courier_status_logs_router)
+app.include_router(shift_violations_router)
 
 # Health check
 @api_router.get("/")
