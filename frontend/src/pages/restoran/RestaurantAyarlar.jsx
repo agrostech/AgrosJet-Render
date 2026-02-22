@@ -229,7 +229,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
         <p className="text-sm text-muted-foreground">Restoran Ayarları</p>
       </div>
 
-      {/* Sesli Bildirim Ayarları */}
+      {/* Sesli Bildirim Ayarları - Tek Kart */}
       <Card>
         <Collapsible open={openSections.notification} onOpenChange={() => toggleSection("notification")}>
           <CollapsibleTrigger asChild>
@@ -238,12 +238,12 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
                 <div className="flex items-center gap-3">
                   <Bell className="w-5 h-5" />
                   <div>
-                    <CardTitle className="text-lg">Sesli Bildirim</CardTitle>
-                    <CardDescription>Yeni sipariş geldiğinde sesli uyarı</CardDescription>
+                    <CardTitle className="text-lg">Sesli Bildirimler</CardTitle>
+                    <CardDescription>Sipariş ve kurye ataması bildirimleri</CardDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {notificationSettings.enabled ? (
+                  {(notificationSettings.enabled || courierSettings.enabled) ? (
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
                   ) : (
                     <XCircle className="w-4 h-4 text-slate-400" />
@@ -255,7 +255,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
           </CollapsibleTrigger>
           
           <CollapsibleContent>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-6">
               {/* Bildirim İzni Uyarısı */}
               {notificationPermission !== 'granted' && (
                 <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -269,185 +269,159 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
                 </div>
               )}
 
-              {/* Bildirim Açık/Kapalı */}
-              <div className="flex items-center justify-between py-2">
-                <Label htmlFor="notification-enabled">Sesli Bildirim</Label>
-                <Switch
-                  id="notification-enabled"
-                  checked={notificationSettings.enabled}
-                  onCheckedChange={(checked) => updateNotificationSetting("enabled", checked)}
-                />
+              {/* ==================== YENİ SİPARİŞ BİLDİRİMİ ==================== */}
+              <div className="space-y-4 p-4 bg-slate-50 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-orange-500" />
+                    <Label className="text-base font-medium">Yeni Sipariş Bildirimi</Label>
+                  </div>
+                  <Switch
+                    checked={notificationSettings.enabled}
+                    onCheckedChange={(checked) => updateNotificationSetting("enabled", checked)}
+                  />
+                </div>
+
+                {notificationSettings.enabled && (
+                  <div className="space-y-4 pt-2">
+                    {/* Ses Seçimi */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Bildirim Sesi</Label>
+                      <div className="flex gap-2">
+                        <Select
+                          value={notificationSettings.soundId}
+                          onValueChange={(value) => updateNotificationSetting("soundId", value)}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Ses seçin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {NOTIFICATION_SOUNDS.map((sound) => (
+                              <SelectItem key={sound.id} value={sound.id}>
+                                {sound.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePlaySound}
+                          disabled={playingSound}
+                          className="gap-1.5"
+                        >
+                          {playingSound ? (
+                            <Volume2 className="w-4 h-4 animate-pulse" />
+                          ) : (
+                            <Play className="w-4 h-4" />
+                          )}
+                          Dinle
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Ses Seviyesi */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm text-muted-foreground">Ses Seviyesi</Label>
+                        <span className="text-sm text-muted-foreground">{Math.round(notificationSettings.volume * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[notificationSettings.volume]}
+                        onValueChange={([value]) => updateNotificationSetting("volume", value)}
+                        max={1}
+                        min={0.1}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {notificationSettings.enabled && (
-                <>
-                  {/* Ses Seçimi - Dropdown */}
-                  <div className="space-y-2">
-                    <Label>Bildirim Sesi</Label>
-                    <div className="flex gap-2">
-                      <Select
-                        value={notificationSettings.soundId}
-                        onValueChange={(value) => updateNotificationSetting("soundId", value)}
-                      >
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Ses seçin" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {NOTIFICATION_SOUNDS.map((sound) => (
-                            <SelectItem key={sound.id} value={sound.id}>
-                              {sound.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        onClick={handlePlaySound}
-                        disabled={playingSound}
-                        className="gap-2"
-                      >
-                        {playingSound ? (
-                          <Volume2 className="w-4 h-4 animate-pulse" />
-                        ) : (
-                          <Play className="w-4 h-4" />
-                        )}
-                        Dinle
-                      </Button>
-                    </div>
+              {/* ==================== KURYE ATAMASI BİLDİRİMİ ==================== */}
+              <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bike className="w-4 h-4 text-green-600" />
+                    <Label className="text-base font-medium">Kurye Ataması Bildirimi</Label>
                   </div>
+                  <Switch
+                    checked={courierSettings.enabled}
+                    onCheckedChange={(checked) => updateCourierSetting("enabled", checked)}
+                  />
+                </div>
 
-                  {/* Ses Seviyesi */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label>Ses Seviyesi</Label>
-                      <span className="text-sm text-muted-foreground">{Math.round(notificationSettings.volume * 100)}%</span>
+                {courierSettings.enabled && (
+                  <div className="space-y-4 pt-2">
+                    {/* Ses Seçimi */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Onay Sesi</Label>
+                      <div className="flex gap-2">
+                        <Select
+                          value={courierSettings.soundId}
+                          onValueChange={(value) => updateCourierSetting("soundId", value)}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Ses seçin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COURIER_ASSIGNMENT_SOUNDS.map((sound) => (
+                              <SelectItem key={sound.id} value={sound.id}>
+                                {sound.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePlayCourierSound}
+                          disabled={playingCourierSound}
+                          className="gap-1.5"
+                        >
+                          {playingCourierSound ? (
+                            <Volume2 className="w-4 h-4 animate-pulse" />
+                          ) : (
+                            <Play className="w-4 h-4" />
+                          )}
+                          Dinle
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Ses 2 kez arka arkaya çalınır</p>
                     </div>
-                    <Slider
-                      value={[notificationSettings.volume]}
-                      onValueChange={([value]) => updateNotificationSetting("volume", value)}
-                      max={1}
-                      min={0.1}
-                      step={0.1}
-                      className="w-full"
-                    />
+
+                    {/* Ses Seviyesi */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm text-muted-foreground">Ses Seviyesi</Label>
+                        <span className="text-sm text-muted-foreground">{Math.round(courierSettings.volume * 100)}%</span>
+                      </div>
+                      <Slider
+                        value={[courierSettings.volume]}
+                        onValueChange={([value]) => updateCourierSetting("volume", value)}
+                        max={1}
+                        min={0.1}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
-                </>
-              )}
+                )}
+              </div>
 
               {/* Kaydet Butonu */}
               <div className="pt-2">
                 <Button
-                  onClick={handleSaveNotificationSettings}
-                  disabled={!hasNotificationChanges}
+                  onClick={() => {
+                    handleSaveNotificationSettings();
+                    handleSaveCourierSettings();
+                  }}
+                  disabled={!hasNotificationChanges && !hasCourierChanges}
                   className="gap-2"
                 >
                   <Save className="w-4 h-4" />
-                  {hasNotificationChanges ? "Kaydet" : "Kaydedildi"}
-                </Button>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Kurye Ataması Bildirimi */}
-      <Card>
-        <Collapsible open={openSections.courierAssignment} onOpenChange={() => toggleSection("courierAssignment")}>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-slate-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-green-600" />
-                  <div>
-                    <CardTitle className="text-lg">Kurye Ataması Bildirimi</CardTitle>
-                    <CardDescription>Siparişe kurye atandığında sesli bildirim</CardDescription>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${courierSettings.enabled ? "bg-green-500" : "bg-slate-300"}`} />
-                  <ChevronDown className={`w-4 h-4 transition-transform ${openSections.courierAssignment ? "rotate-180" : ""}`} />
-                </div>
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          
-          <CollapsibleContent>
-            <CardContent className="space-y-4">
-              {/* Açma/Kapama */}
-              <div className="flex items-center justify-between">
-                <Label htmlFor="courier-notification-switch">Kurye Ataması Sesi</Label>
-                <Switch
-                  id="courier-notification-switch"
-                  checked={courierSettings.enabled}
-                  onCheckedChange={(checked) => updateCourierSetting("enabled", checked)}
-                />
-              </div>
-
-              {courierSettings.enabled && (
-                <>
-                  {/* Ses Seçimi */}
-                  <div className="space-y-2">
-                    <Label>Onay Sesi</Label>
-                    <div className="flex gap-2">
-                      <Select
-                        value={courierSettings.soundId}
-                        onValueChange={(value) => updateCourierSetting("soundId", value)}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Ses seçin" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COURIER_ASSIGNMENT_SOUNDS.map((sound) => (
-                            <SelectItem key={sound.id} value={sound.id}>
-                              {sound.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        onClick={handlePlayCourierSound}
-                        disabled={playingCourierSound}
-                        className="gap-2"
-                      >
-                        {playingCourierSound ? (
-                          <Volume2 className="w-4 h-4 animate-pulse" />
-                        ) : (
-                          <Play className="w-4 h-4" />
-                        )}
-                        Dinle (2x)
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Ses 2 kez arka arkaya çalınacak</p>
-                  </div>
-
-                  {/* Ses Seviyesi */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label>Ses Seviyesi</Label>
-                      <span className="text-sm text-muted-foreground">{Math.round(courierSettings.volume * 100)}%</span>
-                    </div>
-                    <Slider
-                      value={[courierSettings.volume]}
-                      onValueChange={([value]) => updateCourierSetting("volume", value)}
-                      max={1}
-                      min={0.1}
-                      step={0.1}
-                      className="w-full"
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Kaydet Butonu */}
-              <div className="pt-2">
-                <Button
-                  onClick={handleSaveCourierSettings}
-                  disabled={!hasCourierChanges}
-                  className="gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  {hasCourierChanges ? "Kaydet" : "Kaydedildi"}
+                  {(hasNotificationChanges || hasCourierChanges) ? "Kaydet" : "Kaydedildi"}
                 </Button>
               </div>
             </CardContent>
