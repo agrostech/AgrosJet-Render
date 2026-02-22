@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Calendar, 
@@ -13,16 +12,13 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-  Undo2,
-  Scale,
   RotateCcw,
   Eye,
   Banknote,
   CreditCard,
   AlertCircle,
   Users,
-  ClipboardCheck,
-  UtensilsCrossed
+  ClipboardCheck
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -43,10 +39,6 @@ const getYesterday = () => {
 export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSuperAdmin }) {
   const [selectedDate, setSelectedDate] = useState(getYesterday());
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [reverting, setReverting] = useState(false);
-  const [resetting, setResetting] = useState(false);
   
   const [couriers, setCouriers] = useState([]);
   const [dateRange, setDateRange] = useState(null);
@@ -54,8 +46,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   const [weeklyData, setWeeklyData] = useState(null);
   const [hasMealCardCollection, setHasMealCardCollection] = useState(false);
   
-  const [selectedIds, setSelectedIds] = useState([]);
   const [editedCollections, setEditedCollections] = useState({});
+  const [savingCourierId, setSavingCourierId] = useState(null);
+  const [revertingCourierId, setRevertingCourierId] = useState(null);
   
   // Sipariş detay modal state
   const [showOrdersModal, setShowOrdersModal] = useState(false);
@@ -67,14 +60,11 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('[GunlukMutabakat] Fetching with companyId:', companyId);
       const res = await axios.get(`${API}/daily-mutabakat/${companyId}/couriers/${selectedDate}`);
-      console.log('[GunlukMutabakat] Response hasMealCardCollection:', res.data.hasMealCardCollection);
       setCouriers(res.data.couriers);
       setDateRange(res.data.date_range);
       setSummary(res.data.summary);
       setHasMealCardCollection(res.data.hasMealCardCollection || false);
-      setSelectedIds([]);
       setEditedCollections({});
     } catch (err) {
       toast.error("Veri yüklenemedi");
@@ -115,27 +105,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
     fetchWeeklySummary();
   }, [fetchData, fetchWeeklySummary]);
 
-  // Kurye seçimi toggle
-  const handleToggleSelect = (courierId) => {
-    setSelectedIds(prev => 
-      prev.includes(courierId) 
-        ? prev.filter(id => id !== courierId)
-        : [...prev, courierId]
-    );
-  };
-
-  // Tümünü seç (işlenmemişler için)
-  const handleToggleSelectAll = () => {
-    const selectableCouriers = couriers.filter(c => !c.is_processed && c.order_data.order_count > 0);
-    const allSelected = selectableCouriers.every(c => selectedIds.includes(c.id));
-    
-    if (allSelected) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(selectableCouriers.map(c => c.id));
-    }
-  };
-
   // Input değişikliği
   const handleInputChange = (courierId, field, value) => {
     const numValue = parseFloat(value) || 0;
@@ -156,150 +125,64 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
     return courier.collection[field] || 0;
   };
 
-  // Seçili kuryeleri kaydet
-  const handleSave = async () => {
-    if (selectedIds.length === 0) {
-      toast.error("Kurye seçilmedi");
-      return;
-    }
-
-    setSaving(true);
+  // Tek kurye kaydet ve mütabakat işle
+  const handleSaveSingleCourier = async (courier) => {
+    setSavingCourierId(courier.id);
     try {
-      const couriersToSave = selectedIds.map(id => {
-        const courier = couriers.find(c => c.id === id);
-        return {
-          courier_id: id,
-          courier_name: courier.name,
-          cash_amount: getCollectionValue(courier, 'cash_amount'),
-          card_percent_1: getCollectionValue(courier, 'card_percent_1'),
-          card_percent_10: getCollectionValue(courier, 'card_percent_10'),
-          card_percent_20: getCollectionValue(courier, 'card_percent_20'),
-          meal_card_amount: getCollectionValue(courier, 'meal_card_amount')
-        };
-      });
-
-      await axios.post(`${API}/daily-mutabakat/${companyId}/save-collection`, {
+      await axios.post(`${API}/daily-mutabakat/${companyId}/save-and-process-single-courier`, {
+        courier_id: courier.id,
+        courier_name: courier.name,
         date: selectedDate,
         start_datetime: dateRange?.start,
         end_datetime: dateRange?.end,
-        couriers: couriersToSave,
+        cash_amount: getCollectionValue(courier, 'cash_amount'),
+        card_percent_1: getCollectionValue(courier, 'card_percent_1'),
+        card_percent_10: getCollectionValue(courier, 'card_percent_10'),
+        card_percent_20: getCollectionValue(courier, 'card_percent_20'),
+        meal_card_amount: getCollectionValue(courier, 'meal_card_amount'),
         admin_id: adminId,
-        admin_name: adminName
+        admin_name: adminName,
+        // Sipariş verileri
+        order_cash: courier.order_data.cash_total,
+        order_card_1: courier.order_data.card_percent_1,
+        order_card_10: courier.order_data.card_percent_10,
+        order_card_20: courier.order_data.card_percent_20
       });
 
-      toast.success(`${couriersToSave.length} kurye tahsilatı kaydedildi`);
+      toast.success(`${courier.name} mütabakatı tamamlandı`);
       fetchData();
       fetchWeeklySummary();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Kaydetme başarısız");
     } finally {
-      setSaving(false);
+      setSavingCourierId(null);
     }
   };
 
-  // Mütabakat işle
-  const handleProcess = async () => {
-    const processableIds = selectedIds.filter(id => {
-      const courier = couriers.find(c => c.id === id);
-      return courier && courier.has_collection && !courier.is_processed;
-    });
-
-    if (processableIds.length === 0) {
-      toast.error("İşlenecek kurye yok. Önce tahsilatı kaydedin.");
+  // Tek kurye sıfırla (sadece süper admin)
+  const handleRevertSingleCourier = async (courier) => {
+    if (!window.confirm(`${courier.name} için mütabakatı sıfırlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
       return;
     }
-
-    setProcessing(true);
+    
+    setRevertingCourierId(courier.id);
     try {
-      const res = await axios.post(`${API}/daily-mutabakat/${companyId}/process`, {
+      await axios.post(`${API}/daily-mutabakat/${companyId}/revert-single-courier`, {
+        courier_id: courier.id,
         date: selectedDate,
-        start_datetime: dateRange?.start,
-        end_datetime: dateRange?.end,
-        courier_ids: processableIds,
         admin_id: adminId,
         admin_name: adminName
       });
 
-      toast.success(res.data.message);
-      fetchData();
-      fetchWeeklySummary();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "İşlem başarısız");
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // Geri alma (sadece süper admin)
-  const handleRevert = async () => {
-    const revertableIds = selectedIds.filter(id => {
-      const courier = couriers.find(c => c.id === id);
-      return courier && courier.is_processed;
-    });
-
-    if (revertableIds.length === 0) {
-      toast.error("Geri alınacak işlenmiş kurye yok");
-      return;
-    }
-
-    setReverting(true);
-    try {
-      const res = await axios.post(`${API}/daily-mutabakat/${companyId}/revert`, {
-        date: selectedDate,
-        courier_ids: revertableIds,
-        admin_id: adminId,
-        admin_name: adminName
-      });
-
-      toast.success(res.data.message);
-      fetchData();
-      fetchWeeklySummary();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Geri alma başarısız");
-    } finally {
-      setReverting(false);
-    }
-  };
-
-  // Tahsilat sıfırlama (sadece süper admin, mütabakat yapılmamışsa)
-  const handleResetCollection = async () => {
-    const resettableIds = selectedIds.filter(id => {
-      const courier = couriers.find(c => c.id === id);
-      return courier && courier.has_collection && !courier.is_processed;
-    });
-
-    if (resettableIds.length === 0) {
-      toast.error("Sıfırlanacak tahsilat yok veya mütabakat yapılmış");
-      return;
-    }
-
-    setResetting(true);
-    try {
-      const res = await axios.post(`${API}/daily-mutabakat/${companyId}/reset-collection`, {
-        date: selectedDate,
-        courier_ids: resettableIds,
-        admin_id: adminId,
-        admin_name: adminName
-      });
-
-      toast.success(res.data.message);
+      toast.success(`${courier.name} mütabakatı sıfırlandı`);
       fetchData();
       fetchWeeklySummary();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Sıfırlama başarısız");
     } finally {
-      setResetting(false);
+      setRevertingCourierId(null);
     }
   };
-
-  // Hesaplamalar
-  const selectableCouriers = couriers.filter(c => !c.is_processed && c.order_data.order_count > 0);
-  const allSelectableSelected = selectableCouriers.length > 0 && selectableCouriers.every(c => selectedIds.includes(c.id));
-  
-  const selectedCouriers = couriers.filter(c => selectedIds.includes(c.id));
-  const selectedWithCollection = selectedCouriers.filter(c => c.has_collection && !c.is_processed);
-  const selectedProcessed = selectedCouriers.filter(c => c.is_processed);
-  const selectedResettable = selectedCouriers.filter(c => c.has_collection && !c.is_processed);
 
   // Hafta navigasyonu
   const navigateWeek = (direction) => {
@@ -307,8 +190,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
     const currentStart = new Date(weeklyData.week_start);
     const newStart = new Date(currentStart);
     newStart.setDate(newStart.getDate() + (direction === 'prev' ? -7 : 7));
-    
-    // Yeni haftanın ilk günü seç
     setSelectedDate(newStart.toISOString().split('T')[0]);
   };
 
@@ -384,79 +265,21 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
         </Button>
       </div>
 
-      {/* Aksiyon Butonları */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-slate-500" />
-          <span className="text-sm font-medium">
-            {new Date(selectedDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+      {/* Tarih Bilgisi */}
+      <div className="flex items-center gap-2">
+        <Calendar className="w-4 h-4 text-slate-500" />
+        <span className="text-sm font-medium">
+          {new Date(selectedDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </span>
+        {dateRange && (
+          <span className="text-xs text-slate-500">
+            ({dateRange.start?.split('T')[1]?.substring(0,5)} - {dateRange.end?.split('T')[1]?.substring(0,5)})
           </span>
-          {dateRange && (
-            <span className="text-xs text-slate-500">
-              ({dateRange.start?.split('T')[1]?.substring(0,5)} - {dateRange.end?.split('T')[1]?.substring(0,5)})
-            </span>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {/* Geri Al - Sadece SuperAdmin ve işlenmiş seçili varsa */}
-          {isSuperAdmin && selectedProcessed.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRevert}
-              disabled={reverting}
-              className="h-9 text-amber-600 border-amber-300 hover:bg-amber-50"
-              data-testid="revert-btn"
-            >
-              {reverting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Undo2 className="w-4 h-4 mr-2" />}
-              Geri Al ({selectedProcessed.length})
-            </Button>
-          )}
-          
-          {/* Sıfırla - Sadece SuperAdmin, kaydedilmiş ama işlenmemiş seçili varsa */}
-          {isSuperAdmin && selectedResettable.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleResetCollection}
-              disabled={resetting}
-              className="h-9 text-red-600 border-red-300 hover:bg-red-50"
-              data-testid="reset-btn"
-            >
-              {resetting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-2" />}
-              Sıfırla ({selectedResettable.length})
-            </Button>
-          )}
-          
-          {/* Kaydet */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSave}
-            disabled={saving || selectedIds.length === 0}
-            className="h-9"
-            data-testid="save-btn"
-          >
-            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Kaydet ({selectedIds.length})
-          </Button>
-          
-          {/* Mütabakat İşle */}
-          <Button
-            onClick={handleProcess}
-            disabled={processing || selectedWithCollection.length === 0}
-            className="h-9"
-            data-testid="process-btn"
-          >
-            {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Scale className="w-4 h-4 mr-2" />}
-            Mütabakat ({selectedWithCollection.length})
-          </Button>
-        </div>
+        )}
       </div>
 
       {/* Özet Kartları */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <Card className="border bg-white shadow-sm">
           <CardContent className="p-4 text-center">
             <Users className="w-5 h-5 mx-auto mb-2 text-slate-500" />
@@ -478,13 +301,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
             </div>
             <p className="text-2xl font-bold text-green-600">{summary.processed_couriers}</p>
             <p className="text-xs text-slate-500">Mütabakat Tamamlanan</p>
-          </CardContent>
-        </Card>
-        <Card className="border bg-white shadow-sm">
-          <CardContent className="p-4 text-center">
-            <Scale className="w-5 h-5 mx-auto mb-2 text-amber-500" />
-            <p className="text-2xl font-bold text-slate-800">{selectedIds.length}</p>
-            <p className="text-xs text-slate-500">Seçili Kurye</p>
           </CardContent>
         </Card>
       </div>
@@ -510,30 +326,22 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-slate-100">
-                    <th className="p-2 w-8">
-                      <Checkbox
-                        checked={allSelectableSelected}
-                        onCheckedChange={handleToggleSelectAll}
-                        disabled={selectableCouriers.length === 0}
-                      />
-                    </th>
                     <th className="text-left p-2 font-semibold text-xs text-slate-600">Kurye</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={hasMealCardCollection ? 3 : 2}>Sipariş (Sistem)</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={5}>Tahsilat (Giriş)</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={4}>Fark</th>
-                    <th className="text-center p-2 font-semibold text-xs text-slate-600 w-16">Durum</th>
+                    <th className="text-center p-2 font-semibold text-xs text-slate-600 w-28">İşlem</th>
                   </tr>
                   <tr className="border-b bg-slate-50 text-[10px] text-slate-500">
                     <th></th>
-                    <th></th>
                     <th className="p-1 text-center w-14">Nakit</th>
                     <th className="p-1 text-center w-14">Kart</th>
-                    <th className="p-1 text-center w-14" style={{ display: hasMealCardCollection ? 'table-cell' : 'none' }}>Y.Kartı</th>
+                    {hasMealCardCollection && <th className="p-1 text-center w-14">Y.Kartı</th>}
                     <th className="p-1 text-center w-24">Nakit</th>
                     <th className="p-1 text-center w-24">%1</th>
                     <th className="p-1 text-center w-24">%10</th>
                     <th className="p-1 text-center w-24">%20</th>
-                    <th className="p-1 text-center w-24" style={{ display: hasMealCardCollection ? 'table-cell' : 'none' }}>Y.Kartı</th>
+                    {hasMealCardCollection && <th className="p-1 text-center w-24">Y.Kartı</th>}
                     <th className="p-1 text-center">Nakit</th>
                     <th className="p-1 text-center">Kart</th>
                     <th className="p-1 text-center">Y.Yüzde</th>
@@ -542,31 +350,27 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                   </tr>
                 </thead>
                 <tbody>
-                  {console.log('[GunlukMutabakat] Rendering tbody, hasMealCardCollection:', hasMealCardCollection)}
                   {couriers.map((courier) => {
-                    const isSelected = selectedIds.includes(courier.id);
                     const isProcessed = courier.is_processed;
                     const hasOrders = courier.order_data.order_count > 0;
+                    const isSaving = savingCourierId === courier.id;
+                    const isReverting = revertingCourierId === courier.id;
+                    
                     const cashDiff = courier.differences?.cash || 0;
                     const cardDiff = courier.differences?.card || 0;
                     
-                    // Komisyon farkı hesapla (yanlış yüzde ile tahsil edilen tutar)
-                    // Sistem komisyonu (olması gereken)
+                    // Komisyon farkı hesapla
                     const systemCommission = 
                       (courier.order_data.card_percent_1 * 0.01) +
                       (courier.order_data.card_percent_10 * 0.10) +
                       (courier.order_data.card_percent_20 * 0.20);
                     
-                    // Tahsilat komisyonu (kuryenin girdiği)
                     const collectionCommission = 
                       (getCollectionValue(courier, 'card_percent_1') * 0.01) +
                       (getCollectionValue(courier, 'card_percent_10') * 0.10) +
                       (getCollectionValue(courier, 'card_percent_20') * 0.20);
                     
-                    // Komisyon farkı (pozitif = kurye fazla komisyon çekmiş, ceza)
                     const commissionPenalty = collectionCommission - systemCommission;
-                    
-                    // Toplam fark = nakit + kart + komisyon
                     const totalDiff = cashDiff + cardDiff + commissionPenalty;
                     
                     return (
@@ -574,20 +378,11 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         key={courier.id}
                         className={`border-b transition-colors ${
                           isProcessed ? 'bg-green-50/50' : 
-                          isSelected ? 'bg-blue-50/50' : 
                           !hasOrders ? 'opacity-50' : 
                           'hover:bg-slate-50'
                         }`}
                         data-testid={`courier-row-${courier.id}`}
                       >
-                        <td className="p-2">
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => handleToggleSelect(courier.id)}
-                            disabled={!hasOrders && !isProcessed}
-                            className={isProcessed && isSelected ? 'data-[state=checked]:bg-amber-500' : ''}
-                          />
-                        </td>
                         <td className="p-2">
                           <div className="flex items-center gap-2">
                             <div>
@@ -615,18 +410,20 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           </div>
                         </td>
                         
-                        {/* Sipariş Verileri (Read-only) - Kompakt */}
+                        {/* Sipariş Verileri (Read-only) */}
                         <td className="p-1 text-center font-mono text-[10px] bg-emerald-50/50 whitespace-nowrap">
                           {formatMoney(courier.order_data.cash_total)}
                         </td>
                         <td className="p-1 text-center font-mono text-[10px] bg-blue-50/50 whitespace-nowrap">
                           {formatMoney(courier.order_data.card_total)}
                         </td>
-                        <td className="p-1 text-center font-mono text-[10px] bg-orange-50/50 whitespace-nowrap" style={{ display: hasMealCardCollection ? 'table-cell' : 'none' }}>
-                          {formatMoney(courier.order_data.meal_card_total || 0)}
-                        </td>
+                        {hasMealCardCollection && (
+                          <td className="p-1 text-center font-mono text-[10px] bg-orange-50/50 whitespace-nowrap">
+                            {formatMoney(courier.order_data.meal_card_total || 0)}
+                          </td>
+                        )}
                         
-                        {/* Tahsilat Girişleri (Editable) - Kaydedildikten sonra düzenlenemez */}
+                        {/* Tahsilat Girişleri (Editable - işlenmemişse) */}
                         <td className="p-1 text-center">
                           <Input
                             type="number"
@@ -634,7 +431,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'cash_amount') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'cash_amount', e.target.value)}
-                            disabled={courier.has_collection}
+                            disabled={isProcessed}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
@@ -646,7 +443,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'card_percent_1') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_1', e.target.value)}
-                            disabled={courier.has_collection}
+                            disabled={isProcessed}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
@@ -658,7 +455,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'card_percent_10') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_10', e.target.value)}
-                            disabled={courier.has_collection}
+                            disabled={isProcessed}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
@@ -670,29 +467,31 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                             step="0.01"
                             value={getCollectionValue(courier, 'card_percent_20') || ''}
                             onChange={(e) => handleInputChange(courier.id, 'card_percent_20', e.target.value)}
-                            disabled={courier.has_collection}
+                            disabled={isProcessed}
                             className="h-7 text-xs text-center w-24 mx-auto"
                             placeholder="0"
                           />
                         </td>
                         
                         {/* Yemek Kartı */}
-                        <td className="p-1 text-center" style={{ display: hasMealCardCollection ? 'table-cell' : 'none' }}>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={getCollectionValue(courier, 'meal_card_amount') || ''}
-                            onChange={(e) => handleInputChange(courier.id, 'meal_card_amount', e.target.value)}
-                            disabled={courier.has_collection}
-                            className="h-7 text-xs text-center w-24 mx-auto"
-                            placeholder="0"
-                          />
-                        </td>
+                        {hasMealCardCollection && (
+                          <td className="p-1 text-center">
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={getCollectionValue(courier, 'meal_card_amount') || ''}
+                              onChange={(e) => handleInputChange(courier.id, 'meal_card_amount', e.target.value)}
+                              disabled={isProcessed}
+                              className="h-7 text-xs text-center w-24 mx-auto"
+                              placeholder="0"
+                            />
+                          </td>
+                        )}
                         
                         {/* Farklar - Nakit */}
                         <td className="p-1 text-center">
-                          {courier.has_collection ? (
+                          {courier.has_collection || isProcessed ? (
                             <span className={`font-mono text-[10px] font-medium ${
                               cashDiff > 0 ? 'text-red-600' : 
                               cashDiff < 0 ? 'text-blue-600' : 
@@ -707,7 +506,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         
                         {/* Farklar - Kart */}
                         <td className="p-1 text-center">
-                          {courier.has_collection ? (
+                          {courier.has_collection || isProcessed ? (
                             <span className={`font-mono text-[10px] font-medium ${
                               cardDiff > 0 ? 'text-red-600' : 
                               cardDiff < 0 ? 'text-blue-600' : 
@@ -720,9 +519,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           )}
                         </td>
                         
-                        {/* Farklar - Yüzde Komisyon Cezası */}
+                        {/* Farklar - Yüzde Komisyon */}
                         <td className="p-1 text-center">
-                          {courier.has_collection ? (
+                          {courier.has_collection || isProcessed ? (
                             <span className={`font-mono text-[10px] font-medium ${
                               commissionPenalty > 0.01 ? 'text-red-600' : 
                               commissionPenalty < -0.01 ? 'text-blue-600' : 
@@ -737,7 +536,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         
                         {/* Farklar - Toplam */}
                         <td className="p-1 text-center">
-                          {courier.has_collection ? (
+                          {courier.has_collection || isProcessed ? (
                             <span className={`font-mono text-[10px] font-semibold ${
                               totalDiff > 0 ? 'text-red-600' : 
                               totalDiff < 0 ? 'text-blue-600' : 
@@ -750,21 +549,48 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                           )}
                         </td>
                         
-                        {/* Durum */}
+                        {/* İşlem Butonları */}
                         <td className="p-2 text-center">
                           {isProcessed ? (
-                            <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded ${
-                              isSelected 
-                                ? 'text-amber-700 bg-amber-100 border border-amber-300' 
-                                : 'text-green-700 bg-green-100'
-                            }`}>
-                              <CheckCircle2 className="w-3 h-3" />
-                              {isSelected ? 'Seçildi' : 'Tamamlandı'}
-                            </span>
-                          ) : courier.has_collection ? (
-                            <span className="text-xs text-blue-600">Kaydedildi</span>
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded text-green-700 bg-green-100">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Tamam
+                              </span>
+                              {isSuperAdmin && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRevertSingleCourier(courier)}
+                                  disabled={isReverting}
+                                  className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  data-testid={`revert-btn-${courier.id}`}
+                                  title="Mütabakatı Sıfırla"
+                                >
+                                  {isReverting ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <RotateCcw className="w-3 h-3" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
                           ) : hasOrders ? (
-                            <span className="text-xs text-slate-400">Bekliyor</span>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleSaveSingleCourier(courier)}
+                              disabled={isSaving}
+                              className="h-7 px-3 text-xs"
+                              data-testid={`save-btn-${courier.id}`}
+                            >
+                              {isSaving ? (
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <Save className="w-3 h-3 mr-1" />
+                              )}
+                              Kaydet
+                            </Button>
                           ) : (
                             <span className="text-xs text-slate-300">-</span>
                           )}
@@ -796,10 +622,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
             </div>
           ) : courierOrders ? (
             <div className="space-y-4">
-              {/* Nakit Kart - Özet ve Siparişler Birleşik */}
+              {/* Nakit Kart */}
               <Card className="border-green-200 overflow-hidden">
                 <CardContent className="p-0">
-                  {/* Özet Başlık */}
                   <div className="bg-green-50 p-4 flex items-center gap-3 border-b border-green-200">
                     <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                       <Banknote className="w-5 h-5 text-green-600" />
@@ -813,7 +638,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                       </p>
                     </div>
                   </div>
-                  {/* Sipariş Tablosu */}
                   {courierOrders.cash_orders?.length > 0 && (
                     <div className="p-3 max-h-48 overflow-y-auto">
                       <table className="w-full text-xs">
@@ -852,10 +676,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                 </CardContent>
               </Card>
 
-              {/* Kredi Kartı - Özet ve Siparişler Birleşik */}
+              {/* Kredi Kartı */}
               <Card className="border-blue-200 overflow-hidden">
                 <CardContent className="p-0">
-                  {/* Özet Başlık */}
                   <div className="bg-blue-50 p-4 flex items-center gap-3 border-b border-blue-200">
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                       <CreditCard className="w-5 h-5 text-blue-600" />
@@ -869,7 +692,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                       </p>
                     </div>
                   </div>
-                  {/* Sipariş Tablosu */}
                   {courierOrders.card_orders?.length > 0 && (
                     <div className="p-3 max-h-48 overflow-y-auto">
                       <table className="w-full text-xs">
@@ -908,7 +730,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                 </CardContent>
               </Card>
 
-              {/* Boş Durum */}
               {(!courierOrders.cash_orders?.length && !courierOrders.card_orders?.length) && (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   Bu tarihte sipariş bulunamadı
