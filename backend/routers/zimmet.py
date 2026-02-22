@@ -464,10 +464,16 @@ async def get_product_history(product_id: str):
 # --- Kurye Bazlı Zimmet ---
 @router.get("/zimmet/courier/{courier_id}/assignments")
 async def get_courier_assignments(courier_id: str):
-    """Kuryeye zimmetli ürünleri getir"""
-    # Get products assigned to this courier
+    """Kuryeye zimmetli ürünleri getir
+    
+    Not: Sadece zimmet ürünlerini döndürür, restoran menü ürünlerini değil.
+    """
+    # Get products assigned to this courier (exclude restaurant menu products)
     products = await db.products.find(
-        {"assigned_to_courier_id": courier_id},
+        {
+            "assigned_to_courier_id": courier_id,
+            "restaurant_id": {"$exists": False}
+        },
         {"_id": 0}
     ).to_list(100)
     
