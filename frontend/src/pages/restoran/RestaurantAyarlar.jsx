@@ -65,6 +65,11 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     setNotificationSettings(notifStored);
     setSavedNotificationSettings(notifStored);
     
+    // Kurye ataması ayarlarını yükle
+    const courierStored = getCourierAssignmentSettings(restaurantId);
+    setCourierSettings(courierStored);
+    setSavedCourierSettings(courierStored);
+    
     // Bildirim izni durumunu kontrol et
     setNotificationPermission(getNotificationPermission());
     
@@ -82,6 +87,12 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     const changed = JSON.stringify(notificationSettings) !== JSON.stringify(savedNotificationSettings);
     setHasNotificationChanges(changed);
   }, [notificationSettings, savedNotificationSettings]);
+
+  // Kurye ataması değişiklik kontrolü
+  useEffect(() => {
+    const changed = JSON.stringify(courierSettings) !== JSON.stringify(savedCourierSettings);
+    setHasCourierChanges(changed);
+  }, [courierSettings, savedCourierSettings]);
 
   // Bağlı değilse otomatik kontrol
   useEffect(() => {
