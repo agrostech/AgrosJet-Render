@@ -231,13 +231,13 @@ async def get_admin_couriers_map(company_id: str) -> dict:
     Admin-kurye bağlantılarını getir.
     Returns: {courier_id: admin_info}
     """
-    admins = await db.users.find(
+    # admins collection'dan ara (users değil)
+    admins = await db.admins.find(
         {
             "company_id": company_id,
-            "role": {"$in": ["admin", "superadmin"]},
             "linked_courier_id": {"$exists": True, "$ne": None, "$ne": ""}
         },
-        {"_id": 0, "id": 1, "name": 1, "linked_courier_id": 1}
+        {"_id": 0, "id": 1, "name": 1, "linked_courier_id": 1, "is_active": 1}
     ).to_list(500)
     
     return {a["linked_courier_id"]: a for a in admins}
