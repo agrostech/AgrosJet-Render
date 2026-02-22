@@ -52,6 +52,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [mainTab, setMainTab] = useState("active");
   const [, setTick] = useState(0);
   
+  // Pagination ve sıralama state'leri
+  const [pageSize, setPageSize] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState("newest"); // "newest" veya "oldest"
+  
   // Admin aktif mi kontrolü (süper admin her zaman aktif, admin veya bağlı kurye aktifse de aktif sayılır)
   const isAdminActive = isSuperAdmin || adminStatus === "active" || linkedCourierStatus === "active";
   
