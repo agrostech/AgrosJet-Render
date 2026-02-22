@@ -67,6 +67,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [selectedCourierId, setSelectedCourierId] = useState("");
   
+  // Çevrimdışı kuryeler açılır-kapanır state (her sipariş için ayrı)
+  const [offlineCouriersExpanded, setOfflineCouriersExpanded] = useState({});
+  
   // Status confirmation modal
   const [confirmStatusModal, setConfirmStatusModal] = useState({ open: false, orderId: null, newStatus: null, customerName: null });
   
