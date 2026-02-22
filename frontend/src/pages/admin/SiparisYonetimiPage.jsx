@@ -94,13 +94,12 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const fetchOrders = useCallback(async () => {
     if (!companyId) return;
     try {
-      // Yeni merkezi endpoint kullan
-      const statusParam = statusFilters.length > 0 ? statusFilters.join(',') : 'active';
+      // Her zaman tüm aktif siparişleri çek (filtreleme frontend'de yapılacak)
       const res = await axios.get(`${API}/orders/v2/list`, {
         params: {
           panel: 'admin',
           company_id: companyId,
-          status: statusParam,
+          status: 'active',
           limit: 500
         }
       });
@@ -108,7 +107,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     } catch (err) {
       console.error("Orders fetch error:", err);
     }
-  }, [companyId, statusFilters]);
+  }, [companyId]);
 
   const fetchCouriers = useCallback(async () => {
     if (!companyId) return;
