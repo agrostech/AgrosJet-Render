@@ -77,7 +77,7 @@ export default function YoneticilerPage({ companyId }) {
 
   const fetchCouriers = async () => {
     try {
-      const res = await axios.get(`${API}/couriers/${companyId}`);
+      const res = await axios.get(`${API}/companies/${companyId}/couriers`);
       setCouriers(res.data);
     } catch (err) {
       console.error("Kuryeler yüklenemedi");
