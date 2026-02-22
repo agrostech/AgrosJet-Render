@@ -260,7 +260,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   const handleRestaurantDeliveryStatus = async (orderId, newStatus) => {
     try {
       await axios.post(`${API}/orders/${orderId}/restaurant-update-status?restaurant_id=${restaurantId}&new_status=${newStatus}`);
-      toast.success("Sipariş durumu güncellendi");
+      // Bildirim kapatıldı - kullanıcı isteği
       onRefresh?.();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Güncelleme başarısız");
