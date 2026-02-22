@@ -113,12 +113,14 @@ async def update_restaurant_permission(restaurant_id: str, data: PermissionUpdat
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     # İzni güncelle
+    now = datetime.now(timezone.utc).isoformat()
     await db.restaurants.update_one(
         {"id": restaurant_id},
         {
             "$set": {
                 f"permissions.{data.permission_key}": data.value,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "permissions_updated_at": now,
+                "updated_at": now
             }
         }
     )
@@ -129,7 +131,8 @@ async def update_restaurant_permission(restaurant_id: str, data: PermissionUpdat
     return {
         "message": f"{permission_label} izni {status} edildi",
         "permission_key": data.permission_key,
-        "value": data.value
+        "value": data.value,
+        "permissions_updated_at": now
     }
 
 
