@@ -221,11 +221,11 @@ function playOnay5(ctx, volume, startOffset = 0) {
 
 // Kurye ataması ses listesi
 export const COURIER_ASSIGNMENT_SOUNDS = [
-  { id: 'onay1', name: 'Onay 1 - Çan' },
-  { id: 'onay2', name: 'Onay 2 - Neşeli' },
-  { id: 'onay3', name: 'Onay 3 - Melodi' },
-  { id: 'onay4', name: 'Onay 4 - Hızlı' },
-  { id: 'onay5', name: 'Onay 5 - Fanfar' },
+  { id: 'onay1', name: 'Ses 1' },
+  { id: 'onay2', name: 'Ses 2' },
+  { id: 'onay3', name: 'Ses 3' },
+  { id: 'onay4', name: 'Ses 4' },
+  { id: 'onay5', name: 'Ses 5' },
 ];
 
 // Kurye ataması bildirim ayarlarını localStorage'dan al
