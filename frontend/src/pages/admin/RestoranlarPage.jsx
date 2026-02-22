@@ -1224,7 +1224,7 @@ export default function RestoranlarPage({ companyId }) {
             {/* Add new user form */}
             <div className="p-4 bg-slate-50 rounded-lg border">
               <h4 className="font-semibold text-sm mb-3">Yeni Kullanıcı Ekle</h4>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <div>
                   <Label className="text-xs">Kullanıcı Adı</Label>
                   <Input
@@ -1240,6 +1240,15 @@ export default function RestoranlarPage({ companyId }) {
                     placeholder="Ad Soyad"
                     value={newUserData.name}
                     onChange={(e) => setNewUserData({ ...newUserData, name: e.target.value })}
+                    className="h-9 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Telefon</Label>
+                  <Input
+                    placeholder="05XX XXX XX XX"
+                    value={newUserData.phone}
+                    onChange={(e) => setNewUserData({ ...newUserData, phone: e.target.value })}
                     className="h-9 text-sm"
                   />
                 </div>
