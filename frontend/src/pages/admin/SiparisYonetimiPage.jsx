@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   RefreshCw, MapPin, Phone, Clock, User, Bike, Store, Package,
-  ChevronRight, ChevronLeft, Navigation, CheckCircle2, XCircle, AlertCircle,
+  ChevronRight, ChevronLeft, ChevronDown, Navigation, CheckCircle2, XCircle, AlertCircle,
   Filter, Users, History, ClipboardX, ListChecks, Search, ArrowUpDown
 } from "lucide-react";
 
