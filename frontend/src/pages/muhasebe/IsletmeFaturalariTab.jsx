@@ -876,6 +876,9 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
 
         <MissingInvoicesCard 
           missingInvoices={missingInvoices}
+          isSuperAdmin={isSuperAdmin}
+          onDeleteInvoice={handleDeleteMissingInvoice}
+          onRefresh={fetchData}
         />
 
         <RestaurantsListCard
