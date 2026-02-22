@@ -385,6 +385,9 @@ function CourierItem({
   // Admin-kurye mi kontrol et
   const isAdminLinked = courier.is_admin_linked;
   
+  // Kurye çevrimdışı ama yönetici paneli aktif mi?
+  const isAdminActiveWhileCourierOffline = isOffline && isAdminLinked && courier.admin_status === 'active';
+  
   // Çevrimdışı ama aktif vardiyası var mı?
   // Admin-kurye için de bu kontrolü yap (artık backend her iki panel durumunu kontrol ediyor)
   const missedShift = isOffline && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
@@ -399,6 +402,10 @@ function CourierItem({
       onMouseEnter={onHover}
     >
       <div className="flex items-center gap-2">
+        {/* Kurye çevrimdışı ama yönetici aktifse yeşil nokta göster */}
+        {isAdminActiveWhileCourierOffline && (
+          <div className="w-2 h-2 rounded-full bg-green-500" title="Yönetici paneli aktif" />
+        )}
         {locationStale && (
           <MapPin className="w-3 h-3 text-red-500" title="Konum güncel değil" />
         )}
