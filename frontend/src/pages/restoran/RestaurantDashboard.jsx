@@ -110,7 +110,7 @@ export default function RestaurantDashboard() {
   }, [user?.restaurant_id]);
 
   // İzin değişikliği kontrolü için ref
-  const permissionsUpdatedAtRef = React.useRef(null);
+  const permissionsUpdatedAtRef = useRef(null);
 
   // İzin değişikliği kontrol fonksiyonu
   const checkPermissionsUpdate = useCallback(async () => {
