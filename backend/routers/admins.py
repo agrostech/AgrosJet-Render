@@ -366,6 +366,37 @@ async def toggle_admin_status(admin_id: str):
         "date": now.strftime("%Y-%m-%d")
     })
     
+    # === VARDIYA İHLALİ KONTROLÜ ===
+    # Admin aktif olduğunda vardiyası var mı kontrol et
+    if new_status == "active" and company_id and linked_courier_id:
+        try:
+            from routers.shift_violations import log_violation
+            
+            # Türkiye saati
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
+            today_key = days_map[now_turkey.weekday()]
+            
+            # Bugün bu admin'in bağlı kuryesinin vardiyası var mı?
+            assignment = await db.shift_assignments.find_one({
+                "company_id": company_id,
+                "courier_id": linked_courier_id,
+                "day": today_key
+            })
+            
+            if not assignment:
+                await log_violation(
+                    company_id=company_id,
+                    entity_type="admin",
+                    entity_id=admin_id,
+                    entity_name=admin.get("name", ""),
+                    violation_type="active_without_shift",
+                    details={"linked_courier_id": linked_courier_id, "triggered_by": "admin_activation"}
+                )
+        except Exception as e:
+            print(f"Admin shift violation check failed: {e}")
+    
     return {
         "message": f"Durum değiştirildi: {new_status}",
         "new_status": new_status
