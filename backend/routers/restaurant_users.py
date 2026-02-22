@@ -140,6 +140,8 @@ async def update_restaurant_user(user_id: str, data: RestaurantUserUpdate):
     
     if data.name is not None:
         update_fields["name"] = data.name
+    if data.phone is not None:
+        update_fields["phone"] = data.phone
     if data.password is not None:
         update_fields["password_hash"] = hash_password(data.password)
     if data.is_active is not None:
