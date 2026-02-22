@@ -166,7 +166,7 @@ class ShiftToleranceUpdate(BaseModel):
 @router.get("/companies/{company_id}/shift-tolerance")
 async def get_shift_tolerance(company_id: str):
     """Şirket vardiya tolerans ayarını getir"""
-    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "shift_tolerance_minutes": 1})
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "id": 1, "shift_tolerance_minutes": 1})
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
     return {
