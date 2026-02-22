@@ -475,8 +475,8 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
       </Dialog>
 
       {/* Sıfırlama Modal */}
-      <Dialog open={!!resetAdmin} onOpenChange={() => { setResetAdmin(null); setResetNote(""); }}>
-        <DialogContent>
+      <Dialog open={!!resetAdmin} onOpenChange={() => { setResetAdmin(null); setResetNote(""); setReceivedAmounts({ cash: 0, card_1: 0, card_10: 0, card_20: 0, meal_card: 0 }); }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
@@ -488,36 +488,132 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="bg-slate-50 border rounded-lg p-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Nakit:</span>
-                  <span className="font-medium">{formatCurrency(resetAdmin?.total_cash)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Kart (%1):</span>
-                  <span className="font-medium">{formatCurrency(resetAdmin?.total_card_1)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Kart (%10):</span>
-                  <span className="font-medium">{formatCurrency(resetAdmin?.total_card_10)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Kart (%20):</span>
-                  <span className="font-medium">{formatCurrency(resetAdmin?.total_card_20)}</span>
-                </div>
-                {hasMealCard && (
+            {/* Mevcut Bakiye ve Alınan Tutarlar - Yan yana */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Mevcut Bakiye */}
+              <div className="bg-slate-50 border rounded-lg p-3">
+                <h4 className="text-xs font-medium text-muted-foreground mb-2">Mevcut Bakiye</h4>
+                <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Yemek Kartı:</span>
-                    <span className="font-medium">{formatCurrency(resetAdmin?.total_meal_card)}</span>
+                    <span>Nakit:</span>
+                    <span className="font-medium">{formatCurrency(resetAdmin?.total_cash)}</span>
                   </div>
-                )}
-                <div className="flex justify-between col-span-2 pt-2 border-t">
-                  <span className="font-medium">Toplam:</span>
-                  <span className="font-bold">{formatCurrency(resetAdmin?.total_balance)}</span>
+                  <div className="flex justify-between">
+                    <span>Kart (%1):</span>
+                    <span className="font-medium">{formatCurrency(resetAdmin?.total_card_1)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Kart (%10):</span>
+                    <span className="font-medium">{formatCurrency(resetAdmin?.total_card_10)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Kart (%20):</span>
+                    <span className="font-medium">{formatCurrency(resetAdmin?.total_card_20)}</span>
+                  </div>
+                  {hasMealCard && (
+                    <div className="flex justify-between">
+                      <span>Y.Kartı:</span>
+                      <span className="font-medium">{formatCurrency(resetAdmin?.total_meal_card)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-1 border-t font-medium">
+                    <span>Toplam:</span>
+                    <span>{formatCurrency(resetAdmin?.total_balance)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Alınan Tutarlar */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <h4 className="text-xs font-medium text-green-700 mb-2">Alınan Tutarlar</h4>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-16">Nakit:</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={receivedAmounts.cash}
+                      onChange={(e) => setReceivedAmounts(prev => ({ ...prev, cash: e.target.value }))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-16">Kart (%1):</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={receivedAmounts.card_1}
+                      onChange={(e) => setReceivedAmounts(prev => ({ ...prev, card_1: e.target.value }))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-16">Kart (%10):</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={receivedAmounts.card_10}
+                      onChange={(e) => setReceivedAmounts(prev => ({ ...prev, card_10: e.target.value }))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-16">Kart (%20):</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={receivedAmounts.card_20}
+                      onChange={(e) => setReceivedAmounts(prev => ({ ...prev, card_20: e.target.value }))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  {hasMealCard && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs w-16">Y.Kartı:</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={receivedAmounts.meal_card}
+                        onChange={(e) => setReceivedAmounts(prev => ({ ...prev, meal_card: e.target.value }))}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+            
+            {/* Eksik Tutarlar Uyarısı */}
+            {(() => {
+              const missingCash = (resetAdmin?.total_cash || 0) - (parseFloat(receivedAmounts.cash) || 0);
+              const missingCard1 = (resetAdmin?.total_card_1 || 0) - (parseFloat(receivedAmounts.card_1) || 0);
+              const missingCard10 = (resetAdmin?.total_card_10 || 0) - (parseFloat(receivedAmounts.card_10) || 0);
+              const missingCard20 = (resetAdmin?.total_card_20 || 0) - (parseFloat(receivedAmounts.card_20) || 0);
+              const missingMealCard = (resetAdmin?.total_meal_card || 0) - (parseFloat(receivedAmounts.meal_card) || 0);
+              const totalMissing = Math.max(0, missingCash) + Math.max(0, missingCard1) + Math.max(0, missingCard10) + Math.max(0, missingCard20) + Math.max(0, missingMealCard);
+              
+              if (totalMissing > 0) {
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
+                    <div className="font-medium text-amber-700 mb-1">Eksik Tutarlar (Cariye eklenecek)</div>
+                    <div className="space-y-0.5 text-amber-600">
+                      {missingCash > 0 && <div>Nakit: {formatCurrency(missingCash)}</div>}
+                      {missingCard1 > 0 && <div>Kart (%1): {formatCurrency(missingCard1)}</div>}
+                      {missingCard10 > 0 && <div>Kart (%10): {formatCurrency(missingCard10)}</div>}
+                      {missingCard20 > 0 && <div>Kart (%20): {formatCurrency(missingCard20)}</div>}
+                      {missingMealCard > 0 && <div>Y.Kartı: {formatCurrency(missingMealCard)}</div>}
+                      <div className="pt-1 border-t border-amber-300 font-medium">Toplam Eksik: {formatCurrency(totalMissing)}</div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
             
             <div>
               <label className="text-sm font-medium">Not (opsiyonel)</label>
@@ -530,12 +626,12 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
             </div>
             
             <p className="text-xs text-muted-foreground">
-              Bu işlem geri alınamaz. Mevcut bakiye sıfırlama geçmişine kaydedilecek.
+              Eksik tutarlar otomatik olarak yöneticinin cari hesabına "Verilen" işlemi olarak eklenecektir.
             </p>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setResetAdmin(null); setResetNote(""); }}>
+            <Button variant="outline" onClick={() => { setResetAdmin(null); setResetNote(""); setReceivedAmounts({ cash: 0, card_1: 0, card_10: 0, card_20: 0, meal_card: 0 }); }}>
               İptal
             </Button>
             <Button 
