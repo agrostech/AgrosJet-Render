@@ -137,16 +137,9 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
               const isShortfall = tx.missing_type === 'shortfall';
               const isDeleting = deletingId === tx.id;
               
-              const handleDelete = async () => {
-                if (!window.confirm(`${tx.courier_name} - ${tx.description} kaydını silmek istediğinizden emin misiniz?`)) {
-                  return;
-                }
-                setDeletingId(tx.id);
-                try {
-                  await onDismiss(tx.id);
-                } finally {
-                  setDeletingId(null);
-                }
+              const handleDeleteClick = () => {
+                setPendingDelete(tx);
+                setConfirmOpen(true);
               };
               
               return (
@@ -179,7 +172,7 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={handleDelete}
+                          onClick={handleDeleteClick}
                           disabled={isDeleting}
                           className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100"
                           title="Kaydı Sil"
