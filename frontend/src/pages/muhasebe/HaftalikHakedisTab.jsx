@@ -436,7 +436,7 @@ export default function HaftalikHakedisTab({ companyId }) {
           <Card className="border bg-white shadow-sm">
             <CardHeader className="pb-2 border-b bg-slate-50">
               <CardTitle className="text-sm font-semibold text-slate-700">
-                Kurye Hakedişleri ({couriers.filter(c => c.amount > 0 || c.is_processed).length} kurye)
+                Kurye Hakedişleri ({couriers.filter(c => (c.amount > 0 || c.is_processed) && !c.is_admin_linked).length} kurye)
                 {selectedUnprocessed.length > 0 && (
                   <span className="ml-2 text-primary">
                     — {selectedUnprocessed.length} bekleyen seçili, {formatMoney(selectedUnprocessedTotal)}
@@ -451,7 +451,7 @@ export default function HaftalikHakedisTab({ companyId }) {
             </CardHeader>
             <CardContent className="p-0">
               <HakedisTable
-                couriers={couriers}
+                couriers={couriers.filter(c => !c.is_admin_linked)}
                 selectedIds={selectedIds}
                 onToggleSelect={handleToggleSelect}
                 onToggleSelectAll={handleToggleSelectAll}
@@ -461,6 +461,29 @@ export default function HaftalikHakedisTab({ companyId }) {
               />
             </CardContent>
           </Card>
+
+          {/* Yönetici Hakedişleri - Admin bağlantılı kuryeler */}
+          {couriers.filter(c => c.is_admin_linked).length > 0 && (
+            <Card className="border bg-white shadow-sm mt-4">
+              <CardHeader className="pb-2 border-b bg-amber-50">
+                <CardTitle className="text-sm font-semibold text-amber-700">
+                  Yönetici Hakedişleri ({couriers.filter(c => c.is_admin_linked && (c.amount > 0 || c.is_processed)).length} yönetici)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <HakedisTable
+                  couriers={couriers.filter(c => c.is_admin_linked)}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onToggleSelectAll={() => {}}
+                  onToggleSelectAllProcessed={() => {}}
+                  summary={summary}
+                  isCurrentWeek={selectedWeek?.is_current}
+                  isAdminTable={true}
+                />
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 
