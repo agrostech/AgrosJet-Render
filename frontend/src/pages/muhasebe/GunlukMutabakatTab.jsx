@@ -330,12 +330,6 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
           </div>
         );
       })()}
-            </div>
-            <p className="text-2xl font-bold text-green-600">{summary.processed_couriers}</p>
-            <p className="text-xs text-slate-500">Mütabakat Tamamlanan</p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Kurye Tablosu */}
       <Card className="border bg-white shadow-sm overflow-hidden">
