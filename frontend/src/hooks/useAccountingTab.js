@@ -161,8 +161,15 @@ export function useAccountingTab({
   const fetchEntities = useCallback(async () => {
     try {
       const res = await axios.get(`${API}${endpoint.list}`);
+      let data = res.data;
+      
+      // Kuryeler için: is_admin_linked olanları filtrele (Cariler'de gösterilecek)
+      if (entityType === 'courier') {
+        data = data.filter(c => !c.is_admin_linked);
+      }
+      
       // Alfabetik sıralama
-      const sortedData = res.data.sort((a, b) => 
+      const sortedData = data.sort((a, b) => 
         (a.name || '').localeCompare(b.name || '', 'tr')
       );
       setEntities(sortedData);
