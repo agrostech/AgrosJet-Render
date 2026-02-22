@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { X, Clock, Pencil, Check, Users, Search, PointerIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import {
@@ -28,6 +29,10 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
   const [selectedDay, setSelectedDay] = useState(null);
   const [bulkAssigning, setBulkAssigning] = useState(false);
   const [courierFilter, setCourierFilter] = useState("");
+  
+  // Vardiya silme onay modalı
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingDeleteShiftId, setPendingDeleteShiftId] = useState(null);
 
   // Vardiya takibi için ek veriler
   const [trackingData, setTrackingData] = useState({
@@ -47,7 +52,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     ctrlPressed,
     multiSelectMode,
     handleAddShift,
-    handleDeleteShift,
+    confirmDeleteShift,
     handleAssignCourier,
     handleRemoveAssignment,
     handleAddLeave,
