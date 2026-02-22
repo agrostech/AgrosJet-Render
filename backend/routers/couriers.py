@@ -544,29 +544,27 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                     
                     # Tolerans süresini aşarsa ihlal logla
                     if late_minutes > tolerance:
-                        # Çift ihlal kontrolü: Bugün aynı kullanıcı için "vardiyası yok ama aktif" ihlali var mı?
-                        # Eğer varsa, "geç kapattı" ihlalini loglama (zaten vardiya dışında aktif olmuş)
-                        entity_id_to_check = admin_info["id"] if admin_info else courier_id
-                        entity_type_to_check = "admin" if admin_info else "courier"
+                        # Çift ihlal kontrolü: Kullanıcı vardiya bittikten SONRA mı aktif oldu?
+                        # Eğer öyleyse, "geç kapattı" ihlalini loglama (zaten "vardiyası yok ama aktif" loglanacak/loglandı)
+                        should_log_late_violation = True
                         
-                        # Bugünün başlangıcı (06:00 iş günü başlangıcı)
-                        today_start = now_turkey.replace(hour=6, minute=0, second=0, microsecond=0)
-                        if now_turkey.hour < 6:
-                            today_start = today_start - timedelta(days=1)
+                        # Kuryenin aktif olma zamanını kontrol et
+                        activated_at_str = courier.get("activated_at")
+                        if activated_at_str:
+                            try:
+                                activated_at = datetime.fromisoformat(activated_at_str.replace('Z', '+00:00'))
+                                activated_at_turkey = activated_at.astimezone(turkey_tz)
+                                activated_minutes = activated_at_turkey.hour * 60 + activated_at_turkey.minute
+                                
+                                # Eğer aktif olma zamanı vardiya bitişinden sonraysa, bu ihlali loglama
+                                # (Çünkü "vardiyası yok ama aktif" ihlali zaten loglandı/loglanacak)
+                                if activated_minutes > latest_end_minutes + tolerance:
+                                    should_log_late_violation = False
+                                    print(f"Skipping 'still_active_after_shift_end' - activated after shift ended for courier {courier_id}")
+                            except Exception as e:
+                                print(f"Error parsing activated_at: {e}")
                         
-                        # Bugün "active_without_shift" ihlali var mı kontrol et
-                        existing_violation = await db.shift_violations.find_one({
-                            "company_id": company_id,
-                            "entity_type": entity_type_to_check,
-                            "entity_id": entity_id_to_check,
-                            "violation_type": "active_without_shift",
-                            "timestamp": {"$gte": today_start.isoformat()}
-                        })
-                        
-                        # Eğer bugün zaten "vardiyası yok ama aktif" ihlali varsa, bu ihlali loglama
-                        if existing_violation:
-                            print(f"Skipping 'still_active_after_shift_end' - already has 'active_without_shift' today for {entity_id_to_check}")
-                        else:
+                        if should_log_late_violation:
                             if admin_info:
                                 await log_violation(
                                     company_id=company_id,
