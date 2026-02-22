@@ -421,8 +421,14 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     return () => clearInterval(interval);
   }, [restaurantId]);
 
-  // Atanmış kuryelerin ETA'larını çek
+  // Atanmış kuryelerin ETA'larını çek (izin varsa)
   useEffect(() => {
+    // İzin yoksa ETA çekme
+    if (permissions.can_view_courier_eta === false) {
+      setCourierETAs({});
+      return;
+    }
+    
     const fetchAssignedCourierETAs = async () => {
       if (!restaurantId || !orders || orders.length === 0) return;
       
@@ -458,7 +464,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     // Her 15 saniyede bir güncelle
     const interval = setInterval(fetchAssignedCourierETAs, 15000);
     return () => clearInterval(interval);
-  }, [restaurantId, orders]);
+  }, [restaurantId, orders, permissions.can_view_courier_eta]);
 
   // Calculate stats
   const stats = useMemo(() => {
