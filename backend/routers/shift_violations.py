@@ -92,7 +92,7 @@ async def check_and_log_violations_internal(company_id: str):
     violations_logged = []
     
     # Aynı ihlali tekrar loglamamak için son 10 dakikada loglanmış ihlalleri kontrol et
-    recent_cutoff = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+    recent_cutoff = (now - timedelta(minutes=10)).isoformat()
     recent_violations = await db.shift_violations.find(
         {
             "company_id": company_id,
