@@ -73,7 +73,7 @@ async def get_restaurant_permissions(restaurant_id: str):
     """Restoran izinlerini getir"""
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "id": 1, "name": 1, "permissions": 1}
+        {"_id": 0, "id": 1, "name": 1, "permissions": 1, "permissions_updated_at": 1}
     )
     
     if not restaurant:
@@ -90,7 +90,8 @@ async def get_restaurant_permissions(restaurant_id: str):
     return {
         "restaurant_id": restaurant_id,
         "restaurant_name": restaurant.get("name"),
-        "permissions": permissions
+        "permissions": permissions,
+        "permissions_updated_at": restaurant.get("permissions_updated_at")
     }
 
 
