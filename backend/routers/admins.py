@@ -531,47 +531,42 @@ async def toggle_admin_status(admin_id: str):
                 
                 # DURUM 2: Aktif vardiyası yok ama bitmiş vardiya var → Geç mi kapattı?
                 elif latest_ended_shift and latest_end_minutes > 0:
-                    late_minutes = current_minutes - latest_end_minutes
+                    # Admin'in aktif olma zamanını kontrol et
+                    last_active_at_str = admin.get("last_active_at")
+                    base_minutes = latest_end_minutes  # Varsayılan: vardiya bitiş saati
+                    
+                    if last_active_at_str:
+                        try:
+                            activated_at = datetime.fromisoformat(last_active_at_str.replace('Z', '+00:00'))
+                            activated_at_turkey = activated_at.astimezone(turkey_tz)
+                            activated_minutes = activated_at_turkey.hour * 60 + activated_at_turkey.minute
+                            
+                            # Eğer aktif olma zamanı vardiya bitişinden sonraysa, süreyi aktivasyon zamanından hesapla
+                            if activated_minutes > latest_end_minutes + tolerance:
+                                base_minutes = activated_minutes
+                        except Exception as e:
+                            print(f"Error parsing last_active_at: {e}")
+                    
+                    late_minutes = current_minutes - base_minutes
                     
                     # Tolerans süresini aşarsa ihlal logla
                     if late_minutes > tolerance:
-                        # Çift ihlal kontrolü: Admin vardiya bittikten SONRA mı aktif oldu?
-                        # Eğer öyleyse, "geç kapattı" ihlalini loglama (zaten "vardiyası yok ama aktif" loglanacak/loglandı)
-                        should_log_late_violation = True
-                        
-                        # Admin'in aktif olma zamanını kontrol et
-                        last_active_at_str = admin.get("last_active_at")
-                        if last_active_at_str:
-                            try:
-                                activated_at = datetime.fromisoformat(last_active_at_str.replace('Z', '+00:00'))
-                                activated_at_turkey = activated_at.astimezone(turkey_tz)
-                                activated_minutes = activated_at_turkey.hour * 60 + activated_at_turkey.minute
-                                
-                                # Eğer aktif olma zamanı vardiya bitişinden sonraysa, bu ihlali loglama
-                                # (Çünkü "vardiyası yok ama aktif" ihlali zaten loglandı/loglanacak)
-                                if activated_minutes > latest_end_minutes + tolerance:
-                                    should_log_late_violation = False
-                                    print(f"Skipping 'still_active_after_shift_end' - activated after shift ended for admin {admin_id}")
-                            except Exception as e:
-                                print(f"Error parsing last_active_at: {e}")
-                        
-                        if should_log_late_violation:
-                            await log_violation(
-                                company_id=company_id,
-                                entity_type="admin",
-                                entity_id=admin_id,
-                                entity_name=admin.get("name", ""),
-                                violation_type="still_active_after_shift_end",
-                                details={
-                                    "linked_courier_id": linked_courier_id,
-                                    "shift_id": latest_ended_shift["id"],
-                                    "shift_end_time": latest_ended_shift["end_time"],
-                                    "deactivated_at": now_turkey.strftime("%H:%M"),
-                                    "late_minutes": late_minutes,
-                                    "tolerance_minutes": tolerance,
-                                    "triggered_by": "admin_deactivation"
-                                }
-                            )
+                        await log_violation(
+                            company_id=company_id,
+                            entity_type="admin",
+                            entity_id=admin_id,
+                            entity_name=admin.get("name", ""),
+                            violation_type="still_active_after_shift_end",
+                            details={
+                                "linked_courier_id": linked_courier_id,
+                                "shift_id": latest_ended_shift["id"],
+                                "shift_end_time": latest_ended_shift["end_time"],
+                                "deactivated_at": now_turkey.strftime("%H:%M"),
+                                "late_minutes": late_minutes,
+                                "tolerance_minutes": tolerance,
+                                "triggered_by": "admin_deactivation"
+                            }
+                        )
         except Exception as e:
             print(f"Admin late deactivation check failed: {e}")
     
