@@ -172,7 +172,8 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
   };
 
   const filteredAdmins = data?.admins?.filter(a => 
-    a.admin_name.toLowerCase().includes(searchTerm.toLowerCase())
+    a.admin_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    a.total_balance > 0
   ) || [];
 
   if (loading) {
