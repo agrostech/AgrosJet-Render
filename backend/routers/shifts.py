@@ -76,6 +76,10 @@ async def update_shift(
     data: ShiftUpdate
 ):
     """Update a shift"""
+    # Mevcut vardiya bilgisini al (start_time değişikliği için)
+    old_shift = await db.shifts.find_one({"id": shift_id}, {"_id": 0, "start_time": 1})
+    old_start_time = old_shift.get("start_time") if old_shift else None
+    
     update_data = {}
     if data.name is not None:
         update_data["name"] = data.name
@@ -90,6 +94,15 @@ async def update_shift(
     result = await db.shifts.update_one({"id": shift_id}, {"$set": update_data})
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Vardiya bulunamadı")
+    
+    # Start time değiştiyse scheduler job'larını güncelle
+    if data.start_time and data.start_time != old_start_time:
+        try:
+            from utils.shift_scheduler import update_shift_jobs_on_change
+            await update_shift_jobs_on_change(old_start_time=old_start_time, new_start_time=data.start_time)
+        except Exception as e:
+            print(f"Failed to update shift jobs: {e}")
+    
     return {"message": "Vardiya güncellendi"}
 
 @router.delete("/shifts/{shift_id}")
