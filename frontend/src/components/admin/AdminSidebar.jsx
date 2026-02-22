@@ -62,6 +62,32 @@ export default function AdminSidebar({
       </nav>
       
       <div className="border-t border-white/20">
+        {/* Admin Aktif/Pasif Toggle - sadece bağlı kurye varsa göster */}
+        {hasLinkedCourier && onToggleStatus && (
+          <div className={`border-b border-white/20 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
+            <Button 
+              variant="ghost" 
+              onClick={onToggleStatus}
+              className={`w-full text-white font-semibold text-sm py-2 transition-colors ${
+                isActive 
+                  ? 'bg-green-500/30 hover:bg-green-500/40 border border-green-400' 
+                  : 'hover:bg-white/10'
+              } ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-3'}`}
+              title={sidebarCollapsed ? (isActive ? 'Aktif - Tıkla pasif ol' : 'Pasif - Tıkla aktif ol') : ''}
+            >
+              <Power className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-green-400' : 'text-white/60'}`} />
+              {!sidebarCollapsed && (
+                <span className={`ml-2 ${isActive ? 'text-green-300' : ''}`}>
+                  {isActive ? 'Aktif' : 'Pasif'}
+                </span>
+              )}
+              {isActive && !sidebarCollapsed && (
+                <span className="ml-auto w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              )}
+            </Button>
+          </div>
+        )}
+        
         {/* Company Switcher - çıkış butonunun üstünde */}
         {companySwitcher && (
           <div className={`border-b border-white/20 ${sidebarCollapsed ? 'p-1' : 'p-2'}`}>
