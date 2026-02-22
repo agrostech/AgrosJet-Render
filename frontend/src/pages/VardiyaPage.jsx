@@ -256,6 +256,16 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
             <AlertTriangle className="w-4 h-4 mr-1" />
             İhlaller
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowMovementsModal(true)}
+            className="font-semibold border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+            data-testid="show-movements-btn"
+          >
+            <Clock className="w-4 h-4 mr-1" />
+            Hareketler
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 
