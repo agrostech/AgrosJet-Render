@@ -137,7 +137,7 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
-    # Şirkete ait kuryeleri getir (hourly_rate, last_active_at, availability_status dahil)
+    # Şirkete ait kuryeleri getir (hourly_rate, last_active_at, availability_status, is_admin_linked dahil)
     couriers = await db.couriers.find(
         {
             "$or": [
@@ -146,7 +146,7 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
             ],
             "is_archived": {"$ne": True}
         },
-        {"_id": 0, "id": 1, "name": 1, "phone": 1, "hourly_rate": 1, "availability_status": 1, "last_active_at": 1}
+        {"_id": 0, "id": 1, "name": 1, "phone": 1, "hourly_rate": 1, "availability_status": 1, "last_active_at": 1, "is_admin_linked": 1, "linked_admin_id": 1}
     ).to_list(1000)
     
     courier_map = {c["id"]: c for c in couriers}
