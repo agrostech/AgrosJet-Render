@@ -458,7 +458,13 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.transactions.insert_one(tx)
+        total_missing += missing_meal_card
         transactions_added.append({"type": "meal_card", "amount": missing_meal_card})
+        
+        await db.couriers.update_one(
+            {"id": linked_courier_id},
+            {"$inc": {"balance": missing_meal_card}}
+        )
     
     # Sıfırlama kaydı oluştur
     reset_record = {
