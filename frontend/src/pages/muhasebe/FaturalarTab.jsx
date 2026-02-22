@@ -10,7 +10,7 @@ import { MissingInvoicesCard } from "@/components/faturalar/MissingInvoicesCard"
 import { CouriersListCard } from "@/components/faturalar/CouriersListCard";
 import { CourierInvoicesCard } from "@/components/faturalar/CourierInvoicesCard";
 
-export default function FaturalarTab({ companyId, adminId, adminName }) {
+export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdmin }) {
   const now = new Date();
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
