@@ -67,7 +67,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      console.log('[GunlukMutabakat] Fetching with companyId:', companyId);
       const res = await axios.get(`${API}/daily-mutabakat/${companyId}/couriers/${selectedDate}`);
+      console.log('[GunlukMutabakat] Response hasMealCardCollection:', res.data.hasMealCardCollection);
       setCouriers(res.data.couriers);
       setDateRange(res.data.date_range);
       setSummary(res.data.summary);
