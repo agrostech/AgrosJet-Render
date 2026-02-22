@@ -201,7 +201,6 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const handleSaveNotificationSettings = () => {
     saveNotificationSettings(restaurantId, notificationSettings);
     setSavedNotificationSettings(notificationSettings);
-    toast.success("Bildirim ayarları kaydedildi");
   };
 
   // Kurye ataması ayarları fonksiyonları
@@ -218,7 +217,13 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const handleSaveCourierSettings = () => {
     saveCourierAssignmentSettings(restaurantId, courierSettings);
     setSavedCourierSettings(courierSettings);
-    toast.success("Kurye ataması bildirim ayarları kaydedildi");
+  };
+
+  // Tüm bildirim ayarlarını tek seferde kaydet
+  const handleSaveAllNotificationSettings = () => {
+    handleSaveNotificationSettings();
+    handleSaveCourierSettings();
+    toast.success("Bildirim ayarları kaydedildi");
   };
 
   return (
