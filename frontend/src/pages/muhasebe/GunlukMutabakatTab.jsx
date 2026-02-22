@@ -278,26 +278,58 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
         )}
       </div>
 
-      {/* Özet Kartları */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="border bg-white shadow-sm">
-          <CardContent className="p-4 text-center">
-            <Users className="w-5 h-5 mx-auto mb-2 text-slate-500" />
-            <p className="text-2xl font-bold text-slate-800">{summary.total_couriers}</p>
-            <p className="text-xs text-slate-500">Toplam Kurye</p>
-          </CardContent>
-        </Card>
-        <Card className="border bg-white shadow-sm">
-          <CardContent className="p-4 text-center">
-            <ClipboardCheck className="w-5 h-5 mx-auto mb-2 text-blue-500" />
-            <p className="text-2xl font-bold text-slate-800">{summary.completed_couriers}</p>
-            <p className="text-xs text-slate-500">Tahsilat Girilen</p>
-          </CardContent>
-        </Card>
-        <Card className="border bg-white shadow-sm">
-          <CardContent className="p-4 text-center">
-            <div className="w-5 h-5 mx-auto mb-2 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-green-600 text-xs font-bold">✓</span>
+      {/* Özet Kartları - 5 Kart */}
+      {(() => {
+        // Bekleyen (mütabakatı yapılmamış) kuryeler
+        const pendingCouriers = couriers.filter(c => !c.is_processed && c.order_data.order_count > 0);
+        const pendingCash = pendingCouriers.reduce((sum, c) => sum + (c.order_data.cash_total || 0), 0);
+        const pendingCard = pendingCouriers.reduce((sum, c) => sum + (c.order_data.card_total || 0), 0);
+        
+        // İşlenmiş (mütabakatı yapılmış) kuryeler
+        const processedCouriers = couriers.filter(c => c.is_processed);
+        const processedCash = processedCouriers.reduce((sum, c) => sum + (c.order_data.cash_total || 0), 0);
+        const processedCard = processedCouriers.reduce((sum, c) => sum + (c.order_data.card_total || 0), 0);
+        
+        return (
+          <div className="grid grid-cols-5 gap-2">
+            <Card className="border bg-white shadow-sm">
+              <CardContent className="p-3 text-center">
+                <Users className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <p className="text-xl font-bold text-slate-800">{summary.total_couriers}</p>
+                <p className="text-[10px] text-slate-500">Toplam Kurye</p>
+              </CardContent>
+            </Card>
+            <Card className="border bg-amber-50 shadow-sm">
+              <CardContent className="p-3 text-center">
+                <Banknote className="w-4 h-4 mx-auto mb-1 text-amber-600" />
+                <p className="text-lg font-bold text-amber-700">{formatMoney(pendingCash)}</p>
+                <p className="text-[10px] text-amber-600">Bekleyen Nakit</p>
+              </CardContent>
+            </Card>
+            <Card className="border bg-orange-50 shadow-sm">
+              <CardContent className="p-3 text-center">
+                <CreditCard className="w-4 h-4 mx-auto mb-1 text-orange-600" />
+                <p className="text-lg font-bold text-orange-700">{formatMoney(pendingCard)}</p>
+                <p className="text-[10px] text-orange-600">Bekleyen Kart</p>
+              </CardContent>
+            </Card>
+            <Card className="border bg-green-50 shadow-sm">
+              <CardContent className="p-3 text-center">
+                <Banknote className="w-4 h-4 mx-auto mb-1 text-green-600" />
+                <p className="text-lg font-bold text-green-700">{formatMoney(processedCash)}</p>
+                <p className="text-[10px] text-green-600">İşlenen Nakit</p>
+              </CardContent>
+            </Card>
+            <Card className="border bg-emerald-50 shadow-sm">
+              <CardContent className="p-3 text-center">
+                <CreditCard className="w-4 h-4 mx-auto mb-1 text-emerald-600" />
+                <p className="text-lg font-bold text-emerald-700">{formatMoney(processedCard)}</p>
+                <p className="text-[10px] text-emerald-600">İşlenen Kart</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
             </div>
             <p className="text-2xl font-bold text-green-600">{summary.processed_couriers}</p>
             <p className="text-xs text-slate-500">Mütabakat Tamamlanan</p>
