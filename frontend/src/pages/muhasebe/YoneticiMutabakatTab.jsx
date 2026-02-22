@@ -139,7 +139,12 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
       await axios.post(`${API}/admin-mutabakat/${companyId}/reset/${resetAdmin.admin_id}`, {
         reset_by_id: currentUser.id,
         reset_by_name: currentUser.name,
-        note: resetNote || null
+        note: resetNote || null,
+        received_cash: parseFloat(receivedAmounts.cash) || 0,
+        received_card_1: parseFloat(receivedAmounts.card_1) || 0,
+        received_card_10: parseFloat(receivedAmounts.card_10) || 0,
+        received_card_20: parseFloat(receivedAmounts.card_20) || 0,
+        received_meal_card: parseFloat(receivedAmounts.meal_card) || 0
       });
       
       setResetAdmin(null);
