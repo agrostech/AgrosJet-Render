@@ -811,14 +811,27 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
   // Delete invoice
   const handleDeleteInvoice = async (invoiceId) => {
     setPendingDeleteId(invoiceId);
+    setDeleteType("invoice");
+    setConfirmOpen(true);
+  };
+
+  // Delete missing invoice record
+  const handleDeleteMissingInvoice = async (recordId) => {
+    setPendingDeleteId(recordId);
+    setDeleteType("missing");
     setConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!pendingDeleteId) return;
     try {
-      await axios.delete(`${API}/restaurant-invoices/${companyId}/invoice/${pendingDeleteId}`);
-      toast.success("Fatura silindi");
+      if (deleteType === "missing") {
+        await axios.delete(`${API}/restaurant-invoices/${companyId}/missing/${pendingDeleteId}`);
+        toast.success("Eksik fatura kaydı silindi");
+      } else {
+        await axios.delete(`${API}/restaurant-invoices/${companyId}/invoice/${pendingDeleteId}`);
+        toast.success("Fatura silindi");
+      }
       fetchData();
       if (selectedRestaurant) fetchRestaurantData();
     } catch (err) {
@@ -826,6 +839,7 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
     } finally {
       setConfirmOpen(false);
       setPendingDeleteId(null);
+      setDeleteType("invoice");
     }
   };
 
