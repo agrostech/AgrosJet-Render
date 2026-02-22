@@ -232,5 +232,73 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
         }}
       />
     </div>
+
+    {/* WhatsApp Reminder Modal */}
+    <Dialog open={showReminderModal} onOpenChange={setShowReminderModal}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-green-600" />
+            WhatsApp ile Hatırlat
+          </DialogTitle>
+        </DialogHeader>
+        
+        {selectedCourierData && (
+          <div className="space-y-4">
+            <div className="bg-slate-50 p-3 rounded-lg">
+              <p className="font-semibold">{selectedCourierData.courier_name}</p>
+              <p className="text-sm text-red-600 font-mono mt-1">
+                Toplam Eksik: {formatMoney(selectedCourierData.total_amount)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {selectedCourierData.count} adet eksik fatura
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-2">Kurye Bilgileri</h4>
+              
+              <div className="p-3 border rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{selectedCourierData.courier_name}</p>
+                    {selectedCourierData.phone ? (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Phone className="w-3 h-3" />
+                        {selectedCourierData.phone}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-red-500">Telefon numarası yok</p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleWhatsAppReminder}
+                    disabled={!selectedCourierData.phone}
+                    className="h-8 gap-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Hatırlat
+                  </Button>
+                </div>
+              </div>
+              
+              {!selectedCourierData.phone && (
+                <p className="text-xs text-amber-600 mt-2 bg-amber-50 p-2 rounded">
+                  Bu kuryenin telefon numarası tanımlı değil. Kurye bilgilerinden telefon ekleyebilirsiniz.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowReminderModal(false)}>
+            Kapat
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
