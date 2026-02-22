@@ -161,8 +161,6 @@ async def get_all_missing_invoices(company_id: str):
     Tüm zamanların eksik faturalarını getir.
     Haftalık bazda oluşturulmuş, tamamlanmamış tüm kayıtları döndürür.
     """
-    print(f"[DEBUG] get_all_missing_invoices called for company_id: {company_id}")
-    
     # Fatura ayarı olan restoranları getir
     restaurants = await db.restaurants.find(
         {
@@ -172,8 +170,6 @@ async def get_all_missing_invoices(company_id: str):
         },
         {"_id": 0}
     ).to_list(500)
-    
-    print(f"[DEBUG] Found {len(restaurants)} restaurants with invoice_settings")
     
     restaurant_map = {r["id"]: r for r in restaurants}
     
@@ -186,14 +182,11 @@ async def get_all_missing_invoices(company_id: str):
         {"_id": 0}
     ).sort("week_start", -1).to_list(500)
     
-    print(f"[DEBUG] Found {len(incomplete_records)} incomplete records")
-    
     missing_invoices = []
     
     for record in incomplete_records:
         restaurant = restaurant_map.get(record["restaurant_id"])
         if not restaurant:
-            print(f"[DEBUG] Restaurant not found for record: {record.get('restaurant_name')}")
             continue
         
         settings = restaurant.get("invoice_settings", {})
