@@ -668,14 +668,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <RefreshCw className="w-4 h-4 mr-2" />
               Yenile
             </Button>
-            <Button variant="outline" size="sm" onClick={handleGenerateMock}>
-              <Plus className="w-4 h-4 mr-2" />
-              Mock Sipariş
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleClearMock}>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Mock Temizle
-            </Button>
           </div>
         )}
       </div>
