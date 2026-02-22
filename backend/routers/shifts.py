@@ -110,10 +110,23 @@ async def delete_shift(
     shift_id: str
 ):
     """Delete a shift and all its assignments"""
+    # Silinecek vardiyayı al (start_time için)
+    shift = await db.shifts.find_one({"id": shift_id}, {"_id": 0, "start_time": 1})
+    start_time = shift.get("start_time") if shift else None
+    
     result = await db.shifts.delete_one({"id": shift_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Vardiya bulunamadı")
     await db.shift_assignments.delete_many({"shift_id": shift_id})
+    
+    # Scheduler job'ını kaldır (o saatte başka vardiya yoksa)
+    if start_time:
+        try:
+            from utils.shift_scheduler import update_shift_jobs_on_change
+            await update_shift_jobs_on_change(old_start_time=start_time)
+        except Exception as e:
+            print(f"Failed to update shift jobs: {e}")
+    
     return {"message": "Vardiya silindi"}
 
 @router.get("/companies/{company_id}/shift-assignments")
