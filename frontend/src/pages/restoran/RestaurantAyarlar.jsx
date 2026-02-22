@@ -418,10 +418,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
               {/* Kaydet Butonu */}
               <div className="pt-2">
                 <Button
-                  onClick={() => {
-                    handleSaveNotificationSettings();
-                    handleSaveCourierSettings();
-                  }}
+                  onClick={handleSaveAllNotificationSettings}
                   disabled={!hasNotificationChanges && !hasCourierChanges}
                   className="gap-2"
                 >
