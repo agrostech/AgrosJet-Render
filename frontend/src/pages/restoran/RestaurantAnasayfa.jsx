@@ -281,7 +281,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           cancel_note: cancelNote || undefined
         };
         await axios.put(`${API}/orders/${orderId}/status`, payload);
-        toast.success(newStatus === "cancelled" ? "Sipariş iptal edildi" : "Sipariş teslim edildi");
+        // Bildirim kapatıldı - kullanıcı isteği
         onRefresh?.();
       } else {
         // Normal status değişikliği
