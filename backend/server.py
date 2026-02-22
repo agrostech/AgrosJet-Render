@@ -338,6 +338,7 @@ from routers.migros import router as migros_router
 from routers.getir import router as getir_router
 from routers.courier_status_logs import router as courier_status_logs_router
 from routers.admin_mutabakat import router as admin_mutabakat_router
+from routers.restaurant_invoices import router as restaurant_invoices_router
 
 # Set db for products router
 set_products_db(db)
