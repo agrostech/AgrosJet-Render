@@ -246,7 +246,17 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
                             <p className="font-semibold text-sm">{v.entity_name}</p>
                             <p className={`text-xs font-medium ${colorClass.split(' ')[0]}`}>
                               {v.violation_label || violationTypes[v.violation_type] || v.violation_type}
+                              {v.details?.late_minutes > 0 && (
+                                <span className="ml-1 text-slate-500">
+                                  ({v.details.late_minutes} dk geç)
+                                </span>
+                              )}
                             </p>
+                            {v.details?.shift_end_time && (
+                              <p className="text-xs text-muted-foreground">
+                                Vardiya bitişi: {v.details.shift_end_time} → Kapanış: {v.details.deactivated_at}
+                              </p>
+                            )}
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {formatDateTime(v.created_at)}
                             </p>
