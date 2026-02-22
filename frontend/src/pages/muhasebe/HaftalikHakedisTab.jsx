@@ -436,7 +436,7 @@ export default function HaftalikHakedisTab({ companyId }) {
           <Card className="border bg-white shadow-sm">
             <CardHeader className="pb-2 border-b bg-slate-50">
               <CardTitle className="text-sm font-semibold text-slate-700">
-                Kurye Hakedişleri ({couriers.length} kurye)
+                Kurye Hakedişleri ({couriers.filter(c => c.amount > 0 || c.is_processed).length} kurye)
                 {selectedUnprocessed.length > 0 && (
                   <span className="ml-2 text-primary">
                     — {selectedUnprocessed.length} bekleyen seçili, {formatMoney(selectedUnprocessedTotal)}
