@@ -374,6 +374,16 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         companyId={companyId}
         isSuperAdmin={isSuperAdmin}
       />
+
+      {/* Vardiya Silme Onay Modalı */}
+      <ConfirmModal
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Vardiya Silme"
+        description="Bu vardiyayı silmek istediğinize emin misiniz? Vardiyaya atanmış tüm kuryeler de silinecektir."
+        onConfirm={onConfirmDeleteShift}
+        variant="danger"
+      />
     </div>
   );
 }
