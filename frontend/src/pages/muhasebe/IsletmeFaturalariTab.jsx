@@ -688,6 +688,7 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
   // Delete confirmation
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [deleteType, setDeleteType] = useState("invoice"); // "invoice" or "missing"
 
   // Fetch all data
   const fetchData = useCallback(async () => {
