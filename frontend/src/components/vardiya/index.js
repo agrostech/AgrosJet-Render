@@ -6,3 +6,5 @@ export {
   AddLeaveModal, 
   BulkAssignModal 
 } from "./ShiftModals";
+export { default as VardiyaTakibiCard } from "./VardiyaTakibiCard";
+export { default as VardiyaIhlalleriModal } from "./VardiyaIhlalleriModal";
