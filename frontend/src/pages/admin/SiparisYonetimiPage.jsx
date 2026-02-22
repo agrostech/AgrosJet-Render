@@ -1135,6 +1135,88 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     })}
                   </tbody>
                 </table>
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t" data-testid="pagination-controls">
+                    <div className="text-xs text-muted-foreground">
+                      Toplam {filteredAndSortedOrders.length} sipariş, Sayfa {currentPage} / {totalPages}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className="h-8 px-2 text-xs"
+                        data-testid="pagination-first"
+                      >
+                        İlk
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="h-8 px-2"
+                        data-testid="pagination-prev"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      
+                      {/* Sayfa numaraları */}
+                      <div className="flex items-center gap-1">
+                        {(() => {
+                          const pages = [];
+                          const maxVisiblePages = 5;
+                          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                          
+                          if (endPage - startPage + 1 < maxVisiblePages) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+                          
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <Button
+                                key={i}
+                                variant={i === currentPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setCurrentPage(i)}
+                                className={`h-8 w-8 text-xs ${i === currentPage ? "bg-primary text-white" : ""}`}
+                                data-testid={`pagination-page-${i}`}
+                              >
+                                {i}
+                              </Button>
+                            );
+                          }
+                          return pages;
+                        })()}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-8 px-2"
+                        data-testid="pagination-next"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="h-8 px-2 text-xs"
+                        data-testid="pagination-last"
+                      >
+                        Son
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
