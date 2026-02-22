@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Briefcase } from "lucide-react";
 import { DAYS } from "./useVardiyaData";
 
 export default function ShiftGrid({
