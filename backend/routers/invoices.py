@@ -667,11 +667,12 @@ async def upload_invoice_by_admin(
 async def get_missing_invoices(company_id: str):
     """Get hakediş transactions without invoices OR with shortfall"""
     
-    # Find all hakediş transactions without invoice_id
+    # Find all hakediş transactions without invoice_id (exclude dismissed)
     no_invoice_txs = await db.transactions.find(
         {
             "company_id": company_id,
             "is_hakedis": True,
+            "invoice_dismissed": {"$ne": True},
             "$or": [
                 {"invoice_id": {"$exists": False}},
                 {"invoice_id": None},
@@ -681,13 +682,14 @@ async def get_missing_invoices(company_id: str):
         {"_id": 0}
     ).sort("created_at", -1).to_list(500)
     
-    # Also find transactions with shortfall (has invoice but amount is less)
+    # Also find transactions with shortfall (has invoice but amount is less, exclude dismissed)
     shortfall_txs = await db.transactions.find(
         {
             "company_id": company_id,
             "is_hakedis": True,
             "has_shortfall": True,
-            "shortfall_amount": {"$gt": 0}
+            "shortfall_amount": {"$gt": 0},
+            "invoice_dismissed": {"$ne": True}
         },
         {"_id": 0}
     ).sort("created_at", -1).to_list(500)
