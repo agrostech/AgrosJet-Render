@@ -1,0 +1,330 @@
+import { useState, useEffect } from "react";
+import { Calendar, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
+
+const DAYS = [
+  { key: "pazartesi", label: "Pazartesi" },
+  { key: "sali", label: "Salı" },
+  { key: "carsamba", label: "Çarşamba" },
+  { key: "persembe", label: "Perşembe" },
+  { key: "cuma", label: "Cuma" },
+  { key: "cumartesi", label: "Cumartesi" },
+  { key: "pazar", label: "Pazar" },
+];
+
+// Get current "work day" based on 06:00 start time
+function getWorkDay() {
+  const now = new Date();
+  const hour = now.getHours();
+  
+  let targetDate = new Date(now);
+  if (hour < 6) {
+    targetDate.setDate(targetDate.getDate() - 1);
+  }
+  
+  const jsDay = targetDate.getDay();
+  const dayIndex = jsDay === 0 ? 6 : jsDay - 1;
+  
+  return {
+    dayKey: DAYS[dayIndex].key,
+    dayLabel: DAYS[dayIndex].label,
+    date: targetDate,
+    isNextDay: hour < 6
+  };
+}
+
+function formatDate(date) {
+  return date.toLocaleDateString('tr-TR', { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  });
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString('tr-TR', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+}
+
+// Sort shifts with 06:00 as day start
+function sortShifts(shifts) {
+  return [...shifts].sort((a, b) => {
+    const getMinutes = (time) => {
+      const [h, m] = time.split(':').map(Number);
+      const adjustedHour = h < 6 ? h + 24 : h;
+      return adjustedHour * 60 + m;
+    };
+    return getMinutes(a.start_time) - getMinutes(b.start_time);
+  });
+}
+
+// Check if current time is within shift hours
+function isShiftActive(shift) {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTotalMinutes = currentHour * 60 + currentMinute;
+  
+  const [startH, startM] = shift.start_time.split(':').map(Number);
+  const [endH, endM] = shift.end_time.split(':').map(Number);
+  
+  let startMinutes = startH * 60 + startM;
+  let endMinutes = endH * 60 + endM;
+  
+  if (endMinutes <= startMinutes) {
+    if (currentTotalMinutes >= startMinutes || currentTotalMinutes < endMinutes) {
+      return true;
+    }
+  } else {
+    if (currentTotalMinutes >= startMinutes && currentTotalMinutes < endMinutes) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+export default function VardiyaTakibiCard({ shifts, assignments, leaves }) {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [expandedShift, setExpandedShift] = useState(null);
+
+  const workDay = getWorkDay();
+  const activeDay = selectedDay || workDay.dayKey;
+  const activeDayLabel = DAYS.find(d => d.key === activeDay)?.label || workDay.dayLabel;
+  const isToday = !selectedDay || selectedDay === workDay.dayKey;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const todayAssignments = assignments.filter(a => a.day === activeDay);
+  const todayLeaves = leaves.filter(l => l.day === activeDay);
+  const sortedShifts = sortShifts(shifts);
+
+  const getShiftAssignments = (shiftId) => {
+    return todayAssignments.filter(a => a.shift_id === shiftId);
+  };
+
+  return (
+    <div className="border-2 border-border bg-white p-4 space-y-4">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 pb-3 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isToday ? 'bg-primary/10' : 'bg-amber-100'}`}>
+            <Calendar className={`w-5 h-5 ${isToday ? 'text-primary' : 'text-amber-600'}`} />
+          </div>
+          <div>
+            <h3 className="font-heading font-bold text-lg">Vardiya Takibi</h3>
+            <p className="text-sm text-muted-foreground">
+              {activeDayLabel} - {isToday ? formatDate(workDay.date) : 'Haftalık görünüm'}
+            </p>
+          </div>
+        </div>
+        {isToday && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="font-mono font-semibold">{formatTime(currentTime)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Gün Seçici */}
+      <div className="flex items-center justify-between gap-2">
+        <button
+          onClick={() => {
+            const currentIndex = DAYS.findIndex(d => d.key === activeDay);
+            const prevIndex = currentIndex === 0 ? 6 : currentIndex - 1;
+            setSelectedDay(DAYS[prevIndex].key === workDay.dayKey ? null : DAYS[prevIndex].key);
+          }}
+          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5 text-slate-500" />
+        </button>
+        
+        <div className="flex-1 grid grid-cols-7 gap-1">
+          {DAYS.map((day, index) => {
+            const isActive = activeDay === day.key;
+            const isTodayDay = workDay.dayKey === day.key;
+            
+            const todayIndex = DAYS.findIndex(d => d.key === workDay.dayKey);
+            const diff = index - todayIndex;
+            const dayDate = new Date(workDay.date);
+            dayDate.setDate(dayDate.getDate() + diff);
+            const dayOfMonth = dayDate.getDate();
+            
+            const dayAbbreviations = {
+              'pazartesi': 'Pzt',
+              'sali': 'Sal',
+              'carsamba': 'Çar',
+              'persembe': 'Per',
+              'cuma': 'Cum',
+              'cumartesi': 'Cmt',
+              'pazar': 'Paz'
+            };
+            const dayAbbr = dayAbbreviations[day.key];
+            
+            return (
+              <button
+                key={day.key}
+                onClick={() => setSelectedDay(day.key === workDay.dayKey ? null : day.key)}
+                className={`flex flex-col items-center py-2 px-1 rounded-lg transition-all ${
+                  isActive 
+                    ? 'bg-primary text-white shadow-md scale-105' 
+                    : isTodayDay
+                      ? 'bg-primary/10 text-primary hover:bg-primary/20 ring-2 ring-primary/30'
+                      : 'hover:bg-slate-100 text-slate-600'
+                }`}
+              >
+                <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">
+                  {dayAbbr}
+                </span>
+                <span className={`text-sm font-bold ${isActive ? '' : isTodayDay ? 'text-primary' : ''}`}>
+                  {dayOfMonth}
+                </span>
+                {isTodayDay && !isActive && (
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full mt-0.5"></span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        
+        <button
+          onClick={() => {
+            const currentIndex = DAYS.findIndex(d => d.key === activeDay);
+            const nextIndex = currentIndex === 6 ? 0 : currentIndex + 1;
+            setSelectedDay(DAYS[nextIndex].key === workDay.dayKey ? null : DAYS[nextIndex].key);
+          }}
+          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <ChevronRight className="w-5 h-5 text-slate-500" />
+        </button>
+      </div>
+
+      {/* Shift Details */}
+      <div className="space-y-2 pt-2 border-t border-slate-100">
+        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+          Vardiyalar
+        </h4>
+        {sortedShifts.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">
+            Henüz vardiya eklenmemiş
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3">
+            {sortedShifts.map(shift => {
+              const shiftAssignments = getShiftAssignments(shift.id);
+              const isActive = isToday && isShiftActive(shift);
+              const courierCount = shiftAssignments.length;
+              const isExpanded = expandedShift === shift.id;
+              
+              return (
+                <div 
+                  key={shift.id} 
+                  className={`rounded-lg border transition-colors ${
+                    isActive 
+                      ? 'bg-green-50 border-green-300' 
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <div 
+                    className={`flex items-center justify-between p-2 sm:p-3 ${courierCount > 0 ? 'cursor-pointer hover:bg-white/50' : ''}`}
+                    onClick={() => {
+                      if (courierCount > 0) {
+                        setExpandedShift(isExpanded ? null : shift.id);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center font-bold text-base sm:text-lg ${
+                        isActive 
+                          ? 'bg-green-200 text-green-800' 
+                          : courierCount > 0 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        {courierCount}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-xs sm:text-sm">
+                          {shift.start_time} - {shift.end_time}
+                        </p>
+                        {isActive && (
+                          <span className="text-[10px] sm:text-xs text-green-700">Aktif vardiya</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {courierCount > 0 && (
+                        <button 
+                          className="p-1 rounded hover:bg-white/50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedShift(isExpanded ? null : shift.id);
+                          }}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-slate-500" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-slate-500" />
+                          )}
+                        </button>
+                      )}
+                      {courierCount === 0 && (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {isExpanded && courierCount > 0 && (
+                    <div className="px-2 pb-2 border-t border-slate-200/50">
+                      <div className="flex flex-wrap gap-1 pt-2">
+                        {shiftAssignments.map(a => (
+                          <span 
+                            key={a.id} 
+                            className={`text-[10px] sm:text-xs px-2 py-1 rounded font-medium ${
+                              isActive 
+                                ? 'bg-green-200 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
+                            {a.courier_name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Today's Leaves */}
+      {todayLeaves.length > 0 && (
+        <div className="space-y-2 pt-2 border-t border-slate-200">
+          <h4 className="font-semibold text-sm text-orange-700 uppercase tracking-wide">
+            {isToday ? 'Bugün' : activeDayLabel} İzinli
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {todayLeaves.map(l => (
+              <span 
+                key={l.id} 
+                className="text-xs px-3 py-1.5 bg-orange-100 text-orange-800 rounded-lg font-medium"
+              >
+                {l.courier_name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
