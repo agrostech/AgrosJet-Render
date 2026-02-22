@@ -348,6 +348,7 @@ from routers.courier_status_logs import router as courier_status_logs_router
 from routers.admin_mutabakat import router as admin_mutabakat_router
 from routers.restaurant_invoices import router as restaurant_invoices_router
 from routers.shift_violations import router as shift_violations_router
+from routers.status_movements import router as status_movements_router
 
 # Set db for products router
 set_products_db(db)
