@@ -961,8 +961,10 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
       <ConfirmModal
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Fatura Silme"
-        description="Bu faturayı silmek istediğinize emin misiniz?"
+        title={deleteType === "missing" ? "Eksik Fatura Kaydı Silme" : "Fatura Silme"}
+        description={deleteType === "missing" 
+          ? "Bu eksik fatura kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+          : "Bu faturayı silmek istediğinize emin misiniz?"}
         onConfirm={confirmDelete}
         variant="danger"
       />
