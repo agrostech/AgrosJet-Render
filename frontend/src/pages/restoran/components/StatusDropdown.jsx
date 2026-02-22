@@ -68,7 +68,7 @@ export default function StatusDropdown({
     let displayLabel = statusInfo.label;
     if ((status === "preparing" || status === "scheduled") && order.preparation_end_at && getCountdown) {
       const countdown = getCountdown(order.preparation_end_at);
-      if (countdown && !countdown.expired && countdown.text) {
+      if (countdown && countdown.text) {
         displayLabel = countdown.text;
       }
     }
