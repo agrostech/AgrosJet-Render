@@ -41,12 +41,19 @@ Kurye yönetim sistemi için admin reconciliation özelliği ve admin-kurye bağ
 - `courier_daily_active`: Günlük aktif süre takibi
 - `couriers`: `is_admin_linked` flag eklendi
 - `users (admin)`: `linked_courier_id`, `hourly_rate` eklendi
+- `restaurant_invoices`: Restoran fatura kayıtları (haftalık bazda eksik fatura takibi)
+- `restaurants`: `invoice_settings` eklendi (hangi ödeme yöntemleri için fatura gerekli)
+- `restaurant_users`: `phone` alanı eklendi
 
 ### Key Endpoints
 - `POST /api/admins/{id}/toggle-status`: Admin aktif/pasif durumu
 - `PUT /api/admins/{id}`: Kurye bağlama
 - `GET /api/weekly-hakedis/{company_id}`: Haftalık hakediş (admin flag ile)
 - `GET/POST /api/transactions/vendor/{id}`: Admin-kurye desteği
+- `GET /api/restaurant-invoices/{company_id}/missing`: Tüm eksik faturalar
+- `GET /api/restaurant-invoices/{company_id}/month/{year}/{month}`: Ay faturaları
+- `GET /api/restaurant-invoices/{company_id}/restaurants`: Fatura ayarı olan restoranlar
+- `DELETE /api/restaurant-invoices/{company_id}/missing/{record_id}`: Eksik fatura kaydı silme
 
 ## Prioritized Backlog
 
