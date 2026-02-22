@@ -49,7 +49,7 @@ export function useVardiyaData(companyId) {
     try {
       const [shiftsRes, assignmentsRes, leavesRes, couriersRes] = await Promise.all([
         axios.get(`${API}/companies/${companyId}/shifts`),
-        axios.get(`${API}/companies/${companyId}/shift-assignments`),
+        axios.get(`${API}/companies/${companyId}/shift-assignments?include_admin_linked=true`),
         axios.get(`${API}/companies/${companyId}/leaves`),
         axios.get(`${API}/companies/${companyId}/couriers`),
       ]);
