@@ -128,8 +128,7 @@ export default function YoneticilerPage({ companyId }) {
     setEditData({ 
       name: admin.name, 
       username: admin.username, 
-      password: "",
-      hourly_rate: admin.hourly_rate || ""
+      password: ""
     });
     setShowEditModal(true);
   };
