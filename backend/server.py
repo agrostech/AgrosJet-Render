@@ -232,8 +232,37 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # Add shift violation check job - runs every 5 minutes
+    async def check_shift_violations():
+        """Vardiya ihlallerini kontrol et ve logla"""
+        try:
+            from routers.shift_violations import check_and_log_violations_internal
+            
+            # Aktif şirketleri bul
+            companies = await db.companies.find(
+                {"is_archived": {"$ne": True}},
+                {"_id": 0, "id": 1}
+            ).to_list(100)
+            
+            for company in companies:
+                try:
+                    await check_and_log_violations_internal(company["id"])
+                except Exception as e:
+                    print(f"Shift violation check error for company {company['id']}: {e}")
+        except Exception as e:
+            print(f"Shift violation check job error: {e}")
+    
+    scheduler.add_job(
+        check_shift_violations,
+        'interval',
+        minutes=5,  # Her 5 dakikada bir kontrol et
+        id="shift_violation_check",
+        name="Shift Violation Check",
+        replace_existing=True
+    )
+    
     scheduler.start()
-    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m)")
+    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m), shift violations (5m)")
     
     yield
     
