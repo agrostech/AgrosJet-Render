@@ -16,6 +16,7 @@ import {
   VardiyaTakibiCard,
   VardiyaIhlalleriModal,
 } from "@/components/vardiya";
+import { StatusMovementsModal } from "@/components/vardiya/StatusMovementsModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
