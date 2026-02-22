@@ -19,7 +19,7 @@ export function CourierSidebarDesktop({
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <Users className="w-4 h-4" />
-          Kuryeler
+          Kuryeler ve Yöneticiler
         </CardTitle>
       </CardHeader>
       <CardContent className="p-2 space-y-3 max-h-[500px] overflow-y-auto">
