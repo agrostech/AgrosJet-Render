@@ -126,6 +126,8 @@ async def get_admin_balances(company_id: str):
             "admin_id": admin_id,
             "admin_name": admin["name"],
             "role": admin.get("role", "admin"),
+            "linked_courier_id": linked_courier_id,
+            "has_linked_courier": bool(linked_courier_id),
             "total_cash": round(total_cash, 2),
             "total_card_1": round(total_card_1, 2),
             "total_card_10": round(total_card_10, 2),
