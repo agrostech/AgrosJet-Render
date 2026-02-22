@@ -18,6 +18,7 @@ export function MissingInvoicesCard({ missingInvoices, isSuperAdmin, onDismiss }
   const [deletingId, setDeletingId] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [showReminderModal, setShowReminderModal] = useState(false);
 
   // Get unique couriers who have missing invoices
   const couriersWithMissing = useMemo(() => {
