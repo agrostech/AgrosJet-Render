@@ -518,7 +518,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                       />
                     </th>
                     <th className="text-left p-2 font-semibold text-xs text-slate-600">Kurye</th>
-                    <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={2}>Sipariş (Sistem)</th>
+                    <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={hasMealCardCollection ? 3 : 2}>Sipariş (Sistem)</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={5}>Tahsilat (Giriş)</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={4}>Fark</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600 w-16">Durum</th>
@@ -528,6 +528,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     <th></th>
                     <th className="p-1 text-center w-14">Nakit</th>
                     <th className="p-1 text-center w-14">Kart</th>
+                    <th className="p-1 text-center w-14" style={{ display: hasMealCardCollection ? 'table-cell' : 'none' }}>Y.Kartı</th>
                     <th className="p-1 text-center w-24">Nakit</th>
                     <th className="p-1 text-center w-24">%1</th>
                     <th className="p-1 text-center w-24">%10</th>
