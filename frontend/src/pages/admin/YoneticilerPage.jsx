@@ -465,6 +465,77 @@ export default function YoneticilerPage({ companyId }) {
         </DialogContent>
       </Dialog>
 
+      {/* Kurye Bağlama Modal */}
+      <Dialog open={showLinkModal} onOpenChange={setShowLinkModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-green-500" />
+              Kurye Hesabı Bağla
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAdmin && (
+            <div className="space-y-4">
+              <div className="p-3 bg-slate-50 rounded-lg border">
+                <p className="text-xs text-muted-foreground">Yönetici</p>
+                <p className="font-semibold">{selectedAdmin.name}</p>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700">
+                <strong>Bilgi:</strong> Kurye hesabı bağlandığında:
+                <ul className="mt-1 ml-3 list-disc">
+                  <li>Admin aktif olunca kurye pasif olur (ve tersi)</li>
+                  <li>Hakediş hesaplamaları birleştirilir</li>
+                  <li>Kurye, kuryeler listesinde gizlenir</li>
+                </ul>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-semibold">Kurye Seçin</Label>
+                <Select 
+                  value={linkData.linked_courier_id || "none"} 
+                  onValueChange={(val) => setLinkData({ linked_courier_id: val === "none" ? "" : val })}
+                >
+                  <SelectTrigger className="mt-1 h-11 border-2">
+                    <SelectValue placeholder="Kurye seçin..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      <span className="text-slate-500">Bağlantı yok</span>
+                    </SelectItem>
+                    {couriers
+                      .filter(c => !c.is_admin_linked || c.id === selectedAdmin.linked_courier_id)
+                      .map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name} {c.is_admin_linked && "(Bağlı)"}
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowLinkModal(false)} 
+                  className="flex-1 h-11 font-semibold border-2"
+                >
+                  İptal
+                </Button>
+                <Button 
+                  onClick={handleLinkCourier} 
+                  className="flex-1 h-11 font-semibold" 
+                  disabled={linkLoading}
+                >
+                  {linkLoading ? "Kaydediliyor..." : linkData.linked_courier_id ? "Bağla" : "Kaldır"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Silme Onay Modalı */}
       <ConfirmModal
         open={confirmOpen}
