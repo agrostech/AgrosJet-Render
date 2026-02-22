@@ -436,7 +436,15 @@ async def get_business_transactions(business_id: str, skip: int = 0, limit: int 
 
 @router.get("/transactions/vendor/{vendor_id}")
 async def get_vendor_transactions(vendor_id: str, skip: int = 0, limit: int = 10):
-    """Get paginated transactions for a vendor"""
+    """Get paginated transactions for a vendor.
+    
+    Özel durum: Admin-kurye bağlantılı ID'ler için kurye işlemlerini döndürür.
+    """
+    # Admin-kurye bağlantısı kontrolü (ID formatı: admin_courier_{courier_id})
+    if vendor_id.startswith("admin_courier_"):
+        courier_id = vendor_id.replace("admin_courier_", "")
+        return await get_entity_transactions("courier", courier_id, skip, limit)
+    
     return await get_entity_transactions("vendor", vendor_id, skip, limit)
 
 @router.get("/transactions/restaurant/{restaurant_id}")
