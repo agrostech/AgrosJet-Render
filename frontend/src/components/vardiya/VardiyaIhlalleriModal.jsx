@@ -215,14 +215,18 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
               <span className="font-semibold text-sm">
                 {formatWeekLabel(selectedWeek.start, selectedWeek.end)}
               </span>
-              {getWeekRange(new Date()).start.getTime() !== selectedWeek.start.getTime() && (
-                <button
-                  onClick={goToCurrentWeek}
-                  className="text-xs text-primary hover:underline ml-2"
-                >
-                  Bu Hafta
-                </button>
-              )}
+              {(() => {
+                const currentWeek = getWeekRange(new Date());
+                const isSameWeek = currentWeek.start.toDateString() === selectedWeek.start.toDateString();
+                return !isSameWeek && (
+                  <button
+                    onClick={goToCurrentWeek}
+                    className="text-xs text-primary hover:underline ml-2"
+                  >
+                    Bu Hafta
+                  </button>
+                );
+              })()}
             </div>
             
             <button
