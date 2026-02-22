@@ -543,6 +543,7 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                     # Kuryenin aktif olma zamanını kontrol et
                     activated_at_str = courier.get("activated_at")
                     base_minutes = latest_end_minutes  # Varsayılan: vardiya bitiş saati
+                    activated_after_shift = False  # Vardiya bittikten sonra mı aktif oldu?
                     
                     if activated_at_str:
                         try:
@@ -553,13 +554,24 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                             # Eğer aktif olma zamanı vardiya bitişinden sonraysa, süreyi aktivasyon zamanından hesapla
                             if activated_minutes > latest_end_minutes + tolerance:
                                 base_minutes = activated_minutes
+                                activated_after_shift = True
                         except Exception as e:
                             print(f"Error parsing activated_at: {e}")
                     
                     late_minutes = current_minutes - base_minutes
                     
-                    # Tolerans süresini aşarsa ihlal logla
-                    if late_minutes > tolerance:
+                    # Tolerans kontrolü: Vardiya bittikten sonra aktif olanlar için tolerans YOK
+                    should_log = False
+                    if activated_after_shift:
+                        # Vardiya dışında aktif olduysa, tolerans yok - her türlü logla
+                        if late_minutes > 0:
+                            should_log = True
+                    else:
+                        # Vardiya süresinde aktif olduysa, tolerans uygula
+                        if late_minutes > tolerance:
+                            should_log = True
+                    
+                    if should_log:
                         if admin_info:
                             await log_violation(
                                 company_id=company_id,
@@ -573,7 +585,7 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                                     "shift_end_time": latest_ended_shift["end_time"],
                                     "deactivated_at": now_turkey.strftime("%H:%M"),
                                     "late_minutes": late_minutes,
-                                    "tolerance_minutes": tolerance,
+                                    "tolerance_minutes": tolerance if not activated_after_shift else 0,
                                     "triggered_by": "courier_deactivation"
                                 }
                             )
@@ -589,7 +601,7 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                                     "shift_end_time": latest_ended_shift["end_time"],
                                     "deactivated_at": now_turkey.strftime("%H:%M"),
                                     "late_minutes": late_minutes,
-                                    "tolerance_minutes": tolerance,
+                                    "tolerance_minutes": tolerance if not activated_after_shift else 0,
                                     "triggered_by": "courier_deactivation"
                                 }
                             )
