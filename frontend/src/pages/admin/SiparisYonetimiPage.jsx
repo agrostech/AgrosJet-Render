@@ -797,7 +797,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               {/* Başlık ve Arama */}
               <div className="flex items-center justify-between gap-4">
                 <CardTitle className="text-base whitespace-nowrap">
-                  Siparişler ({filteredOrders.length}{searchQuery && ` / ${orders.length}`})
+                  Siparişler ({filteredAndSortedOrders.length}{searchQuery && ` / ${orders.length}`})
                 </CardTitle>
                 <div className="relative flex-1 max-w-xs">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -818,6 +818,39 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                   )}
                 </div>
               </div>
+              
+              {/* Sıralama ve Sayfa Boyutu */}
+              <div className="flex items-center justify-between gap-4">
+                {/* Sıralama */}
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+                  <Select value={sortOrder} onValueChange={setSortOrder}>
+                    <SelectTrigger className="h-8 w-[160px] text-xs" data-testid="sort-order-select">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Yeniden Eskiye</SelectItem>
+                      <SelectItem value="oldest">Eskiden Yeniye</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Sayfa Boyutu */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Göster:</span>
+                  <Select value={pageSize.toString()} onValueChange={(val) => setPageSize(parseInt(val))}>
+                    <SelectTrigger className="h-8 w-[80px] text-xs" data-testid="page-size-select">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
               {/* Durum Filtreleri */}
               <div className="flex flex-wrap items-center gap-1.5">
                 {[
