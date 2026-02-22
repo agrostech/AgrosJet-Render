@@ -116,7 +116,7 @@ async def check_and_log_violations_internal(company_id: str):
         
         # is_admin_linked True ama admin_info yoksa, admin bilgisini doğrudan çek
         if not admin_info and courier.get("is_admin_linked"):
-            admin_doc = await db.users.find_one(
+            admin_doc = await db.admins.find_one(
                 {"linked_courier_id": courier_id},
                 {"_id": 0, "id": 1, "name": 1, "is_active": 1}
             )
