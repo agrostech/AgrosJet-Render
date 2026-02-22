@@ -440,7 +440,16 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "card": round(card_at_reset, 2),
             "meal_card": round(meal_card_at_reset, 2),
             "total": round(cash_at_reset + card_at_reset + meal_card_at_reset, 2)
-        }
+        },
+        "received": {
+            "cash": received_cash,
+            "card_1": received_card_1,
+            "card_10": received_card_10,
+            "card_20": received_card_20,
+            "card": received_card,
+            "meal_card": received_meal_card
+        },
+        "missing_transactions": transactions_added
     }
 
 
