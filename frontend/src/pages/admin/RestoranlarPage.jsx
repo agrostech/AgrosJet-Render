@@ -250,7 +250,7 @@ export default function RestoranlarPage({ companyId }) {
       // Refresh list
       const res = await axios.get(`${API}/restaurant-users/restaurant/${selectedRestaurant.id}`);
       setRestaurantUsers(res.data);
-      setNewUserData({ username: "", password: "", name: "" });
+      setNewUserData({ username: "", password: "", name: "", phone: "" });
     } catch (err) {
       toast.error(err.response?.data?.detail || "Kullanıcı oluşturulamadı");
     }
