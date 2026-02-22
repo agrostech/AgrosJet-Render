@@ -270,8 +270,8 @@ export default function YoneticilerPage({ companyId }) {
                     )}
                   </TableCell>
                   <TableCell>
-                    {a.hourly_rate ? (
-                      <span className="font-mono text-sm">{a.hourly_rate} TL</span>
+                    {linkedCourier?.hourly_rate ? (
+                      <span className="font-mono text-sm">{linkedCourier.hourly_rate} TL</span>
                     ) : (
                       <span className="text-xs text-slate-400">-</span>
                     )}
