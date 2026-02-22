@@ -25,6 +25,189 @@ VIOLATION_TYPES = {
 
 # ========== Helpers ==========
 
+async def check_and_log_violations_internal(company_id: str):
+    """
+    Şirket için mevcut durumu kontrol et ve ihlalleri logla.
+    Scheduler ve API endpoint tarafından kullanılır.
+    """
+    now = datetime.now(timezone.utc)
+    current_hour = now.hour
+    current_minute = now.minute
+    
+    # Bugünün günü (pazartesi=0, pazar=6)
+    days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
+    today_key = days_map[now.weekday()]
+    
+    # Vardiyaları getir
+    shifts = await db.shifts.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Atanmaları getir
+    assignments = await db.shift_assignments.find(
+        {"company_id": company_id, "day": today_key},
+        {"_id": 0}
+    ).to_list(500)
+    
+    # Kuryeleri getir
+    couriers = await db.couriers.find(
+        {"company_id": company_id, "is_archived": {"$ne": True}},
+        {"_id": 0, "id": 1, "name": 1, "availability_status": 1, "is_admin_linked": 1}
+    ).to_list(500)
+    
+    courier_map = {c["id"]: c for c in couriers}
+    
+    # Admin-kurye bağlantılarını getir
+    admin_courier_map = await get_admin_couriers_map(company_id)
+    
+    # Şu an aktif olan vardiyaları bul
+    def is_shift_active(shift):
+        start_h, start_m = map(int, shift["start_time"].split(":"))
+        end_h, end_m = map(int, shift["end_time"].split(":"))
+        
+        start_minutes = start_h * 60 + start_m
+        end_minutes = end_h * 60 + end_m
+        current_minutes = current_hour * 60 + current_minute
+        
+        # Gece geçişi
+        if end_minutes <= start_minutes:
+            return current_minutes >= start_minutes or current_minutes < end_minutes
+        return start_minutes <= current_minutes < end_minutes
+    
+    active_shifts = [s for s in shifts if is_shift_active(s)]
+    active_shift_ids = {s["id"] for s in active_shifts}
+    
+    # Aktif vardiyada olması gereken kuryeler
+    couriers_should_be_active = set()
+    for a in assignments:
+        if a["shift_id"] in active_shift_ids:
+            couriers_should_be_active.add(a["courier_id"])
+    
+    # Herhangi bir vardiyası olan kuryeler (bugün)
+    couriers_with_any_shift = {a["courier_id"] for a in assignments}
+    
+    violations_logged = []
+    
+    # Aynı ihlali tekrar loglamamak için son 10 dakikada loglanmış ihlalleri kontrol et
+    recent_cutoff = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+    recent_violations = await db.shift_violations.find(
+        {
+            "company_id": company_id,
+            "created_at": {"$gte": recent_cutoff}
+        },
+        {"_id": 0, "entity_id": 1, "violation_type": 1}
+    ).to_list(1000)
+    recent_keys = {(v["entity_id"], v["violation_type"]) for v in recent_violations}
+    
+    # İhlal 1: Vardiyası başladı ama aktif değil
+    for courier_id in couriers_should_be_active:
+        courier = courier_map.get(courier_id)
+        if not courier:
+            continue
+        
+        # Admin-kurye ise hem admin hem kurye aktifliğini kontrol et
+        admin_info = admin_courier_map.get(courier_id)
+        if admin_info:
+            # Admin panelden aktif mi kontrol et
+            admin = await db.users.find_one(
+                {"id": admin_info["id"]},
+                {"_id": 0, "is_active": 1}
+            )
+            admin_active = admin.get("is_active", False) if admin else False
+            courier_active = courier.get("availability_status") == "available"
+            
+            # İkisinden biri aktifse sorun yok
+            if admin_active or courier_active:
+                continue
+            
+            # Son 10 dakikada aynı ihlal loglandı mı?
+            if (admin_info["id"], "shift_started_not_active") in recent_keys:
+                continue
+            
+            # İkisi de aktif değilse ihlal logla (admin olarak)
+            v = await log_violation(
+                company_id=company_id,
+                entity_type="admin",
+                entity_id=admin_info["id"],
+                entity_name=admin_info["name"],
+                violation_type="shift_started_not_active",
+                details={
+                    "linked_courier_id": courier_id,
+                    "shift_ids": list(active_shift_ids)
+                }
+            )
+            violations_logged.append(v)
+        else:
+            # Normal kurye
+            if courier.get("availability_status") != "available":
+                # Son 10 dakikada aynı ihlal loglandı mı?
+                if (courier_id, "shift_started_not_active") in recent_keys:
+                    continue
+                    
+                v = await log_violation(
+                    company_id=company_id,
+                    entity_type="courier",
+                    entity_id=courier_id,
+                    entity_name=courier.get("name", ""),
+                    violation_type="shift_started_not_active",
+                    details={"shift_ids": list(active_shift_ids)}
+                )
+                violations_logged.append(v)
+    
+    # İhlal 2: Vardiyası yok ama aktif
+    for courier in couriers:
+        courier_id = courier["id"]
+        
+        # Bu kuryenin bugün vardiyası var mı?
+        if courier_id in couriers_with_any_shift:
+            continue
+        
+        # Admin-kurye mi?
+        admin_info = admin_courier_map.get(courier_id)
+        if admin_info:
+            admin = await db.users.find_one(
+                {"id": admin_info["id"]},
+                {"_id": 0, "is_active": 1}
+            )
+            admin_active = admin.get("is_active", False) if admin else False
+            courier_active = courier.get("availability_status") == "available"
+            
+            if admin_active or courier_active:
+                # Son 10 dakikada aynı ihlal loglandı mı?
+                if (admin_info["id"], "active_without_shift") in recent_keys:
+                    continue
+                    
+                # Vardiyası yok ama aktif - ihlal
+                v = await log_violation(
+                    company_id=company_id,
+                    entity_type="admin",
+                    entity_id=admin_info["id"],
+                    entity_name=admin_info["name"],
+                    violation_type="active_without_shift",
+                    details={"linked_courier_id": courier_id}
+                )
+                violations_logged.append(v)
+        else:
+            # Normal kurye
+            if courier.get("availability_status") == "available":
+                # Son 10 dakikada aynı ihlal loglandı mı?
+                if (courier_id, "active_without_shift") in recent_keys:
+                    continue
+                    
+                v = await log_violation(
+                    company_id=company_id,
+                    entity_type="courier",
+                    entity_id=courier_id,
+                    entity_name=courier.get("name", ""),
+                    violation_type="active_without_shift",
+                    details={}
+                )
+                violations_logged.append(v)
+    
+    return violations_logged
+
+
 async def get_admin_couriers_map(company_id: str) -> dict:
     """
     Admin-kurye bağlantılarını getir.
