@@ -335,8 +335,13 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
                                 Vardiya bitişi: {v.details.shift_end_time} → Kapanış: {v.details.deactivated_at}
                               </p>
                             )}
+                            {v.details?.shift_time && (
+                              <p className="text-xs text-muted-foreground">
+                                Vardiya: {v.details.shift_time}
+                              </p>
+                            )}
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {formatDateTime(v.created_at)}
+                              {formatDateTimeWithDay(v.created_at)}
                             </p>
                           </div>
                         </div>
