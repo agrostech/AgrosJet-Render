@@ -160,8 +160,10 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
             # Parçalı ödeme
             cash_amt = payment_details.get("cash_amount", 0) or 0
             card_amt = payment_details.get("card_amount", 0) or 0
+            meal_card_amt = payment_details.get("meal_card_amount", 0) or 0
             
             cash_total += cash_amt
+            meal_card_total += meal_card_amt
             
             if card_amt > 0:
                 tax_bracket = await get_restaurant_tax_bracket(
@@ -182,6 +184,13 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         elif "cash" in payment_method or "nakit" in payment_method:
             price = order.get("total_amount", 0) or 0
             cash_total += price
+            if payment_details.get("original_method"):
+                modified_payment_count += 1
+        
+        # Tek ödeme - Yemek Kartı
+        elif "meal" in payment_method or "yemek" in payment_method:
+            price = order.get("total_amount", 0) or 0
+            meal_card_total += price
             if payment_details.get("original_method"):
                 modified_payment_count += 1
         
@@ -209,6 +218,7 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         "card_percent_10": card_percent_10,
         "card_percent_20": card_percent_20,
         "card_total": card_percent_1 + card_percent_10 + card_percent_20,
+        "meal_card_total": meal_card_total,
         "modified_payment_count": modified_payment_count
     }
 
