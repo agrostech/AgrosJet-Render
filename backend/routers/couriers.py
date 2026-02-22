@@ -753,11 +753,12 @@ async def get_couriers_with_availability(company_id: str):
         # Bu kuryelerle bağlantılı adminleri bul
         admins = await db.admins.find(
             {"linked_courier_id": {"$in": admin_linked_courier_ids}},
-            {"_id": 0, "linked_courier_id": 1, "status": 1}
+            {"_id": 0, "linked_courier_id": 1, "status": 1, "availability_status": 1}
         ).to_list(100)
         
         for admin in admins:
-            admin_statuses[admin["linked_courier_id"]] = admin.get("status", "offline")
+            # availability_status veya status alanını kontrol et
+            admin_statuses[admin["linked_courier_id"]] = admin.get("availability_status") or admin.get("status", "offline")
     
     # Set default availability if not set and calculate effective status
     for c in couriers:
