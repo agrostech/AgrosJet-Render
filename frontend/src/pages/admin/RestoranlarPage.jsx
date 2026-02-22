@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt
