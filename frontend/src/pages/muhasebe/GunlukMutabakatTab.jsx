@@ -298,32 +298,32 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                 <p className="text-[10px] text-slate-500">Toplam Kurye</p>
               </CardContent>
             </Card>
-            <Card className="border bg-amber-50 shadow-sm">
+            <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <Banknote className="w-4 h-4 mx-auto mb-1 text-amber-600" />
-                <p className="text-lg font-bold text-amber-700">{formatMoney(pendingCash)}</p>
-                <p className="text-[10px] text-amber-600">Bekleyen Nakit</p>
+                <Banknote className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <p className="text-lg font-bold text-slate-800">{formatMoney(pendingCash)}</p>
+                <p className="text-[10px] text-slate-500">Bekleyen Nakit</p>
               </CardContent>
             </Card>
-            <Card className="border bg-orange-50 shadow-sm">
+            <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <CreditCard className="w-4 h-4 mx-auto mb-1 text-orange-600" />
-                <p className="text-lg font-bold text-orange-700">{formatMoney(pendingCard)}</p>
-                <p className="text-[10px] text-orange-600">Bekleyen Kart</p>
+                <CreditCard className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <p className="text-lg font-bold text-slate-800">{formatMoney(pendingCard)}</p>
+                <p className="text-[10px] text-slate-500">Bekleyen Kart</p>
               </CardContent>
             </Card>
-            <Card className="border bg-green-50 shadow-sm">
+            <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <Banknote className="w-4 h-4 mx-auto mb-1 text-green-600" />
-                <p className="text-lg font-bold text-green-700">{formatMoney(processedCash)}</p>
-                <p className="text-[10px] text-green-600">İşlenen Nakit</p>
+                <Banknote className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <p className="text-lg font-bold text-slate-800">{formatMoney(processedCash)}</p>
+                <p className="text-[10px] text-slate-500">İşlenen Nakit</p>
               </CardContent>
             </Card>
-            <Card className="border bg-emerald-50 shadow-sm">
+            <Card className="border bg-white shadow-sm">
               <CardContent className="p-3 text-center">
-                <CreditCard className="w-4 h-4 mx-auto mb-1 text-emerald-600" />
-                <p className="text-lg font-bold text-emerald-700">{formatMoney(processedCard)}</p>
-                <p className="text-[10px] text-emerald-600">İşlenen Kart</p>
+                <CreditCard className="w-4 h-4 mx-auto mb-1 text-slate-500" />
+                <p className="text-lg font-bold text-slate-800">{formatMoney(processedCard)}</p>
+                <p className="text-[10px] text-slate-500">İşlenen Kart</p>
               </CardContent>
             </Card>
           </div>
