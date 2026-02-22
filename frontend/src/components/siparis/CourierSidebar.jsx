@@ -386,8 +386,8 @@ function CourierItem({
   const isAdminLinked = courier.is_admin_linked;
   
   // Çevrimdışı ama aktif vardiyası var mı?
-  // Admin-kurye için bu kontrolü yapma (admin panelinden aktif olabilir)
-  const missedShift = isOffline && !isAdminLinked && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
+  // Admin-kurye için de bu kontrolü yap (artık backend her iki panel durumunu kontrol ediyor)
+  const missedShift = isOffline && hasActiveShiftNow(courier, shifts, shiftAssignments, leaves);
   
   // Bugün izinli mi? (sadece çevrimdışı için)
   const onLeaveToday = isOffline && hasLeaveToday(courier, leaves);
