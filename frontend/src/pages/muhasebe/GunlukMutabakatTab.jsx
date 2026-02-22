@@ -17,8 +17,7 @@ import {
   Banknote,
   CreditCard,
   AlertCircle,
-  Users,
-  ClipboardCheck
+  Users
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
