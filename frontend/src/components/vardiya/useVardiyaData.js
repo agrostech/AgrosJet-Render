@@ -295,6 +295,7 @@ export function useVardiyaData(companyId) {
     handleAddLeave,
     handleRemoveLeave,
     handleBulkAssign,
+    refetch: fetchData,
     
     // Selection
     isCellSelected,
