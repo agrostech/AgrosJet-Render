@@ -289,14 +289,19 @@ async def remove_courier_from_company(company_id: str, courier_id: str):
 
 async def start_termination(company_id: str, courier_id: str):
     """Start 15-day termination period"""
+    # Önce ilişkiyi bul (status kontrolü yapmadan)
     relation = await db.company_couriers.find_one({
         "company_id": company_id,
-        "courier_id": courier_id,
-        "status": "approved"
+        "courier_id": courier_id
     })
     
     if not relation:
-        return None, "Kurye bulunamadı"
+        return None, "Kurye bu şirkete kayıtlı değil"
+    
+    # Status kontrolü - approved veya status alanı yoksa devam et
+    status = relation.get("status")
+    if status and status not in ["approved", "active"]:
+        return None, f"Kurye durumu uygun değil (durum: {status})"
     
     if relation.get("termination_start_date"):
         return None, "Fesih süreci zaten başlatılmış"
