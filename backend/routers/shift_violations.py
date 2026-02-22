@@ -30,7 +30,9 @@ async def check_and_log_violations_internal(company_id: str):
     Şirket için mevcut durumu kontrol et ve ihlalleri logla.
     Scheduler ve API endpoint tarafından kullanılır.
     """
-    now = datetime.now(timezone.utc)
+    # Türkiye saatini kullan (UTC+3)
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
     current_hour = now.hour
     current_minute = now.minute
     
