@@ -1,91 +1,74 @@
 # AgrosJet - Kurye Yönetim Sistemi PRD
 
 ## Original Problem Statement
-AgrosJet, restoran siparişlerini yöneten ve kurye dağıtım süreçlerini koordine eden kapsamlı bir kurye yönetim sistemidir. Sistem; sipariş takibi, kurye yönetimi, muhasebe işlemleri (mütabakat, tahsilat, hakediş) ve restoran entegrasyonlarını içerir.
-
-## User Personas
-- **Superadmin**: Tüm sistem yönetimi, muhasebe, kurye ve restoran yönetimi
-- **Admin/Yönetici**: Şirkete bağlı operasyonlar, kurye koordinasyonu
-- **Kurye**: Sipariş teslimi, mesai takibi
-- **Restoran Kullanıcısı**: Sipariş takibi
+Kurye yönetim sistemi için admin reconciliation özelliği ve admin-kurye bağlantı sistemi geliştirilmesi.
 
 ## Core Requirements
-1. Sipariş yönetimi ve takibi
-2. Kurye atama ve mesai yönetimi
-3. Muhasebe ve mütabakat işlemleri
-4. Restoran entegrasyonları (Getir, Trendyol, Yemeksepeti, Adisyo, Migros)
-5. Raporlama
-
----
+1. Admin hesaplarının kurye hesaplarına bağlanması (Admin-as-Courier)
+2. Adminlerin aktif çalışma sürelerinin kurye sistemi üzerinden takibi
+3. Admin hakedişlerinin bağlı kurye hesabı üzerinden yönetilmesi
+4. Cariler'de admin-kurye hesaplarının doğru gösterimi
 
 ## What's Been Implemented
 
-### Session: 2026-02-22 - Kurye Mütabakatı Refaktörü
+### Session: 2025-02-22
+- **Bug Fix:** Cariler'de admin-kurye bakiyelerinin gösterilmemesi sorunu düzeltildi
+  - `GET /api/transactions/vendor/{id}` admin_courier_ prefix kontrolü eklendi
+  - `POST /api/transactions` admin-kurye için entity dönüştürme eklendi
+  - Frontend `is_admin_courier` flag düzeltmesi
 
-**Completed:**
-- ✅ "Kurye Mütabakatı" (Günlük Mütabakat) sayfası tamamen refaktör edildi
-- ✅ Checkbox ve toplu aksiyon butonları kaldırıldı
-- ✅ Her kurye satırına bireysel "Kaydet" butonu eklendi (tahsilat + mütabakat tek seferde)
-- ✅ Her satıra "Sıfırla" butonu eklendi (sadece superadmin için görünür)
-- ✅ Backend'de yeni endpoint'ler oluşturuldu:
-  - `POST /api/daily-mutabakat/{company_id}/save-and-process-single-courier`
-  - `POST /api/daily-mutabakat/{company_id}/revert-single-courier`
+### Previous Sessions
+- **Admin-Kurye Bağlantı Sistemi:** Admin hesaplarını kurye hesaplarına bağlama
+- **Kurye Aktif Süre Hesaplama:** `courier_daily_active` collection ile doğru süre takibi
+- **Haftalık Hakediş:** Admin-kuryeler için ayrı tablo
+- **Yöneticiler Sayfası:** Kurye bağlama UI
+- **Fatura Uyarıları:** Superadmin için silme özelliği
 
-### Previous Sessions (Completed)
-- ✅ Yönetici Mütabakatı sayfası
-- ✅ Cariler'de admin hesapları
-- ✅ Yemek kartı entegrasyonu
-- ✅ Business day/timezone bug fix
-- ✅ Shift icon bug fix
-- ✅ ShiftJet → AgrosJet rebranding
+## Architecture
 
----
+### Key Collections
+- `courier_daily_active`: Günlük aktif süre takibi
+- `couriers`: `is_admin_linked` flag eklendi
+- `users (admin)`: `linked_courier_id`, `hourly_rate` eklendi
+
+### Key Endpoints
+- `POST /api/admins/{id}/toggle-status`: Admin aktif/pasif durumu
+- `PUT /api/admins/{id}`: Kurye bağlama
+- `GET /api/weekly-hakedis/{company_id}`: Haftalık hakediş (admin flag ile)
+- `GET/POST /api/transactions/vendor/{id}`: Admin-kurye desteği
 
 ## Prioritized Backlog
 
-### P0 (Critical)
-- None currently
+### P0 - Critical
+- [ ] Admin hakediş özelliği tam doğrulama (kullanıcı testi)
 
-### P1 (High Priority)
-- Migros Yemek entegrasyonu finalize
-- Yemeksepeti entegrasyonu tamamlama
-- Raporlar sayfası işlevselliği
+### P1 - High Priority
+- [ ] Vardiya İhlalleri merkezi modalı
+- [ ] Migros Yemek entegrasyonu
+- [ ] Yemeksepeti entegrasyonu
+- [ ] Restoran Raporları sayfası
 
-### P2 (Medium Priority)
-- Native Kurye Uygulaması
-- Chat sistemi re-enable
-- Google Maps entegrasyonu
-- Dark Mode tema
-- Geçmiş Siparişler sayfası refaktör
-- Login sayfası refaktör
+### P2 - Medium Priority
+- [ ] Eski muhasebe veri tutarsızlığı (entity_type: "business")
+- [ ] Mobil dosya yükleme sorunu
+- [ ] Native Kurye Uygulaması
+- [ ] Chat sistemi
+- [ ] Login sayfası refactor
+- [ ] Google Maps entegrasyonu
+- [ ] Karanlık mod
 
-### P3 (Low Priority)
-- Redis caching for order list
-- Motosikletim özellik geliştirmeleri
+### P3 - Low Priority
+- [ ] Redis caching
+- [ ] Motosikletim geliştirmeleri
 
----
+## 3rd Party Integrations
+- Getir Yemek
+- Adisyo
+- Trendyol Yemek
+- Yemeksepeti
+- SepetTakip
+- Migros Yemek
+- Google Maps (Leaflet)
 
-## Known Issues (Not Started)
-1. **Historical Accounting Data Inconsistency**: Old transactions with `entity_type: "business"` not showing
-2. **Mobile File Upload Issue**: Recurring issue with file uploads on mobile devices
-
----
-
-## Tech Stack
-- **Frontend**: React, Tailwind CSS, Shadcn/UI
-- **Backend**: FastAPI, Python
-- **Database**: MongoDB
-- **Integrations**: Getir, Trendyol, Yemeksepeti, Adisyo, SepetTakip, Migros
-
----
-
-## Key Files Reference
-- `/app/frontend/src/pages/muhasebe/GunlukMutabakatTab.jsx` - Kurye Mütabakatı UI
-- `/app/backend/routers/daily_mutabakat.py` - Mütabakat backend logic
-- `/app/frontend/src/pages/muhasebe/YoneticiMutabakatTab.jsx` - Yönetici Mütabakatı
-- `/app/backend/routers/admin_mutabakat.py` - Admin mütabakat backend
-
----
-
-## Credentials
-- **Superadmin**: `superadmin` / `123456`
+## Test Credentials
+- Superadmin: `superadmin` / `123456`
