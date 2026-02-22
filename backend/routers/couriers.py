@@ -356,13 +356,14 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                 )
                 
                 # Admin status log oluştur
-                from routers.admin_status_logs import create_admin_status_log
-                await create_admin_status_log(
-                    admin_id=linked_admin["id"],
-                    new_status="offline",
-                    changed_by="system",
-                    company_id=linked_admin.get("company_id")
-                )
+                await db.admin_status_logs.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "admin_id": linked_admin["id"],
+                    "company_id": linked_admin.get("company_id"),
+                    "status": "offline",
+                    "timestamp": now.isoformat(),
+                    "date": now.strftime("%Y-%m-%d")
+                })
                 print(f"Admin {linked_admin['id']} auto-deactivated due to courier panel activation")
         except Exception as e:
             print(f"Admin sync failed: {e}")
