@@ -195,6 +195,38 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
             </DialogTitle>
           </DialogHeader>
 
+          {/* Hafta Seçici */}
+          <div className="flex items-center justify-between gap-2 py-2 px-1 bg-slate-50 rounded-lg">
+            <button
+              onClick={goToPreviousWeek}
+              className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-slate-600" />
+            </button>
+            
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-slate-500" />
+              <span className="font-semibold text-sm">
+                {formatWeekLabel(selectedWeek.start, selectedWeek.end)}
+              </span>
+              {getWeekRange(new Date()).start.getTime() !== selectedWeek.start.getTime() && (
+                <button
+                  onClick={goToCurrentWeek}
+                  className="text-xs text-primary hover:underline ml-2"
+                >
+                  Bu Hafta
+                </button>
+              )}
+            </div>
+            
+            <button
+              onClick={goToNextWeek}
+              className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-slate-600" />
+            </button>
+          </div>
+
           {/* Tabs */}
           <div className="flex gap-2 border-b border-slate-200 pb-2">
             <button
