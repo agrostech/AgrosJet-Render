@@ -62,15 +62,23 @@ export default function StatusDropdown({
   // İzin kontrolü - Restoran teslimatı olan siparişler için bu izin aranmaz
   const hasPermission = isRestaurantDelivery || canChangeStatus;
   
-  // İzin yoksa statik badge göster
+  // İzin yoksa statik badge göster (dakikalı gösterim için countdown kullan)
   if (!hasPermission) {
+    // Hazırlanıyor durumunda countdown varsa dakikalı göster
+    let displayLabel = statusInfo.label;
+    if (status === "preparing" && getCountdown) {
+      const countdown = getCountdown(order);
+      if (countdown && !countdown.expired) {
+        displayLabel = countdown.text;
+      }
+    }
+    
     return (
       <span 
         className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50 inline-block text-center whitespace-nowrap min-w-[135px]`}
         data-testid={`order-status-badge-${order.id}`}
-        title="Durum değiştirme izniniz yok"
       >
-        {statusInfo.label}
+        {displayLabel}
       </span>
     );
   }
