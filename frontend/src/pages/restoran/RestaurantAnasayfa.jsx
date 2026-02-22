@@ -188,9 +188,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
           if (countdown?.expired) {
             try {
               await onUpdateStatus(order.id, 'ready');
-              toast.info(`#${order.order_number} hazır durumuna geçirildi`, {
-                icon: <CheckCircle className="w-4 h-4 text-green-500" />,
-              });
+              // Bildirim kapatıldı - kullanıcı isteği
             } catch (err) {
               console.error("Otomatik durum değişikliği hatası:", err);
             }
