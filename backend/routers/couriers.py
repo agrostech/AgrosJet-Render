@@ -379,8 +379,10 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
         except Exception as e:
             print(f"Shift violation check failed: {e}")
     
-    # === VARDIYA BİTİŞ SONRASI GEÇ KAPAMA KONTROLÜ ===
-    # Kurye pasif olduğunda vardiya bitiş saatinden ne kadar geç olduğunu kontrol et
+    # === VARDIYA KAPANIŞ KONTROLÜ ===
+    # Kurye pasif olduğunda:
+    # 1. Şu an aktif vardiyası varsa → "Vardiya bitmeden çevrimdışı" ihlali
+    # 2. Yoksa, bitmiş vardiyası varsa → "Geç kapattı" ihlali
     if data.availability_status == "offline" and company_id:
         try:
             # Türkiye saati
@@ -401,50 +403,98 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                 shift_ids = [a["shift_id"] for a in assignments]
                 shifts = await db.shifts.find(
                     {"id": {"$in": shift_ids}},
-                    {"_id": 0, "id": 1, "end_time": 1}
+                    {"_id": 0, "id": 1, "start_time": 1, "end_time": 1}
                 ).to_list(10)
                 
-                # En son biten vardiyayı bul (bitiş saati geçmiş olanlar arasında en geç biten)
+                # Şu an aktif olan vardiya var mı kontrol et
+                active_shift = None
                 latest_ended_shift = None
                 latest_end_minutes = -1
                 
                 for shift in shifts:
+                    start_h, start_m = map(int, shift["start_time"].split(":"))
                     end_h, end_m = map(int, shift["end_time"].split(":"))
+                    start_minutes = start_h * 60 + start_m
                     end_minutes = end_h * 60 + end_m
                     
-                    # Gece geçişi kontrolü (bitiş < başlangıç demek gece vardiyası)
-                    # Şimdilik basit kontrol: bitiş saati şu anki saatten küçükse bitmiş demektir
+                    # Gece geçişi kontrolü
+                    if end_minutes <= start_minutes:
+                        # Gece vardiyası (örn: 22:00 - 06:00)
+                        if current_minutes >= start_minutes or current_minutes < end_minutes:
+                            active_shift = shift
+                            break
+                    else:
+                        # Normal vardiya
+                        if start_minutes <= current_minutes < end_minutes:
+                            active_shift = shift
+                            break
+                    
+                    # Bitmiş vardiyaları takip et (şu an aktif değilse kullanılacak)
                     if end_minutes <= current_minutes and end_minutes > latest_end_minutes:
                         latest_ended_shift = shift
                         latest_end_minutes = end_minutes
                 
-                # Eğer bitmiş vardiya varsa ve geç kapatıldıysa log kaydet
-                if latest_ended_shift and latest_end_minutes > 0:
+                # Admin-kurye bilgisini al
+                admin_info = None
+                if courier.get("is_admin_linked"):
+                    admin_info = await db.admins.find_one(
+                        {"linked_courier_id": courier_id},
+                        {"_id": 0, "id": 1, "name": 1}
+                    )
+                
+                # DURUM 1: Şu an aktif vardiyası var ama çevrimdışı oluyor
+                if active_shift:
+                    if admin_info:
+                        await log_violation(
+                            company_id=company_id,
+                            entity_type="admin",
+                            entity_id=admin_info["id"],
+                            entity_name=admin_info["name"],
+                            violation_type="offline_before_shift_end",
+                            details={
+                                "linked_courier_id": courier_id,
+                                "shift_id": active_shift["id"],
+                                "shift_time": f"{active_shift['start_time']} - {active_shift['end_time']}",
+                                "deactivated_at": now_turkey.strftime("%H:%M"),
+                                "triggered_by": "courier_deactivation"
+                            }
+                        )
+                    else:
+                        await log_violation(
+                            company_id=company_id,
+                            entity_type="courier",
+                            entity_id=courier_id,
+                            entity_name=courier.get("name", ""),
+                            violation_type="offline_before_shift_end",
+                            details={
+                                "shift_id": active_shift["id"],
+                                "shift_time": f"{active_shift['start_time']} - {active_shift['end_time']}",
+                                "deactivated_at": now_turkey.strftime("%H:%M"),
+                                "triggered_by": "courier_deactivation"
+                            }
+                        )
+                
+                # DURUM 2: Aktif vardiyası yok ama bitmiş vardiya var → Geç mi kapattı?
+                elif latest_ended_shift and latest_end_minutes > 0:
                     late_minutes = current_minutes - latest_end_minutes
                     
                     if late_minutes > 0:  # En az 1 dakika geç
-                        # Admin-kurye mi?
-                        if courier.get("is_admin_linked"):
-                            admin = await db.admins.find_one(
-                                {"linked_courier_id": courier_id},
-                                {"_id": 0, "id": 1, "name": 1}
+                        if admin_info:
+                            await log_violation(
+                                company_id=company_id,
+                                entity_type="admin",
+                                entity_id=admin_info["id"],
+                                entity_name=admin_info["name"],
+                                violation_type="still_active_after_shift_end",
+                                details={
+                                    "linked_courier_id": courier_id,
+                                    "shift_id": latest_ended_shift["id"],
+                                    "shift_end_time": latest_ended_shift["end_time"],
+                                    "deactivated_at": now_turkey.strftime("%H:%M"),
+                                    "late_minutes": late_minutes,
+                                    "triggered_by": "courier_deactivation"
+                                }
                             )
-                            if admin:
-                                await log_violation(
-                                    company_id=company_id,
-                                    entity_type="admin",
-                                    entity_id=admin["id"],
-                                    entity_name=admin["name"],
-                                    violation_type="still_active_after_shift_end",
-                                    details={
-                                        "linked_courier_id": courier_id,
-                                        "shift_id": latest_ended_shift["id"],
-                                        "shift_end_time": latest_ended_shift["end_time"],
-                                        "deactivated_at": now_turkey.strftime("%H:%M"),
-                                        "late_minutes": late_minutes,
-                                        "triggered_by": "courier_deactivation"
-                                    }
-                                )
                         else:
                             await log_violation(
                                 company_id=company_id,
@@ -458,6 +508,8 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                                     "deactivated_at": now_turkey.strftime("%H:%M"),
                                     "late_minutes": late_minutes,
                                     "triggered_by": "courier_deactivation"
+                                }
+                            )
                                 }
                             )
         except Exception as e:
