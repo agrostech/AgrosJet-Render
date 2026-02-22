@@ -159,9 +159,6 @@ export default function YoneticilerPage({ companyId }) {
       if (editData.password) {
         updatePayload.password = editData.password;
       }
-      if (editData.hourly_rate !== "" && editData.hourly_rate !== selectedAdmin.hourly_rate) {
-        updatePayload.hourly_rate = parseFloat(editData.hourly_rate) || 0;
-      }
       
       if (Object.keys(updatePayload).length === 0) {
         toast.error("Değişiklik yapılmadı");
