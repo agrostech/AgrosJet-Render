@@ -858,6 +858,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                   setActionModal({ open: true, order: ord, actionType });
                                 }}
                                 getCountdown={getCountdown}
+                                canChangeStatus={permissions.can_change_order_status !== false}
                               />
                             </td>
                             <td className="p-2">
