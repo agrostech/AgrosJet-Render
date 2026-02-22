@@ -419,6 +419,19 @@ export default function YoneticilerPage({ companyId }) {
                 <Label className="text-xs sm:text-sm font-semibold">Yeni Şifre</Label>
                 <Input data-testid="edit-admin-password" type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} className="mt-1 h-9 sm:h-11 border-2 text-sm" placeholder="Boş bırakın" />
               </div>
+
+              <div>
+                <Label className="text-xs sm:text-sm font-semibold">Saatlik Ücret (TL)</Label>
+                <Input 
+                  type="number" 
+                  value={editData.hourly_rate} 
+                  onChange={(e) => setEditData({ ...editData, hourly_rate: e.target.value })} 
+                  className="mt-1 h-9 sm:h-11 border-2 text-sm" 
+                  placeholder="Örn: 150"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
               
               <Button type="submit" className="w-full h-10 sm:h-11 font-semibold text-sm" disabled={editLoading} data-testid="submit-edit-admin">
                 {editLoading ? "Güncelleniyor..." : "Kaydet"}
