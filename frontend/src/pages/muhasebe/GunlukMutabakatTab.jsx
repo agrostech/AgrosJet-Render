@@ -519,7 +519,7 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                     </th>
                     <th className="text-left p-2 font-semibold text-xs text-slate-600">Kurye</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={2}>Sipariş (Sistem)</th>
-                    <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={hasMealCardCollection ? 5 : 4}>Tahsilat (Giriş)</th>
+                    <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={5}>Tahsilat (Giriş)</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600" colSpan={4}>Fark</th>
                     <th className="text-center p-2 font-semibold text-xs text-slate-600 w-16">Durum</th>
                   </tr>
