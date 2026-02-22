@@ -33,6 +33,7 @@ import {
 import { CourierSidebarDesktop, CourierSidebarMobile } from "@/components/siparis/CourierSidebar";
 import { OrderDetailModal } from "@/components/siparis/OrderDetailModal";
 import { CourierDetailModal } from "@/components/siparis/CourierDetailModal";
+import NotificationsPopover from "@/components/admin/NotificationsPopover";
 import GecmisSiparislerPage from "./GecmisSiparislerPage";
 import IptalSiparislerPage from "./IptalSiparislerPage";
 
