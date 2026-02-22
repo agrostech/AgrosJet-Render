@@ -12,7 +12,8 @@ export default function HakedisTable({
   onToggleSelectAll,
   onToggleSelectAllProcessed,
   summary,
-  isCurrentWeek = false
+  isCurrentWeek = false,
+  isAdminTable = false
 }) {
   // Sadece hakediş tutarı > 0 olan kuryeleri göster
   const visibleCouriers = couriers.filter(c => c.amount > 0);
