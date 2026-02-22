@@ -281,7 +281,7 @@ async def get_vendors(company_id: str, include_archived: bool = False):
             "id": f"admin_courier_{courier_id}",
             "admin_id": admin["id"],
             "linked_courier_id": courier_id,
-            "name": f"{admin['name']} (Yönetici)",
+            "name": admin['name'],
             "phone": courier.get("phone", ""),
             "balance": courier.get("balance", 0),
             "company_id": company_id,
