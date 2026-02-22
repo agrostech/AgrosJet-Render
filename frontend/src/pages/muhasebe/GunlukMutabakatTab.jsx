@@ -622,6 +622,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                         <td className="p-1 text-center font-mono text-[10px] bg-blue-50/50 whitespace-nowrap">
                           {formatMoney(courier.order_data.card_total)}
                         </td>
+                        <td className="p-1 text-center font-mono text-[10px] bg-orange-50/50 whitespace-nowrap" style={{ display: hasMealCardCollection ? 'table-cell' : 'none' }}>
+                          {formatMoney(courier.order_data.meal_card_total || 0)}
+                        </td>
                         
                         {/* Tahsilat Girişleri (Editable) - Kaydedildikten sonra düzenlenemez */}
                         <td className="p-1 text-center">
