@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   RefreshCw, MapPin, Phone, Clock, User, Bike, Store, Package,
   ChevronRight, Navigation, CheckCircle2, XCircle, AlertCircle,
-  Plus, Trash2, Filter, Users, History, ClipboardX, ListChecks, Search
+  Filter, Users, History, ClipboardX, ListChecks, Search
 } from "lucide-react";
 
 // Yardımcı fonksiyonlar
