@@ -1,6 +1,7 @@
 """
 Vardiya İhlali Scheduler Yönetimi
 Vardiya başlangıç saatlerine göre dinamik job yönetimi
+Tolerans desteği ile birlikte
 """
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -8,6 +9,9 @@ from utils.database import db
 
 # Global scheduler referansı
 _scheduler: AsyncIOScheduler = None
+
+# Varsayılan tolerans süresi (dakika)
+DEFAULT_TOLERANCE_MINUTES = 5
 
 
 def set_scheduler(scheduler: AsyncIOScheduler):
@@ -21,10 +25,22 @@ def get_scheduler() -> AsyncIOScheduler:
     return _scheduler
 
 
+async def get_company_tolerance(company_id: str) -> int:
+    """Şirketin tolerans süresini getir (dakika)"""
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "shift_tolerance_minutes": 1}
+    )
+    if company and company.get("shift_tolerance_minutes") is not None:
+        return company["shift_tolerance_minutes"]
+    return DEFAULT_TOLERANCE_MINUTES
+
+
 async def check_shift_start_violations(start_time: str):
     """
     Belirli bir başlangıç saatindeki vardiyalar için ihlal kontrolü yap.
     Vardiyası başladı ama aktif olmayan kurye/adminleri logla.
+    NOT: Bu fonksiyon tolerans süresi SONRASINDA çağrılır.
     """
     from routers.shift_violations import log_violation
     
@@ -34,7 +50,7 @@ async def check_shift_start_violations(start_time: str):
     days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
     today_key = days_map[now.weekday()]
     
-    print(f"Checking shift start violations for {start_time} on {today_key}")
+    print(f"Checking shift start violations for {start_time} on {today_key} (tolerance check)")
     
     # Bu saatte başlayan tüm vardiyaları bul (tüm şirketler)
     shifts = await db.shifts.find(
@@ -130,24 +146,36 @@ async def load_shift_jobs():
     """
     Mevcut vardiyaların başlangıç saatlerinden job'ları yükle.
     Server başlangıcında çağrılır.
+    Tolerans süresi eklenerek job'lar planlanır.
     """
     scheduler = get_scheduler()
     if not scheduler:
         print("Scheduler not initialized")
         return
     
-    # Tüm unique vardiya başlangıç saatlerini al
-    shifts = await db.shifts.find({}, {"_id": 0, "start_time": 1}).to_list(1000)
-    unique_start_times = set(s["start_time"] for s in shifts)
+    # Tüm unique vardiya başlangıç saatlerini al (şirket bazında)
+    shifts = await db.shifts.find({}, {"_id": 0, "start_time": 1, "company_id": 1}).to_list(1000)
     
-    for start_time in unique_start_times:
+    # Şirket-saat kombinasyonlarını grupla
+    company_start_times = {}
+    for s in shifts:
+        key = s["start_time"]
+        if key not in company_start_times:
+            company_start_times[key] = set()
+        company_start_times[key].add(s["company_id"])
+    
+    # Her unique start_time için job ekle
+    for start_time in company_start_times.keys():
         await add_shift_start_job(start_time)
     
-    print(f"Loaded shift start jobs: {sorted(unique_start_times)}")
+    print(f"Loaded shift start jobs with tolerance: {sorted(company_start_times.keys())}")
 
 
 async def add_shift_start_job(start_time: str):
-    """Başlangıç saati için job ekle"""
+    """
+    Başlangıç saati için job ekle.
+    Job, tolerans süresi SONRASINDA tetiklenir (örn: 08:00 vardiyası için 08:05'te kontrol).
+    """
     scheduler = get_scheduler()
     if not scheduler:
         return
@@ -160,18 +188,27 @@ async def add_shift_start_job(start_time: str):
     try:
         hour, minute = map(int, start_time.split(":"))
         
+        # Tolerans süresini ekle (varsayılan 5 dakika)
+        # Job tolerans sonrasında çalışır, böylece kullanıcılara giriş için süre tanınır
+        tolerance_minutes = DEFAULT_TOLERANCE_MINUTES
+        
+        # Yeni saati hesapla
+        total_minutes = hour * 60 + minute + tolerance_minutes
+        job_hour = (total_minutes // 60) % 24
+        job_minute = total_minutes % 60
+        
         scheduler.add_job(
             check_shift_start_violations,
             'cron',
-            hour=hour,
-            minute=minute,
+            hour=job_hour,
+            minute=job_minute,
             timezone='Europe/Istanbul',
-            args=[start_time],
+            args=[start_time],  # Orijinal vardiya saatini geç
             id=job_id,
-            name=f"Shift Start Check {start_time}",
+            name=f"Shift Start Check {start_time} (+{tolerance_minutes}m tolerance)",
             replace_existing=True
         )
-        print(f"Added shift start job for {start_time}")
+        print(f"Added shift start job for {start_time} (will run at {job_hour:02d}:{job_minute:02d})")
     except Exception as e:
         print(f"Failed to add shift start job for {start_time}: {e}")
 
