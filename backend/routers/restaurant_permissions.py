@@ -29,6 +29,11 @@ PERMISSION_DEFINITIONS = {
         "description": "Haritada kuryenin anlık konumunu görüntüleyebilir",
         "default": True
     },
+    "can_view_courier_eta": {
+        "label": "Kurye Tahmini Varış Süresi",
+        "description": "Kuryenin restorana tahmini varış süresini görüntüleyebilir",
+        "default": True
+    },
     "can_mark_restaurant_delivery": {
         "label": "Restoran Teslimatı İşaretleme",
         "description": "Siparişi restoran teslimatı olarak işaretleyebilir. Bu siparişler mütabakat ve raporlara dahil edilmez.",
