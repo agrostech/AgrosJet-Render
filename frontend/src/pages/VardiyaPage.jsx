@@ -80,16 +80,19 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     if (!companyId) return;
     setTrackingLoading(true);
     try {
-      const [shiftsRes, assignmentsRes, leavesRes] = await Promise.all([
+      const [shiftsRes, assignmentsRes, leavesRes, toleranceRes] = await Promise.all([
         axios.get(`${API}/companies/${companyId}/shifts`),
         axios.get(`${API}/companies/${companyId}/shift-assignments?include_admin_linked=true`),
         axios.get(`${API}/companies/${companyId}/leaves`),
+        axios.get(`${API}/companies/${companyId}/shift-tolerance`),
       ]);
       setTrackingData({
         shifts: shiftsRes.data,
         assignments: assignmentsRes.data,
         leaves: leavesRes.data
       });
+      setToleranceMinutes(toleranceRes.data.shift_tolerance_minutes || 5);
+      setTempTolerance(toleranceRes.data.shift_tolerance_minutes || 5);
     } catch (err) {
       console.error("Takip verileri yüklenemedi:", err);
     } finally {
