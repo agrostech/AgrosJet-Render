@@ -24,9 +24,9 @@ export const PAYMENT_METHODS = {
 // Hazırlık süreleri
 export const PREPARATION_TIMES = [
   { value: 5, label: "5 Dakika" },
-  { value: 10, label: "10 Dakika" },
   { value: 15, label: "15 Dakika" },
   { value: 30, label: "30 Dakika" },
+  { value: 45, label: "45 Dakika" },
   { value: 60, label: "60 Dakika" }
 ];
 
