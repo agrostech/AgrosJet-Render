@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { 
-  ChevronLeft, ChevronRight, Upload, FileText, AlertCircle, 
+  ChevronLeft, ChevronRight, FileText, AlertCircle, 
   Store, Download, Trash2, CheckCircle, Eye, Loader2,
   Archive, Check, Circle, Filter
 } from "lucide-react";
@@ -226,7 +226,7 @@ function MonthInvoicesCard({ invoices, selectedInvoices, onToggleSelection, onSe
 }
 
 // ==================== Missing Invoices Card (All Time) ====================
-function MissingInvoicesCard({ missingInvoices, onUpload }) {
+function MissingInvoicesCard({ missingInvoices }) {
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
 
   // Group by restaurant
@@ -319,10 +319,6 @@ function MissingInvoicesCard({ missingInvoices, onUpload }) {
                     <span className="text-sm font-semibold font-mono text-red-600">
                       {formatMoney(item.remaining_amount)}
                     </span>
-                    <Button size="sm" variant="outline" onClick={() => onUpload(item)} className="h-8 text-xs gap-1">
-                      <Upload className="w-3 h-3" />
-                      Yükle
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -394,7 +390,7 @@ function RestaurantsListCard({ restaurants, selectedRestaurant, onSelect }) {
 }
 
 // ==================== Restaurant Invoices Card ====================
-function RestaurantInvoicesCard({ selectedRestaurant, restaurantData, loading, onView, onDelete, onUpload, year, month }) {
+function RestaurantInvoicesCard({ selectedRestaurant, restaurantData, loading, onView, onDelete, year, month }) {
   if (!selectedRestaurant) {
     return (
       <div className="border-2 border-border bg-white">
@@ -517,12 +513,6 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
   const [loading, setLoading] = useState(true);
   const [restaurantLoading, setRestaurantLoading] = useState(false);
   
-  // Upload modal
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadTarget, setUploadTarget] = useState(null);
-  const [uploadFile, setUploadFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  
   // View invoice modal
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingInvoice, setViewingInvoice] = useState(null);
@@ -617,39 +607,6 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
       setSelectedInvoices([]);
     } else {
       setSelectedInvoices(allIds);
-    }
-  };
-
-  // Upload handlers
-  const openUploadModal = (target) => {
-    setUploadTarget(target);
-    setUploadFile(null);
-    setShowUploadModal(true);
-  };
-
-  const handleUpload = async () => {
-    if (!uploadFile || !uploadTarget) return;
-    
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("file", uploadFile);
-    formData.append("restaurant_id", uploadTarget.restaurant_id);
-    formData.append("week_start", uploadTarget.week_start);
-    formData.append("admin_id", adminId || "");
-    formData.append("admin_name", adminName || "");
-    
-    try {
-      await axios.post(`${API}/restaurant-invoices/${companyId}/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
-      toast.success("Fatura yüklendi");
-      setShowUploadModal(false);
-      fetchData();
-      if (selectedRestaurant) fetchRestaurantData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Yükleme başarısız");
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -751,7 +708,6 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
 
         <MissingInvoicesCard 
           missingInvoices={missingInvoices}
-          onUpload={openUploadModal}
         />
 
         <RestaurantsListCard
@@ -766,60 +722,10 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
           loading={restaurantLoading}
           onView={handleViewInvoice}
           onDelete={handleDeleteInvoice}
-          onUpload={openUploadModal}
           year={selectedYear}
           month={selectedMonth}
         />
       </div>
-
-      {/* Upload Modal */}
-      <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Upload className="w-5 h-5 text-blue-600" />
-              Fatura Yükle - {uploadTarget?.restaurant_name}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <p className="text-sm font-medium">Beklenen Tutar</p>
-              <p className="text-lg font-bold text-red-600">
-                {formatMoney(uploadTarget?.remaining_amount || uploadTarget?.required_amount)}
-              </p>
-              {uploadTarget?.week_label && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Hafta: {uploadTarget.week_label}
-                </p>
-              )}
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium">Fatura Dosyası</label>
-              <Input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                PDF, JPG veya PNG formatında (max 10MB)
-              </p>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUploadModal(false)}>
-              İptal
-            </Button>
-            <Button onClick={handleUpload} disabled={!uploadFile || uploading}>
-              {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-              Yükle
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* View Invoice Modal */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
