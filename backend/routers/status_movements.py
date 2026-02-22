@@ -32,7 +32,7 @@ async def get_status_movements(
             query["courier_id"] = entity_id
         
         cursor = db.courier_status_logs.find(query, {"_id": 0})
-        raw_logs = await cursor.sort("timestamp", 1).to_list(500)
+        raw_logs = await cursor.sort("timestamp", -1).to_list(500)
         
         # Kurye isimlerini al
         courier_ids = list(set(log.get("courier_id") for log in raw_logs if log.get("courier_id")))
@@ -62,7 +62,7 @@ async def get_status_movements(
             query["admin_id"] = entity_id
         
         cursor = db.admin_status_logs.find(query, {"_id": 0})
-        raw_logs = await cursor.sort("timestamp", 1).to_list(500)
+        raw_logs = await cursor.sort("timestamp", -1).to_list(500)
         
         # Admin isimlerini al
         admin_ids = list(set(log.get("admin_id") for log in raw_logs if log.get("admin_id")))
