@@ -112,7 +112,9 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
     try {
       const params = { 
         entity_type: activeTab,
-        limit: 100
+        limit: 500,
+        start_date: selectedWeek.start.toISOString(),
+        end_date: selectedWeek.end.toISOString()
       };
       if (selectedEntity) {
         params.entity_id = selectedEntity;
@@ -130,7 +132,7 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
     } finally {
       setLoading(false);
     }
-  }, [companyId, activeTab, selectedEntity]);
+  }, [companyId, activeTab, selectedEntity, selectedWeek]);
 
   useEffect(() => {
     if (open) {
