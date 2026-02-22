@@ -79,6 +79,12 @@ Lütfen en kısa sürede faturalarınızı yükleyiniz.`;
     
     const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+    setShowReminderModal(false);
+  };
+
+  const openReminderModal = () => {
+    if (!selectedCourier) return;
+    setShowReminderModal(true);
   };
 
   return (
