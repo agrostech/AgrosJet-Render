@@ -70,7 +70,7 @@ export default function RestoranlarPage({ companyId }) {
   // Restaurant users state
   const [restaurantUsers, setRestaurantUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
-  const [newUserData, setNewUserData] = useState({ username: "", password: "", name: "" });
+  const [newUserData, setNewUserData] = useState({ username: "", password: "", name: "", phone: "" });
   
   // Preparation time state
   const [preparationData, setPreparationData] = useState({
