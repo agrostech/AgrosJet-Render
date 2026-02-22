@@ -285,7 +285,9 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
             "hourly_rate": hourly_rate,
             "hourly_earnings": hourly_earnings,
             "is_processed": is_processed,
-            "transaction_id": transaction_id
+            "transaction_id": transaction_id,
+            "is_admin_linked": courier.get("is_admin_linked", False),
+            "linked_admin_id": courier.get("linked_admin_id")
         })
         
         total_amount += amount
