@@ -2428,6 +2428,50 @@ async def create_manual_order(data: ManualOrderCreate):
         ]
     }
     
+    # Taşıma ücreti hesapla
+    delivery_fee = 0
+    delivery_fee_kdv = 0
+    if restaurant.get("pricing_type") and data.delivery_location:
+        from math import radians, sin, cos, sqrt, atan2
+        
+        # Mesafe hesapla
+        rest_lat = restaurant.get("latitude", 0)
+        rest_lng = restaurant.get("longitude", 0)
+        del_lat = data.delivery_location.lat
+        del_lng = data.delivery_location.lng
+        
+        if rest_lat and rest_lng and del_lat and del_lng:
+            R = 6371
+            lat1, lat2 = radians(rest_lat), radians(del_lat)
+            dlat = radians(del_lat - rest_lat)
+            dlng = radians(del_lng - rest_lng)
+            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlng/2)**2
+            c = 2 * atan2(sqrt(a), sqrt(1-a))
+            distance_km = R * c
+            
+            # Ücret hesapla
+            pricing_type = restaurant.get("pricing_type", "per_package")
+            per_package_price = restaurant.get("per_package_price", 0)
+            km_ranges = restaurant.get("km_ranges", [])
+            
+            if pricing_type == "per_package":
+                delivery_fee = per_package_price
+            elif pricing_type == "per_km" and km_ranges:
+                for r in km_ranges:
+                    if r.get("min_km", 0) <= distance_km < r.get("max_km", 999):
+                        delivery_fee = r.get("price", 0)
+                        break
+            
+            # KDV hesapla
+            kdv_rate = restaurant.get("kdv_rate", 0)
+            if kdv_rate > 0 and delivery_fee > 0:
+                delivery_fee_kdv = delivery_fee * (kdv_rate / 100)
+            
+            order["distance_km"] = round(distance_km, 2)
+    
+    order["delivery_fee"] = round(delivery_fee, 2)
+    order["delivery_fee_kdv"] = round(delivery_fee_kdv, 2)
+    
     # Veritabanına kaydet
     await db.orders.insert_one(order)
     
