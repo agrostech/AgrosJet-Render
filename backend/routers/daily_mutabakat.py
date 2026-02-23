@@ -1195,18 +1195,18 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
     
     days = []
     day_names_tr = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today_str = datetime.now(turkey_tz).strftime("%Y-%m-%d")
     
     for i in range(7):
         day_date = start_date + timedelta(days=i)
         date_str = day_date.strftime("%Y-%m-%d")
         
-        # Gün aralığını hesapla
-        start_dt = day_date.replace(hour=open_hour, minute=open_min, second=0, microsecond=0, tzinfo=timezone.utc)
+        # Gün aralığını hesapla (Türkiye saati)
+        start_dt = day_date.replace(hour=open_hour, minute=open_min, second=0, microsecond=0, tzinfo=turkey_tz)
         if close_hour < open_hour:
-            end_dt = (day_date + timedelta(days=1)).replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=timezone.utc)
+            end_dt = (day_date + timedelta(days=1)).replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
         else:
-            end_dt = day_date.replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=timezone.utc)
+            end_dt = day_date.replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
         
         # O gün siparişi olan kurye sayısını hesapla
         couriers_with_orders = set()
