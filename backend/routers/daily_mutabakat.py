@@ -128,12 +128,12 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
     Parçalı ödemeler (mixed) de desteklenir
     """
     # Teslim edilmiş siparişleri getir
-    # updated_at alanı hem ISO string hem de datetime olabilir
+    # delivered_at alanı ile filtreleme (teslim tarihi)
     orders = await db.orders.find({
         "company_id": company_id,
         "courier_id": courier_id,
         "status": "delivered"
-    }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "updated_at": 1, "payment_details": 1}).to_list(1000)
+    }, {"_id": 0, "id": 1, "payment_method": 1, "total_amount": 1, "restaurant_name": 1, "restaurant_id": 1, "delivered_at": 1, "payment_details": 1}).to_list(1000)
     
     cash_total = 0
     card_percent_1 = 0
