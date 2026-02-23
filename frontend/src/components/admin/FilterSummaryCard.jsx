@@ -43,7 +43,7 @@ export default function FilterSummaryCard({
     } else if (pm === "card" || pm === "credit_card" || pm === "kredi_karti" || pm === "kart") {
       acc.kartToplam += tutar;
     } else if (pm === "online" || pm === "online_odeme") {
-      acc.kartToplam += tutar; // Online da kart olarak sayılır
+      acc.onlineToplam += tutar; // Online ayrı sayılır
     } else if (pm === "meal_card" || pm === "yemek_karti" || pm === "online_meal_card") {
       acc.yemekKartiToplam += tutar;
     }
@@ -56,6 +56,7 @@ export default function FilterSummaryCard({
     kuryeHakedis: 0,
     nakitToplam: 0,
     kartToplam: 0,
+    onlineToplam: 0,
     yemekKartiToplam: 0
   });
 
