@@ -165,15 +165,12 @@ const generateReceiptText = (order, width = 48) => {
  */
 export const checkLocalPrintServer = async () => {
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    const response = await fetch(`${LOCAL_PRINT_SERVER}/status`, {
-      signal: controller.signal,
-      mode: 'cors',
-    });
-
-    clearTimeout(timeoutId);
+    const response = await Promise.race([
+      fetch(`${LOCAL_PRINT_SERVER}/status`, { mode: 'cors' }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('timeout')), 3000)
+      )
+    ]);
 
     if (response.ok) {
       const data = await response.json();
@@ -195,7 +192,7 @@ export const checkLocalPrintServer = async () => {
   } catch (error) {
     let message = "Yerel yazdırma sunucusu çalışmıyor";
     
-    if (error.name === 'AbortError') {
+    if (error.message === 'timeout') {
       message = "Bağlantı zaman aşımına uğradı";
     } else if (error.message?.includes('Failed to fetch')) {
       message = "Sunucuya erişilemiyor. Program çalışıyor mu?";
@@ -203,15 +200,12 @@ export const checkLocalPrintServer = async () => {
       message = "Ağ hatası. Güvenlik duvarını kontrol edin.";
     }
     
-    console.log("Print server connection error:", error);
-    
     return {
       available: false,
       connected: false,
       printers: [],
       defaultPrinter: null,
       message: message,
-      error: error.message,
     };
   }
 };
