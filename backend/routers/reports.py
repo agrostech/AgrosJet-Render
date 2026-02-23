@@ -52,11 +52,11 @@ async def get_courier_report(
         for r in restaurants_with_meal_card
     )
     
-    # Temel filtre
+    # Temel filtre - delivered_at ile (teslim tarihi)
     match_filter = {
         "company_id": company_id,
         "status": "delivered",
-        "created_at": {
+        "delivered_at": {
             "$gte": start_datetime,
             "$lte": end_datetime
         }
