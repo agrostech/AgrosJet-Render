@@ -149,17 +149,24 @@ async def get_available_weeks(company_id: str):
 @router.post("/data/{company_id}")
 async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     """Seçili hafta için restoran mütabakat verilerini getir"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         start_dt = datetime.fromisoformat(week.week_start.replace('Z', '+00:00'))
         end_dt = datetime.fromisoformat(week.week_end.replace('Z', '+00:00'))
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
+    logger.info(f"Mutabakat sorgusu - company_id: {company_id}, start: {start_dt.isoformat()}, end: {end_dt.isoformat()}")
+    
     # Şirkete ait restoranları getir (collection_settings, pricing ve kdv_rate dahil)
     restaurants = await db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
         {"_id": 0, "id": 1, "name": 1, "collection_settings": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
     ).to_list(500)
+    
+    logger.info(f"Bulunan restoran sayısı: {len(restaurants)}")
     
     if not restaurants:
         return {"restaurants": [], "summary": {"total_orders": 0, "total_net": 0}}
