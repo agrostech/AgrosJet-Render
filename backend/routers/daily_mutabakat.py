@@ -101,28 +101,22 @@ def calculate_date_range(date_str: str, opening_time: str, closing_time: str):
     Başlangıç: Seçilen gün + açılış saati (Türkiye saati)
     Bitiş: Sonraki gün + kapanış saati (Türkiye saati)
     
-    NOT: Şirket saatleri Türkiye saati (UTC+3) olarak kabul edilir
-    Siparişler UTC olarak saklandığı için -3 saat offset uygulanır
+    NOT: Siparişler artık Türkiye saatinde saklanıyor, UTC dönüşümü yapılmıyor
     """
-    from datetime import timezone as tz
-    
     base_date = datetime.strptime(date_str, "%Y-%m-%d")
     
     # Parse times
     open_h, open_m = map(int, opening_time.split(":"))
     close_h, close_m = map(int, closing_time.split(":"))
     
-    # Türkiye saati olarak ayarla, sonra UTC'ye çevir (-3 saat)
-    # Türkiye UTC+3, yani Türkiye 02:00 = UTC 23:00 (önceki gün)
-    turkey_offset = timedelta(hours=3)
+    # Türkiye timezone
+    turkey_tz = timezone(timedelta(hours=3))
     
-    # Başlangıç: Seçilen gün + açılış saati (Türkiye) -> UTC
-    start_turkey = base_date.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
-    start_dt = (start_turkey - turkey_offset).replace(tzinfo=tz.utc)
+    # Başlangıç: Seçilen gün + açılış saati (Türkiye saati)
+    start_dt = base_date.replace(hour=open_h, minute=open_m, second=0, microsecond=0, tzinfo=turkey_tz)
     
-    # Bitiş: Sonraki gün + kapanış saati (Türkiye) -> UTC
-    end_turkey = (base_date + timedelta(days=1)).replace(hour=close_h, minute=close_m, second=0, microsecond=0)
-    end_dt = (end_turkey - turkey_offset).replace(tzinfo=tz.utc)
+    # Bitiş: Sonraki gün + kapanış saati (Türkiye saati)
+    end_dt = (base_date + timedelta(days=1)).replace(hour=close_h, minute=close_m, second=0, microsecond=0, tzinfo=turkey_tz)
     
     return start_dt, end_dt
 
