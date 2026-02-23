@@ -678,7 +678,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            <ClipboardList className="w-4 h-4" />
+            <ListChecks className="w-4 h-4" />
             Aktif Siparişler
           </button>
           <button
@@ -700,7 +700,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            <XCircle className="w-4 h-4" />
+            <ClipboardX className="w-4 h-4" />
             İptal Siparişler
           </button>
         </div>
