@@ -28,11 +28,14 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount) + ' TL';
 };
 
-// Dünün tarihini al
+// Dünün tarihini al (local timezone)
 const getYesterday = () => {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday.toISOString().split('T')[0];
+  const year = yesterday.getFullYear();
+  const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+  const day = String(yesterday.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSuperAdmin }) {
