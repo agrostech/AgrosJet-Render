@@ -75,10 +75,18 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
 
     const invoice = invoices.find(i => i.id === uploadingId);
     
+    // Otomatik dosya ismi oluştur: restoranismi_haftaaraligi_tutar.pdf
+    const weekLabel = (invoice?.week_label || "").replace(/\s/g, '').replace(/\./g, '').replace(/-/g, '_');
+    const amount = formatMoneyForFilename(invoice?.total_amount);
+    const restName = sanitizeFilename(restaurantName || "Restoran");
+    const autoFilename = `${restName}_${weekLabel}_${amount}TL.pdf`;
+    
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      // Dosyayı yeni isimle ekle
+      const renamedFile = new File([file], autoFilename, { type: file.type });
+      formData.append("file", renamedFile);
       formData.append("missing_invoice_id", uploadingId);
       formData.append("week_label", invoice?.week_label || "");
 
@@ -107,12 +115,16 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
     }
   };
 
-  const handleDelete = async (invoiceId) => {
-    if (!confirm("Bu faturayı silmek istediğinize emin misiniz?")) return;
+  const handleDeleteClick = (invoice) => {
+    setDeleteConfirm(invoice);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
     
-    setDeletingId(invoiceId);
+    setDeletingId(deleteConfirm.invoice_id);
     try {
-      await axios.delete(`${API}/restaurant-panel-invoices/${restaurantId}/issued/${invoiceId}`);
+      await axios.delete(`${API}/restaurant-panel-invoices/${restaurantId}/issued/${deleteConfirm.invoice_id}`);
       toast.success("Fatura silindi");
       fetchInvoices();
       if (onRefresh) onRefresh();
@@ -120,6 +132,7 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
       toast.error(err.response?.data?.detail || "Silme başarısız");
     } finally {
       setDeletingId(null);
+      setDeleteConfirm(null);
     }
   };
 
