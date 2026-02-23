@@ -42,8 +42,9 @@ router = APIRouter(prefix="/api/restaurant-integrations", tags=["Restoran Entegr
 # --- Pydantic Models ---
 
 class AdisyoIntegration(BaseModel):
-    api_key: Optional[str] = None
-    api_secret: Optional[str] = None
+    web_app_key: Optional[str] = None  # x-api-key header için
+    restaurant_identity: Optional[str] = None  # x-api-secret header için (UUID)
+    webhook_api_key: Optional[str] = None  # Webhook imza doğrulama için
     branch_id: Optional[str] = None
 
 
