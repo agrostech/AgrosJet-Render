@@ -145,38 +145,54 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       return;
     }
     
-    // Yeni siparişleri yazdır
-    newOrders.forEach(async (order) => {
-      // Sadece pending veya preparing durumundaki siparişleri yazdır
-      if (order.status === 'pending' || order.status === 'preparing') {
-        
-        // Siparişe restoran adını ekle
-        const orderWithRestaurant = { ...order, restaurant_name: restaurantName };
-        
-        // Otomatik yazdırma aktifse yazdır
-        if (localSettings.enabled && localSettings.printerName) {
-          const result = await printOrderLocal(
-            orderWithRestaurant,
-            localSettings.printerName,
-            localSettings.paperSize
-          );
+    // Yeni siparişleri sırayla yazdır (paralel değil, sıralı)
+    const printNewOrders = async () => {
+      for (const order of newOrders) {
+        // Sadece pending veya preparing durumundaki siparişleri yazdır
+        if (order.status === 'pending' || order.status === 'preparing') {
+          // Zaten yazdırıldıysa atla
+          if (printedOrders.has(order.id)) {
+            continue;
+          }
           
-          if (result.success) {
-            markAsPrinted(order.id);
-            toast.success(`Sipariş yazdırıldı: #${order.order_number}`, {
-              icon: <Printer className="w-4 h-4" />,
-            });
-          } else {
-            console.error("Yazdırma hatası:", result.error);
+          // Siparişe restoran adını ekle
+          const orderWithRestaurant = { ...order, restaurant_name: restaurantName };
+          
+          // Yazdır
+          try {
+            const result = await printOrderLocal(
+              orderWithRestaurant,
+              localSettings.printerName,
+              localSettings.paperSize
+            );
+            
+            if (result.success) {
+              markAsPrinted(order.id);
+              toast.success(`Sipariş yazdırıldı: #${order.order_number}`, {
+                icon: <Printer className="w-4 h-4" />,
+              });
+            } else {
+              console.error("Yazdırma hatası:", result.error);
+              toast.error(`Yazdırma hatası: #${order.order_number} - ${result.error || 'Bilinmeyen hata'}`);
+            }
+          } catch (err) {
+            console.error("Yazdırma exception:", err);
             toast.error(`Yazdırma hatası: #${order.order_number}`);
           }
+          
+          // Siparişler arası küçük bekleme (yazıcı buffer için)
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
-    });
+    };
+    
+    if (newOrders.length > 0 && localSettings.enabled && localSettings.printerName) {
+      printNewOrders();
+    }
     
     // Önceki ID'leri güncelle
     previousOrderIdsRef.current = currentOrderIds;
-  }, [orders, restaurantId]);
+  }, [orders, restaurantId, restaurantName, printedOrders, markAsPrinted]);
 
   // Kurye ataması bildirimi
   useEffect(() => {
