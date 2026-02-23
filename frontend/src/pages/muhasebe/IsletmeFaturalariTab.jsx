@@ -5,11 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   ChevronLeft, ChevronRight, FileText, AlertCircle, 
   Store, Download, Trash2, CheckCircle, Eye, Loader2,
   Archive, Check, Circle, Filter, MessageCircle, Phone, User,
-  Upload, FileUp, Receipt
+  Upload, FileUp, Receipt, Settings, Clock
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
