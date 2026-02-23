@@ -2326,10 +2326,10 @@ async def update_order_fees(order_id: str, data: OrderFeesUpdate):
 async def create_manual_order(data: ManualOrderCreate):
     """Restoran panelinden manuel sipariş oluştur (telefon siparişleri için)"""
     
-    # Restoran bilgisini al
+    # Restoran bilgisini al (pricing alanları dahil)
     restaurant = await db.restaurants.find_one(
         {"id": data.restaurant_id},
-        {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1, "company_id": 1, "preparation_time": 1, "product_preparation_times": 1}
+        {"_id": 0, "id": 1, "name": 1, "latitude": 1, "longitude": 1, "company_id": 1, "preparation_time": 1, "product_preparation_times": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
     )
     
     if not restaurant:
