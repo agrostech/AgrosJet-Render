@@ -83,7 +83,7 @@ const TRANSACTION_TYPES = {
   }
 };
 
-export default function RestaurantMuhasebe({ restaurantId }) {
+export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
