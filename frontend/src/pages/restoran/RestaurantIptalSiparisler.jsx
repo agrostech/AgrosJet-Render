@@ -64,11 +64,6 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
       });
       let result = res.data.orders || [];
       
-      // Payment method filter
-      if (filters.payment !== "all") {
-        result = result.filter(o => o.payment_method === filters.payment);
-      }
-      
       // Date range filter
       if (filters.startDateTime && filters.endDateTime) {
         const start = new Date(filters.startDateTime);
@@ -92,28 +87,49 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
   const handleFilter = () => {
     setCurrentPage(1);
     fetchAndFilterOrders({
-      payment: paymentFilter,
       startDateTime,
       endDateTime
     });
   };
 
-  // Initial load
+  // Fetch company settings and load orders
   useEffect(() => {
-    if (!restaurantId || initialized) return;
-    
-    const defaults = getDefaultDates();
-    setStartDateTime(defaults.startDateTime);
-    setEndDateTime(defaults.endDateTime);
-    
-    fetchAndFilterOrders({
-      payment: "all",
-      startDateTime: defaults.startDateTime,
-      endDateTime: defaults.endDateTime
-    });
-    
-    setInitialized(true);
-  }, [restaurantId, initialized, getDefaultDates, fetchAndFilterOrders]);
+    const fetchData = async () => {
+      if (!restaurantId) return;
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        if (user.company_id) {
+          // Fetch company info (opening/closing times)
+          const companyRes = await axios.get(`${API}/companies/${user.company_id}`);
+          const company = companyRes.data;
+          
+          // Set company settings and update default dates
+          const settings = {
+            opening_time: company?.opening_time || "09:00",
+            closing_time: company?.closing_time || "23:00"
+          };
+          setCompanySettings(settings);
+          
+          // Update date filters with company times and fetch orders
+          const defaults = getDefaultDates(settings);
+          setStartDateTime(defaults.startDateTime);
+          setEndDateTime(defaults.endDateTime);
+          
+          // Initial order fetch
+          if (!initialized) {
+            fetchAndFilterOrders({
+              startDateTime: defaults.startDateTime,
+              endDateTime: defaults.endDateTime
+            });
+            setInitialized(true);
+          }
+        }
+      } catch (err) {
+        console.error("Data fetch error:", err);
+      }
+    };
+    fetchData();
+  }, [restaurantId, initialized, fetchAndFilterOrders, getDefaultDates]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
