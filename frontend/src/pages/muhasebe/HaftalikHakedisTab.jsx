@@ -41,6 +41,7 @@ export default function HaftalikHakedisTab({ companyId }) {
   const [couriers, setCouriers] = useState([]);
   const [summary, setSummary] = useState({ total_amount: 0, total_orders: 0 });
   const [weekDescription, setWeekDescription] = useState("");
+  const [dateRangeLabel, setDateRangeLabel] = useState("");
   
   // Selection
   const [selectedIds, setSelectedIds] = useState([]);
