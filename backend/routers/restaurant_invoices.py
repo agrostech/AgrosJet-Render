@@ -821,10 +821,13 @@ async def verify_invoice(company_id: str, data: InvoiceVerify):
     Faturayı onayla ve tutar gir.
     Eğer tutar eksikse, kalan tutar için eksik fatura oluşturulur.
     """
-    # Fatura kaydını bul
+    # Fatura kaydını bul (hem invoice_id hem id field'ını kontrol et)
     record = await db.restaurant_invoices.find_one({
         "company_id": company_id,
-        "invoices.invoice_id": data.invoice_id
+        "$or": [
+            {"invoices.invoice_id": data.invoice_id},
+            {"invoices.id": data.invoice_id}
+        ]
     })
     
     if not record:
@@ -832,11 +835,14 @@ async def verify_invoice(company_id: str, data: InvoiceVerify):
     
     # Faturayı güncelle
     invoices = record.get("invoices", [])
+    turkey_tz = timezone(timedelta(hours=3))
+    
     for inv in invoices:
-        if inv["invoice_id"] == data.invoice_id:
+        # Her iki field'ı da kontrol et
+        if inv.get("invoice_id") == data.invoice_id or inv.get("id") == data.invoice_id:
             inv["verified"] = True
             inv["verified_amount"] = data.amount
-            inv["verified_at"] = datetime.now(timezone.utc).isoformat()
+            inv["verified_at"] = datetime.now(turkey_tz).isoformat()
             inv["verified_by_admin_id"] = data.admin_id
             inv["verified_by_admin_name"] = data.admin_name
             break
