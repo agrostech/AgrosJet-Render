@@ -69,8 +69,8 @@ export default function FilterSummaryCard({
   // Toplam Taşıma Ücreti (Taşıma Ücreti + KDV)
   const toplamTasimaUcreti = totals.tasimaUcreti + totals.tasimaKdv;
   
-  // Sonuç hesaplama: (Toplam Taşıma Ücreti + POS Komisyonu) - (Nakit + Kredi Kartı)
-  const sonuc = (toplamTasimaUcreti + totals.posKomisyonu) - (totals.nakitToplam + totals.kartToplam);
+  // Sonuç hesaplama: (Toplam Taşıma Ücreti + POS Komisyonu) - (Nakit + Kredi Kartı + Online)
+  const sonuc = (toplamTasimaUcreti + totals.posKomisyonu) - (totals.nakitToplam + totals.kartToplam + totals.onlineToplam);
 
   // Restoran filtrelemesi yapıldıysa
   if (restaurantFilter !== "all") {
