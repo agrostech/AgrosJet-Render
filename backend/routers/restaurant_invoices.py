@@ -226,20 +226,17 @@ async def get_all_missing_invoices(company_id: str):
 async def get_upcoming_invoices_preview(company_id: str):
     """
     Bir sonraki otomatik çalışmada oluşturulacak faturaların önizlemesini döndür.
-    Geçen haftanın siparişlerini hesaplar ama kayıt oluşturmaz.
+    BU haftanın siparişlerini hesaplar (gelecek Pazartesi oluşturulacak faturalar).
     """
     opening_time, closing_time = await get_company_work_hours(company_id)
     
-    # Geçen haftanın başlangıcını hesapla (Pazartesi açılış saati)
+    # Bu haftanın başlangıcını hesapla (Pazartesi açılış saati)
     turkey_tz = timezone(timedelta(hours=3))
     now = datetime.now(turkey_tz)
     
     # Bu haftanın pazartesisini bul
     days_since_monday = now.weekday()  # 0 = Pazartesi
     this_monday = now - timedelta(days=days_since_monday)
-    
-    # Geçen haftanın pazartesisi
-    last_monday = this_monday - timedelta(weeks=1)
     
     open_h, open_m = map(int, opening_time.split(':'))
     close_h, close_m = map(int, closing_time.split(':'))
