@@ -298,6 +298,11 @@ async def get_courier_orders_detail(company_id: str, courier_id: str, start_dt: 
             else:
                 continue
             
+            # Timezone yoksa Türkiye saati kabul et
+            if order_dt.tzinfo is None:
+                turkey_tz = timezone(timedelta(hours=3))
+                order_dt = order_dt.replace(tzinfo=turkey_tz)
+            
             if not (start_dt <= order_dt < end_dt):
                 continue
         except Exception:
