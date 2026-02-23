@@ -1,6 +1,7 @@
 """
 Restaurant Invoice System
 Restoran fatura yönetimi - Haftalık bazda eksik fatura oluşturma, aylık görüntüleme
+Cloudflare R2 entegrasyonu ile dosya depolama
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
@@ -10,6 +11,12 @@ import uuid
 import base64
 
 from utils.database import db
+from services.r2_storage import (
+    upload_file_to_r2,
+    download_file_from_r2,
+    delete_file_from_r2,
+    generate_presigned_url
+)
 
 router = APIRouter(prefix="/api", tags=["Restoran Faturaları"])
 
