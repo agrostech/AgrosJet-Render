@@ -194,9 +194,15 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
             variant="outline" 
             size="sm" 
             onClick={() => setShowFaturalar(true)}
+            className="relative"
           >
             <Receipt className="w-4 h-4 mr-2" />
             Faturalar
+            {missingInvoiceCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {missingInvoiceCount}
+              </span>
+            )}
           </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
