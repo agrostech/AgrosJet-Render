@@ -690,7 +690,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               }`}
             >
               <History className="w-3.5 h-3.5" />
-              Geçmiş
+              Teslim
             </button>
             <button
               onClick={() => setMainTab("cancelled")}
