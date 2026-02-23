@@ -312,14 +312,17 @@ async def cancel_order(restaurant_id: str, data: CancelOrderRequest):
     )
     
     if result.get("success"):
+        # Türkiye saati (UTC+3)
+        turkey_tz = timezone(timedelta(hours=3))
+        now_turkey = datetime.now(turkey_tz).isoformat()
         await db.orders.update_one(
             {"id": data.order_id},
             {"$set": {
                 "status": "cancelled",
                 "cancel_reason": data.cancel_note or data.cancel_reason_id,
-                "cancelled_at": datetime.now(timezone.utc).isoformat(),
+                "cancelled_at": now_turkey,
                 "cancelled_by": "restaurant",
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": now_turkey
             }}
         )
     
