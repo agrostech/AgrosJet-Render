@@ -93,12 +93,12 @@ class ProductInfo(BaseModel):
 
 
 class RestaurantInfo(BaseModel):
-    id: str
+    id: Union[str, int]
     name: str
 
 
 class OrderInfo(BaseModel):
-    order_id: str
+    order_id: Union[str, int]
     platform: str
     preparation_time: Optional[int] = None
     note: Optional[str] = None
