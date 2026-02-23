@@ -158,6 +158,22 @@ export default function HareketlerTab({ companyId }) {
         </span>
       );
     }
+    if (action === 'jetpuan_credited') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-3 h-3 text-amber-600" />
+          <span className="text-amber-700 font-medium">JetPuan Yüklendi</span>
+        </span>
+      );
+    }
+    if (action === 'jetpuan_debited') {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <Minus className="w-3 h-3 text-amber-600" />
+          <span className="text-amber-700 font-medium">JetPuan Kullanıldı</span>
+        </span>
+      );
+    }
     return action;
   };
 
