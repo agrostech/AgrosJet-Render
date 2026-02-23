@@ -325,6 +325,13 @@ export default function RestaurantMuhasebe({ restaurantId }) {
           )}
         </div>
       </div>
+
+      {/* Faturalar Modal */}
+      <RestaurantFaturalarModal
+        open={showFaturalar}
+        onOpenChange={setShowFaturalar}
+        restaurantId={restaurantId}
+      />
     </div>
   );
 }
