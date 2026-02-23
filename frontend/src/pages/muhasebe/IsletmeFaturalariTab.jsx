@@ -1112,13 +1112,6 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
         </CardContent>
       </Card>
 
-      {/* Upcoming Invoices Preview - Full width */}
-      <UpcomingInvoicesCard 
-        preview={upcomingPreview}
-        loading={previewLoading}
-        onRefresh={fetchUpcomingPreview}
-      />
-
       <MonthSelector
         year={selectedYear}
         month={selectedMonth}
@@ -1158,6 +1151,13 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
           onDelete={handleDeleteInvoice}
           year={selectedYear}
           month={selectedMonth}
+        />
+
+        {/* Upcoming Invoices Preview - Full width at bottom */}
+        <UpcomingInvoicesCard 
+          preview={upcomingPreview}
+          loading={previewLoading}
+          onRefresh={fetchUpcomingPreview}
         />
       </div>
 
