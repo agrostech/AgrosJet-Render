@@ -33,7 +33,7 @@ async def get_company_work_hours(company_id: str) -> tuple:
 async def get_restaurant_issued_invoices(restaurant_id: str):
     """
     Restoranın kesmesi gereken faturaları getir.
-    Admin panelinde oluşturulan 'missing invoices' kayıtları burada listelenir.
+    Admin panelinde oluşturulan 'restaurant_invoices' kayıtları burada listelenir.
     """
     # Restoran bilgisini al
     restaurant = await db.restaurants.find_one(
@@ -45,33 +45,34 @@ async def get_restaurant_issued_invoices(restaurant_id: str):
     
     company_id = restaurant.get("company_id")
     
-    # Bu restorana ait missing invoice kayıtlarını getir
-    records = await db.missing_invoices.find(
-        {"restaurant_id": restaurant_id},
+    # Bu restorana ait fatura kayıtlarını getir (Admin panelinde oluşturulan)
+    records = await db.restaurant_invoices.find(
+        {"restaurant_id": restaurant_id, "company_id": company_id},
         {"_id": 0}
     ).sort("week_start", -1).to_list(50)
     
     result = []
     for record in records:
-        # Bu kayda ait yüklenen fatura var mı?
-        invoice = await db.restaurant_invoices.find_one(
-            {"missing_invoice_id": record.get("id")},
-            {"_id": 0, "id": 1, "uploaded_at": 1, "filename": 1, "verified": 1, "amount": 1}
-        )
+        # invoices array'inde restoran tarafından yüklenen fatura var mı?
+        restaurant_invoice = None
+        for inv in record.get("invoices", []):
+            if inv.get("uploaded_by_restaurant"):
+                restaurant_invoice = inv
+                break
         
         result.append({
             "id": record.get("id"),
             "week_start": record.get("week_start"),
             "week_end": record.get("week_end"),
             "week_label": record.get("week_label", ""),
-            "total_amount": record.get("total_amount", 0),
+            "total_amount": record.get("required_amount", 0),
             "order_count": record.get("order_count", 0),
             "created_at": record.get("created_at"),
-            "invoice_uploaded": invoice is not None,
-            "invoice_id": invoice.get("id") if invoice else None,
-            "invoice_filename": invoice.get("filename") if invoice else None,
-            "invoice_verified": invoice.get("verified", False) if invoice else False,
-            "invoice_amount": invoice.get("amount") if invoice else None
+            "invoice_uploaded": restaurant_invoice is not None,
+            "invoice_id": restaurant_invoice.get("id") if restaurant_invoice else None,
+            "invoice_filename": restaurant_invoice.get("filename") if restaurant_invoice else None,
+            "invoice_verified": restaurant_invoice.get("verified", False) if restaurant_invoice else False,
+            "invoice_amount": restaurant_invoice.get("amount") if restaurant_invoice else None
         })
     
     return result
