@@ -105,7 +105,7 @@ async def upload_restaurant_invoice(
     week_label: str = Form(""),
     file: UploadFile = File(...)
 ):
-    """Restoran fatura yükle - restaurant_invoices içindeki invoices array'ine ekler"""
+    """Restoran fatura yükle - Cloudflare R2'ye kaydet"""
     # Restoran bilgisini al
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
@@ -113,6 +113,8 @@ async def upload_restaurant_invoice(
     )
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    company_id = restaurant.get("company_id")
     
     # Fatura kaydını kontrol et
     invoice_record = await db.restaurant_invoices.find_one(
@@ -131,17 +133,40 @@ async def upload_restaurant_invoice(
     if ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Sadece PDF dosyaları kabul edilir")
     
-    # Yeni fatura verisi
-    new_invoice = {
-        "id": str(uuid.uuid4()),
-        "filename": file.filename,
-        "file_data": base64.b64encode(contents).decode("utf-8"),
-        "extension": ext,
-        "amount": invoice_record.get("required_amount", 0),
-        "uploaded_at": datetime.now(timezone(timedelta(hours=3))).isoformat(),
-        "uploaded_by_restaurant": True,
-        "verified": False
-    }
+    invoice_id = str(uuid.uuid4())
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz).isoformat()
+    
+    # R2'ye yükle
+    r2_key = f"restaurant-invoices/{company_id}/{restaurant_id}/{invoice_id}.{ext}"
+    upload_result = await upload_file_to_r2(contents, r2_key, "application/pdf")
+    
+    if not upload_result.get("success"):
+        # R2 başarısız olursa base64 olarak kaydet (fallback)
+        new_invoice = {
+            "id": invoice_id,
+            "filename": file.filename,
+            "file_data": base64.b64encode(contents).decode("utf-8"),
+            "extension": ext,
+            "storage_type": "base64",
+            "amount": invoice_record.get("required_amount", 0),
+            "uploaded_at": now,
+            "uploaded_by_restaurant": True,
+            "verified": False
+        }
+    else:
+        # R2'de başarıyla kaydedildi
+        new_invoice = {
+            "id": invoice_id,
+            "filename": file.filename,
+            "r2_key": r2_key,
+            "extension": ext,
+            "storage_type": "r2",
+            "amount": invoice_record.get("required_amount", 0),
+            "uploaded_at": now,
+            "uploaded_by_restaurant": True,
+            "verified": False
+        }
     
     # invoices array'ine ekle
     await db.restaurant_invoices.update_one(
