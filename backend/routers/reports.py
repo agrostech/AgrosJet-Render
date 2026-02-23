@@ -471,13 +471,14 @@ async def get_restaurant_report(
     total_transport_kdv = sum(r["transportKdv"] for r in restaurants)
     total_pos_commission = sum(r["posCommission"] if r["card_included"] else 0 for r in restaurants)
     
-    # Nakit, kart ve yemek kartı toplamları (sadece dahil edilenler)
+    # Nakit, kart, online ve yemek kartı toplamları (sadece dahil edilenler)
     total_cash = sum(r["cash"] if r["cash_included"] else 0 for r in restaurants)
     total_card = sum(r["card"] if r["card_included"] else 0 for r in restaurants)
+    total_online = sum(r["online"] for r in restaurants)
     total_meal_card = sum(r["mealCard"] if r["meal_card_included"] else 0 for r in restaurants)
     total_modified = sum(r["modified_count"] for r in restaurants)
     
-    # Sonuç hesapla
+    # Sonuç hesapla (online dahil edilmiyor - restoran tahsil ediyor)
     total_transport = total_transport_fee + total_transport_kdv
     result = (total_transport + total_pos_commission) - (total_cash + total_card + total_meal_card)
     
