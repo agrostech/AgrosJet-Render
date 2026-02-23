@@ -75,6 +75,22 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
         result = result.filter(o => o.is_restaurant_delivery === true);
       }
       
+      // Kurye adı filtresi
+      if (filters.courierName !== "all") {
+        result = result.filter(o => o.courier_id === filters.courierName);
+      }
+      
+      // Bu restoran için teslimatta bulunan kuryeleri çıkar (alfabetik sıralı)
+      const courierMap = new Map();
+      res.data.orders?.forEach(o => {
+        if (o.courier_id && o.courier_name && !o.is_restaurant_delivery) {
+          courierMap.set(o.courier_id, o.courier_name);
+        }
+      });
+      const uniqueCouriers = Array.from(courierMap, ([id, name]) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+      setAvailableCouriers(uniqueCouriers);
+      
       // Payment method filter
       if (filters.payment !== "all") {
         result = result.filter(o => o.payment_method === filters.payment);
