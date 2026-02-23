@@ -196,7 +196,10 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "restaurant_id": 1, 
             "total_amount": 1,
             "delivery_fee": 1,
-            "payment_method": 1
+            "restaurant_fee": 1,
+            "payment_method": 1,
+            "restaurant_location": 1,
+            "delivery_location": 1
         }
     ).to_list(10000)
     
