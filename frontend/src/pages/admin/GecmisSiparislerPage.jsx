@@ -72,14 +72,21 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
     setLoading(true);
     try {
       // Yeni merkezi endpoint kullan
-      const res = await axios.get(`${API}/orders/v2/list`, {
-        params: {
-          panel: 'admin',
-          company_id: companyId,
-          status: 'delivered',
-          limit: 500
-        }
-      });
+      const params = {
+        panel: 'admin',
+        company_id: companyId,
+        status: 'delivered',
+        limit: 500,
+        date_from: filters.startDateTime,
+        date_to: filters.endDateTime
+      };
+      
+      // Source filtresi varsa ekle
+      if (filters.source && filters.source !== "all") {
+        params.source = filters.source;
+      }
+      
+      const res = await axios.get(`${API}/orders/v2/list`, { params });
       let result = res.data.orders || [];
       
       // Restaurant filter
@@ -95,17 +102,6 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
       // Payment method filter
       if (filters.payment !== "all") {
         result = result.filter(o => o.payment_method === filters.payment);
-      }
-      
-      // Date range filter
-      if (filters.startDateTime && filters.endDateTime) {
-        const start = new Date(filters.startDateTime);
-        const end = new Date(filters.endDateTime);
-        
-        result = result.filter(o => {
-          const orderDate = new Date(o.delivered_at || o.updated_at || o.created_at);
-          return orderDate >= start && orderDate <= end;
-        });
       }
       
       setFilteredOrders(result);
