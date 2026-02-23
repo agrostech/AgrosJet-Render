@@ -104,10 +104,19 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
     fetchData();
   }, [fetchData]);
   
-  // İlk yüklemede haftalık özeti çek
+  // İlk yüklemede haftalık özeti çek (dünün haftası)
   useEffect(() => {
-    fetchWeeklySummary();
-  }, [companyId]); // Sadece companyId değiştiğinde
+    // Dünün hangi haftada olduğunu hesapla
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dayOfWeek = yesterday.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Pazartesiye git
+    const weekStart = new Date(yesterday);
+    weekStart.setDate(yesterday.getDate() + mondayOffset);
+    const weekStartStr = weekStart.toISOString().split('T')[0];
+    
+    fetchWeeklySummary(weekStartStr);
+  }, [companyId, fetchWeeklySummary]);
 
   // Input değişikliği
   const handleInputChange = (courierId, field, value) => {
