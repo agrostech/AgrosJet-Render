@@ -658,12 +658,12 @@ async def get_courier_earnings_report(
     if not start_dt or not end_dt:
         return {"package_count": 0, "total_earnings": 0, "orders": []}
     
-    # Teslim edilmiş siparişleri al (kazanç detaylarıyla)
+    # Teslim edilmiş siparişleri al (kazanç detaylarıyla) - delivered_at ile
     orders = await db.orders.find(
         {
             "courier_id": courier_id,
             "status": "delivered",
-            "created_at": {
+            "delivered_at": {
                 "$gte": start_dt,
                 "$lte": end_dt
             }
