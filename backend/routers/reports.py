@@ -353,14 +353,12 @@ async def get_restaurant_report(
             else:
                 order_dt = delivered_at
             
-            # UTC'ye çevir (eğer timezone yoksa UTC kabul et)
+            # Türkiye saati olarak kabul et (eğer timezone yoksa)
             if order_dt.tzinfo is None:
-                order_dt = order_dt.replace(tzinfo=timezone.utc)
-            else:
-                order_dt = order_dt.astimezone(timezone.utc)
+                order_dt = order_dt.replace(tzinfo=turkey_tz)
             
             # Tarih aralığında mı kontrol et
-            if start_dt_utc <= order_dt <= end_dt_utc:
+            if start_dt <= order_dt <= end_dt:
                 orders.append(order)
         except:
             continue  # Parse edilemeyen siparişleri atla
