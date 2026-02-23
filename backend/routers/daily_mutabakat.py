@@ -170,14 +170,14 @@ async def get_order_totals_for_courier(company_id: str, courier_id: str, start_d
         return tax_bracket
     
     for order in orders:
-        # Tarih kontrolü - updated_at alanını parse et
-        updated_at = order.get("updated_at")
-        if updated_at:
+        # Tarih kontrolü - delivered_at alanını parse et
+        delivered_at = order.get("delivered_at")
+        if delivered_at:
             try:
-                if isinstance(updated_at, str):
-                    order_dt = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
-                elif isinstance(updated_at, datetime):
-                    order_dt = updated_at
+                if isinstance(delivered_at, str):
+                    order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+                elif isinstance(delivered_at, datetime):
+                    order_dt = delivered_at
                 else:
                     continue
                 
