@@ -1489,15 +1489,30 @@ async def get_orders_unified(
                 {"created_at": {"$gte": today_start_utc.isoformat()}}
             ]
     
-    # Tarih filtresi
+    # Tarih filtresi için değişkenleri hazırla
+    date_filter_start = None
+    date_filter_end = None
+    
     if date_from or date_to:
-        date_query = {}
+        turkey_tz = timezone(timedelta(hours=3))
+        
         if date_from:
-            date_query["$gte"] = date_from
+            try:
+                date_filter_start = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+                if date_filter_start.tzinfo is None:
+                    date_filter_start = date_filter_start.replace(tzinfo=turkey_tz)
+                date_filter_start = date_filter_start.astimezone(timezone.utc)
+            except:
+                pass
+        
         if date_to:
-            date_query["$lte"] = date_to
-        if date_query:
-            query["created_at"] = date_query
+            try:
+                date_filter_end = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+                if date_filter_end.tzinfo is None:
+                    date_filter_end = date_filter_end.replace(tzinfo=turkey_tz)
+                date_filter_end = date_filter_end.astimezone(timezone.utc)
+            except:
+                pass
     
     # Platform filtresi
     if source:
