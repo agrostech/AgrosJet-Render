@@ -289,10 +289,10 @@ async def get_restaurant_report(
             end_dt = end_dt.replace(tzinfo=turkey_tz)
         
         # UTC'ye çevir
-        start_datetime = start_dt.astimezone(timezone.utc).isoformat()
-        end_datetime = end_dt.astimezone(timezone.utc).isoformat()
-    except:
-        pass  # Parse edilemezse orijinal değeri kullan
+        start_dt_utc = start_dt.astimezone(timezone.utc)
+        end_dt_utc = end_dt.astimezone(timezone.utc)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Tarih formatı hatalı: {str(e)}")
     
     # Restoranların tahsilat ve pricing ayarlarını çek
     restaurants_cursor = db.restaurants.find(
@@ -313,23 +313,19 @@ async def get_restaurant_report(
             "kdv_rate": r.get("kdv_rate", 10)
         }
     
-    # Temel filtre (restoran teslimatı hariç)
+    # Temel filtre (restoran teslimatı hariç) - tarih filtresi Python'da yapılacak
     match_filter = {
         "company_id": company_id,
         "status": "delivered",
-        "is_restaurant_delivery": {"$ne": True},
-        "delivered_at": {
-            "$gte": start_datetime,
-            "$lte": end_datetime
-        }
+        "is_restaurant_delivery": {"$ne": True}
     }
     
     # Restoran filtresi varsa ekle
     if restaurant_id:
         match_filter["restaurant_id"] = restaurant_id
     
-    # Siparişleri getir
-    orders = await db.orders.find(
+    # Siparişleri getir (tarih filtresi olmadan)
+    all_orders = await db.orders.find(
         match_filter,
         {
             "_id": 0,
@@ -342,9 +338,36 @@ async def get_restaurant_report(
             "payment_method": 1,
             "payment_details": 1,
             "restaurant_location": 1,
-            "delivery_location": 1
+            "delivery_location": 1,
+            "delivered_at": 1
         }
-    ).to_list(5000)
+    ).to_list(10000)
+    
+    # Python'da tarih filtrelemesi yap
+    orders = []
+    for order in all_orders:
+        delivered_at = order.get("delivered_at")
+        if not delivered_at:
+            continue
+        
+        try:
+            # String'i datetime'a çevir
+            if isinstance(delivered_at, str):
+                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            else:
+                order_dt = delivered_at
+            
+            # UTC'ye çevir (eğer timezone yoksa UTC kabul et)
+            if order_dt.tzinfo is None:
+                order_dt = order_dt.replace(tzinfo=timezone.utc)
+            else:
+                order_dt = order_dt.astimezone(timezone.utc)
+            
+            # Tarih aralığında mı kontrol et
+            if start_dt_utc <= order_dt <= end_dt_utc:
+                orders.append(order)
+        except:
+            continue  # Parse edilemeyen siparişleri atla
     
     # Restoran bazlı hesaplama
     restaurant_data = {}
