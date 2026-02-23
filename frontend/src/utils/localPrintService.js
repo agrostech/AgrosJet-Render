@@ -142,15 +142,19 @@ const generateReceiptText = (order, width = 48) => {
     const name = item.name || "Ürün";
     const price = (item.price || 0) * qty;
 
-    let itemText = `${qty}x ${name}`;
+    const itemText = `${qty}x ${name}`;
     const priceText = formatCurrency(price);
 
-    if (itemText.length + priceText.length + 2 > width) {
-      itemText = itemText.slice(0, width - priceText.length - 3) + "..";
+    // Ürün ismi ASLA kısaltılmaz
+    if (itemText.length + priceText.length + 2 <= width) {
+      // Tek satıra sığıyor
+      const spaces = width - itemText.length - priceText.length;
+      lines.push(`${itemText}${" ".repeat(Math.max(1, spaces))}${priceText}`);
+    } else {
+      // Sığmıyor - ürün adı tam yazılır, fiyat alt satırda sağa yaslı
+      lines.push(itemText);
+      lines.push(rightText(priceText, width));
     }
-
-    const spaces = width - itemText.length - priceText.length;
-    lines.push(`${itemText}${" ".repeat(Math.max(1, spaces))}${priceText}`);
 
     if (item.notes) {
       lines.push(`   > ${item.notes.slice(0, width - 5)}`);
