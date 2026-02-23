@@ -320,7 +320,9 @@ async def get_restaurant_report(
             "pos_commission": 1,
             "total_amount": 1,
             "payment_method": 1,
-            "payment_details": 1
+            "payment_details": 1,
+            "restaurant_location": 1,
+            "delivery_location": 1
         }
     ).to_list(5000)
     
@@ -333,7 +335,11 @@ async def get_restaurant_report(
             "name": order.get("restaurant_name") or "Bilinmiyor", 
             "cash_included": True, 
             "card_included": True,
-            "meal_card_included": True
+            "meal_card_included": True,
+            "pricing_type": "per_package",
+            "per_package_price": 0,
+            "km_ranges": [],
+            "kdv_rate": 10
         })
         
         if rid not in restaurant_data:
@@ -355,8 +361,29 @@ async def get_restaurant_report(
         
         r = restaurant_data[rid]
         r["orderCount"] += 1
-        r["transportFee"] += order.get("restaurant_fee", 0) or 0
-        r["transportKdv"] += order.get("restaurant_kdv", 0) or 0
+        
+        # Taşıma ücreti - önce siparişte kayıtlı değere bak
+        order_fee = order.get("restaurant_fee") or 0
+        order_kdv = order.get("restaurant_kdv") or 0
+        
+        # Eğer siparişte ücret yoksa, restoran ayarlarından hesapla
+        if order_fee == 0 and (settings.get("per_package_price", 0) > 0 or settings.get("km_ranges")):
+            distance_km = calculate_distance(
+                order.get("restaurant_location"),
+                order.get("delivery_location")
+            )
+            order_fee = calculate_fee_from_pricing(
+                settings.get("pricing_type", "per_package"),
+                settings.get("per_package_price", 0),
+                settings.get("km_ranges", []),
+                distance_km
+            )
+            # KDV hesapla
+            kdv_rate = settings.get("kdv_rate", 10)
+            order_kdv = order_fee * (kdv_rate / 100)
+        
+        r["transportFee"] += order_fee
+        r["transportKdv"] += order_kdv
         r["posCommission"] += order.get("pos_commission", 0) or 0
         
         payment_method = (order.get("payment_method") or "").lower()
