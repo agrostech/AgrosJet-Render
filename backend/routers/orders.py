@@ -2440,6 +2440,20 @@ async def create_manual_order(data: ManualOrderCreate):
         initial_status = "preparing"
         history_note = f"Hazırlık süresi: {prep_time} dakika"
     
+    # Taşıma ücreti hesapla
+    restaurant_location = {
+        "latitude": restaurant.get("latitude"),
+        "longitude": restaurant.get("longitude")
+    }
+    delivery_location_dict = {
+        "latitude": data.delivery_location.lat if data.delivery_location else None,
+        "longitude": data.delivery_location.lng if data.delivery_location else None
+    } if data.delivery_location else None
+    
+    restaurant_fee, restaurant_kdv = calculate_restaurant_fee(
+        restaurant, restaurant_location, delivery_location_dict
+    )
+    
     # Sipariş oluştur
     order = {
         "id": str(uuid.uuid4()),
@@ -2447,19 +2461,15 @@ async def create_manual_order(data: ManualOrderCreate):
         "company_id": restaurant.get("company_id"),
         "restaurant_id": data.restaurant_id,
         "restaurant_name": restaurant.get("name"),
-        "restaurant_location": {
-            "latitude": restaurant.get("latitude"),
-            "longitude": restaurant.get("longitude")
-        },
+        "restaurant_location": restaurant_location,
         "customer_name": data.customer_name,
         "customer_phone": data.customer_phone or "",
         "delivery_address": data.delivery_address,
-        "delivery_location": {
-            "latitude": data.delivery_location.lat,
-            "longitude": data.delivery_location.lng
-        } if data.delivery_location else None,
+        "delivery_location": delivery_location_dict,
         "items": items,
         "total_amount": total_amount,
+        "restaurant_fee": restaurant_fee,
+        "restaurant_kdv": restaurant_kdv,
         "payment_method": data.payment_method,
         "payment_method_detail": data.payment_method_detail,  # Yemek kartı türü
         "status": initial_status,
