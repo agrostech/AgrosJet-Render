@@ -187,13 +187,15 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                 # Kurye ID ve ödeme yöntemi bilgisini aktar
                 courier_id = order.get("courier_id")
                 payment_method = order.get("payment_method", "cash")
+                payment_detail = order.get("payment_method_detail")  # Sodexo, Setcard vb.
                 
                 result = await update_adisyo_order_status(
                     restaurant_id, 
                     adisyo_order_id, 
                     new_status,
                     courier_id=courier_id,
-                    payment_method=payment_method
+                    payment_method=payment_method,
+                    payment_detail=payment_detail
                 )
                 if result.get("success"):
                     logger.info(f"Adisyo bildirim başarılı: order={order_id}, status={new_status}")
