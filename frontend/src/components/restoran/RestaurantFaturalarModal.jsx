@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   FileText, Upload, Download, Eye, CheckCircle, Clock, 
-  RefreshCw, Receipt, Loader2, Package, Trash2
+  RefreshCw, Receipt, Loader2, Package, Trash2, AlertTriangle
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -15,32 +15,36 @@ const formatMoney = (amount) => {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount || 0)) + ' TL';
 };
 
+const formatMoneyForFilename = (amount) => {
+  return Math.round(amount || 0).toString();
+};
+
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
   return new Date(dateStr).toLocaleDateString("tr-TR");
 };
 
-// 30 dakika içinde mi kontrol et
-const isWithin30Minutes = (uploadedAt) => {
-  if (!uploadedAt) return false;
-  try {
-    const uploadTime = new Date(uploadedAt);
-    const now = new Date();
-    const diffMinutes = (now - uploadTime) / (1000 * 60);
-    return diffMinutes <= 30;
-  } catch {
-    return false;
-  }
+// Türkçe karakterleri temizle
+const sanitizeFilename = (str) => {
+  return str
+    .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+    .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+    .replace(/ş/g, 's').replace(/Ş/g, 'S')
+    .replace(/ı/g, 'i').replace(/İ/g, 'I')
+    .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+    .replace(/ç/g, 'c').replace(/Ç/g, 'C')
+    .replace(/[^a-zA-Z0-9_-]/g, '');
 };
 
 // ==================== Kesilen Faturalar Tab ====================
-function KesilenFaturalarTab({ restaurantId, onRefresh }) {
+function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadingId, setUploadingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [viewingInvoice, setViewingInvoice] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const fileInputRef = useRef(null);
 
   const fetchInvoices = useCallback(async () => {
