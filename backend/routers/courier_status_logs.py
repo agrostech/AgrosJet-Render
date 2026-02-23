@@ -238,22 +238,22 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
         try:
             last_active = datetime.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
             
-            # Bugünün iş günü başlangıç saatini hesapla
-            open_h, open_m = map(int, opening_time.split(":"))
-            today_date = datetime.strptime(today, "%Y-%m-%d")
-            business_day_start = today_date.replace(hour=open_h, minute=open_m, second=0, microsecond=0, tzinfo=timezone.utc)
-            
             # last_active_at bugünün iş gününden önce ise, iş günü başlangıcından itibaren say
-            if last_active < business_day_start:
-                last_active = business_day_start
+            if last_active < business_day_start_utc:
+                last_active = business_day_start_utc
             
-            current_active_minutes = int((now - last_active).total_seconds() / 60)
+            current_active_minutes = int((now_utc - last_active).total_seconds() / 60)
             
-            # Negatif değer olmamalı
+            # Negatif değer olmamalı ve maksimum 24 saat (1440 dakika)
             if current_active_minutes > 0:
+                # Maksimum 24 saat sınırı
+                current_active_minutes = min(current_active_minutes, 1440)
                 total_active_minutes += current_active_minutes
         except (ValueError, TypeError):
             pass
+    
+    # Toplam süre maksimum 24 saat olmalı
+    total_active_minutes = min(total_active_minutes, 1440)
     
     return {
         "logs": all_logs,
