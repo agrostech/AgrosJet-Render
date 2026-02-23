@@ -94,13 +94,10 @@ def get_weeks_list(opening_time: str, closing_time: str, count: int = 8) -> List
         else:
             label = f"{start_day} {month_names[start_month]} - {end_day} {month_names[end_month]} {year}"
         
-        # UTC'ye çevir (veritabanı sorguları için)
-        week_start_utc = week_start.astimezone(timezone.utc)
-        week_end_utc = week_end.astimezone(timezone.utc)
-        
+        # Türkiye saati olarak döndür (DB'de Türkiye saati kaydediliyor)
         weeks.append({
-            "week_start": week_start_utc.isoformat(),
-            "week_end": week_end_utc.isoformat(),
+            "week_start": week_start.isoformat(),
+            "week_end": week_end.isoformat(),
             "label": label,
             "is_current": i == 0
         })
