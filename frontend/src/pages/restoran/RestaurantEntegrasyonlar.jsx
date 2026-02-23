@@ -787,51 +787,85 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
           <DialogHeader>
             <DialogTitle>Adisyo Entegrasyonu</DialogTitle>
             <DialogDescription>
-              Adisyo POS sisteminizden sipariş çekmek için API bilgilerinizi girin
+              Adisyo POS sisteminizden sipariş çekmek için API bilgilerinizi girin.
+              Bu bilgileri Adisyo panelinde "Uygulama Mağazası → Webhook" ve "Restoran Ayarları → Entegrasyon" bölümlerinden alabilirsiniz.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>API Key</Label>
+              <Label>Web App Key <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <Input
-                  type={showSecrets.api_key ? "text" : "password"}
-                  value={adisyoForm.api_key}
-                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, api_key: e.target.value }))}
-                  placeholder={adisyoData?.has_credentials ? "Değiştirmek için yeni key girin" : "API Key"}
+                  type={showSecrets.web_app_key ? "text" : "password"}
+                  value={adisyoForm.web_app_key}
+                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, web_app_key: e.target.value }))}
+                  placeholder={adisyoData?.has_credentials ? "Değiştirmek için yeni key girin" : "Web App Key"}
+                  data-testid="adisyo-web-app-key"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  onClick={() => setShowSecrets(prev => ({ ...prev, api_key: !prev.api_key }))}
+                  onClick={() => setShowSecrets(prev => ({ ...prev, web_app_key: !prev.web_app_key }))}
                 >
-                  {showSecrets.api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showSecrets.web_app_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Adisyo → Restoran Ayarları → Entegrasyon → Web App Key
+              </p>
             </div>
             
             <div className="space-y-2">
-              <Label>API Secret</Label>
+              <Label>Restaurant Identity (API Secret) <span className="text-red-500">*</span></Label>
               <div className="relative">
                 <Input
-                  type={showSecrets.api_secret ? "text" : "password"}
-                  value={adisyoForm.api_secret}
-                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, api_secret: e.target.value }))}
-                  placeholder={adisyoData?.has_credentials ? "Değiştirmek için yeni secret girin" : "API Secret"}
+                  type={showSecrets.restaurant_identity ? "text" : "password"}
+                  value={adisyoForm.restaurant_identity}
+                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, restaurant_identity: e.target.value }))}
+                  placeholder={adisyoData?.restaurant_identity ? adisyoData.restaurant_identity.substring(0, 8) + "..." : "UUID formatında"}
+                  data-testid="adisyo-restaurant-identity"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  onClick={() => setShowSecrets(prev => ({ ...prev, api_secret: !prev.api_secret }))}
+                  onClick={() => setShowSecrets(prev => ({ ...prev, restaurant_identity: !prev.restaurant_identity }))}
                 >
-                  {showSecrets.api_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showSecrets.restaurant_identity ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Adisyo → Restoran Ayarları → Entegrasyon → API Secret (UUID formatında)
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Webhook API Key</Label>
+              <div className="relative">
+                <Input
+                  type={showSecrets.webhook_api_key ? "text" : "password"}
+                  value={adisyoForm.webhook_api_key}
+                  onChange={(e) => setAdisyoForm(prev => ({ ...prev, webhook_api_key: e.target.value }))}
+                  placeholder={adisyoData?.has_webhook_key ? "Değiştirmek için yeni key girin" : "ADSYO-xxx-... formatında"}
+                  data-testid="adisyo-webhook-api-key"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, webhook_api_key: !prev.webhook_api_key }))}
+                >
+                  {showSecrets.webhook_api_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Adisyo → Uygulama Mağazası → Webhook oluşturduktan sonra verilen key
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -840,6 +874,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                 value={adisyoForm.branch_id}
                 onChange={(e) => setAdisyoForm(prev => ({ ...prev, branch_id: e.target.value }))}
                 placeholder="Şube ID"
+                data-testid="adisyo-branch-id"
               />
               <p className="text-xs text-muted-foreground">
                 Birden fazla şubeniz varsa şube ID'si belirtin
@@ -848,6 +883,15 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
 
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-800">
+                <strong>Webhook URL:</strong> Adisyo panelinde webhook oluştururken şu URL'yi girin:
+              </p>
+              <code className="text-xs bg-blue-100 px-2 py-1 rounded mt-1 block break-all">
+                {process.env.REACT_APP_BACKEND_URL}/api/adisyo/webhook
+              </code>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-xs text-amber-800">
                 <strong>Not:</strong> Yola çıkarma durumunda Adisyo'daki ilk kurye otomatik olarak atanır. 
                 Adisyo panelinde en az 1 kurye tanımlı olmalıdır.
               </p>
