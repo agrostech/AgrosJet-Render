@@ -9,7 +9,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://delivery-fee-debug.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://order-debugger-1.preview.emergentagent.com')
 
 class TestPermissionRemoval:
     """Tests to verify permission system has been removed"""
