@@ -9,6 +9,7 @@ from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import uuid
 import base64
+import re
 
 from utils.database import db
 from services.r2_storage import (
@@ -19,6 +20,41 @@ from services.r2_storage import (
 )
 
 router = APIRouter(prefix="/api", tags=["Restoran Faturaları"])
+
+# R2 klasör prefix'i
+R2_RESTAURANT_INVOICE_PREFIX = "RESTORAN_FATURALARI"
+
+# Türkçe ay isimleri
+TURKISH_MONTHS = {
+    1: "Ocak", 2: "Subat", 3: "Mart", 4: "Nisan",
+    5: "Mayis", 6: "Haziran", 7: "Temmuz", 8: "Agustos",
+    9: "Eylul", 10: "Ekim", 11: "Kasim", 12: "Aralik"
+}
+
+
+def format_name_for_folder(name: str) -> str:
+    """İsmi klasör için uygun formata çevir (Türkçe karakterler ve boşluklar)"""
+    if not name:
+        return "BILINMEYEN"
+    # Türkçe karakterleri değiştir
+    replacements = {
+        'ğ': 'g', 'Ğ': 'G', 'ü': 'u', 'Ü': 'U',
+        'ş': 's', 'Ş': 'S', 'ı': 'i', 'İ': 'I',
+        'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C'
+    }
+    for tr, en in replacements.items():
+        name = name.replace(tr, en)
+    # Sadece alfanumerik ve alt çizgi bırak
+    name = re.sub(r'[^a-zA-Z0-9_]', '_', name)
+    return name.upper()
+
+
+def get_turkish_month_folder(date: datetime = None) -> str:
+    """Türkçe ay klasör adı: 'Subat_2026'"""
+    if date is None:
+        date = datetime.now(timezone(timedelta(hours=3)))
+    month_name = TURKISH_MONTHS[date.month]
+    return f"{month_name}_{date.year}"
 
 
 # ========== Models ==========
