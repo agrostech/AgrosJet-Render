@@ -314,18 +314,17 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
       <Card>
         <CardContent className="p-3">
           <div className="flex flex-wrap items-end gap-2">
-            {/* Courier */}
+            {/* Courier / Delivery Type */}
             <div className="min-w-[120px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Kurye</Label>
+              <Label className="text-xs text-muted-foreground mb-1 block">Teslimat</Label>
               <Select value={courierFilter} onValueChange={setCourierFilter}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Tümü" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tümü</SelectItem>
-                  {couriers.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
+                  <SelectItem value="company">{companyName || "Kurye Şirketi"}</SelectItem>
+                  <SelectItem value="restaurant">Restoran</SelectItem>
                 </SelectContent>
               </Select>
             </div>
