@@ -90,6 +90,7 @@ export default function RestaurantMuhasebe({ restaurantId }) {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showFaturalar, setShowFaturalar] = useState(false);
 
   const fetchTransactions = useCallback(async (append = false) => {
     if (!restaurantId) return;
