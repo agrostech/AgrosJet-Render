@@ -9,7 +9,7 @@ Getir Yemek API Router
 from fastapi import APIRouter, HTTPException, Header, Request, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 
 from utils.database import db
