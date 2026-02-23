@@ -38,12 +38,14 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
   const [restaurantFilter, setRestaurantFilter] = useState("all");
   const [courierFilter, setCourierFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [showSummaryCard, setShowSummaryCard] = useState(false);
   const [courierHourlyData, setCourierHourlyData] = useState(null);
   
   // Applied filter values (set only when filter button is clicked)
   const [appliedRestaurantFilter, setAppliedRestaurantFilter] = useState("all");
   const [appliedCourierFilter, setAppliedCourierFilter] = useState("all");
+  const [appliedSourceFilter, setAppliedSourceFilter] = useState("all");
   
   // Date filters with defaults
   const getDefaultDates = useCallback((companyData) => {
