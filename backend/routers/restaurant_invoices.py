@@ -717,3 +717,13 @@ async def update_auto_settings(company_id: str, data: AutoSettingsUpdate):
     
     return {"success": True, "enabled": data.enabled}
 
+
+@router.delete("/restaurant-invoices/{company_id}/clear-all")
+async def clear_all_restaurant_invoices(company_id: str):
+    """Şirkete ait tüm eksik fatura kayıtlarını sil (Test için)"""
+    result = await db.restaurant_invoices.delete_many({"company_id": company_id})
+    
+    return {
+        "message": "Tüm eksik fatura kayıtları silindi",
+        "deleted_count": result.deleted_count
+    }
