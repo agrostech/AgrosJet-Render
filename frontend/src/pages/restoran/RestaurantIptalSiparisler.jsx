@@ -274,23 +274,6 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
       <Card>
         <CardContent className="p-3">
           <div className="flex flex-wrap items-end gap-2">
-            {/* Payment */}
-            <div className="min-w-[100px] flex-1 max-w-[140px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Ödeme</Label>
-              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Tümü" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tümü</SelectItem>
-                  <SelectItem value="cash">Nakit</SelectItem>
-                  <SelectItem value="card">Kart</SelectItem>
-                  <SelectItem value="meal_card">Yemek Kartı</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
             {/* Start Date */}
             <div className="min-w-[140px] flex-1 max-w-[180px]">
               <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
