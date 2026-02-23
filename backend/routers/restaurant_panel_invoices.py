@@ -132,6 +132,61 @@ async def upload_restaurant_invoice(
     return {"success": True, "invoice_id": new_invoice["id"]}
 
 
+@router.delete("/{restaurant_id}/issued/{invoice_id}")
+async def delete_restaurant_invoice(restaurant_id: str, invoice_id: str):
+    """
+    Restoran kendi yüklediği faturayı siler.
+    Sadece 30 dakika içinde silinebilir.
+    """
+    # Fatura kaydını bul
+    record = await db.restaurant_invoices.find_one(
+        {
+            "restaurant_id": restaurant_id,
+            "invoices.id": invoice_id
+        },
+        {"_id": 0}
+    )
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # Faturayı bul ve süre kontrolü yap
+    invoice = None
+    for inv in record.get("invoices", []):
+        if inv.get("id") == invoice_id:
+            invoice = inv
+            break
+    
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # Restoran tarafından yüklenmiş mi kontrol et
+    if not invoice.get("uploaded_by_restaurant"):
+        raise HTTPException(status_code=403, detail="Bu faturayı silme yetkiniz yok")
+    
+    # 30 dakika kontrolü
+    uploaded_at = invoice.get("uploaded_at")
+    if uploaded_at:
+        try:
+            turkey_tz = timezone(timedelta(hours=3))
+            upload_time = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
+            now = datetime.now(turkey_tz)
+            diff_minutes = (now - upload_time).total_seconds() / 60
+            
+            if diff_minutes > 30:
+                raise HTTPException(status_code=403, detail="Fatura yüklendikten 30 dakika sonra silinemez")
+        except ValueError:
+            pass
+    
+    # Faturayı sil
+    await db.restaurant_invoices.update_one(
+        {"restaurant_id": restaurant_id, "invoices.id": invoice_id},
+        {"$pull": {"invoices": {"id": invoice_id}}}
+    )
+    
+    return {"success": True, "message": "Fatura silindi"}
+
+
 @router.get("/{restaurant_id}/issued/download/{invoice_id}")
 async def download_restaurant_invoice(restaurant_id: str, invoice_id: str):
     """Restoran faturasını indir - invoices array'inden çeker"""
