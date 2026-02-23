@@ -113,7 +113,12 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Pazartesiye git
     const weekStart = new Date(yesterday);
     weekStart.setDate(yesterday.getDate() + mondayOffset);
-    const weekStartStr = weekStart.toISOString().split('T')[0];
+    
+    // Local tarih formatı (timezone sorunu olmadan)
+    const year = weekStart.getFullYear();
+    const month = String(weekStart.getMonth() + 1).padStart(2, '0');
+    const day = String(weekStart.getDate()).padStart(2, '0');
+    const weekStartStr = `${year}-${month}-${day}`;
     
     fetchWeeklySummary(weekStartStr);
   }, [companyId, fetchWeeklySummary]);
