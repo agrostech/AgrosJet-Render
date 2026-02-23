@@ -1486,7 +1486,7 @@ async def get_orders_unified(
             today_start_utc = today_start_turkey.astimezone(timezone.utc)
             query["$or"] = [
                 {"status": {"$nin": ["delivered", "cancelled"]}},
-                {"created_at": {"$gte": today_start_utc.isoformat()}}
+                {"delivered_at": {"$gte": today_start_utc.isoformat()}}
             ]
     
     # Tarih filtresi için değişkenleri hazırla
