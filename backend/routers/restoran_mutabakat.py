@@ -345,8 +345,10 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             data["cash_amount"] += total
         elif payment in ["meal_card", "online_meal_card"]:
             data["meal_card_amount"] += total
-        else:  # card, online
+        elif payment in ["card", "credit_card"]:
             data["card_amount"] += total
+        elif payment == "online":
+            data["online_amount"] += total
     
     # Hesaplamaları yap ve sonuç listesi oluştur
     result = []
