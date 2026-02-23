@@ -535,8 +535,13 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
               {!serverStatus.connected && (
                 <div className="p-4 border rounded-lg space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Yazdırma sunucusu bağlı değil. Programı indirip çalıştırın.
+                    {serverStatus.message || "Yazdırma sunucusu bağlı değil. Programı indirip çalıştırın."}
                   </p>
+                  {serverStatus.error && (
+                    <p className="text-xs text-red-500 font-mono bg-red-50 p-2 rounded">
+                      Hata: {serverStatus.error}
+                    </p>
+                  )}
                   <a 
                     href="https://drive.google.com/drive/folders/1czq5cwE2jJJ8gupvbiRYUlxUgz-B3RUz"
                     target="_blank"
