@@ -12,7 +12,7 @@ import {
   ChevronLeft, ChevronRight, FileText, AlertCircle, 
   Store, Download, Trash2, CheckCircle, Eye, Loader2,
   Archive, Check, Circle, Filter, MessageCircle, Phone, User,
-  Upload, FileUp, Receipt, Settings, Clock
+  Upload, FileUp, Receipt, Settings, Clock, Plus, RefreshCw
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
