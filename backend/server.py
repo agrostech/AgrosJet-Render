@@ -393,6 +393,8 @@ app.include_router(restoran_mutabakat_router)
 app.include_router(admin_mutabakat_router)
 app.include_router(restaurant_invoices_router)
 app.include_router(issued_invoices_router)
+from routers.restaurant_panel_invoices import router as restaurant_panel_invoices_router
+app.include_router(restaurant_panel_invoices_router)
 app.include_router(reports_router)
 app.include_router(restaurant_users_router)
 app.include_router(products_router)
