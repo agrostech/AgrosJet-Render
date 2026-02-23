@@ -258,7 +258,7 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
           >
             <CheckCircle className="w-4 h-4" />
-            Geçmiş Siparişler
+            Teslim Edilen Siparişler
           </button>
           <button
             onClick={() => handleSubPageChange('iptal')}

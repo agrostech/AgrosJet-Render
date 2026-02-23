@@ -325,7 +325,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
-            <p className="text-sm text-muted-foreground">Geçmiş siparişler</p>
+            <p className="text-sm text-muted-foreground">Teslim edilen siparişler</p>
           </div>
         </div>
         
@@ -343,7 +343,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-primary text-primary transition-colors"
           >
             <CheckCircle className="w-4 h-4" />
-            Geçmiş Siparişler
+            Teslim Edilen Siparişler
           </button>
           <button
             onClick={() => handleSubPageChange('iptal')}

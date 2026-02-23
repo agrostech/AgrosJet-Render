@@ -690,7 +690,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             }`}
           >
             <CheckCircle className="w-4 h-4" />
-            Geçmiş Siparişler
+            Teslim Edilen Siparişler
           </button>
           <button
             onClick={() => handleSubPageChange('iptal')}
