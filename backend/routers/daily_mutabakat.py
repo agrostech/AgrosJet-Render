@@ -1164,10 +1164,13 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
     """
     Haftalık mütabakat özeti - her gün için tahsilat/mütabakat sayıları
     """
+    # Türkiye saati
+    turkey_tz = timezone(timedelta(hours=3))
+    
     if week_start:
         start_date = datetime.strptime(week_start, "%Y-%m-%d")
     else:
-        today = datetime.now(timezone.utc)
+        today = datetime.now(turkey_tz)
         start_date = today - timedelta(days=today.weekday())
     
     start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
