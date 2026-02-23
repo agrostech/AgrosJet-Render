@@ -398,6 +398,13 @@ export default function HaftalikHakedisTab({ companyId }) {
       {/* Results */}
       {!dataLoading && couriers.length > 0 && (
         <>
+          {/* Date Range Info */}
+          {dateRangeLabel && (
+            <div className="text-sm text-slate-600 bg-slate-50 rounded-lg px-4 py-2 border">
+              <span className="font-medium">Tarih Aralığı:</span> {dateRangeLabel}
+            </div>
+          )}
+          
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Card className="border bg-white shadow-sm">
