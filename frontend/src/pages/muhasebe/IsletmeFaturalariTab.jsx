@@ -798,6 +798,20 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
   const [generating, setGenerating] = useState(false);
   const [clearing, setClearing] = useState(false);
 
+  // Fetch upcoming preview
+  const fetchUpcomingPreview = useCallback(async () => {
+    if (!companyId) return;
+    setPreviewLoading(true);
+    try {
+      const res = await axios.get(`${API}/restaurant-invoices/${companyId}/upcoming-preview`);
+      setUpcomingPreview(res.data);
+    } catch (err) {
+      console.error("Upcoming preview fetch error:", err);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [companyId]);
+
   // Fetch auto settings
   const fetchAutoSettings = useCallback(async () => {
     if (!companyId) return;
@@ -856,6 +870,7 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
       
       toast.success(`${res.data.count || 0} eksik fatura kaydı oluşturuldu`);
       fetchData();
+      fetchUpcomingPreview(); // Also refresh preview after generating
     } catch (err) {
       toast.error(err.response?.data?.detail || "Veri oluşturulamadı");
     } finally {
