@@ -1181,10 +1181,9 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         courier_ids = list(set([rel["courier_id"] for rel in relations]))
     
     # Şirket ayarlarını al (açılış/kapanış saatleri)
-    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "settings": 1})
-    settings = company.get("settings", {}) if company else {}
-    open_time = settings.get("open_time", "06:00")
-    close_time = settings.get("close_time", "05:59")
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1, "closing_time": 1})
+    open_time = company.get("opening_time", "06:00") if company else "06:00"
+    close_time = company.get("closing_time", "06:00") if company else "06:00"
     
     open_hour, open_min = map(int, open_time.split(":"))
     close_hour, close_min = map(int, close_time.split(":"))
