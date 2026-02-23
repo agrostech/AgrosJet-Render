@@ -1614,14 +1614,18 @@ async def handle_getir_webhook_cancel(webhook_data: dict, x_api_key: str) -> dic
     cancel_reason = webhook_data.get("cancelReason", {})
     cancel_note = cancel_reason.get("message") or webhook_data.get("cancelNote", "Getir tarafından iptal edildi")
     
+    # Türkiye saati (UTC+3)
+    turkey_tz = timezone(timedelta(hours=3))
+    now_turkey = datetime.now(turkey_tz).isoformat()
+    
     await db.orders.update_one(
         {"getir_order_id": getir_order_id},
         {"$set": {
             "status": "cancelled",
             "cancel_reason": cancel_note,
-            "cancelled_at": datetime.now(timezone.utc).isoformat(),
+            "cancelled_at": now_turkey,
             "cancelled_by": "getir",
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": now_turkey
         }}
     )
     
