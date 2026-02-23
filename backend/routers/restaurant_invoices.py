@@ -871,7 +871,7 @@ async def download_invoice(company_id: str, invoice_id: str):
 
 @router.delete("/restaurant-invoices/{company_id}/invoice/{invoice_id}")
 async def delete_invoice(company_id: str, invoice_id: str):
-    """Faturayı sil"""
+    """Faturayı sil - R2'den de sil"""
     record = await db.restaurant_invoices.find_one({
         "company_id": company_id,
         "$or": [
@@ -882,6 +882,13 @@ async def delete_invoice(company_id: str, invoice_id: str):
     
     if not record:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # Silinecek faturayı bul ve R2'den sil
+    for inv in record.get("invoices", []):
+        if inv.get("invoice_id") == invoice_id or inv.get("id") == invoice_id:
+            if inv.get("storage_type") == "r2" and inv.get("r2_key"):
+                await delete_file_from_r2(inv["r2_key"])
+            break
     
     # Faturayı listeden çıkar (her iki field'ı da kontrol et)
     invoices = [inv for inv in record.get("invoices", []) if inv.get("invoice_id") != invoice_id and inv.get("id") != invoice_id]
