@@ -1417,10 +1417,14 @@ async def get_orders_unified(
     else:
         # Restaurant paneli varsayılan: Bugün + Aktif
         if panel == "restaurant":
-            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            # Türkiye saatine göre bugünün başlangıcı
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            today_start_turkey = now_turkey.replace(hour=0, minute=0, second=0, microsecond=0)
+            today_start_utc = today_start_turkey.astimezone(timezone.utc)
             query["$or"] = [
                 {"status": {"$nin": ["delivered", "cancelled"]}},
-                {"created_at": {"$gte": today_start.isoformat()}}
+                {"created_at": {"$gte": today_start_utc.isoformat()}}
             ]
     
     # Tarih filtresi
