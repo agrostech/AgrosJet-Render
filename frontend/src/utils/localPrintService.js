@@ -74,6 +74,22 @@ const rightText = (text, width) => {
 };
 
 /**
+ * Türkçe karakterleri büyük harfe çevir
+ */
+const toUpperCaseTurkish = (text) => {
+  if (!text) return "";
+  return text
+    .replace(/i/g, 'İ')
+    .replace(/ı/g, 'I')
+    .replace(/ş/g, 'Ş')
+    .replace(/ğ/g, 'Ğ')
+    .replace(/ü/g, 'Ü')
+    .replace(/ö/g, 'Ö')
+    .replace(/ç/g, 'Ç')
+    .toUpperCase();
+};
+
+/**
  * Fiş metni oluştur (Termal yazıcı için)
  */
 const generateReceiptText = (order, width = 48) => {
@@ -85,12 +101,12 @@ const generateReceiptText = (order, width = 48) => {
 
   // Başlık
   lines.push(sep);
-  lines.push(centerText(`[ ${restaurantName.toUpperCase()} ]`, width));
+  lines.push(centerText(`[ ${toUpperCaseTurkish(restaurantName)} ]`, width));
   lines.push(centerText(formatDate(order.created_at), width));
   lines.push(sep);
 
   // Müşteri
-  lines.push("MUSTERI:");
+  lines.push("MÜŞTERİ:");
   lines.push(`  ${order.customer_name || "-"}`);
   if (order.customer_phone) {
     lines.push(`  Tel: ${order.customer_phone}`);
@@ -107,11 +123,11 @@ const generateReceiptText = (order, width = 48) => {
   lines.push(dash);
 
   // Ürünler
-  lines.push("URUNLER:");
+  lines.push("ÜRÜNLER:");
   const items = order.items || [];
   items.forEach((item) => {
     const qty = item.quantity || 1;
-    const name = item.name || "Urun";
+    const name = item.name || "Ürün";
     const price = (item.price || 0) * qty;
 
     let itemText = `${qty}x ${name}`;
@@ -143,7 +159,7 @@ const generateReceiptText = (order, width = 48) => {
   // Sipariş notu
   if (order.notes) {
     lines.push(dash);
-    lines.push("SIPARIS NOTU:");
+    lines.push("SİPARİŞ NOTU:");
     let note = order.notes;
     while (note.length > 0) {
       lines.push(`  ${note.slice(0, width - 2)}`);
