@@ -274,6 +274,25 @@ async def get_restaurant_report(
     if len(end_datetime) == 16:
         end_datetime = end_datetime + ":59"
     
+    # Türkiye saatinden UTC'ye çevir (tutarlılık için)
+    turkey_tz = timezone(timedelta(hours=3))
+    try:
+        # Önce datetime'a çevir
+        start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
+        
+        # Eğer timezone bilgisi yoksa, Türkiye saati olarak kabul et
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=turkey_tz)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=turkey_tz)
+        
+        # UTC'ye çevir
+        start_datetime = start_dt.astimezone(timezone.utc).isoformat()
+        end_datetime = end_dt.astimezone(timezone.utc).isoformat()
+    except:
+        pass  # Parse edilemezse orijinal değeri kullan
+    
     # Restoranların tahsilat ve pricing ayarlarını çek
     restaurants_cursor = db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
