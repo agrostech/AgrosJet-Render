@@ -200,7 +200,7 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleDelete(inv.invoice_id)}
+                          onClick={() => handleDeleteClick(inv)}
                           disabled={deletingId === inv.invoice_id}
                           className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
                           title="Sil (30 dk içinde)"
@@ -235,6 +235,38 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Fatura Silme
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Bu faturayı silmek istediğinize emin misiniz?
+              <div className="mt-2 p-2 bg-slate-50 rounded text-sm">
+                <p><strong>Hafta:</strong> {deleteConfirm?.week_label}</p>
+                <p><strong>Tutar:</strong> {formatMoney(deleteConfirm?.total_amount)}</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+              İptal
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+              disabled={deletingId}
+            >
+              {deletingId ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Sil
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Modal */}
       {viewingInvoice && (
