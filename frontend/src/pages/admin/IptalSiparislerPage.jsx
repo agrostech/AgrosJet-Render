@@ -86,7 +86,7 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
         const end = new Date(filters.endDateTime);
         
         result = result.filter(o => {
-          const orderDate = new Date(o.cancelled_at || o.updated_at || o.created_at);
+          const orderDate = new Date(o.created_at);
           return orderDate >= start && orderDate <= end;
         });
       }
