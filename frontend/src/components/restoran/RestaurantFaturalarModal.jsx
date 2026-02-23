@@ -422,7 +422,7 @@ function AlinanFaturalarTab({ restaurantId }) {
 }
 
 // ==================== Main Modal ====================
-export default function RestaurantFaturalarModal({ open, onOpenChange, restaurantId }) {
+export default function RestaurantFaturalarModal({ open, onOpenChange, restaurantId, restaurantName }) {
   const [activeTab, setActiveTab] = useState("kesilen");
 
   return (
@@ -449,7 +449,7 @@ export default function RestaurantFaturalarModal({ open, onOpenChange, restauran
 
           <div className="flex-1 overflow-y-auto mt-4">
             <TabsContent value="kesilen" className="mt-0">
-              <KesilenFaturalarTab restaurantId={restaurantId} />
+              <KesilenFaturalarTab restaurantId={restaurantId} restaurantName={restaurantName} />
             </TabsContent>
             <TabsContent value="alinan" className="mt-0">
               <AlinanFaturalarTab restaurantId={restaurantId} />
