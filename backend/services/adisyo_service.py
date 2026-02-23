@@ -925,13 +925,19 @@ async def mark_adisyo_order_on_delivery(restaurant_id: str, adisyo_order_id: int
         return {"success": False, "error": str(e)}
 
 
-async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, payment_method: str = "cash") -> dict:
+async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, payment_method: str = "cash", payment_detail: str = None) -> dict:
     """
     Adisyo'da siparişi "Teslim Edildi" durumuna getir.
     POST /api/External/v2/Deliver
     Body: {"orderId": <order_id>, "paymentType": <payment_type_id>}
     
     NOT: paymentType zorunlu!
+    
+    Args:
+        restaurant_id: Restoran ID
+        adisyo_order_id: Adisyo sipariş ID
+        payment_method: cash, card, online, meal_card
+        payment_detail: Yemek kartı detayı (Sodexo, Setcard, Metropol vb.)
     """
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
@@ -941,8 +947,8 @@ async def mark_adisyo_order_delivered(restaurant_id: str, adisyo_order_id: int, 
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
     
-    # Ödeme tipini Adisyo formatına çevir
-    payment_type_id = get_adisyo_payment_type(payment_method)
+    # Ödeme tipini Adisyo formatına çevir (detail ile birlikte)
+    payment_type_id = get_adisyo_payment_type(payment_method, payment_detail)
     
     try:
         headers = await get_adisyo_headers(restaurant)
