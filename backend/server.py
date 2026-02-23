@@ -135,11 +135,13 @@ async def lifespan(app: FastAPI):
     # Add break time reset job - checks every minute if any company's closing time has passed
     async def reset_courier_break_times():
         """Şirket kapanış saatinde kurye mola sürelerini sıfırla"""
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone, timedelta
         try:
-            now = datetime.now(timezone.utc)
-            current_hour = now.hour
-            current_minute = now.minute
+            # Türkiye saatine göre şu anki zaman
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            current_hour = now_turkey.hour
+            current_minute = now_turkey.minute
             current_time_str = f"{current_hour:02d}:{current_minute:02d}"
             
             # Kapanış saati şu anki saate eşit olan şirketleri bul
