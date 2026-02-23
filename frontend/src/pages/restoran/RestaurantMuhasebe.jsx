@@ -91,6 +91,20 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showFaturalar, setShowFaturalar] = useState(false);
+  const [missingInvoiceCount, setMissingInvoiceCount] = useState(0);
+
+  // Eksik fatura sayısını al
+  const fetchMissingInvoiceCount = useCallback(async () => {
+    if (!restaurantId) return;
+    try {
+      const res = await axios.get(`${API}/restaurant-panel-invoices/${restaurantId}/issued`);
+      // invoice_uploaded === false olanları say
+      const missing = res.data.filter(inv => !inv.invoice_uploaded).length;
+      setMissingInvoiceCount(missing);
+    } catch (err) {
+      console.error("Eksik fatura sayısı alınamadı:", err);
+    }
+  }, [restaurantId]);
 
   const fetchTransactions = useCallback(async (append = false) => {
     if (!restaurantId) return;
