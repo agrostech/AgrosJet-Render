@@ -126,40 +126,76 @@ export default function FilterSummaryCard({
               </div>
             </div>
             
-            {/* Tahsilatlar */}
+            {/* Tahsilatlar - Ayarlara göre */}
             <div className="space-y-2 p-3 bg-slate-50 rounded-lg border">
               <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Tahsilatlar</h4>
               <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Nakit</span>
-                  <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Kredi Kartı</span>
-                  <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
-                </div>
+                {cashByCourier && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Nakit</span>
+                    <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
+                  </div>
+                )}
+                {cardByCourier && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Kredi Kartı</span>
+                    <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
+                  </div>
+                )}
+                {mealCardByCourier && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Yemek Kartı</span>
+                    <span className="font-medium">{totals.yemekKartiToplam.toFixed(2)}₺</span>
+                  </div>
+                )}
+                {!cashByCourier && !cardByCourier && !mealCardByCourier && (
+                  <div className="text-xs text-muted-foreground italic">Kurye tahsilatı yok</div>
+                )}
                 <div className="flex justify-between pt-1 border-t">
                   <span className="font-semibold">Toplam</span>
-                  <span className="font-bold text-red-600">{(totals.nakitToplam + totals.kartToplam).toFixed(2)}₺</span>
+                  <span className="font-bold text-red-600">{totals.tahsilatToplam.toFixed(2)}₺</span>
                 </div>
               </div>
             </div>
             
-            {/* Diğer Ödemeler */}
+            {/* Restoran Tahsilatı */}
             <div className="space-y-2 p-3 bg-slate-50 rounded-lg border">
-              <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Diğer Ödemeler</h4>
+              <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Restoran Tahsilatı</h4>
               <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Online</span>
-                  <span className="font-medium">{totals.onlineToplam.toFixed(2)}₺</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Yemek Kartı</span>
-                  <span className="font-medium">{totals.yemekKartiToplam.toFixed(2)}₺</span>
-                </div>
+                {!cashByCourier && totals.nakitToplam > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Nakit</span>
+                    <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
+                  </div>
+                )}
+                {!cardByCourier && totals.kartToplam > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Kredi Kartı</span>
+                    <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
+                  </div>
+                )}
+                {!mealCardByCourier && totals.yemekKartiToplam > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Yemek Kartı</span>
+                    <span className="font-medium">{totals.yemekKartiToplam.toFixed(2)}₺</span>
+                  </div>
+                )}
+                {totals.onlineToplam > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Online</span>
+                    <span className="font-medium">{totals.onlineToplam.toFixed(2)}₺</span>
+                  </div>
+                )}
                 <div className="flex justify-between pt-1 border-t">
                   <span className="font-semibold">Toplam</span>
-                  <span className="font-bold">{(totals.onlineToplam + totals.yemekKartiToplam).toFixed(2)}₺</span>
+                  <span className="font-bold">
+                    {(
+                      (!cashByCourier ? totals.nakitToplam : 0) +
+                      (!cardByCourier ? totals.kartToplam : 0) +
+                      (!mealCardByCourier ? totals.yemekKartiToplam : 0) +
+                      totals.onlineToplam
+                    ).toFixed(2)}₺
+                  </span>
                 </div>
               </div>
             </div>
@@ -174,7 +210,7 @@ export default function FilterSummaryCard({
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Tahsilatlar</span>
-                  <span className="text-red-600">-{(totals.nakitToplam + totals.kartToplam).toFixed(2)}₺</span>
+                  <span className="text-red-600">-{totals.tahsilatToplam.toFixed(2)}₺</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t">
                   <span className="font-semibold">Net</span>
