@@ -178,9 +178,12 @@ async def lifespan(app: FastAPI):
         """Haftalık hakediş otomatik işleme - bitiş saatinden 1 saat sonra"""
         from datetime import datetime, timezone, timedelta
         try:
-            now = datetime.now(timezone.utc)
-            current_hour = now.hour
-            current_minute = now.minute
+            # Türkiye saatine göre şu anki zaman
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            now_utc = datetime.now(timezone.utc)
+            current_hour = now_turkey.hour
+            current_minute = now_turkey.minute
             
             # Otomatik işleme aktif olan şirketleri bul
             settings = await db.weekly_hakedis_settings.find(
@@ -212,7 +215,7 @@ async def lifespan(app: FastAPI):
                     last_run = setting.get("last_auto_run")
                     if last_run:
                         last_run_dt = datetime.fromisoformat(last_run.replace('Z', '+00:00'))
-                        if (now - last_run_dt).total_seconds() < 3600:  # Son 1 saat içinde çalıştıysa atla
+                        if (now_utc - last_run_dt).total_seconds() < 3600:  # Son 1 saat içinde çalıştıysa atla
                             continue
                     
                     # Otomatik işleme yap
