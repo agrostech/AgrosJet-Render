@@ -262,6 +262,7 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "delivery_fee": 0,
             "cash_amount": 0,
             "card_amount": 0,
+            "online_amount": 0,
             "meal_card_amount": 0,
             # Tahsilat ayarları - "courier" ise mütabakata dahil, "restaurant" ise hariç
             "cash_included": collection_settings.get("cash_collection", "courier") == "courier",
