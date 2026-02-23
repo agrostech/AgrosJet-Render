@@ -95,12 +95,11 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     setHasCourierChanges(changed);
   }, [courierSettings, savedCourierSettings]);
 
-  // Bağlı değilse otomatik kontrol
+  // İlk yüklemede bir kez kontrol et
   useEffect(() => {
-    if (serverStatus.connected) return;
-    const interval = setInterval(checkServerStatus, 3000);
-    return () => clearInterval(interval);
-  }, [serverStatus.connected]);
+    checkServerStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const checkServerStatus = async () => {
     const status = await checkLocalPrintServer();
