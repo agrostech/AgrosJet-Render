@@ -73,9 +73,10 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   }, [companyId, selectedDate]);
 
   // Haftalık özet
-  const fetchWeeklySummary = useCallback(async () => {
+  const fetchWeeklySummary = useCallback(async (weekStart = null) => {
     try {
-      const res = await axios.get(`${API}/daily-mutabakat/${companyId}/weekly-summary`);
+      const params = weekStart ? { week_start: weekStart } : {};
+      const res = await axios.get(`${API}/daily-mutabakat/${companyId}/weekly-summary`, { params });
       setWeeklyData(res.data);
     } catch (err) {
       console.error("Haftalık özet yüklenemedi");
