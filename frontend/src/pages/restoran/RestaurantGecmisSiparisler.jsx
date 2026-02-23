@@ -138,7 +138,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     });
   };
 
-  // Fetch couriers and company name
+  // Fetch couriers and company name, then load orders
   useEffect(() => {
     const fetchData = async () => {
       if (!restaurantId) return;
@@ -161,36 +161,31 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
           };
           setCompanySettings(settings);
           
-          // Update date filters with company times
+          // Update date filters with company times and fetch orders
           const defaults = getDefaultDates(settings);
           setStartDateTime(defaults.startDateTime);
           setEndDateTime(defaults.endDateTime);
+          
+          // Initial order fetch
+          if (!initialized) {
+            fetchAndFilterOrders({
+              courier: "all",
+              courierName: "all",
+              payment: "all",
+              startDateTime: defaults.startDateTime,
+              endDateTime: defaults.endDateTime
+            });
+            setInitialized(true);
+          }
         }
       } catch (err) {
         console.error("Data fetch error:", err);
       }
     };
     fetchData();
-  }, [restaurantId]);
+  }, [restaurantId, initialized, fetchAndFilterOrders, getDefaultDates]);
 
-  // Initial load
-  useEffect(() => {
-    if (!restaurantId || initialized) return;
-    
-    const defaults = getDefaultDates();
-    setStartDateTime(defaults.startDateTime);
-    setEndDateTime(defaults.endDateTime);
-    
-    fetchAndFilterOrders({
-      courier: "all",
-      courierName: "all",
-      payment: "all",
-      startDateTime: defaults.startDateTime,
-      endDateTime: defaults.endDateTime
-    });
-    
-    setInitialized(true);
-  }, [restaurantId, initialized, getDefaultDates, fetchAndFilterOrders]);
+  // Remove old initial load - merged into fetchData above
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
