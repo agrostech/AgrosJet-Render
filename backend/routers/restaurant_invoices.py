@@ -972,6 +972,7 @@ async def delete_missing_invoice_record(company_id: str, record_id: str):
     """
     Eksik fatura kaydını tamamen sil.
     Bu işlem sadece superadmin tarafından yapılabilir.
+    R2'deki dosyalar da silinir.
     """
     record = await db.restaurant_invoices.find_one({
         "id": record_id,
@@ -980,6 +981,11 @@ async def delete_missing_invoice_record(company_id: str, record_id: str):
     
     if not record:
         raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    
+    # R2'deki dosyaları sil
+    for inv in record.get("invoices", []):
+        if inv.get("storage_type") == "r2" and inv.get("r2_key"):
+            await delete_file_from_r2(inv["r2_key"])
     
     # Kaydı sil
     await db.restaurant_invoices.delete_one({"id": record_id})
