@@ -642,8 +642,11 @@ async def get_restaurant_month_invoices(company_id: str, restaurant_id: str, yea
                 total_verified += record.get("verified_amount", 0)
                 
                 for inv in record.get("invoices", []):
+                    # invoice_id veya id field'ını normalize et
+                    inv_id = inv.get("invoice_id") or inv.get("id")
                     invoices.append({
                         **inv,
+                        "invoice_id": inv_id,  # Her zaman invoice_id olarak döndür
                         "week_start": week_start,
                         "week_label": record.get("week_label", ""),
                         "record_required_amount": record.get("required_amount", 0)
