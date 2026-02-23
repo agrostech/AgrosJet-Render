@@ -239,9 +239,8 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
                       <CheckCircle2 className="w-3 h-3 mx-auto" />
                     </div>
                   ) : (
-                    <div className={`text-[9px] space-y-0.5 ${isSelected ? 'text-white' : ''}`}>
-                      <div className={isSelected ? 'text-blue-300' : 'text-blue-600'}>T: {day.completed}/{day.total_with_orders}</div>
-                      <div className={isSelected ? 'text-green-300' : 'text-green-600'}>M: {day.processed}/{day.total_with_orders}</div>
+                    <div className={`text-[10px] font-medium ${isSelected ? 'text-blue-300' : 'text-blue-600'}`}>
+                      {day.processed}/{day.total_with_orders}
                     </div>
                   )
                 ) : !isFuture ? (
