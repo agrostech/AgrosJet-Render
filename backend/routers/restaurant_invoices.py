@@ -48,18 +48,22 @@ def get_weeks_in_month(year: int, month: int, opening_time: str, closing_time: s
     """
     Bir ay içindeki hafta aralıklarını döndür.
     Haftalar Pazartesi açılış -> Pazartesi kapanış şeklinde.
+    Türkiye saati (UTC+3) baz alınır.
     """
     open_h, open_m = map(int, opening_time.split(':'))
     close_h, close_m = map(int, closing_time.split(':'))
     
-    # Ayın ilk günü
-    first_day = datetime(year, month, 1, tzinfo=timezone.utc)
+    # Türkiye timezone'u
+    turkey_tz = timezone(timedelta(hours=3))
+    
+    # Ayın ilk günü (Türkiye saati)
+    first_day = datetime(year, month, 1, tzinfo=turkey_tz)
     
     # Ayın son günü
     if month == 12:
-        last_day = datetime(year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(days=1)
+        last_day = datetime(year + 1, 1, 1, tzinfo=turkey_tz) - timedelta(days=1)
     else:
-        last_day = datetime(year, month + 1, 1, tzinfo=timezone.utc) - timedelta(days=1)
+        last_day = datetime(year, month + 1, 1, tzinfo=turkey_tz) - timedelta(days=1)
     
     # İlk günün haftasının pazartesisini bul
     days_since_monday = first_day.weekday()
@@ -74,9 +78,13 @@ def get_weeks_in_month(year: int, month: int, opening_time: str, closing_time: s
         week_end = week_start + timedelta(days=7)
         week_end = week_end.replace(hour=close_h, minute=close_m, second=0, microsecond=0)
         
+        # UTC'ye çevir (veritabanı sorguları için)
+        week_start_utc = week_start.astimezone(timezone.utc)
+        week_end_utc = week_end.astimezone(timezone.utc)
+        
         weeks.append({
-            "week_start": week_start.isoformat(),
-            "week_end": week_end.isoformat(),
+            "week_start": week_start_utc.isoformat(),
+            "week_end": week_end_utc.isoformat(),
             "week_label": f"{week_start.strftime('%d.%m')} - {week_end.strftime('%d.%m')}"
         })
         
