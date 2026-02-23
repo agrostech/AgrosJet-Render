@@ -103,6 +103,22 @@ function KesilenFaturalarTab({ restaurantId, onRefresh }) {
     }
   };
 
+  const handleDelete = async (invoiceId) => {
+    if (!confirm("Bu faturayı silmek istediğinize emin misiniz?")) return;
+    
+    setDeletingId(invoiceId);
+    try {
+      await axios.delete(`${API}/restaurant-panel-invoices/${restaurantId}/issued/${invoiceId}`);
+      toast.success("Fatura silindi");
+      fetchInvoices();
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Silme başarısız");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
