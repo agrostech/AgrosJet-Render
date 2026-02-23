@@ -103,8 +103,7 @@ async def test_adisyo_connection(restaurant_id: str) -> dict:
             # Recent orders endpoint'ini test amaçlı çağır
             response = await client.get(
                 f"{ADISYO_BASE_URL}/RecentOrders",
-                headers=headers,
-                params={"onlyRestaurantCourier": "true"}
+                headers=headers
             )
             
             if response.status_code == 200:
