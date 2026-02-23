@@ -258,7 +258,7 @@ async def get_restaurant_report(
         "company_id": company_id,
         "status": "delivered",
         "is_restaurant_delivery": {"$ne": True},
-        "created_at": {
+        "delivered_at": {
             "$gte": start_datetime,
             "$lte": end_datetime
         }
