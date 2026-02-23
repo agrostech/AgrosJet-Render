@@ -45,16 +45,17 @@ def get_weeks_list(opening_time: str, closing_time: str, count: int = 12) -> Lis
     
     weeks = []
     for i in range(count):
-        # Hafta başlangıcı: Pazartesi açılış
-        week_start_turkey = (this_monday - timedelta(weeks=i)).replace(
-            hour=open_h, minute=open_m, second=0, microsecond=0
+        # Hafta başlangıcı: Pazartesi açılış (Türkiye saati)
+        base_monday = this_monday - timedelta(weeks=i)
+        week_start_turkey = base_monday.replace(
+            hour=open_h, minute=open_m, second=0, microsecond=0, tzinfo=turkey_tz
         )
-        # Hafta bitişi: Bir sonraki Pazartesi kapanış
-        week_end_turkey = (week_start_turkey + timedelta(days=7)).replace(
-            hour=close_h, minute=close_m, second=0, microsecond=0
+        # Hafta bitişi: Bir sonraki Pazartesi kapanış (Türkiye saati)
+        week_end_turkey = (base_monday + timedelta(days=7)).replace(
+            hour=close_h, minute=close_m, second=0, microsecond=0, tzinfo=turkey_tz
         )
         
-        # UTC'ye çevir
+        # UTC'ye çevir (veritabanı sorguları için)
         week_start_utc = week_start_turkey.astimezone(timezone.utc)
         week_end_utc = week_end_turkey.astimezone(timezone.utc)
         
