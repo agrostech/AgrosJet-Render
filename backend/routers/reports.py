@@ -94,8 +94,11 @@ async def get_courier_report(
             }
     
     # Aktif süreleri courier_daily_active tablosundan al
-    now = datetime.now(timezone.utc)
-    today = now.strftime("%Y-%m-%d")
+    # Türkiye saatine göre bugün
+    turkey_tz = timezone(timedelta(hours=3))
+    now_turkey = datetime.now(turkey_tz)
+    now_utc = datetime.now(timezone.utc)
+    today = now_turkey.strftime("%Y-%m-%d")
     
     active_hours_map = {}
     if courier_ids:
