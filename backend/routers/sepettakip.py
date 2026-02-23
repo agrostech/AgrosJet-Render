@@ -457,14 +457,18 @@ async def cancel_package(
         raise HTTPException(status_code=400, detail="Sipariş bulunamadı")
     
     # Siparişi iptal et
+    # Türkiye saati (UTC+3)
+    turkey_tz = timezone(timedelta(hours=3))
+    now_turkey = datetime.now(turkey_tz).isoformat()
+    
     await db.orders.update_one(
         {"sepettakip_order_id": request.order_id},
         {"$set": {
             "status": "cancelled",
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": now_turkey,
             "cancel_reason": "SepetTakip üzerinden iptal edildi",
             "cancelled_by": "sepettakip",
-            "cancelled_at": datetime.now(timezone.utc).isoformat()
+            "cancelled_at": now_turkey
         }}
     )
     
