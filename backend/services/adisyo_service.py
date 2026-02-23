@@ -137,8 +137,7 @@ async def fetch_recent_orders(restaurant_id: str) -> dict:
         async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.get(
                 f"{ADISYO_BASE_URL}/RecentOrders",
-                headers=headers,
-                params={"onlyRestaurantCourier": "true"}
+                headers=headers
             )
             
             if response.status_code == 200:
