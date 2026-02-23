@@ -220,6 +220,195 @@ async def get_all_missing_invoices(company_id: str):
     return missing_invoices
 
 
+# ========== Upcoming Invoices Preview ====================
+
+@router.get("/restaurant-invoices/{company_id}/upcoming-preview")
+async def get_upcoming_invoices_preview(company_id: str):
+    """
+    Bir sonraki otomatik çalışmada oluşturulacak faturaların önizlemesini döndür.
+    Geçen haftanın siparişlerini hesaplar ama kayıt oluşturmaz.
+    """
+    opening_time, closing_time = await get_company_work_hours(company_id)
+    
+    # Geçen haftanın başlangıcını hesapla (Pazartesi açılış saati)
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
+    
+    # Bu haftanın pazartesisini bul
+    days_since_monday = now.weekday()  # 0 = Pazartesi
+    this_monday = now - timedelta(days=days_since_monday)
+    
+    # Geçen haftanın pazartesisi
+    last_monday = this_monday - timedelta(weeks=1)
+    
+    open_h, open_m = map(int, opening_time.split(':'))
+    close_h, close_m = map(int, closing_time.split(':'))
+    
+    week_start_dt = last_monday.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
+    week_end_dt = week_start_dt + timedelta(days=7)
+    week_end_dt = week_end_dt.replace(hour=close_h, minute=close_m, second=0, microsecond=0)
+    
+    week_label = f"{week_start_dt.strftime('%d.%m')} - {week_end_dt.strftime('%d.%m.%Y')}"
+    week_start_iso = week_start_dt.isoformat()
+    
+    # Fatura ayarı olan restoranları getir
+    restaurants = await db.restaurants.find(
+        {
+            "company_id": company_id,
+            "is_archived": {"$ne": True},
+            "invoice_settings": {"$exists": True}
+        },
+        {"_id": 0}
+    ).to_list(500)
+    
+    # Sadece en az bir ayarı açık olan restoranları filtrele
+    active_restaurants = []
+    for r in restaurants:
+        settings = r.get("invoice_settings", {})
+        if any([settings.get("cash"), settings.get("credit_card"), settings.get("online"), 
+                settings.get("meal_card"), settings.get("online_meal_card")]):
+            active_restaurants.append(r)
+    
+    if not active_restaurants:
+        return {
+            "week_label": week_label,
+            "week_start": week_start_iso,
+            "previews": [],
+            "total_amount": 0,
+            "restaurant_count": 0
+        }
+    
+    # Mevcut kayıtları kontrol et (zaten oluşturulmuş mu?)
+    existing_records = await db.restaurant_invoices.find(
+        {
+            "company_id": company_id,
+            "week_start": week_start_iso
+        },
+        {"_id": 0, "restaurant_id": 1}
+    ).to_list(500)
+    existing_restaurant_ids = {r["restaurant_id"] for r in existing_records}
+    
+    # Haftalık sipariş toplamlarını hesapla
+    order_pipeline = [
+        {
+            "$match": {
+                "company_id": company_id,
+                "created_at": {
+                    "$gte": week_start_dt.isoformat(),
+                    "$lt": week_end_dt.isoformat()
+                },
+                "status": {"$in": ["delivered", "completed"]}
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "restaurant_id": "$restaurant_id",
+                    "payment_method": "$payment_method"
+                },
+                "total": {"$sum": "$total_amount"},
+                "count": {"$sum": 1}
+            }
+        }
+    ]
+    
+    order_totals = await db.orders.aggregate(order_pipeline).to_list(1000)
+    
+    # Restoran bazlı toplamları hesapla
+    restaurant_totals = {}
+    for item in order_totals:
+        rid = item["_id"]["restaurant_id"]
+        payment = item["_id"]["payment_method"] or "cash"
+        total = item["total"] or 0
+        count = item["count"] or 0
+        
+        if rid not in restaurant_totals:
+            restaurant_totals[rid] = {
+                "cash": 0,
+                "credit_card": 0,
+                "online": 0,
+                "meal_card": 0,
+                "online_meal_card": 0,
+                "order_count": 0
+            }
+        
+        restaurant_totals[rid]["order_count"] += count
+        
+        # Payment method mapping
+        if payment in ["cash", "nakit"]:
+            restaurant_totals[rid]["cash"] += total
+        elif payment in ["credit_card", "kredi_karti", "pos", "card"]:
+            restaurant_totals[rid]["credit_card"] += total
+        elif payment in ["online", "online_odeme"]:
+            restaurant_totals[rid]["online"] += total
+        elif payment in ["meal_card", "yemek_karti"]:
+            restaurant_totals[rid]["meal_card"] += total
+        elif payment in ["online_meal_card", "online_yemek_karti"]:
+            restaurant_totals[rid]["online_meal_card"] += total
+    
+    previews = []
+    total_amount = 0
+    
+    for restaurant in active_restaurants:
+        rid = restaurant["id"]
+        
+        # Zaten kayıt varsa atla
+        if rid in existing_restaurant_ids:
+            continue
+        
+        settings = restaurant.get("invoice_settings", {})
+        totals = restaurant_totals.get(rid, {})
+        
+        # Fatura gereken toplamı hesapla
+        required_amount = 0
+        breakdown = {}
+        
+        if settings.get("cash") and totals.get("cash", 0) > 0:
+            breakdown["cash"] = totals["cash"]
+            required_amount += totals["cash"]
+        
+        if settings.get("credit_card") and totals.get("credit_card", 0) > 0:
+            breakdown["credit_card"] = totals["credit_card"]
+            required_amount += totals["credit_card"]
+        
+        if settings.get("online") and totals.get("online", 0) > 0:
+            breakdown["online"] = totals["online"]
+            required_amount += totals["online"]
+        
+        if settings.get("meal_card") and totals.get("meal_card", 0) > 0:
+            breakdown["meal_card"] = totals["meal_card"]
+            required_amount += totals["meal_card"]
+        
+        if settings.get("online_meal_card") and totals.get("online_meal_card", 0) > 0:
+            breakdown["online_meal_card"] = totals["online_meal_card"]
+            required_amount += totals["online_meal_card"]
+        
+        # Fatura gerekliliği yoksa atla
+        if required_amount == 0:
+            continue
+        
+        previews.append({
+            "restaurant_id": rid,
+            "restaurant_name": restaurant["name"],
+            "required_amount": required_amount,
+            "breakdown": breakdown,
+            "order_count": totals.get("order_count", 0),
+            "invoice_settings": settings
+        })
+        total_amount += required_amount
+    
+    # Tutara göre sırala (en yüksek önce)
+    previews.sort(key=lambda x: x["required_amount"], reverse=True)
+    
+    return {
+        "week_label": week_label,
+        "week_start": week_start_iso,
+        "previews": previews,
+        "total_amount": total_amount,
+        "restaurant_count": len(previews)
+    }
+
+
 # ========== Generate Weekly Missing Invoices ====================
 
 @router.post("/restaurant-invoices/{company_id}/generate-weekly")
