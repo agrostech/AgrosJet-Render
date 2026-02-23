@@ -689,7 +689,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 mainTab === "delivered" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
               }`}
             >
-              <ClipboardList className="w-3.5 h-3.5" />
+              <CheckCircle className="w-3.5 h-3.5" />
               Teslim
             </button>
             <button
