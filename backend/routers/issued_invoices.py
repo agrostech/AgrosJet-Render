@@ -86,7 +86,44 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
     """
     Belirli bir hafta için restoran bazlı taşıma ücreti ve KDV özeti.
     Her restoran için toplam sipariş, taşıma ücreti ve KDV hesaplar.
+    Restoran pricing ayarları kullanılarak dinamik hesaplama yapılır.
     """
+    import math
+    
+    # Mesafe hesaplama fonksiyonu
+    def calculate_distance(loc1, loc2):
+        if not loc1 or not loc2:
+            return 0.0
+        lat1 = loc1.get("latitude") or loc1.get("lat") or 0
+        lng1 = loc1.get("longitude") or loc1.get("lng") or 0
+        lat2 = loc2.get("latitude") or loc2.get("lat") or 0
+        lng2 = loc2.get("longitude") or loc2.get("lng") or 0
+        if not all([lat1, lng1, lat2, lng2]):
+            return 0.0
+        R = 6371
+        dLat = math.radians(lat2 - lat1)
+        dLon = math.radians(lng2 - lng1)
+        a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
+    
+    # Ücret hesaplama fonksiyonu
+    def calculate_fee_from_pricing(pricing_type, per_package_price, km_ranges, distance_km):
+        if pricing_type == "per_package":
+            return per_package_price or 0.0
+        elif pricing_type == "per_km" and km_ranges:
+            for km_range in km_ranges:
+                min_km = km_range.get("min_km", 0)
+                max_km = km_range.get("max_km")
+                price = km_range.get("price", 0)
+                if max_km is None:
+                    if distance_km >= min_km:
+                        return price
+                else:
+                    if min_km <= distance_km < max_km:
+                        return price
+        return 0.0
+    
     # Siparişleri getir - teslim edilmiş veya tamamlanmış
     orders_cursor = db.orders.find(
         {
@@ -98,20 +135,30 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
             "_id": 0,
             "restaurant_id": 1,
             "delivery_fee": 1,
-            "total_amount": 1
+            "restaurant_fee": 1,
+            "total_amount": 1,
+            "restaurant_location": 1,
+            "delivery_location": 1
         }
     )
     orders = await orders_cursor.to_list(10000)
     
-    # Restoran bilgilerini getir
+    # Restoran bilgilerini getir (pricing ve kdv_rate dahil)
     restaurant_ids = list(set(o.get("restaurant_id") for o in orders if o.get("restaurant_id")))
     restaurants_map = {}
     if restaurant_ids:
         restaurants = await db.restaurants.find(
             {"id": {"$in": restaurant_ids}},
-            {"_id": 0, "id": 1, "name": 1}
+            {"_id": 0, "id": 1, "name": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
         ).to_list(500)
-        restaurants_map = {r["id"]: r.get("name", "İsimsiz Restoran") for r in restaurants}
+        restaurants_map = {r["id"]: r for r in restaurants}
+    
+    # Şirket varsayılan KDV oranı
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "vat_rate": 1}
+    )
+    default_kdv_rate = company.get("vat_rate", 10) if company else 10
     
     # Restoran bazlı toplamları hesapla
     restaurant_totals = {}
@@ -120,24 +167,50 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
         if not rid:
             continue
         
+        rest_info = restaurants_map.get(rid, {})
+        
         if rid not in restaurant_totals:
+            # Restoran KDV oranı - restoranda tanımlıysa onu kullan
+            rest_kdv_rate = rest_info.get("kdv_rate") if rest_info.get("kdv_rate") is not None else default_kdv_rate
             restaurant_totals[rid] = {
                 "restaurant_id": rid,
-                "restaurant_name": restaurants_map.get(rid, "İsimsiz Restoran"),
+                "restaurant_name": rest_info.get("name", "İsimsiz Restoran"),
                 "order_count": 0,
                 "total_delivery_fee": 0,
-                "total_amount": 0
+                "total_amount": 0,
+                "kdv_rate": rest_kdv_rate,
+                "pricing_type": rest_info.get("pricing_type", "per_package"),
+                "per_package_price": rest_info.get("per_package_price", 0),
+                "km_ranges": rest_info.get("km_ranges", [])
             }
         
+        # Taşıma ücreti - önce siparişte kayıtlı değere bak
+        order_delivery_fee = order.get("delivery_fee") or order.get("restaurant_fee") or 0
+        
+        # Eğer siparişte ücret yoksa, restoran ayarlarından hesapla
+        rest_data = restaurant_totals[rid]
+        if order_delivery_fee == 0 and (rest_data["per_package_price"] > 0 or rest_data["km_ranges"]):
+            distance_km = calculate_distance(
+                order.get("restaurant_location"),
+                order.get("delivery_location")
+            )
+            order_delivery_fee = calculate_fee_from_pricing(
+                rest_data["pricing_type"],
+                rest_data["per_package_price"],
+                rest_data["km_ranges"],
+                distance_km
+            )
+        
         restaurant_totals[rid]["order_count"] += 1
-        restaurant_totals[rid]["total_delivery_fee"] += order.get("delivery_fee", 0) or 0
+        restaurant_totals[rid]["total_delivery_fee"] += order_delivery_fee
         restaurant_totals[rid]["total_amount"] += order.get("total_amount", 0) or 0
     
-    # KDV hesapla (%10)
-    KDV_RATE = 0.10
+    # Sonuç listesi oluştur
     result = []
     for rid, data in restaurant_totals.items():
-        kdv = data["total_delivery_fee"] * KDV_RATE
+        # Restoran bazlı KDV hesapla
+        kdv_rate = data["kdv_rate"] / 100  # yüzdeyi orana çevir
+        kdv = data["total_delivery_fee"] * kdv_rate
         
         # Yüklenen faturayı kontrol et
         invoice = await db.issued_invoices.find_one(
@@ -150,9 +223,14 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
         )
         
         result.append({
-            **data,
-            "kdv": kdv,
-            "total_with_kdv": data["total_delivery_fee"] + kdv,
+            "restaurant_id": data["restaurant_id"],
+            "restaurant_name": data["restaurant_name"],
+            "order_count": data["order_count"],
+            "total_delivery_fee": round(data["total_delivery_fee"], 2),
+            "total_amount": round(data["total_amount"], 2),
+            "kdv_rate": data["kdv_rate"],
+            "kdv": round(kdv, 2),
+            "total_with_kdv": round(data["total_delivery_fee"] + kdv, 2),
             "invoice_uploaded": invoice is not None,
             "invoice_id": invoice.get("id") if invoice else None,
             "invoice_filename": invoice.get("filename") if invoice else None,
@@ -172,9 +250,9 @@ async def get_week_summary(company_id: str, week_start: str, week_end: str):
         "summary": {
             "total_restaurants": len(result),
             "total_orders": total_order_count,
-            "total_delivery_fee": total_delivery_fee,
-            "total_kdv": total_kdv,
-            "total_with_kdv": total_delivery_fee + total_kdv
+            "total_delivery_fee": round(total_delivery_fee, 2),
+            "total_kdv": round(total_kdv, 2),
+            "total_with_kdv": round(total_delivery_fee + total_kdv, 2)
         }
     }
 
