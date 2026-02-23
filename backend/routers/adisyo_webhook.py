@@ -153,7 +153,9 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
             elif new_status == "cancelled":
                 update_data["cancel_reason"] = adisyo_order.get("orderCancelReason", "Adisyo üzerinden iptal")
                 update_data["cancelled_by"] = "adisyo_webhook"
-                update_data["cancelled_at"] = datetime.now(timezone.utc).isoformat()
+                # Türkiye saati (UTC+3)
+                turkey_tz = timezone(timedelta(hours=3))
+                update_data["cancelled_at"] = datetime.now(turkey_tz).isoformat()
             
             await db.orders.update_one(
                 {"adisyo_order_id": order_id},
