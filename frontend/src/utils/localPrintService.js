@@ -145,19 +145,32 @@ const generateReceiptText = (order, width = 48) => {
     const itemText = `${qty}x ${name}`;
     const priceText = formatCurrency(price);
 
-    // Ürün ismi ASLA kısaltılmaz
+    // Ürün ismi ASLA kısaltılmaz - gerekirse satır kaydırılır
     if (itemText.length + priceText.length + 2 <= width) {
       // Tek satıra sığıyor
       const spaces = width - itemText.length - priceText.length;
       lines.push(`${itemText}${" ".repeat(Math.max(1, spaces))}${priceText}`);
-    } else {
-      // Sığmıyor - ürün adı tam yazılır, fiyat alt satırda sağa yaslı
+    } else if (itemText.length <= width) {
+      // Ürün adı tek satıra sığıyor ama fiyatla birlikte sığmıyor
       lines.push(itemText);
+      lines.push(rightText(priceText, width));
+    } else {
+      // Ürün adı bile tek satıra sığmıyor - satır kaydır
+      let remaining = itemText;
+      while (remaining.length > 0) {
+        lines.push(remaining.slice(0, width));
+        remaining = remaining.slice(width);
+      }
       lines.push(rightText(priceText, width));
     }
 
+    // Ürün notu - bu da uzunsa satır kaydır
     if (item.notes) {
-      lines.push(`   > ${item.notes.slice(0, width - 5)}`);
+      let note = `   > ${item.notes}`;
+      while (note.length > 0) {
+        lines.push(note.slice(0, width));
+        note = note.length > width ? `     ${note.slice(width)}` : "";
+      }
     }
   });
   lines.push(sep);
