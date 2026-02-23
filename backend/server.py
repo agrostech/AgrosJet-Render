@@ -245,24 +245,6 @@ async def lifespan(app: FastAPI):
             turkey_tz = timezone(timedelta(hours=3))
             now_turkey = datetime.now(turkey_tz)
             
-            # Sadece Pazartesi günü saat 02:00-02:05 arasında çalış
-            if now_turkey.weekday() != 0:  # 0 = Pazartesi
-                return
-            if not (2 <= now_turkey.hour < 3 and now_turkey.minute < 5):
-                return
-            
-            # Bu saat için zaten çalıştı mı kontrol et (aynı saat içinde tekrar çalışmasın)
-            check_key = f"auto_invoice_{now_turkey.strftime('%Y-%m-%d-%H')}"
-            existing_run = await db.auto_job_runs.find_one({"key": check_key})
-            if existing_run:
-                return
-            
-            # Çalıştığını kaydet
-            await db.auto_job_runs.insert_one({
-                "key": check_key,
-                "ran_at": datetime.now(timezone.utc).isoformat()
-            })
-            
             # Otomatik işleme açık olan şirketleri bul
             enabled_settings = await db.restaurant_invoice_settings.find(
                 {"enabled": True},
@@ -270,6 +252,7 @@ async def lifespan(app: FastAPI):
             ).to_list(100)
             
             if not enabled_settings:
+                print("No companies with auto restaurant invoice enabled")
                 return
             
             print(f"Auto restaurant invoice generation started for {len(enabled_settings)} companies")
@@ -302,10 +285,9 @@ async def lifespan(app: FastAPI):
     
     scheduler.add_job(
         auto_generate_restaurant_invoices,
-        'interval',
-        minutes=1,  # Her dakika kontrol et (sadece Pazartesi 02:00'da gerçek işlem yapar)
+        CronTrigger(day_of_week='mon', hour=2, minute=0, timezone='Europe/Istanbul'),
         id="auto_restaurant_invoices",
-        name="Auto Restaurant Invoice Generation",
+        name="Auto Restaurant Invoice Generation (Monday 02:00)",
         replace_existing=True
     )
     
