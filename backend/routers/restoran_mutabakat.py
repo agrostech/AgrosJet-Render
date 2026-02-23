@@ -246,7 +246,7 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     
     # Şirket varsayılan KDV ve POS oranları (restoranda tanımlı değilse kullanılır)
     default_vat_rate = company.get("vat_rate", 10) if company else 10  # %10 varsayılan KDV
-    pos_commission_rate = company.get("pos_commission_rate", 1.79) if company else 1.79  # %1.79 varsayılan POS
+    pos_commission_rate = company.get("pos_commission_rate", 0) if company else 0  # Tanımlı değilse 0
     
     # Restoran bazlı agregasyon
     restaurant_data = {}
