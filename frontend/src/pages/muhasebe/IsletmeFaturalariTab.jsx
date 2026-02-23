@@ -699,6 +699,10 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [deleteType, setDeleteType] = useState("invoice");
+  
+  // Manual trigger states
+  const [generating, setGenerating] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   // Fetch auto settings
   const fetchAutoSettings = useCallback(async () => {
@@ -736,6 +740,47 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
       toast.error("Ayar güncellenemedi");
     } finally {
       setAutoSaving(false);
+    }
+  };
+
+  // Manuel veri oluştur
+  const handleGenerateData = async () => {
+    if (!companyId) return;
+    setGenerating(true);
+    try {
+      // Geçen haftanın başlangıcını hesapla
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      const lastMonday = new Date(now);
+      lastMonday.setDate(now.getDate() - diff - 7);
+      lastMonday.setHours(9, 0, 0, 0);
+      
+      const res = await axios.post(`${API}/restaurant-invoices/${companyId}/generate-weekly`, null, {
+        params: { week_start: lastMonday.toISOString() }
+      });
+      
+      toast.success(`${res.data.count || 0} eksik fatura kaydı oluşturuldu`);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Veri oluşturulamadı");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Manuel veri sil
+  const handleClearData = async () => {
+    if (!companyId) return;
+    setClearing(true);
+    try {
+      const res = await axios.delete(`${API}/restaurant-invoices/${companyId}/clear-all`);
+      toast.success(`${res.data.deleted_count || 0} kayıt silindi`);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Veriler silinemedi");
+    } finally {
+      setClearing(false);
     }
   };
 
