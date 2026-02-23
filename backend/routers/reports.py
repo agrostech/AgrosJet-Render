@@ -475,7 +475,8 @@ async def get_restaurant_report(
     total_cash = sum(r["cash"] if r["cash_included"] else 0 for r in restaurants)
     total_card = sum(r["card"] if r["card_included"] else 0 for r in restaurants)
     total_online = sum(r["online"] for r in restaurants)
-    total_meal_card = sum(r["mealCard"] if r["meal_card_included"] else 0 for r in restaurants)
+    total_meal_card = sum(r["mealCard"] if r["meal_card_included"] else 0 for r in restaurants)  # Kurye tahsilatlı
+    total_meal_card_all = sum(r["mealCard"] for r in restaurants)  # Tüm yemek kartı toplamı
     total_modified = sum(r["modified_count"] for r in restaurants)
     
     # Sonuç hesapla (online dahil edilmiyor - restoran tahsil ediyor)
