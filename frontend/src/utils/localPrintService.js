@@ -91,6 +91,7 @@ const toUpperCaseTurkish = (text) => {
 
 // ESC/POS Komutları (Termal yazıcılar için)
 const ESC = '\x1B';
+const GS = '\x1D';
 const BOLD_ON = ESC + 'E' + '\x01';
 const BOLD_OFF = ESC + 'E' + '\x00';
 const ALIGN_CENTER = ESC + 'a' + '\x01';
@@ -98,6 +99,7 @@ const ALIGN_LEFT = ESC + 'a' + '\x00';
 const ALIGN_RIGHT = ESC + 'a' + '\x02';
 const DOUBLE_HEIGHT_ON = ESC + '!' + '\x10';
 const DOUBLE_HEIGHT_OFF = ESC + '!' + '\x00';
+const CUT_PAPER = GS + 'V' + '\x42' + '\x03'; // Kısmi kesim (3 satır boşluk bırakır)
 
 /**
  * Fiş metni oluştur (Termal yazıcı için)
