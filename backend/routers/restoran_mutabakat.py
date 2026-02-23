@@ -155,6 +155,13 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     try:
         start_dt = datetime.fromisoformat(week.week_start.replace('Z', '+00:00'))
         end_dt = datetime.fromisoformat(week.week_end.replace('Z', '+00:00'))
+        
+        # Timezone yoksa UTC kabul et
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=timezone.utc)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=timezone.utc)
+            
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
@@ -186,17 +193,13 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     
     processed_map = {r["restaurant_id"]: r["transaction_id"] for r in processed_records}
     
-    # Teslim edilen siparişleri getir
-    orders = await db.orders.find(
+    # Teslim edilen siparişleri getir (tarih filtresi Python'da yapılacak)
+    all_orders = await db.orders.find(
         {
             "company_id": company_id,
             "restaurant_id": {"$in": restaurant_ids},
             "status": "delivered",
-            "is_restaurant_delivery": {"$ne": True},
-            "delivered_at": {
-                "$gte": start_dt.isoformat(),
-                "$lte": end_dt.isoformat()
-            }
+            "is_restaurant_delivery": {"$ne": True}
         },
         {
             "_id": 0, 
@@ -206,9 +209,32 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "restaurant_fee": 1,
             "payment_method": 1,
             "restaurant_location": 1,
-            "delivery_location": 1
+            "delivery_location": 1,
+            "delivered_at": 1
         }
     ).to_list(10000)
+    
+    # Python'da delivered_at ile tarih filtrelemesi
+    orders = []
+    for order in all_orders:
+        delivered_at = order.get("delivered_at")
+        if not delivered_at:
+            continue
+        try:
+            if isinstance(delivered_at, str):
+                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            else:
+                order_dt = delivered_at
+            
+            if order_dt.tzinfo is None:
+                order_dt = order_dt.replace(tzinfo=timezone.utc)
+            else:
+                order_dt = order_dt.astimezone(timezone.utc)
+            
+            if start_dt <= order_dt <= end_dt:
+                orders.append(order)
+        except:
+            continue
     
     logger.info(f"Bulunan sipariş sayısı: {len(orders)}")
     
