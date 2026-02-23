@@ -144,8 +144,8 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                       <th className="text-right p-2 font-medium">POS Kom.</th>
                       <th className="text-right p-2 font-medium">Nakit</th>
                       <th className="text-right p-2 font-medium">Kart</th>
-                      <th className="text-right p-2 font-medium">Online</th>
                       <th className="text-right p-2 font-medium">Y.Kartı</th>
+                      <th className="text-right p-2 font-medium">Online</th>
                       <th className="text-right p-2 font-medium">Sonuç</th>
                     </tr>
                   </thead>
@@ -172,11 +172,11 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                           <td className={`p-2 text-right ${r.card_included !== false ? 'text-red-600' : 'text-slate-800'}`} title={r.card_included === false ? 'Restoran tahsil ediyor' : ''}>
                             {r.card.toFixed(2)}₺{r.card_included === false && '*'}
                           </td>
-                          <td className="p-2 text-right text-slate-600" title="Online ödemeler - Restoran tahsil ediyor">
-                            {(r.online || 0).toFixed(2)}₺
-                          </td>
                           <td className={`p-2 text-right ${r.meal_card_included !== false ? 'text-red-600' : 'text-slate-800'}`} title={r.meal_card_included === false ? 'Restoran tahsil ediyor' : ''}>
                             {(r.mealCard || 0).toFixed(2)}₺{r.meal_card_included === false && '*'}
+                          </td>
+                          <td className="p-2 text-right">
+                            {(r.online || 0).toFixed(2)}₺
                           </td>
                           <td className={`p-2 text-right font-bold ${sonuc >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {sonuc >= 0 ? '+' : ''}{sonuc.toFixed(2)}₺
