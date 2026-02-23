@@ -870,9 +870,9 @@ async def mark_adisyo_order_on_delivery(restaurant_id: str, adisyo_order_id: int
     """
     Adisyo'da siparişi "Yola Çıktı" durumuna getir.
     POST /api/External/v2/OnDelivery
-    Body: {"orderId": <order_id>, "courierId": <courier_id>}
+    Body: {"orderId": <order_id>}
     
-    NOT: courierId zorunlu! Adisyo kurye ID'si gerekli.
+    NOT: courierId göndermiyoruz - Adisyo tarafında kurye ataması yapılır.
     """
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
@@ -882,38 +882,19 @@ async def mark_adisyo_order_on_delivery(restaurant_id: str, adisyo_order_id: int
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
     
-    # Adisyo kurye ID'sini bul
-    adisyo_courier_id = None
-    
-    if courier_id:
-        adisyo_courier_id = await get_adisyo_courier_id(restaurant_id, courier_id)
-    
-    if not adisyo_courier_id:
-        # Kurye eşleştirilemedi - varsayılan kurye kullan veya hata dön
-        # Adisyo'dan ilk kuryeyi al
-        couriers_result = await fetch_adisyo_couriers(restaurant_id)
-        if couriers_result["success"] and couriers_result["couriers"]:
-            adisyo_courier_id = couriers_result["couriers"][0].get("id")
-            logger.warning(f"Adisyo kurye eşleştirilemedi, varsayılan kurye kullanılıyor: {adisyo_courier_id}")
-        else:
-            return {"success": False, "error": "Adisyo kurye ID bulunamadı. Kurye eşleştirmesi yapılmalı."}
-    
     try:
         headers = await get_adisyo_headers(restaurant)
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 f"{ADISYO_BASE_URL}/OnDelivery",
                 headers=headers,
-                json={
-                    "orderId": adisyo_order_id,
-                    "courierId": adisyo_courier_id
-                }
+                json={"orderId": adisyo_order_id}
             )
             
             if response.status_code == 200:
                 data = response.json()
                 if data.get("status") == 100:
-                    logger.info(f"Adisyo sipariş yola çıktı: order_id={adisyo_order_id}, courier_id={adisyo_courier_id}")
+                    logger.info(f"Adisyo sipariş yola çıktı: order_id={adisyo_order_id}")
                     return {"success": True, "message": "Sipariş yola çıktı olarak işaretlendi"}
                 else:
                     return {"success": False, "error": data.get("message", "Bilinmeyen hata")}
