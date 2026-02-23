@@ -350,7 +350,13 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
       {/* Faturalar Modal */}
       <RestaurantFaturalarModal
         open={showFaturalar}
-        onOpenChange={setShowFaturalar}
+        onOpenChange={(open) => {
+          setShowFaturalar(open);
+          if (!open) {
+            // Modal kapandığında badge'i güncelle
+            fetchMissingInvoiceCount();
+          }
+        }}
         restaurantId={restaurantId}
         restaurantName={restaurantName}
       />
