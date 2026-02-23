@@ -2,6 +2,7 @@
 Restoran Faturaları API (Restoran Paneli için)
 - Kesilen faturalar: Restoranın kestiği, yöneticiye yüklediği faturalar
 - Alınan faturalar: Yöneticinin kestiği, restoran tarafından görüntülenen faturalar
+Cloudflare R2 entegrasyonu ile dosya depolama
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import Optional, List
@@ -10,6 +11,11 @@ import uuid
 import base64
 
 from utils.database import db
+from services.r2_storage import (
+    upload_file_to_r2,
+    download_file_from_r2,
+    delete_file_from_r2
+)
 
 router = APIRouter(prefix="/api/restaurant-panel-invoices", tags=["Restoran Panel Faturaları"])
 
