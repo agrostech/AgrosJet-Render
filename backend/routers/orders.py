@@ -1503,7 +1503,6 @@ async def get_orders_unified(
                 date_filter_start = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
                 if date_filter_start.tzinfo is None:
                     date_filter_start = date_filter_start.replace(tzinfo=turkey_tz)
-                date_filter_start = date_filter_start.astimezone(timezone.utc)
             except:
                 pass
         
@@ -1512,7 +1511,6 @@ async def get_orders_unified(
                 date_filter_end = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
                 if date_filter_end.tzinfo is None:
                     date_filter_end = date_filter_end.replace(tzinfo=turkey_tz)
-                date_filter_end = date_filter_end.astimezone(timezone.utc)
             except:
                 pass
     
