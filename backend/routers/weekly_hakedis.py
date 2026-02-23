@@ -61,8 +61,10 @@ def get_week_description(start_dt: datetime, end_dt: datetime) -> str:
 
 
 def get_weeks_list(opening_time: str, closing_time: str, count: int = 8) -> List[dict]:
-    """Son N hafta listesini oluştur"""
-    now = datetime.now()
+    """Son N hafta listesini oluştur (Türkiye saati baz alınır)"""
+    # Türkiye saatine göre şu anki zaman
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
     day = now.weekday()  # 0=Pazartesi
     
     # Bu haftanın pazartesini bul
