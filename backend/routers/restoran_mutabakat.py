@@ -387,6 +387,7 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "pos_commission": round(pos_commission, 2),
             "cash_amount": round(data["cash_amount"], 2),
             "card_amount": round(data["card_amount"], 2),
+            "online_amount": round(data["online_amount"], 2),
             "meal_card_amount": round(data["meal_card_amount"], 2),
             "net_amount": round(net_amount, 2),
             "is_processed": rid in processed_map,
