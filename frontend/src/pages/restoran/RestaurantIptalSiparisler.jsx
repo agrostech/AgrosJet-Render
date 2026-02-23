@@ -144,13 +144,11 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
   };
 
   const clearFilters = () => {
-    setPaymentFilter("all");
     const defaults = getDefaultDates();
     setStartDateTime(defaults.startDateTime);
     setEndDateTime(defaults.endDateTime);
     setCurrentPage(1);
     fetchAndFilterOrders({
-      payment: "all",
       startDateTime: defaults.startDateTime,
       endDateTime: defaults.endDateTime
     });
