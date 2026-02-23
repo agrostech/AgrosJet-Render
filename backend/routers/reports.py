@@ -452,7 +452,11 @@ async def get_restaurant_report(
             r["cash"] += total_amount
             if payment_details.get("original_method") or payment_details.get("original_payment_method"):
                 r["modified_count"] += 1
-        elif "card" in payment_method or "kart" in payment_method or "online" in payment_method:
+        elif payment_method == "online":
+            r["online"] += total_amount
+            if payment_details.get("original_method") or payment_details.get("original_payment_method"):
+                r["modified_count"] += 1
+        elif "card" in payment_method or "kart" in payment_method:
             r["card"] += total_amount
             if payment_details.get("original_method") or payment_details.get("original_payment_method"):
                 r["modified_count"] += 1
