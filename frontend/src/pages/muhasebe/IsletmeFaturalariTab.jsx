@@ -669,6 +669,96 @@ function RestaurantInvoicesCard({ selectedRestaurant, restaurantData, loading, o
   );
 }
 
+// ==================== Upcoming Invoices Preview Card ====================
+function UpcomingInvoicesCard({ preview, loading, onRefresh }) {
+  const getBreakdownText = (breakdown) => {
+    const parts = [];
+    if (breakdown?.cash) parts.push(`Nakit: ${formatMoney(breakdown.cash)}`);
+    if (breakdown?.credit_card) parts.push(`KK: ${formatMoney(breakdown.credit_card)}`);
+    if (breakdown?.online) parts.push(`Online: ${formatMoney(breakdown.online)}`);
+    if (breakdown?.meal_card) parts.push(`YK: ${formatMoney(breakdown.meal_card)}`);
+    if (breakdown?.online_meal_card) parts.push(`OYK: ${formatMoney(breakdown.online_meal_card)}`);
+    return parts.join(" • ");
+  };
+
+  return (
+    <div className="border-2 border-border bg-white lg:col-span-2">
+      <div className="p-3 border-b-2 border-border bg-blue-50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-blue-500" />
+            <h3 className="font-semibold text-sm text-blue-700">Yaklaşan Faturalar (Önizleme)</h3>
+            {preview && (
+              <span className="text-xs text-blue-500">
+                {preview.week_label} • {preview.restaurant_count} restoran
+              </span>
+            )}
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onRefresh}
+            disabled={loading}
+            className="h-8 w-8 p-0"
+            title="Yenile"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+        <p className="text-xs text-blue-600 mt-1">
+          Pazartesi 02:00'da otomatik oluşturulacak faturalar
+        </p>
+      </div>
+      
+      <div className="max-h-64 overflow-y-auto">
+        {loading ? (
+          <div className="p-8 text-center">
+            <Loader2 className="w-8 h-8 mx-auto animate-spin text-muted-foreground" />
+          </div>
+        ) : !preview || preview.previews.length === 0 ? (
+          <div className="p-8 text-center text-green-600 text-sm">
+            <Check className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            Oluşturulacak yeni fatura yok
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {preview.previews.map((item) => (
+              <div key={item.restaurant_id} className="p-3 hover:bg-blue-50/50">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{item.restaurant_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.order_count} sipariş
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                      {getBreakdownText(item.breakdown)}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold font-mono text-blue-600 flex-shrink-0">
+                    {formatMoney(item.required_amount)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* Total summary */}
+      {preview && preview.previews.length > 0 && (
+        <div className="p-3 border-t border-border bg-blue-50/50">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-blue-700 font-medium">Toplam:</span>
+            <span className="font-bold text-blue-600">
+              {formatMoney(preview.total_amount)}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ==================== Alınan Faturalar Tab Content ====================
 function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin }) {
   const now = new Date();
@@ -681,6 +771,10 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [restaurantData, setRestaurantData] = useState(null);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
+  
+  // Upcoming preview state
+  const [upcomingPreview, setUpcomingPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   
   const [loading, setLoading] = useState(true);
   const [restaurantLoading, setRestaurantLoading] = useState(false);
