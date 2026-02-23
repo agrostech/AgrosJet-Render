@@ -71,34 +71,41 @@ def get_weeks_list(opening_time: str, closing_time: str, count: int = 8) -> List
     
     weeks = []
     for i in range(count):
-        week_start = this_monday - timedelta(weeks=i)
-        week_start = week_start.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
+        base_monday = this_monday - timedelta(weeks=i)
+        week_start = base_monday.replace(hour=open_h, minute=open_m, second=0, microsecond=0, tzinfo=turkey_tz)
         
-        week_end = week_start + timedelta(weeks=1)
-        week_end = week_end.replace(hour=close_h, minute=close_m, second=0, microsecond=0)
+        week_end = (base_monday + timedelta(weeks=1)).replace(hour=close_h, minute=close_m, second=0, microsecond=0, tzinfo=turkey_tz)
         
-        # Label oluştur
-        start_day = week_start.strftime("%d")
-        end_day = week_end.strftime("%d")
-        month = week_start.strftime("%B")
-        year = week_start.strftime("%Y")
+        # Label oluştur - başlangıç ve bitiş aylarını ayrı kontrol et
+        start_day = week_start.day
+        end_day = week_end.day
+        start_month = week_start.month
+        end_month = week_end.month
+        year = week_start.year
         
         # Türkçe ay isimleri
-        month_tr = {
-            "January": "Ocak", "February": "Şubat", "March": "Mart",
-            "April": "Nisan", "May": "Mayıs", "June": "Haziran",
-            "July": "Temmuz", "August": "Ağustos", "September": "Eylül",
-            "October": "Ekim", "November": "Kasım", "December": "Aralık"
-        }.get(month, month)
+        month_names = {
+            1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
+            7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık"
+        }
         
-        label = f"{start_day}-{end_day} {month_tr} {year}"
+        if start_month == end_month:
+            label = f"{start_day}-{end_day} {month_names[start_month]} {year}"
+        else:
+            label = f"{start_day} {month_names[start_month]} - {end_day} {month_names[end_month]} {year}"
+        
+        # UTC'ye çevir (veritabanı sorguları için)
+        week_start_utc = week_start.astimezone(timezone.utc)
+        week_end_utc = week_end.astimezone(timezone.utc)
         
         weeks.append({
-            "week_start": week_start.isoformat(),
-            "week_end": week_end.isoformat(),
+            "week_start": week_start_utc.isoformat(),
+            "week_end": week_end_utc.isoformat(),
             "label": label,
             "is_current": i == 0
         })
+    
+    return weeks
     
     return weeks
 
