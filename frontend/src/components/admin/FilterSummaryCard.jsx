@@ -77,7 +77,7 @@ export default function FilterSummaryCard({
     return (
       <Card className="mb-4 border bg-muted/30">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <Store className="w-4 h-4 text-muted-foreground" />
             <h3 className="font-semibold text-foreground">
               {selectedRestaurant?.name || "Restoran"} - Özet
@@ -85,46 +85,87 @@ export default function FilterSummaryCard({
             <span className="text-sm text-muted-foreground">({orders.length} sipariş)</span>
           </div>
           
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Taşıma Ücreti:</span>
-              <span className="font-medium">{totals.tasimaUcreti.toFixed(2)}₺</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Taşıma Ücreti KDV:</span>
-              <span className="font-medium">{totals.tasimaKdv.toFixed(2)}₺</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground font-medium">Toplam Taşıma Ücreti:</span>
-              <span className="font-bold text-green-600">{toplamTasimaUcreti.toFixed(2)}₺</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">POS Komisyonu:</span>
-              <span className="font-medium text-green-600">{totals.posKomisyonu.toFixed(2)}₺</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Nakit Toplam:</span>
-              <span className="font-medium text-red-600">{totals.nakitToplam.toFixed(2)}₺</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Kredi Kartı Toplam:</span>
-              <span className="font-medium text-red-600">{totals.kartToplam.toFixed(2)}₺</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Online Toplam:</span>
-              <span className="font-medium text-blue-600">{totals.onlineToplam.toFixed(2)}₺</span>
-            </div>
-            {totals.yemekKartiToplam > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">Yemek Kartı:</span>
-                <span className="font-medium text-orange-600">{totals.yemekKartiToplam.toFixed(2)}₺</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            {/* Gelirler */}
+            <div className="space-y-2 p-3 bg-green-50 rounded-lg border border-green-100">
+              <h4 className="text-xs font-semibold text-green-700 uppercase tracking-wide">Gelirler</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taşıma Ücreti</span>
+                  <span className="font-medium">{totals.tasimaUcreti.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">KDV</span>
+                  <span className="font-medium">{totals.tasimaKdv.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">POS Komisyonu</span>
+                  <span className="font-medium">{totals.posKomisyonu.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-green-200">
+                  <span className="font-semibold text-green-700">Toplam</span>
+                  <span className="font-bold text-green-700">{(toplamTasimaUcreti + totals.posKomisyonu).toFixed(2)}₺</span>
+                </div>
               </div>
-            )}
-            <div className="flex items-center gap-1 border-l pl-4 ml-2">
-              <span className="text-muted-foreground font-medium">Sonuç:</span>
-              <span className={`font-bold ${sonuc >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {sonuc >= 0 ? '+' : ''}{sonuc.toFixed(2)}₺
-              </span>
+            </div>
+            
+            {/* Tahsilatlar */}
+            <div className="space-y-2 p-3 bg-red-50 rounded-lg border border-red-100">
+              <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wide">Tahsilatlar</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Nakit</span>
+                  <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kredi Kartı</span>
+                  <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-red-200">
+                  <span className="font-semibold text-red-700">Toplam</span>
+                  <span className="font-bold text-red-700">{(totals.nakitToplam + totals.kartToplam).toFixed(2)}₺</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Diğer Ödemeler */}
+            <div className="space-y-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Diğer Ödemeler</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Online</span>
+                  <span className="font-medium">{totals.onlineToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Yemek Kartı</span>
+                  <span className="font-medium">{totals.yemekKartiToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-blue-200">
+                  <span className="font-semibold text-blue-700">Toplam</span>
+                  <span className="font-bold text-blue-700">{(totals.onlineToplam + totals.yemekKartiToplam).toFixed(2)}₺</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Sonuç */}
+            <div className={`space-y-2 p-3 rounded-lg border ${sonuc >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+              <h4 className={`text-xs font-semibold uppercase tracking-wide ${sonuc >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>Sonuç</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Gelirler</span>
+                  <span className="text-green-600">+{(toplamTasimaUcreti + totals.posKomisyonu).toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Tahsilatlar</span>
+                  <span className="text-red-600">-{(totals.nakitToplam + totals.kartToplam).toFixed(2)}₺</span>
+                </div>
+                <div className={`flex justify-between pt-2 border-t ${sonuc >= 0 ? 'border-emerald-200' : 'border-rose-200'}`}>
+                  <span className={`font-semibold ${sonuc >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>Net</span>
+                  <span className={`font-bold text-lg ${sonuc >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {sonuc >= 0 ? '+' : ''}{sonuc.toFixed(2)}₺
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
