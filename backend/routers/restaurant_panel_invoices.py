@@ -223,6 +223,10 @@ async def delete_restaurant_invoice(restaurant_id: str, invoice_id: str):
         except ValueError:
             pass
     
+    # R2'den sil (eğer R2'de kayıtlıysa)
+    if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+        await delete_file_from_r2(invoice["r2_key"])
+    
     # Faturayı sil
     await db.restaurant_invoices.update_one(
         {"restaurant_id": restaurant_id, "invoices.id": invoice_id},
