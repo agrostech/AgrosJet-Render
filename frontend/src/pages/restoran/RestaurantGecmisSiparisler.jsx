@@ -31,7 +31,9 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   // Filter states
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [courierFilter, setCourierFilter] = useState("all");
+  const [courierNameFilter, setCourierNameFilter] = useState("all");
   const [couriers, setCouriers] = useState([]);
+  const [availableCouriers, setAvailableCouriers] = useState([]); // Bu restoran için teslimatta bulunan kuryeler
   
   // Date filters
   const getDefaultDates = useCallback(() => {
