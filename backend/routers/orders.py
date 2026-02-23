@@ -1539,19 +1539,19 @@ async def get_orders_unified(
         {"_id": 0}
     ).sort(sort_field, sort_order).to_list(10000)  # Önce hepsini çek, sonra filtrele
     
-    # Tarih filtresi varsa Python'da delivered_at ile filtrele (Türkiye saati)
+    # Tarih filtresi varsa Python'da created_at ile filtrele (Türkiye saati)
     if date_filter_start or date_filter_end:
         turkey_tz = timezone(timedelta(hours=3))
         filtered_orders = []
         for order in all_orders:
-            delivered_at = order.get("delivered_at")
-            if not delivered_at:
+            created_at = order.get("created_at")
+            if not created_at:
                 continue
             try:
-                if isinstance(delivered_at, str):
-                    order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+                if isinstance(created_at, str):
+                    order_dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
                 else:
-                    order_dt = delivered_at
+                    order_dt = created_at
                 
                 # Türkiye saati olarak kabul et (eğer timezone yoksa)
                 if order_dt.tzinfo is None:
