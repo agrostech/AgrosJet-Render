@@ -822,14 +822,17 @@ async def delete_invoice(company_id: str, invoice_id: str):
     """Faturayı sil"""
     record = await db.restaurant_invoices.find_one({
         "company_id": company_id,
-        "invoices.invoice_id": invoice_id
+        "$or": [
+            {"invoices.invoice_id": invoice_id},
+            {"invoices.id": invoice_id}
+        ]
     })
     
     if not record:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
-    # Faturayı listeden çıkar
-    invoices = [inv for inv in record.get("invoices", []) if inv["invoice_id"] != invoice_id]
+    # Faturayı listeden çıkar (her iki field'ı da kontrol et)
+    invoices = [inv for inv in record.get("invoices", []) if inv.get("invoice_id") != invoice_id and inv.get("id") != invoice_id]
     
     if len(invoices) == 0:
         # Tüm faturalar silindi, kaydı da sil
