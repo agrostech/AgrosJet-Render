@@ -494,6 +494,7 @@ async def get_restaurant_report(
             "totalCard": total_card,
             "totalOnline": total_online,
             "totalMealCard": total_meal_card,
+            "totalMealCardAll": total_meal_card_all,
             "totalModified": total_modified,
             "result": result
         },
