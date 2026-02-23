@@ -210,6 +210,8 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         }
     ).to_list(10000)
     
+    logger.info(f"Bulunan sipariş sayısı: {len(orders)}")
+    
     # Şirket ayarlarını al (KDV oranı, POS komisyonu)
     company = await db.companies.find_one(
         {"id": company_id},
