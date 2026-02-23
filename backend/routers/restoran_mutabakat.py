@@ -228,8 +228,49 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             # Tahsilat ayarları - "courier" ise mütabakata dahil, "restaurant" ise hariç
             "cash_included": collection_settings.get("cash_collection", "courier") == "courier",
             "card_included": collection_settings.get("card_collection", "courier") == "courier",
-            "meal_card_included": collection_settings.get("meal_card_collection", "courier") == "courier"
+            "meal_card_included": collection_settings.get("meal_card_collection", "courier") == "courier",
+            # Pricing ayarları (dinamik hesaplama için)
+            "pricing_type": r.get("pricing_type", "per_package"),
+            "per_package_price": r.get("per_package_price", 0),
+            "km_ranges": r.get("km_ranges", [])
         }
+    
+    # Mesafe hesaplama fonksiyonu
+    def calculate_distance(loc1, loc2):
+        """Haversine formula ile mesafe hesapla (km)"""
+        import math
+        if not loc1 or not loc2:
+            return 0.0
+        lat1 = loc1.get("latitude") or loc1.get("lat") or 0
+        lng1 = loc1.get("longitude") or loc1.get("lng") or 0
+        lat2 = loc2.get("latitude") or loc2.get("lat") or 0
+        lng2 = loc2.get("longitude") or loc2.get("lng") or 0
+        if not all([lat1, lng1, lat2, lng2]):
+            return 0.0
+        R = 6371  # Dünya yarıçapı km
+        dLat = math.radians(lat2 - lat1)
+        dLon = math.radians(lng2 - lng1)
+        a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
+    
+    # Ücret hesaplama fonksiyonu
+    def calculate_fee_from_pricing(pricing_type, per_package_price, km_ranges, distance_km):
+        """Ücretlendirme ayarına göre ücret hesapla"""
+        if pricing_type == "per_package":
+            return per_package_price or 0.0
+        elif pricing_type == "per_km" and km_ranges:
+            for km_range in km_ranges:
+                min_km = km_range.get("min_km", 0)
+                max_km = km_range.get("max_km")
+                price = km_range.get("price", 0)
+                if max_km is None:
+                    if distance_km >= min_km:
+                        return price
+                else:
+                    if min_km <= distance_km < max_km:
+                        return price
+        return 0.0
     
     for order in orders:
         rid = order.get("restaurant_id")
@@ -238,7 +279,24 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         
         data = restaurant_data[rid]
         data["order_count"] += 1
-        data["delivery_fee"] += order.get("delivery_fee", 0)
+        
+        # Taşıma ücreti hesaplama - önce siparişte kayıtlı değere bak
+        order_delivery_fee = order.get("delivery_fee") or order.get("restaurant_fee") or 0
+        
+        # Eğer siparişte ücret yoksa, restoran ayarlarından hesapla
+        if order_delivery_fee == 0 and (data["per_package_price"] > 0 or data["km_ranges"]):
+            distance_km = calculate_distance(
+                order.get("restaurant_location"),
+                order.get("delivery_location")
+            )
+            order_delivery_fee = calculate_fee_from_pricing(
+                data["pricing_type"],
+                data["per_package_price"],
+                data["km_ranges"],
+                distance_km
+            )
+        
+        data["delivery_fee"] += order_delivery_fee
         
         payment = order.get("payment_method", "cash")
         total = order.get("total_amount", 0)
