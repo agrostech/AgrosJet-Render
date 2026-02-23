@@ -98,8 +98,9 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   // Adisyo handlers
   const openAdisyoModal = () => {
     setAdisyoForm({
-      api_key: "",
-      api_secret: "",
+      web_app_key: "",
+      restaurant_identity: adisyoData?.restaurant_identity || "",
+      webhook_api_key: "",
       branch_id: adisyoData?.branch_id || ""
     });
     setShowSecrets({});
@@ -110,8 +111,9 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
     setSaving(true);
     try {
       const payload = {};
-      if (adisyoForm.api_key) payload.api_key = adisyoForm.api_key;
-      if (adisyoForm.api_secret) payload.api_secret = adisyoForm.api_secret;
+      if (adisyoForm.web_app_key) payload.web_app_key = adisyoForm.web_app_key;
+      if (adisyoForm.restaurant_identity) payload.restaurant_identity = adisyoForm.restaurant_identity;
+      if (adisyoForm.webhook_api_key) payload.webhook_api_key = adisyoForm.webhook_api_key;
       if (adisyoForm.branch_id !== undefined) payload.branch_id = adisyoForm.branch_id;
       
       await axios.put(`${API}/restaurant-integrations/${restaurantId}/adisyo`, payload);
