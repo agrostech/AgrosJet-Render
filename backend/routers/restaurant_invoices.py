@@ -734,10 +734,18 @@ async def upload_invoice(
     
     invoice_id = str(uuid.uuid4())
     turkey_tz = timezone(timedelta(hours=3))
-    now = datetime.now(turkey_tz).isoformat()
+    now = datetime.now(turkey_tz)
     
-    # R2'ye yükle
-    r2_key = f"restaurant-invoices/{company_id}/{restaurant_id}/{invoice_id}.{extension}"
+    # Şirket ve restoran adını al
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1})
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "name": 1})
+    
+    company_folder = format_name_for_folder(company["name"]) if company else company_id
+    restaurant_folder = format_name_for_folder(restaurant["name"]) if restaurant else restaurant_id
+    month_folder = get_turkish_month_folder(now)
+    
+    # R2 Key: RESTORAN_FATURALARI/SIRKET_ADI/RESTORAN_ADI/Subat_2026/dosya.pdf
+    r2_key = f"{R2_RESTAURANT_INVOICE_PREFIX}/{company_folder}/{restaurant_folder}/{month_folder}/{filename}"
     content_type = "application/pdf" if extension == "pdf" else f"image/{extension}"
     
     upload_result = await upload_file_to_r2(content, r2_key, content_type)
@@ -751,7 +759,7 @@ async def upload_invoice(
             "extension": extension,
             "file_data": file_data,
             "storage_type": "base64",
-            "uploaded_at": now,
+            "uploaded_at": now.isoformat(),
             "uploaded_by_admin_id": admin_id,
             "uploaded_by_admin_name": admin_name,
             "verified": False,
@@ -765,7 +773,7 @@ async def upload_invoice(
             "extension": extension,
             "r2_key": r2_key,
             "storage_type": "r2",
-            "uploaded_at": now,
+            "uploaded_at": now.isoformat(),
             "uploaded_by_admin_id": admin_id,
             "uploaded_by_admin_name": admin_name,
             "verified": False,
