@@ -894,7 +894,7 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
                 <strong>Webhook URL:</strong> Adisyo panelinde webhook oluştururken şu URL'yi girin:
               </p>
               <code className="text-xs bg-blue-100 px-2 py-1 rounded mt-1 block break-all">
-                {process.env.REACT_APP_BACKEND_URL}/api/adisyo/webhook
+                {window.location.origin}/api/adisyo/webhook
               </code>
             </div>
 
