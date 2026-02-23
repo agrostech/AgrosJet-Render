@@ -113,7 +113,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
         const end = new Date(filters.endDateTime);
         
         result = result.filter(o => {
-          const orderDate = new Date(o.delivered_at || o.updated_at || o.created_at);
+          const orderDate = new Date(o.created_at);
           return orderDate >= start && orderDate <= end;
         });
       }
