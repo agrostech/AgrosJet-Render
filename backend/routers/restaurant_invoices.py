@@ -682,3 +682,38 @@ async def delete_missing_invoice_record(company_id: str, record_id: str):
     await db.restaurant_invoices.delete_one({"id": record_id})
     
     return {"message": "Eksik fatura kaydı silindi"}
+
+
+# ========== Auto Settings Endpoints ==========
+
+@router.get("/restaurant-invoices/{company_id}/auto-settings")
+async def get_auto_settings(company_id: str):
+    """Otomatik eksik fatura oluşturma ayarlarını getir"""
+    settings = await db.restaurant_invoice_settings.find_one(
+        {"company_id": company_id},
+        {"_id": 0}
+    )
+    
+    return {
+        "enabled": settings.get("enabled", False) if settings else False,
+        "last_auto_run": settings.get("last_auto_run") if settings else None
+    }
+
+
+@router.put("/restaurant-invoices/{company_id}/auto-settings")
+async def update_auto_settings(company_id: str, data: AutoSettingsUpdate):
+    """Otomatik eksik fatura oluşturma ayarlarını güncelle"""
+    await db.restaurant_invoice_settings.update_one(
+        {"company_id": company_id},
+        {
+            "$set": {
+                "company_id": company_id,
+                "enabled": data.enabled,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    return {"success": True, "enabled": data.enabled}
+
