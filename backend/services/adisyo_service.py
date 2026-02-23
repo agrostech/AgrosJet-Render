@@ -773,17 +773,57 @@ async def get_adisyo_courier_id(restaurant_id: str, shiftjet_courier_id: str) ->
 
 # --- Adisyo Ödeme Tipleri ---
 # Adisyo PaymentMethodId değerleri
+# Adisyo Payment Type ID mapping - ShiftJet'ten Adisyo'ya gönderim için
+# meal_card detail'e göre doğru ID'yi bulmak için detaylı mapping
+ADISYO_PAYMENT_TYPE_BY_DETAIL = {
+    # Yemek kartları (meal_card)
+    "multinet": 3,
+    "smartticket": 4,
+    "smart ticket": 4,
+    "setcard": 5,
+    "set card": 5,
+    "sodexo": 6,
+    "metropol": 26,
+    "sodexo pass": 91,
+    "sodexo pass mobil": 91,
+    "sodexo cep": 97,
+    "sodexo cep pos": 97,
+}
+
+# Temel ödeme tipleri
 ADISYO_PAYMENT_TYPES = {
     "cash": 1,           # Nakit
     "card": 2,           # Kredi Kartı
-    "online": 53,        # Web Online
+    "online": 53,        # Web Online (varsayılan online)
     "meal_card": 3,      # Multinet (varsayılan yemek kartı)
     "online_meal_card": 41,  # Sodexo Online
 }
 
-def get_adisyo_payment_type(shiftjet_payment: str) -> int:
-    """ShiftJet ödeme yöntemini Adisyo payment type ID'sine çevir"""
-    return ADISYO_PAYMENT_TYPES.get(shiftjet_payment, 1)  # Varsayılan: Nakit
+def get_adisyo_payment_type(payment_method: str, payment_detail: str = None) -> int:
+    """
+    ShiftJet ödeme yöntemini Adisyo payment type ID'sine çevir.
+    
+    Args:
+        payment_method: cash, card, online, meal_card, online_meal_card
+        payment_detail: Sodexo, Setcard, Metropol, Multinet vb.
+    
+    Returns:
+        Adisyo Payment Type ID
+    """
+    # Eğer meal_card ise ve detail varsa, detaya göre doğru ID'yi bul
+    if payment_method == "meal_card" and payment_detail:
+        detail_lower = payment_detail.lower().strip()
+        
+        # Detaylı mapping'de ara
+        for key, type_id in ADISYO_PAYMENT_TYPE_BY_DETAIL.items():
+            if key in detail_lower:
+                return type_id
+        
+        # Bulunamazsa varsayılan meal_card (Multinet = 3)
+        return 3
+    
+    # Temel mapping'den dön
+    return ADISYO_PAYMENT_TYPES.get(payment_method, 1)  # Varsayılan: Nakit
 
 
 # --- Adisyo'ya durum güncelleme ---
