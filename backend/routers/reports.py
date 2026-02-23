@@ -531,11 +531,11 @@ async def get_courier_payment_report(
     if not start_dt or not end_dt:
         return {"cash_total": 0, "card_total": 0, "cash_orders": [], "card_orders": []}
     
-    # Teslim edilmiş siparişleri al
+    # Teslim edilmiş siparişleri al - delivered_at ile (teslim tarihi)
     match_filter = {
         "courier_id": courier_id,
         "status": "delivered",
-        "created_at": {
+        "delivered_at": {
             "$gte": start_dt,
             "$lte": end_dt
         }
