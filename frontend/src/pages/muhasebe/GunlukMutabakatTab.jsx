@@ -270,9 +270,9 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
         <span className="text-sm font-medium">
           {new Date(selectedDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
         </span>
-        {dateRange && (
+        {dateRange?.label && (
           <span className="text-xs text-slate-500">
-            ({dateRange.start?.split('T')[1]?.substring(0,5)} - {dateRange.end?.split('T')[1]?.substring(0,5)})
+            ({dateRange.label})
           </span>
         )}
       </div>
