@@ -4,6 +4,7 @@ import { Store, Bike, Clock } from "lucide-react";
 /**
  * Filtreleme sonucu özet kartı
  * Restoran veya Kurye filtrelemesi yapıldığında toplam değerleri gösterir
+ * Tahsilat hesaplamaları restoran collection_settings ayarlarına göre yapılır
  */
 export default function FilterSummaryCard({ 
   orders, 
@@ -17,6 +18,24 @@ export default function FilterSummaryCard({
   if (restaurantFilter === "all" && courierFilter === "all") {
     return null;
   }
+
+  // Restoran adını ve ayarlarını bul
+  const selectedRestaurant = restaurants.find(r => r.id === restaurantFilter);
+  
+  // Kurye adını bul
+  const selectedCourier = couriers.find(c => c.id === courierFilter);
+  
+  // Restoran tahsilat ayarları (varsayılan: tümü kurye)
+  const collectionSettings = selectedRestaurant?.collection_settings || {
+    cash_collection: "courier",
+    card_collection: "courier", 
+    meal_card_collection: "courier"
+  };
+  
+  // Hangi ödemeler kurye şirketi tarafından tahsil ediliyor?
+  const cashByCourier = collectionSettings.cash_collection === "courier";
+  const cardByCourier = collectionSettings.card_collection === "courier";
+  const mealCardByCourier = collectionSettings.meal_card_collection === "courier";
 
   // Hesaplamalar
   const totals = orders.reduce((acc, order) => {
@@ -40,12 +59,15 @@ export default function FilterSummaryCard({
     
     if (pm === "cash" || pm === "nakit") {
       acc.nakitToplam += tutar;
+      if (cashByCourier) acc.tahsilatToplam += tutar;
     } else if (pm === "card" || pm === "credit_card" || pm === "kredi_karti" || pm === "kart") {
       acc.kartToplam += tutar;
+      if (cardByCourier) acc.tahsilatToplam += tutar;
     } else if (pm === "online" || pm === "online_odeme") {
-      acc.onlineToplam += tutar; // Online ayrı sayılır
+      acc.onlineToplam += tutar;
     } else if (pm === "meal_card" || pm === "yemek_karti" || pm === "online_meal_card") {
       acc.yemekKartiToplam += tutar;
+      if (mealCardByCourier) acc.tahsilatToplam += tutar;
     }
     
     return acc;
@@ -57,20 +79,15 @@ export default function FilterSummaryCard({
     nakitToplam: 0,
     kartToplam: 0,
     onlineToplam: 0,
-    yemekKartiToplam: 0
+    yemekKartiToplam: 0,
+    tahsilatToplam: 0
   });
-
-  // Restoran adını bul
-  const selectedRestaurant = restaurants.find(r => r.id === restaurantFilter);
-  
-  // Kurye adını bul
-  const selectedCourier = couriers.find(c => c.id === courierFilter);
 
   // Toplam Taşıma Ücreti (Taşıma Ücreti + KDV)
   const toplamTasimaUcreti = totals.tasimaUcreti + totals.tasimaKdv;
   
-  // Sonuç hesaplama: (Toplam Taşıma Ücreti + POS Komisyonu) - (Nakit + Kredi Kartı + Online)
-  const sonuc = (toplamTasimaUcreti + totals.posKomisyonu) - (totals.nakitToplam + totals.kartToplam + totals.onlineToplam);
+  // Sonuç hesaplama: (Toplam Taşıma Ücreti + POS Komisyonu) - Tahsilatlar
+  const sonuc = (toplamTasimaUcreti + totals.posKomisyonu) - totals.tahsilatToplam;
 
   // Restoran filtrelemesi yapıldıysa
   if (restaurantFilter !== "all") {
