@@ -36,12 +36,16 @@ export default function FilterSummaryCard({
     
     // Ödeme yöntemine göre sipariş tutarları
     const tutar = order.total_amount || 0;
-    if (order.payment_method === "cash") {
+    const pm = (order.payment_method || "").toLowerCase();
+    
+    if (pm === "cash" || pm === "nakit") {
       acc.nakitToplam += tutar;
-    } else if (order.payment_method === "card") {
+    } else if (pm === "card" || pm === "credit_card" || pm === "kredi_karti" || pm === "kart") {
       acc.kartToplam += tutar;
-    } else if (order.payment_method === "online") {
-      acc.onlineToplam += tutar;
+    } else if (pm === "online" || pm === "online_odeme") {
+      acc.kartToplam += tutar; // Online da kart olarak sayılır
+    } else if (pm === "meal_card" || pm === "yemek_karti" || pm === "online_meal_card") {
+      acc.yemekKartiToplam += tutar;
     }
     
     return acc;
@@ -52,7 +56,7 @@ export default function FilterSummaryCard({
     kuryeHakedis: 0,
     nakitToplam: 0,
     kartToplam: 0,
-    onlineToplam: 0
+    yemekKartiToplam: 0
   });
 
   // Restoran adını bul
