@@ -118,21 +118,29 @@ async def get_adisyo_integration(restaurant_id: str):
     """Restoran Adisyo entegrasyon ayarlarını getir"""
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "id": 1, "name": 1, "adisyo_api_key": 1, "adisyo_api_secret": 1, "adisyo_branch_id": 1, "adisyo_connected": 1}
+        {"_id": 0, "id": 1, "name": 1, "adisyo_api_key": 1, "adisyo_api_secret": 1, 
+         "adisyo_restaurant_identity": 1, "adisyo_webhook_api_key": 1,
+         "adisyo_branch_id": 1, "adisyo_connected": 1}
     )
     
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
+    # Eski format veya yeni format kontrolü
+    web_app_key = restaurant.get("adisyo_api_key", "")
+    restaurant_identity = restaurant.get("adisyo_restaurant_identity") or restaurant.get("adisyo_api_secret", "")
+    webhook_api_key = restaurant.get("adisyo_webhook_api_key", "")
+    
     return {
         "restaurant_id": restaurant_id,
         "restaurant_name": restaurant.get("name"),
         "adisyo": {
-            "api_key": mask_secret(restaurant.get("adisyo_api_key", ""), 4),
-            "api_secret": "********" if restaurant.get("adisyo_api_secret") else "",
+            "web_app_key": mask_secret(web_app_key, 8) if web_app_key else "",
+            "restaurant_identity": mask_secret(restaurant_identity, 8) if restaurant_identity else "",
+            "has_webhook_key": bool(webhook_api_key),
             "branch_id": restaurant.get("adisyo_branch_id", ""),
             "connected": restaurant.get("adisyo_connected", False),
-            "has_credentials": bool(restaurant.get("adisyo_api_key") and restaurant.get("adisyo_api_secret"))
+            "has_credentials": bool(web_app_key and restaurant_identity)
         }
     }
 
@@ -153,13 +161,17 @@ async def update_adisyo_integration(restaurant_id: str, data: AdisyoIntegration)
     }
     
     # Sadece gönderilen alanları güncelle
-    if data.api_key is not None:
-        update_fields["adisyo_api_key"] = data.api_key
+    if data.web_app_key is not None:
+        update_fields["adisyo_api_key"] = data.web_app_key  # x-api-key header için
         update_fields["adisyo_connected"] = False  # Yeni key girilince bağlantı sıfırlanır
     
-    if data.api_secret is not None:
-        update_fields["adisyo_api_secret"] = data.api_secret
+    if data.restaurant_identity is not None:
+        update_fields["adisyo_api_secret"] = data.restaurant_identity  # x-api-secret header için
+        update_fields["adisyo_restaurant_identity"] = data.restaurant_identity  # Webhook için de
         update_fields["adisyo_connected"] = False
+    
+    if data.webhook_api_key is not None:
+        update_fields["adisyo_webhook_api_key"] = data.webhook_api_key
     
     if data.branch_id is not None:
         update_fields["adisyo_branch_id"] = data.branch_id
