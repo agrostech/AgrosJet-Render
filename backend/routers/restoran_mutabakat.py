@@ -322,9 +322,10 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         if data["order_count"] == 0:
             continue
         
-        # Hesaplamalar
+        # Hesaplamalar - Restoran bazlı KDV oranı kullan
         delivery_fee = data["delivery_fee"]
-        delivery_vat = delivery_fee * (vat_rate / 100)
+        restaurant_vat_rate = data.get("kdv_rate", default_vat_rate)  # Restoran KDV oranı
+        delivery_vat = delivery_fee * (restaurant_vat_rate / 100)
         total_delivery = delivery_fee + delivery_vat
         
         # Tahsilat ayarlarına göre mütabakata dahil edilecek tutarları belirle
