@@ -483,6 +483,51 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
           
           <CollapsibleContent>
             <CardContent className="space-y-4">
+              {/* Bağlantı Durumu ve Butonları */}
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-slate-50">
+                <div className="flex items-center gap-2">
+                  {serverStatus.connected ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <span className="text-sm font-medium text-green-700">Bağlı</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-5 h-5 text-slate-400" />
+                      <span className="text-sm font-medium text-slate-500">Bağlı Değil</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {serverStatus.connected ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleDisconnect}
+                      className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Unplug className="w-4 h-4" />
+                      Bağlantıyı Kes
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleConnect}
+                      disabled={connecting}
+                      className="gap-2"
+                    >
+                      {connecting ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Plug className="w-4 h-4" />
+                      )}
+                      Bağlan
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               {/* Bağlı Değilse - İndirme */}
               {!serverStatus.connected && (
                 <div className="p-4 border rounded-lg space-y-3">
