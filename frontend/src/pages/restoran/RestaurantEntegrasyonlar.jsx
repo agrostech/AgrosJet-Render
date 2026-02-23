@@ -40,7 +40,12 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   
   // Adisyo Modal states
   const [showAdisyoModal, setShowAdisyoModal] = useState(false);
-  const [adisyoForm, setAdisyoForm] = useState({ api_key: "", api_secret: "", branch_id: "" });
+  const [adisyoForm, setAdisyoForm] = useState({ 
+    web_app_key: "", 
+    restaurant_identity: "", 
+    webhook_api_key: "",
+    branch_id: "" 
+  });
   const [showSecrets, setShowSecrets] = useState({});
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
