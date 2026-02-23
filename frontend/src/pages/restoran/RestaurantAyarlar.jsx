@@ -130,6 +130,30 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
     }
   };
 
+  // Manuel bağlan
+  const handleConnect = async () => {
+    setConnecting(true);
+    const status = await checkLocalPrintServer();
+    setServerStatus(status);
+    if (status.connected) {
+      setPrinters(status.printers || []);
+      if (!localSettings.printerName && status.defaultPrinter) {
+        setLocalSettings(prev => ({ ...prev, printerName: status.defaultPrinter }));
+      }
+      toast.success("Yazdırma sunucusuna bağlandı");
+    } else {
+      toast.error("Yazdırma sunucusuna bağlanılamadı. Programın çalıştığından emin olun.");
+    }
+    setConnecting(false);
+  };
+
+  // Bağlantıyı kes
+  const handleDisconnect = () => {
+    setServerStatus({ connected: false, message: "Bağlantı kesildi" });
+    setPrinters([]);
+    toast.success("Bağlantı kesildi");
+  };
+
   const updateLocalSetting = (key, value) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
   };
