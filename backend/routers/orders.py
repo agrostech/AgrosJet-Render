@@ -1539,8 +1539,9 @@ async def get_orders_unified(
         {"_id": 0}
     ).sort(sort_field, sort_order).to_list(10000)  # Önce hepsini çek, sonra filtrele
     
-    # Tarih filtresi varsa Python'da delivered_at ile filtrele
+    # Tarih filtresi varsa Python'da delivered_at ile filtrele (Türkiye saati)
     if date_filter_start or date_filter_end:
+        turkey_tz = timezone(timedelta(hours=3))
         filtered_orders = []
         for order in all_orders:
             delivered_at = order.get("delivered_at")
@@ -1552,10 +1553,9 @@ async def get_orders_unified(
                 else:
                     order_dt = delivered_at
                 
+                # Türkiye saati olarak kabul et (eğer timezone yoksa)
                 if order_dt.tzinfo is None:
-                    order_dt = order_dt.replace(tzinfo=timezone.utc)
-                else:
-                    order_dt = order_dt.astimezone(timezone.utc)
+                    order_dt = order_dt.replace(tzinfo=turkey_tz)
                 
                 # Tarih aralığı kontrolü
                 if date_filter_start and order_dt < date_filter_start:
