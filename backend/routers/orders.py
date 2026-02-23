@@ -336,7 +336,9 @@ async def update_order_status_core(
     if not order:
         return {"success": False, "error": "Sipariş bulunamadı"}
     
-    now = datetime.now(timezone.utc)
+    # Türkiye saati (UTC+3)
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
     
     # Status label mapping
     status_labels = {
