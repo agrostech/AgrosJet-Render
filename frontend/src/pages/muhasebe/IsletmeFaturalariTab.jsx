@@ -948,7 +948,8 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
   useEffect(() => {
     fetchAutoSettings();
     fetchCompanyTime();
-  }, [fetchAutoSettings, fetchCompanyTime]);
+    fetchUpcomingPreview();
+  }, [fetchAutoSettings, fetchCompanyTime, fetchUpcomingPreview]);
 
   // Navigation
   const handlePrevMonth = () => {
