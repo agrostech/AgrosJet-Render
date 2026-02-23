@@ -105,7 +105,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
               <span>POS Kom.: <strong className="text-green-600">{(reportData.summary?.totalPosCommission || 0).toFixed(2)}₺</strong></span>
               <span>Nakit: <strong className="text-red-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</strong></span>
               <span>Kart: <strong className="text-red-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</strong></span>
-              <span>Y.Kartı: <strong className="text-red-600">{(reportData.summary?.totalMealCard || 0).toFixed(2)}₺</strong></span>
+              <span>Y.Kartı: <strong className="text-foreground">{(reportData.summary?.totalMealCardAll || 0).toFixed(2)}₺</strong>{(reportData.summary?.totalMealCard || 0) > 0 && <strong className="text-red-600 ml-1">({(reportData.summary?.totalMealCard || 0).toFixed(2)}₺)</strong>}</span>
               <span>Online: <strong>{(reportData.summary?.totalOnline || 0).toFixed(2)}₺</strong></span>
               <span className="border-l pl-3 ml-1">Sonuç: <strong className={(reportData.summary?.result || 0) >= 0 ? 'text-green-600' : 'text-red-600'}>{(reportData.summary?.result || 0) >= 0 ? '+' : ''}{(reportData.summary?.result || 0).toFixed(2)}₺</strong></span>
             </div>
