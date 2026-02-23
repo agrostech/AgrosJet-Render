@@ -51,6 +51,9 @@ async def get_restaurant_issued_invoices(restaurant_id: str):
         {"_id": 0}
     ).sort("week_start", -1).to_list(50)
     
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
+    
     result = []
     for record in records:
         # invoices array'inde restoran tarafından yüklenen fatura var mı?
@@ -59,6 +62,16 @@ async def get_restaurant_issued_invoices(restaurant_id: str):
             if inv.get("uploaded_by_restaurant"):
                 restaurant_invoice = inv
                 break
+        
+        # 30 dakika içinde silinebilir mi?
+        can_delete = False
+        if restaurant_invoice and restaurant_invoice.get("uploaded_at"):
+            try:
+                upload_time = datetime.fromisoformat(restaurant_invoice["uploaded_at"].replace('Z', '+00:00'))
+                diff_minutes = (now - upload_time).total_seconds() / 60
+                can_delete = diff_minutes <= 30 and not restaurant_invoice.get("verified", False)
+            except (ValueError, TypeError):
+                pass
         
         result.append({
             "id": record.get("id"),
@@ -72,7 +85,8 @@ async def get_restaurant_issued_invoices(restaurant_id: str):
             "invoice_id": restaurant_invoice.get("id") if restaurant_invoice else None,
             "invoice_filename": restaurant_invoice.get("filename") if restaurant_invoice else None,
             "invoice_verified": restaurant_invoice.get("verified", False) if restaurant_invoice else False,
-            "invoice_amount": restaurant_invoice.get("amount") if restaurant_invoice else None
+            "invoice_amount": restaurant_invoice.get("amount") if restaurant_invoice else None,
+            "can_delete": can_delete
         })
     
     return result
