@@ -181,7 +181,7 @@ export default function FilterSummaryCard({
     return (
       <Card className="mb-4 border bg-muted/30">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <Bike className="w-4 h-4 text-muted-foreground" />
             <h3 className="font-semibold text-foreground">
               {selectedCourier?.name || "Kurye"} - Özet
@@ -189,43 +189,70 @@ export default function FilterSummaryCard({
             <span className="text-sm text-muted-foreground">({orders.length} sipariş)</span>
           </div>
           
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Paket Hakediş:</span>
-              <span className="font-medium text-red-600">{totals.kuryeHakedis.toFixed(2)}₺</span>
-            </div>
-            {hourlyData && hourlyData.hourly_rate > 0 && (
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded">
-                <Clock className="w-3 h-3 text-slate-500" />
-                <span className="text-slate-600">Saatlik:</span>
-                <span className="font-medium text-red-600">{hourlyData.hourly_earnings.toFixed(2)}₺</span>
-                <span className="text-xs text-slate-400">({hourlyData.active_hours}s × {hourlyData.hourly_rate}₺)</span>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            {/* Hakediş */}
+            <div className="space-y-2 p-3 bg-red-50 rounded-lg border border-red-100">
+              <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wide">Hakediş</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Paket Hakediş</span>
+                  <span className="font-medium">{totals.kuryeHakedis.toFixed(2)}₺</span>
+                </div>
+                {hourlyData && hourlyData.hourly_rate > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Saatlik</span>
+                    <span className="font-medium">{hourlyData.hourly_earnings.toFixed(2)}₺</span>
+                  </div>
+                )}
+                {hourlyData && hourlyData.hourly_rate > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    ({hourlyData.active_hours} saat × {hourlyData.hourly_rate}₺)
+                  </div>
+                )}
+                <div className="flex justify-between pt-1 border-t border-red-200">
+                  <span className="font-semibold text-red-700">Toplam</span>
+                  <span className="font-bold text-red-700">{totalHakedis.toFixed(2)}₺</span>
+                </div>
               </div>
-            )}
-            {hourlyData && hourlyData.hourly_rate > 0 && (
-              <div className="flex items-center gap-1 border-l pl-3">
-                <span className="text-muted-foreground font-medium">Toplam Hakediş:</span>
-                <span className="font-bold text-red-600">{totalHakedis.toFixed(2)}₺</span>
+            </div>
+            
+            {/* Tahsilatlar */}
+            <div className="space-y-2 p-3 bg-green-50 rounded-lg border border-green-100">
+              <h4 className="text-xs font-semibold text-green-700 uppercase tracking-wide">Tahsilatlar</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Nakit</span>
+                  <span className="font-medium">{totals.nakitToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Kredi Kartı</span>
+                  <span className="font-medium">{totals.kartToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-green-200">
+                  <span className="font-semibold text-green-700">Toplam</span>
+                  <span className="font-bold text-green-700">{(totals.nakitToplam + totals.kartToplam).toFixed(2)}₺</span>
+                </div>
               </div>
-            )}
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Toplam Nakit:</span>
-              <span className="font-medium text-green-600">{totals.nakitToplam.toFixed(2)}₺</span>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Toplam Kredi Kartı:</span>
-              <span className="font-medium text-green-600">{totals.kartToplam.toFixed(2)}₺</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">Toplam Online:</span>
-              <span className="font-medium text-blue-600">{totals.onlineToplam.toFixed(2)}₺</span>
-            </div>
-            {totals.yemekKartiToplam > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">Yemek Kartı:</span>
-                <span className="font-medium text-orange-600">{totals.yemekKartiToplam.toFixed(2)}₺</span>
+            
+            {/* Diğer Ödemeler */}
+            <div className="space-y-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Diğer Ödemeler</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Online</span>
+                  <span className="font-medium">{totals.onlineToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Yemek Kartı</span>
+                  <span className="font-medium">{totals.yemekKartiToplam.toFixed(2)}₺</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-blue-200">
+                  <span className="font-semibold text-blue-700">Toplam</span>
+                  <span className="font-bold text-blue-700">{(totals.onlineToplam + totals.yemekKartiToplam).toFixed(2)}₺</span>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
