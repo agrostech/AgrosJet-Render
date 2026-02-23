@@ -120,6 +120,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     setCurrentPage(1);
     fetchAndFilterOrders({
       courier: courierFilter,
+      courierName: courierNameFilter,
       payment: paymentFilter,
       startDateTime,
       endDateTime
