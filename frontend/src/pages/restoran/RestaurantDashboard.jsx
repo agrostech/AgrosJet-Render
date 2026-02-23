@@ -211,7 +211,7 @@ export default function RestaurantDashboard() {
       case "iptal":
         return <RestaurantIptalSiparisler restaurantId={user?.restaurant_id} />;
       case "muhasebe":
-        return <RestaurantMuhasebe restaurantId={user?.restaurant_id} />;
+        return <RestaurantMuhasebe restaurantId={user?.restaurant_id} restaurantName={restaurant?.name} />;
       case "raporlar":
         return <RestaurantRaporlar restaurantId={user?.restaurant_id} />;
       case "entegrasyonlar":
