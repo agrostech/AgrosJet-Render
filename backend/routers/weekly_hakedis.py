@@ -322,7 +322,8 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
         "filter": {
             "week_start": week.week_start,
             "week_end": week.week_end
-        }
+        },
+        "date_range_label": f"{start_dt.strftime('%d.%m.%Y %H:%M')} - {end_dt.strftime('%d.%m.%Y %H:%M')}"
     }
 
 
