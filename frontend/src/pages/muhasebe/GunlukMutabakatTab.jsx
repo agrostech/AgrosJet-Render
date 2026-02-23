@@ -205,10 +205,15 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
   // Hafta navigasyonu
   const navigateWeek = async (direction) => {
     if (!weeklyData) return;
-    const currentStart = new Date(weeklyData.week_start);
+    const currentStart = new Date(weeklyData.week_start + 'T12:00:00'); // Öğlen saati ekle timezone sorunu için
     const newStart = new Date(currentStart);
     newStart.setDate(newStart.getDate() + (direction === 'prev' ? -7 : 7));
-    const newStartStr = newStart.toISOString().split('T')[0];
+    
+    // Local tarih formatı
+    const year = newStart.getFullYear();
+    const month = String(newStart.getMonth() + 1).padStart(2, '0');
+    const day = String(newStart.getDate()).padStart(2, '0');
+    const newStartStr = `${year}-${month}-${day}`;
     
     // Önce yeni haftanın verilerini çek
     await fetchWeeklySummary(newStartStr);
