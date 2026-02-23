@@ -149,6 +149,11 @@ async def upload_restaurant_invoice(
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     company_id = restaurant.get("company_id")
+    restaurant_name = restaurant.get("name", "")
+    
+    # Şirket adını al
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1})
+    company_name = company.get("name", "") if company else ""
     
     # Fatura kaydını kontrol et
     invoice_record = await db.restaurant_invoices.find_one(
@@ -169,10 +174,15 @@ async def upload_restaurant_invoice(
     
     invoice_id = str(uuid.uuid4())
     turkey_tz = timezone(timedelta(hours=3))
-    now = datetime.now(turkey_tz).isoformat()
+    now = datetime.now(turkey_tz)
     
-    # R2'ye yükle
-    r2_key = f"restaurant-invoices/{company_id}/{restaurant_id}/{invoice_id}.{ext}"
+    # Klasör yapısı oluştur
+    company_folder = format_name_for_folder(company_name) if company_name else company_id
+    restaurant_folder = format_name_for_folder(restaurant_name) if restaurant_name else restaurant_id
+    month_folder = get_turkish_month_folder(now)
+    
+    # R2 Key: RESTORAN_FATURALARI/SIRKET_ADI/RESTORAN_ADI/Subat_2026/dosya.pdf
+    r2_key = f"{R2_RESTAURANT_INVOICE_PREFIX}/{company_folder}/{restaurant_folder}/{month_folder}/{file.filename}"
     upload_result = await upload_file_to_r2(contents, r2_key, "application/pdf")
     
     if not upload_result.get("success"):
@@ -184,7 +194,7 @@ async def upload_restaurant_invoice(
             "extension": ext,
             "storage_type": "base64",
             "amount": invoice_record.get("required_amount", 0),
-            "uploaded_at": now,
+            "uploaded_at": now.isoformat(),
             "uploaded_by_restaurant": True,
             "verified": False
         }
@@ -197,7 +207,7 @@ async def upload_restaurant_invoice(
             "extension": ext,
             "storage_type": "r2",
             "amount": invoice_record.get("required_amount", 0),
-            "uploaded_at": now,
+            "uploaded_at": now.isoformat(),
             "uploaded_by_restaurant": True,
             "verified": False
         }
