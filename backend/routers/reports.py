@@ -275,7 +275,7 @@ async def get_restaurant_report(
     if len(end_datetime) == 16:
         end_datetime = end_datetime + ":59"
     
-    # Türkiye saatinden UTC'ye çevir (tutarlılık için)
+    # Türkiye saati olarak filtrele (DB'de Türkiye saati kaydediliyor)
     turkey_tz = timezone(timedelta(hours=3))
     try:
         # Önce datetime'a çevir
@@ -287,10 +287,6 @@ async def get_restaurant_report(
             start_dt = start_dt.replace(tzinfo=turkey_tz)
         if end_dt.tzinfo is None:
             end_dt = end_dt.replace(tzinfo=turkey_tz)
-        
-        # UTC'ye çevir
-        start_dt_utc = start_dt.astimezone(timezone.utc)
-        end_dt_utc = end_dt.astimezone(timezone.utc)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Tarih formatı hatalı: {str(e)}")
     
