@@ -106,6 +106,7 @@ export default function HaftalikHakedisTab({ companyId }) {
       setCouriers(res.data.couriers);
       setSummary(res.data.summary);
       setWeekDescription(res.data.week_description);
+      setDateRangeLabel(res.data.date_range_label || "");
     } catch (err) {
       toast.error("Hakediş verileri yüklenemedi");
     } finally {
