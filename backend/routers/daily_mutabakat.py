@@ -278,7 +278,7 @@ async def get_courier_orders_detail(company_id: str, courier_id: str, start_dt: 
         "total_amount": 1,
         "payment_method": 1, 
         "payment_details": 1,
-        "updated_at": 1,
+        "delivered_at": 1,
         "created_at": 1
     }).to_list(1000)
     
@@ -286,15 +286,15 @@ async def get_courier_orders_detail(company_id: str, courier_id: str, start_dt: 
     card_orders = []
     
     for order in orders:
-        # Tarih kontrolü
-        updated_at = order.get("updated_at")
-        if not updated_at:
+        # Tarih kontrolü - delivered_at ile
+        delivered_at = order.get("delivered_at")
+        if not delivered_at:
             continue
         try:
-            if isinstance(updated_at, str):
-                order_dt = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
-            elif isinstance(updated_at, datetime):
-                order_dt = updated_at
+            if isinstance(delivered_at, str):
+                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            elif isinstance(delivered_at, datetime):
+                order_dt = delivered_at
             else:
                 continue
             
