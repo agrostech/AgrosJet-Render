@@ -38,6 +38,7 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
   const [printers, setPrinters] = useState([]);
   const [loadingPrinters, setLoadingPrinters] = useState(false);
   const [testingPrint, setTestingPrint] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [openSections, setOpenSections] = useState({ print: false, notification: false, courierAssignment: false });
   const [hasChanges, setHasChanges] = useState(false);
 
