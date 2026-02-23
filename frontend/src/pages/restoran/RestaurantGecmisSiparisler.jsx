@@ -181,6 +181,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
 
   const clearFilters = () => {
     setCourierFilter("all");
+    setCourierNameFilter("all");
     setPaymentFilter("all");
     const defaults = getDefaultDates();
     setStartDateTime(defaults.startDateTime);
@@ -188,6 +189,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     setCurrentPage(1);
     fetchAndFilterOrders({
       courier: "all",
+      courierName: "all",
       payment: "all",
       startDateTime: defaults.startDateTime,
       endDateTime: defaults.endDateTime
