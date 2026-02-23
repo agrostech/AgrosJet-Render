@@ -241,7 +241,7 @@ async def get_upcoming_invoices_preview(company_id: str):
     open_h, open_m = map(int, opening_time.split(':'))
     close_h, close_m = map(int, closing_time.split(':'))
     
-    week_start_dt = last_monday.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
+    week_start_dt = this_monday.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
     week_end_dt = week_start_dt + timedelta(days=7)
     week_end_dt = week_end_dt.replace(hour=close_h, minute=close_m, second=0, microsecond=0)
     
