@@ -134,11 +134,25 @@ async def upload_restaurant_invoice(
 
 @router.get("/{restaurant_id}/issued/download/{invoice_id}")
 async def download_restaurant_invoice(restaurant_id: str, invoice_id: str):
-    """Restoran faturasını indir"""
-    invoice = await db.restaurant_invoices.find_one(
-        {"id": invoice_id, "restaurant_id": restaurant_id},
-        {"_id": 0}
+    """Restoran faturasını indir - invoices array'inden çeker"""
+    # Fatura kaydını bul
+    record = await db.restaurant_invoices.find_one(
+        {
+            "restaurant_id": restaurant_id,
+            "invoices.id": invoice_id
+        },
+        {"_id": 0, "invoices": 1}
     )
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # invoices array'inden belirli faturayı bul
+    invoice = None
+    for inv in record.get("invoices", []):
+        if inv.get("id") == invoice_id:
+            invoice = inv
+            break
     
     if not invoice:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
@@ -146,7 +160,7 @@ async def download_restaurant_invoice(restaurant_id: str, invoice_id: str):
     return {
         "filename": invoice.get("filename"),
         "file_data": invoice.get("file_data"),
-        "extension": invoice.get("file_extension", "pdf")
+        "extension": invoice.get("extension", "pdf")
     }
 
 
