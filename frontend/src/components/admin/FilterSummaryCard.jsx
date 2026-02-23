@@ -175,6 +175,16 @@ export default function FilterSummaryCard({
               <span className="text-muted-foreground">Toplam Kredi Kartı:</span>
               <span className="font-medium text-green-600">{totals.kartToplam.toFixed(2)}₺</span>
             </div>
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">Toplam Online:</span>
+              <span className="font-medium text-blue-600">{totals.onlineToplam.toFixed(2)}₺</span>
+            </div>
+            {totals.yemekKartiToplam > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Yemek Kartı:</span>
+                <span className="font-medium text-orange-600">{totals.yemekKartiToplam.toFixed(2)}₺</span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
