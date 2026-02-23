@@ -1534,10 +1534,46 @@ async def get_orders_unified(
     sort_order = 1 if panel == "courier" else -1  # Kurye için en eski önce
     
     # Sorgu çalıştır
-    orders = await db.orders.find(
+    all_orders = await db.orders.find(
         query, 
         {"_id": 0}
-    ).sort(sort_field, sort_order).skip(offset).to_list(limit)
+    ).sort(sort_field, sort_order).to_list(10000)  # Önce hepsini çek, sonra filtrele
+    
+    # Tarih filtresi varsa Python'da delivered_at ile filtrele
+    if date_filter_start or date_filter_end:
+        filtered_orders = []
+        for order in all_orders:
+            delivered_at = order.get("delivered_at")
+            if not delivered_at:
+                continue
+            try:
+                if isinstance(delivered_at, str):
+                    order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+                else:
+                    order_dt = delivered_at
+                
+                if order_dt.tzinfo is None:
+                    order_dt = order_dt.replace(tzinfo=timezone.utc)
+                else:
+                    order_dt = order_dt.astimezone(timezone.utc)
+                
+                # Tarih aralığı kontrolü
+                if date_filter_start and order_dt < date_filter_start:
+                    continue
+                if date_filter_end and order_dt > date_filter_end:
+                    continue
+                
+                filtered_orders.append(order)
+            except:
+                continue
+        
+        # Pagination uygula
+        total_count = len(filtered_orders)
+        orders = filtered_orders[offset:offset + limit]
+    else:
+        # Tarih filtresi yoksa normal pagination
+        orders = all_orders[offset:offset + limit]
+        total_count = await db.orders.count_documents(query)
     
     # Kurye bilgilerini zenginleştir (restaurant ve admin paneli için)
     if panel in ["restaurant", "admin"]:
