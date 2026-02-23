@@ -825,7 +825,7 @@ async def verify_invoice(company_id: str, data: InvoiceVerify):
 
 @router.get("/restaurant-invoices/{company_id}/download/{invoice_id}")
 async def download_invoice(company_id: str, invoice_id: str):
-    """Fatura dosyasını indir"""
+    """Fatura dosyasını indir - R2 veya base64'ten"""
     # İlk olarak invoice_id ile ara
     record = await db.restaurant_invoices.find_one({
         "company_id": company_id,
@@ -841,11 +841,28 @@ async def download_invoice(company_id: str, invoice_id: str):
     for inv in record.get("invoices", []):
         # Her iki field'ı da kontrol et
         if inv.get("invoice_id") == invoice_id or inv.get("id") == invoice_id:
-            return {
-                "file_data": inv["file_data"],
-                "filename": inv["filename"],
-                "extension": inv["extension"]
-            }
+            # R2'den mi base64'ten mi?
+            storage_type = inv.get("storage_type", "base64")
+            
+            if storage_type == "r2" and inv.get("r2_key"):
+                # R2'den indir
+                file_content = await download_file_from_r2(inv["r2_key"])
+                if file_content:
+                    file_data = base64.b64encode(file_content).decode("utf-8")
+                    return {
+                        "file_data": file_data,
+                        "filename": inv["filename"],
+                        "extension": inv["extension"]
+                    }
+                else:
+                    raise HTTPException(status_code=404, detail="Dosya R2'de bulunamadı")
+            else:
+                # Base64 olarak kayıtlı
+                return {
+                    "file_data": inv.get("file_data", ""),
+                    "filename": inv["filename"],
+                    "extension": inv["extension"]
+                }
     
     raise HTTPException(status_code=404, detail="Fatura dosyası bulunamadı")
 
