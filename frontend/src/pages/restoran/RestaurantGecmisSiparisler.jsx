@@ -355,6 +355,22 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
               </Select>
             </div>
             
+            {/* Courier Name Filter */}
+            <div className="min-w-[120px] flex-1 max-w-[180px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Kurye</Label>
+              <Select value={courierNameFilter} onValueChange={setCourierNameFilter}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  {availableCouriers.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             {/* Payment */}
             <div className="min-w-[100px] flex-1 max-w-[140px]">
               <Label className="text-xs text-muted-foreground mb-1 block">Ödeme</Label>
