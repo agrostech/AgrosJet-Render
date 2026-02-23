@@ -192,7 +192,7 @@ export default function RestoranlarPage({ companyId }) {
     setShowInvoiceSettingsModal(true);
     setLoadingInvoiceSettings(true);
     try {
-      const res = await axios.get(`${API}/restaurants/${restaurant.id}/invoice-settings`);
+      const res = await axios.get(`${API}/restaurant-invoice-settings/${restaurant.id}`);
       setInvoiceSettings(res.data.settings);
     } catch (err) {
       console.error("Fatura ayarları yüklenemedi:", err);
@@ -211,7 +211,7 @@ export default function RestoranlarPage({ companyId }) {
   const handleSaveInvoiceSettings = async () => {
     if (!selectedRestaurant) return;
     try {
-      await axios.put(`${API}/restaurants/${selectedRestaurant.id}/invoice-settings`, invoiceSettings);
+      await axios.put(`${API}/restaurant-invoice-settings/${selectedRestaurant.id}`, invoiceSettings);
       toast.success("Fatura ayarları kaydedildi");
       setShowInvoiceSettingsModal(false);
     } catch (err) {
