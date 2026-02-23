@@ -588,8 +588,11 @@ async def get_month_invoices(company_id: str, year: int, month: int):
                 try:
                     upload_date = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
                     if month_start <= upload_date < month_end:
+                        # invoice_id veya id field'ını normalize et
+                        inv_id = inv.get("invoice_id") or inv.get("id")
                         month_invoices.append({
                             **inv,
+                            "invoice_id": inv_id,  # Her zaman invoice_id olarak döndür
                             "restaurant_id": record["restaurant_id"],
                             "restaurant_name": record.get("restaurant_name", ""),
                             "week_start": record["week_start"],
