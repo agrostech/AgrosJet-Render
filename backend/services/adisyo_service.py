@@ -1019,17 +1019,25 @@ async def cancel_adisyo_order(restaurant_id: str, adisyo_order_id: int) -> dict:
 
 
 # Eski fonksiyon - geriye uyumluluk için
-async def update_adisyo_order_status(restaurant_id: str, adisyo_order_id: int, status: str, courier_id: str = None, payment_method: str = None) -> dict:
+async def update_adisyo_order_status(restaurant_id: str, adisyo_order_id: int, status: str, courier_id: str = None, payment_method: str = None, payment_detail: str = None) -> dict:
     """
     Adisyo'da sipariş durumunu güncelle.
     Eski API - yeni fonksiyonlara yönlendirir.
+    
+    Args:
+        restaurant_id: Restoran ID
+        adisyo_order_id: Adisyo sipariş ID
+        status: ready, on_the_way, delivered, cancelled
+        courier_id: Kurye ID (on_the_way için)
+        payment_method: Ödeme yöntemi (delivered için)
+        payment_detail: Yemek kartı detayı - Sodexo, Setcard vb. (delivered için)
     """
     if status == "ready":
         return await mark_adisyo_order_prepared(restaurant_id, adisyo_order_id)
     elif status == "on_the_way":
         return await mark_adisyo_order_on_delivery(restaurant_id, adisyo_order_id, courier_id)
     elif status == "delivered":
-        return await mark_adisyo_order_delivered(restaurant_id, adisyo_order_id, payment_method or "cash")
+        return await mark_adisyo_order_delivered(restaurant_id, adisyo_order_id, payment_method or "cash", payment_detail)
     elif status == "cancelled":
         return await cancel_adisyo_order(restaurant_id, adisyo_order_id)
     else:
