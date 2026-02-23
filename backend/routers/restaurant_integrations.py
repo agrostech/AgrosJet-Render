@@ -191,17 +191,19 @@ async def test_adisyo_connection(restaurant_id: str):
     
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "id": 1, "name": 1, "adisyo_api_key": 1, "adisyo_api_secret": 1, "adisyo_branch_id": 1}
+        {"_id": 0, "id": 1, "name": 1, "adisyo_api_key": 1, "adisyo_api_secret": 1, 
+         "adisyo_restaurant_identity": 1, "adisyo_branch_id": 1}
     )
     
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
+    # Web App Key = adisyo_api_key, Restaurant Identity = adisyo_api_secret veya adisyo_restaurant_identity
     api_key = restaurant.get("adisyo_api_key")
-    api_secret = restaurant.get("adisyo_api_secret")
+    api_secret = restaurant.get("adisyo_restaurant_identity") or restaurant.get("adisyo_api_secret")
     
     if not api_key or not api_secret:
-        raise HTTPException(status_code=400, detail="API Key ve Secret gerekli")
+        raise HTTPException(status_code=400, detail="Web App Key ve Restaurant Identity gerekli")
     
     # Consumer header ASCII olmalı
     consumer_name = restaurant.get("name", "ShiftJet")
@@ -216,7 +218,6 @@ async def test_adisyo_connection(restaurant_id: str):
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
                 "https://ext.adisyo.com/api/External/v2/RecentOrders",
-                params={"onlyRestaurantCourier": "true"},
                 headers={
                     "x-api-key": api_key,
                     "x-api-secret": api_secret,
@@ -237,9 +238,10 @@ async def test_adisyo_connection(restaurant_id: str):
                     {"id": restaurant_id},
                     {"$set": {"adisyo_connected": False}}
                 )
-                raise HTTPException(status_code=401, detail="API Key veya Secret hatalı")
+                raise HTTPException(status_code=401, detail="Web App Key veya Restaurant Identity hatalı")
             else:
-                raise HTTPException(status_code=response.status_code, detail=f"Adisyo API hatası: {response.status_code}")
+                error_detail = response.text[:200] if response.text else f"HTTP {response.status_code}"
+                raise HTTPException(status_code=response.status_code, detail=f"Adisyo API hatası: {error_detail}")
                 
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Adisyo API'ye bağlanılamadı (timeout)")
