@@ -788,6 +788,11 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
     fetchRestaurantData();
   }, [fetchRestaurantData]);
 
+  useEffect(() => {
+    fetchAutoSettings();
+    fetchCompanyTime();
+  }, [fetchAutoSettings, fetchCompanyTime]);
+
   // Navigation
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
