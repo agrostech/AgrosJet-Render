@@ -86,18 +86,29 @@ def get_weeks_list(opening_time: str, closing_time: str, count: int = 8) -> List
         # Label oluştur
         start_day = week_start.strftime("%d")
         end_day = week_end.strftime("%d")
-        month = week_start.strftime("%B")
+        start_month = week_start.strftime("%B")
+        end_month = week_end.strftime("%B")
         year = week_start.strftime("%Y")
+        end_year = week_end.strftime("%Y")
         
         # Türkçe ay isimleri
-        month_tr = {
+        month_map = {
             "January": "Ocak", "February": "Şubat", "March": "Mart",
             "April": "Nisan", "May": "Mayıs", "June": "Haziran",
             "July": "Temmuz", "August": "Ağustos", "September": "Eylül",
             "October": "Ekim", "November": "Kasım", "December": "Aralık"
-        }.get(month, month)
+        }
+        start_month_tr = month_map.get(start_month, start_month)
+        end_month_tr = month_map.get(end_month, end_month)
         
-        label = f"{start_day}-{end_day} {month_tr} {year}"
+        # Ay veya yıl farklıysa her ikisini de göster
+        if start_month != end_month:
+            if year != end_year:
+                label = f"{start_day} {start_month_tr} {year} - {end_day} {end_month_tr} {end_year}"
+            else:
+                label = f"{start_day} {start_month_tr} - {end_day} {end_month_tr} {year}"
+        else:
+            label = f"{start_day}-{end_day} {start_month_tr} {year}"
         
         weeks.append({
             "week_start": week_start.isoformat(),
