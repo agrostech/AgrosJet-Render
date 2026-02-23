@@ -209,7 +209,8 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         {"_id": 0, "vat_rate": 1, "pos_commission_rate": 1}
     )
     
-    vat_rate = company.get("vat_rate", 10) if company else 10  # %10 varsayılan KDV
+    # Şirket varsayılan KDV ve POS oranları (restoranda tanımlı değilse kullanılır)
+    default_vat_rate = company.get("vat_rate", 10) if company else 10  # %10 varsayılan KDV
     pos_commission_rate = company.get("pos_commission_rate", 1.79) if company else 1.79  # %1.79 varsayılan POS
     
     # Restoran bazlı agregasyon
@@ -217,6 +218,8 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     for r in restaurants:
         # Tahsilat ayarlarını al
         collection_settings = r.get("collection_settings", {})
+        # Restoran KDV oranı - restoranda tanımlıysa onu kullan, yoksa şirket varsayılanı
+        restaurant_kdv_rate = r.get("kdv_rate") if r.get("kdv_rate") is not None else default_vat_rate
         restaurant_data[r["id"]] = {
             "restaurant_id": r["id"],
             "restaurant_name": r["name"],
@@ -232,7 +235,9 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             # Pricing ayarları (dinamik hesaplama için)
             "pricing_type": r.get("pricing_type", "per_package"),
             "per_package_price": r.get("per_package_price", 0),
-            "km_ranges": r.get("km_ranges", [])
+            "km_ranges": r.get("km_ranges", []),
+            # KDV oranı (restoran bazlı)
+            "kdv_rate": restaurant_kdv_rate
         }
     
     # Mesafe hesaplama fonksiyonu
