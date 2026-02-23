@@ -35,17 +35,23 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   const [couriers, setCouriers] = useState([]);
   const [availableCouriers, setAvailableCouriers] = useState([]); // Bu restoran için teslimatta bulunan kuryeler
   
+  // Company settings for default times
+  const [companySettings, setCompanySettings] = useState({ opening_time: "09:00", closing_time: "23:00" });
+  
   // Date filters
-  const getDefaultDates = useCallback(() => {
+  const getDefaultDates = useCallback((settings = companySettings) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    const startDateTime = `${today.toISOString().split('T')[0]}T09:00`;
-    const endDateTime = `${tomorrow.toISOString().split('T')[0]}T23:00`;
+    const openingTime = settings.opening_time || "09:00";
+    const closingTime = settings.closing_time || "23:00";
+    
+    const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
+    const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
     
     return { startDateTime, endDateTime };
-  }, []);
+  }, [companySettings]);
   
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
