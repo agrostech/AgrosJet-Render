@@ -142,7 +142,10 @@ export default function RestaurantAyarlar({ restaurantId, restaurantName }) {
       }
       toast.success("Yazdırma sunucusuna bağlandı");
     } else {
-      toast.error("Yazdırma sunucusuna bağlanılamadı. Programın çalıştığından emin olun.");
+      // Detaylı hata mesajı
+      const errorMsg = status.message || "Bağlantı kurulamadı";
+      toast.error(errorMsg);
+      console.log("Print server status:", status);
     }
     setConnecting(false);
   };
