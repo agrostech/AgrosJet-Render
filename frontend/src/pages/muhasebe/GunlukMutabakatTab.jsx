@@ -102,8 +102,12 @@ export default function GunlukMutabakatTab({ companyId, adminId, adminName, isSu
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
+  
+  // İlk yüklemede haftalık özeti çek
+  useEffect(() => {
     fetchWeeklySummary();
-  }, [fetchData, fetchWeeklySummary]);
+  }, [companyId]); // Sadece companyId değiştiğinde
 
   // Input değişikliği
   const handleInputChange = (courierId, field, value) => {
