@@ -186,7 +186,8 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     # Saatlik çalışma sürelerini courier_daily_active tablosundan al
     start_date = start_dt.strftime("%Y-%m-%d")
     end_date = end_dt.strftime("%Y-%m-%d")
-    now = datetime.now(timezone.utc)
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
     today = now.strftime("%Y-%m-%d")
     
     # courier_daily_active tablosundan aktif süreleri al
