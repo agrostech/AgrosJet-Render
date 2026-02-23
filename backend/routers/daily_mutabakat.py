@@ -1210,19 +1210,23 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
                 "company_id": company_id,
                 "courier_id": courier_id,
                 "status": "delivered"
-            }, {"_id": 0, "updated_at": 1, "total_amount": 1, "payment_method": 1}).to_list(500)
+            }, {"_id": 0, "delivered_at": 1, "total_amount": 1, "payment_method": 1}).to_list(500)
             
             has_orders = False
             for order in orders:
-                updated_at = order.get("updated_at")
-                if updated_at:
+                delivered_at = order.get("delivered_at")
+                if delivered_at:
                     try:
-                        if isinstance(updated_at, str):
-                            order_dt = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
-                        elif isinstance(updated_at, datetime):
-                            order_dt = updated_at
+                        if isinstance(delivered_at, str):
+                            order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+                        elif isinstance(delivered_at, datetime):
+                            order_dt = delivered_at
                         else:
                             continue
+                        
+                        # Timezone yoksa Türkiye saati kabul et
+                        if order_dt.tzinfo is None:
+                            order_dt = order_dt.replace(tzinfo=turkey_tz)
                         
                         if start_dt <= order_dt < end_dt:
                             has_orders = True
