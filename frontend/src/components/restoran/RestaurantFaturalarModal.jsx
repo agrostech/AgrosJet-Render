@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   FileText, Upload, Download, Eye, CheckCircle, Clock, 
-  RefreshCw, Receipt, Loader2, Package
+  RefreshCw, Receipt, Loader2, Package, Trash2
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -20,12 +20,26 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString("tr-TR");
 };
 
+// 30 dakika içinde mi kontrol et
+const isWithin30Minutes = (uploadedAt) => {
+  if (!uploadedAt) return false;
+  try {
+    const uploadTime = new Date(uploadedAt);
+    const now = new Date();
+    const diffMinutes = (now - uploadTime) / (1000 * 60);
+    return diffMinutes <= 30;
+  } catch {
+    return false;
+  }
+};
+
 // ==================== Kesilen Faturalar Tab ====================
 function KesilenFaturalarTab({ restaurantId, onRefresh }) {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadingId, setUploadingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [viewingInvoice, setViewingInvoice] = useState(null);
   const fileInputRef = useRef(null);
 
