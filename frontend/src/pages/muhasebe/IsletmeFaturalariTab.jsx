@@ -970,6 +970,7 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
 }
 
 // ==================== Main Export with Tabs ====================
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KesilenFaturalarTab from "./KesilenFaturalarTab";
 
 export default function IsletmeFaturalariTab({ companyId, adminId, adminName, isSuperAdmin }) {
@@ -980,50 +981,36 @@ export default function IsletmeFaturalariTab({ companyId, adminId, adminName, is
   }
 
   return (
-    <div data-testid="isletme-faturalari-tab">
-      {/* Sub Tabs */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => setActiveSubTab("alinan")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-            activeSubTab === "alinan"
-              ? "bg-primary text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-          data-testid="alinan-faturalar-tab"
-        >
-          <FileText className="w-4 h-4" />
-          Alınan Faturalar
-        </button>
-        <button
-          onClick={() => setActiveSubTab("kesilen")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-            activeSubTab === "kesilen"
-              ? "bg-primary text-white"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-          data-testid="kesilen-faturalar-tab"
-        >
-          <Receipt className="w-4 h-4" />
-          Kesilen Faturalar
-        </button>
-      </div>
+    <div className="space-y-4" data-testid="isletme-faturalari-tab">
+      <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-4">
+          <TabsTrigger value="alinan" className="flex items-center gap-2" data-testid="alinan-faturalar-tab">
+            <FileText className="w-4 h-4" />
+            Alınan Faturalar
+          </TabsTrigger>
+          <TabsTrigger value="kesilen" className="flex items-center gap-2" data-testid="kesilen-faturalar-tab">
+            <Receipt className="w-4 h-4" />
+            Kesilen Faturalar
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab Content */}
-      {activeSubTab === "alinan" ? (
-        <AlinanFaturalarContent 
-          companyId={companyId} 
-          adminId={adminId} 
-          adminName={adminName} 
-          isSuperAdmin={isSuperAdmin} 
-        />
-      ) : (
-        <KesilenFaturalarTab 
-          companyId={companyId} 
-          adminId={adminId} 
-          adminName={adminName} 
-        />
-      )}
+        <TabsContent value="alinan">
+          <AlinanFaturalarContent 
+            companyId={companyId} 
+            adminId={adminId} 
+            adminName={adminName} 
+            isSuperAdmin={isSuperAdmin} 
+          />
+        </TabsContent>
+
+        <TabsContent value="kesilen">
+          <KesilenFaturalarTab 
+            companyId={companyId} 
+            adminId={adminId} 
+            adminName={adminName} 
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
