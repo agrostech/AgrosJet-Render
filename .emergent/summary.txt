@@ -1,38 +1,48 @@
 <analysis>**original_problem_statement:**
-The session began with a critical performance issue in the admin panel's Sipariş Yönetimi (Order Management) page, making it unusable with as few as 20 orders. The user requested an investigation and a permanent fix.
+The session began with the user redirecting the agent from a previously planned WebSocket integration to focus on a series of new features and critical bug fixes.
 
-While the agent was planning a WebSocket integration as a permanent solution, the user redirected the priority to implementing UI/UX improvements on the same page. This included adding pagination and sorting, which partially mitigated the performance issue.
-
-Subsequently, the user requested a series of features and bug fixes across the admin and restaurant panels, including new permissions for restaurants, sound notifications, and UI logic adjustments for courier statuses.
-
-The session concluded with the user requesting a new major feature: a Hareketler (Movements) modal to track courier and admin activity logs.
+The main tasks requested and addressed were:
+1.  **Hareketler (Movements) Modal:** Implement a new modal to track courier and admin status change logs.
+2.  **System-Wide Timezone Bug:** The user reported a bug where a courier's daily active time exceeded 24 hours. This led to a major investigation and correction of timezone handling across numerous backend files related to filtering, reporting, and scheduling.
+3.  **New Invoicing Features:**
+    *   Add a Kesilen Faturalar (Issued Invoices) tab to the admin panel for tracking and uploading invoices for restaurants.
+    *   Add a Faturalar modal to the restaurant panel, allowing restaurants to view invoices issued by the admin and upload their own invoices.
+4.  **Print Server Enhancements:** Address multiple issues with the local thermal printer integration, including connection stability, character encoding, text formatting (bolding), line wrapping, and adding a paper cut command.
+5.  **Delivery Fee Calculation Bug:** Near the end of the session, the user reported that the Taşıma Ücreti (Delivery Fee) was not being calculated correctly, which became the final and unresolved issue.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application's critical performance issue in the Sipariş Yönetimi page has been partially mitigated by implementing frontend pagination, sorting options, and reducing the polling frequency. This has made the page usable for now, but the underlying problem of fetching large amounts of data at once remains.
+The application has several new features and significant bug fixes. A Hareketler (Movements) modal now provides activity logs for couriers and admins. A major, system-wide timezone issue has been corrected across multiple backend modules, ensuring that date filters, reports, and calculations correctly use the 'Europe/Istanbul' timezone.
 
-Numerous features and bug fixes have been implemented:
-- **Restaurant Panel:** New permissions for changing order status and viewing courier ETAs are in place. Sound notifications for courier assignments have been added and refined based on user feedback. Unwanted status-change notifications have been removed.
-- **Admin Panel:** The courier assignment dropdown now has a collapsible section for offline couriers. A visual indicator (green dot) correctly shows when an offline courier's linked admin account is active.
-- **Backend:** A critical bug that reset order preparation times has been fixed. A security loophole allowing restaurants to bypass preparation times via the restaurant delivery feature has been closed.
+The invoicing system has been expanded: admins have a new Kesilen Faturalar tab to manage weekly restaurant invoices, and restaurants have a corresponding Faturalar modal to upload and view invoices.
 
-The foundation for the new Hareketler (Movements) modal has been laid, but it is not yet functional.
+The local print server integration in the restaurant panel is now more robust, featuring manual connection controls, proper Turkish character support, text formatting (bolding), intelligent line wrapping for long product names, and an automatic paper cut command.
+
+However, a critical bug persists where delivery fees for orders are not being calculated based on the restaurant's pricing settings.
 
 **Last working item**:
--   Last item agent was working: Implementing the Hareketler (Movements) modal, a new feature requested by the user for the Vardiya Yönetimi (Shift Management) page. The agent was in the initial phase of creating the new component file and adding the trigger button.
+-   Last item agent was working: Debugging why the Taşıma Ücreti (Delivery Fee) is calculated as 0 TL in the Restoran Mutabakat tab, even after the user configured per-package pricing for the restaurant. An initial fix was applied to save the  on order creation, but it did not solve the problem for new orders.
 -   Status: **IN PROGRESS**
 -   Agent Testing Done: N
--   Which testing method agent to use? both
--   User Testing Done: N
+-   Which testing method agent to use? backend testing agent
+-   User Testing Done: Y
 
 **All Pending/In progress Issue list**:
--   **Issue 1: WebSocket Integration for Real-Time Updates (P0)**
-    -   Description: The user initially approved a WebSocket integration as the permanent solution to the performance problem. This was postponed to implement pagination first. It remains the most important upcoming task to truly solve the performance bottleneck.
-    -   Status: **NOT STARTED**
-    -   Should Test frontend/backend/both after fix? Both
+-   **Issue 1: Delivery Fee Calculation Failure (P0)**
+    -   Description: The system fails to apply the restaurant's configured pricing settings (e.g., per-package fee) when creating new orders, resulting in a  of 0. This makes the Restoran Mutabakat feature incorrect.
+    -   Attempted fixes: The agent modified  to calculate and save  and  during order creation. This did not work. The agent suspected the restaurant's pricing settings were not being retrieved correctly during the process.
+    -   Next debug checklist:
+        1.  Trace the  function in .
+        2.  Verify that the  object fetched from the database within that function contains the  sub-document (, , etc.).
+        3.  Add logging to see the values of the restaurant's pricing settings just before the  function is called.
+        4.  Confirm the logic within  correctly handles the retrieved pricing data.
+    -   Why fix this issue and what will be achieved with the fix? This is critical for the accounting and reconciliation features of the application. Fixing it will ensure restaurants are billed correctly for delivery services.
+    -   Status: **IN PROGRESS**
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix? Backend
 -   **Issue 2: Kurye Bulunamadı (Courier Not Found) Error on Termination (P2)**
-    -   Description: A fix was applied in a previous session for an error during courier termination, but it is still awaiting user verification.
+    -   Description: A fix was previously applied for an error during courier termination, but it is still awaiting user verification.
     -   Status: **USER VERIFICATION PENDING**
 -   **Issue 3: Historical Accounting Data Inconsistency (P2)**
     -   Description: From a previous fork, old transactions with  are not appearing in the accounting tabs.
@@ -43,15 +53,10 @@ The foundation for the new Hareketler (Movements) modal has been laid, but it is
     -   Is recurring issue? Y
 
 **In progress Task List**:
--   **Task 1: Complete Hareketler (Movements) Modal Feature (P0)**
-    -   Where to resume: The new file  has been created, and the trigger button has been added to . The next steps are to build the modal's UI (tabs, date picker, table) and implement the backend endpoint to fetch the status logs for couriers and admins for a given day.
-    -   What will be achieved with this? Admins will be able to view a consolidated log of all courier and admin status changes (active, offline, on break) from a single interface, filterable by day and person.
-    -   Status: **IN PROGRESS**
-    -   Should Test frontend/backend/both after fix? Both
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks (P1):**
-    -   Implement WebSocket integration in  to replace the polling mechanism.
     -   Finalize Migros Yemek integration.
     -   Complete Yemeksepeti Integration.
     -   Implement Restaurant Reports () Page functionality.
@@ -66,24 +71,25 @@ The foundation for the new Hareketler (Movements) modal has been laid, but it is
     -   Add enhancements to the Motosikletim feature.
 
 **Completed work in this session**
--   **Performance Mitigation**: Implemented frontend pagination, sorting, and page-size selection on . Reduced polling interval from 5s to 15s.
--   **Bug Fixes**:
-    -   Fixed incorrect status counts on filter buttons in the admin panel.
-    -   Corrected a backend bug preventing preparation times (15, 30, 45, 60 min) from being saved correctly.
-    -   Fixed an exploit where restaurants could bypass preparation times by toggling restaurant delivery.
-    -   Fixed  display issue in the restaurant panel.
-    -   Fixed a bug where the Courier ETA was still visible in dropdowns even when the permission was disabled.
-    -   Resolved an issue with the green dot indicator for admin-linked couriers by fixing a field name mismatch in .
--   **Feature Implementation**:
-    -   Added a new Sipariş Durumu Değiştirme (Change Order Status) permission for restaurants.
-    -   Added a new Kurye Tahmini Varış Süresi (View Courier ETA) permission for restaurants.
-    -   Implemented automatic page refresh for the restaurant panel when its permissions are updated.
-    -   Added a collapsible section for offline couriers in the assignment dropdown.
-    -   Added a sound notification system for courier assignments in the restaurant panel, with settings for sound choice and volume.
-    -   Consolidated sound settings into a single UI card based on user feedback.
--   **UI/UX Improvements**:
-    -   Removed all non-error toast notifications for order status changes in the restaurant panel.
-    -   Updated preparation time options to [5, 15, 30, 45, 60].
+-   **Major Bug Fix: System-Wide Timezone Correction:**
+    -   Audited and fixed timezone handling ( vs. ) in , , , , , , , and .
+    -   Resolved a critical bug causing >24 hour active time calculations for couriers.
+-   **Feature: Hareketler (Movements) Modal:**
+    -   Implemented the full-stack feature for logging and viewing courier and admin status changes, with filtering and sorting.
+-   **Feature: Expanded Invoicing System:**
+    -   Admin Panel: Added a Kesilen Faturalar tab to  for managing weekly invoices issued to restaurants.
+    -   Restaurant Panel: Added a Faturalar modal to , allowing restaurants to upload their own invoices and view invoices from the admin.
+-   **Enhancement: Local Print Server ():**
+    -   Added manual connect/disconnect buttons and status indicators in .
+    -   Fixed connection stability issues and errors ().
+    -   Implemented correct Turkish character encoding for printouts.
+    -   Added ESC/POS commands for bold text, larger headers, and automatic paper cutting.
+    -   Implemented intelligent line wrapping for long product names to prevent truncation.
+-   **Bug Fix: Auto-Print Reliability:**
+    -   Fixed a race condition in  that caused some orders to be skipped by the auto-print functionality.
+
+**Earlier issues found/mentioned but not fixed**
+-   None, all new issues were either addressed or are listed in the pending section.
 
 **Known issue recurrence from previous fork**
 -   Issue recurrence in previous fork: Mobile File Upload Issue.
@@ -94,48 +100,48 @@ The foundation for the new Hareketler (Movements) modal has been laid, but it is
 
 
 **Key Technical Concepts**
--   **Frontend Performance Mitigation:** Implemented client-side pagination and sorting as a first step to handle large datasets, improving UI responsiveness.
--   **State-Driven UI:** Extensive use of React state and  to manage complex UI logic, such as conditional rendering based on permissions, collapsible sections, and detecting state changes to trigger actions (e.g., playing a sound).
--   **Backend Business Logic:** Implemented robust permission checks and fixed critical business logic loopholes in the backend () to prevent system abuse and ensure data integrity.
--   **Client-Server Sync:** Implemented a timestamp-based polling mechanism () to trigger an automatic page refresh on the client when data is changed on the server.
+-   **Timezone Management:** Correctly handling  timezones ('Europe/Istanbul' vs. UTC) was crucial for fixing numerous data filtering and calculation bugs across the backend.
+-   **ESC/POS Commands:** Raw byte commands were sent to the local print service to control thermal printer features like bold text, text size, and paper cutting.
+-   **Modular Backend Design:** New features were implemented in separate router files (, ) to keep the codebase organized and avoid further bloating large files like .
+-   **Asynchronous JavaScript:** Addressed race conditions in async loops ( vs. ) and handled fetch request timeouts () to improve the stability of the print server connection.
 
 **key DB schema**
--   **orders**: MODIFIED - Added , , and  to prevent an exploit.
--   **restaurants**: MODIFIED - Added  to facilitate auto-refresh on permission changes.
+-   **orders**: The fields  and  are expected to be populated upon order creation but are currently failing.
+-   **restaurants**: Contains the  sub-document (, , ), which is the source of the data for the fee calculation.
+-   **issued_invoices**: New collection storing invoices generated by the admin for restaurants.
+-   **restaurant_invoices**: New collection storing invoices uploaded by restaurants.
 
 **All files of reference**
--   : The page where the current in-progress task (Hareketler modal) is being added.
--   : The new file for the feature being built.
--   : The file that received the most significant changes (pagination, sorting, bug fixes) and is the target for the future WebSocket integration.
--   : The backend file where several critical bugs and exploits were fixed.
-
-**key api endpoints**
--   : Heavily modified to include permission checks and fix a preparation time reset bug.
--   : Modified to save previous order state to prevent an exploit.
--   : Modified to restore previous order state.
--   : Logic modified to correctly report  for linked accounts.
--   : Now updates the  timestamp.
+-   : **Primary file for the current bug.** The  function needs to be debugged.
+-   : Contains the  endpoint used to save the fee settings.
+-   : The admin page where the user observes the  fee bug.
+-   : The frontend component where the user configures the restaurant pricing.
+-   : Contains all the logic for thermal printing.
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   **Current Priority (P0):** Your immediate task is to continue building the Hareketler (Movements) modal feature. The frontend file  is created but empty. You will need to build the UI and the corresponding backend endpoint to fetch the logs.
--   **Upcoming High Priority (P0):** The user has already agreed that **WebSocket integration is the permanent fix** for the admin panel performance. Although pagination was implemented first, you should plan to address the WebSocket task as soon as the Hareketler modal is complete. This is a crucial next step for the application's scalability.
--   The user is highly engaged and provides frequent, specific feedback. Be prepared to work iteratively and confirm small changes.
+-   **Your immediate priority is the delivery fee calculation bug (Issue #1).** The problem is not that the fields are missing, but that the calculation is consistently yielding zero. The likely cause is a failure to retrieve the restaurant's specific pricing settings when the  endpoint is executed. Assume the user has configured the settings correctly and focus on why the backend isn't reading them.
+-   The user has explicitly **cancelled the WebSocket integration.** Do not work on or suggest this task.
+-   A massive, system-wide timezone audit and fix was a major part of this session. Any new development involving dates or times must be carefully implemented to be timezone-aware (using 'Europe/Istanbul').
+
+**documents and test reports created in this job**
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **Request**: Add a new Hareketler (Movements) modal to the Shift Management page to log all courier/admin status changes. *(Status: IN PROGRESS)*
-9.  **Feedback**: The ETA is still visible in the courier assignment dropdown even when the permission is off. *(Status: COMPLETED)*
-8.  **Request**: When a restaurant's permissions are changed, its panel should refresh automatically. *(Status: COMPLETED)*
-7.  **Feedback**: The refreshing page notification is not needed for the auto-refresh feature. *(Status: COMPLETED)*
-6.  **Request**: Add a permission to control whether a restaurant can see the courier ETA. *(Status: COMPLETED)*
-5.  **Report**: Found a loophole where restaurants can mark an order for self-delivery and then revert it to set the status to Ready instantly. *(Status: COMPLETED)*
-4.  **Report**: A critical bug where setting preparation time to anything other than 5 minutes was not working correctly and would revert. *(Status: COMPLETED)*
-3.  **Report**:  is displayed in the restaurant panel. *(Status: COMPLETED)*
-2.  **Report**: When the change order status permission is off, the countdown timer doesn't show. *(Status: COMPLETED)*
-1.  **Request**: Add a new permission for restaurants to control their ability to use the order status button. *(Status: COMPLETED)*
+10. **Bug Report (IN PROGRESS):** 20 more orders created, delivery fee is still 0.
+9.  **Bug Report (COMPLETED):** Delivery fee is 0 in restaurant reconciliation tab. (Agent attempted a fix, but it led to bug #10).
+8.  **Bug Report (COMPLETED):** Reconciliation tab shows no data for the current week. (Agent fixed timezone/date range logic).
+7.  **Data Paste:** User pasted 20 orders to demonstrate the reconciliation bug.
+6.  **Feature Request (COMPLETED):** Create a new two-tab Faturalar modal in the restaurant accounting panel.
+5.  **Confirmation (COMPLETED):** User confirmed requirements for the new restaurant invoice modal.
+4.  **Request (COMPLETED):** Add an automatic paper cut command to the end of a printout.
+3.  **Feedback (Info):** User states they are checking printouts in PDF format, where bolding/ESC-POS commands do not appear.
+2.  **Request (COMPLETED):** Product names should never be shortened in printouts.
+1.  **Request (COMPLETED):** Make headers (MÜŞTERİ, ÜRÜNLER, etc.) bold in printouts.
 
 **Project Health Check:**
--   **Partially Mitigated**: The critical performance issue in  has been made manageable with frontend pagination, but it is not fully resolved. The planned WebSocket implementation is required for a permanent fix. The application is otherwise stable, with several new features and bug fixes successfully deployed.
+-   **Broken**: The core business logic for calculating restaurant delivery fees is broken. This impacts the financial reconciliation features of the application.
+-   **Mocked**: No mocked components.
 
 **3rd Party Integrations**
 -   
@@ -151,11 +157,11 @@ The foundation for the new Hareketler (Movements) modal has been laid, but it is
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None. The session focused on fixing existing bugs and adding new features.
+-   Known regressions: None from this session.
 
 **Credentials to test flow:**
 -   **Company Admin:**  / 
--   **Restaurant:** Credentials need to be fetched from the database if required for testing.
+-   **Restaurant:** Credentials need to be fetched from the database if required.
 
 **What agent forgot to execute**
--   The agent did not forget to execute any tasks. The WebSocket integration was consciously postponed based on the user's shift in priorities to UI improvements and other features first.</analysis>
+-   The agent did not forget any tasks. The session was driven by user requests, and the final unresolved item is the current highest priority. The agent correctly noted the cancellation of the WebSocket task.</analysis>
