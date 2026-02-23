@@ -7,6 +7,7 @@ Adisyo API Entegrasyon Servisi
 import httpx
 import uuid
 import logging
+import math
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 from utils.database import db
@@ -14,6 +15,55 @@ from utils.database import db
 logger = logging.getLogger(__name__)
 
 ADISYO_BASE_URL = "https://ext.adisyo.com/api/External/v2"
+
+
+# --- Taşıma Ücreti Hesaplama Yardımcı Fonksiyonları ---
+def calculate_distance_internal(loc1: dict, loc2: dict) -> float:
+    """Haversine formula ile iki nokta arasındaki mesafeyi hesapla (km)"""
+    if not loc1 or not loc2:
+        return 0.0
+    lat1 = loc1.get("latitude") or loc1.get("lat") or 0
+    lng1 = loc1.get("longitude") or loc1.get("lng") or 0
+    lat2 = loc2.get("latitude") or loc2.get("lat") or 0
+    lng2 = loc2.get("longitude") or loc2.get("lng") or 0
+    if not all([lat1, lng1, lat2, lng2]):
+        return 0.0
+    R = 6371
+    dLat = math.radians(lat2 - lat1)
+    dLon = math.radians(lng2 - lng1)
+    a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * c
+
+
+def calculate_restaurant_fee_internal(restaurant: dict, restaurant_location: dict, delivery_location: dict) -> tuple:
+    """Restoran için taşıma ücreti ve KDV hesapla. Returns: (restaurant_fee, restaurant_kdv)"""
+    pricing_type = restaurant.get("pricing_type", "per_package")
+    per_package_price = restaurant.get("per_package_price", 0)
+    km_ranges = restaurant.get("km_ranges", [])
+    kdv_rate = restaurant.get("kdv_rate", 10)
+    
+    if pricing_type == "per_package":
+        fee = per_package_price or 0.0
+    else:
+        distance_km = calculate_distance_internal(restaurant_location, delivery_location)
+        fee = 0.0
+        if km_ranges:
+            for km_range in km_ranges:
+                min_km = km_range.get("min_km", 0)
+                max_km = km_range.get("max_km")
+                price = km_range.get("price", 0)
+                if max_km is None:
+                    if distance_km >= min_km:
+                        fee = price
+                        break
+                else:
+                    if min_km <= distance_km < max_km:
+                        fee = price
+                        break
+    
+    kdv = fee * (kdv_rate / 100)
+    return round(fee, 2), round(kdv, 2)
 
 
 async def get_adisyo_headers(restaurant: dict) -> dict:
