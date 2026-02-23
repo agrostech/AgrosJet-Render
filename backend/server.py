@@ -237,6 +237,78 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # Add auto restaurant invoice generation job - runs every Monday at 02:00
+    async def auto_generate_restaurant_invoices():
+        """Haftalık eksik restoran faturalarını otomatik oluştur - Her Pazartesi 02:00"""
+        from datetime import datetime, timezone, timedelta
+        try:
+            turkey_tz = timezone(timedelta(hours=3))
+            now_turkey = datetime.now(turkey_tz)
+            
+            # Sadece Pazartesi günü saat 02:00-02:05 arasında çalış
+            if now_turkey.weekday() != 0:  # 0 = Pazartesi
+                return
+            if not (2 <= now_turkey.hour < 3 and now_turkey.minute < 5):
+                return
+            
+            # Bu saat için zaten çalıştı mı kontrol et (aynı saat içinde tekrar çalışmasın)
+            check_key = f"auto_invoice_{now_turkey.strftime('%Y-%m-%d-%H')}"
+            existing_run = await db.auto_job_runs.find_one({"key": check_key})
+            if existing_run:
+                return
+            
+            # Çalıştığını kaydet
+            await db.auto_job_runs.insert_one({
+                "key": check_key,
+                "ran_at": datetime.now(timezone.utc).isoformat()
+            })
+            
+            # Otomatik işleme açık olan şirketleri bul
+            enabled_settings = await db.restaurant_invoice_settings.find(
+                {"enabled": True},
+                {"_id": 0, "company_id": 1}
+            ).to_list(100)
+            
+            if not enabled_settings:
+                return
+            
+            print(f"Auto restaurant invoice generation started for {len(enabled_settings)} companies")
+            
+            # Geçen haftanın başlangıcını hesapla (bir önceki Pazartesi)
+            days_since_monday = now_turkey.weekday()
+            last_monday = now_turkey - timedelta(days=7 + days_since_monday)
+            last_monday = last_monday.replace(hour=9, minute=0, second=0, microsecond=0)
+            week_start = last_monday.astimezone(timezone.utc).isoformat()
+            
+            for setting in enabled_settings:
+                company_id = setting["company_id"]
+                try:
+                    # generate-weekly endpoint'ini çağır
+                    from routers.restaurant_invoices import generate_weekly_missing_invoices
+                    result = await generate_weekly_missing_invoices(company_id, week_start)
+                    
+                    # Son çalışma zamanını güncelle
+                    await db.restaurant_invoice_settings.update_one(
+                        {"company_id": company_id},
+                        {"$set": {"last_auto_run": datetime.now(timezone.utc).isoformat()}}
+                    )
+                    
+                    if result.get("count", 0) > 0:
+                        print(f"Auto restaurant invoices for {company_id}: {result['count']} records created")
+                except Exception as e:
+                    print(f"Auto restaurant invoice error for {company_id}: {e}")
+        except Exception as e:
+            print(f"Auto restaurant invoice job error: {e}")
+    
+    scheduler.add_job(
+        auto_generate_restaurant_invoices,
+        'interval',
+        minutes=1,  # Her dakika kontrol et (sadece Pazartesi 02:00'da gerçek işlem yapar)
+        id="auto_restaurant_invoices",
+        name="Auto Restaurant Invoice Generation",
+        replace_existing=True
+    )
+    
     # Scheduler'ı shift_scheduler modülüne kaydet
     from utils.shift_scheduler import set_scheduler, load_shift_jobs
     set_scheduler(scheduler)
@@ -246,7 +318,7 @@ async def lifespan(app: FastAPI):
     # Mevcut vardiyaların job'larını yükle
     await load_shift_jobs()
     
-    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m), shift jobs (dynamic)")
+    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m), restaurant invoices (Monday 02:00), shift jobs (dynamic)")
     
     yield
     
