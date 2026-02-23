@@ -298,7 +298,7 @@ async def generate_weekly_missing_invoices(company_id: str, week_start: str):
         # Payment method mapping
         if payment in ["cash", "nakit"]:
             restaurant_totals[rid]["cash"] += total
-        elif payment in ["credit_card", "kredi_karti", "pos"]:
+        elif payment in ["credit_card", "kredi_karti", "pos", "card"]:
             restaurant_totals[rid]["credit_card"] += total
         elif payment in ["online", "online_odeme"]:
             restaurant_totals[rid]["online"] += total
