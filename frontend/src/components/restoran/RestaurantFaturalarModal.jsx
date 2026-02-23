@@ -1,0 +1,366 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  FileText, Upload, Download, Eye, CheckCircle, Clock, 
+  RefreshCw, Receipt, Loader2, Package
+} from "lucide-react";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const formatMoney = (amount) => {
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(amount || 0)) + ' TL';
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("tr-TR");
+};
+
+// ==================== Kesilen Faturalar Tab ====================
+function KesilenFaturalarTab({ restaurantId, onRefresh }) {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [uploadingId, setUploadingId] = useState(null);
+  const [viewingInvoice, setViewingInvoice] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const fetchInvoices = useCallback(async () => {
+    if (!restaurantId) return;
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/restaurant-panel-invoices/${restaurantId}/issued`);
+      setInvoices(res.data);
+    } catch (err) {
+      console.error("Faturalar yüklenemedi:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [restaurantId]);
+
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
+
+  const handleFileSelect = (invoiceId) => {
+    setUploadingId(invoiceId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadingId) return;
+
+    const invoice = invoices.find(i => i.id === uploadingId);
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("missing_invoice_id", uploadingId);
+      formData.append("week_label", invoice?.week_label || "");
+
+      await axios.post(`${API}/restaurant-panel-invoices/${restaurantId}/issued/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      toast.success("Fatura yüklendi");
+      fetchInvoices();
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Yükleme başarısız");
+    } finally {
+      setUploading(false);
+      setUploadingId(null);
+      e.target.value = "";
+    }
+  };
+
+  const handleView = async (invoiceId) => {
+    try {
+      const res = await axios.get(`${API}/restaurant-panel-invoices/${restaurantId}/issued/download/${invoiceId}`);
+      setViewingInvoice(res.data);
+    } catch (err) {
+      toast.error("Fatura yüklenemedi");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".pdf,.png,.jpg,.jpeg"
+        className="hidden"
+      />
+
+      {invoices.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Fatura kaydı bulunmuyor</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {invoices.map((inv) => (
+            <div 
+              key={inv.id} 
+              className={`p-3 border rounded-lg ${inv.invoice_uploaded ? 'bg-green-50/50 border-green-200' : 'bg-white'}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{inv.week_label || "Haftalık Fatura"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {inv.order_count} sipariş • {formatMoney(inv.total_amount)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {inv.invoice_uploaded ? (
+                    <>
+                      {inv.invoice_verified ? (
+                        <span className="flex items-center gap-1 text-xs text-green-600">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          Onaylandı
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-xs text-amber-600">
+                          <Clock className="w-3.5 h-3.5" />
+                          Bekliyor
+                        </span>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleView(inv.invoice_id)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleFileSelect(inv.id)}
+                      disabled={uploading}
+                      className="h-8 gap-1 text-xs"
+                    >
+                      {uploading && uploadingId === inv.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Upload className="w-3 h-3" />
+                      )}
+                      Yükle
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* View Modal */}
+      {viewingInvoice && (
+        <Dialog open={!!viewingInvoice} onOpenChange={() => setViewingInvoice(null)}>
+          <DialogContent className="max-w-3xl max-h-[85vh]">
+            <DialogHeader>
+              <DialogTitle>Fatura Önizleme</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-auto">
+              {viewingInvoice.extension === "pdf" ? (
+                <iframe
+                  src={`data:application/pdf;base64,${viewingInvoice.file_data}`}
+                  className="w-full h-[60vh]"
+                  title="Fatura"
+                />
+              ) : (
+                <img
+                  src={`data:image/${viewingInvoice.extension};base64,${viewingInvoice.file_data}`}
+                  alt="Fatura"
+                  className="max-w-full max-h-[60vh] mx-auto"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// ==================== Alınan Faturalar Tab ====================
+function AlinanFaturalarTab({ restaurantId }) {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewingInvoice, setViewingInvoice] = useState(null);
+
+  const fetchInvoices = useCallback(async () => {
+    if (!restaurantId) return;
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/restaurant-panel-invoices/${restaurantId}/received`);
+      setInvoices(res.data);
+    } catch (err) {
+      console.error("Faturalar yüklenemedi:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [restaurantId]);
+
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
+
+  const handleView = async (invoiceId) => {
+    try {
+      const res = await axios.get(`${API}/restaurant-panel-invoices/${restaurantId}/received/download/${invoiceId}`);
+      setViewingInvoice(res.data);
+    } catch (err) {
+      toast.error("Fatura yüklenemedi");
+    }
+  };
+
+  const handleDownload = (invoice) => {
+    if (!invoice.file_data) return;
+    const link = document.createElement("a");
+    link.href = `data:application/${invoice.extension || 'pdf'};base64,${invoice.file_data}`;
+    link.download = invoice.filename || "fatura.pdf";
+    link.click();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {invoices.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Alınan fatura bulunmuyor</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {invoices.map((inv) => (
+            <div key={inv.id} className="p-3 border rounded-lg bg-white">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{inv.week_label || "Haftalık Fatura"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(inv.uploaded_at)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleView(inv.id)}
+                    className="h-8 w-8 p-0"
+                    title="Görüntüle"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      const res = await axios.get(`${API}/restaurant-panel-invoices/${restaurantId}/received/download/${inv.id}`);
+                      handleDownload(res.data);
+                    }}
+                    className="h-8 w-8 p-0"
+                    title="İndir"
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* View Modal */}
+      {viewingInvoice && (
+        <Dialog open={!!viewingInvoice} onOpenChange={() => setViewingInvoice(null)}>
+          <DialogContent className="max-w-3xl max-h-[85vh]">
+            <DialogHeader>
+              <DialogTitle>Fatura Önizleme</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-auto">
+              {viewingInvoice.extension === "pdf" ? (
+                <iframe
+                  src={`data:application/pdf;base64,${viewingInvoice.file_data}`}
+                  className="w-full h-[60vh]"
+                  title="Fatura"
+                />
+              ) : (
+                <img
+                  src={`data:image/${viewingInvoice.extension};base64,${viewingInvoice.file_data}`}
+                  alt="Fatura"
+                  className="max-w-full max-h-[60vh] mx-auto"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+// ==================== Main Modal ====================
+export default function RestaurantFaturalarModal({ open, onOpenChange, restaurantId }) {
+  const [activeTab, setActiveTab] = useState("kesilen");
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Faturalar
+          </DialogTitle>
+        </DialogHeader>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="kesilen" className="flex items-center gap-1.5 text-xs">
+              <Upload className="w-3.5 h-3.5" />
+              Kesilen Faturalar
+            </TabsTrigger>
+            <TabsTrigger value="alinan" className="flex items-center gap-1.5 text-xs">
+              <Receipt className="w-3.5 h-3.5" />
+              Alınan Faturalar
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 overflow-y-auto mt-4">
+            <TabsContent value="kesilen" className="mt-0">
+              <KesilenFaturalarTab restaurantId={restaurantId} />
+            </TabsContent>
+            <TabsContent value="alinan" className="mt-0">
+              <AlinanFaturalarTab restaurantId={restaurantId} />
+            </TabsContent>
+          </div>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
