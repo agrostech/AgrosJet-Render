@@ -149,9 +149,22 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
           const couriersRes = await axios.get(`${API}/companies/${user.company_id}/couriers`);
           setCouriers(couriersRes.data || []);
           
-          // Fetch company name
+          // Fetch company info (name + opening/closing times)
           const companyRes = await axios.get(`${API}/companies/${user.company_id}`);
-          setCompanyName(companyRes.data?.name || "Şirket");
+          const company = companyRes.data;
+          setCompanyName(company?.name || "Şirket");
+          
+          // Set company settings and update default dates
+          const settings = {
+            opening_time: company?.opening_time || "09:00",
+            closing_time: company?.closing_time || "23:00"
+          };
+          setCompanySettings(settings);
+          
+          // Update date filters with company times
+          const defaults = getDefaultDates(settings);
+          setStartDateTime(defaults.startDateTime);
+          setEndDateTime(defaults.endDateTime);
         }
       } catch (err) {
         console.error("Data fetch error:", err);
