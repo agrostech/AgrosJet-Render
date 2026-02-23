@@ -99,7 +99,7 @@ def get_weeks_in_month(year: int, month: int, opening_time: str, closing_time: s
 
 # ========== Invoice Settings Endpoints ==========
 
-@router.get("/restaurants/{restaurant_id}/invoice-settings")
+@router.get("/restaurant-invoice-settings/{restaurant_id}")
 async def get_invoice_settings(restaurant_id: str):
     """Restoran fatura ayarlarını getir"""
     restaurant = await db.restaurants.find_one(
@@ -123,7 +123,7 @@ async def get_invoice_settings(restaurant_id: str):
     }
 
 
-@router.put("/restaurants/{restaurant_id}/invoice-settings")
+@router.put("/restaurant-invoice-settings/{restaurant_id}")
 async def update_invoice_settings(restaurant_id: str, settings: InvoiceSettings):
     """Restoran fatura ayarlarını güncelle"""
     result = await db.restaurants.update_one(
