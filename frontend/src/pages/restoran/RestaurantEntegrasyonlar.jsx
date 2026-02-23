@@ -443,10 +443,18 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
             </div>
             
             {adisyoData?.has_credentials && (
-              <div className="mt-3 p-2 bg-slate-50 rounded text-xs text-muted-foreground">
-                <span className="font-medium">API Key:</span> {adisyoData.api_key}
+              <div className="mt-3 p-2 bg-slate-50 rounded text-xs text-muted-foreground space-y-1">
+                {adisyoData.web_app_key && (
+                  <div><span className="font-medium">Web App Key:</span> {adisyoData.web_app_key}</div>
+                )}
+                {adisyoData.restaurant_identity && (
+                  <div><span className="font-medium">Restaurant Identity:</span> {adisyoData.restaurant_identity}</div>
+                )}
+                {adisyoData.has_webhook_key && (
+                  <div><span className="font-medium">Webhook Key:</span> ✅ Tanımlı</div>
+                )}
                 {adisyoData.branch_id && (
-                  <span className="ml-3"><span className="font-medium">Branch ID:</span> {adisyoData.branch_id}</span>
+                  <div><span className="font-medium">Branch ID:</span> {adisyoData.branch_id}</div>
                 )}
               </div>
             )}
