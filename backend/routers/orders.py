@@ -1595,9 +1595,6 @@ async def get_orders_unified(
                     if not order.get("courier_name"):
                         order["courier_name"] = courier.get("name")
     
-    # Toplam sayı (pagination için)
-    total_count = await db.orders.count_documents(query)
-    
     return {
         "success": True,
         "orders": orders,
