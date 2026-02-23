@@ -382,7 +382,7 @@ async def deliver_order(
     
     await db.jetpuan_orders.update_one(
         {"id": order_id},
-        {"$set": {"status": "delivered", "delivered_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"status": "delivered", "delivered_at": datetime.now(timezone(timedelta(hours=3))).isoformat()}}
     )
     return {"message": "Sipariş teslim edildi olarak işaretlendi"}
 
