@@ -791,16 +791,21 @@ async def verify_invoice(company_id: str, data: InvoiceVerify):
 @router.get("/restaurant-invoices/{company_id}/download/{invoice_id}")
 async def download_invoice(company_id: str, invoice_id: str):
     """Fatura dosyasını indir"""
+    # İlk olarak invoice_id ile ara
     record = await db.restaurant_invoices.find_one({
         "company_id": company_id,
-        "invoices.invoice_id": invoice_id
+        "$or": [
+            {"invoices.invoice_id": invoice_id},
+            {"invoices.id": invoice_id}
+        ]
     })
     
     if not record:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
     for inv in record.get("invoices", []):
-        if inv["invoice_id"] == invoice_id:
+        # Her iki field'ı da kontrol et
+        if inv.get("invoice_id") == invoice_id or inv.get("id") == invoice_id:
             return {
                 "file_data": inv["file_data"],
                 "filename": inv["filename"],
