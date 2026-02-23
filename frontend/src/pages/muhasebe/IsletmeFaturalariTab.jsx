@@ -921,6 +921,42 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
 
   return (
     <div className="space-y-4">
+      {/* Auto Settings Card */}
+      <Card className="border bg-white shadow-sm">
+        <CardContent className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Settings className="w-4 h-4 text-slate-500" />
+              <div>
+                <p className="text-sm font-medium">Otomatik İşleme</p>
+                <p className="text-xs text-muted-foreground">
+                  Her Pazartesi 02:00'da otomatik eksik fatura oluşturma
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              {lastAutoRun && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  Son: {new Date(lastAutoRun).toLocaleDateString('tr-TR')}
+                </span>
+              )}
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="auto-invoice"
+                  checked={autoEnabled}
+                  onCheckedChange={handleAutoToggle}
+                  disabled={autoSaving}
+                />
+                <Label htmlFor="auto-invoice" className="text-sm">
+                  {autoEnabled ? "Açık" : "Kapalı"}
+                </Label>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <MonthSelector
         year={selectedYear}
         month={selectedMonth}
