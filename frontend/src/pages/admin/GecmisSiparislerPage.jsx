@@ -413,6 +413,25 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
               </Select>
             </div>
             
+            {/* Source - Sipariş Kanalı */}
+            <div className="min-w-[100px] flex-1 max-w-[140px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Kanal</Label>
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger className="h-8 text-xs" data-testid="source-filter">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tümü</SelectItem>
+                  <SelectItem value="adisyo">Adisyo</SelectItem>
+                  <SelectItem value="getir">Getir</SelectItem>
+                  <SelectItem value="trendyol">Trendyol</SelectItem>
+                  <SelectItem value="yemeksepeti">Yemeksepeti</SelectItem>
+                  <SelectItem value="migros">Migros</SelectItem>
+                  <SelectItem value="manual">Manuel</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             {/* Start Date */}
             <div className="min-w-[140px] flex-1 max-w-[180px]">
               <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
