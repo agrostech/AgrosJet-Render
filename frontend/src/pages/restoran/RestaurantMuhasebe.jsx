@@ -133,6 +133,7 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
   useEffect(() => {
     if (restaurantId) {
       fetchTransactions();
+      fetchMissingInvoiceCount();
     }
   }, [restaurantId]);
 
