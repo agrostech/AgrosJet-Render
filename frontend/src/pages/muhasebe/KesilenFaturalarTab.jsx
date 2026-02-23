@@ -87,7 +87,7 @@ function SummaryCard({ summary }) {
             <p className="font-bold text-lg text-blue-600">{formatMoney(summary.total_delivery_fee)}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-xs">KDV (%10)</p>
+            <p className="text-muted-foreground text-xs">KDV</p>
             <p className="font-bold text-lg text-orange-600">{formatMoney(summary.total_kdv)}</p>
           </div>
         </div>
