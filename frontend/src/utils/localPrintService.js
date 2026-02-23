@@ -89,8 +89,18 @@ const toUpperCaseTurkish = (text) => {
     .toUpperCase();
 };
 
+// ESC/POS Komutları
+const ESC = '\x1B';
+const BOLD_ON = ESC + 'E' + '\x01';
+const BOLD_OFF = ESC + 'E' + '\x00';
+const ALIGN_CENTER = ESC + 'a' + '\x01';
+const ALIGN_LEFT = ESC + 'a' + '\x00';
+const ALIGN_RIGHT = ESC + 'a' + '\x02';
+const DOUBLE_HEIGHT_ON = ESC + '!' + '\x10';
+const DOUBLE_HEIGHT_OFF = ESC + '!' + '\x00';
+
 /**
- * Fiş metni oluştur (Termal yazıcı için)
+ * Fiş metni oluştur (Termal yazıcı için - ESC/POS destekli)
  */
 const generateReceiptText = (order, width = 48) => {
   const lines = [];
@@ -99,22 +109,24 @@ const generateReceiptText = (order, width = 48) => {
 
   const restaurantName = order.restaurant_name || "RESTORAN";
 
-  // Başlık
+  // Başlık - Kalın ve Ortalı
   lines.push(sep);
-  lines.push(centerText(`[ ${toUpperCaseTurkish(restaurantName)} ]`, width));
+  lines.push(ALIGN_CENTER + BOLD_ON + DOUBLE_HEIGHT_ON);
+  lines.push(`[ ${toUpperCaseTurkish(restaurantName)} ]`);
+  lines.push(DOUBLE_HEIGHT_OFF + BOLD_OFF + ALIGN_LEFT);
   lines.push(centerText(formatDate(order.created_at), width));
   lines.push(sep);
 
-  // Müşteri
-  lines.push("MÜŞTERİ:");
+  // Müşteri - Başlık Kalın
+  lines.push(BOLD_ON + "MÜŞTERİ:" + BOLD_OFF);
   lines.push(`  ${order.customer_name || "-"}`);
   if (order.customer_phone) {
     lines.push(`  Tel: ${order.customer_phone}`);
   }
   lines.push(dash);
 
-  // Adres
-  lines.push("ADRES:");
+  // Adres - Başlık Kalın
+  lines.push(BOLD_ON + "ADRES:" + BOLD_OFF);
   let address = order.delivery_address || "-";
   while (address.length > 0) {
     lines.push(`  ${address.slice(0, width - 2)}`);
@@ -122,8 +134,8 @@ const generateReceiptText = (order, width = 48) => {
   }
   lines.push(dash);
 
-  // Ürünler
-  lines.push("ÜRÜNLER:");
+  // Ürünler - Başlık Kalın
+  lines.push(BOLD_ON + "ÜRÜNLER:" + BOLD_OFF);
   const items = order.items || [];
   items.forEach((item) => {
     const qty = item.quantity || 1;
@@ -146,20 +158,21 @@ const generateReceiptText = (order, width = 48) => {
   });
   lines.push(sep);
 
-  // Toplam
-  const totalText = `TOPLAM: ${formatCurrency(order.total_amount || 0)}`;
-  lines.push(rightText(totalText, width));
+  // Toplam - Kalın
+  lines.push(ALIGN_RIGHT + BOLD_ON);
+  lines.push(`TOPLAM: ${formatCurrency(order.total_amount || 0)}`);
+  lines.push(BOLD_OFF + ALIGN_LEFT);
 
-  // Ödeme yöntemi
+  // Ödeme yöntemi - Ortalı
   const payment = order.payment_method_detail || 
     PAYMENT_LABELS[order.payment_method] || 
     order.payment_method || "";
   lines.push(centerText(`[ ${payment} ]`, width));
 
-  // Sipariş notu
+  // Sipariş notu - Başlık Kalın
   if (order.notes) {
     lines.push(dash);
-    lines.push("SİPARİŞ NOTU:");
+    lines.push(BOLD_ON + "SİPARİŞ NOTU:" + BOLD_OFF);
     let note = order.notes;
     while (note.length > 0) {
       lines.push(`  ${note.slice(0, width - 2)}`);
