@@ -1203,39 +1203,36 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         else:
             end_dt = day_date.replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
         
-        # O gün siparişi olan kurye sayısını hesapla
+        # O gün siparişi olan kurye sayısını hesapla (delivered_at ile)
+        # Önce o tarih aralığındaki tüm siparişleri çek
+        all_day_orders = await db.orders.find({
+            "company_id": company_id,
+            "status": "delivered"
+        }, {"_id": 0, "delivered_at": 1, "courier_id": 1}).to_list(5000)
+        
         couriers_with_orders = set()
-        for courier_id in courier_ids:
-            orders = await db.orders.find({
-                "company_id": company_id,
-                "courier_id": courier_id,
-                "status": "delivered"
-            }, {"_id": 0, "delivered_at": 1, "total_amount": 1, "payment_method": 1}).to_list(500)
-            
-            has_orders = False
-            for order in orders:
-                delivered_at = order.get("delivered_at")
-                if delivered_at:
-                    try:
-                        if isinstance(delivered_at, str):
-                            order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
-                        elif isinstance(delivered_at, datetime):
-                            order_dt = delivered_at
-                        else:
-                            continue
-                        
-                        # Timezone yoksa Türkiye saati kabul et
-                        if order_dt.tzinfo is None:
-                            order_dt = order_dt.replace(tzinfo=turkey_tz)
-                        
-                        if start_dt <= order_dt < end_dt:
-                            has_orders = True
-                            break
-                    except Exception:
+        for order in all_day_orders:
+            courier_id = order.get("courier_id")
+            if not courier_id:
+                continue
+            delivered_at = order.get("delivered_at")
+            if delivered_at:
+                try:
+                    if isinstance(delivered_at, str):
+                        order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+                    elif isinstance(delivered_at, datetime):
+                        order_dt = delivered_at
+                    else:
                         continue
-            
-            if has_orders:
-                couriers_with_orders.add(courier_id)
+                    
+                    # Timezone yoksa Türkiye saati kabul et
+                    if order_dt.tzinfo is None:
+                        order_dt = order_dt.replace(tzinfo=turkey_tz)
+                    
+                    if start_dt <= order_dt < end_dt:
+                        couriers_with_orders.add(courier_id)
+                except Exception:
+                    continue
         
         total_with_orders = len(couriers_with_orders)
         
