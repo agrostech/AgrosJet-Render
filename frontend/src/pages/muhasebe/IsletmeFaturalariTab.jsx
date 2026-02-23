@@ -682,6 +682,12 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
   const [loading, setLoading] = useState(true);
   const [restaurantLoading, setRestaurantLoading] = useState(false);
   
+  // Auto settings state
+  const [autoEnabled, setAutoEnabled] = useState(false);
+  const [lastAutoRun, setLastAutoRun] = useState(null);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [closingTime, setClosingTime] = useState("02:00");
+  
   // View invoice modal
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingInvoice, setViewingInvoice] = useState(null);
@@ -690,6 +696,45 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [deleteType, setDeleteType] = useState("invoice");
+
+  // Fetch auto settings
+  const fetchAutoSettings = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/restaurant-invoices/${companyId}/auto-settings`);
+      setAutoEnabled(res.data.enabled || false);
+      setLastAutoRun(res.data.last_auto_run);
+    } catch (err) {
+      console.error("Auto settings fetch error:", err);
+    }
+  }, [companyId]);
+
+  // Fetch company closing time
+  const fetchCompanyTime = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/companies/${companyId}`);
+      if (res.data?.closing_time) {
+        setClosingTime(res.data.closing_time);
+      }
+    } catch (err) {
+      console.error("Company fetch error:", err);
+    }
+  }, [companyId]);
+
+  // Toggle auto settings
+  const handleAutoToggle = async (enabled) => {
+    setAutoSaving(true);
+    try {
+      await axios.put(`${API}/restaurant-invoices/${companyId}/auto-settings`, { enabled });
+      setAutoEnabled(enabled);
+      toast.success(enabled ? "Otomatik işleme açıldı" : "Otomatik işleme kapatıldı");
+    } catch (err) {
+      toast.error("Ayar güncellenemedi");
+    } finally {
+      setAutoSaving(false);
+    }
+  };
 
   // Fetch all data
   const fetchData = useCallback(async () => {
