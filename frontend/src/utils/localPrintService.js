@@ -227,6 +227,11 @@ const generateReceiptText = (order, width = 48, useEscPos = true) => {
   lines.push(centerText("AgrosJet", width));
   lines.push("");
   lines.push("");
+  
+  // Kağıt kesme (sadece termal yazıcı için)
+  if (useEscPos) {
+    lines.push(CUT_PAPER);
+  }
 
   return lines.join("\n");
 };
