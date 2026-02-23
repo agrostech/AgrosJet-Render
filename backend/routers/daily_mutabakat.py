@@ -415,7 +415,8 @@ async def get_couriers_with_data(company_id: str, date: str):
             "date": date,
             "date_range": {
                 "start": start_dt.isoformat(),
-                "end": end_dt.isoformat()
+                "end": end_dt.isoformat(),
+                "label": f"{start_dt.strftime('%d.%m.%Y %H:%M')} - {end_dt.strftime('%d.%m.%Y %H:%M')}"
             },
             "couriers": [],
             "summary": {
