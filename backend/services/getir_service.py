@@ -962,12 +962,16 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
             if new_status == "cancelled" and current_status != "cancelled":
                 await db.orders.update_one(
                     {"_id": existing["_id"]},
+                    # Türkiye saati (UTC+3)
+                    turkey_tz = timezone(timedelta(hours=3))
+                    now_turkey = datetime.now(turkey_tz).isoformat()
+                    
                     {"$set": {
                         "status": "cancelled",
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": now_turkey,
                         "getir_raw.status": getir_status,
                         "cancelled_by": "getir",
-                        "cancelled_at": datetime.now(timezone.utc).isoformat()
+                        "cancelled_at": now_turkey
                     }}
                 )
                 updated_count += 1
