@@ -282,12 +282,15 @@ async def deliver_order(restaurant_id: str, data: OrderActionRequest):
     result = await deliver_getir_order(restaurant_id, data.order_id)
     
     if result.get("success"):
+        # Türkiye saati (UTC+3)
+        turkey_tz = timezone(timedelta(hours=3))
+        now_turkey = datetime.now(turkey_tz).isoformat()
         await db.orders.update_one(
             {"id": data.order_id},
             {"$set": {
                 "status": "delivered",
-                "delivered_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "delivered_at": now_turkey,
+                "updated_at": now_turkey
             }}
         )
     
