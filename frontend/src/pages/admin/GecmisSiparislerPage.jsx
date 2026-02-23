@@ -118,6 +118,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
     setShowSummaryCard(true);
     setAppliedRestaurantFilter(restaurantFilter);
     setAppliedCourierFilter(courierFilter);
+    setAppliedSourceFilter(sourceFilter);
     
     // Kurye filtresi seçildiyse saatlik kazanç bilgisini çek
     if (courierFilter !== "all" && startDateTime && endDateTime) {
@@ -150,6 +151,7 @@ export default function GecmisSiparislerPage({ companyId, onOrderSelect, isSuper
       restaurant: restaurantFilter,
       courier: courierFilter,
       payment: paymentFilter,
+      source: sourceFilter,
       startDateTime,
       endDateTime
     });
