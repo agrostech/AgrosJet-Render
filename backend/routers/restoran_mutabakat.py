@@ -373,7 +373,7 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             "restaurant_count": len(result)
         },
         "week_description": get_mutabakat_description(start_dt, end_dt),
-        "vat_rate": vat_rate,
+        "vat_rate": default_vat_rate,
         "pos_commission_rate": pos_commission_rate
     }
 
