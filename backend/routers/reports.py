@@ -18,7 +18,7 @@ async def get_courier_report(
     courier_id: Optional[str] = Query(None)
 ):
     """Kurye bazlı sipariş raporu - parçalı ödeme ve saatlik kazanç desteği ile"""
-    from datetime import datetime
+    from datetime import datetime, timezone, timedelta
     
     # Tarih formatını düzelt
     if len(start_datetime) == 16:
