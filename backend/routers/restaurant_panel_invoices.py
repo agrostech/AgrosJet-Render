@@ -106,10 +106,10 @@ async def upload_restaurant_invoice(
     if len(contents) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'ı geçemez")
     
-    allowed_extensions = ["pdf", "png", "jpg", "jpeg"]
+    allowed_extensions = ["pdf"]
     ext = file.filename.split(".")[-1].lower() if "." in file.filename else ""
     if ext not in allowed_extensions:
-        raise HTTPException(status_code=400, detail="Sadece PDF ve resim dosyaları kabul edilir")
+        raise HTTPException(status_code=400, detail="Sadece PDF dosyaları kabul edilir")
     
     # Yeni fatura verisi
     new_invoice = {

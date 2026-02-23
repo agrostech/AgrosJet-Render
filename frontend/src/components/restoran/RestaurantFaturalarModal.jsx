@@ -103,7 +103,7 @@ function KesilenFaturalarTab({ restaurantId, onRefresh }) {
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept=".pdf,.png,.jpg,.jpeg"
+        accept=".pdf"
         className="hidden"
       />
 
