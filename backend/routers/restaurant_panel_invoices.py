@@ -85,7 +85,7 @@ async def upload_restaurant_invoice(
     week_label: str = Form(""),
     file: UploadFile = File(...)
 ):
-    """Restoran fatura yükle"""
+    """Restoran fatura yükle - restaurant_invoices içindeki invoices array'ine ekler"""
     # Restoran bilgisini al
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
@@ -94,11 +94,11 @@ async def upload_restaurant_invoice(
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
-    # Missing invoice kaydını kontrol et
-    missing_record = await db.missing_invoices.find_one(
+    # Fatura kaydını kontrol et
+    invoice_record = await db.restaurant_invoices.find_one(
         {"id": missing_invoice_id, "restaurant_id": restaurant_id}
     )
-    if not missing_record:
+    if not invoice_record:
         raise HTTPException(status_code=404, detail="Fatura kaydı bulunamadı")
     
     # Dosya kontrolü
@@ -111,37 +111,25 @@ async def upload_restaurant_invoice(
     if ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Sadece PDF ve resim dosyaları kabul edilir")
     
-    # Mevcut faturayı kontrol et
-    existing = await db.restaurant_invoices.find_one({
-        "missing_invoice_id": missing_invoice_id
-    })
-    
-    invoice_id = existing.get("id") if existing else str(uuid.uuid4())
-    
-    invoice_data = {
-        "id": invoice_id,
-        "company_id": restaurant.get("company_id"),
-        "restaurant_id": restaurant_id,
-        "restaurant_name": restaurant.get("name"),
-        "missing_invoice_id": missing_invoice_id,
-        "week_start": missing_record.get("week_start"),
-        "week_end": missing_record.get("week_end"),
-        "week_label": week_label or missing_record.get("week_label", ""),
+    # Yeni fatura verisi
+    new_invoice = {
+        "id": str(uuid.uuid4()),
         "filename": file.filename,
         "file_data": base64.b64encode(contents).decode("utf-8"),
-        "file_extension": ext,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+        "extension": ext,
+        "amount": invoice_record.get("required_amount", 0),
+        "uploaded_at": datetime.now(timezone(timedelta(hours=3))).isoformat(),
         "uploaded_by_restaurant": True,
         "verified": False
     }
     
+    # invoices array'ine ekle
     await db.restaurant_invoices.update_one(
-        {"id": invoice_id},
-        {"$set": invoice_data},
-        upsert=True
+        {"id": missing_invoice_id},
+        {"$push": {"invoices": new_invoice}}
     )
     
-    return {"success": True, "invoice_id": invoice_id}
+    return {"success": True, "invoice_id": new_invoice["id"]}
 
 
 @router.get("/{restaurant_id}/issued/download/{invoice_id}")
