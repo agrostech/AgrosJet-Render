@@ -442,6 +442,19 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         external_app_name
     )
     
+    # Taşıma ücreti hesapla
+    restaurant_location = {
+        "latitude": restaurant.get("latitude"),
+        "longitude": restaurant.get("longitude")
+    }
+    delivery_location = {
+        "latitude": delivery_lat,
+        "longitude": delivery_lng
+    }
+    restaurant_fee, restaurant_kdv = calculate_restaurant_fee_internal(
+        restaurant, restaurant_location, delivery_location
+    )
+    
     return {
         "id": str(uuid.uuid4()),
         "order_number": f"ADY-{adisyo_order.get('orderNumber', adisyo_order.get('id'))}",
@@ -452,19 +465,15 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         "restaurant_id": restaurant.get("id"),
         "restaurant_name": restaurant.get("name"),
         "restaurant_phone": restaurant.get("phone"),
-        "restaurant_location": {
-            "latitude": restaurant.get("latitude"),
-            "longitude": restaurant.get("longitude")
-        },
+        "restaurant_location": restaurant_location,
         "customer_name": customer_name,
         "customer_phone": customer_phone,
         "delivery_address": delivery_address,
-        "delivery_location": {
-            "latitude": delivery_lat,
-            "longitude": delivery_lng
-        },
+        "delivery_location": delivery_location,
         "items": items,
         "total_amount": float(adisyo_order.get("orderTotal", 0)),
+        "restaurant_fee": restaurant_fee,
+        "restaurant_kdv": restaurant_kdv,
         "payment_method": payment_info["method"],
         "payment_method_detail": payment_info.get("detail"),
         "status": map_adisyo_status(
