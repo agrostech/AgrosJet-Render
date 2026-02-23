@@ -395,6 +395,7 @@ async def get_restaurant_report(
                 "posCommission": 0,
                 "cash": 0,
                 "card": 0,
+                "online": 0,
                 "mealCard": 0,
                 "modified_count": 0,
                 "cash_included": settings["cash_included"],
