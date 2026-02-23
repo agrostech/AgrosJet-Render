@@ -31,6 +31,10 @@ class InvoiceVerify(BaseModel):
     admin_name: str
 
 
+class AutoSettingsUpdate(BaseModel):
+    enabled: bool
+
+
 # ========== Helpers ==========
 
 async def get_company_work_hours(company_id: str) -> tuple:
