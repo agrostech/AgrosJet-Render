@@ -331,6 +331,7 @@ export default function RestaurantMuhasebe({ restaurantId, restaurantName }) {
         open={showFaturalar}
         onOpenChange={setShowFaturalar}
         restaurantId={restaurantId}
+        restaurantName={restaurantName}
       />
     </div>
   );
