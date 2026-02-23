@@ -213,7 +213,8 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
         }
     ).to_list(10000)
     
-    # Python'da delivered_at ile tarih filtrelemesi
+    # Python'da delivered_at ile tarih filtrelemesi (Türkiye saati)
+    turkey_tz = timezone(timedelta(hours=3))
     orders = []
     for order in all_orders:
         delivered_at = order.get("delivered_at")
@@ -225,10 +226,9 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
             else:
                 order_dt = delivered_at
             
+            # Türkiye saati olarak kabul et (eğer timezone yoksa)
             if order_dt.tzinfo is None:
-                order_dt = order_dt.replace(tzinfo=timezone.utc)
-            else:
-                order_dt = order_dt.astimezone(timezone.utc)
+                order_dt = order_dt.replace(tzinfo=turkey_tz)
             
             if start_dt <= order_dt <= end_dt:
                 orders.append(order)
