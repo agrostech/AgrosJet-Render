@@ -25,11 +25,11 @@ async def get_company_opening_time(company_id: str) -> str:
 
 def get_business_day_range(date_str: str, opening_time: str):
     """
-    İş günü aralığını hesapla.
+    İş günü aralığını hesapla (Türkiye saati baz alınarak UTC'ye çevrilir).
     
     Örnek: date=2024-02-22, opening_time=06:00
-    Başlangıç: 2024-02-22 06:00:00
-    Bitiş: 2024-02-23 06:00:00
+    Başlangıç: 2024-02-22 06:00:00 TR -> 2024-02-22 03:00:00 UTC
+    Bitiş: 2024-02-23 06:00:00 TR -> 2024-02-23 03:00:00 UTC
     
     Bu şekilde tam 24 saatlik iş günü verisi çekilir.
     """
@@ -39,13 +39,18 @@ def get_business_day_range(date_str: str, opening_time: str):
     # Parse opening time
     open_hour, open_minute = map(int, opening_time.split(":"))
     
-    # İş günü başlangıcı: seçilen gün + açılış saati
-    start_dt = base_date.replace(hour=open_hour, minute=open_minute, second=0, microsecond=0)
+    # Türkiye UTC+3
+    turkey_offset = timedelta(hours=3)
     
-    # İş günü bitişi: ertesi gün + açılış saati
-    end_dt = start_dt + timedelta(days=1)
+    # İş günü başlangıcı: seçilen gün + açılış saati (Türkiye) -> UTC
+    start_turkey = base_date.replace(hour=open_hour, minute=open_minute, second=0, microsecond=0)
+    start_utc = start_turkey - turkey_offset
     
-    return start_dt.isoformat(), end_dt.isoformat()
+    # İş günü bitişi: ertesi gün + açılış saati (Türkiye) -> UTC
+    end_turkey = start_turkey + timedelta(days=1)
+    end_utc = end_turkey - turkey_offset
+    
+    return start_utc.isoformat(), end_utc.isoformat()
 
 
 @router.get("/{company_id}")
