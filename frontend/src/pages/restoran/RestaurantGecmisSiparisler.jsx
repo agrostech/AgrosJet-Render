@@ -159,6 +159,7 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
     
     fetchAndFilterOrders({
       courier: "all",
+      courierName: "all",
       payment: "all",
       startDateTime: defaults.startDateTime,
       endDateTime: defaults.endDateTime
