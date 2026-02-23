@@ -1198,10 +1198,8 @@ async def get_weekly_summary(company_id: str, week_start: str = None):
         
         # Gün aralığını hesapla (Türkiye saati)
         start_dt = day_date.replace(hour=open_hour, minute=open_min, second=0, microsecond=0, tzinfo=turkey_tz)
-        if close_hour < open_hour:
-            end_dt = (day_date + timedelta(days=1)).replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
-        else:
-            end_dt = day_date.replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
+        # Kapanış her zaman ertesi gün (gece işletmesi mantığı)
+        end_dt = (day_date + timedelta(days=1)).replace(hour=close_hour, minute=close_min, second=59, microsecond=999999, tzinfo=turkey_tz)
         
         # O gün siparişi olan kurye sayısını hesapla (delivered_at ile)
         # Önce o tarih aralığındaki tüm siparişleri çek
