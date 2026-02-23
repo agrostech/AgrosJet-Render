@@ -125,7 +125,7 @@ async def get_courier_report(
                 if info.get("availability_status") == "active" and info.get("last_active_at"):
                     try:
                         last_active = datetime.fromisoformat(info["last_active_at"].replace('Z', '+00:00'))
-                        current_minutes = int((now - last_active).total_seconds() / 60)
+                        current_minutes = int((now_utc - last_active).total_seconds() / 60)
                         active_hours_map[cid] = active_hours_map.get(cid, 0) + current_minutes
                     except (ValueError, TypeError):
                         pass
