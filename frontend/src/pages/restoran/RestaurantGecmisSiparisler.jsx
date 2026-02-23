@@ -93,7 +93,12 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
       
       // Payment method filter
       if (filters.payment !== "all") {
-        result = result.filter(o => o.payment_method === filters.payment);
+        if (filters.payment === "online") {
+          // Online: online + online_meal_card
+          result = result.filter(o => o.payment_method === "online" || o.payment_method === "online_meal_card");
+        } else {
+          result = result.filter(o => o.payment_method === filters.payment);
+        }
       }
       
       // Date range filter
