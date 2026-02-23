@@ -178,6 +178,23 @@ function KesilenFaturalarTab({ restaurantId, onRefresh }) {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
+                      {/* 30 dakika içinde silinebilir */}
+                      {inv.can_delete && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDelete(inv.invoice_id)}
+                          disabled={deletingId === inv.invoice_id}
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                          title="Sil (30 dk içinde)"
+                        >
+                          {deletingId === inv.invoice_id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      )}
                     </>
                   ) : (
                     <Button
