@@ -10,8 +10,10 @@ import {
   RefreshCw,
   ChevronDown,
   FileText,
-  Wallet
+  Wallet,
+  Receipt
 } from "lucide-react";
+import RestaurantFaturalarModal from "@/components/restoran/RestaurantFaturalarModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
