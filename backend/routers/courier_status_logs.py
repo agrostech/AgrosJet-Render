@@ -136,7 +136,10 @@ async def create_status_log(
 @router.get("/courier/{courier_id}/today")
 async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None)):
     """Kuryenin bugünkü durum logları ve aktiflik süresi"""
-    now = datetime.now(timezone.utc)
+    # Türkiye timezone'u (UTC+3)
+    turkey_tz = timezone(timedelta(hours=3))
+    now_utc = datetime.now(timezone.utc)
+    now_turkey = now_utc.astimezone(turkey_tz)
     
     # Kurye bilgilerini al
     courier = await db.couriers.find_one(
@@ -154,8 +157,21 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
         else:
             opening_time = "06:00"
     
-    # Bugünün iş gününü hesapla
-    today = get_business_date(now, opening_time)
+    # Bugünün iş gününü hesapla (Türkiye saatine göre)
+    open_h, open_m = map(int, opening_time.split(":"))
+    
+    # Şu anki Türkiye saati açılış saatinden önce mi?
+    if now_turkey.hour < open_h or (now_turkey.hour == open_h and now_turkey.minute < open_m):
+        # Açılış saatinden önce - önceki iş günü
+        business_day = now_turkey - timedelta(days=1)
+    else:
+        business_day = now_turkey
+    
+    today = business_day.strftime("%Y-%m-%d")
+    
+    # İş günü başlangıç zamanını hesapla (Türkiye saatinde)
+    business_day_start_turkey = business_day.replace(hour=open_h, minute=open_m, second=0, microsecond=0)
+    business_day_start_utc = business_day_start_turkey.astimezone(timezone.utc)
     
     # Kurye durum loglarını getir
     courier_logs = await db.courier_status_logs.find(
