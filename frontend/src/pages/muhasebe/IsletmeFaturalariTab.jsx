@@ -1002,6 +1002,55 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
         </CardContent>
       </Card>
 
+      {/* Manuel Tetikleyiciler - Test için */}
+      {isSuperAdmin && (
+        <Card className="border border-dashed border-orange-300 bg-orange-50/50">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-4 h-4 text-orange-600" />
+                <div>
+                  <p className="text-sm font-medium text-orange-800">Manuel Test</p>
+                  <p className="text-xs text-orange-600">
+                    Geçen hafta için eksik fatura kayıtları oluştur veya tüm verileri sil
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleGenerateData}
+                  disabled={generating || clearing}
+                  className="border-green-500 text-green-700 hover:bg-green-50"
+                >
+                  {generating ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-1" />
+                  )}
+                  Verileri Oluştur
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleClearData}
+                  disabled={generating || clearing}
+                  className="border-red-500 text-red-700 hover:bg-red-50"
+                >
+                  {clearing ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-1" />
+                  )}
+                  Verileri Sil
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <MonthSelector
         year={selectedYear}
         month={selectedMonth}
