@@ -46,8 +46,25 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Platform konfigürasyonları
+// Platform konfigürasyonları (sıralama: Yemeksepeti, Trendyol, Getir, Migros)
 const PLATFORM_CONFIG = {
+  yemeksepeti: {
+    name: "Yemeksepeti",
+    abbr: "YS",
+    color: "red",
+    bgClass: "bg-red-600",
+    bgLightClass: "bg-red-100",
+    textClass: "text-red-600",
+    fields: [
+      { key: "client_id", label: "Client ID", type: "password", required: true },
+      { key: "client_secret", label: "Client Secret", type: "password", required: true },
+      { key: "chain_id", label: "Chain ID", type: "text", required: true, placeholder: "Zincir ID" },
+      { key: "vendor_id", label: "Vendor ID", type: "text", required: true, placeholder: "Mağaza ID" }
+    ],
+    helpText: "Bu bilgileri Yemeksepeti Account Manager'dan temin ediniz. Webhook tabanlı çalışır.",
+    helpUrl: null,
+    isWebhook: true
+  },
   trendyol: {
     name: "Trendyol Yemek",
     abbr: "TY",
@@ -89,23 +106,6 @@ const PLATFORM_CONFIG = {
       "30saniye": "Sipariş 30 saniye içinde onaylanmalıdır",
       "1dakika": "verify → prepare → deliver arasında en az 1 dakika beklenmeli"
     }
-  },
-  yemeksepeti: {
-    name: "Yemeksepeti",
-    abbr: "YS",
-    color: "red",
-    bgClass: "bg-red-600",
-    bgLightClass: "bg-red-100",
-    textClass: "text-red-600",
-    fields: [
-      { key: "client_id", label: "Client ID", type: "password", required: true },
-      { key: "client_secret", label: "Client Secret", type: "password", required: true },
-      { key: "chain_id", label: "Chain ID", type: "text", required: true, placeholder: "Zincir ID" },
-      { key: "vendor_id", label: "Vendor ID", type: "text", required: true, placeholder: "Mağaza ID" }
-    ],
-    helpText: "Bu bilgileri Yemeksepeti Account Manager'dan temin ediniz. Webhook tabanlı çalışır.",
-    helpUrl: null,
-    isWebhook: true
   },
   migros: {
     name: "Migros Yemek",
