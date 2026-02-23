@@ -1,147 +1,156 @@
 <analysis>**original_problem_statement:**
-The session began with the user redirecting the agent from a previously planned WebSocket integration to focus on a series of new features and critical bug fixes.
+The user initially aimed to debug why some orders from the 'Adisyo' integration were not appearing in the system. This led to fixing credential usage and data fetching parameters.
 
-The main tasks requested and addressed were:
-1.  **Hareketler (Movements) Modal:** Implement a new modal to track courier and admin status change logs.
-2.  **System-Wide Timezone Bug:** The user reported a bug where a courier's daily active time exceeded 24 hours. This led to a major investigation and correction of timezone handling across numerous backend files related to filtering, reporting, and scheduling.
-3.  **New Invoicing Features:**
-    *   Add a Kesilen Faturalar (Issued Invoices) tab to the admin panel for tracking and uploading invoices for restaurants.
-    *   Add a Faturalar modal to the restaurant panel, allowing restaurants to view invoices issued by the admin and upload their own invoices.
-4.  **Print Server Enhancements:** Address multiple issues with the local thermal printer integration, including connection stability, character encoding, text formatting (bolding), line wrapping, and adding a paper cut command.
-5.  **Delivery Fee Calculation Bug:** Near the end of the session, the user reported that the Taşıma Ücreti (Delivery Fee) was not being calculated correctly, which became the final and unresolved issue.
+The scope then expanded significantly to address numerous data inconsistencies and UI/UX issues across the application, driven by a series of specific user requests. The core of this session focused on standardizing business logic, particularly around date and time handling, and improving the usability of various financial and operational pages.
+
+Key tasks addressed included:
+1.  Fixing inconsistent calculations for Yemek Kartı (Meal Card) on reporting pages.
+2.  Resolving a discrepancy in order counts between the admin and restaurant panels by unifying date filtering logic.
+3.  **Standardizing Timezones:** A major effort was undertaken to ensure all  and  timestamps are saved in Turkey's timezone (UTC+3). All backend filtering logic for reporting was subsequently refactored to use this timezone directly, removing complex and error-prone UTC conversions.
+4.  Switching specific pages (Teslim and İptal orders) to filter by  at the user's request, while keeping all financial reports filtering by .
+5.  Implementing numerous UI/UX fixes: adding new filters, improving date displays, standardizing icons, and removing a confusing summary report.
+6.  Fixing an integration issue with  by making Pydantic models more flexible.
+7.  Integrating the restaurant invoicing workflow, connecting the admin's invoice creation process with the restaurant's ability to view and upload the corresponding documents.
+8.  Optimizing a scheduled job from a per-minute check to a more efficient cron trigger.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application has several new features and significant bug fixes. A Hareketler (Movements) modal now provides activity logs for couriers and admins. A major, system-wide timezone issue has been corrected across multiple backend modules, ensuring that date filters, reports, and calculations correctly use the 'Europe/Istanbul' timezone.
+The application's data handling is significantly more robust. All timestamps for  and  are now stored and filtered consistently in Turkey's timezone (UTC+3) across critical reporting modules.
 
-The invoicing system has been expanded: admins have a new Kesilen Faturalar tab to manage weekly restaurant invoices, and restaurants have a corresponding Faturalar modal to upload and view invoices.
-
-The local print server integration in the restaurant panel is now more robust, featuring manual connection controls, proper Turkish character support, text formatting (bolding), intelligent line wrapping for long product names, and an automatic paper cut command.
-
-However, a critical bug persists where delivery fees for orders are not being calculated based on the restaurant's pricing settings.
+The UI has been refined based on user feedback:
+-   The Teslim (Delivered) and İptal (Cancelled) order pages now filter by  for operational views.
+-   All financial reports (, , , etc.) correctly use  for financial accuracy.
+-   The Restaurant Panel's order history includes advanced filtering by delivery type (courier company vs. restaurant) and by specific courier name.
+-   Date filters across several pages now default to the company's opening and closing hours.
+-   The  integration is fixed, and the Adisyo webhook URL is now displayed dynamically.
+-   The restaurant invoicing flow is now functionally integrated: the admin creates a pending invoice, the restaurant sees it and can upload the file, and the uploaded file appears for the admin to review.
+-   The scheduled job for creating restaurant invoices has been optimized to run only once on Monday mornings via a cron trigger.
 
 **Last working item**:
--   Last item agent was working: Debugging why the Taşıma Ücreti (Delivery Fee) is calculated as 0 TL in the Restoran Mutabakat tab, even after the user configured per-package pricing for the restaurant. An initial fix was applied to save the  on order creation, but it did not solve the problem for new orders.
--   Status: **IN PROGRESS**
+-   Last item agent was working: The user requested a feature for the Restoran Faturaları -> Alınan Faturalar page. Currently, this tab is empty. The user wants it to display a preview of which restaurants will have an invoice generated during the next automatic run, and for what amount. This would provide visibility before the invoices are formally created.
+-   Status: **NOT STARTED**
 -   Agent Testing Done: N
--   Which testing method agent to use? backend testing agent
--   User Testing Done: Y
+-   Which testing method agent to use? screenshot tool
+-   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Delivery Fee Calculation Failure (P0)**
-    -   Description: The system fails to apply the restaurant's configured pricing settings (e.g., per-package fee) when creating new orders, resulting in a  of 0. This makes the Restoran Mutabakat feature incorrect.
-    -   Attempted fixes: The agent modified  to calculate and save  and  during order creation. This did not work. The agent suspected the restaurant's pricing settings were not being retrieved correctly during the process.
-    -   Next debug checklist:
-        1.  Trace the  function in .
-        2.  Verify that the  object fetched from the database within that function contains the  sub-document (, , etc.).
-        3.  Add logging to see the values of the restaurant's pricing settings just before the  function is called.
-        4.  Confirm the logic within  correctly handles the retrieved pricing data.
-    -   Why fix this issue and what will be achieved with the fix? This is critical for the accounting and reconciliation features of the application. Fixing it will ensure restaurants are billed correctly for delivery services.
-    -   Status: **IN PROGRESS**
-    -   Is recurring issue? N
-    -   Should Test frontend/backend/both after fix? Backend
--   **Issue 2: Kurye Bulunamadı (Courier Not Found) Error on Termination (P2)**
-    -   Description: A fix was previously applied for an error during courier termination, but it is still awaiting user verification.
+-   **Issue 1: Preview for Upcoming Restaurant Invoices (P0)**
+    -   Description: The Alınan Faturalar tab within the Restoran Faturaları page is blank. It needs to show a calculated preview of the invoices that will be automatically generated for each restaurant for the previous week.
+    -   Status: **NOT STARTED**
+-   **Issue 2: Inefficient Scheduled Jobs for Reconciliation (P1)**
+    -   Description: The scheduled jobs for  (Weekly Earnings) and  (Restaurant Reconciliation) run every minute to check if they should execute. This is inefficient. They should be refactored to use a more efficient trigger mechanism, similar to the cron job implemented for invoice creation.
+    -   Status: **NOT STARTED**
+-   **Issue 3: Data Consistency Final Verification (P1)**
+    -   Description: Although numerous fixes have been implemented, a final, comprehensive verification across all financial reporting pages is needed to confirm perfect alignment.
     -   Status: **USER VERIFICATION PENDING**
--   **Issue 3: Historical Accounting Data Inconsistency (P2)**
+-   **Issue 4: Kurye Bulunamadı (Courier Not Found) Error on Termination (P2)**
+    -   Description: A fix from a previous session is awaiting user verification.
+    -   Status: **USER VERIFICATION PENDING**
+-   **Issue 5: Historical Accounting Data Inconsistency (P2)**
     -   Description: From a previous fork, old transactions with  are not appearing in the accounting tabs.
     -   Status: **NOT STARTED**
--   **Issue 4: Mobile File Upload Issue (P3)**
+-   **Issue 6: Mobile File Upload Issue (P3)**
     -   Description: A known, recurring issue with file uploads on mobile devices.
     -   Status: **NOT STARTED**
     -   Is recurring issue? Y
 
 **In progress Task List**:
--   None.
+-   **Task 1: Implement Upcoming Invoices Preview (P0)**
+    -   Where to resume:
+        1.  **Backend:** Create a new endpoint in  that calculates the invoice data for the previous week (for all restaurants with invoicing enabled) without creating the actual records. It should return a list of restaurants and their calculated invoice amounts.
+        2.  **Frontend:** In , modify the Alınan Faturalar tab to call this new endpoint and display the data in a table.
+    -   What will be achieved with this? Admins will have clear visibility into which invoices are about to be generated and their amounts, improving financial oversight.
+    -   Status: **NOT STARTED**
+    -   Should Test frontend/backend/both after fix? Frontend
+    -   Blocked on something: None
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks (P1):**
-    -   Finalize Migros Yemek integration.
-    -   Complete Yemeksepeti Integration.
-    -   Implement Restaurant Reports () Page functionality.
--   **Future Tasks (P2-P3):**
+-   **Upcoming Tasks:**
+    -   **Incomplete Fee Calculation Integration (P1):** The logic to calculate  on order creation must be implemented for all other integration points (, , , , ) in their respective service files. This is a critical piece of technical debt causing data inconsistencies.
+    -   **Refactor Scheduled Jobs (P1):** Improve the efficiency of the  and  jobs by moving away from per-minute checks.
+    -   Finalize Migros Yemek & Yemeksepeti Integrations.
+-   **Future Tasks:**
     -   Develop a Native Courier App.
     -   Re-enable and Enhance the Chat System.
-    -   Refactor the Login Page.
-    -   Implement Google Maps Integration.
-    -   Refactor Order History Pages ().
-    -   Refactor : This large file remains a source of technical debt.
-    -   Implement a Dark Mode theme.
-    -   Add enhancements to the Motosikletim feature.
+    -   Refactor the Login Page and Order History pages.
+    -   Refactor .
+    -   Implement Google Maps Integration & a Dark Mode theme.
 
 **Completed work in this session**
--   **Major Bug Fix: System-Wide Timezone Correction:**
-    -   Audited and fixed timezone handling ( vs. ) in , , , , , , , and .
-    -   Resolved a critical bug causing >24 hour active time calculations for couriers.
--   **Feature: Hareketler (Movements) Modal:**
-    -   Implemented the full-stack feature for logging and viewing courier and admin status changes, with filtering and sorting.
--   **Feature: Expanded Invoicing System:**
-    -   Admin Panel: Added a Kesilen Faturalar tab to  for managing weekly invoices issued to restaurants.
-    -   Restaurant Panel: Added a Faturalar modal to , allowing restaurants to upload their own invoices and view invoices from the admin.
--   **Enhancement: Local Print Server ():**
-    -   Added manual connect/disconnect buttons and status indicators in .
-    -   Fixed connection stability issues and errors ().
-    -   Implemented correct Turkish character encoding for printouts.
-    -   Added ESC/POS commands for bold text, larger headers, and automatic paper cutting.
-    -   Implemented intelligent line wrapping for long product names to prevent truncation.
--   **Bug Fix: Auto-Print Reliability:**
-    -   Fixed a race condition in  that caused some orders to be skipped by the auto-print functionality.
+-   **Timezone Unification:** Standardized  and  to be stored in Turkey's timezone (UTC+3) and refactored all backend reporting filters to use it directly, eliminating UTC conversion bugs.
+-   **Filtering Logic Separation:** Configured Teslim and İptal pages to use  for operational views, while all financial reports correctly use .
+-   **Restaurant Invoicing Flow:** Fully integrated the process from admin creation -> restaurant upload -> admin final review.
+-   **Scheduled Job Optimization:** Refactored the invoice creation job to use a  (runs only on Monday at 2 AM) instead of a per-minute interval check.
+-   **Daily Reconciliation Page () Overhaul:** Fixed multiple bugs related to week navigation, incorrect date range display, wrong kurye counts, and filtering by the wrong date field ( -> ).
+-   **UI/UX Improvements:**
+    -   Removed the summary card from the Teslim Edilen Siparişler page.
+    -   Added advanced courier filtering to the restaurant panel.
+    -   Standardized page names (Geçmiş -> Teslim) and icons across admin/restaurant panels.
+    -   Reordered integrations on the settings page.
+-   **Integration Fix:** Corrected the SepetTakip webhook endpoint to accept both  and  IDs.
+-   **Reporting Fixes:** Corrected Yemek Kartı calculation logic, fixed date label display on the Haftalık Hakediş page, and ensured all courier reports use .
 
 **Earlier issues found/mentioned but not fixed**
--   None, all new issues were either addressed or are listed in the pending section.
+-   **Incomplete Fee Calculation:** The task to integrate  calculation into all order creation endpoints (Getir, Trendyol, etc.) remains incomplete and is a major source of technical debt.
+-   **Inefficient Scheduled Jobs:** The  and  jobs still run every minute, which is inefficient. This was identified but not fixed.
 
 **Known issue recurrence from previous fork**
 -   Issue recurrence in previous fork: Mobile File Upload Issue.
--   Recurrence count: 5+
+-   Recurrence count: 6+
 -   Status: NOT STARTED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Timezone Management:** Correctly handling  timezones ('Europe/Istanbul' vs. UTC) was crucial for fixing numerous data filtering and calculation bugs across the backend.
--   **ESC/POS Commands:** Raw byte commands were sent to the local print service to control thermal printer features like bold text, text size, and paper cutting.
--   **Modular Backend Design:** New features were implemented in separate router files (, ) to keep the codebase organized and avoid further bloating large files like .
--   **Asynchronous JavaScript:** Addressed race conditions in async loops ( vs. ) and handled fetch request timeouts () to improve the stability of the print server connection.
+-   **Timezone Standardization:** A crucial architectural decision was made to store all key timestamps (, ) in a single, consistent timezone (Turkey, UTC+3) and remove all complex UTC conversion logic from backend filters. This simplifies the codebase and eliminates a class of bugs.
+-   **Scheduled Jobs (APScheduler):** Differentiating between inefficient interval-based jobs and efficient cron-based jobs. Refactored one job to use .
+-   **Pydantic Model Flexibility:** Using  in Pydantic models to gracefully handle data type inconsistencies from third-party APIs ().
+-   **Frontend State Management:** Debugging and fixing React  dependency issues that caused incorrect data fetching and component re-renders.
+-   **Dynamic UI:** Using  to create dynamic URLs that work across different environments (preview vs. production).
 
 **key DB schema**
--   **orders**: The fields  and  are expected to be populated upon order creation but are currently failing.
--   **restaurants**: Contains the  sub-document (, , ), which is the source of the data for the fee calculation.
--   **issued_invoices**: New collection storing invoices generated by the admin for restaurants.
--   **restaurant_invoices**: New collection storing invoices uploaded by restaurants.
+-   **orders**:  and  are now consistently stored as timezone-aware strings representing Turkey's local time.
+-   **companies**:  and  fields are used to set default start/end times for date filters.
+-   **restaurant_invoices**: This collection is now the single source of truth for the entire restaurant invoicing workflow, from admin creation to restaurant upload and final review.
 
 **All files of reference**
--   : **Primary file for the current bug.** The  function needs to be debugged.
--   : Contains the  endpoint used to save the fee settings.
--   : The admin page where the user observes the  fee bug.
--   : The frontend component where the user configures the restaurant pricing.
--   : Contains all the logic for thermal printing.
+-    (To be modified for new preview feature)
+-    (To be modified for new preview feature)
+-   
+-   
+-   
+-   
+-   
+-   All other reporting routers (, , ).
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   **Your immediate priority is the delivery fee calculation bug (Issue #1).** The problem is not that the fields are missing, but that the calculation is consistently yielding zero. The likely cause is a failure to retrieve the restaurant's specific pricing settings when the  endpoint is executed. Assume the user has configured the settings correctly and focus on why the backend isn't reading them.
--   The user has explicitly **cancelled the WebSocket integration.** Do not work on or suggest this task.
--   A massive, system-wide timezone audit and fix was a major part of this session. Any new development involving dates or times must be carefully implemented to be timezone-aware (using 'Europe/Istanbul').
+-   Your immediate priority is to implement the Upcoming Invoices Preview feature as described in the In progress Task List.
+-   The architectural decision to standardize all date/time storage and filtering to Turkey's timezone is critical. Do not re-introduce UTC conversion logic into the reporting endpoints.
+-   The user is technically aware and direct. Provide clear explanations and avoid wasting time.
 
 **documents and test reports created in this job**
--   None.
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **Bug Report (IN PROGRESS):** 20 more orders created, delivery fee is still 0.
-9.  **Bug Report (COMPLETED):** Delivery fee is 0 in restaurant reconciliation tab. (Agent attempted a fix, but it led to bug #10).
-8.  **Bug Report (COMPLETED):** Reconciliation tab shows no data for the current week. (Agent fixed timezone/date range logic).
-7.  **Data Paste:** User pasted 20 orders to demonstrate the reconciliation bug.
-6.  **Feature Request (COMPLETED):** Create a new two-tab Faturalar modal in the restaurant accounting panel.
-5.  **Confirmation (COMPLETED):** User confirmed requirements for the new restaurant invoice modal.
-4.  **Request (COMPLETED):** Add an automatic paper cut command to the end of a printout.
-3.  **Feedback (Info):** User states they are checking printouts in PDF format, where bolding/ESC-POS commands do not appear.
-2.  **Request (COMPLETED):** Product names should never be shortened in printouts.
-1.  **Request (COMPLETED):** Make headers (MÜŞTERİ, ÜRÜNLER, etc.) bold in printouts.
+10. **User Request:** I need 10 test orders created with specific criteria (delivered, card payment, specific date). (Completed)
+9.  **User Request:** The Alınan Faturalar (Received Invoices) tab is empty. I want to see which invoices will be created for which restaurants before they are actually generated. (Current task)
+8.  **User Question:** The automatic invoice creation runs for the previous week every Monday, right? (Answered: Yes)
+7.  **User Question:** What does checks every minute mean for the scheduled jobs? Is it constantly hitting the system? (Answered: Yes, and the agent refactored one job to be more efficient)
+6.  **User Request:** Remove the Manual Test section from the restaurant invoices page. (Completed)
+5.  **User Request & Clarification:** Explained the desired workflow for restaurant invoicing: Admin creates pending invoice -> Restaurant sees and uploads PDF -> Admin reviews uploaded file. (Completed)
+4.  **User Question:** Does the automatic reconciliation on Monday run for the current or previous week? (Answered: Previous week)
+3.  **User Request:** On the Haftalık Hakediş (Weekly Earnings) page, show the date/time range for the selected week. Also, check for timezone issues and ensure it uses . (Completed)
+2.  **User Clarification:** We decided to store dates in Turkey's timezone in the database, right? So we don't need to add timezone controls, just use the direct time. (Confirmed)
+1.  **User Bug Report:** In the courier reconciliation modal, are there any timezone or  issues? (Checked and confirmed it's correct)
 
 **Project Health Check:**
--   **Broken**: The core business logic for calculating restaurant delivery fees is broken. This impacts the financial reconciliation features of the application.
--   **Mocked**: No mocked components.
+-   **Broken**:
+    -   The core logic for calculating  at the time of order creation is missing for most integrations (, , , etc.). This is a major source of data inconsistency.
+-   **Technical Debt**:
+    -   The scheduled jobs for  and  are inefficient, running every minute instead of using a precise trigger.
 
 **3rd Party Integrations**
 -   
@@ -156,12 +165,13 @@ However, a critical bug persists where delivery fees for orders are not being ca
 **Testing status**
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: []
--   Known regressions: None from this session.
+-   Test files created:
+    -   
+-   Known regressions:
+    -   A bug was introduced and fixed in  where a removed state function was still being called.
 
 **Credentials to test flow:**
 -   **Company Admin:**  / 
--   **Restaurant:** Credentials need to be fetched from the database if required.
 
 **What agent forgot to execute**
--   The agent did not forget any tasks. The session was driven by user requests, and the final unresolved item is the current highest priority. The agent correctly noted the cancellation of the WebSocket task.</analysis>
+-   The agent did not forget to execute any direct user requests in this session. However, the major piece of technical debt from the previous session—implementing  calculation for all integrations—remains outstanding and should be prioritized after the current task. The newly identified technical debt regarding inefficient scheduled jobs also remains.</analysis>
