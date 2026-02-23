@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { 
-  ClipboardList, Truck, CheckCircle, XCircle, 
+  ClipboardList, Truck, CheckCircle, XCircle, ClipboardX, ListChecks,
   Package, Timer, TrendingUp, Info, Phone, Calendar, Bike, UserPlus, Eye, Store, Printer, History, Plus, Trash2
 } from "lucide-react";
 import NewOrderModal from "@/components/restoran/NewOrderModal";
