@@ -491,6 +491,7 @@ async def get_restaurant_report(
             "totalPosCommission": total_pos_commission,
             "totalCash": total_cash,
             "totalCard": total_card,
+            "totalOnline": total_online,
             "totalMealCard": total_meal_card,
             "totalModified": total_modified,
             "result": result
