@@ -174,10 +174,20 @@ export default function RestaurantMuhasebe({ restaurantId }) {
           <h1 className="text-2xl font-bold text-slate-900">Muhasebe</h1>
           <p className="text-sm text-muted-foreground">Finansal işlemler ve bakiye</p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Yenile
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowFaturalar(true)}
+          >
+            <Receipt className="w-4 h-4 mr-2" />
+            Faturalar
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Yenile
+          </Button>
+        </div>
       </div>
 
       {/* Bakiye Kartı */}
