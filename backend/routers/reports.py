@@ -232,16 +232,52 @@ async def get_restaurant_report(
     restaurant_id: Optional[str] = Query(None)
 ):
     """Restoran bazlı sipariş raporu - parçalı ödeme ve tahsilat ayarları desteği ile"""
+    import math
+    
+    # Mesafe hesaplama fonksiyonu
+    def calculate_distance(loc1, loc2):
+        if not loc1 or not loc2:
+            return 0.0
+        lat1 = loc1.get("latitude") or loc1.get("lat") or 0
+        lng1 = loc1.get("longitude") or loc1.get("lng") or 0
+        lat2 = loc2.get("latitude") or loc2.get("lat") or 0
+        lng2 = loc2.get("longitude") or loc2.get("lng") or 0
+        if not all([lat1, lng1, lat2, lng2]):
+            return 0.0
+        R = 6371
+        dLat = math.radians(lat2 - lat1)
+        dLon = math.radians(lng2 - lng1)
+        a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
+    
+    # Ücret hesaplama fonksiyonu
+    def calculate_fee_from_pricing(pricing_type, per_package_price, km_ranges, distance_km):
+        if pricing_type == "per_package":
+            return per_package_price or 0.0
+        elif pricing_type == "per_km" and km_ranges:
+            for km_range in km_ranges:
+                min_km = km_range.get("min_km", 0)
+                max_km = km_range.get("max_km")
+                price = km_range.get("price", 0)
+                if max_km is None:
+                    if distance_km >= min_km:
+                        return price
+                else:
+                    if min_km <= distance_km < max_km:
+                        return price
+        return 0.0
+    
     # Tarih formatını düzelt
     if len(start_datetime) == 16:
         start_datetime = start_datetime + ":00"
     if len(end_datetime) == 16:
         end_datetime = end_datetime + ":59"
     
-    # Restoranların tahsilat ayarlarını çek
+    # Restoranların tahsilat ve pricing ayarlarını çek
     restaurants_cursor = db.restaurants.find(
         {"company_id": company_id, "is_archived": {"$ne": True}},
-        {"_id": 0, "id": 1, "name": 1, "collection_settings": 1}
+        {"_id": 0, "id": 1, "name": 1, "collection_settings": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
     )
     restaurant_settings = {}
     async for r in restaurants_cursor:
@@ -250,7 +286,11 @@ async def get_restaurant_report(
             "name": r.get("name", "Bilinmiyor"),
             "cash_included": settings.get("cash_collection", "courier") == "courier",
             "card_included": settings.get("card_collection", "courier") == "courier",
-            "meal_card_included": settings.get("meal_card_collection", "courier") == "courier"
+            "meal_card_included": settings.get("meal_card_collection", "courier") == "courier",
+            "pricing_type": r.get("pricing_type", "per_package"),
+            "per_package_price": r.get("per_package_price", 0),
+            "km_ranges": r.get("km_ranges", []),
+            "kdv_rate": r.get("kdv_rate", 10)
         }
     
     # Temel filtre (restoran teslimatı hariç)
