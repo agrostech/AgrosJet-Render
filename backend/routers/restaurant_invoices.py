@@ -754,7 +754,7 @@ async def upload_invoice(
         week_start_dt = datetime.fromisoformat(week_start.replace('Z', '+00:00'))
         week_end_dt = week_start_dt + timedelta(days=7)
         week_end_str = week_end_dt.strftime('%d.%m')
-    except:
+    except (ValueError, TypeError):
         week_end_str = "00.00"
     
     # Dosya adı formatı: ŞirketAdı-RestoranAdı-HaftaBitiş.pdf
