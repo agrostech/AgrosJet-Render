@@ -150,35 +150,42 @@ export default function StoreStatusToggles({ restaurantId }) {
                   {platformStores.length === 0 ? (
                     <p className="text-[10px] text-slate-400 py-1">Mağaza yok</p>
                   ) : (
-                    platformStores.map((store) => (
-                      <div
-                        key={store.id}
-                        className="flex items-center justify-between py-1"
-                        data-testid={`store-toggle-${store.id}`}
-                      >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className={`text-xs truncate ${store.connected ? "text-slate-700" : "text-slate-400"}`}>
-                            {store.name}
-                          </span>
-                          {!store.connected && (
-                            <span className="text-[9px] text-amber-500 bg-amber-50 px-1 rounded flex-shrink-0">
-                              Test
+                    <>
+                      {platformStores.map((store) => (
+                        <div
+                          key={store.id}
+                          className="flex items-center justify-between py-1"
+                          data-testid={`store-toggle-${store.id}`}
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className={`text-xs truncate ${store.connected ? "text-slate-700" : "text-slate-400"}`}>
+                              {store.name}
                             </span>
+                            {!store.connected && (
+                              <span className="text-[9px] text-amber-500 bg-amber-50 px-1 rounded flex-shrink-0">
+                                Test
+                              </span>
+                            )}
+                          </div>
+                          {updating[store.id] ? (
+                            <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                          ) : (
+                            <Switch
+                              checked={store.is_open}
+                              onCheckedChange={() => handleToggle(store)}
+                              disabled={!store.connected || (store.platform === "getir" && statusCooldown[store.id] > Date.now())}
+                              className="scale-[0.65]"
+                              data-testid={`store-switch-${store.id}`}
+                            />
                           )}
                         </div>
-                        {updating[store.id] ? (
-                          <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
-                        ) : (
-                          <Switch
-                            checked={store.is_open}
-                            onCheckedChange={() => handleToggle(store)}
-                            disabled={!store.connected}
-                            className="scale-[0.65]"
-                            data-testid={`store-switch-${store.id}`}
-                          />
-                        )}
-                      </div>
-                    ))
+                      ))}
+                      {platformKey === "getir" && platformStores.some(s => s.connected) && (
+                        <p className="text-[9px] text-muted-foreground mt-1 text-center">
+                          ⚠️ 60sn içinde 1 kez değiştirilebilir
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </CollapsibleContent>
