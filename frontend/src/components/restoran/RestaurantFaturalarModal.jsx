@@ -148,7 +148,7 @@ KDV Dahil
           <div className="p-3 bg-slate-50 rounded-lg border">
             <p className="font-medium text-sm mb-2">Açıklama:</p>
             <p className="text-sm text-muted-foreground">
-              "{formattedWeekLabel}" tarihleri arasında, <strong className="text-foreground">{companyInfo?.name || "Şirket"}</strong>'ın 
+              "{formattedWeekLabel}" tarihleri arasında, <strong className="text-foreground">{companyInfo?.name || "Kurye Şirketi"}</strong>'ın 
               tarafımızca yapmış olduğu <strong className="text-foreground">{paymentMethodsText}</strong> tahsilatlarının bedeli.
             </p>
           </div>
