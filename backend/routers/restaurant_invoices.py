@@ -162,8 +162,16 @@ async def get_invoice_settings(restaurant_id: str):
         "credit_card": False,
         "online": False,
         "meal_card": False,
-        "online_meal_card": False
+        "online_meal_card": False,
+        "percentage": 10,
+        "percentage_name": "Yeme-İçme"
     })
+    
+    # Eski kayıtlar için yeni field'ların default değerlerini ekle
+    if "percentage" not in settings:
+        settings["percentage"] = 10
+    if "percentage_name" not in settings:
+        settings["percentage_name"] = "Yeme-İçme"
     
     return {
         "restaurant_name": restaurant.get("name"),
