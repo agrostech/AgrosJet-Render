@@ -448,3 +448,148 @@ async def get_company_invoice_info(restaurant_id: str):
         },
         "invoice_settings": invoice_settings
     }
+
+
+# ========== Eksik Fatura Cezası ==========
+
+@router.post("/{restaurant_id}/invoice-penalty")
+async def apply_invoice_penalty(restaurant_id: str):
+    """
+    Eksik fatura cezası uygula.
+    10 uyarı hakkı dolduktan sonra eksik faturaların toplamının %40'ı kadar
+    ceza bakiyeye eklenir.
+    """
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
+    
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "company_id": 1, "name": 1}
+    )
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    company_id = restaurant.get("company_id")
+    restaurant_name = restaurant.get("name", "Bilinmeyen Restoran")
+    
+    # Eksik faturaları bul (yüklenmemiş olanlar)
+    records = await db.restaurant_invoices.find(
+        {"restaurant_id": restaurant_id, "company_id": company_id}
+    ).to_list(100)
+    
+    missing_invoices = []
+    total_missing_amount = 0
+    
+    for record in records:
+        # invoices array'inde restoran tarafından yüklenen fatura var mı kontrol et
+        has_restaurant_invoice = False
+        for inv in record.get("invoices", []):
+            if inv.get("uploaded_by_restaurant"):
+                has_restaurant_invoice = True
+                break
+        
+        if not has_restaurant_invoice:
+            amount = record.get("required_amount", 0)
+            total_missing_amount += amount
+            missing_invoices.append({
+                "week_label": record.get("week_label", ""),
+                "amount": amount
+            })
+    
+    if total_missing_amount <= 0:
+        return {
+            "success": False,
+            "message": "Eksik fatura bulunamadı",
+            "penalty_amount": 0
+        }
+    
+    # %40 ceza hesapla
+    penalty_amount = round(total_missing_amount * 0.40, 2)
+    
+    # Transaction oluştur (business entity olarak)
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "entity_type": "business",
+        "entity_id": restaurant_id,
+        "company_id": company_id,
+        "type": "payment_out",  # Restoran borcu (verilen = restorandan alacak)
+        "amount": penalty_amount,
+        "description": f"Eksik Fatura Vergi Yükümlülüğü Cezası (%40) - {len(missing_invoices)} hafta",
+        "is_hakedis": False,
+        "created_at": now.isoformat()
+    }
+    
+    await db.transactions.insert_one(transaction)
+    
+    # Uyarı sayacını sıfırla (localStorage'da tutulacak ama penalty uygulandı bilgisi DB'de)
+    # penalty_applied kaydı oluştur
+    penalty_record = {
+        "id": str(uuid.uuid4()),
+        "restaurant_id": restaurant_id,
+        "company_id": company_id,
+        "penalty_amount": penalty_amount,
+        "missing_invoice_count": len(missing_invoices),
+        "total_missing_amount": total_missing_amount,
+        "applied_at": now.isoformat()
+    }
+    await db.invoice_penalties.insert_one(penalty_record)
+    
+    return {
+        "success": True,
+        "message": f"Ceza uygulandı: {penalty_amount:.2f} TL",
+        "penalty_amount": penalty_amount,
+        "missing_invoice_count": len(missing_invoices),
+        "total_missing_amount": total_missing_amount
+    }
+
+
+@router.get("/{restaurant_id}/penalty-status")
+async def get_penalty_status(restaurant_id: str):
+    """
+    Restoran için eksik fatura ceza durumunu getir.
+    Uyarı sayısı ve ceza uygulanıp uygulanmadığı bilgisi.
+    """
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "company_id": 1}
+    )
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    company_id = restaurant.get("company_id")
+    
+    # Eksik faturaları say
+    records = await db.restaurant_invoices.find(
+        {"restaurant_id": restaurant_id, "company_id": company_id}
+    ).to_list(100)
+    
+    missing_count = 0
+    total_missing_amount = 0
+    
+    for record in records:
+        has_restaurant_invoice = False
+        for inv in record.get("invoices", []):
+            if inv.get("uploaded_by_restaurant"):
+                has_restaurant_invoice = True
+                break
+        
+        if not has_restaurant_invoice:
+            missing_count += 1
+            total_missing_amount += record.get("required_amount", 0)
+    
+    # Son uygulanan ceza
+    last_penalty = await db.invoice_penalties.find_one(
+        {"restaurant_id": restaurant_id},
+        {"_id": 0},
+        sort=[("applied_at", -1)]
+    )
+    
+    return {
+        "missing_invoice_count": missing_count,
+        "total_missing_amount": total_missing_amount,
+        "potential_penalty": round(total_missing_amount * 0.40, 2),
+        "last_penalty": last_penalty
+    }
+
