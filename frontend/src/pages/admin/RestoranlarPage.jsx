@@ -1488,6 +1488,42 @@ export default function RestoranlarPage({ companyId }) {
               <p className="text-xs text-muted-foreground">
                 Seçilen ödeme yöntemlerinin haftalık toplamı için restorandan fatura beklenecektir.
               </p>
+              
+              {/* Yüzdelik Dilim Ayarları */}
+              <div className="pt-4 border-t">
+                <h4 className="font-medium mb-3">Fatura Yüzdesi</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Restoran fatura keserken kullanacağı yüzdelik dilim
+                </p>
+                
+                <div className="flex gap-2 mb-3">
+                  {[1, 10, 20].map((pct) => (
+                    <Button
+                      key={pct}
+                      type="button"
+                      variant={invoiceSettings.percentage === pct ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setInvoiceSettings(prev => ({ ...prev, percentage: pct }))}
+                      className="flex-1"
+                    >
+                      %{pct}
+                    </Button>
+                  ))}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="percentage_name">Yüzdelik İsmi</Label>
+                  <Input
+                    id="percentage_name"
+                    placeholder="Hizmet Bedeli, Komisyon, vb."
+                    value={invoiceSettings.percentage_name || ""}
+                    onChange={(e) => setInvoiceSettings(prev => ({ ...prev, percentage_name: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Örn: "Hizmet Bedeli", "Komisyon", "Taşıma Ücreti"
+                  </p>
+                </div>
+              </div>
             </div>
           )}
           
