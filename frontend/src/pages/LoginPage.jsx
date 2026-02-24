@@ -328,9 +328,9 @@ export default function LoginPage() {
           backgroundImage: `url('/login-bg.png')` 
         }}
       >
-        <div className="w-full h-full bg-black/30 flex items-end justify-center p-12">
-          <div className="text-white text-center">
-            <h2 className="font-heading text-4xl font-bold tracking-wide">
+        <div className="w-full h-full bg-black/30 flex items-end justify-start p-12">
+          <div className="text-white">
+            <h2 className="font-heading text-4xl font-bold tracking-wide italic">
               İleriye Taşır
             </h2>
           </div>
