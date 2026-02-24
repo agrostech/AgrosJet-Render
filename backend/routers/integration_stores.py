@@ -293,11 +293,21 @@ async def update_store(restaurant_id: str, store_id: str, data: StoreUpdateReque
     if data.credentials is not None:
         # Mevcut credentials ile birleştir (sadece gönderilen alanları güncelle)
         merged_creds = current_store.get("credentials", {}).copy()
+        creds_changed = False
         for key, value in data.credentials.items():
-            if value:  # Boş değilse güncelle
+            # Maskeli değer (****) içeriyorsa güncelleme yapma
+            if value and not str(value).startswith("****"):
                 merged_creds[key] = value
+                creds_changed = True
+            # Boolean değerler için (is_test gibi)
+            elif isinstance(value, bool):
+                if merged_creds.get(key) != value:
+                    merged_creds[key] = value
+                    creds_changed = True
+        
         update_fields["integration_stores.$.credentials"] = merged_creds
-        update_fields["integration_stores.$.connected"] = False  # Credentials değişti, yeniden test gerekli
+        if creds_changed:
+            update_fields["integration_stores.$.connected"] = False  # Credentials değişti, yeniden test gerekli
     
     await db.restaurants.update_one(
         {"id": restaurant_id, "integration_stores.id": store_id},
