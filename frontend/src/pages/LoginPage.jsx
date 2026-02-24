@@ -317,9 +317,9 @@ export default function LoginPage() {
           {/* Entegrasyon Logoları */}
           <div className="mt-8 flex justify-center">
             <img 
-              src="/integrations-logos.avif" 
+              src="/integrations-logos.png" 
               alt="Entegrasyonlar" 
-              className="h-12 opacity-70"
+              className="w-64 opacity-70"
             />
           </div>
 
