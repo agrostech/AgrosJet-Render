@@ -334,7 +334,7 @@ export default function LoginPage() {
       <div 
         className="hidden lg:block lg:w-1/2 bg-cover bg-center"
         style={{ 
-          backgroundImage: `url('/login-bg.png')` 
+          backgroundImage: `url('/login-bg.jpg')` 
         }}
       />
     </div>
