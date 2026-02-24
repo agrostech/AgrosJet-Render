@@ -85,11 +85,20 @@ export default function RestaurantDashboard() {
     
     try {
       const res = await axios.get(`${API}/restaurant-panel-invoices/${user.restaurant_id}/issued`);
-      const missing = res.data.filter(inv => !inv.invoice_uploaded).length;
-      setMissingInvoiceCount(missing);
+      const missingInvoices = res.data.filter(inv => !inv.invoice_uploaded);
+      const missing = missingInvoices.length;
+      const totalAmount = missingInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
       
-      // Eksik fatura varsa modal göster
-      if (missing > 0) {
+      setMissingInvoiceCount(missing);
+      setMissingInvoiceTotal(totalAmount);
+      
+      // Uyarı sayacını localStorage'dan al
+      const storedCount = localStorage.getItem(`invoice_warning_count_${user.restaurant_id}`);
+      const currentCount = storedCount ? parseInt(storedCount) : 0;
+      setWarningCount(currentCount);
+      
+      // Eksik fatura varsa ve 10 hakkı dolmamışsa modal göster
+      if (missing > 0 && currentCount < 10) {
         setShowInvoiceWarning(true);
       }
     } catch (err) {
@@ -97,15 +106,45 @@ export default function RestaurantDashboard() {
     }
   }, [user?.restaurant_id]);
 
-  // İlk yüklemede ve 2 dakikada bir eksik fatura kontrolü + modal göster
+  // Uyarıyı kapat ve sayacı artır
+  const handleCloseWarning = async () => {
+    if (!user?.restaurant_id) return;
+    
+    const newCount = warningCount + 1;
+    setWarningCount(newCount);
+    localStorage.setItem(`invoice_warning_count_${user.restaurant_id}`, newCount.toString());
+    
+    // 10. kez kapatıldıysa ceza uygula
+    if (newCount >= 10) {
+      setPenaltyApplying(true);
+      try {
+        const res = await axios.post(`${API}/restaurant-panel-invoices/${user.restaurant_id}/invoice-penalty`);
+        if (res.data.success) {
+          toast.error(`Vergi yükümlülüğü cezası uygulandı: ${res.data.penalty_amount.toFixed(2)} TL bakiyenize eklendi!`);
+          // Sayacı sıfırla
+          localStorage.setItem(`invoice_warning_count_${user.restaurant_id}`, "0");
+          setWarningCount(0);
+        }
+      } catch (err) {
+        toast.error("Ceza uygulanırken hata oluştu");
+        console.error(err);
+      } finally {
+        setPenaltyApplying(false);
+      }
+    }
+    
+    setShowInvoiceWarning(false);
+  };
+
+  // İlk yüklemede ve 15 dakikada bir eksik fatura kontrolü + modal göster
   useEffect(() => {
     if (user?.restaurant_id) {
       checkMissingInvoices(); // Sayfa yüklendiğinde modal göster
       
-      // 2 dakikada bir kontrol et ve modal göster
+      // 15 dakikada bir kontrol et ve modal göster
       invoiceWarningRef.current = setInterval(() => {
         checkMissingInvoices();
-      }, 120000); // 2 dakika = 120000 ms
+      }, 900000); // 15 dakika = 900000 ms
       
       return () => {
         if (invoiceWarningRef.current) {
@@ -117,10 +156,10 @@ export default function RestaurantDashboard() {
 
   // Sekme değişikliğinde modal göster
   useEffect(() => {
-    if (user?.restaurant_id && missingInvoiceCount > 0) {
+    if (user?.restaurant_id && missingInvoiceCount > 0 && warningCount < 10) {
       setShowInvoiceWarning(true);
     }
-  }, [currentPage, user?.restaurant_id, missingInvoiceCount]);
+  }, [currentPage, user?.restaurant_id, missingInvoiceCount, warningCount]);
 
   // Fetch orders for this restaurant
   const fetchOrders = useCallback(async () => {
