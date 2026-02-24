@@ -515,7 +515,7 @@ async def apply_invoice_penalty(restaurant_id: str):
         "company_id": company_id,
         "type": "payment_out",  # Restoran borcu (verilen = restorandan alacak)
         "amount": penalty_amount,
-        "description": f"Eksik Fatura Vergi Yükümlülüğü Cezası (%40) - {len(missing_invoices)} hafta",
+        "description": f"Eksik Fatura Vergi Yükümlülüğü Bedeli (%40) - {len(missing_invoices)} hafta",
         "is_hakedis": False,
         "created_at": now.isoformat()
     }
