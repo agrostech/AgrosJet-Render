@@ -951,9 +951,8 @@ async def download_bulk_invoices(invoice_ids: list[str]):
     
     zip_buffer.seek(0)
     
-    # Generate filename with current date
-    now = datetime.now(timezone.utc)
-    zip_filename = f"Faturalar_{now.strftime('%d.%m.%Y')}.zip"
+    # Generate filename
+    zip_filename = "KuryeAyFaturalar.zip"
     
     return StreamingResponse(
         zip_buffer,
