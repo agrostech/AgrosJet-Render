@@ -571,6 +571,47 @@ function AlinanFaturalarTab({ restaurantId }) {
 // ==================== Main Modal ====================
 export default function RestaurantFaturalarModal({ open, onOpenChange, restaurantId, restaurantName }) {
   const [activeTab, setActiveTab] = useState("kesilen");
+  const [companyInfo, setCompanyInfo] = useState(null);
+  const [invoiceSettings, setInvoiceSettings] = useState(null);
+  
+  // Şirket bilgilerini ve fatura ayarlarını yükle
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!restaurantId || !open) return;
+      
+      try {
+        // Restoran bilgisini al (company_id için)
+        const restaurantRes = await axios.get(`${API}/restaurants/${restaurantId}`);
+        const companyId = restaurantRes.data?.company_id;
+        
+        if (companyId) {
+          // Şirket fatura bilgilerini al
+          const companyRes = await axios.get(`${API}/companies/${companyId}`);
+          setCompanyInfo({
+            name: companyRes.data?.name,
+            tax_office: companyRes.data?.invoice_settings?.tax_office,
+            tax_number: companyRes.data?.invoice_settings?.tax_number,
+            address: companyRes.data?.invoice_settings?.address
+          });
+        }
+        
+        // Restoran fatura ayarlarını al
+        setInvoiceSettings(restaurantRes.data?.invoice_settings || {
+          cash: false,
+          credit_card: false,
+          online: false,
+          meal_card: false,
+          online_meal_card: false,
+          percentage: 10,
+          percentage_name: "Hizmet Bedeli"
+        });
+      } catch (err) {
+        console.error("Bilgiler yüklenemedi:", err);
+      }
+    };
+    
+    fetchData();
+  }, [restaurantId, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -596,7 +637,12 @@ export default function RestaurantFaturalarModal({ open, onOpenChange, restauran
 
           <div className="flex-1 overflow-y-auto mt-4">
             <TabsContent value="kesilen" className="mt-0">
-              <KesilenFaturalarTab restaurantId={restaurantId} restaurantName={restaurantName} />
+              <KesilenFaturalarTab 
+                restaurantId={restaurantId} 
+                restaurantName={restaurantName}
+                companyInfo={companyInfo}
+                invoiceSettings={invoiceSettings}
+              />
             </TabsContent>
             <TabsContent value="alinan" className="mt-0">
               <AlinanFaturalarTab restaurantId={restaurantId} />
