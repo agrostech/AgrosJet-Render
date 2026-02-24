@@ -1288,7 +1288,7 @@ export default function SystemDashboard() {
           </div>
           
           <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
-            © 2026 AgrosJet. Tüm hakları saklıdır.
+            © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
           </footer>
         </main>
       </div>
