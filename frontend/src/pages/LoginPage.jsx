@@ -327,15 +327,7 @@ export default function LoginPage() {
         style={{ 
           backgroundImage: `url('/login-bg.png')` 
         }}
-      >
-        <div className="w-full h-full bg-black/30 flex items-end justify-start p-12">
-          <div className="text-white">
-            <h2 className="font-heading text-4xl font-bold tracking-wide italic">
-              İleriye Taşır
-            </h2>
-          </div>
-        </div>
-      </div>
+      />
     </div>
   );
 }
