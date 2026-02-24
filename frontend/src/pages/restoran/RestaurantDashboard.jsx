@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Settings } from "lucide-react";
+import { Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Settings, AlertTriangle } from "lucide-react";
 
 import RestaurantSidebar from "@/components/restoran/RestaurantSidebar";
 import RestaurantMobileNav from "@/components/restoran/RestaurantMobileNav";
@@ -15,6 +15,8 @@ import RestaurantAyarlar from "./RestaurantAyarlar";
 import RestaurantGecmisSiparisler from "./RestaurantGecmisSiparisler";
 import RestaurantIptalSiparisler from "./RestaurantIptalSiparisler";
 import Footer from "@/components/Footer";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
