@@ -90,8 +90,8 @@ export default function RestaurantDashboard() {
         const lastWarning = localStorage.getItem(`invoice_warning_${user.restaurant_id}`);
         const now = Date.now();
         
-        // 30 dakika = 1800000 ms
-        if (!lastWarning || (now - parseInt(lastWarning)) > 1800000) {
+        // 5 dakika = 300000 ms
+        if (!lastWarning || (now - parseInt(lastWarning)) > 300000) {
           setShowInvoiceWarning(true);
           localStorage.setItem(`invoice_warning_${user.restaurant_id}`, now.toString());
         }
@@ -101,15 +101,15 @@ export default function RestaurantDashboard() {
     }
   }, [user?.restaurant_id]);
 
-  // İlk yüklemede ve 30 dakikada bir eksik fatura kontrolü
+  // İlk yüklemede ve 5 dakikada bir eksik fatura kontrolü
   useEffect(() => {
     if (user?.restaurant_id) {
       checkMissingInvoices();
       
-      // 30 dakikada bir kontrol et
+      // 5 dakikada bir kontrol et
       invoiceWarningRef.current = setInterval(() => {
         checkMissingInvoices();
-      }, 1800000); // 30 dakika
+      }, 300000); // 5 dakika
       
       return () => {
         if (invoiceWarningRef.current) {
@@ -334,7 +334,7 @@ export default function RestaurantDashboard() {
               onClick={() => setShowInvoiceWarning(false)}
               className="w-full h-12 text-lg font-semibold"
             >
-              Anladım
+              5 Dakikalığına Uyarıyı Kapat
             </Button>
           </div>
         </DialogContent>
