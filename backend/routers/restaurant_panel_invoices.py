@@ -479,6 +479,7 @@ async def apply_invoice_penalty(restaurant_id: str):
     ).to_list(100)
     
     missing_invoices = []
+    missing_invoice_ids = []  # Silinecek kayıtların ID'leri
     total_missing_amount = 0
     
     for record in records:
@@ -496,6 +497,7 @@ async def apply_invoice_penalty(restaurant_id: str):
                 "week_label": record.get("week_label", ""),
                 "amount": amount
             })
+            missing_invoice_ids.append(record.get("id"))
     
     if total_missing_amount <= 0:
         return {
@@ -521,6 +523,13 @@ async def apply_invoice_penalty(restaurant_id: str):
     }
     
     await db.transactions.insert_one(transaction)
+    
+    # Eksik fatura kayıtlarını sil (ceza uygulandıktan sonra)
+    if missing_invoice_ids:
+        await db.restaurant_invoices.delete_many({
+            "id": {"$in": missing_invoice_ids},
+            "restaurant_id": restaurant_id
+        })
     
     # Uyarı sayacını sıfırla (localStorage'da tutulacak ama penalty uygulandı bilgisi DB'de)
     # penalty_applied kaydı oluştur
