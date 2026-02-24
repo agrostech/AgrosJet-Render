@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Request, Header
 from typing import Optional
 import logging
 import uuid
+import os
 from datetime import datetime, timezone, timedelta
 
 from services.yemeksepeti_service import (
@@ -26,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 # ==================== GETİR WEBHOOKS ====================
 
-# Getir için sabit API Key - tüm restoranlar için geçerli
-GETIR_WEBHOOK_API_KEY = "agrosjet-getir-wh-9f3k7x2m4p"
+# Getir için API Key - .env'den al
+GETIR_WEBHOOK_API_KEY = os.environ.get("GETIR_WEBHOOK_API_KEY", "")
 
 
 async def verify_getir_api_key(api_key: str, restaurant_id: str = None) -> dict:
