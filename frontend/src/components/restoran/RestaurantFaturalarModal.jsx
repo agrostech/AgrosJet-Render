@@ -70,7 +70,7 @@ function FaturaOrnegiModal({ open, onClose, invoiceData, companyInfo, invoiceSet
   
   // WhatsApp mesajı oluştur
   const generateWhatsAppMessage = () => {
-    const companyName = companyInfo?.name || "Şirket";
+    const companyName = companyInfo?.name || "Kurye Şirketi";
     const message = `
 *FATURA BİLGİLERİ*
 
