@@ -572,25 +572,32 @@ export default function IntegrationStoresManager({ restaurantId }) {
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {/* Open/Close Buttons */}
                               {store.connected && (
-                                <div className="flex gap-1">
-                                  <Button
-                                    size="sm"
-                                    variant={store.is_open ? "outline" : "default"}
-                                    onClick={() => handleStatusUpdate(store.id, true)}
-                                    disabled={updatingStatus[store.id] || store.is_open}
-                                    className={`h-8 px-2 ${!store.is_open ? "bg-green-600 hover:bg-green-700" : ""}`}
-                                  >
-                                    <Power className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant={!store.is_open ? "outline" : "destructive"}
-                                    onClick={() => handleStatusUpdate(store.id, false)}
-                                    disabled={updatingStatus[store.id] || !store.is_open}
-                                    className="h-8 px-2"
-                                  >
-                                    <PowerOff className="w-3 h-3" />
-                                  </Button>
+                                <div className="flex flex-col items-end gap-1">
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant={store.is_open ? "outline" : "default"}
+                                      onClick={() => handleStatusUpdate(store.id, true)}
+                                      disabled={updatingStatus[store.id] || store.is_open || (store.platform === "getir" && statusCooldown[store.id] > Date.now())}
+                                      className={`h-8 px-2 ${!store.is_open ? "bg-green-600 hover:bg-green-700" : ""}`}
+                                    >
+                                      <Power className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant={!store.is_open ? "outline" : "destructive"}
+                                      onClick={() => handleStatusUpdate(store.id, false)}
+                                      disabled={updatingStatus[store.id] || !store.is_open || (store.platform === "getir" && statusCooldown[store.id] > Date.now())}
+                                      className="h-8 px-2"
+                                    >
+                                      <PowerOff className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  {store.platform === "getir" && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                      60sn içinde 1 kez değiştirilebilir
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
