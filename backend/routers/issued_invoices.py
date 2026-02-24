@@ -294,7 +294,7 @@ async def upload_invoice(
     admin_name: str = Form(""),
     file: UploadFile = File(...)
 ):
-    """Fatura yükle"""
+    """Fatura yükle - Cloudflare R2'ye kaydet"""
     # Dosya boyutu kontrolü (10MB)
     contents = await file.read()
     if len(contents) > 10 * 1024 * 1024:
@@ -306,6 +306,25 @@ async def upload_invoice(
     if ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Sadece PDF ve resim dosyaları kabul edilir")
     
+    # Şirket ve restoran bilgilerini al
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1})
+    restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "name": 1})
+    
+    company_name = company["name"] if company else "Sirket"
+    restaurant_name = restaurant["name"] if restaurant else "Restoran"
+    
+    # Hafta bitiş tarihini week_label'dan çıkar (örn: "23.02 - 02.03.2026" -> "02.03")
+    try:
+        week_end_str = week_label.split(" - ")[1].split(".")[0] + "." + week_label.split(" - ")[1].split(".")[1]
+    except (IndexError, ValueError):
+        week_end_str = "00.00"
+    
+    # Dosya adı formatı: ŞirketAdı-RestoranAdı-HaftaBitiş.pdf
+    # Örnek: AgrosJet-LezzetDuragi-02.03.pdf
+    safe_company = format_name_for_file(company_name)
+    safe_restaurant = format_name_for_file(restaurant_name)
+    filename = f"{safe_company}-{safe_restaurant}-{week_end_str}.{ext}"
+    
     # Mevcut faturayı kontrol et
     existing = await db.issued_invoices.find_one({
         "company_id": company_id,
@@ -314,20 +333,47 @@ async def upload_invoice(
     })
     
     invoice_id = existing.get("id") if existing else str(uuid.uuid4())
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
     
-    invoice_data = {
-        "id": invoice_id,
-        "company_id": company_id,
-        "restaurant_id": restaurant_id,
-        "week_start": week_start,
-        "week_label": week_label,
-        "filename": file.filename,
-        "file_data": base64.b64encode(contents).decode("utf-8"),
-        "file_extension": ext,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "uploaded_by_id": admin_id,
-        "uploaded_by_name": admin_name
-    }
+    # R2'ye yükle
+    month_folder = f"{['Ocak','Subat','Mart','Nisan','Mayis','Haziran','Temmuz','Agustos','Eylul','Ekim','Kasim','Aralik'][now.month-1]}_{now.year}"
+    r2_key = f"{R2_ISSUED_INVOICE_PREFIX}/{format_name_for_file(company_name).upper()}/{format_name_for_file(restaurant_name).upper()}/{month_folder}/{filename}"
+    
+    content_type = "application/pdf" if ext == "pdf" else f"image/{ext}"
+    upload_result = await upload_file_to_r2(contents, r2_key, content_type)
+    
+    if upload_result.get("success"):
+        invoice_data = {
+            "id": invoice_id,
+            "company_id": company_id,
+            "restaurant_id": restaurant_id,
+            "week_start": week_start,
+            "week_label": week_label,
+            "filename": filename,
+            "r2_key": r2_key,
+            "storage_type": "r2",
+            "file_extension": ext,
+            "uploaded_at": now.isoformat(),
+            "uploaded_by_id": admin_id,
+            "uploaded_by_name": admin_name
+        }
+    else:
+        # Fallback to base64
+        invoice_data = {
+            "id": invoice_id,
+            "company_id": company_id,
+            "restaurant_id": restaurant_id,
+            "week_start": week_start,
+            "week_label": week_label,
+            "filename": filename,
+            "file_data": base64.b64encode(contents).decode("utf-8"),
+            "storage_type": "base64",
+            "file_extension": ext,
+            "uploaded_at": now.isoformat(),
+            "uploaded_by_id": admin_id,
+            "uploaded_by_name": admin_name
+        }
     
     await db.issued_invoices.update_one(
         {"id": invoice_id},
@@ -335,7 +381,7 @@ async def upload_invoice(
         upsert=True
     )
     
-    return {"success": True, "invoice_id": invoice_id}
+    return {"success": True, "invoice_id": invoice_id, "filename": filename}
 
 
 @router.get("/{company_id}/download/{invoice_id}")
