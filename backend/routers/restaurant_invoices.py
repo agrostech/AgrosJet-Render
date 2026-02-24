@@ -732,8 +732,7 @@ async def upload_invoice(
         raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'ı aşamaz")
     
     # Dosya uzantısı
-    filename = file.filename or "invoice.pdf"
-    extension = filename.split(".")[-1].lower() if "." in filename else "pdf"
+    extension = file.filename.split(".")[-1].lower() if file.filename and "." in file.filename else "pdf"
     
     invoice_id = str(uuid.uuid4())
     turkey_tz = timezone(timedelta(hours=3))
@@ -743,9 +742,26 @@ async def upload_invoice(
     company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1})
     restaurant = await db.restaurants.find_one({"id": restaurant_id}, {"_id": 0, "name": 1})
     
-    company_folder = format_name_for_folder(company["name"]) if company else company_id
-    restaurant_folder = format_name_for_folder(restaurant["name"]) if restaurant else restaurant_id
+    company_name = company["name"] if company else "Sirket"
+    restaurant_name = restaurant["name"] if restaurant else "Restoran"
+    
+    company_folder = format_name_for_folder(company_name)
+    restaurant_folder = format_name_for_folder(restaurant_name)
     month_folder = get_turkish_month_folder(now)
+    
+    # Hafta bitiş tarihini hesapla (week_start + 7 gün)
+    try:
+        week_start_dt = datetime.fromisoformat(week_start.replace('Z', '+00:00'))
+        week_end_dt = week_start_dt + timedelta(days=7)
+        week_end_str = week_end_dt.strftime('%d.%m')
+    except:
+        week_end_str = "00.00"
+    
+    # Dosya adı formatı: ŞirketAdı-RestoranAdı-HaftaBitiş.pdf
+    # Örnek: AgrosJet-LezzetDuragi-02.03.pdf
+    safe_company = format_name_for_folder(company_name).replace("_", "")
+    safe_restaurant = format_name_for_folder(restaurant_name).replace("_", "")
+    filename = f"{safe_company}-{safe_restaurant}-{week_end_str}.{extension}"
     
     # R2 Key: RESTORAN_FATURALARI/SIRKET_ADI/RESTORAN_ADI/Subat_2026/dosya.pdf
     r2_key = f"{R2_RESTAURANT_INVOICE_PREFIX}/{company_folder}/{restaurant_folder}/{month_folder}/{filename}"
