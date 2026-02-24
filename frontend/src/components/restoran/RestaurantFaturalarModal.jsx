@@ -340,20 +340,32 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, companyInfo, invoic
                       )}
                     </>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleFileSelect(inv.id)}
-                      disabled={uploading}
-                      className="h-8 gap-1 text-xs"
-                    >
-                      {uploading && uploadingId === inv.id ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Upload className="w-3 h-3" />
-                      )}
-                      Yükle
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setFaturaOrnegiData(inv)}
+                        className="h-8 gap-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        title="Fatura Örneği"
+                      >
+                        <FileCheck className="w-3.5 h-3.5" />
+                        Örnek
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleFileSelect(inv.id)}
+                        disabled={uploading}
+                        className="h-8 gap-1 text-xs"
+                      >
+                        {uploading && uploadingId === inv.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Upload className="w-3 h-3" />
+                        )}
+                        Yükle
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -361,6 +373,15 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, companyInfo, invoic
           ))}
         </div>
       )}
+
+      {/* Fatura Örneği Modal */}
+      <FaturaOrnegiModal
+        open={!!faturaOrnegiData}
+        onClose={() => setFaturaOrnegiData(null)}
+        invoiceData={faturaOrnegiData}
+        companyInfo={companyInfo}
+        invoiceSettings={invoiceSettings}
+      />
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
