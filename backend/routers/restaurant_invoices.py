@@ -968,6 +968,65 @@ async def delete_invoice(company_id: str, invoice_id: str):
     return {"message": "Fatura silindi"}
 
 
+# ========== Bulk Download ZIP Endpoint ==========
+
+class BulkDownloadRequest(BaseModel):
+    invoice_ids: List[str]
+
+
+@router.post("/restaurant-invoices/{company_id}/download-zip")
+async def download_invoices_zip(company_id: str, data: BulkDownloadRequest):
+    """Seçili faturaları ZIP olarak indir"""
+    if not data.invoice_ids:
+        raise HTTPException(status_code=400, detail="En az bir fatura seçin")
+    
+    # Faturaları bul
+    records = await db.restaurant_invoices.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # ZIP oluştur
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for record in records:
+            for inv in record.get("invoices", []):
+                inv_id = inv.get("invoice_id") or inv.get("id")
+                if inv_id not in data.invoice_ids:
+                    continue
+                
+                # Dosya içeriğini al
+                file_content = None
+                storage_type = inv.get("storage_type", "base64")
+                
+                if storage_type == "r2" and inv.get("r2_key"):
+                    file_content = await download_file_from_r2(inv["r2_key"])
+                elif inv.get("file_data"):
+                    file_content = base64.b64decode(inv["file_data"])
+                
+                if file_content:
+                    # Dosya adı: RestoranAdı_Hafta_DosyaAdı
+                    restaurant_name = record.get("restaurant_name", "Restoran")
+                    week_label = record.get("week_label", "").replace(" ", "").replace(".", "").replace("-", "_")
+                    filename = inv.get("filename", f"{inv_id}.pdf")
+                    
+                    # Türkçe karakterleri temizle
+                    safe_restaurant = format_name_for_folder(restaurant_name)
+                    zip_filename = f"{safe_restaurant}_{week_label}_{filename}"
+                    
+                    zip_file.writestr(zip_filename, file_content)
+    
+    zip_buffer.seek(0)
+    zip_content = zip_buffer.getvalue()
+    
+    # Base64 olarak döndür (frontend'de decode edilecek)
+    return {
+        "zip_data": base64.b64encode(zip_content).decode("utf-8"),
+        "filename": f"restoran_faturalari_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+    }
+
+
 # ========== Delete Missing Invoice Record Endpoint ==========
 
 @router.delete("/restaurant-invoices/{company_id}/missing/{record_id}")
