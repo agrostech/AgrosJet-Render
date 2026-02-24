@@ -376,29 +376,59 @@ export default function IntegrationStoresManager({ restaurantId }) {
             {field.description && (
               <p className="text-xs text-muted-foreground">{field.description}</p>
             )}
-            <div className="relative">
-              <Input
-                type={field.type === "password" && !showSecrets[field.key] ? "password" : "text"}
-                value={formData.credentials[field.key] || ""}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  credentials: { ...prev.credentials, [field.key]: e.target.value }
-                }))}
-                placeholder={isEdit ? "Değiştirmek için yeni değer girin" : (field.placeholder || field.label)}
-                disabled={!formData.enabled}
-              />
-              {field.type === "password" && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  onClick={() => setShowSecrets(prev => ({ ...prev, [field.key]: !prev[field.key] }))}
-                >
-                  {showSecrets[field.key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-              )}
-            </div>
+            {field.type === "checkbox" ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={field.key}
+                  checked={formData.credentials[field.key] || false}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    credentials: { ...prev.credentials, [field.key]: e.target.checked }
+                  }))}
+                  disabled={!formData.enabled}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor={field.key} className="text-sm font-normal cursor-pointer">
+                  {field.placeholder || "Aktif"}
+                </Label>
+              </div>
+            ) : (
+              <div className="relative">
+                <Input
+                  type={field.type === "password" && !showSecrets[field.key] ? "password" : "text"}
+                  value={formData.credentials[field.key] || ""}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    credentials: { ...prev.credentials, [field.key]: e.target.value }
+                  }))}
+                  onFocus={(e) => {
+                    // Maskeli değer (****) varsa temizle
+                    if (e.target.value && e.target.value.startsWith("****")) {
+                      setFormData(prev => ({
+                        ...prev,
+                        credentials: { ...prev.credentials, [field.key]: "" }
+                      }));
+                    }
+                  }}
+                  placeholder={isEdit && formData.credentials[field.key]?.startsWith?.("****") 
+                    ? "Değiştirmek için tıklayın" 
+                    : (field.placeholder || field.label)}
+                  disabled={!formData.enabled}
+                />
+                {field.type === "password" && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                    onClick={() => setShowSecrets(prev => ({ ...prev, [field.key]: !prev[field.key] }))}
+                  >
+                    {showSecrets[field.key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         ))}
 
