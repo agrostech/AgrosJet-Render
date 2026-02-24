@@ -197,7 +197,7 @@ export default function LoginPage() {
                 Hesabınız yok mu?{" "}
                 <Link 
                   to="/register" 
-                  className="text-orange-400 font-semibold hover:underline" 
+                  className="text-orange-600 font-semibold hover:underline" 
                   data-testid="register-link"
                 >
                   Kayıt Ol
