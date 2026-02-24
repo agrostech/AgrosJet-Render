@@ -208,10 +208,12 @@ export default function IntegrationStoresManager({ restaurantId }) {
   const openEditModal = (store) => {
     setSelectedStore(store);
     setSelectedPlatform(store.platform);
+    // Mevcut credentials'ları form'a yükle (maskeli olsa bile göster)
+    const existingCreds = store.credentials || {};
     setFormData({
       name: store.name,
       enabled: store.enabled,
-      credentials: {} // Boş gönder, sadece değişenler güncellenir
+      credentials: { ...existingCreds }
     });
     setShowSecrets({});
     setShowEditModal(true);
