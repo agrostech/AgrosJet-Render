@@ -369,9 +369,15 @@ export default function RestaurantDashboard() {
               </p>
             </div>
             
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <p className="text-blue-800 text-sm">
                 Eksik Faturanızı, <strong>Muhasebe Sekmesi → Faturalar</strong> kısmından yükleyebilirsiniz.
+              </p>
+            </div>
+            
+            <div className="bg-gray-100 border border-gray-300 rounded-lg p-3 mb-6">
+              <p className="text-gray-600 text-xs">
+                ℹ️ Bu uyarı size <strong>30 dakikada bir</strong> gösterilecektir.
               </p>
             </div>
             
