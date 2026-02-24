@@ -395,7 +395,7 @@ export default function AdminDashboard() {
           
           {/* Footer */}
           <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
-            © 2026 AgrosJet. Tüm hakları saklıdır. Powered by Onur Ertaş.
+            © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
           </footer>
         </main>
       </div>

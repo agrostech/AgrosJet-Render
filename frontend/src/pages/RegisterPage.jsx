@@ -88,7 +88,7 @@ export default function RegisterPage() {
 
           {/* Footer */}
           <p className="mt-8 text-center text-xs text-muted-foreground">
-            © 2026 AgrosJet. Tüm hakları saklıdır. Powered by Onur Ertaş.
+            © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
           </p>
         </div>
       </div>
