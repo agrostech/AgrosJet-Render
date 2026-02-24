@@ -48,6 +48,7 @@ export default function RestaurantDashboard() {
   const [warningCount, setWarningCount] = useState(0); // Kalan uyarı hakkı (10'dan geriye sayar)
   const [penaltyApplying, setPenaltyApplying] = useState(false);
   const invoiceWarningRef = useRef(null);
+  const lastPageRef = useRef(null); // Son ziyaret edilen sayfa
 
   // Derive currentPage from location
   const getCurrentPage = () => {
