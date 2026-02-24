@@ -3,18 +3,23 @@
 ## Proje Özeti
 Sipariş yönetimi, kurye takibi, restoran entegrasyonları ve muhasebe işlemlerini içeren kapsamlı bir kurye yönetim sistemi.
 
-## Son Güncelleme: 23 Şubat 2026
+## Son Güncelleme: 24 Şubat 2026
 
 ## Tamamlanan Özellikler
 
-### Bu Oturumda Tamamlanan (23.02.2026)
-- **Yaklaşan Fatura Önizlemesi (P0)**: "Alınan Faturalar" sekmesine eklendi
-  - Backend: `/api/restaurant-invoices/{company_id}/upcoming-preview` endpoint'i
-  - Frontend: `UpcomingInvoicesCard` component'i
-  - Geçen haftanın siparişlerini hesaplayarak önizleme gösterir
-  - Hafta etiketi, restoran sayısı, sipariş sayısı ve toplam tutar bilgisi
+### Bu Oturumda Tamamlanan (24.02.2026)
+- **Eksik Fatura Uyarı Modalı Güncelleme**: Restoran panelindeki tekrarlayan uyarı modalı güncellendi
+  - Süre 30 dakikadan **5 dakikaya** düşürüldü
+  - Buton metni "Anladım" yerine **"5 Dakikalığına Uyarıyı Kapat"** olarak değiştirildi
+  - Dosya: `/app/frontend/src/pages/restoran/RestaurantDashboard.jsx`
 
-### Önceki Oturumlarda Tamamlanan
+### Önceki Oturumlarda Tamamlanan (23.02.2026)
+- **Yaklaşan Fatura Önizlemesi (P0)**: "Alınan Faturalar" sekmesine eklendi
+- Cloudflare R2 Entegrasyonu (fatura dosya depolama)
+- Restoran fatura iş akışı (30 dk silme penceresi, otomatik isimlendirme, badge)
+- Fatura Örneği Önizleme ve WhatsApp paylaşım
+
+### Daha Önce Tamamlanan
 - Timezone standardizasyonu (UTC+3 Türkiye)
 - Restoran faturalandırma akışı entegrasyonu
 - Zamanlanmış görev optimizasyonu (CronTrigger)
