@@ -175,7 +175,7 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   data-testid="courier-login-btn"
-                  className="w-full h-12 font-semibold bg-[#c2410c] hover:bg-[#9a3412] text-white"
+                  className="w-full h-12 font-semibold bg-[#9a3412] hover:bg-[#7c2d12] text-white"
                   disabled={loading}
                 >
                   {loading ? "Yükleniyor..." : "Giriş Yap"}
@@ -238,7 +238,7 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   data-testid="admin-login-btn"
-                  className="w-full h-12 font-semibold bg-[#c2410c] hover:bg-[#9a3412] text-white"
+                  className="w-full h-12 font-semibold bg-[#9a3412] hover:bg-[#7c2d12] text-white"
                   disabled={loading}
                 >
                   {loading ? "Yükleniyor..." : "Giriş Yap"}
@@ -291,7 +291,7 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   data-testid="restaurant-login-btn"
-                  className="w-full h-12 font-semibold bg-[#c2410c] hover:bg-[#9a3412] text-white"
+                  className="w-full h-12 font-semibold bg-[#9a3412] hover:bg-[#7c2d12] text-white"
                   disabled={loading}
                 >
                   {loading ? "Yükleniyor..." : "Giriş Yap"}
