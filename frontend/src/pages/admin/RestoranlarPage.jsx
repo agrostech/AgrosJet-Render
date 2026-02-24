@@ -1517,12 +1517,12 @@ export default function RestoranlarPage({ companyId }) {
                   <Label htmlFor="percentage_name">Yüzdelik İsmi</Label>
                   <Input
                     id="percentage_name"
-                    placeholder="Hizmet Bedeli, Komisyon, vb."
+                    placeholder="Yeme-İçme, Tatlı, vb."
                     value={invoiceSettings.percentage_name || ""}
                     onChange={(e) => setInvoiceSettings(prev => ({ ...prev, percentage_name: e.target.value }))}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Örn: "Hizmet Bedeli", "Komisyon", "Taşıma Ücreti"
+                    Örn: "Yeme-İçme", "Tatlı", "Kedi Maması"
                   </p>
                 </div>
               </div>
