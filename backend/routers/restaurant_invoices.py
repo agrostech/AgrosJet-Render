@@ -68,6 +68,8 @@ class InvoiceSettings(BaseModel):
     online: bool = False         # Online
     meal_card: bool = False      # Yemek Kartı
     online_meal_card: bool = False  # Online Yemek Kartı
+    percentage: int = 10          # Yüzdelik dilim: 1, 10, 20
+    percentage_name: str = "Yeme-İçme"  # Yüzdelik isim
 
 
 class InvoiceVerify(BaseModel):
