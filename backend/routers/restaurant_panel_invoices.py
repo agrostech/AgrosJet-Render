@@ -395,3 +395,56 @@ async def download_received_invoice(restaurant_id: str, invoice_id: str):
             "file_data": invoice.get("file_data", ""),
             "extension": invoice.get("file_extension", "pdf")
         }
+
+
+# ========== Şirket Fatura Bilgileri (Fatura Örneği için) ==========
+
+@router.get("/{restaurant_id}/company-invoice-info")
+async def get_company_invoice_info(restaurant_id: str):
+    """
+    Restoran paneli için şirket fatura bilgilerini ve restoran ayarlarını getir.
+    Fatura örneği modalı için kullanılır.
+    """
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "company_id": 1, "invoice_settings": 1, "name": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    company_id = restaurant.get("company_id")
+    
+    # Şirket bilgilerini al
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "name": 1, "tckn_vkn": 1, "tax_office": 1, "address": 1}
+    )
+    
+    # Restoran fatura ayarları
+    invoice_settings = restaurant.get("invoice_settings", {
+        "cash": False,
+        "credit_card": False,
+        "online": False,
+        "meal_card": False,
+        "online_meal_card": False,
+        "percentage": 10,
+        "percentage_name": "Yeme-İçme"
+    })
+    
+    # Eski kayıtlar için default değerler
+    if "percentage" not in invoice_settings:
+        invoice_settings["percentage"] = 10
+    if "percentage_name" not in invoice_settings:
+        invoice_settings["percentage_name"] = "Yeme-İçme"
+    
+    return {
+        "company": {
+            "name": company.get("name") if company else None,
+            "tax_number": company.get("tckn_vkn") if company else None,
+            "tax_office": company.get("tax_office") if company else None,
+            "address": company.get("address") if company else None
+        },
+        "invoice_settings": invoice_settings
+    }
