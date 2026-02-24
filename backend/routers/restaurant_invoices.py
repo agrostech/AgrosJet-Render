@@ -1020,10 +1020,15 @@ async def download_invoices_zip(company_id: str, data: BulkDownloadRequest):
     zip_buffer.seek(0)
     zip_content = zip_buffer.getvalue()
     
+    # Dosya adı: Restoran_Faturalari_GG.AA.YYYY.zip
+    turkey_tz = timezone(timedelta(hours=3))
+    now = datetime.now(turkey_tz)
+    zip_filename = f"Restoran_Faturalari_{now.strftime('%d.%m.%Y')}.zip"
+    
     # Base64 olarak döndür (frontend'de decode edilecek)
     return {
         "zip_data": base64.b64encode(zip_content).decode("utf-8"),
-        "filename": f"restoran_faturalari_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        "filename": zip_filename
     }
 
 
