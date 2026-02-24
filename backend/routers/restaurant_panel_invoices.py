@@ -358,7 +358,7 @@ async def get_restaurant_received_invoices(restaurant_id: str):
 
 @router.get("/{restaurant_id}/received/download/{invoice_id}")
 async def download_received_invoice(restaurant_id: str, invoice_id: str):
-    """Alınan faturayı indir"""
+    """Alınan faturayı indir - R2 veya base64'ten"""
     # Restoran bilgisini al
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
@@ -375,8 +375,23 @@ async def download_received_invoice(restaurant_id: str, invoice_id: str):
     if not invoice:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
-    return {
-        "filename": invoice.get("filename"),
-        "file_data": invoice.get("file_data"),
-        "extension": invoice.get("file_extension", "pdf")
-    }
+    # R2'den mi base64'ten mi?
+    storage_type = invoice.get("storage_type", "base64")
+    
+    if storage_type == "r2" and invoice.get("r2_key"):
+        file_content = await download_file_from_r2(invoice["r2_key"])
+        if file_content:
+            file_data = base64.b64encode(file_content).decode("utf-8")
+            return {
+                "filename": invoice.get("filename"),
+                "file_data": file_data,
+                "extension": invoice.get("file_extension", "pdf")
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Dosya R2'de bulunamadı")
+    else:
+        return {
+            "filename": invoice.get("filename"),
+            "file_data": invoice.get("file_data", ""),
+            "extension": invoice.get("file_extension", "pdf")
+        }
