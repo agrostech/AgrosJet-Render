@@ -44,6 +44,9 @@ export default function RestaurantDashboard() {
   const [permissions, setPermissions] = useState({});
   const [showInvoiceWarning, setShowInvoiceWarning] = useState(false);
   const [missingInvoiceCount, setMissingInvoiceCount] = useState(0);
+  const [missingInvoiceTotal, setMissingInvoiceTotal] = useState(0);
+  const [warningCount, setWarningCount] = useState(0); // Kalan uyarı hakkı (10'dan geriye sayar)
+  const [penaltyApplying, setPenaltyApplying] = useState(false);
   const invoiceWarningRef = useRef(null);
 
   // Derive currentPage from location
