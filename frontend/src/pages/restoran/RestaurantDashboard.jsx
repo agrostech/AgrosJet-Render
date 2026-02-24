@@ -98,8 +98,11 @@ export default function RestaurantDashboard() {
       setWarningCount(currentCount);
       
       // Eksik fatura varsa ve 10 hakkı dolmamışsa modal göster
+      // Sayfa refresh edilse bile modal açık kalmalı
       if (missing > 0 && currentCount < 10) {
         setShowInvoiceWarning(true);
+        // Modal açıkken refresh edilirse tekrar açılması için localStorage'a kaydet
+        localStorage.setItem(`invoice_warning_active_${user.restaurant_id}`, "true");
       }
     } catch (err) {
       console.error("Eksik fatura kontrolü başarısız:", err);
@@ -113,6 +116,8 @@ export default function RestaurantDashboard() {
     const newCount = warningCount + 1;
     setWarningCount(newCount);
     localStorage.setItem(`invoice_warning_count_${user.restaurant_id}`, newCount.toString());
+    // Modal kapatıldığını kaydet
+    localStorage.setItem(`invoice_warning_active_${user.restaurant_id}`, "false");
     
     // 10. kez kapatıldıysa ceza uygula
     if (newCount >= 10) {
@@ -120,13 +125,13 @@ export default function RestaurantDashboard() {
       try {
         const res = await axios.post(`${API}/restaurant-panel-invoices/${user.restaurant_id}/invoice-penalty`);
         if (res.data.success) {
-          toast.error(`Vergi yükümlülüğü cezası uygulandı: ${res.data.penalty_amount.toFixed(2)} TL bakiyenize eklendi!`);
+          toast.error(`Vergi yükümlülüğü bedeli uygulandı: ${res.data.penalty_amount.toFixed(2)} TL bakiyenize eklendi!`);
           // Sayacı sıfırla
           localStorage.setItem(`invoice_warning_count_${user.restaurant_id}`, "0");
           setWarningCount(0);
         }
       } catch (err) {
-        toast.error("Ceza uygulanırken hata oluştu");
+        toast.error("İşlem uygulanırken hata oluştu");
         console.error(err);
       } finally {
         setPenaltyApplying(false);
@@ -136,15 +141,15 @@ export default function RestaurantDashboard() {
     setShowInvoiceWarning(false);
   };
 
-  // İlk yüklemede ve 15 dakikada bir eksik fatura kontrolü + modal göster
+  // İlk yüklemede ve 30 dakikada bir eksik fatura kontrolü + modal göster
   useEffect(() => {
     if (user?.restaurant_id) {
       checkMissingInvoices(); // Sayfa yüklendiğinde modal göster
       
-      // 15 dakikada bir kontrol et ve modal göster
+      // 30 dakikada bir kontrol et ve modal göster
       invoiceWarningRef.current = setInterval(() => {
         checkMissingInvoices();
-      }, 900000); // 15 dakika = 900000 ms
+      }, 1800000); // 30 dakika = 1800000 ms
       
       return () => {
         if (invoiceWarningRef.current) {
