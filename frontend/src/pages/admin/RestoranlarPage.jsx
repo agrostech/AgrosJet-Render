@@ -203,7 +203,9 @@ export default function RestoranlarPage({ companyId }) {
         credit_card: false,
         online: false,
         meal_card: false,
-        online_meal_card: false
+        online_meal_card: false,
+        percentage: 10,
+        percentage_name: "Hizmet Bedeli"
       });
     } finally {
       setLoadingInvoiceSettings(false);
