@@ -76,8 +76,8 @@ export default function RestaurantDashboard() {
     }
   }, [navigate]);
 
-  // Eksik fatura kontrolü
-  const checkMissingInvoices = useCallback(async () => {
+  // Eksik fatura kontrolü - her çağrıldığında modal göster
+  const checkMissingInvoices = useCallback(async (showModalIfMissing = true) => {
     if (!user?.restaurant_id) return;
     
     try {
@@ -85,30 +85,23 @@ export default function RestaurantDashboard() {
       const missing = res.data.filter(inv => !inv.invoice_uploaded).length;
       setMissingInvoiceCount(missing);
       
-      if (missing > 0) {
-        // localStorage'dan son uyarı zamanını kontrol et
-        const lastWarning = localStorage.getItem(`invoice_warning_${user.restaurant_id}`);
-        const now = Date.now();
-        
-        // 5 dakika = 300000 ms
-        if (!lastWarning || (now - parseInt(lastWarning)) > 300000) {
-          setShowInvoiceWarning(true);
-          localStorage.setItem(`invoice_warning_${user.restaurant_id}`, now.toString());
-        }
+      // Eksik fatura varsa ve modal gösterilmesi isteniyorsa göster
+      if (missing > 0 && showModalIfMissing) {
+        setShowInvoiceWarning(true);
       }
     } catch (err) {
       console.error("Eksik fatura kontrolü başarısız:", err);
     }
   }, [user?.restaurant_id]);
 
-  // İlk yüklemede ve 5 dakikada bir eksik fatura kontrolü
+  // İlk yüklemede eksik fatura kontrolü
   useEffect(() => {
     if (user?.restaurant_id) {
-      checkMissingInvoices();
+      checkMissingInvoices(true); // Sayfa yüklendiğinde modal göster
       
-      // 5 dakikada bir kontrol et
+      // 5 dakikada bir kontrol et (arka planda sessizce, modal gösterme)
       invoiceWarningRef.current = setInterval(() => {
-        checkMissingInvoices();
+        checkMissingInvoices(false); // Sadece sayıyı güncelle, modal gösterme
       }, 300000); // 5 dakika
       
       return () => {
@@ -118,6 +111,13 @@ export default function RestaurantDashboard() {
       };
     }
   }, [user?.restaurant_id, checkMissingInvoices]);
+
+  // Sekme değişikliğinde modal göster
+  useEffect(() => {
+    if (user?.restaurant_id && missingInvoiceCount > 0) {
+      setShowInvoiceWarning(true);
+    }
+  }, [currentPage, user?.restaurant_id, missingInvoiceCount]);
 
   // Fetch orders for this restaurant
   const fetchOrders = useCallback(async () => {
