@@ -314,12 +314,12 @@ export default function LoginPage() {
             </TabsContent>
           </Tabs>
 
-          {/* Entegrasyon Logoları */}
+          {/* İleriye Taşır Sloganı */}
           <div className="mt-8 flex justify-center">
             <img 
-              src="/integrations-logos.png" 
-              alt="Entegrasyonlar" 
-              className="w-64 opacity-70"
+              src="/ileriye-tasir.png" 
+              alt="İleriye Taşır" 
+              className="h-16"
             />
           </div>
 
