@@ -301,6 +301,44 @@ export default function RestaurantDashboard() {
         </div>
         <Footer />
       </main>
+
+      {/* Eksik Fatura Uyarı Modalı */}
+      <Dialog open={showInvoiceWarning} onOpenChange={() => {}}>
+        <DialogContent className="max-w-md p-0 overflow-hidden [&>button]:hidden">
+          <div className="bg-red-600 p-6 text-center">
+            <AlertTriangle className="w-16 h-16 text-white mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">
+              DİKKAT!
+            </h2>
+            <p className="text-red-100 text-lg">
+              Yüklenmemiş Fatura Uyarısı
+            </p>
+          </div>
+          
+          <div className="p-6 text-center">
+            <p className="text-lg font-semibold mb-4">
+              {missingInvoiceCount} adet yüklenmemiş, eksik faturanız var!
+            </p>
+            
+            <p className="text-muted-foreground mb-6">
+              Lütfen <strong className="text-foreground">1 gün içerisinde</strong> faturalarınızı yükleyiniz.
+            </p>
+            
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-800 text-sm font-medium">
+                ⚠️ Süresi dolmuş faturalar için bakiyenize, fatura tutarının <strong>%40'ı</strong> kadar vergi yükümlülüğü bedeli eklenecektir!
+              </p>
+            </div>
+            
+            <Button 
+              onClick={() => setShowInvoiceWarning(false)}
+              className="w-full h-12 text-lg font-semibold"
+            >
+              Anladım
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
