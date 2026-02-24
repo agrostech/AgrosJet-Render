@@ -24,6 +24,7 @@ export default function StoreStatusToggles({ restaurantId }) {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState({});
   const [openPlatforms, setOpenPlatforms] = useState({});
+  const [statusCooldown, setStatusCooldown] = useState({}); // Rate limit için cooldown
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,6 +53,15 @@ export default function StoreStatusToggles({ restaurantId }) {
       return;
     }
     
+    // Getir için rate limit kontrolü - 60 saniye içinde 1 kez
+    if (store.platform === "getir" && statusCooldown[store.id]) {
+      const remaining = Math.ceil((statusCooldown[store.id] - Date.now()) / 1000);
+      if (remaining > 0) {
+        toast.error(`Getir rate limit: ${remaining} saniye sonra tekrar deneyiniz.`);
+        return;
+      }
+    }
+    
     setUpdating(prev => ({ ...prev, [store.id]: true }));
     
     try {
@@ -61,8 +71,13 @@ export default function StoreStatusToggles({ restaurantId }) {
       });
       setStores(prev => prev.map(s => s.id === store.id ? { ...s, is_open: newStatus } : s));
       toast.success(`${store.name} ${newStatus ? "açıldı" : "kapatıldı"}`);
+      
+      // Getir için 60 saniyelik cooldown başlat
+      if (store.platform === "getir") {
+        setStatusCooldown(prev => ({ ...prev, [store.id]: Date.now() + 60000 }));
+      }
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Hata oluştu");
+      toast.error(err.response?.data?.detail || err.response?.data?.error || "Hata oluştu");
     } finally {
       setUpdating(prev => ({ ...prev, [store.id]: false }));
     }
