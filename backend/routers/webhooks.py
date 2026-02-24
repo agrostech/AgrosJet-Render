@@ -2,6 +2,7 @@
 Webhook Endpoints
 - Yemeksepeti Webhook
 - Getir Webhook (Sipariş + İptal)
+- Migros Webhook
 """
 from fastapi import APIRouter, HTTPException, Request, Header
 from typing import Optional
@@ -19,10 +20,14 @@ from services.getir_service import (
     map_getir_payment,
     convert_getir_order_to_shiftjet
 )
+from services.migros_service import MigrosYemekService
 from utils.database import db
 
 router = APIRouter(prefix="/api/webhooks", tags=["Webhooks"])
 logger = logging.getLogger(__name__)
+
+# Migros Secret Key - .env'den al (tüm restoranlar için ortak)
+MIGROS_SECRET_KEY = os.environ.get("MIGROS_SECRET_KEY", "YRwPHEl09DTCFkw5qrAHswr9e4h7Wex7")
 
 
 # ==================== GETİR WEBHOOKS ====================
