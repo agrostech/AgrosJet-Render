@@ -76,8 +76,8 @@ export default function RestaurantDashboard() {
     }
   }, [navigate]);
 
-  // Eksik fatura kontrolü - her çağrıldığında modal göster
-  const checkMissingInvoices = useCallback(async (showModalIfMissing = true) => {
+  // Eksik fatura kontrolü
+  const checkMissingInvoices = useCallback(async () => {
     if (!user?.restaurant_id) return;
     
     try {
@@ -85,8 +85,8 @@ export default function RestaurantDashboard() {
       const missing = res.data.filter(inv => !inv.invoice_uploaded).length;
       setMissingInvoiceCount(missing);
       
-      // Eksik fatura varsa ve modal gösterilmesi isteniyorsa göster
-      if (missing > 0 && showModalIfMissing) {
+      // Eksik fatura varsa modal göster
+      if (missing > 0) {
         setShowInvoiceWarning(true);
       }
     } catch (err) {
@@ -94,15 +94,15 @@ export default function RestaurantDashboard() {
     }
   }, [user?.restaurant_id]);
 
-  // İlk yüklemede eksik fatura kontrolü
+  // İlk yüklemede ve 2 dakikada bir eksik fatura kontrolü + modal göster
   useEffect(() => {
     if (user?.restaurant_id) {
-      checkMissingInvoices(true); // Sayfa yüklendiğinde modal göster
+      checkMissingInvoices(); // Sayfa yüklendiğinde modal göster
       
-      // 5 dakikada bir kontrol et (arka planda sessizce, modal gösterme)
+      // 2 dakikada bir kontrol et ve modal göster
       invoiceWarningRef.current = setInterval(() => {
-        checkMissingInvoices(false); // Sadece sayıyı güncelle, modal gösterme
-      }, 300000); // 5 dakika
+        checkMissingInvoices();
+      }, 120000); // 2 dakika = 120000 ms
       
       return () => {
         if (invoiceWarningRef.current) {
