@@ -4,12 +4,15 @@ Restoran fatura yönetimi - Haftalık bazda eksik fatura oluşturma, aylık gör
 Cloudflare R2 entegrasyonu ile dosya depolama
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import uuid
 import base64
 import re
+import io
+import zipfile
 
 from utils.database import db
 from services.r2_storage import (
