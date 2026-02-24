@@ -603,7 +603,7 @@ export default function RestaurantFaturalarModal({ open, onOpenChange, restauran
           meal_card: false,
           online_meal_card: false,
           percentage: 10,
-          percentage_name: "Hizmet Bedeli"
+          percentage_name: "Yeme-İçme"
         });
       } catch (err) {
         console.error("Bilgiler yüklenemedi:", err);
