@@ -344,7 +344,7 @@ export default function RestaurantDashboard() {
 
       {/* Eksik Fatura Uyarı Modalı */}
       <Dialog open={showInvoiceWarning} onOpenChange={() => {}}>
-        <DialogContent className="max-w-md p-0 overflow-hidden [&>button]:hidden">
+        <DialogContent className="max-w-xl p-0 overflow-hidden [&>button]:hidden">
           <div className="bg-red-600 p-6 text-center">
             <AlertTriangle className="w-16 h-16 text-white mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">
