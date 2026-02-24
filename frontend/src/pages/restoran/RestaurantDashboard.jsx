@@ -42,6 +42,9 @@ export default function RestaurantDashboard() {
   const [loading, setLoading] = useState(true);
   const [badges, setBadges] = useState({});
   const [permissions, setPermissions] = useState({});
+  const [showInvoiceWarning, setShowInvoiceWarning] = useState(false);
+  const [missingInvoiceCount, setMissingInvoiceCount] = useState(0);
+  const invoiceWarningRef = useRef(null);
 
   // Derive currentPage from location
   const getCurrentPage = () => {
