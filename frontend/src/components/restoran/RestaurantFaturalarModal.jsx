@@ -43,7 +43,7 @@ function FaturaOrnegiModal({ open, onClose, invoiceData, companyInfo, invoiceSet
   
   const { week_label, total_amount } = invoiceData;
   const percentage = invoiceSettings?.percentage || 10;
-  const percentageName = invoiceSettings?.percentage_name || "Hizmet Bedeli";
+  const percentageName = invoiceSettings?.percentage_name || "Yeme-İçme";
   
   // Aktif toggle'ları belirle
   const activePaymentMethods = [];
