@@ -109,12 +109,14 @@ export default function LoginPage() {
       {/* Left - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-[#0f172a]">
         <div className="w-full max-w-md">
-          <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-2 text-white">
-            AgrosJet
-          </h1>
-          <p className="text-slate-400 text-sm mb-8">
-            AgrosJet yönetim sistemine hoş geldiniz. Lütfen giriş yapınız.
-          </p>
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/agrosjet-login-logo.png" 
+              alt="AgrosJet" 
+              className="h-16 md:h-20"
+            />
+          </div>
 
           <Tabs defaultValue="courier" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6 bg-slate-800 border border-slate-700">
