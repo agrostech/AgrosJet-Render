@@ -261,7 +261,7 @@ export default function LoginPage() {
             <TabsContent value="restaurant">
               <form onSubmit={handleRestaurantLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="restaurant-username" className="text-sm font-semibold">
+                  <Label htmlFor="restaurant-username" className="text-sm font-semibold text-slate-300">
                     Kullanıcı Adı
                   </Label>
                   <Input
@@ -270,12 +270,12 @@ export default function LoginPage() {
                     type="text"
                     value={restaurantData.username}
                     onChange={(e) => setRestaurantData({ ...restaurantData, username: e.target.value })}
-                    className="mt-1 h-12 border-2"
+                    className="mt-1 h-12 border-2 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="restaurant-password" className="text-sm font-semibold">
+                  <Label htmlFor="restaurant-password" className="text-sm font-semibold text-slate-300">
                     Şifre
                   </Label>
                   <Input
@@ -284,14 +284,14 @@ export default function LoginPage() {
                     type="password"
                     value={restaurantData.password}
                     onChange={(e) => setRestaurantData({ ...restaurantData, password: e.target.value })}
-                    className="mt-1 h-12 border-2"
+                    className="mt-1 h-12 border-2 bg-slate-800 border-slate-600 text-white"
                     required
                   />
                 </div>
                 <Button 
                   type="submit" 
                   data-testid="restaurant-login-btn"
-                  className="w-full h-12 font-semibold"
+                  className="w-full h-12 font-semibold bg-orange-500 hover:bg-orange-600 text-white"
                   disabled={loading}
                 >
                   {loading ? "Yükleniyor..." : "Giriş Yap"}
@@ -302,8 +302,9 @@ export default function LoginPage() {
                     checked={rememberRestaurant}
                     onCheckedChange={setRememberRestaurant}
                     data-testid="remember-restaurant-checkbox"
+                    className="border-slate-500 data-[state=checked]:bg-orange-500"
                   />
-                  <Label htmlFor="rememberRestaurant" className="text-sm text-muted-foreground cursor-pointer">
+                  <Label htmlFor="rememberRestaurant" className="text-sm text-slate-400 cursor-pointer">
                     Beni Hatırla
                   </Label>
                 </div>
@@ -312,7 +313,7 @@ export default function LoginPage() {
           </Tabs>
 
           {/* Footer */}
-          <p className="mt-8 text-center text-xs text-muted-foreground">
+          <p className="mt-8 text-center text-xs text-slate-500">
             © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
           </p>
         </div>
