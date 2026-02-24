@@ -36,8 +36,132 @@ const sanitizeFilename = (str) => {
     .replace(/[^a-zA-Z0-9_-]/g, '');
 };
 
+// ==================== Fatura Örneği Modal ====================
+function FaturaOrnegiModal({ open, onClose, invoiceData, companyInfo, invoiceSettings }) {
+  if (!invoiceData || !open) return null;
+  
+  const { week_label, total_amount } = invoiceData;
+  const percentage = invoiceSettings?.percentage || 10;
+  const percentageName = invoiceSettings?.percentage_name || "Hizmet Bedeli";
+  
+  // Aktif toggle'ları belirle
+  const activePaymentMethods = [];
+  if (invoiceSettings?.cash) activePaymentMethods.push("Nakit");
+  if (invoiceSettings?.credit_card) activePaymentMethods.push("Kredi Kartı");
+  if (invoiceSettings?.online) activePaymentMethods.push("Online");
+  if (invoiceSettings?.meal_card) activePaymentMethods.push("Yemek Kartı");
+  if (invoiceSettings?.online_meal_card) activePaymentMethods.push("Online Yemek Kartı");
+  
+  const paymentMethodsText = activePaymentMethods.join(" + ") || "tahsilat";
+  
+  // Yüzdelik hesaplama
+  const percentageAmount = (total_amount * percentage) / 100;
+  
+  // WhatsApp mesajı oluştur
+  const generateWhatsAppMessage = () => {
+    const companyName = companyInfo?.name || "Şirket";
+    const message = `
+*FATURA BİLGİLERİ*
+
+*Kesilecek Şirket:*
+${companyInfo?.name || "-"}
+${companyInfo?.tax_office ? `Vergi Dairesi: ${companyInfo.tax_office}` : ""}
+${companyInfo?.tax_number ? `Vergi No: ${companyInfo.tax_number}` : ""}
+${companyInfo?.address || ""}
+
+*Fatura Tutarı:*
+${formatMoney(total_amount)}
+${percentageName} (%${percentage}): ${formatMoney(percentageAmount)}
+KDV Dahil
+
+*Açıklama:*
+${week_label} tarihleri arasında, ${companyName}'ın tarafımızca yapmış olduğu ${paymentMethodsText} tahsilatlarının bedeli.
+    `.trim();
+    
+    return encodeURIComponent(message);
+  };
+  
+  const handleWhatsAppShare = () => {
+    const message = generateWhatsAppMessage();
+    window.open(`https://wa.me/?text=${message}`, '_blank');
+  };
+  
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileCheck className="w-5 h-5 text-blue-600" />
+            Fatura Örneği
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Şirket Bilgileri */}
+          <div className="p-3 bg-slate-50 rounded-lg border">
+            <div className="flex items-center gap-2 mb-2">
+              <Building2 className="w-4 h-4 text-slate-600" />
+              <span className="font-medium text-sm">Fatura Kesilecek Şirket</span>
+            </div>
+            <div className="text-sm space-y-1">
+              <p className="font-semibold">{companyInfo?.name || "-"}</p>
+              {companyInfo?.tax_office && (
+                <p className="text-muted-foreground">Vergi Dairesi: {companyInfo.tax_office}</p>
+              )}
+              {companyInfo?.tax_number && (
+                <p className="text-muted-foreground">Vergi No: {companyInfo.tax_number}</p>
+              )}
+              {companyInfo?.address && (
+                <p className="text-muted-foreground text-xs">{companyInfo.address}</p>
+              )}
+            </div>
+          </div>
+          
+          {/* Fatura Tutarı */}
+          <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <div className="flex items-center gap-2 mb-2">
+              <Percent className="w-4 h-4 text-blue-600" />
+              <span className="font-medium text-sm">Fatura Bilgileri</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm">Tutar:</span>
+                <span className="font-semibold">{formatMoney(total_amount)}</span>
+              </div>
+              <div className="flex justify-between text-blue-700">
+                <span className="text-sm">{percentageName} (%{percentage}):</span>
+                <span className="font-semibold">{formatMoney(percentageAmount)}</span>
+              </div>
+              <p className="text-xs text-blue-600 pt-1 border-t border-blue-200">KDV Dahil</p>
+            </div>
+          </div>
+          
+          {/* Açıklama */}
+          <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+            <p className="font-medium text-sm mb-2">Açıklama:</p>
+            <p className="text-sm text-amber-900">
+              "{week_label}" tarihleri arasında, <strong>{companyInfo?.name || "Şirket"}</strong>'ın 
+              tarafımızca yapmış olduğu <strong>{paymentMethodsText}</strong> tahsilatlarının bedeli.
+            </p>
+          </div>
+        </div>
+        
+        <DialogFooter className="flex gap-2 mt-4">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            Kapat
+          </Button>
+          <Button onClick={handleWhatsAppShare} className="flex-1 bg-green-600 hover:bg-green-700">
+            <Share2 className="w-4 h-4 mr-2" />
+            WhatsApp ile Gönder
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ==================== Kesilen Faturalar Tab ====================
-function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
+function KesilenFaturalarTab({ restaurantId, restaurantName, companyInfo, invoiceSettings, onRefresh }) {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -45,6 +169,7 @@ function KesilenFaturalarTab({ restaurantId, restaurantName, onRefresh }) {
   const [deletingId, setDeletingId] = useState(null);
   const [viewingInvoice, setViewingInvoice] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [faturaOrnegiData, setFaturaOrnegiData] = useState(null);
   const fileInputRef = useRef(null);
 
   const fetchInvoices = useCallback(async () => {
