@@ -1,45 +1,40 @@
 <analysis>**original_problem_statement:**
-The user initially aimed to debug why some orders from the 'Adisyo' integration were not appearing in the system. This led to fixing credential usage and data fetching parameters.
+The user initially aimed to debug why some orders from the 'Adisyo' integration were not appearing in the system. The scope quickly expanded to a major overhaul of the application's invoicing and financial reporting features.
 
-The scope then expanded significantly to address numerous data inconsistencies and UI/UX issues across the application, driven by a series of specific user requests. The core of this session focused on standardizing business logic, particularly around date and time handling, and improving the usability of various financial and operational pages.
-
-Key tasks addressed included:
-1.  Fixing inconsistent calculations for Yemek Kartı (Meal Card) on reporting pages.
-2.  Resolving a discrepancy in order counts between the admin and restaurant panels by unifying date filtering logic.
-3.  **Standardizing Timezones:** A major effort was undertaken to ensure all  and  timestamps are saved in Turkey's timezone (UTC+3). All backend filtering logic for reporting was subsequently refactored to use this timezone directly, removing complex and error-prone UTC conversions.
-4.  Switching specific pages (Teslim and İptal orders) to filter by  at the user's request, while keeping all financial reports filtering by .
-5.  Implementing numerous UI/UX fixes: adding new filters, improving date displays, standardizing icons, and removing a confusing summary report.
-6.  Fixing an integration issue with  by making Pydantic models more flexible.
-7.  Integrating the restaurant invoicing workflow, connecting the admin's invoice creation process with the restaurant's ability to view and upload the corresponding documents.
-8.  Optimizing a scheduled job from a per-minute check to a more efficient cron trigger.
+Key tasks completed in this and previous sessions include:
+1.  **Timezone Standardization:** Ensured all key timestamps are stored and filtered in Turkey's timezone (UTC+3), removing error-prone UTC conversions.
+2.  **Invoice Preview Feature:** Implemented a feature for admins to see a preview of upcoming invoices before they are automatically generated.
+3.  **Cloudflare R2 Integration:** Migrated all invoice file storage (both admin-uploaded and restaurant-uploaded) from base64 encoding to Cloudflare R2, standardizing folder structures and file naming conventions. This includes updating all related upload, download, and delete endpoints.
+4.  **Restaurant Invoicing Workflow:** Enhanced the entire workflow with multiple new features and bug fixes:
+    *   Restaurants can delete an uploaded invoice within a 30-minute window, with a confirmation modal.
+    *   A badge now appears on the Faturalar button in the restaurant panel, showing the count of missing invoices.
+    *   Admins can configure restaurant-specific invoice settings, including percentage-based fees (e.g., %10 Hizmet Bedeli).
+    *   Restaurants can view an Invoice Sample for missing invoices, with correct company data and financial calculations, and share it via WhatsApp.
+    *   A recurring warning modal now appears every 30 minutes in the restaurant panel if there are outstanding missing invoices.
+5.  **Bug Fixes & UX Improvements:** Addressed numerous bugs related to invoice management, such as ID mismatches preventing downloads/verifications, incorrect date formats, and broken UI elements. Added a bulk ZIP download feature for monthly invoices.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application's data handling is significantly more robust. All timestamps for  and  are now stored and filtered consistently in Turkey's timezone (UTC+3) across critical reporting modules.
+The application's invoicing system is now significantly more robust and feature-rich. All invoice files are stored on Cloudflare R2 with a consistent folder structure ().
 
-The UI has been refined based on user feedback:
--   The Teslim (Delivered) and İptal (Cancelled) order pages now filter by  for operational views.
--   All financial reports (, , , etc.) correctly use  for financial accuracy.
--   The Restaurant Panel's order history includes advanced filtering by delivery type (courier company vs. restaurant) and by specific courier name.
--   Date filters across several pages now default to the company's opening and closing hours.
--   The  integration is fixed, and the Adisyo webhook URL is now displayed dynamically.
--   The restaurant invoicing flow is now functionally integrated: the admin creates a pending invoice, the restaurant sees it and can upload the file, and the uploaded file appears for the admin to review.
--   The scheduled job for creating restaurant invoices has been optimized to run only once on Monday mornings via a cron trigger.
+The admin and restaurant panels have been updated with the new invoicing features:
+-   **Admin Panel:** Can configure percentage-based fees for restaurants, download invoices in bulk as a ZIP file, and correctly view/manage invoices uploaded by restaurants.
+-   **Restaurant Panel:** Users are alerted to missing invoices via a button badge and a recurring modal. They can generate a sample invoice preview to understand what to bill, and can delete recently uploaded files. All file operations (upload, download, delete) are correctly routed through the R2-integrated backend.
 
 **Last working item**:
--   Last item agent was working: The user requested a feature for the Restoran Faturaları -> Alınan Faturalar page. Currently, this tab is empty. The user wants it to display a preview of which restaurants will have an invoice generated during the next automatic run, and for what amount. This would provide visibility before the invoices are formally created.
--   Status: **NOT STARTED**
+-   Last item agent was working: The user requested a recurring warning modal to be displayed in the restaurant panel for users who have pending, un-uploaded invoices.
+-   Status: **IN PROGRESS**
 -   Agent Testing Done: N
 -   Which testing method agent to use? screenshot tool
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Preview for Upcoming Restaurant Invoices (P0)**
-    -   Description: The Alınan Faturalar tab within the Restoran Faturaları page is blank. It needs to show a calculated preview of the invoices that will be automatically generated for each restaurant for the previous week.
-    -   Status: **NOT STARTED**
+-   **Issue 1: Verify Recurring Missing Invoice Warning Modal (P0)**
+    -   Description: A modal warning a user about missing invoices should appear every 30 minutes in the restaurant panel. The code has been implemented, but it has not been tested to confirm it works as expected.
+    -   Status: **TESTING PENDING**
 -   **Issue 2: Inefficient Scheduled Jobs for Reconciliation (P1)**
-    -   Description: The scheduled jobs for  (Weekly Earnings) and  (Restaurant Reconciliation) run every minute to check if they should execute. This is inefficient. They should be refactored to use a more efficient trigger mechanism, similar to the cron job implemented for invoice creation.
+    -   Description: The scheduled jobs for  (Weekly Earnings) and  (Restaurant Reconciliation) run every minute. They should be refactored to use a more efficient trigger (e.g., a cron job).
     -   Status: **NOT STARTED**
 -   **Issue 3: Data Consistency Final Verification (P1)**
     -   Description: Although numerous fixes have been implemented, a final, comprehensive verification across all financial reporting pages is needed to confirm perfect alignment.
@@ -56,20 +51,18 @@ The UI has been refined based on user feedback:
     -   Is recurring issue? Y
 
 **In progress Task List**:
--   **Task 1: Implement Upcoming Invoices Preview (P0)**
-    -   Where to resume:
-        1.  **Backend:** Create a new endpoint in  that calculates the invoice data for the previous week (for all restaurants with invoicing enabled) without creating the actual records. It should return a list of restaurants and their calculated invoice amounts.
-        2.  **Frontend:** In , modify the Alınan Faturalar tab to call this new endpoint and display the data in a table.
-    -   What will be achieved with this? Admins will have clear visibility into which invoices are about to be generated and their amounts, improving financial oversight.
-    -   Status: **NOT STARTED**
+-   **Task 1: Verify Recurring Warning Modal (P0)**
+    -   Where to resume: The code is in  and .
+    -   What will be achieved with this? This will ensure that restaurant users are actively reminded to upload their pending invoices, improving compliance and financial record-keeping.
+    -   Status: **IN PROGRESS**
     -   Should Test frontend/backend/both after fix? Frontend
     -   Blocked on something: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **Incomplete Fee Calculation Integration (P1):** The logic to calculate  on order creation must be implemented for all other integration points (, , , , ) in their respective service files. This is a critical piece of technical debt causing data inconsistencies.
-    -   **Refactor Scheduled Jobs (P1):** Improve the efficiency of the  and  jobs by moving away from per-minute checks.
-    -   Finalize Migros Yemek & Yemeksepeti Integrations.
+    -   **(P1) Incomplete Fee Calculation Integration:** The logic to calculate  on order creation must be implemented for all other integration points (, , , , ) in their respective service files. This is a critical piece of technical debt causing data inconsistencies.
+    -   **(P1) Refactor Scheduled Jobs:** Improve the efficiency of the  and  jobs by moving away from per-minute checks.
+    -   **(P2)** Finalize Migros Yemek & Yemeksepeti Integrations.
 -   **Future Tasks:**
     -   Develop a Native Courier App.
     -   Re-enable and Enhance the Chat System.
@@ -78,18 +71,18 @@ The UI has been refined based on user feedback:
     -   Implement Google Maps Integration & a Dark Mode theme.
 
 **Completed work in this session**
--   **Timezone Unification:** Standardized  and  to be stored in Turkey's timezone (UTC+3) and refactored all backend reporting filters to use it directly, eliminating UTC conversion bugs.
--   **Filtering Logic Separation:** Configured Teslim and İptal pages to use  for operational views, while all financial reports correctly use .
--   **Restaurant Invoicing Flow:** Fully integrated the process from admin creation -> restaurant upload -> admin final review.
--   **Scheduled Job Optimization:** Refactored the invoice creation job to use a  (runs only on Monday at 2 AM) instead of a per-minute interval check.
--   **Daily Reconciliation Page () Overhaul:** Fixed multiple bugs related to week navigation, incorrect date range display, wrong kurye counts, and filtering by the wrong date field ( -> ).
--   **UI/UX Improvements:**
-    -   Removed the summary card from the Teslim Edilen Siparişler page.
-    -   Added advanced courier filtering to the restaurant panel.
-    -   Standardized page names (Geçmiş -> Teslim) and icons across admin/restaurant panels.
-    -   Reordered integrations on the settings page.
--   **Integration Fix:** Corrected the SepetTakip webhook endpoint to accept both  and  IDs.
--   **Reporting Fixes:** Corrected Yemek Kartı calculation logic, fixed date label display on the Haftalık Hakediş page, and ensured all courier reports use .
+-   **Cloudflare R2 Integration:** Fully integrated R2 for all invoice file storage (admin and restaurant), including upload, download, and delete, with a standardized folder structure.
+-   **Restaurant Invoice Workflow:**
+    -   Implemented a 30-minute deletion window for restaurant-uploaded invoices.
+    -   Added a confirmation modal for delete actions.
+    -   Automated file naming for uploaded invoices.
+    -   Added a badge with a missing invoice count on the Faturalar button.
+-   **Admin Invoice Features:**
+    -   Added restaurant-specific settings for percentage-based fees and descriptions.
+    -   Implemented a bulk Download as ZIP feature for monthly invoices.
+-   **Invoice Sample Preview:** Created a feature for restaurants to preview a sample invoice for missing payments and share it via WhatsApp.
+-   **Recurring Warning Modal:** Implemented a modal that appears every 30 minutes in the restaurant panel if invoices are missing.
+-   **Bug Fixes:** Resolved multiple critical bugs, including uid=0(root) gid=0(root) groups=0(root) vs.  mismatches preventing file downloads/verifications, incorrect date/UI formatting, and broken API endpoints.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Incomplete Fee Calculation:** The task to integrate  calculation into all order creation endpoints (Getir, Trendyol, etc.) remains incomplete and is a major source of technical debt.
@@ -104,47 +97,47 @@ The UI has been refined based on user feedback:
 
 
 **Key Technical Concepts**
--   **Timezone Standardization:** A crucial architectural decision was made to store all key timestamps (, ) in a single, consistent timezone (Turkey, UTC+3) and remove all complex UTC conversion logic from backend filters. This simplifies the codebase and eliminates a class of bugs.
--   **Scheduled Jobs (APScheduler):** Differentiating between inefficient interval-based jobs and efficient cron-based jobs. Refactored one job to use .
--   **Pydantic Model Flexibility:** Using  in Pydantic models to gracefully handle data type inconsistencies from third-party APIs ().
--   **Frontend State Management:** Debugging and fixing React  dependency issues that caused incorrect data fetching and component re-renders.
--   **Dynamic UI:** Using  to create dynamic URLs that work across different environments (preview vs. production).
+-   **Cloudflare R2 Integration:** Using  for object storage (upload, signed URLs for download, delete). Implemented a robust fallback to base64 storage if R2 operations fail, tracked via a  field in the database.
+-   **API Data Normalization:** Consistently fixing frontend issues by modifying backend endpoints to return data in the exact format the frontend expects (e.g., always providing an  field).
+-   **Dynamic File/Folder Naming:** Generating structured file paths () on the backend before uploading to R2.
+-   **Recurring UI Actions:** Using  within a React  hook to periodically check for conditions (missing invoices) and trigger UI updates (showing a modal).
+-   **Frontend State & Callbacks:** Using callbacks () to allow child components (e.g., an upload modal) to trigger data refetching in the parent component, ensuring the UI stays in sync.
+-   **WhatsApp Web API:** Using  to open WhatsApp Web with a pre-filled, formatted message for easy sharing.
 
 **key DB schema**
--   **orders**:  and  are now consistently stored as timezone-aware strings representing Turkey's local time.
--   **companies**:  and  fields are used to set default start/end times for date filters.
--   **restaurant_invoices**: This collection is now the single source of truth for the entire restaurant invoicing workflow, from admin creation to restaurant upload and final review.
+-   **restaurants**: Contains .
+-   **restaurant_invoices**: Contains  and  to manage file storage location.
+-   **issued_invoices**: Also updated with  and .
 
 **All files of reference**
--    (To be modified for new preview feature)
--    (To be modified for new preview feature)
+-    (Contains the new warning modal logic)
+-    (The new warning modal component)
+-    (Relevant for the pending task of refactoring scheduled jobs)
 -   
 -   
 -   
--   
--   
--   All other reporting routers (, , ).
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   Your immediate priority is to implement the Upcoming Invoices Preview feature as described in the In progress Task List.
--   The architectural decision to standardize all date/time storage and filtering to Turkey's timezone is critical. Do not re-introduce UTC conversion logic into the reporting endpoints.
--   The user is technically aware and direct. Provide clear explanations and avoid wasting time.
+-   Your first task is to **verify the recurring warning modal** feature. Log in as a restaurant with missing invoices (e.g., Lezzet Durağı) and confirm the modal appears.
+-   The Cloudflare R2 integration is the standard for all invoice file storage. Any new feature involving file uploads must use the  service.
+-   The user is highly detail-oriented. Pay close attention to UI/UX specifics like text formatting, element placement, and color schemes.
+-   Be mindful of the uid=0(root) gid=0(root) groups=0(root) vs.  issue that has caused bugs in the past. When creating new endpoints that return invoice data, ensure the ID field is normalized to  for frontend consistency.
 
 **documents and test reports created in this job**
--   
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User Request:** I need 10 test orders created with specific criteria (delivered, card payment, specific date). (Completed)
-9.  **User Request:** The Alınan Faturalar (Received Invoices) tab is empty. I want to see which invoices will be created for which restaurants before they are actually generated. (Current task)
-8.  **User Question:** The automatic invoice creation runs for the previous week every Monday, right? (Answered: Yes)
-7.  **User Question:** What does checks every minute mean for the scheduled jobs? Is it constantly hitting the system? (Answered: Yes, and the agent refactored one job to be more efficient)
-6.  **User Request:** Remove the Manual Test section from the restaurant invoices page. (Completed)
-5.  **User Request & Clarification:** Explained the desired workflow for restaurant invoicing: Admin creates pending invoice -> Restaurant sees and uploads PDF -> Admin reviews uploaded file. (Completed)
-4.  **User Question:** Does the automatic reconciliation on Monday run for the current or previous week? (Answered: Previous week)
-3.  **User Request:** On the Haftalık Hakediş (Weekly Earnings) page, show the date/time range for the selected week. Also, check for timezone issues and ensure it uses . (Completed)
-2.  **User Clarification:** We decided to store dates in Turkey's timezone in the database, right? So we don't need to add timezone controls, just use the direct time. (Confirmed)
-1.  **User Bug Report:** In the courier reconciliation modal, are there any timezone or  issues? (Checked and confirmed it's correct)
+10. **Request:** Create a warning modal for missing invoices that appears every 30 minutes in the restaurant panel. (Implemented, pending verification)
+9.  **Feedback:** The invoice sample preview modal is too colorful; make it neutral. (Completed)
+8.  **Bug Report:** The company info in the invoice sample is blank, and the description should use the courier company's name. (Completed)
+7.  **Request:** Create another test missing invoice for Lezzet Durağı. (Completed)
+6.  **Bug Report:** The new percentage-based invoice settings are not saving. (Completed)
+5.  **Feedback:** Correct the placeholder text for the percentage name input. (Completed)
+4.  **Request:** Explanation of two new features and clarification on implementation details. (Answered)
+3.  **Request:** Implement two features: 1) Admin panel invoice settings (percentage/name). 2) Restaurant panel Invoice Sample preview with WhatsApp sharing. (Implemented)
+2.  **Bug Report:** The download button in the restaurant panel for received invoices is not working. (Completed)
+1.  **Bug Report:** The file name format for admin-uploaded invoices isn't updating. (Completed)
 
 **Project Health Check:**
 -   **Broken**:
@@ -160,18 +153,18 @@ The UI has been refined based on user feedback:
 -   
 -   
 -    (via Leaflet)
--    (backend for dynamic job scheduling)
+-    (for backend jobs)
+-    (via , for file storage)
 
 **Testing status**
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created:
-    -   
--   Known regressions:
-    -   A bug was introduced and fixed in  where a removed state function was still being called.
+-   Test files created: None
+-   Known regressions: None in this session.
 
 **Credentials to test flow:**
 -   **Company Admin:**  / 
+-   **Restaurant User:** Log in as , go to the Restoranlar page, and use the Panele Git (Go to Panel) button for a restaurant like Lezzet Durağı.
 
 **What agent forgot to execute**
--   The agent did not forget to execute any direct user requests in this session. However, the major piece of technical debt from the previous session—implementing  calculation for all integrations—remains outstanding and should be prioritized after the current task. The newly identified technical debt regarding inefficient scheduled jobs also remains.</analysis>
+-   The agent has not forgotten any direct user requests. However, major technical debt items identified in the initial handoff summary (implementing  calculation for all integrations and refactoring inefficient scheduled jobs) remain outstanding.</analysis>
