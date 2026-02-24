@@ -2,19 +2,46 @@
 Kesilen Faturalar (Issued Invoices) API
 - Haftalık restoran bazlı taşıma ücreti ve KDV hesaplama
 - Fatura yükleme ve görüntüleme
+- Cloudflare R2 entegrasyonu
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import uuid
 import base64
+import re
 
 from utils.database import db
+from services.r2_storage import (
+    upload_file_to_r2,
+    download_file_from_r2,
+    delete_file_from_r2
+)
 
 router = APIRouter(prefix="/api/issued-invoices", tags=["Kesilen Faturalar"])
 
+# R2 klasör prefix'i
+R2_ISSUED_INVOICE_PREFIX = "KESILEN_FATURALAR"
+
 
 # ========== Helpers ==========
+
+def format_name_for_file(name: str) -> str:
+    """İsmi dosya için uygun formata çevir (Türkçe karakterler)"""
+    if not name:
+        return "Bilinmeyen"
+    replacements = {
+        'ğ': 'g', 'Ğ': 'G', 'ü': 'u', 'Ü': 'U',
+        'ş': 's', 'Ş': 'S', 'ı': 'i', 'İ': 'I',
+        'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C',
+        ' ': ''
+    }
+    for tr, en in replacements.items():
+        name = name.replace(tr, en)
+    # Sadece alfanumerik karakterler bırak
+    name = re.sub(r'[^a-zA-Z0-9]', '', name)
+    return name
+
 
 async def get_company_work_hours(company_id: str) -> tuple:
     """Şirket açılış/kapanış saatlerini getir"""
