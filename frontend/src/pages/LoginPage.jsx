@@ -325,7 +325,7 @@ export default function LoginPage() {
       <div 
         className="hidden lg:block lg:w-1/2 bg-cover bg-center"
         style={{ 
-          backgroundImage: `url('https://customer-assets.emergentagent.com/job_courier-dashboard-7/artifacts/ktc5mfpb_shiftjetlogin.png')` 
+          backgroundImage: `url('/login-bg.png')` 
         }}
       >
         <div className="w-full h-full bg-black/50 flex items-end p-12">
