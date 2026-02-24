@@ -155,10 +155,20 @@ export default function RestaurantDashboard() {
     }
   }, [user?.restaurant_id, checkMissingInvoices]);
 
-  // Sekme değişikliğinde modal göster
+  // Sekme değişikliğinde modal göster (sadece gerçek sekme değişikliğinde)
   useEffect(() => {
-    if (user?.restaurant_id && missingInvoiceCount > 0 && warningCount < 10) {
-      setShowInvoiceWarning(true);
+    // İlk render'da veya aynı sayfadaysa çalışma
+    if (lastPageRef.current === null) {
+      lastPageRef.current = currentPage;
+      return;
+    }
+    
+    // Sayfa gerçekten değiştiyse modal göster
+    if (lastPageRef.current !== currentPage) {
+      lastPageRef.current = currentPage;
+      if (user?.restaurant_id && missingInvoiceCount > 0 && warningCount < 10) {
+        setShowInvoiceWarning(true);
+      }
     }
   }, [currentPage, user?.restaurant_id, missingInvoiceCount, warningCount]);
 
