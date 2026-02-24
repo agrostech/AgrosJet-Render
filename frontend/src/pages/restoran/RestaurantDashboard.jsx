@@ -334,7 +334,7 @@ export default function RestaurantDashboard() {
               onClick={() => setShowInvoiceWarning(false)}
               className="w-full h-12 text-lg font-semibold"
             >
-              5 Dakikalığına Uyarıyı Kapat
+              Uyarıyı Kapat
             </Button>
           </div>
         </DialogContent>
