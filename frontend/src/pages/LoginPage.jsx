@@ -328,14 +328,11 @@ export default function LoginPage() {
           backgroundImage: `url('/login-bg.png')` 
         }}
       >
-        <div className="w-full h-full bg-black/50 flex items-end p-12">
-          <div className="text-white">
-            <h2 className="font-heading text-4xl font-bold mb-2">
-              AgrosJet
+        <div className="w-full h-full bg-black/30 flex items-end justify-center p-12">
+          <div className="text-white text-center">
+            <h2 className="font-heading text-4xl font-bold tracking-wide">
+              İleriye Taşır
             </h2>
-            <p className="text-white/80">
-              Kurye Yönetim Sistemi
-            </p>
           </div>
         </div>
       </div>
