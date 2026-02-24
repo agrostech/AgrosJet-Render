@@ -319,7 +319,7 @@ export default function LoginPage() {
             <img 
               src="/integrations-logos.avif" 
               alt="Entegrasyonlar" 
-              className="h-8 opacity-60"
+              className="h-12 opacity-70"
             />
           </div>
 
