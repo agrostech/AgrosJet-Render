@@ -102,7 +102,7 @@ KDV Dahil
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileCheck className="w-5 h-5 text-blue-600" />
+            <FileCheck className="w-5 h-5" />
             Fatura Örneği
           </DialogTitle>
         </DialogHeader>
@@ -111,7 +111,7 @@ KDV Dahil
           {/* Şirket Bilgileri */}
           <div className="p-3 bg-slate-50 rounded-lg border">
             <div className="flex items-center gap-2 mb-2">
-              <Building2 className="w-4 h-4 text-slate-600" />
+              <Building2 className="w-4 h-4 text-slate-500" />
               <span className="font-medium text-sm">Fatura Kesilecek Şirket</span>
             </div>
             <div className="text-sm space-y-1">
@@ -129,27 +129,27 @@ KDV Dahil
           </div>
           
           {/* Fatura Tutarı */}
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+          <div className="p-3 bg-slate-50 rounded-lg border">
             <div className="flex items-center gap-2 mb-2">
-              <Percent className="w-4 h-4 text-blue-600" />
+              <Percent className="w-4 h-4 text-slate-500" />
               <span className="font-medium text-sm">Fatura Bilgileri</span>
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-blue-700">{percentageName} (%{percentage})</p>
+              <p className="text-sm font-medium">{percentageName} (%{percentage})</p>
               <div className="flex justify-between">
-                <span className="text-sm">Tutar:</span>
+                <span className="text-sm text-muted-foreground">Tutar:</span>
                 <span className="font-semibold">{formatMoney(total_amount)}</span>
               </div>
-              <p className="text-xs text-blue-600 pt-1 border-t border-blue-200">KDV Dahil</p>
+              <p className="text-xs text-muted-foreground pt-1 border-t">KDV Dahil</p>
             </div>
           </div>
           
           {/* Açıklama */}
-          <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+          <div className="p-3 bg-slate-50 rounded-lg border">
             <p className="font-medium text-sm mb-2">Açıklama:</p>
-            <p className="text-sm text-amber-900">
-              "{formattedWeekLabel}" tarihleri arasında, <strong>{companyInfo?.name || "Şirket"}</strong>'ın 
-              tarafımızca yapmış olduğu <strong>{paymentMethodsText}</strong> tahsilatlarının bedeli.
+            <p className="text-sm text-muted-foreground">
+              "{formattedWeekLabel}" tarihleri arasında, <strong className="text-foreground">{companyInfo?.name || "Şirket"}</strong>'ın 
+              tarafımızca yapmış olduğu <strong className="text-foreground">{paymentMethodsText}</strong> tahsilatlarının bedeli.
             </p>
           </div>
         </div>
