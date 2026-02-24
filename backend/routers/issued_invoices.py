@@ -386,7 +386,7 @@ async def upload_invoice(
 
 @router.get("/{company_id}/download/{invoice_id}")
 async def download_invoice(company_id: str, invoice_id: str):
-    """Fatura indir/görüntüle"""
+    """Fatura indir/görüntüle - R2 veya base64'ten"""
     invoice = await db.issued_invoices.find_one(
         {"id": invoice_id, "company_id": company_id},
         {"_id": 0}
@@ -395,16 +395,43 @@ async def download_invoice(company_id: str, invoice_id: str):
     if not invoice:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
-    return {
-        "filename": invoice.get("filename"),
-        "file_data": invoice.get("file_data"),
-        "extension": invoice.get("file_extension", "pdf")
-    }
+    # R2'den mi base64'ten mi?
+    storage_type = invoice.get("storage_type", "base64")
+    
+    if storage_type == "r2" and invoice.get("r2_key"):
+        file_content = await download_file_from_r2(invoice["r2_key"])
+        if file_content:
+            file_data = base64.b64encode(file_content).decode("utf-8")
+            return {
+                "filename": invoice.get("filename"),
+                "file_data": file_data,
+                "extension": invoice.get("file_extension", "pdf")
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Dosya R2'de bulunamadı")
+    else:
+        return {
+            "filename": invoice.get("filename"),
+            "file_data": invoice.get("file_data", ""),
+            "extension": invoice.get("file_extension", "pdf")
+        }
 
 
 @router.delete("/{company_id}/invoice/{invoice_id}")
 async def delete_invoice(company_id: str, invoice_id: str):
-    """Fatura sil"""
+    """Fatura sil - R2'den de sil"""
+    invoice = await db.issued_invoices.find_one(
+        {"id": invoice_id, "company_id": company_id},
+        {"_id": 0}
+    )
+    
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    
+    # R2'den sil
+    if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+        await delete_file_from_r2(invoice["r2_key"])
+    
     result = await db.issued_invoices.delete_one({
         "id": invoice_id,
         "company_id": company_id
