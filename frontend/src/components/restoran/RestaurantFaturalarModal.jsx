@@ -55,8 +55,18 @@ function FaturaOrnegiModal({ open, onClose, invoiceData, companyInfo, invoiceSet
   
   const paymentMethodsText = activePaymentMethods.join(" + ") || "tahsilat";
   
-  // Yüzdelik hesaplama
-  const percentageAmount = (total_amount * percentage) / 100;
+  // Tarih formatını düzelt: "23.02 - 02.03.2026" -> "23.02.2026 - 02.03.2026"
+  const formatWeekLabel = (label) => {
+    if (!label) return "";
+    const parts = label.split(" - ");
+    if (parts.length !== 2) return label;
+    const startDate = parts[0]; // "23.02"
+    const endDate = parts[1];   // "02.03.2026"
+    const year = endDate.split(".")[2] || new Date().getFullYear();
+    return `${startDate}.${year} - ${endDate}`;
+  };
+  
+  const formattedWeekLabel = formatWeekLabel(week_label);
   
   // WhatsApp mesajı oluştur
   const generateWhatsAppMessage = () => {
@@ -70,13 +80,13 @@ ${companyInfo?.tax_office ? `Vergi Dairesi: ${companyInfo.tax_office}` : ""}
 ${companyInfo?.tax_number ? `Vergi No: ${companyInfo.tax_number}` : ""}
 ${companyInfo?.address || ""}
 
-*Fatura Tutarı:*
-${formatMoney(total_amount)}
-${percentageName} (%${percentage}): ${formatMoney(percentageAmount)}
+*Fatura Bilgileri:*
+${percentageName} (%${percentage})
+Tutar: ${formatMoney(total_amount)}
 KDV Dahil
 
 *Açıklama:*
-${week_label} tarihleri arasında, ${companyName}'ın tarafımızca yapmış olduğu ${paymentMethodsText} tahsilatlarının bedeli.
+"${formattedWeekLabel}" tarihleri arasında, ${companyName}'ın tarafımızca yapmış olduğu ${paymentMethodsText} tahsilatlarının bedeli.
     `.trim();
     
     return encodeURIComponent(message);
@@ -125,13 +135,10 @@ ${week_label} tarihleri arasında, ${companyName}'ın tarafımızca yapmış old
               <span className="font-medium text-sm">Fatura Bilgileri</span>
             </div>
             <div className="space-y-2">
+              <p className="text-sm font-medium text-blue-700">{percentageName} (%{percentage})</p>
               <div className="flex justify-between">
                 <span className="text-sm">Tutar:</span>
                 <span className="font-semibold">{formatMoney(total_amount)}</span>
-              </div>
-              <div className="flex justify-between text-blue-700">
-                <span className="text-sm">{percentageName} (%{percentage}):</span>
-                <span className="font-semibold">{formatMoney(percentageAmount)}</span>
               </div>
               <p className="text-xs text-blue-600 pt-1 border-t border-blue-200">KDV Dahil</p>
             </div>
@@ -141,7 +148,7 @@ ${week_label} tarihleri arasında, ${companyName}'ın tarafımızca yapmış old
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
             <p className="font-medium text-sm mb-2">Açıklama:</p>
             <p className="text-sm text-amber-900">
-              "{week_label}" tarihleri arasında, <strong>{companyInfo?.name || "Şirket"}</strong>'ın 
+              "{formattedWeekLabel}" tarihleri arasında, <strong>{companyInfo?.name || "Şirket"}</strong>'ın 
               tarafımızca yapmış olduğu <strong>{paymentMethodsText}</strong> tahsilatlarının bedeli.
             </p>
           </div>
