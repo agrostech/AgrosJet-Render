@@ -205,7 +205,7 @@ export default function RestoranlarPage({ companyId }) {
         meal_card: false,
         online_meal_card: false,
         percentage: 10,
-        percentage_name: "Hizmet Bedeli"
+        percentage_name: "Yeme-İçme"
       });
     } finally {
       setLoadingInvoiceSettings(false);
