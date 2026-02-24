@@ -76,6 +76,49 @@ export default function RestaurantDashboard() {
     }
   }, [navigate]);
 
+  // Eksik fatura kontrolü
+  const checkMissingInvoices = useCallback(async () => {
+    if (!user?.restaurant_id) return;
+    
+    try {
+      const res = await axios.get(`${API}/restaurant-panel-invoices/${user.restaurant_id}/issued`);
+      const missing = res.data.filter(inv => !inv.invoice_uploaded).length;
+      setMissingInvoiceCount(missing);
+      
+      if (missing > 0) {
+        // localStorage'dan son uyarı zamanını kontrol et
+        const lastWarning = localStorage.getItem(`invoice_warning_${user.restaurant_id}`);
+        const now = Date.now();
+        
+        // 30 dakika = 1800000 ms
+        if (!lastWarning || (now - parseInt(lastWarning)) > 1800000) {
+          setShowInvoiceWarning(true);
+          localStorage.setItem(`invoice_warning_${user.restaurant_id}`, now.toString());
+        }
+      }
+    } catch (err) {
+      console.error("Eksik fatura kontrolü başarısız:", err);
+    }
+  }, [user?.restaurant_id]);
+
+  // İlk yüklemede ve 30 dakikada bir eksik fatura kontrolü
+  useEffect(() => {
+    if (user?.restaurant_id) {
+      checkMissingInvoices();
+      
+      // 30 dakikada bir kontrol et
+      invoiceWarningRef.current = setInterval(() => {
+        checkMissingInvoices();
+      }, 1800000); // 30 dakika
+      
+      return () => {
+        if (invoiceWarningRef.current) {
+          clearInterval(invoiceWarningRef.current);
+        }
+      };
+    }
+  }, [user?.restaurant_id, checkMissingInvoices]);
+
   // Fetch orders for this restaurant
   const fetchOrders = useCallback(async () => {
     if (!user?.restaurant_id) return;
