@@ -1388,7 +1388,27 @@ async def update_getir_restaurant_status(restaurant_id: str, is_open: bool, time
                     json=body if body else None
                 )
             
+            # Response body'yi logla (debug için)
+            logger.info(f"Getir status response: {response.status_code} - {response.text[:500] if response.text else 'empty'}")
+            
             if response.status_code == 200:
+                # Response body'yi kontrol et - Getir bazen 200 dönüp body'de hata verebilir
+                try:
+                    data = response.json()
+                    # Getir'in döndürebileceği hata durumları
+                    if data.get("success") == False or data.get("error"):
+                        error_msg = data.get("message") or data.get("error") or "Bilinmeyen hata"
+                        logger.warning(f"Getir status 200 ama hata döndü: {error_msg}")
+                        return {"success": False, "error": error_msg}
+                    
+                    # Çalışma saatleri kontrolü
+                    if data.get("isOutOfWorkingHours") or data.get("outOfWorkingHours"):
+                        return {"success": False, "error": "Çalışma saatleri dışındasınız. Getir panelinden çalışma saatlerinizi kontrol ediniz."}
+                    
+                except:
+                    # JSON parse edilemezse devam et (bazı endpoint'ler boş 200 döner)
+                    pass
+                
                 status_text = "açık" if is_open else "kapalı"
                 logger.info(f"Getir restoran durumu güncellendi: {status_text}")
                 
@@ -1400,6 +1420,7 @@ async def update_getir_restaurant_status(restaurant_id: str, is_open: bool, time
                 return {"success": True, "message": f"Restoran durumu {status_text} olarak güncellendi"}
             else:
                 error_detail = _extract_error(response)
+                logger.warning(f"Getir status hatası: {response.status_code} - {error_detail}")
                 return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
                 
     except Exception as e:
