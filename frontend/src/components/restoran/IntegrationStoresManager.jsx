@@ -147,6 +147,7 @@ export default function IntegrationStoresManager({ restaurantId }) {
   const [testing, setTesting] = useState({});
   const [syncing, setSyncing] = useState({});
   const [updatingStatus, setUpdatingStatus] = useState({});
+  const [statusCooldown, setStatusCooldown] = useState({}); // Rate limit için cooldown
 
   useEffect(() => {
     if (restaurantId) {
