@@ -314,8 +314,17 @@ export default function LoginPage() {
             </TabsContent>
           </Tabs>
 
+          {/* Entegrasyon Logoları */}
+          <div className="mt-8 flex justify-center">
+            <img 
+              src="/integrations-logos.avif" 
+              alt="Entegrasyonlar" 
+              className="h-8 opacity-60"
+            />
+          </div>
+
           {/* Footer */}
-          <p className="mt-8 text-center text-xs text-slate-500">
+          <p className="mt-6 text-center text-xs text-slate-500">
             © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
           </p>
         </div>
