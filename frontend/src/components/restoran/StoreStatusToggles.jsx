@@ -180,7 +180,7 @@ export default function StoreStatusToggles({ restaurantId }) {
                           )}
                         </div>
                       ))}
-                      {platformKey === "getir" && platformStores.some(s => s.connected) && (
+                      {platform.key === "getir" && platformStores.some(s => s.connected) && (
                         <p className="text-[9px] text-muted-foreground mt-1 text-center">
                           ⚠️ 60sn içinde 1 kez değiştirilebilir
                         </p>
