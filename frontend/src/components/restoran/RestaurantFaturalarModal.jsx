@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   FileText, Upload, Download, Eye, CheckCircle, Clock, 
-  RefreshCw, Receipt, Loader2, Package, Trash2, AlertTriangle
+  RefreshCw, Receipt, Loader2, Package, Trash2, AlertTriangle,
+  FileCheck, Share2, Building2, Percent
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
