@@ -507,10 +507,10 @@ async def apply_invoice_penalty(restaurant_id: str):
     # %40 ceza hesapla
     penalty_amount = round(total_missing_amount * 0.40, 2)
     
-    # Transaction oluştur (business entity olarak)
+    # Transaction oluştur (restaurant entity olarak - Muhasebe > Restoranlar sekmesinde görünmesi için)
     transaction = {
         "id": str(uuid.uuid4()),
-        "entity_type": "business",
+        "entity_type": "restaurant",
         "entity_id": restaurant_id,
         "company_id": company_id,
         "type": "payment_out",  # Restoran borcu (verilen = restorandan alacak)
