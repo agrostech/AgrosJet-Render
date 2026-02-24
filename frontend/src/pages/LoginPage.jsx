@@ -107,35 +107,35 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-[#0f172a]">
         <div className="w-full max-w-md">
-          <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-2">
+          <h1 className="font-heading text-3xl md:text-4xl font-bold tracking-tight mb-2 text-white">
             AgrosJet
           </h1>
-          <p className="text-muted-foreground text-sm mb-8">
+          <p className="text-slate-400 text-sm mb-8">
             AgrosJet yönetim sistemine hoş geldiniz. Lütfen giriş yapınız.
           </p>
 
           <Tabs defaultValue="courier" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-secondary">
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-slate-800 border border-slate-700">
               <TabsTrigger 
                 value="courier" 
                 data-testid="courier-tab"
-                className="font-semibold text-sm"
+                className="font-semibold text-sm text-slate-300 data-[state=active]:bg-slate-700 data-[state=active]:text-white"
               >
                 Kurye
               </TabsTrigger>
               <TabsTrigger 
                 value="admin" 
                 data-testid="admin-tab"
-                className="font-semibold text-sm"
+                className="font-semibold text-sm text-slate-300 data-[state=active]:bg-slate-700 data-[state=active]:text-white"
               >
                 Yönetici
               </TabsTrigger>
               <TabsTrigger 
                 value="restaurant" 
                 data-testid="restaurant-tab"
-                className="font-semibold text-sm"
+                className="font-semibold text-sm text-slate-300 data-[state=active]:bg-slate-700 data-[state=active]:text-white"
               >
                 Restoran
               </TabsTrigger>
