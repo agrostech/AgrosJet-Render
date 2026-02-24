@@ -296,17 +296,35 @@ export default function IntegrationStoresManager({ restaurantId }) {
     }
   };
 
-  // Update status (open/close)
+  // Update status (open/close) with rate limit
   const handleStatusUpdate = async (storeId, isOpen) => {
+    // Rate limit kontrolü - 60 saniye içinde 1 kez
+    const store = stores.find(s => s.id === storeId);
+    const isGetir = store?.platform === "getir";
+    
+    if (isGetir && statusCooldown[storeId]) {
+      const remaining = Math.ceil((statusCooldown[storeId] - Date.now()) / 1000);
+      if (remaining > 0) {
+        toast.error(`Getir rate limit: ${remaining} saniye sonra tekrar deneyiniz.`);
+        return;
+      }
+    }
+    
     setUpdatingStatus(prev => ({ ...prev, [storeId]: true }));
     try {
       await axios.put(`${API}/integration-stores/${restaurantId}/${storeId}/status`, {
         is_open: isOpen
       });
       toast.success(`Mağaza ${isOpen ? "açıldı" : "kapatıldı"}`);
+      
+      // Getir için 60 saniyelik cooldown başlat
+      if (isGetir) {
+        setStatusCooldown(prev => ({ ...prev, [storeId]: Date.now() + 60000 }));
+      }
+      
       fetchStores();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Durum güncellenemedi");
+      toast.error(err.response?.data?.detail || err.response?.data?.error || "Durum güncellenemedi");
     } finally {
       setUpdatingStatus(prev => ({ ...prev, [storeId]: false }));
     }
