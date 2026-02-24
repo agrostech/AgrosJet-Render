@@ -382,16 +382,19 @@ async def migros_order_webhook(
     
     Body: Şifrelenmiş sipariş verisi (value field'ında)
     """
+    turkey_tz = timezone(timedelta(hours=3))
+    
     try:
         # API Key doğrulama
         auth_result = await verify_migros_api_key(x_api_key)
         
         if not auth_result["valid"]:
-            logger.warning(f"Migros order webhook: Geçersiz API key")
+            logger.warning(f"Migros order webhook: Geçersiz API key: {x_api_key}")
             raise HTTPException(status_code=401, detail="Geçersiz API key")
         
         restaurant = auth_result["restaurant"]
         restaurant_id = restaurant.get("id")
+        company_id = restaurant.get("company_id")
         
         # JSON parse
         try:
@@ -400,16 +403,97 @@ async def migros_order_webhook(
             logger.error("Migros order webhook: JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
-        logger.info(f"Migros sipariş webhook alındı: restaurant={restaurant_id}")
+        logger.info(f"Migros sipariş webhook alındı: restaurant={restaurant_id}, data_keys={list(webhook_data.keys()) if isinstance(webhook_data, dict) else 'not dict'}")
         
-        # TODO: Rijndael AES ile şifre çözme işlemi eklenecek
-        # Secret key ile decrypt yapılacak
-        # Şimdilik raw data'yı logluyoruz
+        # Şifreli veriyi çöz
+        encrypted_value = webhook_data.get("value") or webhook_data.get("Value")
+        if not encrypted_value:
+            logger.error(f"Migros webhook: 'value' alanı bulunamadı. Data: {webhook_data}")
+            raise HTTPException(status_code=400, detail="Şifreli veri bulunamadı")
+        
+        # MigrosYemekService ile decrypt
+        migros_service = MigrosYemekService(
+            api_key=x_api_key,
+            secret_key=MIGROS_SECRET_KEY,
+            is_test=True
+        )
+        
+        try:
+            order_data = migros_service.decrypt(encrypted_value)
+            logger.info(f"Migros sipariş çözüldü: {order_data.get('orderId', 'unknown')}")
+        except Exception as e:
+            logger.error(f"Migros şifre çözme hatası: {e}")
+            raise HTTPException(status_code=400, detail=f"Şifre çözme hatası: {str(e)}")
+        
+        # Siparişi ShiftJet formatına dönüştür ve kaydet
+        now = datetime.now(turkey_tz)
+        
+        # Müşteri bilgileri
+        customer = order_data.get("customer", {})
+        address = order_data.get("address", {})
+        
+        # Ürünleri dönüştür
+        items = []
+        for item in order_data.get("products", []):
+            item_data = {
+                "id": str(item.get("productId", "")),
+                "name": item.get("productName", ""),
+                "quantity": item.get("count", 1),
+                "unit_price": float(item.get("price", 0)),
+                "total_price": float(item.get("price", 0)) * int(item.get("count", 1)),
+                "note": item.get("note", ""),
+                "options": []
+            }
+            # Opsiyonları ekle
+            for opt in item.get("options", []):
+                item_data["options"].append({
+                    "name": opt.get("optionName", ""),
+                    "price": float(opt.get("price", 0))
+                })
+            items.append(item_data)
+        
+        # Ödeme tipi
+        payment_type = order_data.get("paymentType", "")
+        payment_method = "cash" if payment_type in ["cash", "Cash", "CASH"] else "online"
+        
+        # Sipariş oluştur
+        order = {
+            "id": str(uuid.uuid4()),
+            "platform": "migros",
+            "platform_id": str(order_data.get("orderId", "")),
+            "restaurant_id": restaurant_id,
+            "company_id": company_id,
+            "status": "pending",
+            "customer": {
+                "name": customer.get("name", "") + " " + customer.get("surname", ""),
+                "phone": customer.get("phoneNumber", ""),
+                "address": address.get("address", ""),
+                "address_detail": address.get("direction", ""),
+                "latitude": address.get("latitude"),
+                "longitude": address.get("longitude"),
+            },
+            "items": items,
+            "payment": {
+                "method": payment_method,
+                "total": float(order_data.get("checkAmount", 0)),
+                "delivery_fee": float(order_data.get("deliveryFee", 0)),
+                "discount": float(order_data.get("discount", 0)),
+            },
+            "note": order_data.get("note", ""),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+            "platform_data": order_data  # Orijinal veriyi de sakla
+        }
+        
+        # Veritabanına kaydet
+        await db.orders.insert_one(order)
+        logger.info(f"Migros siparişi kaydedildi: {order['id']} (platform_id: {order['platform_id']})")
         
         return {
             "success": True,
-            "message": "Sipariş webhook alındı",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "message": "Sipariş başarıyla alındı",
+            "orderId": order["id"],
+            "timestamp": now.isoformat()
         }
         
     except HTTPException:
