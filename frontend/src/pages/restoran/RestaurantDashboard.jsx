@@ -362,21 +362,27 @@ export default function RestaurantDashboard() {
               {missingInvoiceCount} adet yüklenmemiş, eksik faturanız var!
             </p>
             
-            <p className="text-muted-foreground mb-6">
-              Lütfen <strong className="text-foreground">1 gün içerisinde</strong> faturalarınızı yükleyiniz.
-            </p>
-            
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800 text-sm font-medium">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-red-800 text-sm font-medium mb-2">
                 ⚠️ Süresi dolmuş faturalar için bakiyenize, fatura tutarının <strong>%40'ı</strong> kadar vergi yükümlülüğü bedeli eklenecektir!
+              </p>
+              <p className="text-red-900 text-sm font-bold">
+                Bu uyarı <strong>{10 - warningCount}</strong> kez daha gösterilecek ve %40 vergi yükümlülüğü bedeli ({(missingInvoiceTotal * 0.40).toFixed(2)} TL) otomatik olarak bakiyenize eklenecektir!
+              </p>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                Eksik Faturanızı, <strong>Muhasebe Sekmesi → Faturalar</strong> kısmından yükleyebilirsiniz.
               </p>
             </div>
             
             <Button 
-              onClick={() => setShowInvoiceWarning(false)}
+              onClick={handleCloseWarning}
+              disabled={penaltyApplying}
               className="w-full h-12 text-lg font-semibold"
             >
-              Uyarıyı Kapat
+              {penaltyApplying ? "İşlem yapılıyor..." : `Uyarıyı Kapat (${10 - warningCount} hak kaldı)`}
             </Button>
           </div>
         </DialogContent>
