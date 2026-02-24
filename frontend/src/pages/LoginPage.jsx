@@ -319,7 +319,7 @@ export default function LoginPage() {
             <img 
               src="/ileriye-tasir.png" 
               alt="İleriye Taşır" 
-              className="h-20"
+              className="h-24"
             />
           </div>
 
