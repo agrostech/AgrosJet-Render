@@ -589,9 +589,9 @@ export default function RestaurantFaturalarModal({ open, onOpenChange, restauran
           const companyRes = await axios.get(`${API}/companies/${companyId}`);
           setCompanyInfo({
             name: companyRes.data?.name,
-            tax_office: companyRes.data?.invoice_settings?.tax_office,
-            tax_number: companyRes.data?.invoice_settings?.tax_number,
-            address: companyRes.data?.invoice_settings?.address
+            tax_office: companyRes.data?.tax_office,
+            tax_number: companyRes.data?.tckn_vkn,
+            address: companyRes.data?.address
           });
         }
         
