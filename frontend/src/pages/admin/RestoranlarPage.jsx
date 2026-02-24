@@ -59,7 +59,7 @@ export default function RestoranlarPage({ companyId }) {
     meal_card: false,
     online_meal_card: false,
     percentage: 10,        // Yüzdelik dilim: 1, 10, 20
-    percentage_name: "Hizmet Bedeli"  // Yüzdelik isim
+    percentage_name: "Yeme-İçme"  // Yüzdelik isim
   });
   const [loadingInvoiceSettings, setLoadingInvoiceSettings] = useState(false);
   
