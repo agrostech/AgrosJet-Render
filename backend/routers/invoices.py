@@ -951,8 +951,15 @@ async def download_bulk_invoices(invoice_ids: list[str]):
     
     zip_buffer.seek(0)
     
-    # Generate filename
-    zip_filename = "KuryeAyFaturalar.zip"
+    # Generate filename with Turkish month name
+    turkish_months = {
+        1: "Ocak", 2: "Subat", 3: "Mart", 4: "Nisan",
+        5: "Mayis", 6: "Haziran", 7: "Temmuz", 8: "Agustos",
+        9: "Eylul", 10: "Ekim", 11: "Kasim", 12: "Aralik"
+    }
+    now = datetime.now(timezone.utc)
+    month_name = turkish_months[now.month]
+    zip_filename = f"Kurye{month_name}Faturalar.zip"
     
     return StreamingResponse(
         zip_buffer,
