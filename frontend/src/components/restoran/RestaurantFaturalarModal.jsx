@@ -587,23 +587,11 @@ export default function RestaurantFaturalarModal({ open, onOpenChange, restauran
       if (!restaurantId || !open) return;
       
       try {
-        // Restoran bilgisini al (company_id için)
-        const restaurantRes = await axios.get(`${API}/restaurants/${restaurantId}`);
-        const companyId = restaurantRes.data?.company_id;
+        // Tek endpoint ile şirket bilgileri ve fatura ayarlarını al
+        const res = await axios.get(`${API}/restaurant-panel-invoices/${restaurantId}/company-invoice-info`);
         
-        if (companyId) {
-          // Şirket fatura bilgilerini al
-          const companyRes = await axios.get(`${API}/companies/${companyId}`);
-          setCompanyInfo({
-            name: companyRes.data?.name,
-            tax_office: companyRes.data?.tax_office,
-            tax_number: companyRes.data?.tckn_vkn,
-            address: companyRes.data?.address
-          });
-        }
-        
-        // Restoran fatura ayarlarını al
-        setInvoiceSettings(restaurantRes.data?.invoice_settings || {
+        setCompanyInfo(res.data?.company || {});
+        setInvoiceSettings(res.data?.invoice_settings || {
           cash: false,
           credit_card: false,
           online: false,
