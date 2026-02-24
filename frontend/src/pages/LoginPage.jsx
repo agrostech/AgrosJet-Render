@@ -144,7 +144,7 @@ export default function LoginPage() {
             <TabsContent value="courier">
               <form onSubmit={handleCourierLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="phone" className="text-sm font-semibold">
+                  <Label htmlFor="phone" className="text-sm font-semibold text-slate-300">
                     Telefon No
                   </Label>
                   <Input
@@ -154,12 +154,12 @@ export default function LoginPage() {
                     placeholder="05XXXXXXXXX"
                     value={courierData.phone}
                     onChange={(e) => setCourierData({ ...courierData, phone: e.target.value })}
-                    className="mt-1 h-12 border-2"
+                    className="mt-1 h-12 border-2 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="courier-password" className="text-sm font-semibold">
+                  <Label htmlFor="courier-password" className="text-sm font-semibold text-slate-300">
                     Şifre
                   </Label>
                   <Input
@@ -168,14 +168,14 @@ export default function LoginPage() {
                     type="password"
                     value={courierData.password}
                     onChange={(e) => setCourierData({ ...courierData, password: e.target.value })}
-                    className="mt-1 h-12 border-2"
+                    className="mt-1 h-12 border-2 bg-slate-800 border-slate-600 text-white"
                     required
                   />
                 </div>
                 <Button 
                   type="submit" 
                   data-testid="courier-login-btn"
-                  className="w-full h-12 font-semibold"
+                  className="w-full h-12 font-semibold bg-orange-500 hover:bg-orange-600 text-white"
                   disabled={loading}
                 >
                   {loading ? "Yükleniyor..." : "Giriş Yap"}
@@ -186,17 +186,18 @@ export default function LoginPage() {
                     checked={rememberCourier}
                     onCheckedChange={setRememberCourier}
                     data-testid="remember-courier-checkbox"
+                    className="border-slate-500 data-[state=checked]:bg-orange-500"
                   />
-                  <Label htmlFor="rememberCourier" className="text-sm text-muted-foreground cursor-pointer">
+                  <Label htmlFor="rememberCourier" className="text-sm text-slate-400 cursor-pointer">
                     Beni Hatırla
                   </Label>
                 </div>
               </form>
-              <p className="mt-4 text-sm text-center text-muted-foreground">
+              <p className="mt-4 text-sm text-center text-slate-400">
                 Hesabınız yok mu?{" "}
                 <Link 
                   to="/register" 
-                  className="text-primary font-semibold hover:underline" 
+                  className="text-orange-400 font-semibold hover:underline" 
                   data-testid="register-link"
                 >
                   Kayıt Ol
