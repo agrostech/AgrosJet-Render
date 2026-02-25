@@ -146,7 +146,6 @@ export default function CourierDashboard() {
         availability_status: newStatus
       });
       setAvailabilityStatus(newStatus);
-      toast.success(`Durumunuz güncellendi: ${AVAILABILITY_STATUSES[newStatus].label}`);
       // Mola durumunu yenile
       fetchBreakStatus(user.id);
     } catch (err) {
