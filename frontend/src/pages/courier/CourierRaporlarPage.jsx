@@ -19,7 +19,7 @@ export default function CourierRaporlarPage({ courierId, companyId }) {
           data-testid="tab-odeme-raporu"
         >
           <FileText className="w-4 h-4" />
-          <span className="hidden sm:inline">Ödeme</span>
+          Ödeme
         </button>
         <button
           onClick={() => setActiveTab("kazanc")}
@@ -31,7 +31,7 @@ export default function CourierRaporlarPage({ courierId, companyId }) {
           data-testid="tab-kazanc-raporu"
         >
           <TrendingUp className="w-4 h-4" />
-          <span className="hidden sm:inline">Kazanç</span>
+          Kazanç
         </button>
         <button
           onClick={() => setActiveTab("ihlal")}
@@ -43,7 +43,7 @@ export default function CourierRaporlarPage({ courierId, companyId }) {
           data-testid="tab-ihlal-raporu"
         >
           <AlertTriangle className="w-4 h-4" />
-          <span className="hidden sm:inline">İhlal</span>
+          İhlal
         </button>
         <button
           onClick={() => setActiveTab("performans")}
@@ -55,7 +55,7 @@ export default function CourierRaporlarPage({ courierId, companyId }) {
           data-testid="tab-performans-raporu"
         >
           <BarChart3 className="w-4 h-4" />
-          <span className="hidden sm:inline">Performans</span>
+          Performans
         </button>
       </div>
 
