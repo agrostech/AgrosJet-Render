@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-const SHIFTJET_LOGO = "https://customer-assets.emergentagent.com/job_kurye-yonetim-2/artifacts/27ukt5rk_shiftjetlogo.png";
+const LOADING_ICON = "https://customer-assets.emergentagent.com/job_37e208cc-89bc-4008-aaad-b9cb8d4fb4af/artifacts/sw3wm7kn_Ads%C4%B1z%20tasar%C4%B1m%20%286%29.png";
 
 export function LoadingSpinner({ className, size = "default", text }) {
   const sizeClasses = {
@@ -14,10 +14,10 @@ export function LoadingSpinner({ className, size = "default", text }) {
     <div className={cn("flex flex-col items-center justify-center", className)}>
       <div className={cn("relative", sizeClasses[size])}>
         <img 
-          src={SHIFTJET_LOGO} 
-          alt="AgrosJet" 
+          src={LOADING_ICON} 
+          alt="Yükleniyor" 
           className={cn(
-            "w-full h-full object-contain animate-spin-slow",
+            "w-full h-full object-contain animate-pulse",
             sizeClasses[size]
           )}
         />
@@ -42,9 +42,9 @@ export function PageLoading({ text = "Yükleniyor..." }) {
 export function InlineLoading({ className }) {
   return (
     <img 
-      src={SHIFTJET_LOGO} 
+      src={LOADING_ICON} 
       alt="Yükleniyor" 
-      className={cn("w-4 h-4 animate-spin-slow inline-block", className)}
+      className={cn("w-4 h-4 animate-pulse inline-block", className)}
     />
   );
 }
