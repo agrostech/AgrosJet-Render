@@ -38,9 +38,6 @@ const BASE_NAV_ITEMS = [
   { path: "/courier/evraklar", label: "Evraklar", icon: FileText, key: "evraklar" },
 ];
 
-// Mobil menüde gösterilecek maksimum sekme sayısı
-const MOBILE_NAV_LIMIT = 6;
-
 // Kurye durumları
 const AVAILABILITY_STATUSES = {
   active: { label: "Aktif", color: "bg-green-500", icon: Check },
