@@ -158,23 +158,10 @@ export default function CourierDashboard() {
     }
   };
 
-  // Update courier location
-  const updateCourierLocation = useCallback(async (courierId, latitude, longitude) => {
-    try {
-      await axios.put(`${API}/couriers/${courierId}/location`, {
-        latitude,
-        longitude
-      });
-    } catch (err) {
-      console.error("Konum güncellenemedi:", err);
-    }
-  }, []);
-
-  // Start location tracking when courier is active or on_break
+  // Wake Lock - kurye aktifken ekranı açık tut
   useEffect(() => {
     if (!user?.id) return;
     
-    // Only track location if courier is active or on_break
     if (availabilityStatus === "offline") {
       releaseWakeLock();
       return;
@@ -183,82 +170,20 @@ export default function CourierDashboard() {
     // Wake Lock al - kurye aktifken ekran açık kalsın
     requestWakeLock();
     
-    const getCurrentLocation = () => {
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            updateCourierLocation(user.id, position.coords.latitude, position.coords.longitude);
-          },
-          (error) => {
-            console.error("Konum alınamadı:", error);
-          },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-        );
-      }
-    };
-    
-    // watchPosition kullan
-    if ("geolocation" in navigator) {
-      locationWatchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => {
-          updateCourierLocation(user.id, position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          console.error("Konum izleme hatası:", error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 5000
-        }
-      );
-      
-      // Ayrıca her 10 saniyede manuel konum al (watchPosition bazen durabilir)
-      locationIntervalRef.current = setInterval(getCurrentLocation, 10000);
-    }
-    
-    // Sayfa görünür olduğunda konum ve Wake Lock güncelle
+    // Sayfa görünür olduğunda Wake Lock güncelle
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible' && availabilityStatus !== "offline") {
-        console.log("Sayfa görünür, konum ve bağlantı yenileniyor...");
-        getCurrentLocation();
-        
         // Wake Lock'ı yeniden al (arka plandan dönünce kaybolabilir)
         await requestWakeLock();
-        
-        // watchPosition durmuş olabilir, kontrol et ve yeniden başlat
-        if (locationWatchIdRef.current === null && "geolocation" in navigator) {
-          locationWatchIdRef.current = navigator.geolocation.watchPosition(
-            (position) => {
-              updateCourierLocation(user.id, position.coords.latitude, position.coords.longitude);
-            },
-            (error) => {
-              console.error("Konum izleme hatası:", error);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 15000,
-              maximumAge: 5000
-            }
-          );
-        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
-      if (locationWatchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(locationWatchIdRef.current);
-        locationWatchIdRef.current = null;
-      }
-      if (locationIntervalRef.current !== null) {
-        clearInterval(locationIntervalRef.current);
-        locationIntervalRef.current = null;
-      }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       releaseWakeLock();
     };
-  }, [user?.id, availabilityStatus, updateCourierLocation, requestWakeLock, releaseWakeLock]);
+  }, [user?.id, availabilityStatus, requestWakeLock, releaseWakeLock]);
 
   // Check if courier is deactivated (forced logout)
   const checkCourierStatus = useCallback(async (courierId, companyId) => {
