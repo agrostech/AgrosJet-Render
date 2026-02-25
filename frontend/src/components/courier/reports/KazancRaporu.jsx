@@ -86,24 +86,45 @@ export default function KazancRaporu({ courierId, companyId }) {
   return (
     <div className="space-y-4">
       {/* Filtreler */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Input
-          type="datetime-local"
-          value={startDateTime}
-          onChange={(e) => setStartDateTime(e.target.value)}
-          className="h-9 w-auto"
-          data-testid="earnings-start-date"
-        />
-        <span className="text-muted-foreground">-</span>
-        <Input
-          type="datetime-local"
-          value={endDateTime}
-          onChange={(e) => setEndDateTime(e.target.value)}
-          className="h-9 w-auto"
-          data-testid="earnings-end-date"
-        />
-        <Button onClick={handleGenerate} disabled={loading} size="sm" className="h-9" data-testid="btn-earnings-report">
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Göster"}
+      <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+          <Calendar className="w-4 h-4" />
+          Tarih Aralığı
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <label className="text-xs text-slate-500 mb-1 block">Başlangıç</label>
+            <input
+              type="datetime-local"
+              value={startDateTime}
+              onChange={(e) => setStartDateTime(e.target.value)}
+              className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              data-testid="earnings-start-date"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-slate-500 mb-1 block">Bitiş</label>
+            <input
+              type="datetime-local"
+              value={endDateTime}
+              onChange={(e) => setEndDateTime(e.target.value)}
+              className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              data-testid="earnings-end-date"
+            />
+          </div>
+        </div>
+        <Button 
+          onClick={handleGenerate} 
+          disabled={loading} 
+          className="w-full h-10 bg-green-600 hover:bg-green-700" 
+          data-testid="btn-earnings-report"
+        >
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : (
+            <Search className="w-4 h-4 mr-2" />
+          )}
+          {loading ? "Yükleniyor..." : "Raporu Göster"}
         </Button>
       </div>
 
