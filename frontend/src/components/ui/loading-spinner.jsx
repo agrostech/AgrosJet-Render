@@ -4,23 +4,19 @@ const LOADING_ICON = "https://customer-assets.emergentagent.com/job_37e208cc-89b
 
 export function LoadingSpinner({ className, size = "default" }) {
   const sizeClasses = {
-    sm: "w-8 h-8",
-    default: "w-12 h-12",
-    lg: "w-16 h-16",
-    xl: "w-20 h-20"
+    sm: "w-12 h-12",
+    default: "w-16 h-16",
+    lg: "w-20 h-20",
+    xl: "w-24 h-24"
   };
 
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
-      <div 
-        className={cn("relative rounded-xl overflow-hidden", sizeClasses[size])}
-      >
-        <img 
-          src={LOADING_ICON} 
-          alt="Yükleniyor" 
-          className="w-full h-full object-contain animate-spin"
-        />
-      </div>
+      <img 
+        src={LOADING_ICON} 
+        alt="Yükleniyor" 
+        className={cn("object-contain animate-spin", sizeClasses[size])}
+      />
     </div>
   );
 }
@@ -40,7 +36,7 @@ export function InlineLoading({ className }) {
     <img 
       src={LOADING_ICON} 
       alt="Yükleniyor" 
-      className={cn("w-4 h-4 animate-spin inline-block", className)}
+      className={cn("w-5 h-5 animate-spin inline-block", className)}
     />
   );
 }
