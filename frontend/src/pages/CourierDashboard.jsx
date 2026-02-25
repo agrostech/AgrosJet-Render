@@ -240,7 +240,10 @@ export default function CourierDashboard() {
     localStorage.removeItem("courierSession");
     sessionStorage.removeItem("courierSession");
     
-    // Native app'e bildir (varsa)
+    // Native app'e bildir (AgrosJet App)
+    if (window.isAgrosJetApp && window.AgrosJetNative) {
+      window.AgrosJetNative.notifyLogout();
+    }
     if (window.ReactNativeWebView) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' }));
       navigate("/courier-login");
