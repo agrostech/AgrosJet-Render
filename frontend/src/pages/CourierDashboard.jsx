@@ -355,10 +355,7 @@ export default function CourierDashboard() {
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           ) : null}
-          <div className="text-center">
-            <span className="font-heading text-base font-bold block leading-tight">{user.name}</span>
-            {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
-          </div>
+          <span className="font-heading text-base font-bold">{user.name}</span>
         </div>
         
         {/* Sağ: Durum butonu */}
