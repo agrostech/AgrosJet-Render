@@ -56,7 +56,7 @@ export default function CourierLoginPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API}/auth/courier/login`, {
+      const res = await axios.post(`${API}/api/auth/courier/login`, {
         phone: formData.phone,
         password: formData.password
       });
