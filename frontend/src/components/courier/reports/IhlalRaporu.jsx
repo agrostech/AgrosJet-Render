@@ -5,23 +5,6 @@ import { Loader2, AlertTriangle, Clock, XCircle } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al
-const getWeekRange = () => {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + diffToMonday);
-  monday.setHours(0, 0, 0, 0);
-  
-  const nextMonday = new Date(monday);
-  nextMonday.setDate(monday.getDate() + 7);
-  nextMonday.setHours(23, 59, 59, 999);
-  
-  return { monday, nextMonday };
-};
-
 // Tarih formatla
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -32,13 +15,6 @@ const formatDate = (dateStr) => {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit"
-  });
-};
-
-const formatShortDate = (date) => {
-  return date.toLocaleDateString("tr-TR", {
-    day: "2-digit",
-    month: "long"
   });
 };
 
@@ -59,14 +35,34 @@ const COURIER_VIOLATION_TYPES = [
   "offline_before_shift_end"
 ];
 
+// Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al (şirket açılış saatiyle)
+const getWeekRange = (openingTime = "06:00") => {
+  const [hours, minutes] = openingTime.split(":").map(Number);
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMonday);
+  monday.setHours(hours, minutes, 0, 0);
+  
+  const nextMonday = new Date(monday);
+  nextMonday.setDate(monday.getDate() + 7);
+  nextMonday.setHours(hours, minutes, 0, 0);
+  
+  return { monday, nextMonday };
+};
+
 export default function IhlalRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(true);
   const [violations, setViolations] = useState([]);
-  const { monday, nextMonday } = getWeekRange();
+  const [openingTime, setOpeningTime] = useState("06:00");
 
-  const fetchViolations = async () => {
+  const fetchViolations = async (companyOpeningTime) => {
     setLoading(true);
     try {
+      const { monday, nextMonday } = getWeekRange(companyOpeningTime);
+      
       const res = await axios.get(`${API}/shift-violations/${companyId}`, {
         params: {
           courier_id: courierId,
@@ -90,9 +86,22 @@ export default function IhlalRaporu({ courierId, companyId }) {
   };
 
   useEffect(() => {
-    if (courierId && companyId) {
-      fetchViolations();
-    }
+    const init = async () => {
+      if (!courierId || !companyId) return;
+      
+      // Şirket açılış saatini al
+      try {
+        const res = await axios.get(`${API}/companies/${companyId}/work-hours`);
+        const companyOpeningTime = res.data.opening_time || "06:00";
+        setOpeningTime(companyOpeningTime);
+        await fetchViolations(companyOpeningTime);
+      } catch (err) {
+        console.error("Şirket bilgisi alınamadı:", err);
+        await fetchViolations("06:00");
+      }
+    };
+    
+    init();
   }, [courierId, companyId]);
 
   if (loading) {
