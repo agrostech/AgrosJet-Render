@@ -302,25 +302,11 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       // Sayfa tekrar görünür olduğunda hemen fetch yap (arka plandan dönünce)
       const handleVisibilityChange = async () => {
         if (document.visibilityState === 'visible') {
-          console.log("Sayfa görünür oldu, siparişler ve konum yenileniyor...");
+          console.log("Sayfa görünür oldu, siparişler yenileniyor...");
           fetchOrders(false);
           
           // Wake Lock'ı yeniden al (arka plandan dönünce kaybolabilir)
           await requestWakeLock();
-          
-          // Konum izlemeyi yeniden başlat (bazı tarayıcılarda arka planda durabilir)
-          if (navigator.geolocation && locationWatchIdRef.current === null) {
-            locationWatchIdRef.current = navigator.geolocation.watchPosition(
-              (pos) => {
-                setCurrentLocation({
-                  latitude: pos.coords.latitude,
-                  longitude: pos.coords.longitude
-                });
-              },
-              (err) => console.log("Konum izleme hatası:", err),
-              { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
-            );
-          }
         } else {
           // Sayfa gizlendiğinde - arka plan işlemleri devam etsin
           console.log("Sayfa gizlendi, arka plan görevleri devam ediyor...");
