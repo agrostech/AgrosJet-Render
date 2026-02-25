@@ -469,8 +469,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           onClick={() => setActiveTab("assigned")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
             activeTab === "assigned"
-              ? "bg-white text-purple-700 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-white text-purple-700 shadow-md border border-purple-200"
+              : "text-slate-500 hover:text-slate-700"
           }`}
         >
           <ClipboardList className="w-4 h-4" />
@@ -487,8 +487,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           onClick={() => setActiveTab("ontheway")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
             activeTab === "ontheway"
-              ? "bg-white text-blue-700 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-white text-blue-700 shadow-md border border-blue-200"
+              : "text-slate-500 hover:text-slate-700"
           }`}
         >
           <Bike className="w-4 h-4" />
