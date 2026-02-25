@@ -261,7 +261,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
     
     window.open(mapsUrl, "_blank");
-  }, [orders, currentLocation]);
+  }, [orders]);
 
   // Siparişleri getir
   const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
