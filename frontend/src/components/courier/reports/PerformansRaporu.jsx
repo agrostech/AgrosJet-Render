@@ -12,28 +12,22 @@ const COURIER_VIOLATION_TYPES = [
   "offline_before_shift_end"
 ];
 
-// Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al
-const getWeekRange = () => {
+// Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al (şirket açılış saatiyle)
+const getWeekRange = (openingTime = "06:00") => {
+  const [hours, minutes] = openingTime.split(":").map(Number);
   const now = new Date();
   const dayOfWeek = now.getDay();
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   
   const monday = new Date(now);
   monday.setDate(now.getDate() + diffToMonday);
-  monday.setHours(0, 0, 0, 0);
+  monday.setHours(hours, minutes, 0, 0);
   
   const nextMonday = new Date(monday);
   nextMonday.setDate(monday.getDate() + 7);
-  nextMonday.setHours(23, 59, 59, 999);
+  nextMonday.setHours(hours, minutes, 0, 0);
   
   return { monday, nextMonday };
-};
-
-const formatShortDate = (date) => {
-  return date.toLocaleDateString("tr-TR", {
-    day: "2-digit",
-    month: "long"
-  });
 };
 
 // Para formatla
@@ -48,11 +42,11 @@ const formatMoney = (amount) => {
 export default function PerformansRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
-  const { monday, nextMonday } = getWeekRange();
 
-  const fetchStats = async () => {
+  const fetchStats = async (companyOpeningTime) => {
     setLoading(true);
     try {
+      const { monday, nextMonday } = getWeekRange(companyOpeningTime);
       const startDateTime = monday.toISOString().slice(0, 16);
       const endDateTime = nextMonday.toISOString().slice(0, 16);
 
@@ -120,9 +114,21 @@ export default function PerformansRaporu({ courierId, companyId }) {
   };
 
   useEffect(() => {
-    if (courierId && companyId) {
-      fetchStats();
-    }
+    const init = async () => {
+      if (!courierId || !companyId) return;
+      
+      // Şirket açılış saatini al
+      try {
+        const res = await axios.get(`${API}/companies/${companyId}/work-hours`);
+        const companyOpeningTime = res.data.opening_time || "06:00";
+        await fetchStats(companyOpeningTime);
+      } catch (err) {
+        console.error("Şirket bilgisi alınamadı:", err);
+        await fetchStats("06:00");
+      }
+    };
+    
+    init();
   }, [courierId, companyId]);
 
   if (loading) {
