@@ -89,6 +89,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [showPaymentConfirmModal, setShowPaymentConfirmModal] = useState(false);
+  const [showOnlineDeliveryConfirmModal, setShowOnlineDeliveryConfirmModal] = useState(false);
   const [pendingDeliveryOrder, setPendingDeliveryOrder] = useState(null);
   const [activeTab, setActiveTab] = useState("assigned");
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
