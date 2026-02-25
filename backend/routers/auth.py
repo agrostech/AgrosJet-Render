@@ -86,8 +86,9 @@ async def login_courier(data: CourierLogin):
         raise HTTPException(status_code=403, detail="Hesabınız pasif durumda. Yöneticinizle iletişime geçin.")
     
     # Get companies this courier belongs to
+    # Status can be "approved" or "active" depending on when the relation was created
     company_relations = await db.company_couriers.find(
-        {"courier_id": courier["id"], "status": "approved"}, 
+        {"courier_id": courier["id"], "status": {"$in": ["approved", "active"]}}, 
         {"_id": 0}
     ).to_list(100)
     
