@@ -336,31 +336,33 @@ export default function CourierDashboard() {
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-3 flex items-center justify-between">
         {/* Sol: Menü butonu */}
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-            className="text-white hover:bg-white/10"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+          className="text-white hover:bg-white/10 shrink-0"
+        >
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </Button>
+        
+        {/* Orta: Logo ve İsim */}
+        <div className="flex items-center gap-2 flex-1 justify-center">
           {companyLogo ? (
             <img 
               src={companyLogo} 
               alt={companyName} 
-              className="w-8 h-8 rounded object-contain"
+              className="w-10 h-10 rounded object-contain"
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           ) : null}
-          <div>
+          <div className="text-center">
             <span className="font-heading text-base font-bold block leading-tight">{user.name}</span>
             {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
           </div>
         </div>
         
         {/* Sağ: Durum butonu */}
-        <div className="flex items-center">
+        <div className="shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 
