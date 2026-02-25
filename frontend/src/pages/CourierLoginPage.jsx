@@ -34,12 +34,16 @@ export default function CourierLoginPage() {
   }, [navigate]);
 
   const saveSession = (data, remember) => {
-    const sessionData = JSON.stringify(data);
+    const sessionData = {
+      ...data,
+      company_id: data.companies?.[0]?.id || null,
+      rememberMe: remember,
+      expiresAt: remember ? null : Date.now() + (60 * 60 * 1000)
+    };
+    localStorage.setItem("user", JSON.stringify(sessionData));
     if (remember) {
-      localStorage.setItem("courierSession", sessionData);
       localStorage.setItem("courierPhone", formData.phone);
     } else {
-      sessionStorage.setItem("courierSession", sessionData);
       localStorage.removeItem("courierPhone");
     }
   };
