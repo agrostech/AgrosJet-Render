@@ -20,9 +20,12 @@ export default function CourierLoginPage() {
 
   // Daha önce giriş yapılmışsa panele yönlendir
   useEffect(() => {
-    const session = localStorage.getItem("courierSession") || sessionStorage.getItem("courierSession");
+    const session = localStorage.getItem("user");
     if (session) {
-      navigate("/kurye");
+      const userData = JSON.parse(session);
+      if (userData.role === "courier") {
+        navigate("/kurye");
+      }
     }
     
     // Hatırlanan telefon
