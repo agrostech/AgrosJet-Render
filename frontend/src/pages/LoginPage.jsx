@@ -63,6 +63,18 @@ export default function LoginPage() {
         company_id: res.data.companies?.[0]?.id || null
       };
       saveSession(userData, rememberCourier);
+      
+      // Native app'e bildir (AgrosJet App)
+      if (window.isAgrosJetApp && window.AgrosJetNative) {
+        window.AgrosJetNative.notifyLogin();
+      }
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'SET_COURIER_ID',
+          data: res.data.id
+        }));
+      }
+      
       navigate("/courier");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Giriş başarısız");
