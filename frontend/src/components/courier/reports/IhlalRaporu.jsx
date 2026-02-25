@@ -62,7 +62,7 @@ const COURIER_VIOLATION_TYPES = [
 export default function IhlalRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(true);
   const [violations, setViolations] = useState([]);
-  const { monday, sunday } = getWeekRange();
+  const { monday, nextMonday } = getWeekRange();
 
   const fetchViolations = async () => {
     setLoading(true);
@@ -71,7 +71,7 @@ export default function IhlalRaporu({ courierId, companyId }) {
         params: {
           courier_id: courierId,
           start_date: monday.toISOString().split("T")[0],
-          end_date: sunday.toISOString().split("T")[0],
+          end_date: nextMonday.toISOString().split("T")[0],
           limit: 100
         }
       });

@@ -48,13 +48,13 @@ const formatMoney = (amount) => {
 export default function PerformansRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
-  const { monday, sunday } = getWeekRange();
+  const { monday, nextMonday } = getWeekRange();
 
   const fetchStats = async () => {
     setLoading(true);
     try {
       const startDateTime = monday.toISOString().slice(0, 16);
-      const endDateTime = sunday.toISOString().slice(0, 16);
+      const endDateTime = nextMonday.toISOString().slice(0, 16);
 
       // Teslim edilen siparişleri al
       const ordersRes = await axios.get(`${API}/reports/courier/earnings`, {
@@ -70,7 +70,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
         params: {
           courier_id: courierId,
           start_date: monday.toISOString().split("T")[0],
-          end_date: sunday.toISOString().split("T")[0],
+          end_date: nextMonday.toISOString().split("T")[0],
           limit: 100
         }
       });
