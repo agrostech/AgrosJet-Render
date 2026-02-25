@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, BarChart3, Calendar, Search, Package, Clock, TrendingUp, Banknote } from "lucide-react";
+import { Loader2, BarChart3, Package, Clock, TrendingUp, Banknote } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -12,6 +11,30 @@ const COURIER_VIOLATION_TYPES = [
   "shift_started_not_active", 
   "offline_before_shift_end"
 ];
+
+// Bu haftanın pazartesi ve pazar tarihlerini al
+const getWeekRange = () => {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+  
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  
+  return { monday, sunday };
+};
+
+const formatShortDate = (date) => {
+  return date.toLocaleDateString("tr-TR", {
+    day: "2-digit",
+    month: "long"
+  });
+};
 
 // Para formatla
 const formatMoney = (amount) => {
@@ -23,20 +46,16 @@ const formatMoney = (amount) => {
 };
 
 export default function PerformansRaporu({ courierId, companyId }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
-  const [startDateTime, setStartDateTime] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    return d.toISOString().slice(0, 16);
-  });
-  const [endDateTime, setEndDateTime] = useState(() => {
-    return new Date().toISOString().slice(0, 16);
-  });
+  const { monday, sunday } = getWeekRange();
 
-  const handleGenerate = async () => {
+  const fetchStats = async () => {
     setLoading(true);
     try {
+      const startDateTime = monday.toISOString().slice(0, 16);
+      const endDateTime = sunday.toISOString().slice(0, 16);
+
       // Teslim edilen siparişleri al
       const ordersRes = await axios.get(`${API}/reports/courier/earnings`, {
         params: {
@@ -50,8 +69,8 @@ export default function PerformansRaporu({ courierId, companyId }) {
       const violationsRes = await axios.get(`${API}/shift-violations/${companyId}`, {
         params: {
           courier_id: courierId,
-          start_date: startDateTime.split("T")[0],
-          end_date: endDateTime.split("T")[0],
+          start_date: monday.toISOString().split("T")[0],
+          end_date: sunday.toISOString().split("T")[0],
           limit: 100
         }
       });
@@ -79,9 +98,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
       }
 
       // Günlük ortalama
-      const startDate = new Date(startDateTime);
-      const endDate = new Date(endDateTime);
-      const daysDiff = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
+      const daysDiff = 7;
       const avgOrdersPerDay = (totalOrders / daysDiff).toFixed(1);
       const avgEarningsPerDay = totalEarnings / daysDiff;
 
@@ -104,60 +121,31 @@ export default function PerformansRaporu({ courierId, companyId }) {
 
   useEffect(() => {
     if (courierId && companyId) {
-      handleGenerate();
+      fetchStats();
     }
-  }, []);
+  }, [courierId, companyId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {/* Filtreler */}
-      <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <Calendar className="w-4 h-4" />
-          Tarih Aralığı
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <label className="text-xs text-slate-500 mb-1 block">Başlangıç</label>
-            <input
-              type="datetime-local"
-              value={startDateTime}
-              onChange={(e) => setStartDateTime(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-xs text-slate-500 mb-1 block">Bitiş</label>
-            <input
-              type="datetime-local"
-              value={endDateTime}
-              onChange={(e) => setEndDateTime(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-        <Button 
-          onClick={handleGenerate} 
-          disabled={loading} 
-          className="w-full h-10 bg-blue-600 hover:bg-blue-700"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-          ) : (
-            <Search className="w-4 h-4 mr-2" />
-          )}
-          {loading ? "Yükleniyor..." : "Raporu Göster"}
-        </Button>
+      {/* Başlık */}
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki Performansın</h3>
+        <p className="text-sm text-muted-foreground">
+          {formatShortDate(monday)} - {formatShortDate(sunday)}
+        </p>
       </div>
 
       {/* İstatistik Kartları */}
       {stats && (
         <div className="space-y-3">
-          {/* Dönem Bilgisi */}
-          <div className="text-center text-sm text-muted-foreground">
-            Son {stats.daysDiff} günlük performans
-          </div>
-
           {/* Ana Metrikler */}
           <div className="grid grid-cols-2 gap-3">
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
@@ -182,14 +170,14 @@ export default function PerformansRaporu({ courierId, companyId }) {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <Card className={`bg-gradient-to-br ${stats.totalViolations === 0 ? 'from-green-50 to-green-100 border-green-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-4 h-4 text-orange-600" />
-                  <span className="text-xs text-orange-700">İhlal Sayısı</span>
+                  <TrendingUp className={`w-4 h-4 ${stats.totalViolations === 0 ? 'text-green-600' : 'text-orange-600'}`} />
+                  <span className={`text-xs ${stats.totalViolations === 0 ? 'text-green-700' : 'text-orange-700'}`}>İhlal Sayısı</span>
                 </div>
-                <p className="text-2xl font-bold text-orange-800">{stats.totalViolations}</p>
-                <p className="text-xs text-orange-600 mt-1">
+                <p className={`text-2xl font-bold ${stats.totalViolations === 0 ? 'text-green-800' : 'text-orange-800'}`}>{stats.totalViolations}</p>
+                <p className={`text-xs mt-1 ${stats.totalViolations === 0 ? 'text-green-600' : 'text-orange-600'}`}>
                   {stats.totalViolations === 0 ? "Harika!" : "Dikkat!"}
                 </p>
               </CardContent>
@@ -216,10 +204,10 @@ export default function PerformansRaporu({ courierId, companyId }) {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <BarChart3 className="w-5 h-5 text-slate-600" />
-                    <span className="font-medium">Performans Özeti</span>
+                    <span className="font-medium">Haftalık Özet</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {stats.daysDiff} günde {stats.totalOrders} teslimat, {formatMoney(stats.totalEarnings)} kazanç
+                    {stats.totalOrders} teslimat, {formatMoney(stats.totalEarnings)} kazanç
                   </p>
                 </div>
                 <div className={`text-3xl font-bold ${
@@ -234,11 +222,11 @@ export default function PerformansRaporu({ courierId, companyId }) {
         </div>
       )}
 
-      {!stats && !loading && (
+      {!stats && (
         <div className="text-center py-8 text-muted-foreground">
           <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="font-medium">Performans verisi yok</p>
-          <p className="text-sm">Raporu görmek için tarih seçip butona tıklayın</p>
+          <p className="text-sm">Bu hafta henüz teslimat yapılmamış</p>
         </div>
       )}
     </div>
