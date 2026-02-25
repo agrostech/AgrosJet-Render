@@ -6,17 +6,19 @@ export function LoadingSpinner({ className, size = "default" }) {
   const sizeClasses = {
     sm: "w-12 h-12",
     default: "w-16 h-16",
-    lg: "w-20 h-20",
-    xl: "w-24 h-24"
+    lg: "w-24 h-24",
+    xl: "w-32 h-32"
   };
 
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
-      <img 
-        src={LOADING_ICON} 
-        alt="Yükleniyor" 
-        className={cn("object-contain animate-spin", sizeClasses[size])}
-      />
+      <div className={cn("rounded-2xl overflow-hidden bg-black p-3", sizeClasses[size])}>
+        <img 
+          src={LOADING_ICON} 
+          alt="Yükleniyor" 
+          className="w-full h-full object-contain animate-spin"
+        />
+      </div>
     </div>
   );
 }
@@ -33,11 +35,13 @@ export function PageLoading() {
 // Inline/compact loading for buttons or small areas
 export function InlineLoading({ className }) {
   return (
-    <img 
-      src={LOADING_ICON} 
-      alt="Yükleniyor" 
-      className={cn("w-5 h-5 animate-spin inline-block", className)}
-    />
+    <div className="inline-flex items-center justify-center w-5 h-5 rounded bg-black p-0.5">
+      <img 
+        src={LOADING_ICON} 
+        alt="Yükleniyor" 
+        className={cn("w-full h-full animate-spin", className)}
+      />
+    </div>
   );
 }
 
