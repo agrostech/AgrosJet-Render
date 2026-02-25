@@ -158,8 +158,9 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
             const dayAssignments = myAssignments.filter(a => a.day === day.key);
             const hasLeave = myLeaves.some(l => l.day === day.key);
             
-            // No shift assigned or explicitly on leave = İzinli
-            const isOnLeave = hasLeave || dayAssignments.length === 0;
+            // Check if explicitly on leave vs no shift assigned
+            const isOnLeave = hasLeave;
+            const hasNoShift = dayAssignments.length === 0 && !hasLeave;
             
             // Merge consecutive shifts
             const mergedShifts = mergeConsecutiveShifts(dayAssignments, shifts);
@@ -181,6 +182,8 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
                       <p className={`font-semibold ${isToday ? 'text-primary' : ''}`}>{day.label}</p>
                       {isOnLeave ? (
                         <p className="text-sm text-orange-600 font-medium">İzinli</p>
+                      ) : hasNoShift ? (
+                        <p className="text-sm text-slate-400 font-medium">Vardiya atanmamış</p>
                       ) : (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {mergedShifts.map((range, idx) => (
@@ -198,6 +201,8 @@ export default function CourierVardiyalarPage({ courierId, companyId }) {
                   <div>
                     {isOnLeave ? (
                       <Coffee className="w-6 h-6 text-orange-500" />
+                    ) : hasNoShift ? (
+                      <MinusCircle className="w-6 h-6 text-slate-400" />
                     ) : (
                       <CheckCircle className="w-6 h-6 text-green-500" />
                     )}
