@@ -408,8 +408,9 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return;
     }
     
-    // Online ödeme ise direkt teslim et
-    await executeDelivery(orderId);
+    // Online ödeme ise onay modalı göster
+    setPendingDeliveryOrder(order);
+    setShowOnlineDeliveryConfirmModal(true);
   };
 
   // Gerçek teslim işlemi
