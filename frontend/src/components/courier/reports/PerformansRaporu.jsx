@@ -1,16 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, BarChart3, Package, Clock, TrendingUp, Banknote } from "lucide-react";
+import { Loader2, Package, Clock, Timer, Banknote } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-// Kuryeye gösterilecek ihlal tipleri
-const COURIER_VIOLATION_TYPES = [
-  "break_overtime",
-  "shift_started_not_active", 
-  "offline_before_shift_end"
-];
 
 // Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al (şirket açılış saatiyle)
 const getWeekRange = (openingTime = "06:00") => {
@@ -39,6 +32,16 @@ const formatMoney = (amount) => {
   }).format(amount || 0);
 };
 
+// Süre formatla (dakika -> saat dakika)
+const formatDuration = (totalMinutes) => {
+  if (!totalMinutes || totalMinutes <= 0) return "0 dk";
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = Math.round(totalMinutes % 60);
+  if (hours === 0) return `${mins} dk`;
+  if (mins === 0) return `${hours} saat`;
+  return `${hours} saat ${mins} dk`;
+};
+
 export default function PerformansRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
@@ -49,61 +52,95 @@ export default function PerformansRaporu({ courierId, companyId }) {
       const { monday, nextMonday } = getWeekRange(companyOpeningTime);
       const startDateTime = monday.toISOString().slice(0, 16);
       const endDateTime = nextMonday.toISOString().slice(0, 16);
+      const startDate = monday.toISOString().split("T")[0];
+      const endDate = nextMonday.toISOString().split("T")[0];
 
-      // Teslim edilen siparişleri al
-      const ordersRes = await axios.get(`${API}/reports/courier/earnings`, {
-        params: {
-          courier_id: courierId,
-          start_datetime: startDateTime,
-          end_datetime: endDateTime
-        }
-      });
+      // Şirketteki tüm kuryeleri al
+      const couriersRes = await axios.get(`${API}/companies/${companyId}/couriers`);
+      const allCouriers = couriersRes.data || [];
 
-      // İhlalleri al
-      const violationsRes = await axios.get(`${API}/shift-violations/${companyId}`, {
-        params: {
-          courier_id: courierId,
-          start_date: monday.toISOString().split("T")[0],
-          end_date: nextMonday.toISOString().split("T")[0],
-          limit: 100
-        }
-      });
+      // Tüm kuryeler için verileri topla
+      const courierStats = await Promise.all(
+        allCouriers.map(async (courier) => {
+          try {
+            // Kazanç ve teslimat verileri
+            const earningsRes = await axios.get(`${API}/reports/courier/earnings`, {
+              params: {
+                courier_id: courier.id,
+                start_datetime: startDateTime,
+                end_datetime: endDateTime
+              }
+            });
 
-      const orders = ordersRes.data.orders || [];
-      const allViolations = violationsRes.data.violations || [];
-      
-      // Sadece kuryeye gösterilecek ihlal tiplerini filtrele
-      const violations = allViolations.filter(v => 
-        COURIER_VIOLATION_TYPES.includes(v.violation_type)
+            // Çalışma süresi verileri
+            const workHoursRes = await axios.get(`${API}/courier-status-logs/${companyId}/courier/${courier.id}/weekly-stats`, {
+              params: { start_date: startDate, end_date: endDate }
+            });
+
+            const orders = earningsRes.data.orders || [];
+            const totalDeliveries = orders.length;
+            const totalEarnings = earningsRes.data.total_earnings || 0;
+            
+            // Ortalama teslimat süresi (yola çıkıştan teslime)
+            const ordersWithDeliveryTime = orders.filter(o => o.delivery_duration_minutes > 0);
+            const avgDeliveryTime = ordersWithDeliveryTime.length > 0
+              ? ordersWithDeliveryTime.reduce((sum, o) => sum + o.delivery_duration_minutes, 0) / ordersWithDeliveryTime.length
+              : 0;
+
+            // Toplam çalışma süresi (dakika)
+            const totalWorkMinutes = workHoursRes.data?.total_active_minutes || 0;
+
+            return {
+              id: courier.id,
+              name: courier.name,
+              totalDeliveries,
+              totalEarnings,
+              avgDeliveryTime,
+              totalWorkMinutes
+            };
+          } catch (err) {
+            return {
+              id: courier.id,
+              name: courier.name,
+              totalDeliveries: 0,
+              totalEarnings: 0,
+              avgDeliveryTime: 0,
+              totalWorkMinutes: 0
+            };
+          }
+        })
       );
-      
-      // İstatistikleri hesapla
-      const totalOrders = orders.length;
-      const totalEarnings = ordersRes.data.total_earnings || 0;
-      const totalViolations = violations.length;
-      
-      // Ortalama teslimat süresi (varsa)
-      let avgDeliveryTime = 0;
-      const ordersWithTime = orders.filter(o => o.delivery_time_minutes);
-      if (ordersWithTime.length > 0) {
-        avgDeliveryTime = Math.round(
-          ordersWithTime.reduce((sum, o) => sum + o.delivery_time_minutes, 0) / ordersWithTime.length
-        );
-      }
 
-      // Günlük ortalama
-      const daysDiff = 7;
-      const avgOrdersPerDay = (totalOrders / daysDiff).toFixed(1);
-      const avgEarningsPerDay = totalEarnings / daysDiff;
+      // Mevcut kuryenin verileri
+      const currentCourier = courierStats.find(c => c.id === courierId) || {
+        totalDeliveries: 0,
+        totalEarnings: 0,
+        avgDeliveryTime: 0,
+        totalWorkMinutes: 0
+      };
+
+      // Şampiyonları bul
+      const deliveryChampion = courierStats.reduce((max, c) => 
+        c.totalDeliveries > max.totalDeliveries ? c : max, courierStats[0]);
+      
+      const workHoursChampion = courierStats.reduce((max, c) => 
+        c.totalWorkMinutes > max.totalWorkMinutes ? c : max, courierStats[0]);
+      
+      // Ortalama teslimat süresinde en düşük olan şampiyon (0 olanları hariç tut)
+      const couriersWithDeliveryTime = courierStats.filter(c => c.avgDeliveryTime > 0);
+      const deliveryTimeChampion = couriersWithDeliveryTime.length > 0
+        ? couriersWithDeliveryTime.reduce((min, c) => 
+            c.avgDeliveryTime < min.avgDeliveryTime ? c : min, couriersWithDeliveryTime[0])
+        : null;
 
       setStats({
-        totalOrders,
-        totalEarnings,
-        totalViolations,
-        avgDeliveryTime,
-        avgOrdersPerDay,
-        avgEarningsPerDay,
-        daysDiff
+        totalDeliveries: currentCourier.totalDeliveries,
+        totalWorkMinutes: currentCourier.totalWorkMinutes,
+        avgDeliveryTime: currentCourier.avgDeliveryTime,
+        totalEarnings: currentCourier.totalEarnings,
+        deliveryChampion,
+        workHoursChampion,
+        deliveryTimeChampion
       });
     } catch (err) {
       console.error("Performans raporu yüklenemedi:", err);
@@ -117,7 +154,6 @@ export default function PerformansRaporu({ courierId, companyId }) {
     const init = async () => {
       if (!courierId || !companyId) return;
       
-      // Şirket açılış saatini al
       try {
         const res = await axios.get(`${API}/companies/${companyId}/work-hours`);
         const companyOpeningTime = res.data.opening_time || "06:00";
@@ -134,7 +170,17 @@ export default function PerformansRaporu({ courierId, companyId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
+        <p className="font-medium">Performans verisi yok</p>
+        <p className="text-sm">Bu hafta henüz veri oluşmamış</p>
       </div>
     );
   }
@@ -146,92 +192,69 @@ export default function PerformansRaporu({ courierId, companyId }) {
         <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki Performansın</h3>
       </div>
 
-      {/* İstatistik Kartları */}
-      {stats && (
-        <div className="space-y-3">
-          {/* Ana Metrikler */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="w-4 h-4 text-blue-600" />
-                  <span className="text-xs text-blue-700">Toplam Teslimat</span>
-                </div>
-                <p className="text-2xl font-bold text-blue-800">{stats.totalOrders}</p>
-                <p className="text-xs text-blue-600 mt-1">Günlük ort: {stats.avgOrdersPerDay}</p>
-              </CardContent>
-            </Card>
+      {/* Kartlar */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Toplam Teslimat */}
+        <Card className="border border-slate-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Package className="w-4 h-4 text-slate-600" />
+              <span className="text-xs text-slate-600">Toplam Teslimat</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-800">{stats.totalDeliveries}</p>
+            {stats.deliveryChampion && stats.deliveryChampion.totalDeliveries > 0 && (
+              <p className="text-xs text-slate-500 mt-1">
+                Haftanın şampiyonu; {stats.deliveryChampion.totalDeliveries} paket
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Banknote className="w-4 h-4 text-green-600" />
-                  <span className="text-xs text-green-700">Toplam Kazanç</span>
-                </div>
-                <p className="text-2xl font-bold text-green-800">{formatMoney(stats.totalEarnings)}</p>
-                <p className="text-xs text-green-600 mt-1">Günlük ort: {formatMoney(stats.avgEarningsPerDay)}</p>
-              </CardContent>
-            </Card>
+        {/* Toplam Çalışma Süresi */}
+        <Card className="border border-slate-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-slate-600" />
+              <span className="text-xs text-slate-600">Toplam Çalışma Süresi</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-800">{formatDuration(stats.totalWorkMinutes)}</p>
+            {stats.workHoursChampion && stats.workHoursChampion.totalWorkMinutes > 0 && (
+              <p className="text-xs text-slate-500 mt-1">
+                Haftanın şampiyonu; {formatDuration(stats.workHoursChampion.totalWorkMinutes)}
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
-            <Card className={`bg-gradient-to-br ${stats.totalViolations === 0 ? 'from-green-50 to-green-100 border-green-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className={`w-4 h-4 ${stats.totalViolations === 0 ? 'text-green-600' : 'text-orange-600'}`} />
-                  <span className={`text-xs ${stats.totalViolations === 0 ? 'text-green-700' : 'text-orange-700'}`}>İhlal Sayısı</span>
-                </div>
-                <p className={`text-2xl font-bold ${stats.totalViolations === 0 ? 'text-green-800' : 'text-orange-800'}`}>{stats.totalViolations}</p>
-                <p className={`text-xs mt-1 ${stats.totalViolations === 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                  {stats.totalViolations === 0 ? "Harika!" : "Dikkat!"}
-                </p>
-              </CardContent>
-            </Card>
+        {/* Ortalama Teslimat Süresi */}
+        <Card className="border border-slate-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Timer className="w-4 h-4 text-slate-600" />
+              <span className="text-xs text-slate-600">Ort. Teslimat Süresi</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-800">
+              {stats.avgDeliveryTime > 0 ? `${Math.round(stats.avgDeliveryTime)} dk` : "-"}
+            </p>
+            {stats.deliveryTimeChampion && stats.deliveryTimeChampion.avgDeliveryTime > 0 && (
+              <p className="text-xs text-slate-500 mt-1">
+                Haftanın şampiyonu; {Math.round(stats.deliveryTimeChampion.avgDeliveryTime)} dk
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-purple-600" />
-                  <span className="text-xs text-purple-700">Sipariş Başı Kazanç</span>
-                </div>
-                <p className="text-2xl font-bold text-purple-800">
-                  {stats.totalOrders > 0 ? formatMoney(stats.totalEarnings / stats.totalOrders) : "₺0"}
-                </p>
-                <p className="text-xs text-purple-600 mt-1">Ortalama</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Performans Skoru */}
-          <Card className="border-2 border-slate-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <BarChart3 className="w-5 h-5 text-slate-600" />
-                    <span className="font-medium">Haftalık Özet</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {stats.totalOrders} teslimat, {formatMoney(stats.totalEarnings)} kazanç
-                  </p>
-                </div>
-                <div className={`text-3xl font-bold ${
-                  stats.totalViolations === 0 ? 'text-green-600' : 
-                  stats.totalViolations <= 2 ? 'text-yellow-600' : 'text-red-600'
-                }`}>
-                  {stats.totalViolations === 0 ? '⭐' : stats.totalViolations <= 2 ? '👍' : '⚠️'}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {!stats && (
-        <div className="text-center py-8 text-muted-foreground">
-          <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">Performans verisi yok</p>
-          <p className="text-sm">Bu hafta henüz teslimat yapılmamış</p>
-        </div>
-      )}
+        {/* Haftalık Toplam Kazanç */}
+        <Card className="border border-slate-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Banknote className="w-4 h-4 text-slate-600" />
+              <span className="text-xs text-slate-600">Haftalık Kazanç</span>
+            </div>
+            <p className="text-2xl font-bold text-slate-800">{formatMoney(stats.totalEarnings)}</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
