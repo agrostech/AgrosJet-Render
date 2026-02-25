@@ -329,7 +329,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     setActionLoading(orderId);
     try {
       await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/confirm`);
-      toast.success("Sipariş onaylandı");
       fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
