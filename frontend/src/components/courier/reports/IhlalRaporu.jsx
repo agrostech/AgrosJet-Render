@@ -60,6 +60,12 @@ export default function IhlalRaporu({ courierId, companyId }) {
         }
       });
       setViolations(res.data.violations || []);
+      // Sadece kuryeye gösterilecek ihlal tiplerini filtrele
+      const allViolations = res.data.violations || [];
+      const filteredViolations = allViolations.filter(v => 
+        COURIER_VIOLATION_TYPES.includes(v.violation_type)
+      );
+      setViolations(filteredViolations);
     } catch (err) {
       console.error("İhlal raporu yüklenemedi:", err);
       setViolations([]);
