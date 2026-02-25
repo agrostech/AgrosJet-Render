@@ -40,39 +40,6 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Create loud notification sound using Web Audio API
-const createAlarmSound = () => {
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    
-    const playTone = (frequency, startTime, duration) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = frequency;
-      oscillator.type = 'square';
-      gainNode.gain.value = 0.3;
-      
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    };
-    
-    const now = audioContext.currentTime;
-    for (let i = 0; i < 6; i++) {
-      playTone(880, now + i * 0.3, 0.15);
-      playTone(1100, now + i * 0.3, 0.15);
-    }
-    
-    return audioContext;
-  } catch (e) {
-    console.error("Audio context error:", e);
-    return null;
-  }
-};
-
 // Tarih formatı (kurye paneline özel)
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
