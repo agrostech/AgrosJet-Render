@@ -344,7 +344,16 @@ export default function CourierDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/login");
+    localStorage.removeItem("courierSession");
+    sessionStorage.removeItem("courierSession");
+    
+    // Native app'e bildir (varsa)
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' }));
+      navigate("/courier-login");
+    } else {
+      navigate("/login");
+    }
   };
 
   if (!user) return null;
