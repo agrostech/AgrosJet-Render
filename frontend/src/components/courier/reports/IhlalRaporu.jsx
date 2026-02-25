@@ -25,6 +25,7 @@ const getViolationLabel = (type) => {
     "active_without_shift": "Vardiya dışı aktif",
     "offline_before_shift_end": "Erken çevrimdışı",
     "still_active_after_shift_end": "Vardiya sonrası aktif",
+    "shift_started_not_active": "Vardiya başladı, aktif değil",
     "late_start": "Geç başlama",
     "early_end": "Erken bitirme"
   };
