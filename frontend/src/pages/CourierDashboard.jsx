@@ -62,7 +62,6 @@ export default function CourierDashboard() {
   const [availabilityStatus, setAvailabilityStatus] = useState("offline");
   const [statusLoading, setStatusLoading] = useState(false);
   const [breakStatus, setBreakStatus] = useState(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   
   // Refs for background task management
   const wakeLockRef = useRef(null);
