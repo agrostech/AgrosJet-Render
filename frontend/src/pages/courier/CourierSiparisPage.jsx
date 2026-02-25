@@ -284,9 +284,8 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       setOrders(newOrders);
       
     } catch (err) {
-      if (!err.handled) {
-        toast.error("Siparişler yüklenemedi");
-      }
+      // Sessizce başarısız ol - arka planda veya ağ kesintisinde toast gösterme
+      console.log("Siparişler yüklenemedi:", err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
