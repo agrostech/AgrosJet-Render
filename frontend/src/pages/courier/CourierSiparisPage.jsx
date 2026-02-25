@@ -93,8 +93,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
   const wakeLockRef = useRef(null);
-  const locationWatchIdRef = useRef(null);
-  const locationIntervalRef = useRef(null);
 
   // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
   const requestWakeLock = useCallback(async () => {
