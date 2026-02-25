@@ -62,8 +62,6 @@ export default function CourierDashboard() {
   
   // Refs for background task management
   const wakeLockRef = useRef(null);
-  const locationWatchIdRef = useRef(null);
-  const locationIntervalRef = useRef(null);
 
   // Wake Lock API - ekranın kapanmasını önle
   const requestWakeLock = useCallback(async () => {
