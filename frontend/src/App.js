@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import CourierLoginPage from "@/pages/CourierLoginPage";
 import CourierDashboard from "@/pages/CourierDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import SystemDashboard from "@/pages/SystemDashboard";
@@ -34,8 +35,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/courier-login" element={<CourierLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/courier/*" element={<CourierDashboard />} />
+          <Route path="/kurye/*" element={<CourierDashboard />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/system/*" element={<SystemDashboard />} />
           <Route path="/restoran/*" element={<RestaurantDashboard />} />
