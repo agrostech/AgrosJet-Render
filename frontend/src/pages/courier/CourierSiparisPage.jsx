@@ -316,67 +316,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     window.open(mapsUrl, "_blank");
   }, [orders, currentLocation]);
 
-  // Check notification permission status (don't auto-request)
-  useEffect(() => {
-    if ("Notification" in window) {
-      // Only check current status, don't request automatically
-      // Auto-requesting causes touch issues on Android
-      setNotificationsEnabled(Notification.permission === "granted");
-    }
-  }, []);
-
-  // Play notification sound - LOUD
-  const playNotificationSound = useCallback(() => {
-    // Web Audio API
-    createAlarmSound();
-    
-    // Vibration
-    if (navigator.vibrate) {
-      navigator.vibrate([500, 200, 500, 200, 500]);
-    }
-  }, []);
-
-  // Show browser notification via Service Worker (works in background!)
-  const showBrowserNotification = useCallback((order) => {
-    // Method 1: Try Service Worker notification (works in background)
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'NEW_ORDER',
-        payload: {
-          orderId: order.id,
-          orderNumber: order.order_number,
-          restaurantName: order.restaurant_name,
-          customerName: order.customer_name
-        }
-      });
-      console.log("Sent notification to Service Worker");
-      return;
-    }
-    
-    // Method 2: Fallback to regular Notification API (only if SW not available)
-    if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-    
-    try {
-      const notification = new Notification("🔔 YENİ SİPARİŞ!", {
-        body: `${order.restaurant_name}\n${order.order_number}`,
-        icon: "/icon-192.png",
-        tag: `order-${order.id}`,
-        requireInteraction: true,
-        silent: true, // Silent - we play our own sound
-      });
-      
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-      
-      setTimeout(() => notification.close(), 30000);
-    } catch (e) {
-      console.error("Notification error:", e);
-    }
-  }, []);
-
   // Siparişleri getir
   const fetchOrders = useCallback(async (showRefreshIndicator = false) => {
     if (showRefreshIndicator) setRefreshing(true);
