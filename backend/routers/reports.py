@@ -649,9 +649,10 @@ async def get_courier_earnings_report(
         return round(R * c, 1)
     
     # Tarih aralığı için filtre (datetime veya date formatını destekle)
+    # delivered_at ISO formatında saklanıyor: 2026-02-23T06:52:26.51
     if start_datetime and end_datetime:
-        start_dt = start_datetime.replace("T", " ") + ":00" if len(start_datetime) == 16 else start_datetime
-        end_dt = end_datetime.replace("T", " ") + ":59" if len(end_datetime) == 16 else end_datetime
+        start_dt = start_datetime + ":00" if len(start_datetime) == 16 else start_datetime
+        end_dt = end_datetime + ":59" if len(end_datetime) == 16 else end_datetime
     else:
         start_dt = f"{start_date}T00:00:00" if start_date else None
         end_dt = f"{end_date}T23:59:59" if end_date else None
