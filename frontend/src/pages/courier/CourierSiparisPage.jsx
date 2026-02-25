@@ -422,6 +422,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       fetchOrders();
       setShowDetailModal(false);
       setShowPaymentConfirmModal(false);
+      setShowOnlineDeliveryConfirmModal(false);
       setPendingDeliveryOrder(null);
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
@@ -440,6 +441,19 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   // Ödeme onayı iptal
   const handlePaymentCancelled = () => {
     setShowPaymentConfirmModal(false);
+    setPendingDeliveryOrder(null);
+  };
+
+  // Online teslimat onaylandı
+  const handleOnlineDeliveryConfirmed = () => {
+    if (pendingDeliveryOrder) {
+      executeDelivery(pendingDeliveryOrder.id);
+    }
+  };
+
+  // Online teslimat iptal
+  const handleOnlineDeliveryCancelled = () => {
+    setShowOnlineDeliveryConfirmModal(false);
     setPendingDeliveryOrder(null);
   };
 
