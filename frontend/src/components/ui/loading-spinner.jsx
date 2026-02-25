@@ -20,6 +20,7 @@ export function LoadingSpinner({ className, size = "default", text }) {
             "w-full h-full object-contain animate-pulse",
             sizeClasses[size]
           )}
+          style={{ filter: "invert(1) brightness(0.4) sepia(1) hue-rotate(180deg) saturate(5)" }}
         />
       </div>
       {text && (
@@ -45,6 +46,7 @@ export function InlineLoading({ className }) {
       src={LOADING_ICON} 
       alt="Yükleniyor" 
       className={cn("w-4 h-4 animate-pulse inline-block", className)}
+      style={{ filter: "invert(1) brightness(0.4) sepia(1) hue-rotate(180deg) saturate(5)" }}
     />
   );
 }
