@@ -59,7 +59,6 @@ export default function IhlalRaporu({ courierId, companyId }) {
           limit: 100
         }
       });
-      setViolations(res.data.violations || []);
       // Sadece kuryeye gösterilecek ihlal tiplerini filtrele
       const allViolations = res.data.violations || [];
       const filteredViolations = allViolations.filter(v => 
