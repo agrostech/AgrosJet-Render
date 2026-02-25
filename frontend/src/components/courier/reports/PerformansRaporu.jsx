@@ -57,7 +57,12 @@ export default function PerformansRaporu({ courierId, companyId }) {
       });
 
       const orders = ordersRes.data.orders || [];
-      const violations = violationsRes.data.violations || [];
+      const allViolations = violationsRes.data.violations || [];
+      
+      // Sadece kuryeye gösterilecek ihlal tiplerini filtrele
+      const violations = allViolations.filter(v => 
+        COURIER_VIOLATION_TYPES.includes(v.violation_type)
+      );
       
       // İstatistikleri hesapla
       const totalOrders = orders.length;
