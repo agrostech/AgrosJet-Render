@@ -12,7 +12,7 @@ const COURIER_VIOLATION_TYPES = [
   "offline_before_shift_end"
 ];
 
-// Bu haftanın pazartesi ve pazar tarihlerini al
+// Bu haftanın pazartesi ve gelecek pazartesi tarihlerini al
 const getWeekRange = () => {
   const now = new Date();
   const dayOfWeek = now.getDay();
@@ -22,11 +22,11 @@ const getWeekRange = () => {
   monday.setDate(now.getDate() + diffToMonday);
   monday.setHours(0, 0, 0, 0);
   
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+  const nextMonday = new Date(monday);
+  nextMonday.setDate(monday.getDate() + 7);
+  nextMonday.setHours(23, 59, 59, 999);
   
-  return { monday, sunday };
+  return { monday, nextMonday };
 };
 
 const formatShortDate = (date) => {
