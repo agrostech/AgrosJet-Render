@@ -643,45 +643,38 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                 </Button>
               )}
               
-              {onTheWayOrders.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Truck className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Yolda sipariş yok</p>
-                </div>
-              ) : (
-                onTheWayOrders.map((order) => (
-                  <ActiveOrderCard
-                    key={order.id}
-                    order={order}
-                    onPickup={() => handlePickupOrder(order.id)}
-                    onDeliver={() => handleDeliverOrder(order.id)}
-                    onNotReady={() => {}}
-                    onViewDetails={() => {
-                      setSelectedOrder(order);
-                      setShowDetailModal(true);
-                    }}
-                    onOpenMaps={() =>
-                      openInMaps(
-                        order.delivery_location?.latitude,
-                        order.delivery_location?.longitude,
-                        order.delivery_address
-                      )
-                    }
-                    onOpenRestaurantMaps={() =>
-                      openInMaps(
-                        order.restaurant_location?.latitude,
-                        order.restaurant_location?.longitude,
-                        order.restaurant_name
-                      )
-                    }
-                    onCall={() => callPhone(order.customer_phone)}
-                    loading={actionLoading === order.id}
-                  />
-                ))
-              )}
-            </div>
+              {onTheWayOrders.map((order) => (
+                <ActiveOrderCard
+                  key={order.id}
+                  order={order}
+                  onPickup={() => handlePickupOrder(order.id)}
+                  onDeliver={() => handleDeliverOrder(order.id)}
+                  onNotReady={() => {}}
+                  onViewDetails={() => {
+                    setSelectedOrder(order);
+                    setShowDetailModal(true);
+                  }}
+                  onOpenMaps={() =>
+                    openInMaps(
+                      order.delivery_location?.latitude,
+                      order.delivery_location?.longitude,
+                      order.delivery_address
+                    )
+                  }
+                  onOpenRestaurantMaps={() =>
+                    openInMaps(
+                      order.restaurant_location?.latitude,
+                      order.restaurant_location?.longitude,
+                      order.restaurant_name
+                    )
+                  }
+                  onCall={() => callPhone(order.customer_phone)}
+                  loading={actionLoading === order.id}
+                />
+              ))}
+            </>
           )}
-        </>
+        </div>
       )}
 
       {/* Sipariş Detay Modal */}
