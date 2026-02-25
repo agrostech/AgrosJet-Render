@@ -473,7 +473,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <List className="w-4 h-4" />
+          <ClipboardList className="w-4 h-4" />
           Atanmış
           {assignedOrders.length > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
