@@ -338,7 +338,16 @@ export default function CourierDashboard() {
     <div className="min-h-screen bg-slate-50" data-testid="courier-dashboard">
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-3 flex items-center justify-between">
+        {/* Sol: Menü butonu */}
         <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+            className="text-white hover:bg-white/10"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </Button>
           {companyLogo ? (
             <img 
               src={companyLogo} 
@@ -352,16 +361,19 @@ export default function CourierDashboard() {
             {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          {/* Status Dropdown - Mobile */}
+        
+        {/* Sağ: Durum butonu */}
+        <div className="flex items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 
-                className={`w-8 h-8 flex items-center justify-center rounded-full ${currentStatus.color} text-white`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${currentStatus.color} text-white`}
                 disabled={statusLoading}
                 data-testid="mobile-status-dropdown"
               >
                 <StatusIcon className="w-4 h-4" />
+                <span className="text-xs font-medium">{currentStatus.label}</span>
+                <ChevronDown className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -389,83 +401,85 @@ export default function CourierDashboard() {
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-            className="text-white hover:bg-white/10"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
         </div>
       </header>
 
-      {/* Mobile Navigation - Grid Layout with overflow menu */}
-      {mobileMenuOpen && (
-        <nav className="lg:hidden bg-primary text-white border-t border-white/20 p-3">
-          <div className="grid grid-cols-3 gap-2">
-            {/* İlk 5 sekme */}
-            {navItems.slice(0, MOBILE_NAV_LIMIT - 1).map((item) => (
+      {/* Mobile Navigation - Soldan açılan sidebar */}
+      <div 
+        className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
+          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Overlay */}
+        <div 
+          className="absolute inset-0 bg-black/50"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+        
+        {/* Sidebar */}
+        <nav 
+          className={`absolute left-0 top-0 h-full w-64 bg-primary text-white transform transition-transform duration-300 ${
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          {/* Header */}
+          <div className="p-4 border-b border-white/20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {companyLogo ? (
+                <img 
+                  src={companyLogo} 
+                  alt={companyName} 
+                  className="w-10 h-10 rounded object-contain"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : null}
+              <div>
+                <span className="font-heading text-sm font-bold block leading-tight">{user.name}</span>
+                {companyName && <span className="text-[10px] text-white/70">{companyName}</span>}
+              </div>
+            </div>
+            <button 
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-1 hover:bg-white/10 rounded"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          {/* Menu Items */}
+          <div className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
+            {navItems.map((item) => (
               <Link 
                 key={item.path} 
                 to={item.path} 
                 onClick={() => setMobileMenuOpen(false)} 
-                className={`relative flex flex-col items-center justify-center p-3 rounded-lg text-center ${
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg ${
                   location.pathname === item.path ? "bg-white/20" : "hover:bg-white/10"
                 }`}
               >
-                <item.icon className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-medium leading-tight">{item.label}</span>
+                <item.icon className="w-5 h-5" />
+                <span className="text-sm font-medium">{item.label}</span>
                 {item.path === "/courier/motosikletim" && maintenanceNotifications > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-white text-primary text-[9px] font-bold rounded-full flex items-center justify-center">
+                  <span className="ml-auto w-5 h-5 bg-white text-primary text-[10px] font-bold rounded-full flex items-center justify-center">
                     {maintenanceNotifications}
                   </span>
                 )}
               </Link>
             ))}
-            
-            {/* Diğer sekmeler için dropdown */}
-            {navItems.length > MOBILE_NAV_LIMIT - 1 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button 
-                    className={`relative flex flex-col items-center justify-center p-3 rounded-lg text-center hover:bg-white/10 ${
-                      navItems.slice(MOBILE_NAV_LIMIT - 1).some(item => location.pathname === item.path) ? "bg-white/20" : ""
-                    }`}
-                  >
-                    <MoreHorizontal className="w-5 h-5 mb-1" />
-                    <span className="text-[10px] font-medium leading-tight">Diğer</span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {navItems.slice(MOBILE_NAV_LIMIT - 1).map((item) => (
-                    <DropdownMenuItem key={item.path} asChild>
-                      <Link 
-                        to={item.path} 
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-2 ${
-                          location.pathname === item.path ? "bg-accent" : ""
-                        }`}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        {item.label}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
-          <button 
-            onClick={handleLogout} 
-            className="w-full flex items-center justify-center gap-2 mt-3 px-3 py-2 text-xs font-semibold bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Çıkış Yap
-          </button>
+          
+          {/* Logout Button */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-white/20">
+            <button 
+              onClick={handleLogout} 
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Çıkış Yap
+            </button>
+          </div>
         </nav>
-      )}
+      </div>
 
       <div className="flex">
         {/* Desktop Sidebar */}
