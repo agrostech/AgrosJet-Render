@@ -108,9 +108,6 @@ export default function IhlalRaporu({ courierId, companyId }) {
       {/* Başlık */}
       <div className="text-center">
         <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki İhlallerin</h3>
-        <p className="text-sm text-muted-foreground">
-          {formatShortDate(monday)} - {formatShortDate(sunday)}
-        </p>
       </div>
 
       {/* Özet */}

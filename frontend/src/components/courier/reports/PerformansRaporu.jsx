@@ -138,9 +138,6 @@ export default function PerformansRaporu({ courierId, companyId }) {
       {/* Başlık */}
       <div className="text-center">
         <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki Performansın</h3>
-        <p className="text-sm text-muted-foreground">
-          {formatShortDate(monday)} - {formatShortDate(sunday)}
-        </p>
       </div>
 
       {/* İstatistik Kartları */}
