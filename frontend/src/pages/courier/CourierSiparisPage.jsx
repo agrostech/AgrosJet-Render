@@ -722,6 +722,39 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         loading={actionLoading === pendingDeliveryOrder?.id}
       />
 
+      {/* Online Ödeme Teslimat Onay Modalı */}
+      <Dialog open={showOnlineDeliveryConfirmModal} onOpenChange={setShowOnlineDeliveryConfirmModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              Teslimat Onayı
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              <strong>{pendingDeliveryOrder?.order_number}</strong> numaralı siparişi teslim etmek istediğinize emin misiniz?
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={handleOnlineDeliveryCancelled}
+              disabled={actionLoading === pendingDeliveryOrder?.id}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={handleOnlineDeliveryConfirmed}
+              disabled={actionLoading === pendingDeliveryOrder?.id}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {actionLoading === pendingDeliveryOrder?.id ? "Teslim Ediliyor..." : "Teslim Et"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Hazır Değil Onay Modalı */}
       <Dialog open={showNotReadyModal} onOpenChange={setShowNotReadyModal}>
         <DialogContent className="sm:max-w-md">
