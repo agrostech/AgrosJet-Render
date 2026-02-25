@@ -1,10 +1,26 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, AlertTriangle, Calendar, Search, Clock, XCircle } from "lucide-react";
+import { Loader2, AlertTriangle, Clock, XCircle } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Bu haftanın pazartesi ve pazar tarihlerini al
+const getWeekRange = () => {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+  
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  
+  return { monday, sunday };
+};
 
 // Tarih formatla
 const formatDate = (dateStr) => {
@@ -16,6 +32,13 @@ const formatDate = (dateStr) => {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit"
+  });
+};
+
+const formatShortDate = (date) => {
+  return date.toLocaleDateString("tr-TR", {
+    day: "2-digit",
+    month: "long"
   });
 };
 
@@ -37,25 +60,18 @@ const COURIER_VIOLATION_TYPES = [
 ];
 
 export default function IhlalRaporu({ courierId, companyId }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [violations, setViolations] = useState([]);
-  const [startDateTime, setStartDateTime] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    return d.toISOString().slice(0, 16);
-  });
-  const [endDateTime, setEndDateTime] = useState(() => {
-    return new Date().toISOString().slice(0, 16);
-  });
+  const { monday, sunday } = getWeekRange();
 
-  const handleGenerate = async () => {
+  const fetchViolations = async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API}/shift-violations/${companyId}`, {
         params: {
           courier_id: courierId,
-          start_date: startDateTime.split("T")[0],
-          end_date: endDateTime.split("T")[0],
+          start_date: monday.toISOString().split("T")[0],
+          end_date: sunday.toISOString().split("T")[0],
           limit: 100
         }
       });
@@ -75,69 +91,47 @@ export default function IhlalRaporu({ courierId, companyId }) {
 
   useEffect(() => {
     if (courierId && companyId) {
-      handleGenerate();
+      fetchViolations();
     }
-  }, []);
+  }, [courierId, companyId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {/* Filtreler */}
-      <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-          <Calendar className="w-4 h-4" />
-          Tarih Aralığı
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <label className="text-xs text-slate-500 mb-1 block">Başlangıç</label>
-            <input
-              type="datetime-local"
-              value={startDateTime}
-              onChange={(e) => setStartDateTime(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-xs text-slate-500 mb-1 block">Bitiş</label>
-            <input
-              type="datetime-local"
-              value={endDateTime}
-              onChange={(e) => setEndDateTime(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-        <Button 
-          onClick={handleGenerate} 
-          disabled={loading} 
-          className="w-full h-10 bg-orange-600 hover:bg-orange-700"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-          ) : (
-            <Search className="w-4 h-4 mr-2" />
-          )}
-          {loading ? "Yükleniyor..." : "Raporu Göster"}
-        </Button>
+      {/* Başlık */}
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki İhlallerin</h3>
+        <p className="text-sm text-muted-foreground">
+          {formatShortDate(monday)} - {formatShortDate(sunday)}
+        </p>
       </div>
 
       {/* Özet */}
-      {violations.length > 0 && (
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                <span className="font-medium text-orange-800">Toplam İhlal</span>
-              </div>
-              <span className="text-2xl font-bold text-orange-600">{violations.length}</span>
+      <Card className={violations.length === 0 ? "bg-green-50 border-green-200" : "bg-orange-50 border-orange-200"}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className={`w-5 h-5 ${violations.length === 0 ? 'text-green-600' : 'text-orange-600'}`} />
+              <span className={`font-medium ${violations.length === 0 ? 'text-green-800' : 'text-orange-800'}`}>
+                {violations.length === 0 ? 'İhlal Yok!' : 'Toplam İhlal'}
+              </span>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <span className={`text-2xl font-bold ${violations.length === 0 ? 'text-green-600' : 'text-orange-600'}`}>
+              {violations.length === 0 ? '✓' : violations.length}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* İhlal Listesi */}
-      {violations.length > 0 ? (
+      {violations.length > 0 && (
         <div className="space-y-2">
           {violations.map((v, idx) => (
             <Card key={v.id || idx} className="border-l-4 border-l-orange-500">
@@ -165,12 +159,6 @@ export default function IhlalRaporu({ courierId, companyId }) {
               </CardContent>
             </Card>
           ))}
-        </div>
-      ) : !loading && (
-        <div className="text-center py-8 text-muted-foreground">
-          <AlertTriangle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">İhlal bulunamadı</p>
-          <p className="text-sm">Seçilen tarih aralığında ihlal kaydı yok</p>
         </div>
       )}
     </div>
