@@ -461,62 +461,59 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   return (
     <div className="space-y-3" data-testid="courier-siparis-page">
-      {/* Boş durum */}
-      {orders.length === 0 && (
-        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-          <Package className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-          <h3 className="font-semibold text-lg mb-1">Henüz sipariş yok</h3>
-          <p className="text-sm text-muted-foreground">
-            Size sipariş atandığında burada görünecek
-          </p>
-        </div>
-      )}
+      {/* Sekmeler - Her zaman göster */}
+      <div className="flex bg-slate-100 rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab("assigned")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+            activeTab === "assigned"
+              ? "bg-white text-purple-700 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Package className="w-4 h-4" />
+          Atanmış
+          {assignedOrders.length > 0 && (
+            <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+              activeTab === "assigned" ? "bg-purple-100 text-purple-700" : "bg-slate-200 text-slate-600"
+            }`}>
+              {assignedOrders.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("ontheway")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+            activeTab === "ontheway"
+              ? "bg-white text-blue-700 shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Truck className="w-4 h-4" />
+          Yolda
+          {onTheWayOrders.length > 0 && (
+            <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+              activeTab === "ontheway" ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-600"
+            }`}>
+              {onTheWayOrders.length}
+            </span>
+          )}
+        </button>
+      </div>
 
-      {/* Sekmeler */}
-      {orders.length > 0 && (
-        <>
-          <div className="flex bg-slate-100 rounded-lg p-1">
-            <button
-              onClick={() => setActiveTab("assigned")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
-                activeTab === "assigned"
-                  ? "bg-white text-purple-700 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Package className="w-4 h-4" />
-              Atanmış
-              {assignedOrders.length > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-                  activeTab === "assigned" ? "bg-purple-100 text-purple-700" : "bg-slate-200 text-slate-600"
-                }`}>
-                  {assignedOrders.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("ontheway")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
-                activeTab === "ontheway"
-                  ? "bg-white text-blue-700 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Truck className="w-4 h-4" />
-              Yolda
-              {onTheWayOrders.length > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-                  activeTab === "ontheway" ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-600"
-                }`}>
-                  {onTheWayOrders.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Atanmış Siparişler Tab */}
-          {activeTab === "assigned" && (
-            <div className="space-y-4">
+      {/* Atanmış Siparişler Tab */}
+      {activeTab === "assigned" && (
+        <div className="space-y-4">
+          {assignedOrders.length === 0 ? (
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <Package className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <h3 className="font-semibold text-lg mb-1">Atanmış sipariş yok</h3>
+              <p className="text-sm text-muted-foreground">
+                Size sipariş atandığında burada görünecek
+              </p>
+            </div>
+          ) : (
+            <>
               {/* Toplu Yola Çıkar Butonu - Aynı restorandan onaylanmış siparişler varsa */}
               {(() => {
                 const confirmedOrders = assignedOrders.filter(o => o.status === "confirmed");
