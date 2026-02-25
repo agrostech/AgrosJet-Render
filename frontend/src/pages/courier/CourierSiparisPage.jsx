@@ -92,7 +92,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [activeTab, setActiveTab] = useState("assigned");
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
-  const isInitialLoadRef = useRef(true);
   const wakeLockRef = useRef(null);
   const locationWatchIdRef = useRef(null);
   const locationIntervalRef = useRef(null);
