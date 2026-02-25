@@ -126,20 +126,16 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       return;
     }
     
-    // Başlangıç noktası - kurye konumu veya ilk siparişin restoranı
+    // Başlangıç noktası - ilk siparişin restoranı
+    // Not: Native uygulama kurye konumunu backend'e gönderecek
     let startLat, startLng;
-    if (currentLocation?.latitude && currentLocation?.longitude) {
-      startLat = currentLocation.latitude;
-      startLng = currentLocation.longitude;
+    const firstOrder = onTheWayOrders[0];
+    if (firstOrder.restaurant_location?.latitude) {
+      startLat = firstOrder.restaurant_location.latitude;
+      startLng = firstOrder.restaurant_location.longitude;
     } else {
-      const firstOrder = onTheWayOrders[0];
-      if (firstOrder.restaurant_location?.latitude) {
-        startLat = firstOrder.restaurant_location.latitude;
-        startLng = firstOrder.restaurant_location.longitude;
-      } else {
-        toast.error("Konum bilgisi alınamadı");
-        return;
-      }
+      toast.error("Konum bilgisi alınamadı");
+      return;
     }
     
     // Geçerli konum bilgisi olan siparişleri filtrele
