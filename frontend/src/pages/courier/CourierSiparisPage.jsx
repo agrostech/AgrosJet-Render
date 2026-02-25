@@ -344,7 +344,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
 
   useEffect(() => {
     if (courierId) {
-      isInitialLoadRef.current = true;
       fetchOrders(false);
       
       // Wake Lock al - ekranın kapanmasını önle
@@ -353,24 +352,10 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       // Her 2 saniyede bir siparişleri güncelle
       const interval = setInterval(() => fetchOrders(false), 2000);
       
-      // Service Worker'ı kontrol et ve gerekirse yeniden başlat
-      const ensureServiceWorker = async () => {
-        if ('serviceWorker' in navigator) {
-          try {
-            const registration = await navigator.serviceWorker.ready;
-            console.log('Service Worker hazır:', registration.active?.state);
-          } catch (e) {
-            console.log('Service Worker bekleniyor...');
-          }
-        }
-      };
-      ensureServiceWorker();
-      
       // Sayfa tekrar görünür olduğunda hemen fetch yap (arka plandan dönünce)
       const handleVisibilityChange = async () => {
         if (document.visibilityState === 'visible') {
           console.log("Sayfa görünür oldu, siparişler ve konum yenileniyor...");
-          isInitialLoadRef.current = false; // Arka plandan dönünce bildirim çalabilsin
           fetchOrders(false);
           
           // Wake Lock'ı yeniden al (arka plandan dönünce kaybolabilir)
@@ -403,49 +388,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       };
     }
   }, [courierId, fetchOrders, requestWakeLock, releaseWakeLock]);
-
-  // Request notification permission on button click
-  const requestNotificationPermission = async () => {
-    if ("Notification" in window) {
-      const permission = await Notification.requestPermission();
-      setNotificationsEnabled(permission === "granted");
-      if (permission === "granted") {
-        toast.success("Bildirimler aktif edildi");
-        // Test sound
-        playNotificationSound();
-        
-        // Register for push notifications
-        await registerPushSubscription();
-      } else {
-        toast.error("Bildirim izni reddedildi");
-      }
-    }
-  };
-
-  // Register push subscription for background notifications
-  const registerPushSubscription = async () => {
-    try {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        console.log("Push notifications not supported");
-        return;
-      }
-      
-      const registration = await navigator.serviceWorker.ready;
-      
-      // Check if already subscribed
-      let subscription = await registration.pushManager.getSubscription();
-      
-      if (!subscription) {
-        // For now, we'll use the Service Worker message approach
-        // Real push requires VAPID keys configured on server
-        console.log("Push subscription not available, using Service Worker messages");
-      }
-      
-      console.log("Push notification setup complete");
-    } catch (e) {
-      console.error("Push registration error:", e);
-    }
-  };
 
   // Siparişi onayla (Gördüm)
   const handleConfirmOrder = async (orderId) => {
