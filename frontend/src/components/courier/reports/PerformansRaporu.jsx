@@ -6,6 +6,13 @@ import { Loader2, BarChart3, Calendar, Search, Package, Clock, TrendingUp, Bankn
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Kuryeye gösterilecek ihlal tipleri
+const COURIER_VIOLATION_TYPES = [
+  "break_overtime",
+  "shift_started_not_active", 
+  "offline_before_shift_end"
+];
+
 // Para formatla
 const formatMoney = (amount) => {
   return new Intl.NumberFormat("tr-TR", {
