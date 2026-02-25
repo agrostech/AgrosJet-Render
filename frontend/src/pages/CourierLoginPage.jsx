@@ -64,11 +64,14 @@ export default function CourierLoginPage() {
       saveSession(res.data, rememberMe);
       toast.success("Giriş başarılı!");
       
-      // Native app'e bildir (varsa)
+      // Native app'e bildir (AgrosJet App)
+      if (window.isAgrosJetApp && window.AgrosJetNative) {
+        window.AgrosJetNative.notifyLogin();
+      }
       if (window.ReactNativeWebView) {
         window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'LOGIN_SUCCESS',
-          data: { courierId: res.data.courier?.id }
+          type: 'SET_COURIER_ID',
+          data: res.data.id
         }));
       }
       
