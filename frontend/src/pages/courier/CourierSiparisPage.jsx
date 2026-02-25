@@ -615,7 +615,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
         <div className="space-y-4">
           {onTheWayOrders.length === 0 ? (
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              <Truck className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <Bike className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
               <h3 className="font-semibold text-lg mb-1">Yolda sipariş yok</h3>
               <p className="text-sm text-muted-foreground">
                 Siparişi yola çıkardığınızda burada görünecek
