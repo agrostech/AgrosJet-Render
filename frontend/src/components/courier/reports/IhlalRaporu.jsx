@@ -22,15 +22,19 @@ const formatDate = (dateStr) => {
 // İhlal tipi çevir
 const getViolationLabel = (type) => {
   const labels = {
-    "active_without_shift": "Vardiya dışı aktif",
-    "offline_before_shift_end": "Erken çevrimdışı",
-    "still_active_after_shift_end": "Vardiya sonrası aktif",
-    "shift_started_not_active": "Vardiya başladı, aktif değil",
-    "late_start": "Geç başlama",
-    "early_end": "Erken bitirme"
+    "break_overtime": "Mola aşımı",
+    "shift_started_not_active": "Vardiyaya geç giriş",
+    "offline_before_shift_end": "Vardiyadan erken çıkış"
   };
-  return labels[type] || type;
+  return labels[type] || null;
 };
+
+// Kuryeye gösterilecek ihlal tipleri
+const COURIER_VIOLATION_TYPES = [
+  "break_overtime",
+  "shift_started_not_active", 
+  "offline_before_shift_end"
+];
 
 export default function IhlalRaporu({ courierId, companyId }) {
   const [loading, setLoading] = useState(false);
