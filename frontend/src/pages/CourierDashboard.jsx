@@ -91,32 +91,6 @@ export default function CourierDashboard() {
     }
   }, []);
 
-  // Check notification permission on mount
-  useEffect(() => {
-    if ("Notification" in window) {
-      setNotificationsEnabled(Notification.permission === "granted");
-    }
-  }, []);
-
-  // Request notification permission
-  const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) {
-      toast.error("Tarayıcınız bildirimleri desteklemiyor");
-      return;
-    }
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        setNotificationsEnabled(true);
-        toast.success("Bildirimler açıldı!");
-      } else {
-        toast.error("Bildirim izni reddedildi");
-      }
-    } catch (err) {
-      toast.error("Bildirim izni alınamadı");
-    }
-  };
-
   // Fetch document status
   const checkDocumentStatus = useCallback(async (courierId) => {
     try {
