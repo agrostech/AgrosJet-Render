@@ -603,23 +603,33 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                   )
                 ))
               )}
-            </div>
+            </>
           )}
+        </div>
+      )}
 
-          {/* Yoldaki Siparişler Tab */}
-          {activeTab === "ontheway" && (
-            <div className="space-y-4">
+      {/* Yoldaki Siparişler Tab */}
+      {activeTab === "ontheway" && (
+        <div className="space-y-4">
+          {onTheWayOrders.length === 0 ? (
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <Truck className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <h3 className="font-semibold text-lg mb-1">Yolda sipariş yok</h3>
+              <p className="text-sm text-muted-foreground">
+                Siparişi yola çıkardığınızda burada görünecek
+              </p>
+            </div>
+          ) : (
+            <>
               {/* Toplam Kazanç Bilgisi */}
-              {onTheWayOrders.length > 0 && (
-                <div className="bg-green-100 border border-green-300 rounded-lg p-3">
-                  <div className="flex items-center justify-center gap-2 text-green-700">
-                    <Banknote className="w-5 h-5" />
-                    <span className="text-sm font-semibold">
-                      Bu {onTheWayOrders.length} siparişten {formatCurrency(onTheWayOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0))} kazanacaksınız
-                    </span>
-                  </div>
+              <div className="bg-green-100 border border-green-300 rounded-lg p-3">
+                <div className="flex items-center justify-center gap-2 text-green-700">
+                  <Banknote className="w-5 h-5" />
+                  <span className="text-sm font-semibold">
+                    Bu {onTheWayOrders.length} siparişten {formatCurrency(onTheWayOrders.reduce((sum, o) => sum + (o.courier_fee || 0), 0))} kazanacaksınız
+                  </span>
                 </div>
-              )}
+              </div>
 
               {/* Rota Oluştur Butonu */}
               {onTheWayOrders.length >= 2 && (
