@@ -12,15 +12,14 @@ export function LoadingSpinner({ className, size = "default", text }) {
 
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
-      <div className={cn("relative", sizeClasses[size])}>
+      <div 
+        className={cn("relative rounded-xl overflow-hidden bg-slate-800", sizeClasses[size])}
+        style={{ padding: "8px" }}
+      >
         <img 
           src={LOADING_ICON} 
           alt="Yükleniyor" 
-          className={cn(
-            "w-full h-full object-contain animate-pulse",
-            sizeClasses[size]
-          )}
-          style={{ filter: "invert(1) brightness(0.4) sepia(1) hue-rotate(180deg) saturate(5)" }}
+          className="w-full h-full object-contain animate-pulse"
         />
       </div>
       {text && (
@@ -42,12 +41,13 @@ export function PageLoading({ text = "Yükleniyor..." }) {
 // Inline/compact loading for buttons or small areas
 export function InlineLoading({ className }) {
   return (
-    <img 
-      src={LOADING_ICON} 
-      alt="Yükleniyor" 
-      className={cn("w-4 h-4 animate-pulse inline-block", className)}
-      style={{ filter: "invert(1) brightness(0.4) sepia(1) hue-rotate(180deg) saturate(5)" }}
-    />
+    <div className="inline-flex items-center justify-center w-4 h-4 rounded bg-slate-800">
+      <img 
+        src={LOADING_ICON} 
+        alt="Yükleniyor" 
+        className={cn("w-3 h-3 animate-pulse", className)}
+      />
+    </div>
   );
 }
 
