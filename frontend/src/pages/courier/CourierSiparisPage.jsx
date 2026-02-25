@@ -116,51 +116,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     }
   }, []);
 
-  // Kuryenin konumunu al - iyileştirilmiş versiyon
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    
-    const getLocation = () => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCurrentLocation({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude
-          });
-        },
-        (err) => console.log("Konum alınamadı:", err),
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-      );
-    };
-    
-    // İlk konum al
-    getLocation();
-    
-    // Konum değişikliklerini izle
-    locationWatchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        setCurrentLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
-        });
-      },
-      (err) => console.log("Konum izleme hatası:", err),
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
-    );
-    
-    // Yedek olarak her 10 saniyede manuel konum al (watchPosition bazen durabilir)
-    locationIntervalRef.current = setInterval(getLocation, 10000);
-    
-    return () => {
-      if (locationWatchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(locationWatchIdRef.current);
-      }
-      if (locationIntervalRef.current !== null) {
-        clearInterval(locationIntervalRef.current);
-      }
-    };
-  }, []);
-
   // Rota oluştur - en yakından uzağa sırala ve Google Maps'te aç
   const createOptimizedRoute = useCallback(() => {
     // Yolda olan siparişleri al
