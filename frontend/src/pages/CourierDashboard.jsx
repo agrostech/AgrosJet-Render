@@ -212,6 +212,15 @@ export default function CourierDashboard() {
     }
     setUser(parsed);
     
+    // URL'ye courier_id ekle (native app için)
+    if (parsed.id) {
+      const currentUrl = new URL(window.location.href);
+      if (currentUrl.searchParams.get('courier_id') !== parsed.id) {
+        currentUrl.searchParams.set('courier_id', parsed.id);
+        window.history.replaceState({}, '', currentUrl.toString());
+      }
+    }
+    
     // Fetch additional data
     if (parsed.company_id) {
       fetchCompanyInfo(parsed.company_id);
