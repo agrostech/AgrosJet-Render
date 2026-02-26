@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
@@ -71,9 +70,7 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
       setDocuments(docsRes.data);
       setStatus(statusRes.data);
     } catch (err) {
-      if (!err.handled) {
-        toast.error("Veriler yüklenemedi");
-      }
+      console.error("Veriler yüklenemedi");
     } finally {
       setLoading(false);
     }
@@ -93,12 +90,10 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
     const validPdfTypes = ["application/pdf"];
     
     if (isPdf && !validPdfTypes.includes(file.type)) {
-      toast.error("Sadece PDF dosyası yüklenebilir");
       return;
     }
     
     if (!isPdf && !validImageTypes.includes(file.type)) {
-      toast.error("Sadece fotoğraf dosyası yüklenebilir (JPG, PNG, WEBP)");
       return;
     }
 
@@ -115,12 +110,9 @@ export default function CourierEvraklarPage({ courierId, companyId, companyName 
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      toast.success("Evrak başarıyla yüklendi");
       fetchData();
     } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Yükleme başarısız");
-      }
+      console.error("Yükleme başarısız");
     } finally {
       setUploading(prev => ({ ...prev, [documentType]: false }));
       // Reset file input
