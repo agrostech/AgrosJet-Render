@@ -749,7 +749,6 @@ async def get_courier_earnings_report(
             
             if on_the_way_time:
                 try:
-                    from datetime import datetime
                     otw_dt = datetime.fromisoformat(on_the_way_time.replace('Z', '+00:00'))
                     del_dt = datetime.fromisoformat(delivered_at_str.replace('Z', '+00:00'))
                     diff = (del_dt - otw_dt).total_seconds() / 60
