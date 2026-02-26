@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate, Routes, Route, Link, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate, Routes, Route, Link, useLocation, useSearchParams, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
