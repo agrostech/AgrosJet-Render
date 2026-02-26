@@ -648,27 +648,30 @@ async def get_courier_earnings_report(
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
         return round(R * c, 1)
     
-    # Tarih aralığı için filtre (datetime veya date formatını destekle)
-    # delivered_at ISO formatında saklanıyor: 2026-02-23T06:52:26.51
-    if start_datetime and end_datetime:
-        start_dt = start_datetime + ":00" if len(start_datetime) == 16 else start_datetime
-        end_dt = end_datetime + ":59" if len(end_datetime) == 16 else end_datetime
-    else:
-        start_dt = f"{start_date}T00:00:00" if start_date else None
-        end_dt = f"{end_date}T23:59:59" if end_date else None
+    # Türkiye timezone
+    turkey_tz = timezone(timedelta(hours=3))
     
-    if not start_dt or not end_dt:
+    # Tarih aralığı için filtre
+    if start_datetime and end_datetime:
+        # Frontend'den gelen tarihler Türkiye saatinde (local time)
+        try:
+            # Türkiye saati olarak parse et
+            start_dt = datetime.fromisoformat(start_datetime).replace(tzinfo=turkey_tz)
+            end_dt = datetime.fromisoformat(end_datetime).replace(tzinfo=turkey_tz)
+        except:
+            start_dt = datetime.fromisoformat(start_datetime + ":00").replace(tzinfo=turkey_tz)
+            end_dt = datetime.fromisoformat(end_datetime + ":59").replace(tzinfo=turkey_tz)
+    elif start_date and end_date:
+        start_dt = datetime.fromisoformat(f"{start_date}T00:00:00").replace(tzinfo=turkey_tz)
+        end_dt = datetime.fromisoformat(f"{end_date}T23:59:59").replace(tzinfo=turkey_tz)
+    else:
         return {"package_count": 0, "total_earnings": 0, "orders": []}
     
-    # Teslim edilmiş siparişleri al (kazanç detaylarıyla) - delivered_at ile
-    orders = await db.orders.find(
+    # Tüm teslim edilmiş siparişleri al (tarih filtresi Python'da yapılacak)
+    all_orders = await db.orders.find(
         {
             "courier_id": courier_id,
-            "status": "delivered",
-            "delivered_at": {
-                "$gte": start_dt,
-                "$lte": end_dt
-            }
+            "status": "delivered"
         },
         {
             "_id": 0,
@@ -687,7 +690,31 @@ async def get_courier_earnings_report(
             "status_history": 1,
             "delivered_at": 1
         }
-    ).sort("created_at", -1).to_list(500)
+    ).sort("created_at", -1).to_list(1000)
+    
+    # Python'da tarih filtrelemesi yap (timezone-aware karşılaştırma)
+    orders = []
+    for order in all_orders:
+        delivered_at = order.get("delivered_at")
+        if not delivered_at:
+            continue
+        
+        try:
+            # String'i datetime'a çevir
+            if isinstance(delivered_at, str):
+                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            else:
+                order_dt = delivered_at
+            
+            # Timezone yoksa Türkiye saati kabul et
+            if order_dt.tzinfo is None:
+                order_dt = order_dt.replace(tzinfo=turkey_tz)
+            
+            # Tarih aralığında mı kontrol et
+            if start_dt <= order_dt <= end_dt:
+                orders.append(order)
+        except:
+            continue
     
     # Sipariş listesini oluştur
     order_list = []
