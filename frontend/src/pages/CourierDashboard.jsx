@@ -391,7 +391,15 @@ export default function CourierDashboard() {
           </div>
           
           {/* Logout Button */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-white/20">
+          <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-white/20 space-y-2">
+            <Link 
+              to="/courier/kvkk"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs text-white/70 hover:text-white transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              KVKK ve Gizlilik
+            </Link>
             <button 
               onClick={handleLogout} 
               className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors"
