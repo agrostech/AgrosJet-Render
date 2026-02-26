@@ -7,6 +7,9 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import uuid
+
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
 import random
 import re
 import logging
