@@ -73,11 +73,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
   const fetchStats = async (companyOpeningTime) => {
     setLoading(true);
     try {
-      const { monday, nextMonday } = getWeekRange(companyOpeningTime);
-      const startDateTime = monday.toISOString().slice(0, 16);
-      const endDateTime = nextMonday.toISOString().slice(0, 16);
-      const startDate = monday.toISOString().split("T")[0];
-      const endDate = nextMonday.toISOString().split("T")[0];
+      const { startDateTime, endDateTime, startDate, endDate } = getWeekRange(companyOpeningTime);
 
       // Şirketteki tüm kuryeleri al
       const couriersRes = await axios.get(`${API}/companies/${companyId}/couriers`);
