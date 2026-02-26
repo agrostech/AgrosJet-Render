@@ -92,7 +92,7 @@ async def test_trendyol_connection(restaurant_id: str) -> dict:
                     {"id": restaurant_id},
                     {"$set": {
                         "platform_integrations.trendyol.connected": True,
-                        "platform_integrations.trendyol.last_test": datetime.now(timezone.utc).isoformat()
+                        "platform_integrations.trendyol.last_test": datetime.now(TURKEY_TZ).isoformat()
                     }}
                 )
                 return {"success": True, "message": "Trendyol bağlantısı başarılı"}
@@ -381,7 +381,7 @@ async def convert_trendyol_package_to_shiftjet(package: dict, restaurant: dict) 
     estimated_pickup_max = package.get("estimatedPickupTimeMax", 0)
     
     # Sipariş oluşturulma zamanı (epoch ms -> ISO)
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = datetime.now(TURKEY_TZ).isoformat()
     package_creation_date = package.get("packageCreationDate")
     if package_creation_date:
         try:
@@ -418,7 +418,7 @@ async def convert_trendyol_package_to_shiftjet(package: dict, restaurant: dict) 
         "notes": order_notes,
         "source": "trendyol",
         "created_at": created_at,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
         "courier_id": None,
         "courier_name": None,
         "trendyol_raw": {
@@ -495,7 +495,7 @@ async def sync_restaurant_trendyol_orders(restaurant_id: str) -> dict:
                     {"_id": existing["_id"]},
                     {"$set": {
                         "status": new_status,
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
                         "trendyol_raw.packageStatus": package.get("packageStatus")
                     }}
                 )
@@ -514,7 +514,7 @@ async def sync_restaurant_trendyol_orders(restaurant_id: str) -> dict:
         except:
             prep_time = 20  # Default 20 dakika
         
-        prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+        prep_end = datetime.now(TURKEY_TZ) + timedelta(minutes=prep_time)
         shiftjet_order["preparation_time"] = prep_time
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         
@@ -524,7 +524,7 @@ async def sync_restaurant_trendyol_orders(restaurant_id: str) -> dict:
     # Son senkronizasyon zamanını güncelle
     await db.restaurants.update_one(
         {"id": restaurant_id},
-        {"$set": {"platform_integrations.trendyol.last_sync": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"platform_integrations.trendyol.last_sync": datetime.now(TURKEY_TZ).isoformat()}}
     )
     
     return {

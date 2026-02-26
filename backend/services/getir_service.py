@@ -97,7 +97,7 @@ async def get_getir_token(restaurant: dict) -> Optional[str]:
         try:
             expires_dt = datetime.fromisoformat(token_expires.replace('Z', '+00:00'))
             # Token hala geçerli mi? (5 dakika tolerans)
-            if expires_dt > datetime.now(timezone.utc) + timedelta(minutes=5):
+            if expires_dt > datetime.now(TURKEY_TZ) + timedelta(minutes=5):
                 return current_token
         except:
             pass
@@ -126,7 +126,7 @@ async def get_getir_token(restaurant: dict) -> Optional[str]:
                 
                 if new_token:
                     # Token'ı kaydet (50 dakika geçerli olarak işaretle)
-                    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=50)).isoformat()
+                    expires_at = (datetime.now(TURKEY_TZ) + timedelta(minutes=50)).isoformat()
                     
                     await db.restaurants.update_one(
                         {"id": restaurant.get("id")},
@@ -245,7 +245,7 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
                 
                 if token:
                     # Token'ı kaydet
-                    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=50)).isoformat()
+                    expires_at = (datetime.now(TURKEY_TZ) + timedelta(minutes=50)).isoformat()
                     
                     # 2. POS durumunu kontrol et ve aktif et
                     pos_status = await check_pos_status(app_secret, restaurant_secret)
@@ -266,7 +266,7 @@ async def test_getir_connection(restaurant_id: str, activate_pos: bool = True) -
                             "platform_integrations.getir.token_expires": expires_at,
                             "platform_integrations.getir.connected": True,
                             "platform_integrations.getir.pos_active": pos_activated,
-                            "platform_integrations.getir.last_test": datetime.now(timezone.utc).isoformat()
+                            "platform_integrations.getir.last_test": datetime.now(TURKEY_TZ).isoformat()
                         }}
                     )
                     
@@ -521,7 +521,7 @@ def _calculate_scheduled_preparation(scheduled_date: str) -> tuple:
                 scheduled_dt = parser.parse(scheduled_date)
             
             if scheduled_dt:
-                now = datetime.now(timezone.utc)
+                now = datetime.now(TURKEY_TZ)
                 if scheduled_dt.tzinfo is None:
                     import pytz
                     scheduled_dt = pytz.timezone('Europe/Istanbul').localize(scheduled_dt)
@@ -586,7 +586,7 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     
     # Diğer bilgiler
     verification_code = getir_order.get("verificationCode") or (confirmation_id[:4] if confirmation_id else "")
-    created_at = getir_order.get("createdAt") or getir_order.get("checkoutDate") or datetime.now(timezone.utc).isoformat()
+    created_at = getir_order.get("createdAt") or getir_order.get("checkoutDate") or datetime.now(TURKEY_TZ).isoformat()
     raw_status = getir_order.get("status", 400)
     
     return {
@@ -621,7 +621,7 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "notes": " | ".join(notes_parts),
         "source": "getir",
         "created_at": created_at,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
         "courier_id": None,
         "courier_name": None,
         "preparation_time": preparation_time,
@@ -660,7 +660,7 @@ def _check_timing_wait(timestamp_str: str) -> tuple:
     
     try:
         timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
-        elapsed = (datetime.now(timezone.utc) - timestamp).total_seconds()
+        elapsed = (datetime.now(TURKEY_TZ) - timestamp).total_seconds()
         remaining = int(GETIR_STEP_WAIT_SECONDS - elapsed)
         return remaining > 0, max(0, remaining)
     except:
@@ -709,7 +709,7 @@ async def delayed_prepare(restaurant_id: str, getir_order_id: str, shiftjet_orde
                 await db.orders.update_one(
                     {"id": shiftjet_order_id},
                     {"$set": {
-                        "getir_prepared_at": datetime.now(timezone.utc).isoformat(),
+                        "getir_prepared_at": datetime.now(TURKEY_TZ).isoformat(),
                         "getir_raw.status": 500,
                         "status": "preparing"
                     }}
@@ -754,7 +754,7 @@ async def delayed_deliver(restaurant_id: str, getir_order_id: str, shiftjet_orde
                 await db.orders.update_one(
                     {"id": shiftjet_order_id},
                     {"$set": {
-                        "getir_delivered_at": datetime.now(timezone.utc).isoformat(),
+                        "getir_delivered_at": datetime.now(TURKEY_TZ).isoformat(),
                         "getir_raw.status": 900
                     }}
                 )
@@ -803,7 +803,7 @@ async def auto_verify_order(restaurant: dict, getir_order_id: str, getir_order: 
             logger.info(f"Getir verify başarılı: {getir_order_id}")
             
             # Verify zamanını kaydet
-            verify_time = datetime.now(timezone.utc)
+            verify_time = datetime.now(TURKEY_TZ)
             await db.orders.update_one(
                 {"id": shiftjet_order_id},
                 {"$set": {
@@ -852,7 +852,7 @@ async def trigger_getir_deliver(restaurant_id: str, order_id: str) -> dict:
     prepared_at_str = order.get("getir_prepared_at")
     verified_at_str = order.get("getir_verified_at")
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     wait_seconds = 0
     
     if prepared_at_str:
@@ -985,7 +985,7 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
                     {"_id": existing["_id"]},
                     {"$set": {
                         "getir_raw.status": getir_status,
-                        "updated_at": datetime.now(timezone.utc).isoformat()
+                        "updated_at": datetime.now(TURKEY_TZ).isoformat()
                     }}
                 )
                 skipped_count += 1
@@ -1007,7 +1007,7 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
                 # Restoran ayarından al, yoksa 15 dakika
                 prep_time = restaurant.get("preparation_time", 15)
             
-            prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+            prep_end = datetime.now(TURKEY_TZ) + timedelta(minutes=prep_time)
             shiftjet_order["preparation_time"] = prep_time
             shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         else:
@@ -1035,7 +1035,7 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
                         {"$set": {
                             "status": "preparing",
                             "auto_approved": True,
-                            "auto_approved_at": datetime.now(timezone.utc).isoformat()
+                            "auto_approved_at": datetime.now(TURKEY_TZ).isoformat()
                         }}
                     )
                     logger.info(f"Getir sipariş onaylandı: {getir_order_id} (status: {getir_status})")
@@ -1047,7 +1047,7 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
     # Son senkronizasyon zamanını güncelle
     await db.restaurants.update_one(
         {"id": restaurant_id},
-        {"$set": {"platform_integrations.getir.last_sync": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"platform_integrations.getir.last_sync": datetime.now(TURKEY_TZ).isoformat()}}
     )
     
     return {
@@ -1166,7 +1166,7 @@ async def smart_advance_getir_order(restaurant_id: str, order_id: str, target_st
     if not headers:
         return {"success": False, "error": "Getir token alınamadı"}
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     try:
         if target_status == "on_the_way":
@@ -1591,10 +1591,10 @@ async def handle_getir_webhook_order(webhook_data: dict, x_api_key: str) -> dict
     except:
         prep_time = 20  # Default 20 dakika
     
-    prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+    prep_end = datetime.now(TURKEY_TZ) + timedelta(minutes=prep_time)
     shiftjet_order["preparation_time"] = prep_time
     shiftjet_order["preparation_end_at"] = prep_end.isoformat()
-    shiftjet_order["webhook_received_at"] = datetime.now(timezone.utc).isoformat()
+    shiftjet_order["webhook_received_at"] = datetime.now(TURKEY_TZ).isoformat()
     
     # DB'ye kaydet
     await db.orders.insert_one(shiftjet_order)

@@ -39,7 +39,7 @@ async def get_yemeksepeti_token(restaurant: dict) -> Optional[str]:
         try:
             expires_dt = datetime.fromisoformat(token_expires.replace('Z', '+00:00'))
             # Token hala geçerli mi? (10 dakika tolerans)
-            if expires_dt > datetime.now(timezone.utc) + timedelta(minutes=10):
+            if expires_dt > datetime.now(TURKEY_TZ) + timedelta(minutes=10):
                 return current_token
         except:
             pass
@@ -71,7 +71,7 @@ async def get_yemeksepeti_token(restaurant: dict) -> Optional[str]:
                 
                 if new_token:
                     # Token'ı kaydet
-                    expires_at = (datetime.now(timezone.utc) + timedelta(seconds=expires_in - 600)).isoformat()
+                    expires_at = (datetime.now(TURKEY_TZ) + timedelta(seconds=expires_in - 600)).isoformat()
                     
                     await db.restaurants.update_one(
                         {"id": restaurant.get("id")},
@@ -167,7 +167,7 @@ async def test_yemeksepeti_connection(restaurant_id: str) -> dict:
                 expires_in = data.get("expires_in", 7200)
                 
                 if token:
-                    expires_at = (datetime.now(timezone.utc) + timedelta(seconds=expires_in - 600)).isoformat()
+                    expires_at = (datetime.now(TURKEY_TZ) + timedelta(seconds=expires_in - 600)).isoformat()
                     
                     await db.restaurants.update_one(
                         {"id": restaurant_id},
@@ -175,7 +175,7 @@ async def test_yemeksepeti_connection(restaurant_id: str) -> dict:
                             "platform_integrations.yemeksepeti.access_token": token,
                             "platform_integrations.yemeksepeti.token_expires": expires_at,
                             "platform_integrations.yemeksepeti.connected": True,
-                            "platform_integrations.yemeksepeti.last_test": datetime.now(timezone.utc).isoformat()
+                            "platform_integrations.yemeksepeti.last_test": datetime.now(TURKEY_TZ).isoformat()
                         }}
                     )
                     
@@ -336,7 +336,7 @@ async def convert_yemeksepeti_order_to_shiftjet(webhook_data: dict, restaurant: 
     is_platform_delivery = delivery_type.upper() != "VENDOR"
     
     # Oluşturulma zamanı
-    created_at = webhook_data.get("created_at") or webhook_data.get("order_time") or datetime.now(timezone.utc).isoformat()
+    created_at = webhook_data.get("created_at") or webhook_data.get("order_time") or datetime.now(TURKEY_TZ).isoformat()
     
     # Vendor/Store bilgisi
     vendor_id = webhook_data.get("vendor_id") or webhook_data.get("store_id")
@@ -369,7 +369,7 @@ async def convert_yemeksepeti_order_to_shiftjet(webhook_data: dict, restaurant: 
         "notes": order_notes,
         "source": "yemeksepeti",
         "created_at": created_at,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
         "courier_id": None,
         "courier_name": None,
         "yemeksepeti_raw": {
@@ -418,7 +418,7 @@ async def process_yemeksepeti_webhook(webhook_data: dict, vendor_id: str) -> dic
         except:
             prep_time = 20
         
-        prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+        prep_end = datetime.now(TURKEY_TZ) + timedelta(minutes=prep_time)
         shiftjet_order["preparation_time"] = prep_time
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         
@@ -439,7 +439,7 @@ async def process_yemeksepeti_webhook(webhook_data: dict, vendor_id: str) -> dic
             {"yemeksepeti_order_id": order_id},
             {"$set": {
                 "status": new_status,
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(TURKEY_TZ).isoformat(),
                 "yemeksepeti_raw.status": status
             }}
         )
