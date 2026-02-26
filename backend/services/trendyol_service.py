@@ -380,12 +380,15 @@ async def convert_trendyol_package_to_shiftjet(package: dict, restaurant: dict) 
     estimated_pickup_min = package.get("estimatedPickupTimeMin", 0)
     estimated_pickup_max = package.get("estimatedPickupTimeMax", 0)
     
-    # Sipariş oluşturulma zamanı (epoch ms -> ISO)
-    created_at = datetime.now(TURKEY_TZ).isoformat()
+    # Sipariş oluşturulma zamanı (epoch ms -> ISO, Türkiye timezone)
+    created_at = get_turkey_now()
     package_creation_date = package.get("packageCreationDate")
     if package_creation_date:
         try:
-            created_at = datetime.fromtimestamp(package_creation_date / 1000, tz=timezone.utc).isoformat()
+            # Epoch timestamp'i Türkiye saatine çevir
+            dt_utc = datetime.fromtimestamp(package_creation_date / 1000, tz=timezone.utc)
+            dt_turkey = dt_utc.astimezone(TURKEY_TZ)
+            created_at = dt_turkey.isoformat()
         except:
             pass
     
@@ -418,7 +421,7 @@ async def convert_trendyol_package_to_shiftjet(package: dict, restaurant: dict) 
         "notes": order_notes,
         "source": "trendyol",
         "created_at": created_at,
-        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
+        "updated_at": get_turkey_now(),
         "courier_id": None,
         "courier_name": None,
         "trendyol_raw": {
