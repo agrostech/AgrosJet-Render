@@ -183,9 +183,9 @@ export default function CourierSidebar({
           {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
         <Link 
-          to="/courier/kvkk"
+          to={`${basePath}/kvkk`}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors ${
-            location.pathname === "/courier/kvkk" ? "bg-white/20 text-white" : ""
+            location.pathname.includes("/kvkk") ? "bg-white/20 text-white" : ""
           } ${sidebarCollapsed ? 'justify-center px-2' : ''}`}
           title={sidebarCollapsed ? 'KVKK ve Gizlilik' : ''}
         >
