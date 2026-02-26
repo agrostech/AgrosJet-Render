@@ -11,6 +11,9 @@ import uuid
 import os
 from datetime import datetime, timezone, timedelta
 
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
+
 from services.yemeksepeti_service import (
     process_yemeksepeti_webhook,
     verify_webhook_signature
@@ -124,7 +127,7 @@ async def getir_order_webhook(
                     {"getir_order_id": getir_order_id},
                     {"$set": {
                         "status": new_status,
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
                         "getir_raw.status": webhook_data.get("status")
                     }}
                 )
@@ -144,7 +147,7 @@ async def getir_order_webhook(
         except:
             prep_time = 20  # Default 20 dakika
         
-        prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+        prep_end = datetime.now(TURKEY_TZ) + timedelta(minutes=prep_time)
         shiftjet_order["preparation_time"] = prep_time
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         
@@ -309,7 +312,7 @@ async def getir_restaurant_status_webhook(
                 {"id": restaurant_id},
                 {"$set": {
                     "platform_integrations.getir.is_open": is_open,
-                    "platform_integrations.getir.status_updated_at": datetime.now(timezone.utc).isoformat(),
+                    "platform_integrations.getir.status_updated_at": datetime.now(TURKEY_TZ).isoformat(),
                     "platform_integrations.getir.status_updated_by": "getir_webhook"
                 }}
             )
@@ -335,7 +338,7 @@ async def getir_webhook_health():
     return {
         "status": "healthy",
         "service": "getir_webhook",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(TURKEY_TZ).isoformat(),
         "endpoints": {
             "order": "/api/webhooks/getir/order",
             "cancel": "/api/webhooks/getir/cancel",
@@ -543,7 +546,7 @@ async def migros_cancel_webhook(
         return {
             "success": True,
             "message": "İptal webhook alındı",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(TURKEY_TZ).isoformat()
         }
         
     except HTTPException:
@@ -593,7 +596,7 @@ async def migros_status_webhook(
         return {
             "success": True,
             "message": "Durum webhook alındı",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(TURKEY_TZ).isoformat()
         }
         
     except HTTPException:
@@ -611,7 +614,7 @@ async def migros_webhook_health():
         "data": {
             "status": "healthy",
             "service": "migros_webhook",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(TURKEY_TZ).isoformat(),
             "endpoints": {
                 "order": "/api/webhooks/migros/order",
                 "cancel": "/api/webhooks/migros/cancel",
