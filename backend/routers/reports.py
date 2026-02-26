@@ -567,11 +567,15 @@ async def get_courier_payment_report(
         }
     ).sort("created_at", -1).to_list(500)
     
-    # Nakit ve kart siparişlerini ayır
+    # Nakit, kart, yemek kartı ve online siparişlerini ayır
     cash_orders = []
     card_orders = []
+    meal_card_orders = []
+    online_orders = []
     cash_total = 0
     card_total = 0
+    meal_card_total = 0
+    online_total = 0
     
     for order in orders:
         # Mesafe hesapla
@@ -621,12 +625,26 @@ async def get_courier_payment_report(
             order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
             card_orders.append(order_data)
             card_total += order.get("total_amount", 0) or 0
+        elif payment_method == "meal_card":
+            is_modified = payment_details.get("original_method") and payment_details.get("original_method") != "meal_card"
+            order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
+            meal_card_orders.append(order_data)
+            meal_card_total += order.get("total_amount", 0) or 0
+        elif payment_method in ["online", "online_meal_card"]:
+            is_modified = payment_details.get("original_method") and payment_details.get("original_method") not in ["online", "online_meal_card"]
+            order_data = {**base_order_data, "amount": order.get("total_amount", 0), "is_modified": is_modified}
+            online_orders.append(order_data)
+            online_total += order.get("total_amount", 0) or 0
     
     return {
         "cash_total": cash_total,
         "card_total": card_total,
+        "meal_card_total": meal_card_total,
+        "online_total": online_total,
         "cash_orders": cash_orders,
-        "card_orders": card_orders
+        "card_orders": card_orders,
+        "meal_card_orders": meal_card_orders,
+        "online_orders": online_orders
     }
 
 
