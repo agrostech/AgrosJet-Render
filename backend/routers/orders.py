@@ -1484,14 +1484,13 @@ async def get_orders_unified(
     else:
         # Restaurant paneli varsayılan: Bugün + Aktif
         if panel == "restaurant":
-            # Türkiye saatine göre bugünün başlangıcı
-            turkey_tz = timezone(timedelta(hours=3))
-            now_turkey = datetime.now(turkey_tz)
+            # Türkiye saatine göre bugünün başlangıcı - +03:00 formatında
+            now_turkey = datetime.now(TURKEY_TZ)
             today_start_turkey = now_turkey.replace(hour=0, minute=0, second=0, microsecond=0)
-            today_start_utc = today_start_turkey.astimezone(timezone.utc)
+            today_start_str = today_start_turkey.isoformat()  # +03:00 formatında
             query["$or"] = [
                 {"status": {"$nin": ["delivered", "cancelled"]}},
-                {"delivered_at": {"$gte": today_start_utc.isoformat()}}
+                {"delivered_at": {"$gte": today_start_str}}
             ]
     
     # Tarih filtresi için değişkenleri hazırla
@@ -1499,13 +1498,10 @@ async def get_orders_unified(
     date_filter_end = None
     
     if date_from or date_to:
-        turkey_tz = timezone(timedelta(hours=3))
-        
         if date_from:
             try:
-                date_filter_start = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
-                if date_filter_start.tzinfo is None:
-                    date_filter_start = date_filter_start.replace(tzinfo=turkey_tz)
+                date_from_str = ensure_turkey_timezone(date_from)
+                date_filter_start = datetime.fromisoformat(date_from_str)
             except:
                 pass
         
