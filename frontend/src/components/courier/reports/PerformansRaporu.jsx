@@ -20,7 +20,31 @@ const getWeekRange = (openingTime = "06:00") => {
   nextMonday.setDate(monday.getDate() + 7);
   nextMonday.setHours(hours, minutes, 0, 0);
   
-  return { monday, nextMonday };
+  // Local time formatında döndür (YYYY-MM-DDTHH:mm)
+  const formatLocalDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hour}:${min}`;
+  };
+  
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  return { 
+    monday, 
+    nextMonday,
+    startDateTime: formatLocalDateTime(monday),
+    endDateTime: formatLocalDateTime(nextMonday),
+    startDate: formatDate(monday),
+    endDate: formatDate(nextMonday)
+  };
 };
 
 // Para formatla
