@@ -441,6 +441,7 @@ export default function CourierDashboard() {
                   companyName={companyName}
                 />
               } />
+              <Route path="kvkk" element={<CourierKVKKPage companyName={companyName} />} />
             </Routes>
           </div>
           
