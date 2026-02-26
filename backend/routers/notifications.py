@@ -118,7 +118,7 @@ async def check_fesih_notifications(company_id: str):
     
     courier_ids = [cc["courier_id"] for cc in company_courier_ids]
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     notifications_created = 0
     
     for courier_id in courier_ids:
@@ -182,7 +182,7 @@ async def check_fesih_notifications(company_id: str):
 @router.get("/company/{company_id}/check-missing-invoices")
 async def check_missing_invoice_notifications(company_id: str):
     """Check and create notifications for hakediş transactions older than 1 day without invoice"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     one_day_ago = now - timedelta(days=1)
     
     # Find hakediş transactions older than 1 day without invoice

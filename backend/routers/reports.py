@@ -104,7 +104,7 @@ async def get_courier_report(
     # Türkiye saatine göre bugün
     turkey_tz = timezone(timedelta(hours=3))
     now_turkey = datetime.now(turkey_tz)
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(TURKEY_TZ)
     today = now_turkey.strftime("%Y-%m-%d")
     
     active_hours_map = {}

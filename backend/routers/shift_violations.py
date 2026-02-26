@@ -329,7 +329,7 @@ async def get_shift_violations(
 @router.get("/shift-violations/{company_id}/summary")
 async def get_violations_summary(company_id: str, days: int = 7):
     """Son X gün için ihlal özeti"""
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    cutoff = (datetime.now(TURKEY_TZ) - timedelta(days=days)).isoformat()
     
     pipeline = [
         {
