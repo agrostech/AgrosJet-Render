@@ -66,6 +66,21 @@ async def get_company(company_id: str):
     return company
 
 
+@router.get("/companies/{company_id}/work-hours")
+async def get_company_work_hours(company_id: str):
+    """Şirketin çalışma saatlerini getir"""
+    company = await db.companies.find_one(
+        {"id": company_id}, 
+        {"_id": 0, "opening_time": 1, "closing_time": 1}
+    )
+    if not company:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    return {
+        "opening_time": company.get("opening_time", "06:00"),
+        "closing_time": company.get("closing_time", "06:00")
+    }
+
+
 @router.post("/companies")
 async def create_company(data: CompanyCreate):
     company = {
