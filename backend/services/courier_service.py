@@ -10,7 +10,7 @@ async def invalidate_user_session(user_id: str):
         {"user_id": user_id},
         {"$set": {
             "user_id": user_id,
-            "invalidated_at": datetime.now(timezone.utc).isoformat()
+            "invalidated_at": get_turkey_now()
         }},
         upsert=True
     )
@@ -159,7 +159,7 @@ async def add_courier_to_company(company_id: str, phone: str):
         "status": "approved",
         "is_archived": False,
         "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.company_couriers.insert_one(relation)
     return {"message": "Kurye şirkete eklendi", "courier_name": courier["name"]}, None
@@ -235,7 +235,7 @@ async def deactivate_courier(company_id: str, courier_id: str):
             return None, f"Bu kuryenin {balance_text} alacağı bulunuyor"
         return None, f"Bu kuryenin {balance_text} borcu bulunuyor"
     
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     result = await db.company_couriers.update_one(
         {"company_id": company_id, "courier_id": courier_id},
@@ -314,7 +314,7 @@ async def start_termination(company_id: str, courier_id: str):
         {"$set": {
             "termination_start_date": tomorrow.isoformat(),
             "termination_end_date": end_date.isoformat(),
-            "termination_started_at": datetime.now(timezone.utc).isoformat()
+            "termination_started_at": get_turkey_now()
         }}
     )
     
@@ -391,7 +391,7 @@ async def archive_courier(company_id: str, courier_id: str):
         {"company_id": company_id, "courier_id": courier_id},
         {"$set": {
             "is_archived": True,
-            "archived_at": datetime.now(timezone.utc).isoformat()
+            "archived_at": get_turkey_now()
         }}
     )
     
@@ -432,7 +432,7 @@ async def create_ghost_courier(company_id: str, name: str):
         "password": "",  # Empty password - can't login
         "status": "active",
         "is_ghost": True,  # Mark as ghost courier
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.couriers.insert_one(courier)
     
@@ -444,7 +444,7 @@ async def create_ghost_courier(company_id: str, name: str):
         "status": "approved",
         "is_archived": False,
         "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.company_couriers.insert_one(relation)
     
@@ -547,7 +547,7 @@ async def merge_couriers(ghost_courier_id: str, real_courier_id: str):
                 "status": "approved",
                 "is_archived": False,
                 "is_active": True,
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": get_turkey_now()
             }
             await db.company_couriers.insert_one(new_rel)
     
