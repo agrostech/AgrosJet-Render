@@ -38,7 +38,7 @@ function App() {
           <Route path="/courier-login" element={<CourierLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/courier/*" element={<CourierDashboard />} />
-          <Route path="/kurye/*" element={<CourierDashboard />} />
+          <Route path="/kurye/:courierId/*" element={<CourierDashboard />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/system/*" element={<SystemDashboard />} />
           <Route path="/restoran/*" element={<RestaurantDashboard />} />
