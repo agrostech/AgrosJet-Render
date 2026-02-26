@@ -773,62 +773,85 @@ async def get_courier_earnings_report(
             "date": order.get("created_at", "")[:16].replace("T", " ") if order.get("created_at") else ""
         })
     
-    # Çalışma süresi hesapla - courier_status_logs'dan
-    work_hours = 0
-    work_minutes = 0
+    # Çalışma süresi hesapla - courier_daily_active tablosundan (performans raporuyla aynı)
+    total_active_minutes = 0
     try:
-        # Parse start and end datetime
         from datetime import datetime as dt
-        start_parsed = dt.fromisoformat(start_dt.replace('Z', '+00:00'))
-        end_parsed = dt.fromisoformat(end_dt.replace('Z', '+00:00'))
         
-        # Get status logs in the date range
-        status_logs = await db.courier_status_logs.find({
-            "courier_id": courier_id,
-            "timestamp": {
-                "$gte": start_dt,
-                "$lte": end_dt
-            }
-        }).sort("timestamp", 1).to_list(1000)
+        # Tarih formatını çıkar (YYYY-MM-DD)
+        start_date_str = start_dt[:10]
+        end_date_str = end_dt[:10]
         
-        # Calculate total online time
-        total_online_seconds = 0
-        online_start = None
+        # courier_daily_active tablosundan oku
+        daily_records = await db.courier_daily_active.find(
+            {
+                "courier_id": courier_id,
+                "date": {"$gte": start_date_str, "$lte": end_date_str}
+            },
+            {"_id": 0, "date": 1, "active_minutes": 1}
+        ).to_list(100)
         
-        for log in status_logs:
-            status = log.get("status")
-            timestamp_str = log.get("timestamp")
-            if not timestamp_str:
-                continue
-            try:
-                timestamp = dt.fromisoformat(timestamp_str.replace('Z', '+00:00'))
-            except:
-                continue
-            
-            if status == "online":
-                online_start = timestamp
-            elif status == "offline" and online_start:
-                total_online_seconds += (timestamp - online_start).total_seconds()
-                online_start = None
+        total_active_minutes = sum(r.get("active_minutes", 0) for r in daily_records)
         
-        # If still online at end of period
-        if online_start:
-            total_online_seconds += (end_parsed - online_start).total_seconds()
+        # Admin-linked kurye ise, admin aktiflik süresini de ekle
+        courier = await db.couriers.find_one(
+            {"id": courier_id}, 
+            {"_id": 0, "availability_status": 1, "last_active_at": 1, "is_admin_linked": 1, "hourly_rate": 1}
+        )
         
-        work_hours = int(total_online_seconds // 3600)
-        work_minutes = int((total_online_seconds % 3600) // 60)
+        if courier and courier.get("is_admin_linked"):
+            admin = await db.admins.find_one(
+                {"linked_courier_id": courier_id},
+                {"_id": 0, "id": 1}
+            )
+            if admin:
+                admin_daily_records = await db.admin_daily_active.find(
+                    {
+                        "admin_id": admin["id"],
+                        "date": {"$gte": start_date_str, "$lte": end_date_str}
+                    },
+                    {"_id": 0, "active_minutes": 1}
+                ).to_list(100)
+                total_active_minutes += sum(r.get("active_minutes", 0) for r in admin_daily_records)
+        
+        # Eğer bugün aralıkta ve kurye aktif ise, anlık süreyi ekle
+        now = get_turkey_now()
+        today = now.strftime("%Y-%m-%d")
+        
+        if start_date_str <= today <= end_date_str:
+            if courier and courier.get("availability_status") == "active" and courier.get("last_active_at"):
+                try:
+                    last_active = dt.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
+                    current_active_minutes = int((now - last_active).total_seconds() / 60)
+                    if current_active_minutes > 0:
+                        total_active_minutes += current_active_minutes
+                except (ValueError, TypeError):
+                    pass
     except Exception as e:
         print(f"Çalışma süresi hesaplama hatası: {e}")
+        courier = None
     
-    # Saatlik hakediş hesapla
-    total_work_hours = work_hours + (work_minutes / 60)
-    hourly_earnings = round(total_courier_fee / total_work_hours, 2) if total_work_hours > 0 else 0
+    # Kurye hourly_rate'i yoksa çek
+    if not courier:
+        courier = await db.couriers.find_one(
+            {"id": courier_id}, 
+            {"_id": 0, "hourly_rate": 1}
+        )
+    
+    work_hours = int(total_active_minutes // 60)
+    work_minutes = int(total_active_minutes % 60)
+    
+    # Saatlik hakediş = çalışma süresi * kurye hourly_rate
+    hourly_rate = (courier.get("hourly_rate") or 0) if courier else 0
+    total_work_hours = total_active_minutes / 60
+    hourly_earnings = round(total_work_hours * hourly_rate, 2)
     
     return {
         "package_count": len(orders),
         "total_earnings": total_courier_fee,
         "work_hours": work_hours,
         "work_minutes": work_minutes,
+        "hourly_rate": hourly_rate,
         "hourly_earnings": hourly_earnings,
         "orders": order_list
     }
