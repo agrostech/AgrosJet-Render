@@ -22,6 +22,7 @@ import CourierJetPuanPage from "./courier/CourierJetPuanPage";
 import CourierAkademiPage from "./courier/CourierAkademiPage";
 import CourierSiparisPage from "./courier/CourierSiparisPage";
 import CourierRaporlarPage from "./courier/CourierRaporlarPage";
+import CourierKVKKPage from "./courier/CourierKVKKPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
