@@ -319,7 +319,8 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
         "ring_doorbell": extended.get("ringDoorBell", True),
         "status": "pending",
         "source": "migros",
-        "created_at": datetime.now(TURKEY_TZ).isoformat(),
+        "created_at": get_turkey_now(),
+        "updated_at": get_turkey_now(),
         "migros_data": {
             "order_id": migros_order.get("id"),
             "user_id": customer.get("id"),
