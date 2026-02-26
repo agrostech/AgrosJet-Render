@@ -1507,9 +1507,8 @@ async def get_orders_unified(
         
         if date_to:
             try:
-                date_filter_end = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
-                if date_filter_end.tzinfo is None:
-                    date_filter_end = date_filter_end.replace(tzinfo=turkey_tz)
+                date_to_str = ensure_turkey_timezone(date_to)
+                date_filter_end = datetime.fromisoformat(date_to_str)
             except:
                 pass
     
