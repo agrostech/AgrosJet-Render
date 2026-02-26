@@ -49,6 +49,7 @@ const AVAILABILITY_STATUSES = {
 export default function CourierDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { courierId: urlCourierId } = useParams(); // URL'den courier ID al (/kurye/:courierId)
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
