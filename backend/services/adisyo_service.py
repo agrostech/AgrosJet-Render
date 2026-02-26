@@ -601,7 +601,7 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
                         {"adisyo_order_id": adisyo_order_id},
                         {"$set": {
                             "status": new_status,
-                            "updated_at": datetime.now(timezone.utc).isoformat()
+                            "updated_at": datetime.now(TURKEY_TZ).isoformat()
                         }}
                     )
             skipped_count += 1
@@ -614,7 +614,7 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
         from routers.orders import calculate_preparation_time_async
         prep_time = await calculate_preparation_time_async(restaurant_id, shiftjet_order.get("items", []))
         
-        prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+        prep_end = datetime.now(TURKEY_TZ) + timedelta(minutes=prep_time)
         shiftjet_order["preparation_time"] = prep_time
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         
@@ -624,7 +624,7 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
     # Son senkronizasyon zamanını güncelle
     await db.restaurants.update_one(
         {"id": restaurant_id},
-        {"$set": {"adisyo_last_sync": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"adisyo_last_sync": datetime.now(TURKEY_TZ).isoformat()}}
     )
     
     return {
