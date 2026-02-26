@@ -181,7 +181,7 @@ async def get_mutabakat_weekly_summary(company_id: str, week_start: str = None):
     if week_start:
         start_date = datetime.strptime(week_start, "%Y-%m-%d")
     else:
-        today = datetime.now(timezone.utc)
+        today = datetime.now(TURKEY_TZ)
         # Pazartesiye git (weekday 0 = Pazartesi)
         start_date = today - timedelta(days=today.weekday())
     
@@ -190,7 +190,7 @@ async def get_mutabakat_weekly_summary(company_id: str, week_start: str = None):
     # 7 gün için özet oluştur
     days = []
     day_names_tr = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today_str = datetime.now(TURKEY_TZ).strftime("%Y-%m-%d")
     
     for i in range(7):
         day_date = start_date + timedelta(days=i)

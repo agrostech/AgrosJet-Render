@@ -70,7 +70,7 @@ async def create_status_log(
     - Kurye aktiften çıktığında: geçen süre courier_daily_active'e eklenir
     - Log sadece durum değişikliğini kaydeder (duration yok)
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     # Şirket çalışma saatlerini al
     opening_time, _ = await get_company_work_hours(company_id)
@@ -139,7 +139,7 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
     """Kuryenin bugünkü durum logları ve aktiflik süresi"""
     # Türkiye timezone'u (UTC+3)
     turkey_tz = timezone(timedelta(hours=3))
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(TURKEY_TZ)
     now_turkey = now_utc.astimezone(turkey_tz)
     
     # Kurye bilgilerini al
@@ -268,7 +268,7 @@ async def get_today_logs(courier_id: str, company_id: Optional[str] = Query(None
 @router.get("/courier/{courier_id}/range")
 async def get_logs_by_range(courier_id: str, start_date: str, end_date: str):
     """Belirli tarih aralığındaki durum logları ve aktiflik süresi"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     today = now.strftime("%Y-%m-%d")
     
     # Durum loglarını getir (görsel için)
@@ -321,7 +321,7 @@ async def get_logs_by_range(courier_id: str, start_date: str, end_date: str):
 @router.post("/company/{company_id}/weekly-active-hours")
 async def get_weekly_active_hours(company_id: str, week_start: str, week_end: str):
     """Haftalık aktif saatleri tüm kuryeler için hesapla - courier_daily_active tablosundan"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     today = now.strftime("%Y-%m-%d")
     
     try:
@@ -409,7 +409,7 @@ async def get_weekly_active_hours(company_id: str, week_start: str, week_end: st
 @router.get("/{company_id}/courier/{courier_id}/weekly-stats")
 async def get_courier_weekly_stats(company_id: str, courier_id: str, start_date: str = Query(...), end_date: str = Query(...)):
     """Belirli bir kurye için haftalık aktiflik istatistikleri"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     today = now.strftime("%Y-%m-%d")
     
     # Aktiflik sayacından oku

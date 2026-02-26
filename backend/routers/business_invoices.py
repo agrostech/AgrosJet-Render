@@ -42,7 +42,7 @@ async def mark_invoice_issued(company_id: str, business_id: str):
         raise HTTPException(status_code=404, detail="İşletme bulunamadı")
     
     # Calculate Monday of current week
-    today = datetime.now(timezone.utc)
+    today = datetime.now(TURKEY_TZ)
     days_since_monday = today.weekday()  # Monday = 0, Sunday = 6
     monday = today.replace(hour=0, minute=0, second=0, microsecond=0)
     if days_since_monday > 0:

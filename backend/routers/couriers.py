@@ -276,7 +276,7 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
     current_status = courier.get("availability_status", "offline")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     # Durum değişmediyse log tutma
     if current_status == data.availability_status:
@@ -686,7 +686,7 @@ async def get_courier_break_status(courier_id: str):
     # Eğer şu an molada ise, geçen süreyi de ekle
     if courier.get("availability_status") == "on_break" and courier.get("break_start_time"):
         try:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(TURKEY_TZ)
             start_time = datetime.fromisoformat(courier["break_start_time"].replace('Z', '+00:00'))
             current_break_minutes = int((now - start_time).total_seconds() / 60)
             used_break_time += current_break_minutes

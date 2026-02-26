@@ -304,7 +304,7 @@ async def toggle_admin_status(admin_id: str):
     
     current_status = admin.get("availability_status", "offline")
     new_status = "offline" if current_status == "active" else "active"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     company_id = admin.get("company_id")
     linked_courier_id = admin.get("linked_courier_id")
@@ -604,7 +604,7 @@ async def _save_admin_active_time(admin_id: str, last_active_at: str, company_id
         return
     
     try:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(TURKEY_TZ)
         last_active = datetime.fromisoformat(last_active_at.replace('Z', '+00:00'))
         active_minutes = int((now - last_active).total_seconds() / 60)
         
@@ -633,7 +633,7 @@ async def _save_courier_active_time(courier_id: str, last_active_at: str, compan
         return
     
     try:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(TURKEY_TZ)
         last_active = datetime.fromisoformat(last_active_at.replace('Z', '+00:00'))
         active_minutes = int((now - last_active).total_seconds() / 60)
         

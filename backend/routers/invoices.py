@@ -36,7 +36,7 @@ TURKISH_MONTHS = {
 def get_turkish_month_folder(date: datetime = None) -> str:
     """Get Turkish month folder name like 'Ocak 2025'"""
     if date is None:
-        date = datetime.now(timezone.utc)
+        date = datetime.now(TURKEY_TZ)
     month_name = TURKISH_MONTHS[date.month]
     return f"{month_name} {date.year}"
 
@@ -44,7 +44,7 @@ def get_turkish_month_folder(date: datetime = None) -> str:
 def get_week_tuesday(date: datetime = None) -> datetime:
     """Get the Tuesday of the week for given date"""
     if date is None:
-        date = datetime.now(timezone.utc)
+        date = datetime.now(TURKEY_TZ)
     
     # Monday = 0, Tuesday = 1, ..., Sunday = 6
     weekday = date.weekday()
@@ -253,7 +253,7 @@ async def delete_invoice(invoice_id: str, courier_id: str):
     
     # Check 24 hour limit
     uploaded_at = datetime.fromisoformat(invoice["uploaded_at"].replace("Z", "+00:00"))
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     hours_passed = (now - uploaded_at).total_seconds() / 3600
     
     if hours_passed > 24:
@@ -958,7 +958,7 @@ async def download_bulk_invoices(invoice_ids: list[str]):
         5: "Mayis", 6: "Haziran", 7: "Temmuz", 8: "Agustos",
         9: "Eylul", 10: "Ekim", 11: "Kasim", 12: "Aralik"
     }
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     month_name = turkish_months[now.month]
     zip_filename = f"Kurye{month_name}Faturalar.zip"
     

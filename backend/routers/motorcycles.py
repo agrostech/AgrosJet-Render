@@ -59,8 +59,8 @@ async def create_motorcycle(data: MotorcycleCreate):
         "last_brake_km": None,
         "last_variator_date": None,
         "last_variator_km": None,
-        "created_at": datetime.now(timezone.utc),
-        "updated_at": datetime.now(timezone.utc)
+        "created_at": datetime.now(TURKEY_TZ),
+        "updated_at": datetime.now(TURKEY_TZ)
     }
     
     result = db.motorcycles.insert_one(motorcycle)
@@ -102,7 +102,7 @@ async def update_motorcycle(motorcycle_id: str, data: MotorcycleUpdate):
     if not motorcycle:
         raise HTTPException(status_code=404, detail="Motosiklet bulunamadı")
     
-    update_data = {"updated_at": datetime.now(timezone.utc)}
+    update_data = {"updated_at": datetime.now(TURKEY_TZ)}
     if data.brand is not None:
         update_data["brand"] = data.brand
     if data.model is not None:
@@ -151,7 +151,7 @@ async def add_maintenance(data: MaintenanceCreate):
     if not (data.oil_change or data.brake_maintenance or data.variator_maintenance):
         raise HTTPException(status_code=400, detail="En az bir bakım türü seçilmeli")
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     # Create maintenance record
     maintenance = {
@@ -215,7 +215,7 @@ async def get_maintenance_notifications(courier_id: str):
     motorcycles = list(db.motorcycles.find({"courier_id": courier_id}))
     
     notifications = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     for moto in motorcycles:
         moto_notifications = []
@@ -283,7 +283,7 @@ async def dismiss_notification(courier_id: str, motorcycle_id: str, notification
         "courier_id": courier_id,
         "motorcycle_id": ObjectId(motorcycle_id),
         "notification_type": notification_type,
-        "dismissed_at": datetime.now(timezone.utc)
+        "dismissed_at": datetime.now(TURKEY_TZ)
     }
     
     # Upsert - replace if exists
@@ -312,7 +312,7 @@ async def get_active_notifications(courier_id: str):
         dismissed_map[key] = ensure_utc(d["dismissed_at"])
     
     notifications = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     for moto in motorcycles:
         moto_id = str(moto["_id"])

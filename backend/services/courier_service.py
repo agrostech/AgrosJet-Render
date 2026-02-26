@@ -89,7 +89,7 @@ async def get_company_couriers(company_id: str, include_inactive: bool = False, 
             
             if rel.get("termination_end_date"):
                 end_date = datetime.fromisoformat(rel["termination_end_date"].replace("Z", "+00:00"))
-                now = datetime.now(timezone.utc)
+                now = datetime.now(TURKEY_TZ)
                 remaining = (end_date - now).days
                 courier["termination_remaining_days"] = max(0, remaining)
             
@@ -306,7 +306,7 @@ async def start_termination(company_id: str, courier_id: str):
     if relation.get("termination_start_date"):
         return None, "Fesih süreci zaten başlatılmış"
     
-    tomorrow = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    tomorrow = datetime.now(TURKEY_TZ).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     end_date = tomorrow + timedelta(days=15)
     
     await db.company_couriers.update_one(
@@ -361,7 +361,7 @@ async def get_termination_status(company_id: str, courier_id: str):
         return {"has_termination": False}
     
     end_date = datetime.fromisoformat(relation["termination_end_date"].replace("Z", "+00:00"))
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     remaining_days = max(0, (end_date - now).days)
     
     return {
