@@ -261,10 +261,31 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     
     let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
     if (waypoints) {
-      mapsUrl += `&waypoints=${waypoints}`;
+      mapsUrl += `&waypoints=${encodeURIComponent(waypoints)}`;
     }
     
-    window.open(mapsUrl, "_blank");
+    // Native app için route bilgisini de gönder
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'OPEN_ROUTE',
+        data: {
+          origin: { lat: startLat, lng: startLng },
+          destination: {
+            lat: bestRoute[bestRoute.length - 1].delivery_location.latitude,
+            lng: bestRoute[bestRoute.length - 1].delivery_location.longitude
+          },
+          waypoints: bestRoute.slice(0, -1).map(o => ({
+            lat: o.delivery_location.latitude,
+            lng: o.delivery_location.longitude,
+            address: o.customer_address || o.address,
+            orderId: o.id
+          })),
+          mapsUrl: mapsUrl
+        }
+      }));
+    } else {
+      window.open(mapsUrl, "_blank");
+    }
   }, [orders]);
 
   // Siparişleri getir
