@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
@@ -12,6 +12,23 @@ import RestaurantDashboard from "@/pages/restoran/RestaurantDashboard";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 // Initialize axios interceptors for permission headers
 import "@/utils/axiosConfig";
+
+// Eski /courier URL'sini yeni formata yönlendir
+function CourierRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const session = localStorage.getItem("user");
+    if (session) {
+      const userData = JSON.parse(session);
+      if (userData.role === "courier" && userData.id) {
+        navigate(`/kurye/${userData.id}`, { replace: true });
+        return;
+      }
+    }
+    navigate("/courier-login", { replace: true });
+  }, [navigate]);
+  return null;
+}
 
 function App() {
   // Register service worker
