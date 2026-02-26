@@ -586,7 +586,8 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
     
     # Diğer bilgiler
     verification_code = getir_order.get("verificationCode") or (confirmation_id[:4] if confirmation_id else "")
-    created_at = getir_order.get("createdAt") or getir_order.get("checkoutDate") or datetime.now(TURKEY_TZ).isoformat()
+    raw_created_at = getir_order.get("createdAt") or getir_order.get("checkoutDate")
+    created_at = ensure_turkey_timezone(raw_created_at) if raw_created_at else get_turkey_now()
     raw_status = getir_order.get("status", 400)
     
     return {
@@ -621,7 +622,7 @@ async def convert_getir_order_to_shiftjet(getir_order: dict, restaurant: dict) -
         "notes": " | ".join(notes_parts),
         "source": "getir",
         "created_at": created_at,
-        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
+        "updated_at": get_turkey_now(),
         "courier_id": None,
         "courier_name": None,
         "preparation_time": preparation_time,
