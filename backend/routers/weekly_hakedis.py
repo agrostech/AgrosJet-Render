@@ -145,9 +145,13 @@ async def get_available_weeks(company_id: str):
 @router.post("/data/{company_id}")
 async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     """Seçili hafta için kurye hakediş verilerini getir"""
+    # Frontend Türkiye saati gönderiyor, +03:00 formatına çevir
+    start_dt_str = ensure_turkey_timezone(week.week_start)
+    end_dt_str = ensure_turkey_timezone(week.week_end)
+    
     try:
-        start_dt = datetime.fromisoformat(week.week_start.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(week.week_end.replace('Z', '+00:00'))
+        start_dt = datetime.fromisoformat(start_dt_str)
+        end_dt = datetime.fromisoformat(end_dt_str)
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
@@ -169,7 +173,7 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
     if not courier_ids:
         return {"couriers": [], "summary": {"total_amount": 0, "total_orders": 0, "total_hourly_earnings": 0}}
     
-    # Teslim edilen siparişleri getir
+    # Teslim edilen siparişleri getir - Türkiye saati (+03:00) formatında sorgu
     pipeline = [
         {
             "$match": {
@@ -177,8 +181,8 @@ async def get_week_hakedis_data(company_id: str, week: WeekInfo):
                 "status": "delivered",
                 "courier_id": {"$in": courier_ids},
                 "delivered_at": {
-                    "$gte": start_dt.isoformat(),
-                    "$lte": end_dt.isoformat()
+                    "$gte": start_dt_str,
+                    "$lte": end_dt_str
                 }
             }
         },
