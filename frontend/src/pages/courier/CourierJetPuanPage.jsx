@@ -138,24 +138,24 @@ export default function CourierJetPuanPage({ courierId }) {
   return (
     <div className="space-y-4" data-testid="courier-jetpuan-page">
       {/* Balance Card */}
-      <div className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg">
+      <div className="border border-amber-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl">
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
-              <Coins className="w-6 h-6 text-amber-600" />
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+              <Coins className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <p className="text-sm text-amber-700">JetPuan Bakiyem</p>
-              <p className="text-3xl font-bold text-amber-800">{balance.toFixed(2)}</p>
+              <p className="text-xs text-amber-600/80">JetPuan Bakiyem</p>
+              <p className="text-2xl font-semibold text-amber-700">{balance.toFixed(2)}</p>
             </div>
           </div>
           {cart.length > 0 && (
             <Button 
               onClick={() => setShowCartModal(true)} 
-              className="bg-amber-600 hover:bg-amber-700 font-semibold"
+              className="bg-amber-500 hover:bg-amber-600 font-medium text-sm h-9"
               data-testid="open-cart-btn"
             >
-              <ShoppingCart className="w-4 h-4 mr-2" />
+              <ShoppingCart className="w-4 h-4 mr-1.5" />
               Sepet ({cartItemCount})
             </Button>
           )}
