@@ -23,8 +23,8 @@ export default function CourierLoginPage() {
     const session = localStorage.getItem("user");
     if (session) {
       const userData = JSON.parse(session);
-      if (userData.role === "courier") {
-        navigate("/kurye");
+      if (userData.role === "courier" && userData.id) {
+        navigate(`/kurye/${userData.id}`);
       }
     }
     
@@ -75,7 +75,7 @@ export default function CourierLoginPage() {
         }));
       }
       
-      navigate("/kurye");
+      navigate(`/kurye/${res.data.id}`);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Giriş başarısız");
     } finally {
