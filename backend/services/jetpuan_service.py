@@ -43,7 +43,7 @@ async def credit_points_to_courier(courier_id: str, amount: float, description: 
         "amount": amount,
         "type": "credit",
         "description": description,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.jetpuan_transactions.insert_one(transaction)
     return transaction
@@ -62,7 +62,7 @@ async def debit_points_from_courier(courier_id: str, amount: float, description:
         "amount": -amount,
         "type": "debit",
         "description": description,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.jetpuan_transactions.insert_one(transaction)
     return transaction
