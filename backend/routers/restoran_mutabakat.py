@@ -567,7 +567,7 @@ async def update_auto_settings(company_id: str, data: AutoSettingsUpdate):
             "$set": {
                 "company_id": company_id,
                 "enabled": data.enabled,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }
         },
         upsert=True
