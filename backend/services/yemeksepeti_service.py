@@ -335,8 +335,9 @@ async def convert_yemeksepeti_order_to_shiftjet(webhook_data: dict, restaurant: 
     delivery_type = webhook_data.get("delivery_type", "PLATFORM")
     is_platform_delivery = delivery_type.upper() != "VENDOR"
     
-    # Oluşturulma zamanı
-    created_at = webhook_data.get("created_at") or webhook_data.get("order_time") or datetime.now(TURKEY_TZ).isoformat()
+    # Oluşturulma zamanı - Türkiye timezone'u ile
+    raw_created_at = webhook_data.get("created_at") or webhook_data.get("order_time")
+    created_at = ensure_turkey_timezone(raw_created_at) if raw_created_at else get_turkey_now()
     
     # Vendor/Store bilgisi
     vendor_id = webhook_data.get("vendor_id") or webhook_data.get("store_id")
@@ -369,7 +370,7 @@ async def convert_yemeksepeti_order_to_shiftjet(webhook_data: dict, restaurant: 
         "notes": order_notes,
         "source": "yemeksepeti",
         "created_at": created_at,
-        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
+        "updated_at": get_turkey_now(),
         "courier_id": None,
         "courier_name": None,
         "yemeksepeti_raw": {
