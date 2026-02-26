@@ -419,13 +419,15 @@ async def apply_mutabakat(company_id: str, data: ApplyMutabakatRequest):
         raise HTTPException(status_code=400, detail="İşlenecek restoran seçilmedi")
     
     try:
-        start_dt = datetime.fromisoformat(data.week_start.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(data.week_end.replace('Z', '+00:00'))
+        start_dt_str = ensure_turkey_timezone(data.week_start)
+        end_dt_str = ensure_turkey_timezone(data.week_end)
+        start_dt = datetime.fromisoformat(start_dt_str)
+        end_dt = datetime.fromisoformat(end_dt_str)
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
     description = get_mutabakat_description(start_dt, end_dt)
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     processed_count = 0
     skipped_count = 0
