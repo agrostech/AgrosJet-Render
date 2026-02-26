@@ -405,6 +405,64 @@ async def get_weekly_active_hours(company_id: str, week_start: str, week_end: st
     }
 
 
+@router.get("/{company_id}/courier/{courier_id}/weekly-stats")
+async def get_courier_weekly_stats(company_id: str, courier_id: str, start_date: str = Query(...), end_date: str = Query(...)):
+    """Belirli bir kurye için haftalık aktiflik istatistikleri"""
+    now = datetime.now(timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+    
+    # Aktiflik sayacından oku
+    daily_records = await db.courier_daily_active.find(
+        {
+            "courier_id": courier_id,
+            "date": {"$gte": start_date, "$lte": end_date}
+        },
+        {"_id": 0, "date": 1, "active_minutes": 1}
+    ).to_list(100)
+    
+    total_active_minutes = sum(r["active_minutes"] for r in daily_records)
+    
+    # Admin-linked kurye ise, admin aktiflik süresini de ekle
+    courier = await db.couriers.find_one(
+        {"id": courier_id}, 
+        {"_id": 0, "availability_status": 1, "last_active_at": 1, "is_admin_linked": 1}
+    )
+    
+    if courier and courier.get("is_admin_linked"):
+        admin = await db.admins.find_one(
+            {"linked_courier_id": courier_id},
+            {"_id": 0, "id": 1}
+        )
+        if admin:
+            admin_daily_records = await db.admin_daily_active.find(
+                {
+                    "admin_id": admin["id"],
+                    "date": {"$gte": start_date, "$lte": end_date}
+                },
+                {"_id": 0, "active_minutes": 1}
+            ).to_list(100)
+            total_active_minutes += sum(r["active_minutes"] for r in admin_daily_records)
+    
+    # Eğer bugün aralıkta ve kurye aktif ise, anlık süreyi ekle
+    if start_date <= today <= end_date:
+        if courier and courier.get("availability_status") == "active" and courier.get("last_active_at"):
+            try:
+                last_active = datetime.fromisoformat(courier["last_active_at"].replace('Z', '+00:00'))
+                current_active_minutes = int((now - last_active).total_seconds() / 60)
+                if current_active_minutes > 0:
+                    total_active_minutes += current_active_minutes
+            except (ValueError, TypeError):
+                pass
+    
+    return {
+        "courier_id": courier_id,
+        "start_date": start_date,
+        "end_date": end_date,
+        "total_active_minutes": total_active_minutes,
+        "total_active_hours": round(total_active_minutes / 60, 2)
+    }
+
+
 # Index oluşturma (startup'ta çağrılmalı)
 async def create_indexes():
     """Performans için index oluştur"""
