@@ -201,6 +201,48 @@ export default function CourierDashboard() {
   }, [navigate]);
 
   useEffect(() => {
+    // URL'den gelen courierId varsa (/kurye/:courierId), direkt API'den kurye bilgisini al
+    if (urlCourierId) {
+      const fetchCourierById = async () => {
+        try {
+          const res = await axios.get(`${API}/couriers/${urlCourierId}`);
+          const courierData = {
+            id: res.data.id,
+            name: res.data.name,
+            phone: res.data.phone,
+            company_id: res.data.company_id,
+            role: "courier"
+          };
+          setUser(courierData);
+          localStorage.setItem("user", JSON.stringify(courierData));
+          
+          // Fetch additional data
+          if (courierData.company_id) {
+            fetchCompanyInfo(courierData.company_id);
+          }
+          checkDocumentStatus(courierData.id);
+          checkMaintenanceNotifications(courierData.id);
+          fetchAvailabilityStatus(courierData.id);
+          fetchBreakStatus(courierData.id);
+          checkCourierStatus(courierData.id, courierData.company_id);
+          
+          // Her 30 saniyede bir pasif durumunu ve mola durumunu kontrol et
+          const intervalId = setInterval(() => {
+            checkCourierStatus(courierData.id, courierData.company_id);
+            fetchBreakStatus(courierData.id);
+          }, 30000);
+          
+          return () => clearInterval(intervalId);
+        } catch (err) {
+          console.error("Kurye bilgisi alınamadı:", err);
+          navigate("/courier-login");
+        }
+      };
+      fetchCourierById();
+      return;
+    }
+    
+    // Normal akış - localStorage'dan oku
     const stored = localStorage.getItem("user");
     if (!stored) {
       navigate("/login");
@@ -212,15 +254,6 @@ export default function CourierDashboard() {
       return;
     }
     setUser(parsed);
-    
-    // URL'ye courier_id ekle (native app için)
-    if (parsed.id) {
-      const currentUrl = new URL(window.location.href);
-      if (currentUrl.searchParams.get('courier_id') !== parsed.id) {
-        currentUrl.searchParams.set('courier_id', parsed.id);
-        window.history.replaceState({}, '', currentUrl.toString());
-      }
-    }
     
     // Fetch additional data
     if (parsed.company_id) {
@@ -243,7 +276,7 @@ export default function CourierDashboard() {
       
       return () => clearInterval(intervalId);
     }
-  }, [navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus]);
+  }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
