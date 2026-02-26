@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { toast } from "sonner";
 import { Calculator, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/loading-spinner";
@@ -53,9 +52,7 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       setTotalCount(res.data.total_count);
       setHasMore(res.data.has_more);
     } catch (err) {
-      if (!err.handled) {
-        toast.error("İşlemler yüklenemedi");
-      }
+      console.error("İşlemler yüklenemedi");
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -134,7 +131,6 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     if (!file || !uploadingFor) return;
 
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error("Sadece PDF dosyası yüklenebilir");
       return;
     }
 
@@ -151,13 +147,10 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       const res = await axios.post(`${API}/invoices/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      toast.success(res.data.message);
       fetchInvoices();
       fetchShortfalls(); // Refresh shortfalls after upload
     } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
-      }
+      console.error("Fatura yüklenemedi");
     } finally {
       setUploadingFor(null);
       e.target.value = '';
@@ -181,7 +174,6 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.heic', '.heif'];
     const fileExt = '.' + file.name.split('.').pop().toLowerCase();
     if (!allowedExtensions.includes(fileExt)) {
-      toast.error("Sadece PDF veya resim dosyası yüklenebilir");
       return;
     }
 
@@ -199,14 +191,11 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
       const res = await axios.post(`${API}/invoices/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      toast.success("Eksik fatura yüklendi");
       fetchInvoices();
       fetchShortfalls();
       fetchTransactions(); // Refresh to update shortfall status
     } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Fatura yüklenemedi");
-      }
+      console.error("Fatura yüklenemedi");
     } finally {
       setUploadingFor(null);
       setPendingShortfallTxId(null);
@@ -223,12 +212,9 @@ export default function CourierMuhasebePage({ courierId, courierName, companyId 
     if (!pendingDeleteInvoiceId) return;
     try {
       await axios.delete(`${API}/invoices/${pendingDeleteInvoiceId}?courier_id=${courierId}`);
-      toast.success("Fatura silindi");
       fetchInvoices();
     } catch (err) {
-      if (!err.handled) {
-        toast.error(err.response?.data?.detail || "Fatura silinemedi");
-      }
+      console.error("Fatura silinemedi");
     } finally {
       setConfirmOpen(false);
       setPendingDeleteInvoiceId(null);
