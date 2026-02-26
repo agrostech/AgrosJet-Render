@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
 from utils.database import db
+from utils.helpers import ensure_turkey_timezone, get_turkey_now
 
 router = APIRouter(prefix="/api/hakedis", tags=["Hakediş"])
 
@@ -19,9 +20,13 @@ class HakedisFilter(BaseModel):
 async def get_couriers_hakedis(company_id: str, filters: HakedisFilter):
     """Belirli tarih aralığında kuryelerin toplam hakedişlerini getir"""
     
+    # Frontend Türkiye saati gönderiyor, +03:00 formatına çevir
+    start_dt_str = ensure_turkey_timezone(filters.start_date)
+    end_dt_str = ensure_turkey_timezone(filters.end_date)
+    
     try:
-        start_dt = datetime.fromisoformat(filters.start_date.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(filters.end_date.replace('Z', '+00:00'))
+        start_dt = datetime.fromisoformat(start_dt_str)
+        end_dt = datetime.fromisoformat(end_dt_str)
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
