@@ -21,11 +21,16 @@ async def get_courier_report(
     """Kurye bazlı sipariş raporu - parçalı ödeme ve saatlik kazanç desteği ile"""
     from datetime import datetime, timezone, timedelta
     
-    # Tarih formatını düzelt
+    # Tarih formatını düzelt - Türkiye timezone (+03:00) ekle
     if len(start_datetime) == 16:
-        start_datetime = start_datetime + ":00"
+        start_datetime = start_datetime + ":00+03:00"
+    elif "+03:00" not in start_datetime and "+00:00" not in start_datetime:
+        start_datetime = start_datetime + "+03:00"
+    
     if len(end_datetime) == 16:
-        end_datetime = end_datetime + ":59"
+        end_datetime = end_datetime + ":59+03:00"
+    elif "+03:00" not in end_datetime and "+00:00" not in end_datetime:
+        end_datetime = end_datetime + "+03:00"
     
     # Tarih string'lerini date formatına çevir (log sorgusu için)
     try:
