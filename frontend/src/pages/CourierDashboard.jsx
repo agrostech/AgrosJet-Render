@@ -98,6 +98,44 @@ export default function CourierDashboard() {
     }
   }, []);
 
+  // FCM Token'ı backend'e kaydet
+  const saveFcmToken = useCallback(async (courierId, fcmToken) => {
+    try {
+      await axios.put(`${API}/couriers/${courierId}/fcm-token`, {
+        fcm_token: fcmToken
+      });
+      console.log('FCM Token kaydedildi');
+    } catch (err) {
+      console.error('FCM Token kaydetme hatası:', err);
+    }
+  }, []);
+
+  // Native app'ten gelen mesajları dinle (FCM Token için)
+  useEffect(() => {
+    if (!window.isAgrosJetApp) return;
+    
+    const handleNativeMessage = async (e) => {
+      console.log('Native mesaj:', e.detail);
+      
+      if (e.detail?.type === 'PUSH_TOKEN' && e.detail?.data && user?.id) {
+        const fcmToken = e.detail.data;
+        console.log('FCM Token alındı:', fcmToken);
+        await saveFcmToken(user.id, fcmToken);
+      }
+    };
+    
+    window.addEventListener('nativeMessage', handleNativeMessage);
+    
+    // Token'ı iste
+    if (window.AgrosJetNative?.getPushToken) {
+      window.AgrosJetNative.getPushToken();
+    }
+    
+    return () => {
+      window.removeEventListener('nativeMessage', handleNativeMessage);
+    };
+  }, [user?.id, saveFcmToken]);
+
   // Fetch maintenance notifications
   const checkMaintenanceNotifications = useCallback(async (courierId) => {
     try {
