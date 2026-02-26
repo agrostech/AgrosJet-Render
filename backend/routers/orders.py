@@ -237,7 +237,7 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
             courier_eta = None
             if new_status == "assigned":
                 # Tahmini 30 dakika sonra
-                eta_time = datetime.now(timezone.utc) + timedelta(minutes=30)
+                eta_time = datetime.now(TURKEY_TZ) + timedelta(minutes=30)
                 courier_eta = eta_time.isoformat()
             
             result = await notify_sepettakip_status(sepettakip_order_id, new_status, courier_eta)
@@ -466,7 +466,7 @@ async def assign_courier_core(
     if not courier:
         return {"success": False, "error": "Kurye bulunamadı"}
     
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(TURKEY_TZ).isoformat()
     order_id = order["id"]
     
     # Güncelleme verileri
@@ -1323,7 +1323,7 @@ async def generate_mock_orders(company_id: str, count: int = 5, restaurant_id: s
         total = sum(item["price"] * item["quantity"] for item in items)
         
         # Şimdi oluştur (geri sayım için)
-        created_at = datetime.now(timezone.utc)
+        created_at = datetime.now(TURKEY_TZ)
         
         # Restoran hazırlık süresi (varsayılan 15 dakika)
         prep_time = restaurant.get("preparation_time", 15)
@@ -1729,7 +1729,7 @@ async def clear_mock_orders_for_restaurant(restaurant_id: str):
 @router.get("/{company_id}/stats/summary")
 async def get_order_stats(company_id: str):
     """Sipariş özet istatistikleri"""
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(TURKEY_TZ).replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Bugünkü siparişler
     today_orders = await db.orders.count_documents({
@@ -1764,7 +1764,7 @@ async def check_preparation_times(company_id: str = None, restaurant_id: str = N
     Hazırlık süresi dolan siparişleri otomatik 'Hazır' durumuna güncelle.
     company_id veya restaurant_id parametrelerinden biri verilmeli.
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(TURKEY_TZ).isoformat()
     
     # Query oluştur
     query = {
@@ -1999,7 +1999,7 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     if sepettakip_order_id:
         try:
             from routers.sepettakip import notify_sepettakip_status
-            courier_eta = (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat()
+            courier_eta = (datetime.now(TURKEY_TZ) + timedelta(minutes=30)).isoformat()
             await notify_sepettakip_status(sepettakip_order_id, "assigned", courier_eta)
             logger.info(f"SepetTakip kurye atama bildirimi: order={sepettakip_order_id}")
         except Exception as e:
@@ -2216,7 +2216,7 @@ async def courier_bulk_pickup(courier_id: str, data: BulkPickupRequest):
     if len(restaurant_ids) > 1:
         raise HTTPException(status_code=400, detail="Toplu yola çıkarma sadece aynı restorandan siparişler için geçerlidir")
     
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(TURKEY_TZ).isoformat()
     
     # Tüm siparişleri güncelle
     history_entry = {
@@ -2367,7 +2367,7 @@ async def courier_reject_order(courier_id: str, order_id: str, reason: Optional[
             "courier_id": None,
             "courier_name": None,
             "rejection_reason": reason,
-            "rejected_at": datetime.now(timezone.utc).isoformat()
+            "rejected_at": datetime.now(TURKEY_TZ).isoformat()
         },
         notify_platform=False
     )
@@ -2390,7 +2390,7 @@ async def update_order_fees(order_id: str, data: OrderFeesUpdate):
     if order.get("status") != "delivered":
         raise HTTPException(status_code=400, detail="Sadece teslim edilmiş siparişlerin ücreti değiştirilebilir")
     
-    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    update_data = {"updated_at": datetime.now(TURKEY_TZ).isoformat()}
     
     if data.courier_fee is not None:
         update_data["courier_fee"] = round(data.courier_fee, 2)
@@ -2410,7 +2410,7 @@ async def update_order_fees(order_id: str, data: OrderFeesUpdate):
     history_entry = {
         "status": "fee_updated",
         "label": "Ücret Güncellendi",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(TURKEY_TZ).isoformat(),
         "note": f"Kurye: {data.courier_fee}₺, Restoran: {data.restaurant_fee}₺{kdv_info}{pos_info}",
         "actor_type": "super_admin",
         "actor_name": data.admin_name or "Admin"
@@ -2448,7 +2448,7 @@ async def create_manual_order(data: ManualOrderCreate):
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     # Sipariş numarası oluştur
     order_number = f"TEL-{random.randint(1000, 9999)}"
@@ -2659,7 +2659,7 @@ async def mark_restaurant_delivery(order_id: str, restaurant_id: str):
                 else:
                     assigned_time = assigned_at
                 
-                now = datetime.now(timezone.utc)
+                now = datetime.now(TURKEY_TZ)
                 elapsed = (now - assigned_time).total_seconds()
                 
                 if elapsed > 180:  # 3 dakika = 180 saniye
@@ -2671,7 +2671,7 @@ async def mark_restaurant_delivery(order_id: str, restaurant_id: str):
                 pass  # Tarih parse edilemezse devam et
     
     # İşaretle
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     # Önceki durumu ve hazırlık bilgilerini kaydet (geri aktarıldığında kullanılacak)
     update_data = {
@@ -2746,7 +2746,7 @@ async def unmark_restaurant_delivery(order_id: str, restaurant_id: str):
     if not permissions.get("can_mark_restaurant_delivery", False):
         raise HTTPException(status_code=403, detail="Restoran teslimatı işaretleme izniniz yok")
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(TURKEY_TZ)
     
     # Restoran teslimatı öncesi duruma dön
     # Eğer önceki durum kaydedilmişse onu kullan, yoksa "preparing" olarak başlat
