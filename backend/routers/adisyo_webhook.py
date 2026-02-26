@@ -20,6 +20,9 @@ import hashlib
 import base64
 from datetime import datetime, timezone, timedelta
 
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
+
 from utils.database import db
 from services.adisyo_service import (
     get_order_details,
@@ -143,7 +146,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
         if current_status != new_status:
             update_data = {
                 "status": new_status,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": datetime.now(TURKEY_TZ).isoformat()
             }
             
             if new_status == "delivered":
@@ -177,7 +180,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
     except:
         prep_time = restaurant.get("preparation_time", 15)
     
-    prep_end = datetime.now(timezone.utc) + timedelta(minutes=prep_time)
+    prep_end = datetime.now(TURKEY_TZ) + timedelta(minutes=prep_time)
     shiftjet_order["preparation_time"] = prep_time
     shiftjet_order["preparation_end_at"] = prep_end.isoformat()
     
@@ -284,7 +287,7 @@ async def adisyo_webhook(
             "event_time": event_time,
             "restaurant_identity": restaurant_identity,
             "restaurant_id": restaurant.get("id"),
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(TURKEY_TZ).isoformat(),
             "result": result
         })
         
@@ -365,7 +368,7 @@ async def adisyo_webhook_health():
     return {
         "status": "healthy",
         "service": "adisyo_webhook",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(TURKEY_TZ).isoformat(),
         "endpoints": {
             "main": "/api/adisyo/webhook",
             "by_restaurant": "/api/adisyo/webhook/{restaurant_id}"
@@ -388,9 +391,9 @@ async def test_adisyo_webhook():
     Gerçek Adisyo isteği olmadan webhook akışını test eder.
     """
     test_payload = {
-        "eventId": f"test-{datetime.now(timezone.utc).isoformat()}",
+        "eventId": f"test-{datetime.now(TURKEY_TZ).isoformat()}",
         "webhookEventType": "order.created",
-        "eventTimeUtc": datetime.now(timezone.utc).isoformat(),
+        "eventTimeUtc": datetime.now(TURKEY_TZ).isoformat(),
         "data": {
             "id": 99999999
         },
