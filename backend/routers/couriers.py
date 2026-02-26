@@ -937,3 +937,27 @@ async def update_courier_fcm_token(courier_id: str, data: FCMTokenUpdate):
     
     return {"message": "FCM token güncellendi"}
 
+
+class FCMTokenRequest(BaseModel):
+    fcm_token: str
+    courier_id: Optional[str] = None
+
+
+@router.post("/courier/fcm-token")
+async def save_courier_fcm_token(data: FCMTokenRequest):
+    """Native app için FCM token kaydetme endpoint'i (alternatif format)"""
+    courier_id = data.courier_id
+    
+    if not courier_id:
+        raise HTTPException(status_code=400, detail="courier_id gerekli")
+    
+    result = await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"fcm_token": data.fcm_token, "fcm_token_updated_at": get_turkey_now()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    return {"success": True, "message": "FCM token kaydedildi"}
+
