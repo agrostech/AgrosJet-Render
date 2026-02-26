@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Banknote, CreditCard, Info, Calendar, Search } from "lucide-react";
+import { Loader2, Banknote, CreditCard, Info, Calendar, Search, Utensils, Globe } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatMoney } from "./utils";
 
@@ -222,8 +222,58 @@ export default function OdemeRaporu({ courierId, companyId }) {
             </CardContent>
           </Card>
 
+          {/* Yemek Kartı - Özet ve Siparişler Birleşik */}
+          <Card className="border-orange-200 overflow-hidden">
+            <CardContent className="p-0">
+              {/* Özet Başlık */}
+              <div className="bg-orange-50 p-4 flex items-center gap-3 border-b border-orange-200">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                  <Utensils className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-orange-600 font-medium">Yemek Kartı ({data.meal_card_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold text-orange-700">{formatMoney(data.meal_card_total)}</p>
+                </div>
+              </div>
+              {/* Sipariş Tablosu */}
+              {data.meal_card_orders?.length > 0 && (
+                <div className="p-3 max-h-64 overflow-y-auto">
+                  <OrderTable 
+                    orders={data.meal_card_orders} 
+                    colorClass={{ text: "text-orange-600", border: "border-orange-100" }} 
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Online - Özet ve Siparişler Birleşik */}
+          <Card className="border-purple-200 overflow-hidden">
+            <CardContent className="p-0">
+              {/* Özet Başlık */}
+              <div className="bg-purple-50 p-4 flex items-center gap-3 border-b border-purple-200">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-purple-600 font-medium">Online ({data.online_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold text-purple-700">{formatMoney(data.online_total)}</p>
+                </div>
+              </div>
+              {/* Sipariş Tablosu */}
+              {data.online_orders?.length > 0 && (
+                <div className="p-3 max-h-64 overflow-y-auto">
+                  <OrderTable 
+                    orders={data.online_orders} 
+                    colorClass={{ text: "text-purple-600", border: "border-purple-100" }} 
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Boş durum */}
-          {data.cash_orders?.length === 0 && data.card_orders?.length === 0 && (
+          {data.cash_orders?.length === 0 && data.card_orders?.length === 0 && data.meal_card_orders?.length === 0 && data.online_orders?.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">Bu tarih aralığında sipariş bulunamadı</p>
           )}
         </div>
