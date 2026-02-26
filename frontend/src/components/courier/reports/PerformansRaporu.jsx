@@ -190,10 +190,10 @@ export default function PerformansRaporu({ courierId, companyId }) {
       {/* Kartlar */}
       <div className="grid grid-cols-2 gap-3">
         {/* Toplam Teslimat */}
-        <Card className="border border-slate-200">
+        <Card className="border-2 border-purple-400">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Package className="w-4 h-4 text-slate-600" />
+              <Package className="w-4 h-4 text-purple-600" />
               <span className="text-xs text-slate-600">Toplam Teslimat</span>
             </div>
             <p className="text-2xl font-bold text-slate-800">{stats.totalDeliveries}</p>
@@ -206,10 +206,10 @@ export default function PerformansRaporu({ courierId, companyId }) {
         </Card>
 
         {/* Toplam Çalışma Süresi */}
-        <Card className="border border-slate-200">
+        <Card className="border-2 border-blue-400">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-slate-600" />
+              <Clock className="w-4 h-4 text-blue-600" />
               <span className="text-xs text-slate-600">Toplam Çalışma Süresi</span>
             </div>
             <p className="text-2xl font-bold text-slate-800">{formatDuration(stats.totalWorkMinutes)}</p>
@@ -222,10 +222,10 @@ export default function PerformansRaporu({ courierId, companyId }) {
         </Card>
 
         {/* Ortalama Teslimat Süresi */}
-        <Card className="border border-slate-200">
+        <Card className="border-2 border-orange-400">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Timer className="w-4 h-4 text-slate-600" />
+              <Timer className="w-4 h-4 text-orange-600" />
               <span className="text-xs text-slate-600">Ort. Teslimat Süresi</span>
             </div>
             <p className="text-2xl font-bold text-slate-800">
@@ -240,10 +240,10 @@ export default function PerformansRaporu({ courierId, companyId }) {
         </Card>
 
         {/* Haftalık Toplam Kazanç */}
-        <Card className="border border-slate-200">
+        <Card className="border-2 border-green-400">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Banknote className="w-4 h-4 text-slate-600" />
+              <Banknote className="w-4 h-4 text-green-600" />
               <span className="text-xs text-slate-600">Haftalık Kazanç</span>
             </div>
             <p className="text-2xl font-bold text-slate-800">{formatMoney(stats.totalEarnings)}</p>
