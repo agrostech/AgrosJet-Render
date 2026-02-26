@@ -1,10 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 import os
 from pymongo import MongoClient
+
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
+
+def get_turkey_now():
+    return datetime.now(TURKEY_TZ).isoformat()
 
 router = APIRouter(prefix="/api/motorcycles", tags=["motorcycles"])
 
