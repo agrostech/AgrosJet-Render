@@ -57,10 +57,13 @@ export default function CourierDashboard() {
   const [companyLogo, setCompanyLogo] = useState("");
   const [documentsComplete, setDocumentsComplete] = useState(true);
   const [maintenanceNotifications, setMaintenanceNotifications] = useState(0);
-  const [navItems, setNavItems] = useState(BASE_NAV_ITEMS);
+  const [navItems, setNavItems] = useState([]);
   const [availabilityStatus, setAvailabilityStatus] = useState("offline");
   const [statusLoading, setStatusLoading] = useState(false);
   const [breakStatus, setBreakStatus] = useState(null);
+  
+  // Base path for navigation (dynamic based on URL)
+  const basePath = urlCourierId ? `/kurye/${urlCourierId}` : '/courier';
   
   // Refs for background task management
   const wakeLockRef = useRef(null);
