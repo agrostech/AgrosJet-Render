@@ -773,9 +773,63 @@ async def get_courier_earnings_report(
             "date": order.get("created_at", "")[:16].replace("T", " ") if order.get("created_at") else ""
         })
     
+    # Çalışma süresi hesapla - courier_status_logs'dan
+    work_hours = 0
+    work_minutes = 0
+    try:
+        # Parse start and end datetime
+        from datetime import datetime as dt
+        start_parsed = dt.fromisoformat(start_dt.replace('Z', '+00:00'))
+        end_parsed = dt.fromisoformat(end_dt.replace('Z', '+00:00'))
+        
+        # Get status logs in the date range
+        status_logs = await db.courier_status_logs.find({
+            "courier_id": courier_id,
+            "timestamp": {
+                "$gte": start_dt,
+                "$lte": end_dt
+            }
+        }).sort("timestamp", 1).to_list(1000)
+        
+        # Calculate total online time
+        total_online_seconds = 0
+        online_start = None
+        
+        for log in status_logs:
+            status = log.get("status")
+            timestamp_str = log.get("timestamp")
+            if not timestamp_str:
+                continue
+            try:
+                timestamp = dt.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+            except:
+                continue
+            
+            if status == "online":
+                online_start = timestamp
+            elif status == "offline" and online_start:
+                total_online_seconds += (timestamp - online_start).total_seconds()
+                online_start = None
+        
+        # If still online at end of period
+        if online_start:
+            total_online_seconds += (end_parsed - online_start).total_seconds()
+        
+        work_hours = int(total_online_seconds // 3600)
+        work_minutes = int((total_online_seconds % 3600) // 60)
+    except Exception as e:
+        print(f"Çalışma süresi hesaplama hatası: {e}")
+    
+    # Saatlik hakediş hesapla
+    total_work_hours = work_hours + (work_minutes / 60)
+    hourly_earnings = round(total_courier_fee / total_work_hours, 2) if total_work_hours > 0 else 0
+    
     return {
         "package_count": len(orders),
         "total_earnings": total_courier_fee,
+        "work_hours": work_hours,
+        "work_minutes": work_minutes,
+        "hourly_earnings": hourly_earnings,
         "orders": order_list
     }
 
