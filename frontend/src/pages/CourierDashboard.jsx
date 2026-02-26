@@ -37,7 +37,6 @@ const BASE_NAV_ITEMS = [
   { path: "/courier/akademi", label: "Akademi", icon: GraduationCap, key: "akademi" },
   { path: "/courier/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan" },
   { path: "/courier/evraklar", label: "Evraklar", icon: FileText, key: "evraklar" },
-  { path: "/courier/kvkk", label: "KVKK", icon: Shield, key: "kvkk" },
 ];
 
 // Kurye durumları
