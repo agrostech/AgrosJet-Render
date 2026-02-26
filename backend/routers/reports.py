@@ -815,7 +815,7 @@ async def get_courier_earnings_report(
                 total_active_minutes += sum(r.get("active_minutes", 0) for r in admin_daily_records)
         
         # Eğer bugün aralıkta ve kurye aktif ise, anlık süreyi ekle
-        now = get_turkey_now()
+        now = datetime.now(TURKEY_TZ)
         today = now.strftime("%Y-%m-%d")
         
         if start_date_str <= today <= end_date_str:
