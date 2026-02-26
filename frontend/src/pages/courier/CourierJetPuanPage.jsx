@@ -8,17 +8,15 @@ import {
   History, 
   ShoppingCart,
   Package,
-  ChevronLeft,
-  ChevronRight
 } from "lucide-react";
 import { MarketTab, HistoryTab, OrdersTab, CartModal } from "@/components/courier/jetpuan";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const TABS = [
-  { key: "market", label: "Market", icon: ShoppingBag },
-  { key: "orders", label: "Siparişlerim", icon: Package },
-  { key: "history", label: "Puan Geçmişi", icon: History },
+  { key: "market", label: "Market", icon: ShoppingBag, color: "amber" },
+  { key: "orders", label: "Siparişlerim", icon: Package, color: "blue" },
+  { key: "history", label: "Puan Geçmişi", icon: History, color: "slate" },
 ];
 
 export default function CourierJetPuanPage({ courierId }) {
@@ -26,34 +24,6 @@ export default function CourierJetPuanPage({ courierId }) {
   const [balance, setBalance] = useState(0);
   const [cart, setCart] = useState([]);
   const [showCartModal, setShowCartModal] = useState(false);
-  const tabsContainerRef = useRef(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
-
-  const checkScrollArrows = () => {
-    if (tabsContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 5);
-    }
-  };
-
-  useEffect(() => {
-    checkScrollArrows();
-    window.addEventListener('resize', checkScrollArrows);
-    return () => window.removeEventListener('resize', checkScrollArrows);
-  }, []);
-
-  const scrollTabs = (direction) => {
-    if (tabsContainerRef.current) {
-      const scrollAmount = 120;
-      tabsContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-      setTimeout(checkScrollArrows, 300);
-    }
-  };
 
   const fetchBalance = useCallback(async () => {
     try {
@@ -145,10 +115,30 @@ export default function CourierJetPuanPage({ courierId }) {
     }
   };
 
+  // Tab renk sınıfları
+  const getTabClasses = (tab, isActive) => {
+    const colorMap = {
+      amber: {
+        active: "bg-white text-amber-700 shadow-md border border-amber-200",
+        badge: "bg-amber-100 text-amber-700"
+      },
+      blue: {
+        active: "bg-white text-blue-700 shadow-md border border-blue-200",
+        badge: "bg-blue-100 text-blue-700"
+      },
+      slate: {
+        active: "bg-white text-slate-700 shadow-md border border-slate-300",
+        badge: "bg-slate-200 text-slate-700"
+      }
+    };
+    
+    return colorMap[tab.color] || colorMap.slate;
+  };
+
   return (
     <div className="space-y-4" data-testid="courier-jetpuan-page">
       {/* Balance Card */}
-      <div className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50">
+      <div className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg">
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -172,49 +162,26 @@ export default function CourierJetPuanPage({ courierId }) {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="relative">
-        {showLeftArrow && (
-          <button 
-            onClick={() => scrollTabs('left')}
-            className="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white via-white to-transparent pr-4 pl-1 flex items-center md:hidden"
-          >
-            <ChevronLeft className="w-5 h-5 text-slate-500" />
-          </button>
-        )}
-        
-        <div 
-          ref={tabsContainerRef}
-          onScroll={checkScrollArrows}
-          className="overflow-x-auto scrollbar-hide scroll-smooth"
-        >
-          <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
-                  activeTab === tab.key
-                    ? "border-primary text-primary bg-primary/5"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
-                }`}
-                data-testid={`courier-jetpuan-tab-${tab.key}`}
-              >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {showRightArrow && (
-          <button 
-            onClick={() => scrollTabs('right')}
-            className="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white via-white to-transparent pl-4 pr-1 flex items-center md:hidden"
-          >
-            <ChevronRight className="w-5 h-5 text-slate-500" />
-          </button>
-        )}
+      {/* Tab Navigation - Atanmış/Yolda stili */}
+      <div className="flex bg-slate-100 p-1 rounded-lg gap-1">
+        {TABS.map((tab) => {
+          const colors = getTabClasses(tab, activeTab === tab.key);
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+                activeTab === tab.key
+                  ? colors.active
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+              data-testid={`courier-jetpuan-tab-${tab.key}`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab Content */}
