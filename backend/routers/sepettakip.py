@@ -253,7 +253,7 @@ async def check_credentials(
         raw_body = await raw_request.body()
         log_doc = {
             "type": "check-credentials",
-            "timestamp": datetime.now(TURKEY_TZ).isoformat(),
+            "timestamp": get_turkey_now(),
             "headers": dict(raw_request.headers),
             "body": raw_body.decode('utf-8')[:2000],
             "username": request.username,
@@ -310,7 +310,7 @@ async def create_package(
         raw_body = await raw_request.body()
         await db.sepettakip_logs.insert_one({
             "type": "create-package",
-            "timestamp": datetime.now(TURKEY_TZ).isoformat(),
+            "timestamp": get_turkey_now(),
             "headers": dict(raw_request.headers),
             "body": raw_body.decode('utf-8')[:5000],  # İlk 5000 karakter
             "order_id": request.order.order_id if request.order else None,
@@ -334,7 +334,7 @@ async def create_package(
         # Hata logu kaydet
         await db.sepettakip_logs.insert_one({
             "type": "ERROR-create-package",
-            "timestamp": datetime.now(TURKEY_TZ).isoformat(),
+            "timestamp": get_turkey_now(),
             "order_id": request.order.order_id if request.order else None,
             "error": f"Restoran doğrulama başarısız: {auth_result.get('error')}",
             "auth_username": request.auth.username
@@ -422,8 +422,8 @@ async def create_package(
         "notes": "|".join(notes_parts) if notes_parts else "",
         "source": "sepettakip",
         "preparation_time": request.order.preparation_time or 20,
-        "created_at": datetime.now(TURKEY_TZ).isoformat(),
-        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
+        "created_at": get_turkey_now(),
+        "updated_at": get_turkey_now(),
         "courier_id": None,
         "courier_name": None
     }
@@ -486,7 +486,7 @@ async def sepettakip_health():
     return {
         "status": "healthy",
         "service": "sepettakip_courier_integration",
-        "timestamp": datetime.now(TURKEY_TZ).isoformat(),
+        "timestamp": get_turkey_now(),
         "courier_company_key": COURIER_COMPANY_KEY,
         "test_restaurant_id": SEPETTAKIP_TEST_RESTAURANT_ID,
         "endpoints": {
@@ -644,7 +644,7 @@ async def test_sepettakip_connection():
                 "api_key_configured": bool(SEPETTAKIP_API_KEY),
                 "test_restaurant_id": SEPETTAKIP_TEST_RESTAURANT_ID,
                 "response_code": response.status_code,
-                "timestamp": datetime.now(TURKEY_TZ).isoformat()
+                "timestamp": get_turkey_now()
             }
             
     except httpx.TimeoutException:
@@ -723,8 +723,8 @@ async def test_create_order_for_sepettakip():
         "notes": "SepetTakip entegrasyon testi",
         "source": "sepettakip",
         "preparation_time": 20,
-        "created_at": datetime.now(TURKEY_TZ).isoformat(),
-        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
+        "created_at": get_turkey_now(),
+        "updated_at": get_turkey_now(),
         "courier_id": None,
         "courier_name": None,
         "is_test_order": True
@@ -849,7 +849,7 @@ async def run_test_check_credentials(success: bool = True):
                 "status_code": response.status_code,
                 "expected_status": expected_status,
                 "response": response.text[:500] if response.text else None,
-                "timestamp": datetime.now(TURKEY_TZ).isoformat()
+                "timestamp": get_turkey_now()
             }
             
             # Sonucu kaydet
@@ -933,7 +933,7 @@ async def run_test_create_order(test_number: int):
                 "expected_status": expected_status,
                 "order_id": order_id,
                 "response": response.text[:500] if response.text else None,
-                "timestamp": datetime.now(TURKEY_TZ).isoformat(),
+                "timestamp": get_turkey_now(),
                 "sent_payload": payload,  # Gönderilen payload'ı da dön
                 "payload_has_coordinates": "latitude" in payload or "longitude" in payload
             }
@@ -994,7 +994,7 @@ async def run_test_update_status(order_id: str, status: str):
                 "status": status,
                 "status_code": response.status_code,
                 "response": response.text[:500] if response.text else None,
-                "timestamp": datetime.now(TURKEY_TZ).isoformat()
+                "timestamp": get_turkey_now()
             }
             
             # Sonucu kaydet
@@ -1042,7 +1042,7 @@ async def run_test_cancel_order(order_id: str):
                 "order_id": order_id,
                 "status_code": response.status_code,
                 "response": response.text[:500] if response.text else None,
-                "timestamp": datetime.now(TURKEY_TZ).isoformat()
+                "timestamp": get_turkey_now()
             }
             
     except Exception as e:
