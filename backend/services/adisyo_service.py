@@ -535,8 +535,8 @@ async def convert_adisyo_order_to_shiftjet(adisyo_order: dict, restaurant: dict)
         ),
         "notes": order_notes,
         "source": "adisyo",
-        "created_at": adisyo_order.get("insertDate") or datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": adisyo_order.get("insertDate") or datetime.now(TURKEY_TZ).isoformat(),
+        "updated_at": datetime.now(TURKEY_TZ).isoformat(),
         "courier_id": None,
         "courier_name": None,
         # Ham Adisyo verisini debug için sakla
