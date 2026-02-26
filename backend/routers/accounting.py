@@ -47,7 +47,7 @@ async def create_activity_log(log_data: dict):
         "id": str(uuid.uuid4()),
         **log_data,
         "admin_role": admin_role,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.activity_logs.insert_one(log)
     
@@ -127,7 +127,7 @@ async def create_business(
         "tax_bracket": data.tax_bracket if hasattr(data, 'tax_bracket') and data.tax_bracket else None,
         "company_id": company_id,
         "is_archived": False,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.businesses.insert_one(business)
     return {"message": "İşletme oluşturuldu", "id": business["id"]}
@@ -289,7 +289,7 @@ async def get_vendors(company_id: str, include_archived: bool = False):
             "is_archived": False,
             "is_admin_courier": True,  # Yönetici-kurye bağlantısı
             "role": admin.get("role", "admin"),
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         vendors.append(admin_vendor)
         existing_courier_ids.add(courier_id)
@@ -312,7 +312,7 @@ async def create_vendor(
         "address": data.address,
         "company_id": company_id,
         "is_archived": False,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.vendors.insert_one(vendor)
     return {"message": "Cari oluşturuldu", "id": vendor["id"]}
@@ -795,7 +795,7 @@ async def create_installment_product(
         "total_amount": data.installment_amount * data.installment_count,
         "paid_amount": 0,
         "is_completed": False,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": get_turkey_now(),
         "created_by_admin_id": data.admin_id,
         "created_by_admin_name": data.admin_name
     }
@@ -899,7 +899,7 @@ async def pay_installment(
     if data.custom_date:
         tx_date = data.custom_date
     else:
-        tx_date = datetime.now(timezone.utc).isoformat()
+        tx_date = get_turkey_now()
     
     # Create transaction (payment_out = kuryeye verilen)
     transaction = {
