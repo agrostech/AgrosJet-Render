@@ -173,16 +173,16 @@ export default function OdemeRaporu({ courierId, companyId }) {
       {data && (
         <div className="space-y-4">
           {/* Nakit Kart - Özet ve Siparişler Birleşik */}
-          <Card className="border-green-200 overflow-hidden">
+          <Card className="border-2 border-green-300 bg-white overflow-hidden">
             <CardContent className="p-0">
               {/* Özet Başlık */}
-              <div className="bg-green-50 p-4 flex items-center gap-3 border-b border-green-200">
+              <div className="p-4 flex items-center gap-3 border-b border-green-200">
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                   <Banknote className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-green-600 font-medium">Nakit ({data.cash_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold text-green-700">{formatMoney(data.cash_total)}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Nakit ({data.cash_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold">{formatMoney(data.cash_total)}</p>
                 </div>
               </div>
               {/* Sipariş Tablosu */}
@@ -198,16 +198,16 @@ export default function OdemeRaporu({ courierId, companyId }) {
           </Card>
           
           {/* Kredi Kartı - Özet ve Siparişler Birleşik */}
-          <Card className="border-blue-200 overflow-hidden">
+          <Card className="border-2 border-blue-300 bg-white overflow-hidden">
             <CardContent className="p-0">
               {/* Özet Başlık */}
-              <div className="bg-blue-50 p-4 flex items-center gap-3 border-b border-blue-200">
+              <div className="p-4 flex items-center gap-3 border-b border-blue-200">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-blue-600 font-medium">Kredi Kartı ({data.card_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold text-blue-700">{formatMoney(data.card_total)}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Kredi Kartı ({data.card_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold">{formatMoney(data.card_total)}</p>
                 </div>
               </div>
               {/* Sipariş Tablosu */}
@@ -223,16 +223,16 @@ export default function OdemeRaporu({ courierId, companyId }) {
           </Card>
 
           {/* Yemek Kartı - Özet ve Siparişler Birleşik */}
-          <Card className="border-orange-200 overflow-hidden">
+          <Card className="border-2 border-orange-300 bg-white overflow-hidden">
             <CardContent className="p-0">
               {/* Özet Başlık */}
-              <div className="bg-orange-50 p-4 flex items-center gap-3 border-b border-orange-200">
+              <div className="p-4 flex items-center gap-3 border-b border-orange-200">
                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
                   <Utensils className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-orange-600 font-medium">Yemek Kartı ({data.meal_card_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold text-orange-700">{formatMoney(data.meal_card_total)}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Yemek Kartı ({data.meal_card_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold">{formatMoney(data.meal_card_total)}</p>
                 </div>
               </div>
               {/* Sipariş Tablosu */}
@@ -248,16 +248,16 @@ export default function OdemeRaporu({ courierId, companyId }) {
           </Card>
 
           {/* Online - Özet ve Siparişler Birleşik */}
-          <Card className="border-purple-200 overflow-hidden">
+          <Card className="border-2 border-purple-300 bg-white overflow-hidden">
             <CardContent className="p-0">
               {/* Özet Başlık */}
-              <div className="bg-purple-50 p-4 flex items-center gap-3 border-b border-purple-200">
+              <div className="p-4 flex items-center gap-3 border-b border-purple-200">
                 <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                   <Globe className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-purple-600 font-medium">Online ({data.online_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold text-purple-700">{formatMoney(data.online_total)}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Online ({data.online_orders?.length || 0} sipariş)</p>
+                  <p className="text-xl font-bold">{formatMoney(data.online_total)}</p>
                 </div>
               </div>
               {/* Sipariş Tablosu */}
