@@ -26,17 +26,17 @@ import CourierKVKKPage from "./courier/CourierKVKKPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Yeni sıralama
-const BASE_NAV_ITEMS = [
-  { path: "/courier", label: "Siparişler", icon: ClipboardList, key: "siparis" },
-  { path: "/courier/vardiyalar", label: "Vardiyalarım", icon: Clock, key: "vardiya" },
-  { path: "/courier/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe" },
-  { path: "/courier/raporlar", label: "Raporlar", icon: BarChart3, key: "raporlar" },
-  { path: "/courier/zimmet", label: "Zimmetlerim", icon: Package, key: "zimmet" },
-  { path: "/courier/motosikletim", label: "Motosikletim", icon: Bike, key: "motosikletim" },
-  { path: "/courier/akademi", label: "Akademi", icon: GraduationCap, key: "akademi" },
-  { path: "/courier/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan" },
-  { path: "/courier/evraklar", label: "Evraklar", icon: FileText, key: "evraklar" },
+// Yeni sıralama - relative paths (courierId ile birleştirilecek)
+const getNavItems = (basePath) => [
+  { path: basePath, label: "Siparişler", icon: ClipboardList, key: "siparis" },
+  { path: `${basePath}/vardiyalar`, label: "Vardiyalarım", icon: Clock, key: "vardiya" },
+  { path: `${basePath}/muhasebe`, label: "Muhasebe", icon: Calculator, key: "muhasebe" },
+  { path: `${basePath}/raporlar`, label: "Raporlar", icon: BarChart3, key: "raporlar" },
+  { path: `${basePath}/zimmet`, label: "Zimmetlerim", icon: Package, key: "zimmet" },
+  { path: `${basePath}/motosikletim`, label: "Motosikletim", icon: Bike, key: "motosikletim" },
+  { path: `${basePath}/akademi`, label: "Akademi", icon: GraduationCap, key: "akademi" },
+  { path: `${basePath}/jetpuan`, label: "Market", icon: ShoppingBag, key: "jetpuan" },
+  { path: `${basePath}/evraklar`, label: "Evraklar", icon: FileText, key: "evraklar" },
 ];
 
 // Kurye durumları
