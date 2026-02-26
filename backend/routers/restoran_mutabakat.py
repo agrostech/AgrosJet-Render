@@ -151,16 +151,11 @@ async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     logger = logging.getLogger(__name__)
     
     try:
-        # Türkiye saati olarak parse et
-        turkey_tz = timezone(timedelta(hours=3))
-        start_dt = datetime.fromisoformat(week.week_start.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(week.week_end.replace('Z', '+00:00'))
-        
-        # Timezone yoksa Türkiye saati kabul et
-        if start_dt.tzinfo is None:
-            start_dt = start_dt.replace(tzinfo=turkey_tz)
-        if end_dt.tzinfo is None:
-            end_dt = end_dt.replace(tzinfo=turkey_tz)
+        # Frontend Türkiye saati gönderiyor, +03:00 formatına çevir
+        start_dt_str = ensure_turkey_timezone(week.week_start)
+        end_dt_str = ensure_turkey_timezone(week.week_end)
+        start_dt = datetime.fromisoformat(start_dt_str)
+        end_dt = datetime.fromisoformat(end_dt_str)
             
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
