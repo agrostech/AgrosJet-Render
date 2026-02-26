@@ -187,11 +187,6 @@ export default function PerformansRaporu({ courierId, companyId }) {
 
   return (
     <div className="space-y-4">
-      {/* Başlık */}
-      <div className="text-center">
-        <h3 className="text-lg font-semibold text-slate-800">Bu Haftaki Performansın</h3>
-      </div>
-
       {/* Kartlar */}
       <div className="grid grid-cols-2 gap-3">
         {/* Toplam Teslimat */}
@@ -204,7 +199,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
             <p className="text-2xl font-bold text-slate-800">{stats.totalDeliveries}</p>
             {stats.deliveryChampion && stats.deliveryChampion.totalDeliveries > 0 && (
               <p className="text-xs text-slate-500 mt-1">
-                Haftanın şampiyonu; {stats.deliveryChampion.totalDeliveries} paket
+                Haftanın şampiyonu şuan; {stats.deliveryChampion.name} - {stats.deliveryChampion.totalDeliveries} Paket
               </p>
             )}
           </CardContent>
@@ -220,7 +215,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
             <p className="text-2xl font-bold text-slate-800">{formatDuration(stats.totalWorkMinutes)}</p>
             {stats.workHoursChampion && stats.workHoursChampion.totalWorkMinutes > 0 && (
               <p className="text-xs text-slate-500 mt-1">
-                Haftanın şampiyonu; {formatDuration(stats.workHoursChampion.totalWorkMinutes)}
+                Haftanın şampiyonu şuan; {stats.workHoursChampion.name} - {formatDuration(stats.workHoursChampion.totalWorkMinutes)}
               </p>
             )}
           </CardContent>
@@ -238,7 +233,7 @@ export default function PerformansRaporu({ courierId, companyId }) {
             </p>
             {stats.deliveryTimeChampion && stats.deliveryTimeChampion.avgDeliveryTime > 0 && (
               <p className="text-xs text-slate-500 mt-1">
-                Haftanın şampiyonu; {Math.round(stats.deliveryTimeChampion.avgDeliveryTime)} dk
+                Haftanın şampiyonu şuan; {stats.deliveryTimeChampion.name} - {Math.round(stats.deliveryTimeChampion.avgDeliveryTime)} dk
               </p>
             )}
           </CardContent>
