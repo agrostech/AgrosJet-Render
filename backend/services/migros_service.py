@@ -10,7 +10,10 @@ import json
 import logging
 import httpx
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 

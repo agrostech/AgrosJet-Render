@@ -17,6 +17,9 @@ import os
 import httpx
 from datetime import datetime, timezone, timedelta
 
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
+
 from utils.database import db
 
 router = APIRouter(prefix="/api/sepettakip", tags=["SepetTakip"])
