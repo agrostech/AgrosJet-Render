@@ -13,6 +13,7 @@ from datetime import datetime, timezone, timedelta
 import logging
 
 from utils.database import db
+from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 from services.getir_service import (
     test_getir_connection,
     sync_restaurant_getir_orders,
