@@ -136,26 +136,26 @@ export default function CourierJetPuanPage({ courierId }) {
 
   return (
     <div className="space-y-4" data-testid="courier-jetpuan-page">
-      {/* Balance Card - Elegant Design */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-amber-400 to-orange-400 shadow-lg">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBjeD0iMjAiIGN5PSIyMCIgcj0iMyIvPjwvZz48L3N2Zz4=')] opacity-30"></div>
-        <div className="relative p-5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner">
-              <Coins className="w-7 h-7 text-white drop-shadow-sm" />
+      {/* Balance Card */}
+      <div className="border-2 border-border bg-white">
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-amber-100">
+              <Coins className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/80 tracking-wide">JetPuan Bakiyem</p>
-              <p className="text-3xl font-bold text-white tracking-tight">{balance.toFixed(0)}<span className="text-lg font-normal text-white/70 ml-1">puan</span></p>
+              <p className="text-xs text-muted-foreground">JetPuan Bakiyem</p>
+              <p className="text-2xl font-bold text-foreground">{balance.toFixed(0)} <span className="text-sm font-normal text-muted-foreground">puan</span></p>
             </div>
           </div>
           {cart.length > 0 && (
             <Button 
               onClick={() => setShowCartModal(true)} 
-              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 font-semibold text-sm h-10 px-4 rounded-xl shadow-md transition-all"
+              size="sm"
+              className="gap-1.5"
               data-testid="open-cart-btn"
             >
-              <ShoppingCart className="w-4 h-4 mr-2" />
+              <ShoppingCart className="w-4 h-4" />
               Sepet ({cartItemCount})
             </Button>
           )}
