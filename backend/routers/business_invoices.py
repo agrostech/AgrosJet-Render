@@ -61,7 +61,7 @@ async def mark_invoice_issued(company_id: str, business_id: str):
             {"id": existing["id"]},
             {"$set": {
                 "issued_until_date": monday_str,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }}
         )
     else:
@@ -71,7 +71,7 @@ async def mark_invoice_issued(company_id: str, business_id: str):
             "business_id": business_id,
             "business_name": business["name"],
             "issued_until_date": monday_str,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.issued_invoices.insert_one(record)
     
@@ -285,7 +285,7 @@ async def import_excel(
                     {"$set": {
                         "required_amount": amount,
                         "business_name": matched_business["name"],
-                        "updated_at": datetime.now(timezone.utc).isoformat()
+                        "updated_at": get_turkey_now()
                     }}
                 )
             else:
@@ -301,7 +301,7 @@ async def import_excel(
                     "invoice_file": None,
                     "invoice_filename": None,
                     "uploaded_at": None,
-                    "created_at": datetime.now(timezone.utc).isoformat()
+                    "created_at": get_turkey_now()
                 }
                 await db.business_invoices.insert_one(record)
             
@@ -348,7 +348,7 @@ async def upload_invoice(
         "file_data": file_base64,
         "filename": file.filename,
         "extension": file_extension,
-        "uploaded_at": datetime.now(timezone.utc).isoformat()
+        "uploaded_at": get_turkey_now()
     }
     
     # Find existing record
@@ -370,7 +370,7 @@ async def upload_invoice(
                 "file_data": existing["invoice_file"],
                 "filename": existing.get("invoice_filename", "fatura.pdf"),
                 "extension": existing.get("invoice_extension", "pdf"),
-                "uploaded_at": existing.get("uploaded_at", datetime.now(timezone.utc).isoformat())
+                "uploaded_at": existing.get("uploaded_at", get_turkey_now())
             }
             invoices.append(old_invoice)
         
@@ -386,7 +386,7 @@ async def upload_invoice(
                 "invoice_file": None,
                 "invoice_filename": None,
                 "invoice_extension": None,
-                "uploaded_at": datetime.now(timezone.utc).isoformat()
+                "uploaded_at": get_turkey_now()
             }}
         )
     else:
@@ -404,8 +404,8 @@ async def upload_invoice(
             "required_amount": 0,
             "invoice_uploaded": True,
             "invoices": [invoice_obj],
-            "uploaded_at": datetime.now(timezone.utc).isoformat(),
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "uploaded_at": get_turkey_now(),
+            "created_at": get_turkey_now()
         }
         await db.business_invoices.insert_one(record)
     
@@ -525,7 +525,7 @@ async def set_amount(
             {"id": existing["id"]},
             {"$set": {
                 "required_amount": amount,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }}
         )
     else:
@@ -541,7 +541,7 @@ async def set_amount(
             "invoice_file": None,
             "invoice_filename": None,
             "uploaded_at": None,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.business_invoices.insert_one(record)
     

@@ -39,7 +39,7 @@ async def get_settings():
         settings = {
             "id": "puan_ratio",
             "puan_per_100tl": 1.17,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": get_turkey_now()
         }
         await db.jetpuan_settings.insert_one(settings)
     return settings
@@ -54,7 +54,7 @@ async def update_settings(
         {"id": "puan_ratio"},
         {"$set": {
             "puan_per_100tl": data.puan_per_100tl,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": get_turkey_now()
         }},
         upsert=True
     )
@@ -82,7 +82,7 @@ async def create_category(
     category = {
         "id": str(uuid.uuid4()),
         "name": data.name,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.jetpuan_categories.insert_one(category)
     return {"message": "Kategori oluşturuldu", "id": category["id"]}
@@ -162,7 +162,7 @@ async def create_product(
         "stock": data.stock,
         "category_id": data.category_id,
         "image_url": data.image_url,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.jetpuan_products.insert_one(product)
     return {"message": "Ürün oluşturuldu", "id": product["id"]}
@@ -357,7 +357,7 @@ async def create_order(courier_id: str, data: JetPuanOrderCreate):
         "items": order_items,
         "total_points": total_points,
         "status": "pending",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": get_turkey_now(),
         "delivered_at": None
     }
     await db.jetpuan_orders.insert_one(order)

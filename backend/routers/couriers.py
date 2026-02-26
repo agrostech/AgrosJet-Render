@@ -720,7 +720,7 @@ async def update_courier_location(courier_id: str, data: CourierLocationUpdate):
             "current_location": {
                 "latitude": data.latitude,
                 "longitude": data.longitude,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }
         }}
     )

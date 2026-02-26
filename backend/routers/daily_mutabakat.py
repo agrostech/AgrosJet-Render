@@ -585,7 +585,7 @@ async def save_collection(company_id: str, data: SaveCollectionRequest):
             "meal_card_amount": courier.meal_card_amount,
             "admin_id": data.admin_id,
             "admin_name": data.admin_name,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         
         # Upsert - aynı gün için güncelle veya ekle
@@ -672,7 +672,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "is_mutabakat": True,
                 "mutabakat_date": data.date,
                 "mutabakat_type": "cash",
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": get_turkey_now()
             })
             
             # Kurye bakiyesini güncelle
@@ -702,7 +702,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "is_mutabakat": True,
                 "mutabakat_date": data.date,
                 "mutabakat_type": "card",
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": get_turkey_now()
             })
             
             await db.couriers.update_one(
@@ -746,7 +746,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
                 "is_mutabakat": True,
                 "mutabakat_date": data.date,
                 "mutabakat_type": "commission",
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": get_turkey_now()
             })
             
             await db.couriers.update_one(
@@ -780,7 +780,7 @@ async def process_mutabakat(company_id: str, data: ProcessMutabakatRequest):
             },
             "admin_id": data.admin_id,
             "admin_name": data.admin_name,
-            "processed_at": datetime.now(timezone.utc).isoformat()
+            "processed_at": get_turkey_now()
         })
         
         processed_count += 1
@@ -936,7 +936,7 @@ async def save_and_process_single_courier(company_id: str, data: SingleCourierSa
         "meal_card_amount": data.meal_card_amount,
         "admin_id": data.admin_id,
         "admin_name": data.admin_name,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     
     await db.daily_mutabakat_collections.update_one(
@@ -994,7 +994,7 @@ async def save_and_process_single_courier(company_id: str, data: SingleCourierSa
             "is_mutabakat": True,
             "mutabakat_date": data.date,
             "mutabakat_type": "cash",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         })
         await db.couriers.update_one(
             {"id": data.courier_id},
@@ -1018,7 +1018,7 @@ async def save_and_process_single_courier(company_id: str, data: SingleCourierSa
             "is_mutabakat": True,
             "mutabakat_date": data.date,
             "mutabakat_type": "card",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         })
         await db.couriers.update_one(
             {"id": data.courier_id},
@@ -1042,7 +1042,7 @@ async def save_and_process_single_courier(company_id: str, data: SingleCourierSa
             "is_mutabakat": True,
             "mutabakat_date": data.date,
             "mutabakat_type": "commission",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         })
         await db.couriers.update_one(
             {"id": data.courier_id},
@@ -1080,7 +1080,7 @@ async def save_and_process_single_courier(company_id: str, data: SingleCourierSa
         },
         "admin_id": data.admin_id,
         "admin_name": data.admin_name,
-        "processed_at": datetime.now(timezone.utc).isoformat()
+        "processed_at": get_turkey_now()
     })
     
     return {

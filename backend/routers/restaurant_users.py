@@ -117,7 +117,7 @@ async def create_restaurant_user(data: RestaurantUserCreate):
         "phone": data.phone,
         "restaurant_id": data.restaurant_id,
         "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     
     await db.restaurant_users.insert_one(user)
@@ -150,7 +150,7 @@ async def update_restaurant_user(user_id: str, data: RestaurantUserUpdate):
     if not update_fields:
         raise HTTPException(status_code=400, detail="Güncellenecek alan belirtilmedi")
     
-    update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update_fields["updated_at"] = get_turkey_now()
     
     await db.restaurant_users.update_one(
         {"id": user_id},

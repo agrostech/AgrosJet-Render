@@ -608,7 +608,7 @@ async def generate_weekly_missing_invoices(company_id: str, week_start: str):
             "invoices": [],
             "verified_amount": 0,
             "is_complete": False,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.restaurant_invoices.insert_one(new_record)
         created_count += 1
@@ -1113,7 +1113,7 @@ async def update_auto_settings(company_id: str, data: AutoSettingsUpdate):
             "$set": {
                 "company_id": company_id,
                 "enabled": data.enabled,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }
         },
         upsert=True

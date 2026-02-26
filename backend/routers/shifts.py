@@ -58,7 +58,7 @@ async def create_shift(
         "start_time": data.start_time,
         "end_time": data.end_time,
         "company_id": company_id,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.shifts.insert_one(shift)
     
@@ -191,7 +191,7 @@ async def assign_courier_to_shift(
         "courier_name": courier["name"],
         "day": data.day,
         "company_id": shift["company_id"],
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.shift_assignments.insert_one(assignment)
     return {"message": "Kurye vardiyaya atandı", "id": assignment["id"]}
@@ -245,7 +245,7 @@ async def add_leave(
         "courier_name": courier["name"],
         "day": data.day,
         "company_id": company_id,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.leaves.insert_one(leave)
     

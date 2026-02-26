@@ -53,7 +53,7 @@ async def mark_as_read(notification_id: str):
     """Mark a notification as read"""
     result = await db.notifications.update_one(
         {"id": notification_id},
-        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"is_read": True, "read_at": get_turkey_now()}}
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
@@ -65,7 +65,7 @@ async def mark_all_as_read(company_id: str):
     """Mark all notifications as read for a company"""
     result = await db.notifications.update_many(
         {"company_id": company_id, "is_read": False},
-        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"is_read": True, "read_at": get_turkey_now()}}
     )
     return {"message": f"{result.modified_count} bildirim okundu olarak işaretlendi"}
 
@@ -89,7 +89,7 @@ async def delete_notification(notification_id: str):
             },
             {
                 "$set": {
-                    "dismissed_at": datetime.now(timezone.utc).isoformat()
+                    "dismissed_at": get_turkey_now()
                 }
             },
             upsert=True
@@ -245,7 +245,7 @@ async def check_missing_invoice_notifications(company_id: str):
             "entity_type": "transaction",
             "entity_id": tx["id"],
             "is_read": False,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": get_turkey_now(),
             "link": "/admin/muhasebe"
         })
         notifications_created += 1
@@ -320,7 +320,7 @@ async def create_notification(
         "entity_type": entity_type,
         "entity_id": entity_id,
         "is_read": False,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": get_turkey_now(),
         "actor_id": actor_id,
         "actor_role": actor_role
     }

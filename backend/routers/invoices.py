@@ -158,8 +158,8 @@ async def upload_invoice(
         "file_path": None,  # No local path for R2 files
         "week_tuesday": tuesday.isoformat(),
         "week_tuesday_display": tuesday_str,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "uploaded_at": get_turkey_now(),
+        "created_at": get_turkey_now(),
         "is_shortfall_invoice": is_shortfall_invoice,  # Mark if this is for shortfall
         "shortfall_amount": transaction.get("shortfall_amount", 0) if is_shortfall_invoice else None  # Store shortfall amount
     }
@@ -190,7 +190,7 @@ async def upload_invoice(
             {"$set": {
                 "status": "uploaded",
                 "shortfall_invoice_id": invoice["id"],
-                "uploaded_at": datetime.now(timezone.utc).isoformat()
+                "uploaded_at": get_turkey_now()
             }}
         )
         
@@ -226,7 +226,7 @@ async def upload_invoice(
         "title": "Hakediş Faturası Yüklendi" if not is_shortfall_invoice else "Eksik Fatura Yüklendi",
         "message": f"{courier_name} {'eksik ' if is_shortfall_invoice else ''}fatura yükledi",
         "is_read": False,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": get_turkey_now(),
         "link": "/admin/muhasebe"
     }
     await db.notifications.insert_one(notification)
@@ -388,7 +388,7 @@ async def verify_invoice(invoice_id: str):
         {"id": invoice_id},
         {"$set": {
             "verified": True,
-            "verified_at": datetime.now(timezone.utc).isoformat()
+            "verified_at": get_turkey_now()
         }}
     )
     
@@ -451,7 +451,7 @@ async def verify_invoice_with_amount(
         {"id": invoice_id},
         {"$set": {
             "verified": True,
-            "verified_at": datetime.now(timezone.utc).isoformat(),
+            "verified_at": get_turkey_now(),
             "verified_amount": invoice_amount,
             "verified_by_id": admin_id,
             "verified_by_name": admin_name
@@ -465,7 +465,7 @@ async def verify_invoice_with_amount(
             "has_shortfall": shortfall > 0,
             "shortfall_amount": shortfall if shortfall > 0 else 0,
             "total_invoiced": total_invoiced,
-            "last_verified_at": datetime.now(timezone.utc).isoformat(),
+            "last_verified_at": get_turkey_now(),
             "pending_shortfall_invoice": False  # Clear pending flag after verification
         }}
     )
@@ -494,7 +494,7 @@ async def verify_invoice_with_amount(
                 {"$set": {
                     "shortfall_amount": shortfall,
                     "total_invoiced": total_invoiced,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
+                    "updated_at": get_turkey_now()
                 }}
             )
             result["shortfall_record_id"] = existing_shortfall["id"]
@@ -511,7 +511,7 @@ async def verify_invoice_with_amount(
                 "total_invoiced": total_invoiced,
                 "shortfall_amount": shortfall,
                 "status": "pending",  # pending -> completed
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": get_turkey_now(),
                 "created_by_id": admin_id,
                 "created_by_name": admin_name
             }
@@ -521,7 +521,7 @@ async def verify_invoice_with_amount(
         # No shortfall - mark any existing shortfall as completed
         await db.invoice_shortfalls.update_many(
             {"original_transaction_id": transaction["id"], "status": "pending"},
-            {"$set": {"status": "completed", "completed_at": datetime.now(timezone.utc).isoformat()}}
+            {"$set": {"status": "completed", "completed_at": get_turkey_now()}}
         )
     
     return result
@@ -632,8 +632,8 @@ async def upload_invoice_by_admin(
         "file_path": None,
         "week_tuesday": tuesday.isoformat(),
         "week_tuesday_display": tuesday_str,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "uploaded_at": get_turkey_now(),
+        "created_at": get_turkey_now(),
         "uploaded_by_admin": True,
         "uploaded_by_admin_id": admin_id,
         "uploaded_by_admin_name": admin_name
@@ -653,7 +653,7 @@ async def upload_invoice_by_admin(
             {"$set": {
                 "status": "uploaded",
                 "shortfall_invoice_id": invoice_id,
-                "uploaded_at": datetime.now(timezone.utc).isoformat()
+                "uploaded_at": get_turkey_now()
             }}
         )
     
@@ -761,7 +761,7 @@ async def dismiss_missing_invoice(transaction_id: str):
         {
             "$set": {
                 "invoice_dismissed": True,
-                "invoice_dismissed_at": datetime.now(timezone.utc).isoformat()
+                "invoice_dismissed_at": get_turkey_now()
             }
         }
     )

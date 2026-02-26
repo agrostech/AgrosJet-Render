@@ -237,8 +237,8 @@ async def upload_document(
         "file_path": None,  # No local path for R2 files
         "file_extension": file_ext,
         "company_name": company_name,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "uploaded_at": get_turkey_now(),
+        "created_at": get_turkey_now()
     }
     await db.courier_documents.insert_one(document)
     

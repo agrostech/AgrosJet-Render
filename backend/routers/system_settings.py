@@ -73,7 +73,7 @@ async def save_cloudflare_settings(data: CloudflareR2Settings):
         "access_key_id": data.access_key_id,
         "secret_access_key": data.secret_access_key,
         "bucket_name": data.bucket_name,
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": get_turkey_now()
     }
     
     await db.system_settings.update_one(
@@ -94,7 +94,7 @@ async def update_cloudflare_settings(data: CloudflareR2SettingsUpdate):
     if not existing:
         raise HTTPException(status_code=404, detail="Önce ayarları kaydedin")
     
-    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    update_data = {"updated_at": get_turkey_now()}
     
     if data.account_id:
         update_data["account_id"] = data.account_id

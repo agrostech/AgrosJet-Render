@@ -355,7 +355,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
             "is_admin_mutabakat": True,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.transactions.insert_one(tx)
         total_missing += missing_cash
@@ -381,7 +381,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
             "is_admin_mutabakat": True,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.transactions.insert_one(tx)
         total_missing += missing_card_1
@@ -406,7 +406,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
             "is_admin_mutabakat": True,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.transactions.insert_one(tx)
         total_missing += missing_card_10
@@ -431,7 +431,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
             "is_admin_mutabakat": True,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.transactions.insert_one(tx)
         total_missing += missing_card_20
@@ -456,7 +456,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             "admin_id": data.reset_by_id,
             "admin_name": data.reset_by_name,
             "is_admin_mutabakat": True,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": get_turkey_now()
         }
         await db.transactions.insert_one(tx)
         total_missing += missing_meal_card
@@ -473,7 +473,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
         "company_id": company_id,
         "admin_id": admin_id,
         "admin_name": admin["name"],
-        "reset_at": datetime.now(timezone.utc).isoformat(),
+        "reset_at": get_turkey_now(),
         "reset_by_id": data.reset_by_id,
         "reset_by_name": data.reset_by_name,
         "cash_at_reset": round(cash_at_reset, 2),

@@ -52,7 +52,7 @@ async def create_bonus_rule(company_id: str, data: BonusRuleCreate):
         "company_id": company_id,
         "min_packets": data.min_packets,
         "amount": data.amount,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.bonus_settings.insert_one(rule)
     return {"message": "Bonus kuralı eklendi", "id": rule["id"]}

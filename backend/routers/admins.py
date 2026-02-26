@@ -167,7 +167,7 @@ async def create_admin(data: AdminCreate):
         "permissions": permissions,
         "company_id": primary_company_id,
         "company_ids": company_ids,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.admins.insert_one(admin)
     return {"message": "Yönetici oluşturuldu", "id": admin["id"]}
@@ -192,7 +192,7 @@ async def create_superadmin(data: SuperAdminCreate):
         "permissions": get_full_permissions(),
         "company_id": data.company_id,
         "email": data.email,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.admins.insert_one(admin)
     return {"message": "Süper admin oluşturuldu", "id": admin["id"]}
@@ -216,7 +216,7 @@ async def update_admin_permissions(admin_id: str, data: PermissionsUpdate):
         {"id": admin_id},
         {"$set": {
             "permissions": filtered_permissions,
-            "permissions_updated_at": datetime.now(timezone.utc).isoformat()
+            "permissions_updated_at": get_turkey_now()
         }}
     )
     return {"message": "İzinler güncellendi"}

@@ -103,7 +103,7 @@ async def create_backup_zip(company_id: str) -> io.BytesIO:
         backup_data = {
             "backup_info": {
                 "company_id": company_id,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": get_turkey_now(),
                 "version": "1.0"
             }
         }
@@ -347,7 +347,7 @@ async def set_backup_schedule(
         "enabled": data.enabled,
         "hour": data.hour,
         "email": data.email,
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": get_turkey_now()
     }
     
     await db.backup_settings.update_one(
@@ -477,7 +477,7 @@ async def send_backup_now(
             await db.backup_settings.update_one(
                 {"company_id": company_id},
                 {"$set": {
-                    "last_backup": datetime.now(timezone.utc).isoformat(),
+                    "last_backup": get_turkey_now(),
                     "last_r2_backup": r2_url if r2_url else None
                 }}
             )
@@ -529,7 +529,7 @@ async def run_scheduled_backups():
                     await db.backup_settings.update_one(
                         {"company_id": company_id},
                         {"$set": {
-                            "last_backup": datetime.now(timezone.utc).isoformat(),
+                            "last_backup": get_turkey_now(),
                             "last_r2_backup": r2_url if r2_url else None
                         }}
                     )

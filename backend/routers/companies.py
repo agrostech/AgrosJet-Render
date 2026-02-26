@@ -95,7 +95,7 @@ async def create_company(data: CompanyCreate):
         "city": data.city or "",
         "city_lat": data.city_lat,
         "city_lng": data.city_lng,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.companies.insert_one(company)
     return {"message": "Şirket oluşturuldu", "id": company["id"], "name": company["name"]}

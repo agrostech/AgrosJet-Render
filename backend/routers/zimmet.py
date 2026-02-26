@@ -78,7 +78,7 @@ async def create_zimmet_log(company_id: str, admin_id: str, admin_name: str, act
         "courier_id": courier_id,
         "courier_name": courier_name,
         "details": details or {},
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.zimmet_logs.insert_one(log)
     
@@ -131,7 +131,7 @@ async def create_product_type(
         "company_id": company_id,
         "name": data.name.strip(),
         "has_pos_fields": data.has_pos_fields,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.product_types.insert_one(product_type)
     del product_type["_id"]
@@ -232,7 +232,7 @@ async def create_product(
         "assigned_to_courier_id": None,
         "assigned_to_courier_name": None,
         "assigned_at": None,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.products.insert_one(product)
     
@@ -369,7 +369,7 @@ async def assign_product(
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    assigned_at = datetime.now(timezone.utc).isoformat()
+    assigned_at = get_turkey_now()
     
     await db.products.update_one(
         {"id": product_id},

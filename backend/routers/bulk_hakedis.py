@@ -215,9 +215,9 @@ async def apply_bulk_hakedis(company_id: str, data: BulkHakedisCreate):
                 tx_date = tx_date.replace(tzinfo=timezone.utc)
             created_at = tx_date.isoformat()
         except:
-            created_at = datetime.now(timezone.utc).isoformat()
+            created_at = get_turkey_now()
     else:
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = get_turkey_now()
     
     results = []
     

@@ -158,7 +158,7 @@ async def update_adisyo_integration(restaurant_id: str, data: AdisyoIntegration)
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     update_fields = {
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": get_turkey_now()
     }
     
     # Sadece gönderilen alanları güncelle
@@ -231,7 +231,7 @@ async def test_adisyo_connection(restaurant_id: str):
                 # Bağlantı başarılı
                 await db.restaurants.update_one(
                     {"id": restaurant_id},
-                    {"$set": {"adisyo_connected": True, "updated_at": datetime.now(timezone.utc).isoformat()}}
+                    {"$set": {"adisyo_connected": True, "updated_at": get_turkey_now()}}
                 )
                 return {"success": True, "message": "Adisyo bağlantısı başarılı"}
             elif response.status_code == 401:
@@ -269,7 +269,7 @@ async def disconnect_adisyo(restaurant_id: str):
                 "adisyo_api_secret": None,
                 "adisyo_branch_id": None,
                 "adisyo_connected": False,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }
         }
     )
@@ -318,7 +318,7 @@ async def map_adisyo_courier(restaurant_id: str, data: AdisyoCourierMapping):
         {"id": data.shiftjet_courier_id},
         {"$set": {
             "adisyo_courier_id": data.adisyo_courier_id,
-            "adisyo_courier_updated_at": datetime.now(timezone.utc).isoformat()
+            "adisyo_courier_updated_at": get_turkey_now()
         }}
     )
     
@@ -386,7 +386,7 @@ async def configure_adisyo_webhook(restaurant_id: str, data: AdisyoWebhookConfig
     
     update_fields = {
         "adisyo_webhook_api_key": data.webhook_api_key,
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": get_turkey_now()
     }
     
     if data.restaurant_identity:
@@ -537,7 +537,7 @@ async def update_platform_integration(restaurant_id: str, platform_id: str, data
     
     update_data = {
         "enabled": data.enabled,
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": get_turkey_now()
     }
     
     if data.api_key is not None:
@@ -633,7 +633,7 @@ async def update_trendyol_integration(restaurant_id: str, data: TrendyolIntegrat
     
     update_fields = {
         "platform_integrations.trendyol.enabled": data.enabled,
-        "platform_integrations.trendyol.updated_at": datetime.now(timezone.utc).isoformat()
+        "platform_integrations.trendyol.updated_at": get_turkey_now()
     }
     
     # Sadece gönderilen alanları güncelle
@@ -816,7 +816,7 @@ async def update_getir_integration(restaurant_id: str, data: GetirIntegration):
     
     update_fields = {
         "platform_integrations.getir.enabled": data.enabled,
-        "platform_integrations.getir.updated_at": datetime.now(timezone.utc).isoformat()
+        "platform_integrations.getir.updated_at": get_turkey_now()
     }
     
     if data.app_secret_key is not None:
@@ -1005,7 +1005,7 @@ async def update_yemeksepeti_integration(restaurant_id: str, data: YemeksepetiIn
     
     update_fields = {
         "platform_integrations.yemeksepeti.enabled": data.enabled,
-        "platform_integrations.yemeksepeti.updated_at": datetime.now(timezone.utc).isoformat()
+        "platform_integrations.yemeksepeti.updated_at": get_turkey_now()
     }
     
     if data.client_id is not None:
@@ -1157,7 +1157,7 @@ async def update_sepettakip_integration(restaurant_id: str, data: SepettakipInte
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     update_fields = {
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": get_turkey_now()
     }
     
     if data.restaurant_id is not None:

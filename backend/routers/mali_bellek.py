@@ -66,7 +66,7 @@ async def toggle_mali_bellek(product_id: str, year_month: str, data: MaliBellekT
         "year_month": year_month
     })
     
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     if existing:
         # Toggle durumu

@@ -199,7 +199,7 @@ async def update_preparation_times(restaurant_id: str, data: PreparationTimesUpd
     
     update_data = {
         "preparation_time": data.preparation_time,
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": get_turkey_now()
     }
     
     # Ürün bazlı süreleri kaydet (sadece 0'dan büyük olanları)
@@ -280,7 +280,7 @@ async def update_collection_settings(restaurant_id: str, data: CollectionSetting
                 "card_collection": data.card_collection,
                 "meal_card_collection": data.meal_card_collection
             },
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": get_turkey_now()
         }}
     )
     
@@ -349,7 +349,7 @@ async def create_restaurant(data: RestaurantCreate):
         "adisyo_connected": False,  # Bağlantı test edilince True olacak
         "is_active": True,
         "is_archived": False,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     
     await db.restaurants.insert_one(restaurant)
@@ -388,7 +388,7 @@ async def update_restaurant(restaurant_id: str, data: RestaurantUpdate):
     if not update_fields:
         raise HTTPException(status_code=400, detail="Güncellenecek alan belirtilmedi")
     
-    update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update_fields["updated_at"] = get_turkey_now()
     
     result = await db.restaurants.update_one(
         {"id": restaurant_id},
@@ -406,7 +406,7 @@ async def archive_restaurant(restaurant_id: str):
     """Restoranı arşivle"""
     result = await db.restaurants.update_one(
         {"id": restaurant_id},
-        {"$set": {"is_archived": True, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"is_archived": True, "updated_at": get_turkey_now()}}
     )
     
     if result.matched_count == 0:
@@ -420,7 +420,7 @@ async def unarchive_restaurant(restaurant_id: str):
     """Restoranı arşivden çıkar"""
     result = await db.restaurants.update_one(
         {"id": restaurant_id},
-        {"$set": {"is_archived": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"is_archived": False, "updated_at": get_turkey_now()}}
     )
     
     if result.matched_count == 0:
@@ -454,7 +454,7 @@ async def test_adisyo_connection_endpoint(restaurant_id: str):
             {"id": restaurant_id},
             {"$set": {
                 "adisyo_connected": True,
-                "adisyo_last_test": datetime.now(timezone.utc).isoformat()
+                "adisyo_last_test": get_turkey_now()
             }}
         )
         return {"message": "Adisyo bağlantısı başarılı", "connected": True}
@@ -464,7 +464,7 @@ async def test_adisyo_connection_endpoint(restaurant_id: str):
             {"id": restaurant_id},
             {"$set": {
                 "adisyo_connected": False,
-                "adisyo_last_test": datetime.now(timezone.utc).isoformat(),
+                "adisyo_last_test": get_turkey_now(),
                 "adisyo_last_error": result["error"]
             }}
         )

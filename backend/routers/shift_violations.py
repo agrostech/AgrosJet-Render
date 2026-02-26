@@ -263,7 +263,7 @@ async def log_violation(
         "violation_type": violation_type,
         "violation_label": VIOLATION_TYPES.get(violation_type, violation_type),
         "details": details or {},
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": get_turkey_now(),
         "resolved": False
     }
     

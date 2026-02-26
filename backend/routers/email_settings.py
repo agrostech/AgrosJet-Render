@@ -67,7 +67,7 @@ async def save_email_settings(company_id: str, data: EmailSettingsCreate):
     """Save or update SMTP email settings"""
     existing = await db.email_settings.find_one({"company_id": company_id})
     
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     if existing:
         update_data = {

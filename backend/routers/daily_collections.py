@@ -161,7 +161,7 @@ async def create_daily_collection(data: DailyCollectionCreate):
         "card_total": card_total,
         "admin_id": data.admin_id,
         "admin_name": data.admin_name,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     
     await db.daily_collections.insert_one(collection)
@@ -423,7 +423,7 @@ async def reset_admin_cumulative(company_id: str, data: ResetAdminCumulativeRequ
     Admin'in kümülatif tahsilat toplamını sıfırla (sadece SuperAdmin)
     Bu işlem kayıtları silmez, sadece yeni bir başlangıç noktası belirler
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     # Admin adını bul
     admin = await db.admins.find_one({"id": data.admin_id}, {"_id": 0, "name": 1})
@@ -545,7 +545,7 @@ async def mark_admin_collected(company_id: str, data: MarkAdminCollectedRequest)
     Belirli bir admin'in topladığı nakit veya kartı alındı olarak işaretle
     Sadece SuperAdmin kullanabilir
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     update_data = {"updated_at": now}
     if data.type == "cash":
@@ -616,7 +616,7 @@ async def mark_collection_collected(company_id: str, data: MarkCollectedRequest)
     """
     Nakit veya kart toplam tutarını alındı olarak işaretle (SuperAdmin için)
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     update_data = {}
     if data.type == "cash":
@@ -695,7 +695,7 @@ async def reset_courier_collection(company_id: str, data: ResetCollectionRequest
         "deleted_count": result.deleted_count,
         "reset_by_id": data.admin_id,
         "reset_by_name": data.admin_name,
-        "reset_at": datetime.now(timezone.utc).isoformat()
+        "reset_at": get_turkey_now()
     })
     
     return {

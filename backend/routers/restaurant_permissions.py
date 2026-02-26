@@ -115,7 +115,7 @@ async def update_restaurant_permission(restaurant_id: str, data: PermissionUpdat
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     # İzni güncelle
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     await db.restaurants.update_one(
         {"id": restaurant_id},
         {
@@ -160,7 +160,7 @@ async def reset_restaurant_permissions(restaurant_id: str):
         {
             "$set": {
                 "permissions": default_permissions,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }
         }
     )

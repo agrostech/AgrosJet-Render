@@ -119,7 +119,7 @@ async def create_conversation(data: CreateConversationRequest):
         "group_name": data.group_name if data.is_group else None,
         "last_message": None,
         "last_message_at": None,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": get_turkey_now(),
         "created_by": data.participant_ids[0] if data.participant_ids else None
     }
     
@@ -170,7 +170,7 @@ async def get_conversation_messages(conversation_id: str, limit: int = 50, befor
 @router.post("/messages")
 async def send_message(data: SendMessageRequest):
     """Send a new message"""
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     message = {
         "id": str(uuid.uuid4()),

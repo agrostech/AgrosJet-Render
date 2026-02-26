@@ -228,7 +228,7 @@ async def create_store(restaurant_id: str, data: StoreCreateRequest):
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     store_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     new_store = {
         "id": store_id,
@@ -283,7 +283,7 @@ async def update_store(restaurant_id: str, store_id: str, data: StoreUpdateReque
         raise HTTPException(status_code=404, detail="Mağaza bulunamadı")
     
     # Güncelleme
-    update_fields = {"integration_stores.$.updated_at": datetime.now(timezone.utc).isoformat()}
+    update_fields = {"integration_stores.$.updated_at": get_turkey_now()}
     
     if data.name is not None:
         update_fields["integration_stores.$.name"] = data.name
@@ -407,7 +407,7 @@ async def test_store_connection(restaurant_id: str, store_id: str):
             {"id": restaurant_id, "integration_stores.id": store_id},
             {"$set": {
                 "integration_stores.$.connected": True,
-                "integration_stores.$.last_test": datetime.now(timezone.utc).isoformat()
+                "integration_stores.$.last_test": get_turkey_now()
             }}
         )
     else:
@@ -463,7 +463,7 @@ async def update_store_status(restaurant_id: str, store_id: str, data: StoreStat
             {"id": restaurant_id, "integration_stores.id": store_id},
             {"$set": {
                 "integration_stores.$.is_open": data.is_open,
-                "integration_stores.$.updated_at": datetime.now(timezone.utc).isoformat()
+                "integration_stores.$.updated_at": get_turkey_now()
             }}
         )
     
@@ -513,7 +513,7 @@ async def sync_store_orders(restaurant_id: str, store_id: str):
         await db.restaurants.update_one(
             {"id": restaurant_id, "integration_stores.id": store_id},
             {"$set": {
-                "integration_stores.$.last_sync": datetime.now(timezone.utc).isoformat()
+                "integration_stores.$.last_sync": get_turkey_now()
             }}
         )
     
@@ -525,7 +525,7 @@ async def sync_store_orders(restaurant_id: str, store_id: str):
 async def migrate_old_integrations(restaurant_id: str, platform_integrations: dict) -> list:
     """Eski platform_integrations formatını yeni integration_stores formatına migrate et"""
     stores = []
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     for platform, data in platform_integrations.items():
         if not data or not isinstance(data, dict):
@@ -593,7 +593,7 @@ async def sync_to_old_format(restaurant_id: str, platform: str, store: dict):
         f"platform_integrations.{platform}.enabled": store.get("enabled", False),
         f"platform_integrations.{platform}.connected": store.get("connected", False),
         f"platform_integrations.{platform}.is_open": store.get("is_open", False),
-        f"platform_integrations.{platform}.updated_at": datetime.now(timezone.utc).isoformat()
+        f"platform_integrations.{platform}.updated_at": get_turkey_now()
     }
     
     # Platform-specific credentials

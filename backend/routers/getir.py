@@ -219,8 +219,8 @@ async def verify_order(restaurant_id: str, data: OrderActionRequest):
             {"id": data.order_id},
             {"$set": {
                 "status": "preparing",
-                "verified_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "verified_at": get_turkey_now(),
+                "updated_at": get_turkey_now()
             }}
         )
     
@@ -241,8 +241,8 @@ async def prepare_order(restaurant_id: str, data: OrderActionRequest):
             {"id": data.order_id},
             {"$set": {
                 "status": "preparing",
-                "prepared_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "prepared_at": get_turkey_now(),
+                "updated_at": get_turkey_now()
             }}
         )
     
@@ -264,8 +264,8 @@ async def handover_order(restaurant_id: str, data: OrderActionRequest):
             {"id": data.order_id},
             {"$set": {
                 "status": "on_the_way",
-                "handover_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "handover_at": get_turkey_now(),
+                "updated_at": get_turkey_now()
             }}
         )
     

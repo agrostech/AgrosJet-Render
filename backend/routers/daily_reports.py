@@ -286,7 +286,7 @@ async def upload_excel(
         "report_type": report_type,
         "filename": file.filename,
         "data": parsed_data,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     
     # Upsert: Replace if exists for same company/date/type
@@ -593,7 +593,7 @@ async def compare_reports(company_id: str, date: str):
         "processed": False,
         "processed_by": None,
         "processed_at": None,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     })
     
     return comparison_result
@@ -634,7 +634,7 @@ async def process_differences(
                 "amount": result["cash_difference"],
                 "description": f"{date} tarihli eksik nakit",
                 "is_hakedis": False,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": get_turkey_now(),
                 "auto_generated": True,
                 "source": "daily_report"
             }
@@ -658,7 +658,7 @@ async def process_differences(
                 "amount": result["card_difference"],
                 "description": f"{date} tarihli eksik kart",
                 "is_hakedis": False,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": get_turkey_now(),
                 "auto_generated": True,
                 "source": "daily_report"
             }
@@ -685,7 +685,7 @@ async def process_differences(
                 "amount": result["total_penalty"],
                 "description": f"{date} tarihli yanlış vergi dilimi - {issues_desc}",
                 "is_hakedis": False,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": get_turkey_now(),
                 "auto_generated": True,
                 "source": "daily_report_penalty"
             }
@@ -701,7 +701,7 @@ async def process_differences(
         {"company_id": company_id, "date": date},
         {"$set": {
             "processed": True,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": get_turkey_now(),
             "processed_by": admin_name
         }}
     )
@@ -711,7 +711,7 @@ async def process_differences(
         {"company_id": company_id, "date": date},
         {"$set": {
             "processed": True,
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": get_turkey_now(),
             "processed_by": admin_name
         }}
     )

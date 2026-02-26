@@ -64,7 +64,7 @@ async def register_courier(data: CourierRegister):
         "plate": data.plate.upper(),
         "password": hash_password(data.password),
         "status": "active",
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     await db.couriers.insert_one(courier)
     return {"message": "Kayıt başarılı.", "id": courier["id"]}

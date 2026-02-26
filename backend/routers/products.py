@@ -233,7 +233,7 @@ async def save_products(request: SaveProductsRequest):
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     company_id = restaurant.get("company_id")
-    now = datetime.now(timezone.utc).isoformat()
+    now = get_turkey_now()
     
     # Mevcut kategorileri ve ürünleri temizle (opsiyonel - yeni import)
     await db.product_categories.delete_many({"restaurant_id": request.restaurant_id})
@@ -389,7 +389,7 @@ async def create_category(data: CategoryCreate):
         "restaurant_id": data.restaurant_id,
         "company_id": restaurant.get("company_id"),
         "order": next_order,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     
     await db.product_categories.insert_one(category)
@@ -419,7 +419,7 @@ async def update_category(category_id: str, data: CategoryUpdate):
     # Kategoriyi güncelle
     await db.product_categories.update_one(
         {"id": category_id},
-        {"$set": {"name": data.name, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"name": data.name, "updated_at": get_turkey_now()}}
     )
     
     # Bu kategorideki ürünlerin category_name'ini de güncelle
@@ -483,7 +483,7 @@ async def create_product(data: ProductCreate):
         "restaurant_id": data.restaurant_id,
         "company_id": restaurant.get("company_id"),
         "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     }
     
     await db.products.insert_one(product)
@@ -501,7 +501,7 @@ async def update_product(product_id: str, data: ProductUpdate):
     if not product:
         raise HTTPException(status_code=404, detail="Ürün bulunamadı")
     
-    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    update_fields = {"updated_at": get_turkey_now()}
     
     if data.name is not None:
         update_fields["name"] = data.name

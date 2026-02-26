@@ -116,8 +116,8 @@ async def create_training(
         "training_type": training_type,
         "video_filename": video_filename,
         "video_path": f"/api/academy/video/{training_id}" if video_filename else None,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now(),
+        "updated_at": get_turkey_now()
     }
     
     await db.academy_trainings.insert_one(training)
@@ -135,7 +135,7 @@ async def update_training(
     if not training:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
     
-    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    update_data = {"updated_at": get_turkey_now()}
     if data.title:
         update_data["title"] = data.title
     if data.content is not None:
@@ -263,7 +263,7 @@ async def upload_training_image(
         "filename": image_filename,
         "r2_key": r2_key,
         "storage_type": "r2",
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": get_turkey_now()
     })
     
     return {
