@@ -128,4 +128,4 @@ def parse_custom_date(custom_date: str = None) -> str:
             return tx_date.isoformat()
         except Exception:
             pass
-    return datetime.now(timezone.utc).isoformat()
+    return get_turkey_now()
