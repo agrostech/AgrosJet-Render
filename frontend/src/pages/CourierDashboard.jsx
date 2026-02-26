@@ -65,6 +65,11 @@ export default function CourierDashboard() {
   // Base path for navigation (dynamic based on URL)
   const basePath = urlCourierId ? `/kurye/${urlCourierId}` : '/courier';
   
+  // NavItems'ı basePath değiştiğinde güncelle
+  useEffect(() => {
+    setNavItems(getNavItems(basePath));
+  }, [basePath]);
+  
   // Refs for background task management
   const wakeLockRef = useRef(null);
 
