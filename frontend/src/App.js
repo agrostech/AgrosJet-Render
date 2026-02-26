@@ -37,7 +37,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/courier-login" element={<CourierLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/courier/*" element={<CourierDashboard />} />
+          <Route path="/courier/*" element={<CourierRedirect />} />
           <Route path="/kurye/:courierId/*" element={<CourierDashboard />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
           <Route path="/system/*" element={<SystemDashboard />} />
