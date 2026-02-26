@@ -32,6 +32,9 @@ export default function CourierSidebar({
   const location = useLocation();
   const currentStatus = AVAILABILITY_STATUSES[availabilityStatus] || AVAILABILITY_STATUSES.offline;
   const StatusIcon = currentStatus.icon;
+  
+  // NavItems'dan basePath türet
+  const basePath = navItems?.[0]?.path || '/courier';
 
   return (
     <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
