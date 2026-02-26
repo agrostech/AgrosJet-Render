@@ -9,6 +9,9 @@ import uuid
 import logging
 import math
 from datetime import datetime, timezone, timedelta
+
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
 from typing import Optional, List, Dict, Any
 from utils.database import db
 

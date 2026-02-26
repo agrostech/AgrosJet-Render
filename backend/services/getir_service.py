@@ -13,6 +13,9 @@ import httpx
 import uuid
 import logging
 from datetime import datetime, timezone, timedelta
+
+# Türkiye timezone (UTC+3)
+TURKEY_TZ = timezone(timedelta(hours=3))
 from typing import Optional, Dict, Any, List
 from utils.database import db
 
