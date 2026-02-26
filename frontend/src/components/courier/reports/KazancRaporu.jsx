@@ -134,45 +134,45 @@ export default function KazancRaporu({ courierId, companyId }) {
           {/* 5 Kartlı Özet */}
           <div className="grid grid-cols-2 gap-3">
             {/* Paket Sayısı */}
-            <Card className="border-purple-200 bg-purple-50">
+            <Card className="border-2 border-purple-300 bg-white">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
                     <Package className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-purple-600 font-medium">Paket Sayısı</p>
-                    <p className="text-lg font-bold text-purple-700">{data.package_count || 0}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">Paket Sayısı</p>
+                    <p className="text-lg font-bold">{data.package_count || 0}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
             {/* Paket Hakediş */}
-            <Card className="border-blue-200 bg-blue-50">
+            <Card className="border-2 border-blue-300 bg-white">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                     <Coins className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-blue-600 font-medium">Paket Hakediş</p>
-                    <p className="text-lg font-bold text-blue-700">{formatMoney(data.total_earnings)}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">Paket Hakediş</p>
+                    <p className="text-lg font-bold">{formatMoney(data.total_earnings)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Çalışma Süresi */}
-            <Card className="border-slate-200 bg-slate-50">
+            <Card className="border-2 border-slate-300 bg-white">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
                     <Clock className="w-4 h-4 text-slate-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-600 font-medium">Çalışma Süresi</p>
-                    <p className="text-lg font-bold text-slate-700">
+                    <p className="text-[10px] text-muted-foreground font-medium">Çalışma Süresi</p>
+                    <p className="text-lg font-bold">
                       {data.work_hours || 0}<span className="text-sm font-normal">s</span> {data.work_minutes || 0}<span className="text-sm font-normal">dk</span>
                     </p>
                   </div>
@@ -181,15 +181,15 @@ export default function KazancRaporu({ courierId, companyId }) {
             </Card>
 
             {/* Saatlik Hakediş */}
-            <Card className="border-amber-200 bg-amber-50">
+            <Card className="border-2 border-amber-300 bg-white">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
                     <TrendingUp className="w-4 h-4 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-amber-600 font-medium">Saatlik Hakediş</p>
-                    <p className="text-lg font-bold text-amber-700">{formatMoney(data.hourly_earnings)}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">Saatlik Hakediş</p>
+                    <p className="text-lg font-bold">{formatMoney(data.hourly_earnings)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -197,15 +197,15 @@ export default function KazancRaporu({ courierId, companyId }) {
           </div>
 
           {/* Toplam Hakediş - Tam Genişlik */}
-          <Card className="border-green-300 bg-green-50">
+          <Card className="border-2 border-green-400 bg-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                   <Wallet className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-green-600 font-medium">Toplam Hakediş</p>
-                  <p className="text-2xl font-bold text-green-700">{formatMoney(data.total_earnings)}</p>
+                  <p className="text-xs text-muted-foreground font-medium">Toplam Hakediş</p>
+                  <p className="text-2xl font-bold">{formatMoney(data.total_earnings)}</p>
                 </div>
               </div>
             </CardContent>
