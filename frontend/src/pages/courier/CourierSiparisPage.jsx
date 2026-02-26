@@ -343,7 +343,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     setActionLoading(orderId);
     try {
       await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/pickup`);
-      toast.success("Sipariş yola çıktı");
       fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
@@ -359,7 +358,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
       await axios.post(`${API}/orders/courier/${courierId}/bulk-pickup`, {
         order_ids: orderIds
       });
-      toast.success(`${orderIds.length} sipariş yola çıktı`);
       fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
