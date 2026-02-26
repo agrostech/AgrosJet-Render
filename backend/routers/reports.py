@@ -683,7 +683,9 @@ async def get_courier_earnings_report(
             "total_amount": 1,
             "payment_method": 1,
             "payment_details": 1,
-            "created_at": 1
+            "created_at": 1,
+            "status_history": 1,
+            "delivered_at": 1
         }
     ).sort("created_at", -1).to_list(500)
     
@@ -705,6 +707,30 @@ async def get_courier_earnings_report(
                 del_loc.get("latitude"), del_loc.get("longitude")
             )
         
+        # Teslimat süresini hesapla (on_the_way -> delivered arası)
+        delivery_duration_minutes = 0
+        status_history = order.get("status_history", [])
+        delivered_at_str = order.get("delivered_at")
+        
+        if status_history and delivered_at_str:
+            # on_the_way timestamp'ini bul
+            on_the_way_time = None
+            for entry in status_history:
+                if entry.get("status") == "on_the_way" and entry.get("timestamp"):
+                    on_the_way_time = entry.get("timestamp")
+                    break
+            
+            if on_the_way_time:
+                try:
+                    from datetime import datetime
+                    otw_dt = datetime.fromisoformat(on_the_way_time.replace('Z', '+00:00'))
+                    del_dt = datetime.fromisoformat(delivered_at_str.replace('Z', '+00:00'))
+                    diff = (del_dt - otw_dt).total_seconds() / 60
+                    if diff > 0:
+                        delivery_duration_minutes = round(diff, 1)
+                except:
+                    pass
+        
         payment_details = order.get("payment_details", {})
         order_list.append({
             "order_no": order.get("order_number") or order.get("order_no", "-"),
@@ -715,6 +741,7 @@ async def get_courier_earnings_report(
             "total_amount": order.get("total_amount", 0),
             "courier_fee": courier_fee,
             "payment_method": order.get("payment_method", "-"),
+            "delivery_duration_minutes": delivery_duration_minutes,
             "payment_details": {
                 "cash_amount": payment_details.get("cash_amount"),
                 "card_amount": payment_details.get("card_amount"),
