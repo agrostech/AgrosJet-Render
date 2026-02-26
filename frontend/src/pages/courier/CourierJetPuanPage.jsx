@@ -61,7 +61,6 @@ export default function CourierJetPuanPage({ courierId }) {
         image_url: product.image_url
       }];
     });
-    toast.success("Sepete eklendi");
   };
 
   const updateCartQuantity = (productId, delta) => {
@@ -137,25 +136,26 @@ export default function CourierJetPuanPage({ courierId }) {
 
   return (
     <div className="space-y-4" data-testid="courier-jetpuan-page">
-      {/* Balance Card */}
-      <div className="border border-amber-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-              <Coins className="w-5 h-5 text-amber-500" />
+      {/* Balance Card - Elegant Design */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-amber-400 to-orange-400 shadow-lg">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBjeD0iMjAiIGN5PSIyMCIgcj0iMyIvPjwvZz48L3N2Zz4=')] opacity-30"></div>
+        <div className="relative p-5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner">
+              <Coins className="w-7 h-7 text-white drop-shadow-sm" />
             </div>
             <div>
-              <p className="text-xs text-amber-600/80">JetPuan Bakiyem</p>
-              <p className="text-2xl font-semibold text-amber-700">{balance.toFixed(2)}</p>
+              <p className="text-sm font-medium text-white/80 tracking-wide">JetPuan Bakiyem</p>
+              <p className="text-3xl font-bold text-white tracking-tight">{balance.toFixed(0)}<span className="text-lg font-normal text-white/70 ml-1">puan</span></p>
             </div>
           </div>
           {cart.length > 0 && (
             <Button 
               onClick={() => setShowCartModal(true)} 
-              className="bg-amber-500 hover:bg-amber-600 font-medium text-sm h-9"
+              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 font-semibold text-sm h-10 px-4 rounded-xl shadow-md transition-all"
               data-testid="open-cart-btn"
             >
-              <ShoppingCart className="w-4 h-4 mr-1.5" />
+              <ShoppingCart className="w-4 h-4 mr-2" />
               Sepet ({cartItemCount})
             </Button>
           )}

@@ -109,7 +109,6 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
         plate: formData.plate,
         current_km: parseInt(formData.current_km)
       });
-      toast.success("Motosiklet eklendi");
       setShowAddModal(false);
       setFormData({ brand: "", model: "", plate: "", current_km: "" });
       fetchMotorcycles();
@@ -139,7 +138,6 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
         model: formData.model,
         plate: formData.plate
       });
-      toast.success("Motosiklet güncellendi");
       setShowEditModal(false);
       setSelectedMotorcycle(null);
       fetchMotorcycles();
@@ -161,7 +159,6 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
     
     try {
       await axios.delete(`${API}/motorcycles/${selectedMotorcycle.id}`);
-      toast.success("Motosiklet silindi");
       setShowDeleteConfirm(false);
       setSelectedMotorcycle(null);
       fetchMotorcycles();
@@ -204,7 +201,6 @@ export default function CourierMotosikletimPage({ courierId, companyId }) {
         brake_maintenance: maintenanceData.brake_maintenance,
         variator_maintenance: maintenanceData.variator_maintenance
       });
-      toast.success("Bakım kaydedildi");
       setShowMaintenanceModal(false);
       setSelectedMotorcycle(null);
       setMaintenanceData({ km_at_maintenance: "", oil_change: false, brake_maintenance: false, variator_maintenance: false });
