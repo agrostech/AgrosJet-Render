@@ -418,7 +418,6 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     setActionLoading(orderId);
     try {
       await axios.post(`${API}/orders/courier/${courierId}/order/${orderId}/deliver`, paymentDetails);
-      toast.success("Sipariş teslim edildi");
       fetchOrders();
       setShowDetailModal(false);
       setShowPaymentConfirmModal(false);
