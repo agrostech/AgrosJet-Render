@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "agrosjet-87852",
+  "private_key_id": "ef04784d564a1c57cb0097817f4aaf2e65fb4ccb",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCt5Jtnxm0K1R51\nX/K87YqCo1HTH0vGIyFHU4wcheCkEFWn8PdeKfPHCojuPnDixk7uN+96ppQWJkOm\nBT2WwX+GlhmP05d8Dr+WAgZcffAPKcDtt2BQaq9+0l61O/xhY4iN/e7IvbxfK+Bk\n6R+K692XWsRnsN82yDjFUrCcFef1OgHsZBXGjiSM/C0Xw8BtaLfAYOVzYAF9dE02\nn0L8MWi2Z618NVDHEIHrCEDgOWDMk+mP6dk5hvaZafyJP9FrLpzK2jKzQreQ1nzd\nVufdMaQ5AO841UXgX+eQpoyzS/CKMgagNx0bLUD0ttOQrxOOgcczvOOtqeI03LWC\nLCfqMOtbAgMBAAECggEAJ0OtS3tkd8OzgvFNUBea5PCXs0Iny+92vjJBOteH58PA\nc5FXaa2zW8gnLxRuTOZWQDflHR6r5WxybfRU+ctrTipqTy2J0PtLi0WdxhixsdrN\ns19qof3U7p/1vppy3FKrLNSfrDgbZqnzmxWAh8/GUzytiHRJkocXOob3VeckXxyA\nUbfEtovgCpznYVDubZ38nmztoJ+d+2ogKC3VytXPEIFAzIytokipNRm1++iSFgv1\nUTTHvi3zDckO5QHbuQAMfyoYWltKlKXA9nlTfo2caC30SgV9AfWUdelKasrWbHxs\n4TmbTO7TdVOzTPj7X8FrW/FJVXFw9n9lMSBCCI1M8QKBgQDnCmKuEqRXW4p4SiXH\nFcxoN5zM0cf6NfOHt9Lpp/VjRnvaUClvWSgMrylFxz7c1WvASLAipD+Npi28TDxE\nN/maQuxGiyiuRi3LerbSW8Ep4ntolEC6GLt1HNACMuD2lFVXHbH2EEMJNKvALWOi\nAVwHrPjd1uUf24HI4sq7/O3LRwKBgQDArcJSuu1AVMDwT2TAUCohBpOoBLMBYSx+\nvAoBXbi3/6Qc1lpiFl3ljBdBTlsMLA7zCoCFgTd5E/beHRmutj0LrcVPsOD3RDe7\nqETG7sndpDmtHiGfwNDvOexVN6JHlAkEqimX//q3AO5zhxDB1+/2K3JzQ4kIp+Oq\nfo4sSOSBTQKBgQDjHtF8/7Rwb/vCXlmeyS4E8U6CBmOI84pwS2PZ8BOJQRu1tAHX\nhRSay4JOJx0D6AWho5MKqt4S+F6TcXn5MfF8FPfCLUCTeUfBdOPODQbpjsv0NXEf\nv/pfmTBeSPffTlhKaFWuZ7QOk6mXJMeB1cZLgV2wbnUVCSsfeNsFTBHTNwKBgFe3\nAq788AMIUmlUC27NT9CHGPM1aHRpU4NCgV+L1grVs1V5c94Rhp94fiG51RMef5O/\nJTEh2Soin5EQOF/kELhfXGLiCBgpEyI4AU9656UiHSulevMqKTOu79r/n73sM4rP\nGG5dFzr2jpdDVqqYbmJn9wtoJFsvayJzyK96Y6RFAoGBAMoWt+hegHjfHJhbTE5R\nseuRqV7SCxW4aqTY15vUnv9i+mBefVclqhDCGVu/t2BKdIolzAoKZ+AMDqVcgc9w\ns8sZHfZnLqSBJ0FoSypVVUnWao3JYj2nk0DoI+Z6nyx/cxurm3GGM9qaRoQ8Tatp\nM5AetX6n6+2vpHm4cJ2gFL/f\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@agrosjet-87852.iam.gserviceaccount.com",
+  "client_id": "115176455051744763196",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40agrosjet-87852.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
