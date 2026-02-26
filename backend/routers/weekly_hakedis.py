@@ -462,9 +462,13 @@ async def revert_weekly_hakedis(company_id: str, data: RevertHakedisRequest):
     from routers.jetpuan import calculate_and_debit_points
     from routers.accounting import create_activity_log
     
+    # Frontend Türkiye saati gönderiyor, +03:00 formatına çevir
+    start_dt_str = ensure_turkey_timezone(data.week_start)
+    end_dt_str = ensure_turkey_timezone(data.week_end)
+    
     try:
-        start_dt = datetime.fromisoformat(data.week_start.replace('Z', '+00:00'))
-        end_dt = datetime.fromisoformat(data.week_end.replace('Z', '+00:00'))
+        start_dt = datetime.fromisoformat(start_dt_str)
+        end_dt = datetime.fromisoformat(end_dt_str)
     except ValueError:
         raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
     
