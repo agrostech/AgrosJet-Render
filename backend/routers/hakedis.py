@@ -73,7 +73,7 @@ async def get_couriers_hakedis(company_id: str, filters: HakedisFilter):
     if not courier_ids:
         return {"couriers": [], "summary": {"total_courier_fee": 0, "total_orders": 0}}
     
-    # Teslim edilen siparişleri getir (delivered + tarih aralığında)
+    # Teslim edilen siparişleri getir (delivered + tarih aralığında) - Türkiye saati formatında
     pipeline = [
         {
             "$match": {
@@ -81,8 +81,8 @@ async def get_couriers_hakedis(company_id: str, filters: HakedisFilter):
                 "status": "delivered",
                 "courier_id": {"$in": courier_ids},
                 "delivered_at": {
-                    "$gte": start_dt.isoformat(),
-                    "$lte": end_dt.isoformat()
+                    "$gte": start_dt_str,
+                    "$lte": end_dt_str
                 }
             }
         },
