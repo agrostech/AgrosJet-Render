@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, User, Check, Coffee, XCircle } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, User, Check, Coffee, XCircle, Shield } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -179,6 +179,16 @@ export default function CourierSidebar({
         >
           {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
+        <Link 
+          to="/courier/kvkk"
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-colors ${
+            location.pathname === "/courier/kvkk" ? "bg-white/20 text-white" : ""
+          } ${sidebarCollapsed ? 'justify-center px-2' : ''}`}
+          title={sidebarCollapsed ? 'KVKK ve Gizlilik' : ''}
+        >
+          <Shield className="w-4 h-4 flex-shrink-0" />
+          {!sidebarCollapsed && <span className="text-xs">KVKK ve Gizlilik</span>}
+        </Link>
         <Button 
           variant="ghost" 
           onClick={onLogout} 
