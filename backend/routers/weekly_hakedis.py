@@ -566,7 +566,7 @@ async def update_auto_settings(company_id: str, data: AutoSettingsUpdate):
             "$set": {
                 "company_id": company_id,
                 "enabled": data.enabled,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_turkey_now()
             }
         },
         upsert=True
@@ -617,7 +617,7 @@ async def process_auto_weekly_hakedis(company_id: str):
     if not unprocessed:
         await db.weekly_hakedis_settings.update_one(
             {"company_id": company_id},
-            {"$set": {"last_auto_run": datetime.now(timezone.utc).isoformat()}}
+            {"$set": {"last_auto_run": get_turkey_now()}}
         )
         return {"skipped": True, "reason": "İşlenecek kurye yok"}
     
@@ -648,7 +648,7 @@ async def process_auto_weekly_hakedis(company_id: str):
     # Son çalışma zamanını güncelle
     await db.weekly_hakedis_settings.update_one(
         {"company_id": company_id},
-        {"$set": {"last_auto_run": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"last_auto_run": get_turkey_now()}}
     )
     
     return result
