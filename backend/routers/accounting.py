@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
+from utils.helpers import get_turkey_now
 from routers.jetpuan import calculate_and_credit_points, calculate_and_debit_points
 from routers.notifications import create_notification
 from models.schemas import (
