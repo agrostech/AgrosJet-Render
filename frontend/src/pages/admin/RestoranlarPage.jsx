@@ -1545,6 +1545,8 @@ export default function RestoranlarPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <IntegrationLogsModal open={showIntegrationLogs} onClose={() => setShowIntegrationLogs(false)} />
     </div>
   );
 }
