@@ -4,9 +4,9 @@ import { FileText, TrendingUp, BarChart3 } from "lucide-react";
 import RestaurantMutabakatRaporu from "./components/RestaurantMutabakatRaporu";
 
 const TABS = [
-  { key: "mutabakat", label: "Mütabakat", icon: FileText },
-  { key: "ciro", label: "Ciro", icon: TrendingUp },
-  { key: "performans", label: "Performans", icon: BarChart3 },
+  { key: "mutabakat", label: "Mütabakat Raporu", icon: FileText },
+  { key: "ciro", label: "Ciro Raporu", icon: TrendingUp },
+  { key: "performans", label: "Performans Raporu", icon: BarChart3 },
 ];
 
 export default function RestaurantRaporlar({ restaurantId, companyId }) {
