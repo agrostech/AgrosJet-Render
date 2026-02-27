@@ -681,3 +681,45 @@ async def get_admin_status(admin_id: str):
         "linked_courier_id": admin.get("linked_courier_id"),
         "linked_courier_status": linked_courier_status
     }
+
+
+# --- Entegrasyon Logları ---
+@router.get("/integration-logs")
+async def get_integration_logs(
+    integration: str = None,
+    limit: int = 500
+):
+    """Entegrasyon loglarını getir (dosya + MongoDB)"""
+    from services.integration_log_service import read_file_logs, get_db_logs
+
+    # Dosyadan logları oku
+    file_logs = read_file_logs(integration_filter=integration, limit=limit)
+    
+    # MongoDB'den logları oku
+    db_logs = await get_db_logs(integration_filter=integration, limit=limit)
+    
+    # Birleştir: DB logları + dosya logları
+    all_logs = []
+    
+    for log in db_logs:
+        all_logs.append({
+            "timestamp": log.get("timestamp", ""),
+            "level": log.get("level", "INFO"),
+            "message": log.get("message", ""),
+            "source": "db",
+            "integration": log.get("integration", ""),
+        })
+    
+    for log in file_logs:
+        all_logs.append({
+            "timestamp": log.get("timestamp", ""),
+            "level": log.get("level", "INFO"),
+            "message": log.get("message", ""),
+            "source": "file",
+        })
+    
+    # Tarihe göre sırala
+    all_logs.sort(key=lambda x: x.get("timestamp", ""))
+    
+    # Son N kayıt
+    return {"logs": all_logs[-limit:], "total": len(all_logs)}
