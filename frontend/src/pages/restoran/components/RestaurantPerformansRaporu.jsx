@@ -33,10 +33,12 @@ function HeatMap({ points, center, apiKey }) {
   const heatmapRef = useRef(null);
 
   useEffect(() => {
-    if (!apiKey || !center?.lat || !center?.lng) return;
+    if (!apiKey || !center?.lat || !center?.lng || !mapRef.current) return;
 
-    const loadMap = () => {
-      if (!window.google?.maps?.visualization) return;
+    let cancelled = false;
+
+    const initMap = () => {
+      if (cancelled || !window.google?.maps?.visualization || !mapRef.current) return;
 
       const map = new window.google.maps.Map(mapRef.current, {
         center: { lat: center.lat, lng: center.lng },
@@ -51,54 +53,65 @@ function HeatMap({ points, center, apiKey }) {
       });
       mapInstanceRef.current = map;
 
-      const heatmapData = points.map(
-        (p) => new window.google.maps.LatLng(p.lat, p.lng)
-      );
-
-      const heatmap = new window.google.maps.visualization.HeatmapLayer({
-        data: heatmapData,
-        map: map,
-        radius: 30,
-        opacity: 0.7,
-        gradient: [
-          "rgba(0, 255, 0, 0)",
-          "rgba(0, 255, 0, 1)",
-          "rgba(173, 255, 47, 1)",
-          "rgba(255, 255, 0, 1)",
-          "rgba(255, 165, 0, 1)",
-          "rgba(255, 69, 0, 1)",
-          "rgba(255, 0, 0, 1)",
-        ],
-      });
-      heatmapRef.current = heatmap;
+      if (points.length > 0) {
+        const heatmapData = points.map(
+          (p) => new window.google.maps.LatLng(p.lat, p.lng)
+        );
+        const heatmap = new window.google.maps.visualization.HeatmapLayer({
+          data: heatmapData,
+          map: map,
+          radius: 30,
+          opacity: 0.7,
+          gradient: [
+            "rgba(0, 255, 0, 0)",
+            "rgba(0, 255, 0, 1)",
+            "rgba(173, 255, 47, 1)",
+            "rgba(255, 255, 0, 1)",
+            "rgba(255, 165, 0, 1)",
+            "rgba(255, 69, 0, 1)",
+            "rgba(255, 0, 0, 1)",
+          ],
+        });
+        heatmapRef.current = heatmap;
+      }
     };
 
-    // Check if Google Maps is already loaded
+    // Already loaded
     if (window.google?.maps?.visualization) {
-      loadMap();
-      return;
+      initMap();
+      return () => { cancelled = true; };
     }
 
-    // Load Google Maps script
-    const existingScript = document.querySelector(
-      'script[src*="maps.googleapis.com"]'
-    );
-    if (existingScript) {
-      existingScript.addEventListener("load", loadMap);
-      return;
-    }
+    // Need to load the script
+    const callbackName = "_gmapsCallback_" + Date.now();
+    window[callbackName] = () => {
+      delete window[callbackName];
+      initMap();
+    };
 
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization`;
-    script.async = true;
-    script.defer = true;
-    script.onload = loadMap;
-    document.head.appendChild(script);
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+    if (!existingScript) {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=${callbackName}`;
+      script.async = true;
+      script.defer = true;
+      script.onerror = () => console.error("Google Maps yüklenemedi");
+      document.head.appendChild(script);
+    } else {
+      // Script exists but visualization may not be loaded yet - poll
+      const poll = setInterval(() => {
+        if (window.google?.maps?.visualization) {
+          clearInterval(poll);
+          initMap();
+        }
+      }, 200);
+      setTimeout(() => clearInterval(poll), 10000);
+    }
 
     return () => {
-      if (heatmapRef.current) {
-        heatmapRef.current.setMap(null);
-      }
+      cancelled = true;
+      if (heatmapRef.current) heatmapRef.current.setMap(null);
+      delete window[callbackName];
     };
   }, [points, center, apiKey]);
 
