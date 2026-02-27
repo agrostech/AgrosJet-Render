@@ -590,10 +590,16 @@ export default function RestoranlarPage({ companyId }) {
               data-testid="restaurant-search-input"
             />
           </div>
-          <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-restaurant-btn">
-            <Plus className="w-4 h-4 mr-2" />
-            Restoran Ekle
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowIntegrationLogs(true)} className="font-semibold" data-testid="integration-logs-btn">
+              <FileText className="w-4 h-4 mr-2" />
+              Ent. Logları
+            </Button>
+            <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-restaurant-btn">
+              <Plus className="w-4 h-4 mr-2" />
+              Restoran Ekle
+            </Button>
+          </div>
         </div>
       </div>
 
