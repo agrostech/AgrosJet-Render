@@ -115,9 +115,20 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
     
     setLoading(true);
     try {
+      // Türkiye saati formatında gönder (UTC değil)
+      const formatDateTurkey = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+03:00`;
+      };
+      
       const res = await axios.post(`${API}/restoran-mutabakat/restaurant/${restaurantId}`, {
-        start_datetime: startDate.toISOString(),
-        end_datetime: endDate.toISOString()
+        start_datetime: formatDateTurkey(startDate),
+        end_datetime: formatDateTurkey(endDate)
       });
       setData(res.data);
     } catch (err) {
