@@ -464,6 +464,7 @@ export default function RestaurantPerformansRaporu({ restaurantId, companyId }) 
               <HeatMap
                 points={data.heatmap_points || []}
                 center={data.map_center}
+                totalOrders={data.total_orders}
               />
             </CardContent>
           </Card>
