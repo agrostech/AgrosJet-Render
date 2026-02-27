@@ -829,6 +829,7 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
             "delivery_address": order.get("delivery_address", "-"),
             "payment_method": method_labels.get(method, method),
             "total_amount": amount,
+            "date": (order.get("delivered_at") or order.get("created_at") or "")[:16].replace("T", " "),
         }
         
         if method == "cash":
