@@ -499,6 +499,8 @@ async def migros_order_webhook(
         # Veritabanına kaydet
         await db.orders.insert_one(order)
         logger.info(f"Migros siparişi kaydedildi: {order['id']} (platform_id: {order['platform_id']})")
+        from services.integration_log_service import save_integration_log
+        await save_integration_log("migros", "INFO", f"Sipariş kaydedildi: {order['id']} (platform: {order['platform_id']})")
         
         return {
             "success": True,
