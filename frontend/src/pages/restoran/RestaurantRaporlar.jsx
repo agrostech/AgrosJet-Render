@@ -58,15 +58,7 @@ export default function RestaurantRaporlar({ restaurantId, companyId }) {
       )}
 
       {activeTab === "performans" && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <BarChart3 className="w-16 h-16 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">Performans Raporu</h2>
-            <p className="text-muted-foreground text-center max-w-md">
-              Yakında aktif olacak.
-            </p>
-          </CardContent>
-        </Card>
+        <RestaurantPerformansRaporu restaurantId={restaurantId} companyId={companyId} />
       )}
     </div>
   );
