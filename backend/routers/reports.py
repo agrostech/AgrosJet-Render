@@ -856,3 +856,191 @@ async def get_courier_earnings_report(
         "orders": order_list
     }
 
+
+
+
+@router.get("/restaurant/{restaurant_id}/performance")
+async def get_restaurant_performance(
+    restaurant_id: str,
+    start_datetime: str = Query(...),
+    end_datetime: str = Query(...)
+):
+    """Restoran performans raporu - teslimat süreleri ve ısı haritası"""
+    turkey_tz = timezone(timedelta(hours=3))
+
+    # Tarih formatını düzelt
+    if len(start_datetime) == 16:
+        start_datetime = start_datetime + ":00"
+    if len(end_datetime) == 16:
+        end_datetime = end_datetime + ":59"
+
+    try:
+        start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=turkey_tz)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=turkey_tz)
+    except Exception:
+        return {"error": "Tarih formatı hatalı"}
+
+    # Restoran bilgisini al (company_id lazım)
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "company_id": 1}
+    )
+    company_id = restaurant["company_id"] if restaurant else None
+
+    # Company bilgisini al (harita merkezi için)
+    company = None
+    if company_id:
+        company = await db.companies.find_one(
+            {"id": company_id},
+            {"_id": 0, "city_lat": 1, "city_lng": 1, "city": 1}
+        )
+
+    # Teslim edilmiş siparişleri getir
+    all_orders = await db.orders.find(
+        {
+            "restaurant_id": restaurant_id,
+            "status": "delivered",
+            "is_restaurant_delivery": {"$ne": True}
+        },
+        {
+            "_id": 0,
+            "created_at": 1,
+            "delivered_at": 1,
+            "status_history": 1,
+            "delivery_location": 1
+        }
+    ).to_list(10000)
+
+    # Python'da tarih filtrelemesi
+    orders = []
+    for order in all_orders:
+        delivered_at = order.get("delivered_at")
+        if not delivered_at:
+            continue
+        try:
+            if isinstance(delivered_at, str):
+                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            else:
+                order_dt = delivered_at
+            if order_dt.tzinfo is None:
+                order_dt = order_dt.replace(tzinfo=turkey_tz)
+            if start_dt <= order_dt <= end_dt:
+                orders.append(order)
+        except:
+            continue
+
+    total_orders = len(orders)
+    prep_times = []
+    delivery_times = []
+    total_times = []
+    heatmap_points = []
+    daily_over_45 = {}
+
+    for order in orders:
+        created_at_str = order.get("created_at")
+        delivered_at_str = order.get("delivered_at")
+        status_history = order.get("status_history") or []
+
+        created_dt = None
+        delivered_dt = None
+        on_the_way_dt = None
+
+        # Parse created_at
+        if created_at_str:
+            try:
+                created_dt = datetime.fromisoformat(str(created_at_str).replace('Z', '+00:00'))
+                if created_dt.tzinfo is None:
+                    created_dt = created_dt.replace(tzinfo=turkey_tz)
+            except:
+                pass
+
+        # Parse delivered_at
+        if delivered_at_str:
+            try:
+                delivered_dt = datetime.fromisoformat(str(delivered_at_str).replace('Z', '+00:00'))
+                if delivered_dt.tzinfo is None:
+                    delivered_dt = delivered_dt.replace(tzinfo=turkey_tz)
+            except:
+                pass
+
+        # Parse on_the_way from status_history
+        for entry in status_history:
+            if entry.get("status") == "on_the_way" and entry.get("timestamp"):
+                try:
+                    on_the_way_dt = datetime.fromisoformat(str(entry["timestamp"]).replace('Z', '+00:00'))
+                    if on_the_way_dt.tzinfo is None:
+                        on_the_way_dt = on_the_way_dt.replace(tzinfo=turkey_tz)
+                except:
+                    pass
+                break
+
+        # Hazırlık süresi: created_at -> on_the_way
+        if created_dt and on_the_way_dt:
+            prep_min = (on_the_way_dt - created_dt).total_seconds() / 60
+            if 0 < prep_min < 480:  # max 8 saat
+                prep_times.append(prep_min)
+
+        # Teslimat süresi: on_the_way -> delivered_at
+        if on_the_way_dt and delivered_dt:
+            del_min = (delivered_dt - on_the_way_dt).total_seconds() / 60
+            if 0 < del_min < 480:
+                delivery_times.append(del_min)
+
+        # Toplam süre: created_at -> delivered_at
+        if created_dt and delivered_dt:
+            total_min = (delivered_dt - created_dt).total_seconds() / 60
+            if 0 < total_min < 480:
+                total_times.append(total_min)
+                # Günlük 45dk üzeri sayısı
+                if total_min > 45:
+                    day_key = delivered_dt.strftime("%Y-%m-%d")
+                    daily_over_45[day_key] = daily_over_45.get(day_key, 0) + 1
+
+        # Harita noktaları
+        loc = order.get("delivery_location") or {}
+        lat = loc.get("latitude")
+        lng = loc.get("longitude")
+        if lat and lng:
+            heatmap_points.append({"lat": lat, "lng": lng})
+
+    # Süre aralıkları hesapla
+    under_15 = sum(1 for t in total_times if t < 15)
+    between_15_30 = sum(1 for t in total_times if 15 <= t < 30)
+    between_30_45 = sum(1 for t in total_times if 30 <= t < 45)
+    over_45 = sum(1 for t in total_times if t >= 45)
+
+    # Günlük ortalama 45dk üzeri
+    num_days = max(len(daily_over_45), 1)
+    if daily_over_45:
+        total_days_in_range = max((end_dt - start_dt).days, 1)
+        daily_avg_over_45 = over_45 / total_days_in_range
+    else:
+        daily_avg_over_45 = 0
+
+    show_over_45 = daily_avg_over_45 > 5
+
+    avg_prep = round(sum(prep_times) / len(prep_times), 1) if prep_times else None
+    avg_delivery = round(sum(delivery_times) / len(delivery_times), 1) if delivery_times else None
+
+    return {
+        "total_orders": total_orders,
+        "avg_prep_minutes": avg_prep,
+        "avg_delivery_minutes": avg_delivery,
+        "calculable_orders": len(total_times),
+        "under_15": under_15,
+        "between_15_30": between_15_30,
+        "between_30_45": between_30_45,
+        "over_45": over_45,
+        "show_over_45": show_over_45,
+        "daily_avg_over_45": round(daily_avg_over_45, 1),
+        "heatmap_points": heatmap_points,
+        "map_center": {
+            "lat": company.get("city_lat") if company else None,
+            "lng": company.get("city_lng") if company else None,
+            "city": company.get("city") if company else None
+        }
+    }
