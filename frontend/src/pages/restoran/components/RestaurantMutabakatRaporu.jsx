@@ -163,15 +163,6 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
             {/* Action Buttons */}
             <div className="flex gap-1.5">
               <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearFilters}
-                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
-                title="Temizle"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-              </Button>
-              <Button 
                 onClick={handleFilter} 
                 disabled={loading}
                 size="sm"
@@ -182,7 +173,7 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                 ) : (
                   <>
                     <FileText className="w-3.5 h-3.5" />
-                    Rapor Getir
+                    Filtrele
                   </>
                 )}
               </Button>
