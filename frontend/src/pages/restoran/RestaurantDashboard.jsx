@@ -68,7 +68,8 @@ export default function RestaurantDashboard() {
     setUser(storedUser);
     setRestaurant({
       id: storedUser.restaurant_id,
-      name: storedUser.restaurant_name
+      name: storedUser.restaurant_name,
+      company_id: storedUser.company_id
     });
     
     // Şirket logosunu çek
