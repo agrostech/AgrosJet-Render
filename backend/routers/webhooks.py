@@ -430,6 +430,8 @@ async def migros_order_webhook(
             logger.info(f"Migros sipariş çözüldü: {order_data.get('orderId', 'unknown')}")
         except Exception as e:
             logger.error(f"Migros şifre çözme hatası: {e}")
+            from services.integration_log_service import save_integration_log
+            await save_integration_log("migros", "ERROR", f"Şifre çözme hatası: {e}")
             raise HTTPException(status_code=400, detail=f"Şifre çözme hatası: {str(e)}")
         
         # Siparişi ShiftJet formatına dönüştür ve kaydet
