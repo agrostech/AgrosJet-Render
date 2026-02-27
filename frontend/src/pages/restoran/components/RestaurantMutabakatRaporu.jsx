@@ -72,7 +72,7 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
   // Şirket ayarlarını al ve ilk veriyi çek
   useEffect(() => {
     const initData = async () => {
-      if (!companyId || initialized) return;
+      if (!companyId || !restaurantId) return;
       
       try {
         // Şirket ayarlarını al
@@ -91,10 +91,19 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
         setEndDateTime(defaults.endDateTime);
         
         // İlk veriyi çek
-        await fetchData({
-          startDateTime: defaults.startDateTime,
-          endDateTime: defaults.endDateTime
-        });
+        setLoading(true);
+        try {
+          const res = await axios.post(`${API}/restoran-mutabakat/restaurant/${restaurantId}`, {
+            start_datetime: formatDateTurkey(defaults.startDateTime),
+            end_datetime: formatDateTurkey(defaults.endDateTime)
+          });
+          setData(res.data);
+        } catch (err) {
+          console.error("Mütabakat verisi alınamadı:", err);
+          setData(null);
+        } finally {
+          setLoading(false);
+        }
         
         setInitialized(true);
       } catch (err) {
@@ -102,8 +111,10 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
       }
     };
     
-    initData();
-  }, [companyId, initialized, getDefaultDates]);
+    if (!initialized) {
+      initData();
+    }
+  }, [companyId, restaurantId, initialized, getDefaultDates]);
 
   // Filtrele butonu
   const handleFilter = () => {
