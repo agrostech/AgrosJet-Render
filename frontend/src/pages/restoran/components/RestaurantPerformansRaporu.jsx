@@ -284,7 +284,7 @@ export default function RestaurantPerformansRaporu({ restaurantId, companyId }) 
         },
         {
           label: "45 dk üzeri",
-          value: data.show_over_45 ? data.over_45 : null,
+          value: data.over_45,
           showInfo: !data.show_over_45,
           icon: AlertTriangle,
           color: "text-red-600",
