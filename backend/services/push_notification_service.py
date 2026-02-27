@@ -71,7 +71,7 @@ async def send_web_push_notification(courier_id: str, title: str, body: str, dat
         return False
 
 
-async def send_fcm_notification(courier_id: str, title: str, body: str, data: dict = None):
+async def send_fcm_notification(courier_id: str, title: str, body: str, data: dict = None, sound: str = "default"):
     """Send Firebase Cloud Messaging notification to a courier (native app)"""
     try:
         from services.firebase_service import send_push_notification
@@ -90,17 +90,18 @@ async def send_fcm_notification(courier_id: str, title: str, body: str, data: di
             fcm_token=courier["fcm_token"],
             title=title,
             body=body,
-            data=data
+            data=data,
+            sound=sound
         )
     except Exception as e:
         print(f"FCM notification error: {e}")
         return False
 
 
-async def send_push_notification(courier_id: str, title: str, body: str, data: dict = None):
+async def send_push_notification(courier_id: str, title: str, body: str, data: dict = None, sound: str = "default"):
     """Send push notification to a courier (tries both FCM and Web Push)"""
     # Önce FCM dene (native app)
-    fcm_sent = await send_fcm_notification(courier_id, title, body, data)
+    fcm_sent = await send_fcm_notification(courier_id, title, body, data, sound)
     
     # Sonra Web Push dene (browser)
     web_sent = await send_web_push_notification(courier_id, title, body, data)
@@ -124,5 +125,6 @@ async def notify_courier_new_order(courier_id: str, order: dict):
             "orderNumber": order_number,
             "restaurantName": restaurant_name,
             "address": address
-        }
+        },
+        sound="notification"
     )
