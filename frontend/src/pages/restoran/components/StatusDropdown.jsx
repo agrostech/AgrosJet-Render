@@ -153,12 +153,12 @@ export default function StatusDropdown({
     );
   }
 
-  // Normal siparişler - tüm seçenekler
+  // Kurye atanmamış normal siparişler - sadece bekletme süreleri ve iptal
   return (
     <Select
       value={status}
       onValueChange={(newValue) => {
-        if (newValue === "delivered" || newValue === "cancelled") {
+        if (newValue === "cancelled") {
           onCancelClick?.(order, newValue);
         } else if (newValue.startsWith("preparing_")) {
           const minutes = parseInt(newValue.split("_")[1]);
@@ -187,8 +187,6 @@ export default function StatusDropdown({
           </SelectItem>
         ))}
         <div className="border-t my-1" />
-        <SelectItem value="on_the_way" className="text-xs">Yolda</SelectItem>
-        <SelectItem value="delivered" className="text-xs">Teslim Edildi</SelectItem>
         <SelectItem value="cancelled" className="text-xs">İptal Edildi</SelectItem>
       </SelectContent>
     </Select>
