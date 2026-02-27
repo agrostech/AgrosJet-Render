@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, TrendingUp, BarChart3 } from "lucide-react";
 import RestaurantMutabakatRaporu from "./components/RestaurantMutabakatRaporu";
+import RestaurantCiroRaporu from "./components/RestaurantCiroRaporu";
 
 const TABS = [
   { key: "mutabakat", label: "Mütabakat Raporu", icon: FileText },
