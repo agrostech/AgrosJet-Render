@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RefreshCw, Search, TrendingUp, List, X } from "lucide-react";
+import { RefreshCw, TrendingUp, List, X } from "lucide-react";
+import RaporFiltre from "./RaporFiltre";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -79,39 +77,14 @@ function CiroCell({ value, orders, label }) {
 export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
-  const [initialized, setInitialized] = useState(false);
-  
-  const [companySettings, setCompanySettings] = useState({ opening_time: "09:00", closing_time: "23:00" });
-  
-  const getDefaultDates = useCallback((settings) => {
-    const s = settings || { opening_time: "09:00", closing_time: "23:00" };
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const openingTime = s.opening_time || "09:00";
-    const closingTime = s.closing_time || "23:00";
-    
-    const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
-    const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
-    
-    return { startDateTime, endDateTime };
-  }, []);
-  
-  const [startDateTime, setStartDateTime] = useState("");
-  const [endDateTime, setEndDateTime] = useState("");
 
   const formatDateTurkey = (dateTimeStr) => {
     if (!dateTimeStr) return "";
     return `${dateTimeStr}:00+03:00`;
   };
 
-  const fetchData = useCallback(async (params = {}) => {
-    const start = params.startDateTime || startDateTime;
-    const end = params.endDateTime || endDateTime;
-    
+  const handleFilter = useCallback(async (start, end) => {
     if (!start || !end || !restaurantId) return;
-    
     setLoading(true);
     try {
       const res = await axios.post(`${API}/restoran-mutabakat/ciro/restaurant/${restaurantId}`, {
@@ -125,99 +98,12 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
     } finally {
       setLoading(false);
     }
-  }, [restaurantId, startDateTime, endDateTime]);
-
-  useEffect(() => {
-    const initData = async () => {
-      if (!companyId || !restaurantId) return;
-      
-      try {
-        const companyRes = await axios.get(`${API}/companies/${companyId}`);
-        const company = companyRes.data;
-        
-        const settings = {
-          opening_time: company?.opening_time || "09:00",
-          closing_time: company?.closing_time || "23:00"
-        };
-        setCompanySettings(settings);
-        
-        const defaults = getDefaultDates(settings);
-        setStartDateTime(defaults.startDateTime);
-        setEndDateTime(defaults.endDateTime);
-        
-        setLoading(true);
-        try {
-          const res = await axios.post(`${API}/restoran-mutabakat/ciro/restaurant/${restaurantId}`, {
-            start_datetime: formatDateTurkey(defaults.startDateTime),
-            end_datetime: formatDateTurkey(defaults.endDateTime)
-          });
-          setData(res.data);
-        } catch (err) {
-          console.error("Ciro verisi alınamadı:", err);
-          setData(null);
-        } finally {
-          setLoading(false);
-        }
-        
-        setInitialized(true);
-      } catch (err) {
-        console.error("Şirket ayarları alınamadı:", err);
-      }
-    };
-    
-    if (!initialized) {
-      initData();
-    }
-  }, [companyId, restaurantId, initialized, getDefaultDates]);
-
-  const handleFilter = () => {
-    fetchData();
-  };
+  }, [restaurantId]);
 
   return (
     <div className="space-y-4" data-testid="restaurant-ciro-raporu">
-      {/* Compact Filters */}
-      <Card>
-        <CardContent className="p-3">
-          <div className="flex flex-wrap items-end gap-2">
-            <div className="min-w-[140px] flex-1 max-w-[200px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
-              <Input 
-                type="datetime-local" 
-                value={startDateTime} 
-                onChange={(e) => setStartDateTime(e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="min-w-[140px] flex-1 max-w-[200px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Bitiş</Label>
-              <Input 
-                type="datetime-local" 
-                value={endDateTime} 
-                onChange={(e) => setEndDateTime(e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="flex gap-1.5">
-              <Button 
-                onClick={handleFilter} 
-                disabled={loading}
-                size="sm"
-                className="h-8 px-3 text-xs gap-1.5"
-              >
-                {loading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Search className="w-3.5 h-3.5" />
-                )}
-                Filtrele
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RaporFiltre companyId={companyId} onFilter={handleFilter} loading={loading} />
 
-      {/* Loading */}
       {loading && (
         <Card>
           <CardContent className="flex items-center justify-center py-12">
@@ -226,7 +112,6 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
         </Card>
       )}
 
-      {/* Sonuçlar */}
       {!loading && data && (
         <Card>
           <CardContent className="p-0">
@@ -260,7 +145,6 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
         </Card>
       )}
 
-      {/* İlk yükleme */}
       {!loading && !data && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
