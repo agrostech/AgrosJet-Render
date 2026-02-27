@@ -513,6 +513,8 @@ async def migros_order_webhook(
         raise
     except Exception as e:
         logger.exception(f"Migros sipariş webhook hatası: {str(e)}")
+        from services.integration_log_service import save_integration_log
+        await save_integration_log("migros", "ERROR", f"Webhook hatası: {str(e)}")
         return {"success": False, "errorMessage": {"errorDetail": str(e)}}
 
 
