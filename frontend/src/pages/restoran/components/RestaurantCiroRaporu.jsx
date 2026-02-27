@@ -37,6 +37,7 @@ function OrderListModal({ title, orders, onClose }) {
                   <span className="text-muted-foreground w-5 shrink-0">{i + 1}.</span>
                   <span className="font-medium min-w-[100px] shrink-0">{o.customer_name}</span>
                   <span className="text-muted-foreground truncate flex-1">{o.delivery_address}</span>
+                  <span className="shrink-0 text-muted-foreground">{o.date}</span>
                   <span className="shrink-0 text-muted-foreground">{o.payment_method}</span>
                   <span className="font-medium shrink-0 min-w-[70px] text-right">{formatMoney(o.total_amount)}</span>
                 </div>
