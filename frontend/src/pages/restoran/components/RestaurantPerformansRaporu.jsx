@@ -1,11 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  RefreshCw, Search, Package, Clock, Truck, Zap,
+  RefreshCw, Package, Clock, Truck, Zap,
   Timer, AlertTriangle, Info, MapPin, BarChart3
 } from "lucide-react";
 import {
@@ -17,6 +14,7 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
+import RaporFiltre from "./RaporFiltre";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
