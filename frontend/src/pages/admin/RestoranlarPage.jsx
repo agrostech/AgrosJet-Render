@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
-  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt
+  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt, FileText
 } from "lucide-react";
 import RestaurantPermissionsModal from "@/components/admin/RestaurantPermissionsModal";
 import IntegrationLogsModal from "@/components/admin/IntegrationLogsModal";
