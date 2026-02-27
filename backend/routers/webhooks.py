@@ -408,6 +408,10 @@ async def migros_order_webhook(
         
         logger.info(f"Migros sipariş webhook alındı: restaurant={restaurant_id}, data_keys={list(webhook_data.keys()) if isinstance(webhook_data, dict) else 'not dict'}")
         
+        # MongoDB'ye log kaydet
+        from services.integration_log_service import save_integration_log
+        await save_integration_log("migros", "INFO", f"Webhook alındı: restaurant={restaurant_id}, keys={list(webhook_data.keys()) if isinstance(webhook_data, dict) else 'not dict'}")
+        
         # Şifreli veriyi çöz
         encrypted_value = webhook_data.get("value") or webhook_data.get("Value")
         if not encrypted_value:
