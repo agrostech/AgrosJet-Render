@@ -133,21 +133,18 @@ export default function CourierSiparisPage({ courierId, companyId }) {
     // Başlangıç noktası - kullanıcının mevcut konumu
     let startLat, startLng;
     
-    const useCurrentLocation = () => {
-      return new Promise((resolve) => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => resolve(null),
-            { enableHighAccuracy: true, timeout: 5000 }
-          );
-        } else {
-          resolve(null);
-        }
-      });
-    };
+    const currentPos = await new Promise((resolve) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve(null),
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        resolve(null);
+      }
+    });
 
-    const currentPos = await useCurrentLocation();
     if (currentPos) {
       startLat = currentPos.lat;
       startLng = currentPos.lng;
