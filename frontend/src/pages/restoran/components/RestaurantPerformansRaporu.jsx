@@ -14,9 +14,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.heat";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const MAPS_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 function formatMinutes(val) {
   if (val === null || val === undefined) return "-";
@@ -27,93 +29,46 @@ function formatMinutes(val) {
   return `${mins} dk`;
 }
 
-function HeatMap({ points, center, apiKey }) {
+function HeatMap({ points, center }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const heatmapRef = useRef(null);
 
   useEffect(() => {
-    if (!apiKey || !center?.lat || !center?.lng || !mapRef.current) return;
+    if (!center?.lat || !center?.lng || !mapRef.current) return;
 
-    let cancelled = false;
-
-    const initMap = () => {
-      if (cancelled || !window.google?.maps?.visualization || !mapRef.current) return;
-
-      const map = new window.google.maps.Map(mapRef.current, {
-        center: { lat: center.lat, lng: center.lng },
-        zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-        styles: [
-          { featureType: "poi", stylers: [{ visibility: "off" }] },
-          { featureType: "transit", stylers: [{ visibility: "simplified" }] },
-        ],
-      });
-      mapInstanceRef.current = map;
-
-      if (points.length > 0) {
-        const heatmapData = points.map(
-          (p) => new window.google.maps.LatLng(p.lat, p.lng)
-        );
-        const heatmap = new window.google.maps.visualization.HeatmapLayer({
-          data: heatmapData,
-          map: map,
-          radius: 30,
-          opacity: 0.7,
-          gradient: [
-            "rgba(0, 255, 0, 0)",
-            "rgba(0, 255, 0, 1)",
-            "rgba(173, 255, 47, 1)",
-            "rgba(255, 255, 0, 1)",
-            "rgba(255, 165, 0, 1)",
-            "rgba(255, 69, 0, 1)",
-            "rgba(255, 0, 0, 1)",
-          ],
-        });
-        heatmapRef.current = heatmap;
-      }
-    };
-
-    // Already loaded
-    if (window.google?.maps?.visualization) {
-      initMap();
-      return () => { cancelled = true; };
+    // Destroy previous map instance
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
     }
 
-    // Need to load the script
-    const callbackName = "_gmapsCallback_" + Date.now();
-    window[callbackName] = () => {
-      delete window[callbackName];
-      initMap();
-    };
+    const map = L.map(mapRef.current).setView([center.lat, center.lng], 13);
+    mapInstanceRef.current = map;
 
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=${callbackName}`;
-      script.async = true;
-      script.defer = true;
-      script.onerror = () => console.error("Google Maps yüklenemedi");
-      document.head.appendChild(script);
-    } else {
-      // Script exists but visualization may not be loaded yet - poll
-      const poll = setInterval(() => {
-        if (window.google?.maps?.visualization) {
-          clearInterval(poll);
-          initMap();
-        }
-      }, 200);
-      setTimeout(() => clearInterval(poll), 10000);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap',
+      maxZoom: 18,
+    }).addTo(map);
+
+    if (points.length > 0) {
+      const heatData = points.map((p) => [p.lat, p.lng, 1]);
+      L.heatLayer(heatData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 17,
+        max: 1.0,
+        gradient: { 0.2: "#00ff00", 0.4: "#adff2f", 0.6: "#ffff00", 0.8: "#ff4500", 1.0: "#ff0000" },
+      }).addTo(map);
     }
+
+    // Force a resize after render
+    setTimeout(() => map.invalidateSize(), 100);
 
     return () => {
-      cancelled = true;
-      if (heatmapRef.current) heatmapRef.current.setMap(null);
-      delete window[callbackName];
+      map.remove();
+      mapInstanceRef.current = null;
     };
-  }, [points, center, apiKey]);
+  }, [points, center]);
 
   if (!center?.lat || !center?.lng) {
     return (
