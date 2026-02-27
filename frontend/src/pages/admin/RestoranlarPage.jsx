@@ -632,7 +632,11 @@ export default function RestoranlarPage({ companyId }) {
       {/* Restaurant List */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+          <img 
+            src="https://i.hizliresim.com/laijbt4.png" 
+            alt="Yükleniyor" 
+            className="w-10 h-10 animate-pulse opacity-60"
+          />
         </div>
       ) : filteredRestaurants.length === 0 ? (
         <Card>
