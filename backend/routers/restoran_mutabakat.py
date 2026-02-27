@@ -767,3 +767,70 @@ async def update_auto_settings(company_id: str, data: AutoSettingsUpdate):
     )
     
     return {"success": True, "enabled": data.enabled}
+
+
+
+class CiroRequest(BaseModel):
+    start_datetime: str
+    end_datetime: str
+
+
+@router.post("/ciro/restaurant/{restaurant_id}")
+async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
+    """Restoran ciro raporu - ödeme yöntemlerine göre"""
+    
+    # Restoran kontrolü
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "company_id": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # Tarihleri parse et
+    start_dt = ensure_turkey_timezone(req.start_datetime)
+    end_dt = ensure_turkey_timezone(req.end_datetime)
+    
+    # Teslim edilen siparişleri çek
+    orders = await db.orders.find({
+        "restaurant_id": restaurant_id,
+        "status": "delivered",
+        "delivered_at": {"$gte": start_dt, "$lte": end_dt}
+    }, {"_id": 0, "total_amount": 1, "payment_method": 1}).to_list(10000)
+    
+    # Ciro hesapla
+    cash_total = 0
+    card_total = 0
+    meal_card_total = 0
+    online_total = 0
+    online_meal_card_total = 0
+    
+    for order in orders:
+        amount = order.get("total_amount", 0) or 0
+        method = order.get("payment_method", "")
+        
+        if method == "cash":
+            cash_total += amount
+        elif method == "card":
+            card_total += amount
+        elif method == "meal_card":
+            meal_card_total += amount
+        elif method == "online":
+            online_total += amount
+        elif method == "online_meal_card":
+            online_meal_card_total += amount
+    
+    total_ciro = cash_total + card_total + meal_card_total + online_total + online_meal_card_total
+    
+    return {
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant.get("name", ""),
+        "order_count": len(orders),
+        "cash_total": round(cash_total, 2),
+        "card_total": round(card_total, 2),
+        "meal_card_total": round(meal_card_total, 2),
+        "online_total": round(online_total, 2),
+        "online_meal_card_total": round(online_meal_card_total, 2),
+        "total_ciro": round(total_ciro, 2)
+    }
