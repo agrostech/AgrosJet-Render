@@ -797,7 +797,7 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         "restaurant_id": restaurant_id,
         "status": "delivered",
         "delivered_at": {"$gte": start_dt, "$lte": end_dt}
-    }, {"_id": 0, "total_amount": 1, "payment_method": 1, "customer_name": 1, "delivery_address": 1, "order_number": 1}).to_list(10000)
+    }, {"_id": 0, "total_amount": 1, "payment_method": 1, "customer_name": 1, "delivery_address": 1, "order_number": 1, "delivered_at": 1, "created_at": 1}).to_list(10000)
     
     # Ciro hesapla + sipariş listesi
     cash_total = 0
