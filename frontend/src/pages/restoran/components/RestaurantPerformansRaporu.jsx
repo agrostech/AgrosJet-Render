@@ -227,53 +227,7 @@ export default function RestaurantPerformansRaporu({ restaurantId, companyId }) 
 
   return (
     <div className="space-y-4" data-testid="restaurant-performans-raporu">
-      {/* Filter Card - same as Mütabakat */}
-      <Card>
-        <CardContent className="p-3">
-          <div className="flex flex-wrap items-end gap-2">
-            <div className="min-w-[140px] flex-1 max-w-[200px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                Başlangıç
-              </Label>
-              <Input
-                type="datetime-local"
-                value={startDateTime}
-                onChange={(e) => setStartDateTime(e.target.value)}
-                className="h-8 text-xs"
-                data-testid="perf-start-date"
-              />
-            </div>
-            <div className="min-w-[140px] flex-1 max-w-[200px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">
-                Bitiş
-              </Label>
-              <Input
-                type="datetime-local"
-                value={endDateTime}
-                onChange={(e) => setEndDateTime(e.target.value)}
-                className="h-8 text-xs"
-                data-testid="perf-end-date"
-              />
-            </div>
-            <div className="flex gap-1.5">
-              <Button
-                onClick={handleFilter}
-                disabled={loading}
-                size="sm"
-                className="h-8 px-3 text-xs gap-1.5"
-                data-testid="perf-filter-btn"
-              >
-                {loading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Search className="w-3.5 h-3.5" />
-                )}
-                Filtrele
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RaporFiltre companyId={companyId} onFilter={handleFilter} loading={loading} />
 
       {/* Loading */}
       {loading && (
