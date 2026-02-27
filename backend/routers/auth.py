@@ -143,7 +143,8 @@ async def check_courier_status(courier_id: str, company_id: str = None):
 
 # --- Admin Auth ---
 @router.post("/admin/login")
-async def login_admin(data: AdminLogin):
+@limiter.limit("5/minute")
+async def login_admin(request: Request, data: AdminLogin):
     admin = await db.admins.find_one({"username": data.username}, {"_id": 0})
     if not admin or admin["password"] != hash_password(data.password):
         raise HTTPException(status_code=401, detail="Geçersiz kullanıcı adı veya şifre")
