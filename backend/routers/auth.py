@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
 from utils.helpers import hash_password, format_name
+from utils.rate_limit import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
