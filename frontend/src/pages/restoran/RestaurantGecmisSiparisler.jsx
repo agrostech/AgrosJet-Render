@@ -39,19 +39,20 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   const [companySettings, setCompanySettings] = useState({ opening_time: "09:00", closing_time: "23:00" });
   
   // Date filters
-  const getDefaultDates = useCallback((settings = companySettings) => {
+  const getDefaultDates = useCallback((settings) => {
+    const s = settings || { opening_time: "09:00", closing_time: "23:00" };
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    const openingTime = settings.opening_time || "09:00";
-    const closingTime = settings.closing_time || "23:00";
+    const openingTime = s.opening_time || "09:00";
+    const closingTime = s.closing_time || "23:00";
     
     const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
     const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
     
     return { startDateTime, endDateTime };
-  }, [companySettings]);
+  }, []);
   
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
