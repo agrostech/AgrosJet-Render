@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Search, Package, TrendingUp } from "lucide-react";
+import { RefreshCw, Search, TrendingUp, List, X } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -13,15 +13,72 @@ function formatMoney(val) {
   return val.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ₺";
 }
 
+function OrderListModal({ title, orders, onClose }) {
+  if (!orders) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <h3 className="text-sm font-semibold text-slate-900">{title} ({orders.length})</h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-muted" data-testid="ciro-modal-close">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="overflow-y-auto flex-1 p-2">
+          {orders.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Sipariş bulunamadı</p>
+          ) : (
+            <div className="space-y-0.5">
+              {orders.map((o, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-1.5 rounded hover:bg-muted/40 text-xs">
+                  <span className="text-muted-foreground w-5 shrink-0">{i + 1}.</span>
+                  <span className="font-medium min-w-[100px] shrink-0">{o.customer_name}</span>
+                  <span className="text-muted-foreground truncate flex-1">{o.delivery_address}</span>
+                  <span className="shrink-0 text-muted-foreground">{o.payment_method}</span>
+                  <span className="font-medium shrink-0 min-w-[70px] text-right">{formatMoney(o.total_amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CiroCell({ value, orders, label }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <td className="p-3 text-right">
+        <div className="inline-flex items-center gap-1.5">
+          {formatMoney(value)}
+          {orders && orders.length > 0 && (
+            <button
+              onClick={() => setOpen(true)}
+              className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              data-testid={`ciro-list-${label}`}
+            >
+              <List className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </td>
+      {open && <OrderListModal title={label} orders={orders} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [initialized, setInitialized] = useState(false);
   
-  // Company settings for default times
   const [companySettings, setCompanySettings] = useState({ opening_time: "09:00", closing_time: "23:00" });
   
-  // Date filters
   const getDefaultDates = useCallback((settings) => {
     const s = settings || { opening_time: "09:00", closing_time: "23:00" };
     const today = new Date();
@@ -40,13 +97,11 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
 
-  // Türkiye saati formatında tarih string'i oluştur
   const formatDateTurkey = (dateTimeStr) => {
     if (!dateTimeStr) return "";
     return `${dateTimeStr}:00+03:00`;
   };
 
-  // Veri çek
   const fetchData = useCallback(async (params = {}) => {
     const start = params.startDateTime || startDateTime;
     const end = params.endDateTime || endDateTime;
@@ -68,13 +123,11 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
     }
   }, [restaurantId, startDateTime, endDateTime]);
 
-  // Şirket ayarlarını al ve ilk veriyi çek
   useEffect(() => {
     const initData = async () => {
       if (!companyId || !restaurantId) return;
       
       try {
-        // Şirket ayarlarını al
         const companyRes = await axios.get(`${API}/companies/${companyId}`);
         const company = companyRes.data;
         
@@ -84,12 +137,10 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
         };
         setCompanySettings(settings);
         
-        // Varsayılan tarihleri ayarla
         const defaults = getDefaultDates(settings);
         setStartDateTime(defaults.startDateTime);
         setEndDateTime(defaults.endDateTime);
         
-        // İlk veriyi çek
         setLoading(true);
         try {
           const res = await axios.post(`${API}/restoran-mutabakat/ciro/restaurant/${restaurantId}`, {
@@ -115,18 +166,16 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
     }
   }, [companyId, restaurantId, initialized, getDefaultDates]);
 
-  // Filtrele butonu
   const handleFilter = () => {
     fetchData();
   };
 
   return (
     <div className="space-y-4" data-testid="restaurant-ciro-raporu">
-      {/* Compact Filters - Mütabakat ile aynı tasarım */}
+      {/* Compact Filters */}
       <Card>
         <CardContent className="p-3">
           <div className="flex flex-wrap items-end gap-2">
-            {/* Start Date */}
             <div className="min-w-[140px] flex-1 max-w-[200px]">
               <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
               <Input 
@@ -136,8 +185,6 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
                 className="h-8 text-xs"
               />
             </div>
-            
-            {/* End Date */}
             <div className="min-w-[140px] flex-1 max-w-[200px]">
               <Label className="text-xs text-muted-foreground mb-1 block">Bitiş</Label>
               <Input 
@@ -147,8 +194,6 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
                 className="h-8 text-xs"
               />
             </div>
-            
-            {/* Action Buttons */}
             <div className="flex gap-1.5">
               <Button 
                 onClick={handleFilter} 
@@ -197,11 +242,11 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
                 <tbody>
                   <tr className="border-b last:border-0 hover:bg-muted/30">
                     <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
-                    <td className="p-3 text-right">{formatMoney(data.cash_total)}</td>
-                    <td className="p-3 text-right">{formatMoney(data.card_total)}</td>
-                    <td className="p-3 text-right">{formatMoney(data.meal_card_total)}</td>
-                    <td className="p-3 text-right">{formatMoney(data.online_meal_card_total)}</td>
-                    <td className="p-3 text-right">{formatMoney(data.online_total)}</td>
+                    <CiroCell value={data.cash_total} orders={data.cash_orders} label="Nakit Ciro" />
+                    <CiroCell value={data.card_total} orders={data.card_orders} label="Kredi Kartı Ciro" />
+                    <CiroCell value={data.meal_card_total} orders={data.meal_card_orders} label="Yemek Kartı Ciro" />
+                    <CiroCell value={data.online_meal_card_total} orders={data.online_meal_card_orders} label="Online Yemek Kartı Ciro" />
+                    <CiroCell value={data.online_total} orders={data.online_orders} label="Online Kredi Kartı Ciro" />
                     <td className="p-3 text-right font-bold text-green-600">{formatMoney(data.total_ciro)}</td>
                   </tr>
                 </tbody>
