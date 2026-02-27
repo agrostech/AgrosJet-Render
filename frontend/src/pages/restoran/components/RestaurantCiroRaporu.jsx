@@ -58,13 +58,16 @@ function CiroCell({ value, orders, label }) {
         <div className="inline-flex items-center gap-1.5">
           {formatMoney(value)}
           {orders && orders.length > 0 && (
-            <button
-              onClick={() => setOpen(true)}
-              className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-              data-testid={`ciro-list-${label}`}
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
+            <>
+              <span className="text-[10px] text-muted-foreground">({orders.length})</span>
+              <button
+                onClick={() => setOpen(true)}
+                className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                data-testid={`ciro-list-${label}`}
+              >
+                <List className="w-3.5 h-3.5" />
+              </button>
+            </>
           )}
         </div>
       </td>
