@@ -18,7 +18,7 @@ def get_firebase_app():
     return _firebase_app
 
 
-async def send_push_notification(fcm_token: str, title: str, body: str, data: dict = None) -> bool:
+async def send_push_notification(fcm_token: str, title: str, body: str, data: dict = None, sound: str = "default") -> bool:
     """
     Tek bir cihaza push notification gönder
     
@@ -27,6 +27,7 @@ async def send_push_notification(fcm_token: str, title: str, body: str, data: di
         title: Bildirim başlığı
         body: Bildirim içeriği
         data: Ek veri (opsiyonel)
+        sound: Zil sesi - "notification", "urgent" veya "default"
     
     Returns:
         bool: Başarılı ise True
@@ -47,7 +48,7 @@ async def send_push_notification(fcm_token: str, title: str, body: str, data: di
             android=messaging.AndroidConfig(
                 priority='high',
                 notification=messaging.AndroidNotification(
-                    sound='default',
+                    sound=sound,
                     click_action='OPEN_ORDER',
                     channel_id='orders'
                 )
@@ -55,7 +56,7 @@ async def send_push_notification(fcm_token: str, title: str, body: str, data: di
             apns=messaging.APNSConfig(
                 payload=messaging.APNSPayload(
                     aps=messaging.Aps(
-                        sound='default',
+                        sound=f'{sound}.mp3' if sound != 'default' else 'default',
                         badge=1
                     )
                 )
@@ -87,7 +88,8 @@ async def send_new_order_notification(fcm_token: str, order_id: str, restaurant_
             "order_id": order_id,
             "restaurant_name": restaurant_name,
             "address": address
-        }
+        },
+        sound="notification"
     )
 
 
