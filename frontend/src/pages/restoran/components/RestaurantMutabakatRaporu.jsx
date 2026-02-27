@@ -121,17 +121,6 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
     fetchData();
   };
 
-  // Temizle
-  const clearFilters = () => {
-    const defaults = getDefaultDates(companySettings);
-    setStartDateTime(defaults.startDateTime);
-    setEndDateTime(defaults.endDateTime);
-    fetchData({
-      startDateTime: defaults.startDateTime,
-      endDateTime: defaults.endDateTime
-    });
-  };
-
   return (
     <div className="space-y-4" data-testid="restaurant-mutabakat-raporu">
       {/* Compact Filters - Teslim Edilen Siparişler ile aynı tasarım */}
