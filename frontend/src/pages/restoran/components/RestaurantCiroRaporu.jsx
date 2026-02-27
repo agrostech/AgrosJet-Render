@@ -184,21 +184,21 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-fixed">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Sipariş</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Nakit</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Kart</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Yemek Kartı</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Online</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Online Yemek Kartı</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Toplam Ciro</th>
+                      <th className="text-center p-3 font-medium w-20">Sipariş</th>
+                      <th className="text-right p-3 font-medium">Nakit</th>
+                      <th className="text-right p-3 font-medium">Kart</th>
+                      <th className="text-right p-3 font-medium">Yemek Kartı</th>
+                      <th className="text-right p-3 font-medium">Online</th>
+                      <th className="text-right p-3 font-medium">Online Yemek Kartı</th>
+                      <th className="text-right p-3 font-medium">Toplam Ciro</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-3 text-right">{data.order_count || 0}</td>
+                      <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
                       <td className="p-3 text-right">{formatMoney(data.cash_total)}</td>
                       <td className="p-3 text-right">{formatMoney(data.card_total)}</td>
                       <td className="p-3 text-right">{formatMoney(data.meal_card_total)}</td>

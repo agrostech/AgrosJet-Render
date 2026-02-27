@@ -185,23 +185,23 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-fixed">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Sipariş</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Taşıma</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">KDV</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Toplam Taşıma</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">POS Komisyon</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Nakit</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Kart</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Yemek Kartı</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Net Tutar</th>
+                      <th className="text-center p-3 font-medium w-20">Sipariş</th>
+                      <th className="text-right p-3 font-medium">Taşıma</th>
+                      <th className="text-right p-3 font-medium">KDV</th>
+                      <th className="text-right p-3 font-medium">Toplam Taşıma</th>
+                      <th className="text-right p-3 font-medium">POS Komisyon</th>
+                      <th className="text-right p-3 font-medium">Nakit</th>
+                      <th className="text-right p-3 font-medium">Kart</th>
+                      <th className="text-right p-3 font-medium">Yemek Kartı</th>
+                      <th className="text-right p-3 font-medium">Net Tutar</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-3 text-right">{data.order_count || 0}</td>
+                      <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
                       <td className="p-3 text-right">{formatMoney(data.delivery_fee)}</td>
                       <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
                       <td className="p-3 text-right text-red-600">{formatMoney(data.total_delivery)}</td>
