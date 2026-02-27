@@ -38,7 +38,8 @@ class RestaurantUserLogin(BaseModel):
 
 # --- Auth ---
 @router.post("/login")
-async def login_restaurant_user(data: RestaurantUserLogin):
+@limiter.limit("5/minute")
+async def login_restaurant_user(request: Request, data: RestaurantUserLogin):
     """Restoran kullanıcı girişi"""
     user = await db.restaurant_users.find_one(
         {"username": data.username.lower()},
