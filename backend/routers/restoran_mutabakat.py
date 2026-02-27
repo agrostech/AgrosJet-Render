@@ -144,6 +144,199 @@ async def get_available_weeks(company_id: str):
     }
 
 
+class DateRangeRequest(BaseModel):
+    start_datetime: str  # ISO format
+    end_datetime: str    # ISO format
+
+
+@router.post("/restaurant/{restaurant_id}")
+async def get_restaurant_mutabakat(restaurant_id: str, date_range: DateRangeRequest):
+    """Tek bir restoran için mütabakat verilerini getir (tarih aralığına göre)"""
+    import logging
+    import math
+    logger = logging.getLogger(__name__)
+    
+    # Restoran bilgisini al
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "company_id": 1, "collection_settings": 1, 
+         "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "kdv_rate": 1}
+    )
+    
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    company_id = restaurant["company_id"]
+    
+    try:
+        start_dt_str = ensure_turkey_timezone(date_range.start_datetime)
+        end_dt_str = ensure_turkey_timezone(date_range.end_datetime)
+        start_dt = datetime.fromisoformat(start_dt_str)
+        end_dt = datetime.fromisoformat(end_dt_str)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Geçersiz tarih formatı")
+    
+    logger.info(f"Restoran mutabakat - restaurant_id: {restaurant_id}, start: {start_dt.isoformat()}, end: {end_dt.isoformat()}")
+    
+    # Şirket ayarlarını al
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "vat_rate": 1, "pos_commission_rate": 1}
+    )
+    
+    default_vat_rate = company.get("vat_rate", 10) if company else 10
+    pos_commission_rate = company.get("pos_commission_rate", 0) if company else 0
+    restaurant_kdv_rate = restaurant.get("kdv_rate") if restaurant.get("kdv_rate") is not None else default_vat_rate
+    
+    # Tahsilat ayarları
+    collection_settings = restaurant.get("collection_settings", {})
+    cash_included = collection_settings.get("cash_collection", "courier") == "courier"
+    card_included = collection_settings.get("card_collection", "courier") == "courier"
+    meal_card_included = collection_settings.get("meal_card_collection", "courier") == "courier"
+    
+    # Siparişleri getir
+    turkey_tz = timezone(timedelta(hours=3))
+    all_orders = await db.orders.find(
+        {
+            "restaurant_id": restaurant_id,
+            "status": "delivered",
+            "is_restaurant_delivery": {"$ne": True}
+        },
+        {
+            "_id": 0, 
+            "total_amount": 1,
+            "delivery_fee": 1,
+            "restaurant_fee": 1,
+            "payment_method": 1,
+            "restaurant_location": 1,
+            "delivery_location": 1,
+            "delivered_at": 1
+        }
+    ).to_list(10000)
+    
+    # Tarih filtreleme
+    orders = []
+    for order in all_orders:
+        delivered_at = order.get("delivered_at")
+        if not delivered_at:
+            continue
+        try:
+            if isinstance(delivered_at, str):
+                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            else:
+                order_dt = delivered_at
+            
+            if order_dt.tzinfo is None:
+                order_dt = order_dt.replace(tzinfo=turkey_tz)
+            
+            if start_dt <= order_dt <= end_dt:
+                orders.append(order)
+        except:
+            continue
+    
+    # Mesafe hesaplama
+    def calculate_distance(loc1, loc2):
+        if not loc1 or not loc2:
+            return 0.0
+        lat1 = loc1.get("latitude") or loc1.get("lat") or 0
+        lng1 = loc1.get("longitude") or loc1.get("lng") or 0
+        lat2 = loc2.get("latitude") or loc2.get("lat") or 0
+        lng2 = loc2.get("longitude") or loc2.get("lng") or 0
+        if not all([lat1, lng1, lat2, lng2]):
+            return 0.0
+        R = 6371
+        dLat = math.radians(lat2 - lat1)
+        dLon = math.radians(lng2 - lng1)
+        a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
+    
+    def calculate_fee_from_pricing(pricing_type, per_package_price, km_ranges, distance_km):
+        if pricing_type == "per_package":
+            return per_package_price or 0.0
+        elif pricing_type == "per_km" and km_ranges:
+            for km_range in km_ranges:
+                min_km = km_range.get("min_km", 0)
+                max_km = km_range.get("max_km")
+                price = km_range.get("price", 0)
+                if max_km is None:
+                    if distance_km >= min_km:
+                        return price
+                else:
+                    if min_km <= distance_km < max_km:
+                        return price
+        return 0.0
+    
+    # Agregasyon
+    order_count = 0
+    delivery_fee = 0
+    cash_amount = 0
+    card_amount = 0
+    online_amount = 0
+    meal_card_amount = 0
+    
+    for order in orders:
+        order_count += 1
+        
+        # Taşıma ücreti
+        order_delivery_fee = order.get("delivery_fee") or order.get("restaurant_fee") or 0
+        if order_delivery_fee == 0:
+            distance_km = calculate_distance(
+                order.get("restaurant_location"),
+                order.get("delivery_location")
+            )
+            order_delivery_fee = calculate_fee_from_pricing(
+                restaurant.get("pricing_type", "per_package"),
+                restaurant.get("per_package_price", 0),
+                restaurant.get("km_ranges", []),
+                distance_km
+            )
+        delivery_fee += order_delivery_fee
+        
+        payment = order.get("payment_method", "cash")
+        total = order.get("total_amount", 0)
+        
+        if payment == "cash":
+            cash_amount += total
+        elif payment in ["meal_card", "online_meal_card"]:
+            meal_card_amount += total
+        elif payment in ["card", "credit_card"]:
+            card_amount += total
+        elif payment == "online":
+            online_amount += total
+    
+    # Hesaplamalar
+    delivery_vat = delivery_fee * (restaurant_kdv_rate / 100)
+    total_delivery = delivery_fee + delivery_vat
+    
+    cash_for_calc = cash_amount if cash_included else 0
+    card_for_calc = card_amount if card_included else 0
+    meal_card_for_calc = meal_card_amount if meal_card_included else 0
+    
+    pos_commission = card_for_calc * (pos_commission_rate / 100)
+    net_amount = (total_delivery + pos_commission) - (cash_for_calc + card_for_calc + meal_card_for_calc)
+    
+    return {
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant["name"],
+        "order_count": order_count,
+        "delivery_fee": round(delivery_fee, 2),
+        "delivery_vat": round(delivery_vat, 2),
+        "total_delivery": round(total_delivery, 2),
+        "pos_commission": round(pos_commission, 2),
+        "cash_amount": round(cash_amount, 2),
+        "card_amount": round(card_amount, 2),
+        "online_amount": round(online_amount, 2),
+        "meal_card_amount": round(meal_card_amount, 2),
+        "net_amount": round(net_amount, 2),
+        "vat_rate": restaurant_kdv_rate,
+        "pos_commission_rate": pos_commission_rate,
+        "cash_included": cash_included,
+        "card_included": card_included,
+        "meal_card_included": meal_card_included
+    }
+
+
 @router.post("/data/{company_id}")
 async def get_week_mutabakat_data(company_id: str, week: WeekInfo):
     """Seçili hafta için restoran mütabakat verilerini getir"""
