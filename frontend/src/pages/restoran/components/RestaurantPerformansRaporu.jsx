@@ -80,9 +80,14 @@ function HeatMap({ points, center, totalOrders }) {
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }
 
-    setTimeout(() => map.invalidateSize(), 100);
+    const resizeTimer = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(resizeTimer);
       map.remove();
       mapInstanceRef.current = null;
     };
