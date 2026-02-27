@@ -191,8 +191,8 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
                       <th className="p-3 font-medium text-right">Nakit Ciro</th>
                       <th className="p-3 font-medium text-right">Kredi Kartı Ciro</th>
                       <th className="p-3 font-medium text-right">Yemek Kartı Ciro</th>
-                      <th className="p-3 font-medium text-right">Online Ciro</th>
                       <th className="p-3 font-medium text-right">Online Yemek Kartı Ciro</th>
+                      <th className="p-3 font-medium text-right">Online Kredi Kartı Ciro</th>
                       <th className="p-3 font-medium text-right">Toplam Ciro</th>
                     </tr>
                   </thead>
@@ -202,8 +202,8 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
                       <td className="p-3 text-right">{formatMoney(data.cash_total)}</td>
                       <td className="p-3 text-right">{formatMoney(data.card_total)}</td>
                       <td className="p-3 text-right">{formatMoney(data.meal_card_total)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.online_total)}</td>
                       <td className="p-3 text-right">{formatMoney(data.online_meal_card_total)}</td>
+                      <td className="p-3 text-right">{formatMoney(data.online_total)}</td>
                       <td className="p-3 text-right font-bold text-green-600">{formatMoney(data.total_ciro)}</td>
                     </tr>
                   </tbody>
