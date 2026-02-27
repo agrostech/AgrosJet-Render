@@ -181,115 +181,60 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
       {/* Sonuçlar */}
       {!loading && data && (
         <div className="space-y-4">
-          {/* Özet Kartları */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="border-2 border-blue-200">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Package className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Sipariş Sayısı</p>
-                    <p className="text-lg font-bold">{data.order_count || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-green-200">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Toplam Ciro</p>
-                    <p className="text-lg font-bold">{formatMoney(data.total_amount)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-amber-200">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Banknote className="w-4 h-4 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Toplam Kesinti</p>
-                    <p className="text-lg font-bold">{formatMoney(data.total_fee)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-2 border-purple-200">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Net Tutar</p>
-                    <p className="text-lg font-bold">{formatMoney(data.net_amount)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Detay Tablosu */}
-          {data.orders && data.orders.length > 0 && (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left p-3 font-medium">Sipariş No</th>
-                        <th className="text-left p-3 font-medium">Tarih</th>
-                        <th className="text-left p-3 font-medium">Kurye</th>
-                        <th className="text-left p-3 font-medium">Ödeme</th>
-                        <th className="text-right p-3 font-medium">Tutar</th>
-                        <th className="text-right p-3 font-medium">Kesinti</th>
-                        <th className="text-right p-3 font-medium">Net</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.orders.map((order, idx) => (
-                        <tr key={order.id || idx} className="border-b last:border-0 hover:bg-muted/30">
-                          <td className="p-3 font-medium">{order.order_number || '-'}</td>
-                          <td className="p-3 text-muted-foreground">
-                            {order.delivered_at ? new Date(order.delivered_at).toLocaleString('tr-TR', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            }) : '-'}
-                          </td>
-                          <td className="p-3">{order.courier_name || '-'}</td>
-                          <td className="p-3">
-                            {order.payment_method === 'cash' ? 'Nakit' :
-                             order.payment_method === 'card' ? 'Kart' :
-                             order.payment_method === 'meal_card' ? 'Yemek Kartı' :
-                             order.payment_method === 'online' ? 'Online' : '-'}
-                          </td>
-                          <td className="p-3 text-right">{formatMoney(order.total_amount)}</td>
-                          <td className="p-3 text-right text-red-600">{formatMoney(order.fee)}</td>
-                          <td className="p-3 text-right font-medium">{formatMoney(order.net_amount)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Detay Tablosu - Tek satır */}
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-3 font-medium whitespace-nowrap">Restoran</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Sipariş</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Taşıma</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">KDV</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Top. Taşıma</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">POS Kom.</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Nakit</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Kart</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Y.Kartı</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Net Tutar</th>
+                      <th className="text-center p-3 font-medium whitespace-nowrap">Durum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b last:border-0 hover:bg-muted/30">
+                      <td className="p-3 font-medium">{data.restaurant_name}</td>
+                      <td className="p-3 text-right">{data.order_count || 0}</td>
+                      <td className="p-3 text-right">{formatMoney(data.delivery_fee)}</td>
+                      <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
+                      <td className="p-3 text-right">{formatMoney(data.total_delivery)}</td>
+                      <td className="p-3 text-right">{formatMoney(data.pos_commission)}</td>
+                      <td className="p-3 text-right">{formatMoney(data.cash_amount)}</td>
+                      <td className="p-3 text-right">{formatMoney(data.card_amount)}</td>
+                      <td className="p-3 text-right">{formatMoney(data.meal_card_amount)}</td>
+                      <td className="p-3 text-right font-bold">{formatMoney(data.net_amount)}</td>
+                      <td className="p-3 text-center">
+                        {data.status === 'approved' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                            <CheckCircle className="w-3 h-3" />
+                            Onaylı
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">
+                            <Clock className="w-3 h-3" />
+                            Bekliyor
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Veri yoksa */}
-          {(!data.orders || data.orders.length === 0) && (
+          {data.order_count === 0 && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Package className="w-12 h-12 text-muted-foreground mb-3" />
