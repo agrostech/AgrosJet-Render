@@ -187,19 +187,17 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-left p-3 font-medium whitespace-nowrap">Restoran</th>
                       <th className="text-right p-3 font-medium whitespace-nowrap">Sipariş</th>
                       <th className="text-right p-3 font-medium whitespace-nowrap">Nakit</th>
                       <th className="text-right p-3 font-medium whitespace-nowrap">Kart</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Y.Kartı</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Yemek Kartı</th>
                       <th className="text-right p-3 font-medium whitespace-nowrap">Online</th>
-                      <th className="text-right p-3 font-medium whitespace-nowrap">Online Y.K.</th>
+                      <th className="text-right p-3 font-medium whitespace-nowrap">Online Yemek Kartı</th>
                       <th className="text-right p-3 font-medium whitespace-nowrap">Toplam Ciro</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-3 font-medium">{data.restaurant_name}</td>
                       <td className="p-3 text-right">{data.order_count || 0}</td>
                       <td className="p-3 text-right">{formatMoney(data.cash_total)}</td>
                       <td className="p-3 text-right">{formatMoney(data.card_total)}</td>
