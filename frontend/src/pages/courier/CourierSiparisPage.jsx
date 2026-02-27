@@ -121,7 +121,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   }, []);
 
   // Rota oluştur - en yakından uzağa sırala ve Google Maps'te aç
-  const createOptimizedRoute = useCallback(() => {
+  const createOptimizedRoute = useCallback(async () => {
     // Yolda olan siparişleri al
     const onTheWayOrders = orders.filter(o => o.status === "on_the_way");
     
