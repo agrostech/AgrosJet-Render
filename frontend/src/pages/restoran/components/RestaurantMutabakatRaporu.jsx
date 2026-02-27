@@ -198,7 +198,6 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                       <th className="text-right p-3 font-medium whitespace-nowrap">Kart</th>
                       <th className="text-right p-3 font-medium whitespace-nowrap">Y.Kartı</th>
                       <th className="text-right p-3 font-medium whitespace-nowrap">Net Tutar</th>
-                      <th className="text-center p-3 font-medium whitespace-nowrap">Durum</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -207,24 +206,19 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                       <td className="p-3 text-right">{data.order_count || 0}</td>
                       <td className="p-3 text-right">{formatMoney(data.delivery_fee)}</td>
                       <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.total_delivery)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.pos_commission)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.cash_amount)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.card_amount)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.meal_card_amount)}</td>
-                      <td className="p-3 text-right font-bold">{formatMoney(data.net_amount)}</td>
-                      <td className="p-3 text-center">
-                        {data.status === 'approved' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
-                            <CheckCircle className="w-3 h-3" />
-                            Onaylı
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">
-                            <Clock className="w-3 h-3" />
-                            Bekliyor
-                          </span>
-                        )}
+                      <td className="p-3 text-right text-red-600">{formatMoney(data.total_delivery)}</td>
+                      <td className="p-3 text-right text-red-600">{formatMoney(data.pos_commission)}</td>
+                      <td className={`p-3 text-right ${data.cash_included ? '' : 'text-green-600'}`}>
+                        {formatMoney(data.cash_amount)}
+                      </td>
+                      <td className={`p-3 text-right ${data.card_included ? '' : 'text-green-600'}`}>
+                        {formatMoney(data.card_amount)}
+                      </td>
+                      <td className={`p-3 text-right ${data.meal_card_included ? '' : 'text-green-600'}`}>
+                        {formatMoney(data.meal_card_amount)}
+                      </td>
+                      <td className={`p-3 text-right font-bold ${data.net_amount < 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatMoney(data.net_amount)}
                       </td>
                     </tr>
                   </tbody>
