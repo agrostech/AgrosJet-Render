@@ -1014,7 +1014,6 @@ async def get_restaurant_performance(
     over_45 = sum(1 for t in total_times if t >= 45)
 
     # Günlük ortalama 45dk üzeri
-    num_days = max(len(daily_over_45), 1)
     if daily_over_45:
         total_days_in_range = max((end_dt - start_dt).days, 1)
         daily_avg_over_45 = over_45 / total_days_in_range
