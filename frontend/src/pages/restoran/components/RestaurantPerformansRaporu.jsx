@@ -131,101 +131,33 @@ function HeatMap({ points, center, totalOrders }) {
 export default function RestaurantPerformansRaporu({ restaurantId, companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
-  const [initialized, setInitialized] = useState(false);
-  const [startDateTime, setStartDateTime] = useState("");
-  const [endDateTime, setEndDateTime] = useState("");
-
-  const getDefaultDates = useCallback((settings) => {
-    const s = settings || { opening_time: "09:00", closing_time: "23:00" };
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const openingTime = s.opening_time || "09:00";
-    const closingTime = s.closing_time || "23:00";
-    return {
-      startDateTime: `${today.toISOString().split("T")[0]}T${openingTime}`,
-      endDateTime: `${tomorrow.toISOString().split("T")[0]}T${closingTime}`,
-    };
-  }, []);
 
   const formatDateTurkey = (dateTimeStr) => {
     if (!dateTimeStr) return "";
     return `${dateTimeStr}:00+03:00`;
   };
 
-  const fetchData = useCallback(
-    async (params = {}) => {
-      const start = params.startDateTime || startDateTime;
-      const end = params.endDateTime || endDateTime;
-      if (!start || !end || !restaurantId) return;
-
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${API}/reports/restaurant/${restaurantId}/performance`,
-          {
-            params: {
-              start_datetime: formatDateTurkey(start),
-              end_datetime: formatDateTurkey(end),
-            },
-          }
-        );
-        setData(res.data);
-      } catch (err) {
-        console.error("Performans verisi alınamadı:", err);
-        setData(null);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [restaurantId, startDateTime, endDateTime]
-  );
-
-  useEffect(() => {
-    const initData = async () => {
-      if (!companyId || !restaurantId) return;
-      try {
-        const companyRes = await axios.get(`${API}/companies/${companyId}`);
-        const company = companyRes.data;
-        const settings = {
-          opening_time: company?.opening_time || "09:00",
-          closing_time: company?.closing_time || "23:00",
-        };
-        const defaults = getDefaultDates(settings);
-        setStartDateTime(defaults.startDateTime);
-        setEndDateTime(defaults.endDateTime);
-
-        setLoading(true);
-        try {
-          const res = await axios.get(
-            `${API}/reports/restaurant/${restaurantId}/performance`,
-            {
-              params: {
-                start_datetime: formatDateTurkey(defaults.startDateTime),
-                end_datetime: formatDateTurkey(defaults.endDateTime),
-              },
-            }
-          );
-          setData(res.data);
-        } catch (err) {
-          console.error("Performans verisi alınamadı:", err);
-          setData(null);
-        } finally {
-          setLoading(false);
+  const handleFilter = useCallback(async (start, end) => {
+    if (!start || !end || !restaurantId) return;
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${API}/reports/restaurant/${restaurantId}/performance`,
+        {
+          params: {
+            start_datetime: formatDateTurkey(start),
+            end_datetime: formatDateTurkey(end),
+          },
         }
-        setInitialized(true);
-      } catch (err) {
-        console.error("Şirket ayarları alınamadı:", err);
-      }
-    };
-    if (!initialized) {
-      initData();
+      );
+      setData(res.data);
+    } catch (err) {
+      console.error("Performans verisi alınamadı:", err);
+      setData(null);
+    } finally {
+      setLoading(false);
     }
-  }, [companyId, restaurantId, initialized, getDefaultDates]);
-
-  const handleFilter = () => {
-    fetchData();
-  };
+  }, [restaurantId]);
 
   const statCards = data
     ? [
