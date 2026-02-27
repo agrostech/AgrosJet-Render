@@ -768,11 +768,15 @@ export default function RestoranlarPage({ companyId }) {
                 </Button>
               </div>
               
-              {/* Row 3: Engellenenler, Entegrasyonlar */}
+              {/* Row 3: Engellenenler, Entegrasyon Logları */}
               <div className="flex gap-2 mb-2">
                 <Button size="sm" variant="outline" onClick={() => openBlockedModal(restaurant)} className="flex-1 border-2">
                   <UserX className="w-4 h-4 mr-1" />
                   <span className="text-xs">Engellenenler</span>
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowIntegrationLogs(true)} className="flex-1 border-2">
+                  <FileText className="w-4 h-4 mr-1" />
+                  <span className="text-xs">Ent. Logları</span>
                 </Button>
               </div>
               
