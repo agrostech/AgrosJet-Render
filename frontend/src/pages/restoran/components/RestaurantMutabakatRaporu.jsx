@@ -1,14 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Calendar, FileText, ChevronDown } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format, startOfDay, endOfDay, subDays, startOfWeek, endOfWeek, subWeeks, addDays } from "date-fns";
-import { tr } from "date-fns/locale";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RefreshCw, FileText, Package, TrendingUp, Banknote } from "lucide-react";
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function formatMoney(val) {
   if (val === null || val === undefined) return "0,00 ₺";
@@ -18,211 +16,165 @@ function formatMoney(val) {
 export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
-  const [companySettings, setCompanySettings] = useState({ opening_time: "09:00", closing_time: "22:00" });
+  const [initialized, setInitialized] = useState(false);
   
-  // Tarih state'leri
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [activePreset, setActivePreset] = useState("today");
-
-  // Şirket ayarlarını al
-  const fetchCompanySettings = useCallback(async () => {
-    try {
-      const res = await axios.get(`${API}/restoran-mutabakat/weeks/${companyId}`);
-      setCompanySettings({
-        opening_time: res.data.opening_time || "09:00",
-        closing_time: res.data.closing_time || "22:00"
-      });
-    } catch (err) {
-      console.error("Şirket ayarları alınamadı:", err);
-    }
-  }, [companyId]);
-
-  // Tarih hesaplama yardımcıları
-  const getTimeFromString = (timeStr) => {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return { hours, minutes };
-  };
-
-  const setDateWithTime = (date, timeStr) => {
-    const { hours, minutes } = getTimeFromString(timeStr);
-    const newDate = new Date(date);
-    newDate.setHours(hours, minutes, 0, 0);
-    return newDate;
-  };
-
-  // Preset tarih aralıklarını hesapla
-  const getPresetDates = useCallback((preset) => {
-    const now = new Date();
-    const { opening_time, closing_time } = companySettings;
+  // Company settings for default times
+  const [companySettings, setCompanySettings] = useState({ opening_time: "09:00", closing_time: "23:00" });
+  
+  // Date filters
+  const getDefaultDates = useCallback((settings) => {
+    const s = settings || { opening_time: "09:00", closing_time: "23:00" };
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
     
-    switch (preset) {
-      case "today": {
-        const start = setDateWithTime(now, opening_time);
-        const end = setDateWithTime(addDays(now, 1), closing_time);
-        return { start, end };
-      }
-      case "yesterday": {
-        const yesterday = subDays(now, 1);
-        const start = setDateWithTime(yesterday, opening_time);
-        const end = setDateWithTime(now, closing_time);
-        return { start, end };
-      }
-      case "this_week": {
-        const monday = startOfWeek(now, { weekStartsOn: 1 });
-        const nextMonday = addDays(monday, 7);
-        const start = setDateWithTime(monday, opening_time);
-        const end = setDateWithTime(nextMonday, closing_time);
-        return { start, end };
-      }
-      case "last_week": {
-        const lastMonday = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
-        const thisMonday = addDays(lastMonday, 7);
-        const start = setDateWithTime(lastMonday, opening_time);
-        const end = setDateWithTime(thisMonday, closing_time);
-        return { start, end };
-      }
-      default:
-        return null;
-    }
-  }, [companySettings]);
+    const openingTime = s.opening_time || "09:00";
+    const closingTime = s.closing_time || "23:00";
+    
+    const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
+    const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
+    
+    return { startDateTime, endDateTime };
+  }, []);
+  
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
 
-  // Preset seçildiğinde
-  const handlePresetSelect = (preset) => {
-    const dates = getPresetDates(preset);
-    if (dates) {
-      setStartDate(dates.start);
-      setEndDate(dates.end);
-      setActivePreset(preset);
-    }
+  // Türkiye saati formatında tarih string'i oluştur
+  const formatDateTurkey = (dateTimeStr) => {
+    if (!dateTimeStr) return "";
+    // datetime-local input formatı: "2026-02-26T09:00"
+    return `${dateTimeStr}:00+03:00`;
   };
-
-  // İlk yükleme
-  useEffect(() => {
-    fetchCompanySettings();
-  }, [fetchCompanySettings]);
-
-  // Şirket ayarları yüklendiğinde varsayılan tarih ayarla
-  useEffect(() => {
-    if (companySettings.opening_time) {
-      handlePresetSelect("today");
-    }
-  }, [companySettings]);
 
   // Veri çek
-  const fetchData = useCallback(async () => {
-    if (!startDate || !endDate || !restaurantId) return;
+  const fetchData = useCallback(async (params = {}) => {
+    const start = params.startDateTime || startDateTime;
+    const end = params.endDateTime || endDateTime;
+    
+    if (!start || !end || !restaurantId) return;
     
     setLoading(true);
     try {
-      // Türkiye saati formatında gönder (UTC değil)
-      const formatDateTurkey = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+03:00`;
-      };
-      
       const res = await axios.post(`${API}/restoran-mutabakat/restaurant/${restaurantId}`, {
-        start_datetime: formatDateTurkey(startDate),
-        end_datetime: formatDateTurkey(endDate)
+        start_datetime: formatDateTurkey(start),
+        end_datetime: formatDateTurkey(end)
       });
       setData(res.data);
     } catch (err) {
       console.error("Mütabakat verisi alınamadı:", err);
+      setData(null);
     } finally {
       setLoading(false);
     }
-  }, [restaurantId, startDate, endDate]);
+  }, [restaurantId, startDateTime, endDateTime]);
 
-  // Tarih değiştiğinde otomatik çek
+  // Şirket ayarlarını al ve ilk veriyi çek
   useEffect(() => {
-    if (startDate && endDate) {
-      fetchData();
-    }
-  }, [startDate, endDate, fetchData]);
+    const initData = async () => {
+      if (!companyId || initialized) return;
+      
+      try {
+        // Şirket ayarlarını al
+        const companyRes = await axios.get(`${API}/companies/${companyId}`);
+        const company = companyRes.data;
+        
+        const settings = {
+          opening_time: company?.opening_time || "09:00",
+          closing_time: company?.closing_time || "23:00"
+        };
+        setCompanySettings(settings);
+        
+        // Varsayılan tarihleri ayarla
+        const defaults = getDefaultDates(settings);
+        setStartDateTime(defaults.startDateTime);
+        setEndDateTime(defaults.endDateTime);
+        
+        // İlk veriyi çek
+        await fetchData({
+          startDateTime: defaults.startDateTime,
+          endDateTime: defaults.endDateTime
+        });
+        
+        setInitialized(true);
+      } catch (err) {
+        console.error("Şirket ayarları alınamadı:", err);
+      }
+    };
+    
+    initData();
+  }, [companyId, initialized, getDefaultDates]);
 
-  // Manuel tarih seçildiğinde preset'i temizle
-  const handleManualDateSelect = (type, date) => {
-    if (type === "start") {
-      setStartDate(setDateWithTime(date, companySettings.opening_time));
-    } else {
-      setEndDate(setDateWithTime(date, companySettings.closing_time));
-    }
-    setActivePreset(null);
+  // Filtrele butonu
+  const handleFilter = () => {
+    fetchData();
   };
 
-  const presets = [
-    { key: "today", label: "Bugün" },
-    { key: "yesterday", label: "Dün" },
-    { key: "this_week", label: "Bu Hafta" },
-    { key: "last_week", label: "Geçen Hafta" }
-  ];
+  // Temizle
+  const clearFilters = () => {
+    const defaults = getDefaultDates(companySettings);
+    setStartDateTime(defaults.startDateTime);
+    setEndDateTime(defaults.endDateTime);
+    fetchData({
+      startDateTime: defaults.startDateTime,
+      endDateTime: defaults.endDateTime
+    });
+  };
 
   return (
     <div className="space-y-4" data-testid="restaurant-mutabakat-raporu">
-      {/* Filtreler */}
-      <Card className="border-2 border-border bg-white">
-        <CardContent className="p-4 space-y-4">
-          {/* Preset Butonları */}
-          <div className="flex flex-wrap gap-2">
-            {presets.map((preset) => (
-              <Button
-                key={preset.key}
-                variant={activePreset === preset.key ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePresetSelect(preset.key)}
-              >
-                {preset.label}
-              </Button>
-            ))}
-          </div>
-
-          {/* Tarih Seçiciler */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Başlangıç:</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {startDate ? format(startDate, "dd MMM yyyy HH:mm", { locale: tr }) : "Seç"}
-                    <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => handleManualDateSelect("start", date)}
-                    locale={tr}
-                  />
-                </PopoverContent>
-              </Popover>
+      {/* Compact Filters - Teslim Edilen Siparişler ile aynı tasarım */}
+      <Card>
+        <CardContent className="p-3">
+          <div className="flex flex-wrap items-end gap-2">
+            {/* Start Date */}
+            <div className="min-w-[140px] flex-1 max-w-[200px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
+              <Input 
+                type="datetime-local" 
+                value={startDateTime} 
+                onChange={(e) => setStartDateTime(e.target.value)}
+                className="h-8 text-xs"
+              />
             </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Bitiş:</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {endDate ? format(endDate, "dd MMM yyyy HH:mm", { locale: tr }) : "Seç"}
-                    <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => handleManualDateSelect("end", date)}
-                    locale={tr}
-                  />
-                </PopoverContent>
-              </Popover>
+            
+            {/* End Date */}
+            <div className="min-w-[140px] flex-1 max-w-[200px]">
+              <Label className="text-xs text-muted-foreground mb-1 block">Bitiş</Label>
+              <Input 
+                type="datetime-local" 
+                value={endDateTime} 
+                onChange={(e) => setEndDateTime(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-1.5">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearFilters}
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                title="Temizle"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </Button>
+              <Button 
+                onClick={handleFilter} 
+                disabled={loading}
+                size="sm"
+                className="h-8 px-3 text-xs gap-1.5"
+              >
+                {loading ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <FileText className="w-3.5 h-3.5" />
+                    Rapor Getir
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -230,107 +182,141 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        </div>
-      )}
-
-      {/* Sonuçlar */}
-      {!loading && data && (
-        <Card className="border-2 border-border bg-white">
-          <CardContent className="p-0">
-            {/* Başlık */}
-            <div className="p-4 border-b border-border flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/10">
-                <FileText className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Mütabakat Raporu</h3>
-                <p className="text-sm text-muted-foreground">{data.order_count} sipariş</p>
-              </div>
-            </div>
-
-            {/* Tablo */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/50">
-                    <th className="text-left p-3 font-medium">Kalem</th>
-                    <th className="text-right p-3 font-medium">Tutar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-border">
-                    <td className="p-3">Sipariş Sayısı</td>
-                    <td className="p-3 text-right font-medium">{data.order_count}</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="p-3">Taşıma Ücreti</td>
-                    <td className="p-3 text-right">{formatMoney(data.delivery_fee)}</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="p-3">KDV (%{data.vat_rate})</td>
-                    <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
-                  </tr>
-                  <tr className="border-b border-border bg-muted/30">
-                    <td className="p-3 font-medium">Toplam Taşıma</td>
-                    <td className="p-3 text-right font-medium">{formatMoney(data.total_delivery)}</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="p-3">POS Komisyonu (%{data.pos_commission_rate})</td>
-                    <td className="p-3 text-right">{formatMoney(data.pos_commission)}</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="p-3">
-                      Nakit Tahsilat
-                      {!data.cash_included && <span className="text-xs text-muted-foreground ml-1">(hariç)</span>}
-                    </td>
-                    <td className="p-3 text-right">{formatMoney(data.cash_amount)}</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="p-3">
-                      Kart Tahsilat
-                      {!data.card_included && <span className="text-xs text-muted-foreground ml-1">(hariç)</span>}
-                    </td>
-                    <td className="p-3 text-right">{formatMoney(data.card_amount)}</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="p-3">
-                      Yemek Kartı
-                      {!data.meal_card_included && <span className="text-xs text-muted-foreground ml-1">(hariç)</span>}
-                    </td>
-                    <td className="p-3 text-right">{formatMoney(data.meal_card_amount)}</td>
-                  </tr>
-                  <tr className="bg-primary/5">
-                    <td className="p-3 font-bold text-base">Net Tutar</td>
-                    <td className={`p-3 text-right font-bold text-base ${data.net_amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {formatMoney(data.net_amount)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Açıklama */}
-            <div className="p-4 bg-muted/30 text-xs text-muted-foreground">
-              <p>
-                <strong>Net Tutar Hesaplama:</strong> (Toplam Taşıma + POS Komisyonu) - (Nakit + Kart + Yemek Kartı)
-              </p>
-              <p className="mt-1">
-                {data.net_amount < 0 
-                  ? "Negatif tutar: Restorana ödeme yapılacak" 
-                  : "Pozitif tutar: Restorandan tahsilat yapılacak"}
-              </p>
-            </div>
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
           </CardContent>
         </Card>
       )}
 
-      {/* Veri yok */}
-      {!loading && data && data.order_count === 0 && (
-        <Card className="border-2 border-border bg-white">
-          <CardContent className="py-8 text-center text-muted-foreground">
-            <p>Seçili tarih aralığında sipariş bulunamadı.</p>
+      {/* Sonuçlar */}
+      {!loading && data && (
+        <div className="space-y-4">
+          {/* Özet Kartları */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card className="border-2 border-blue-200">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Package className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Sipariş Sayısı</p>
+                    <p className="text-lg font-bold">{data.order_count || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-green-200">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Toplam Ciro</p>
+                    <p className="text-lg font-bold">{formatMoney(data.total_amount)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-amber-200">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <Banknote className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Toplam Kesinti</p>
+                    <p className="text-lg font-bold">{formatMoney(data.total_fee)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-purple-200">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Net Tutar</p>
+                    <p className="text-lg font-bold">{formatMoney(data.net_amount)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Detay Tablosu */}
+          {data.orders && data.orders.length > 0 && (
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-3 font-medium">Sipariş No</th>
+                        <th className="text-left p-3 font-medium">Tarih</th>
+                        <th className="text-left p-3 font-medium">Kurye</th>
+                        <th className="text-left p-3 font-medium">Ödeme</th>
+                        <th className="text-right p-3 font-medium">Tutar</th>
+                        <th className="text-right p-3 font-medium">Kesinti</th>
+                        <th className="text-right p-3 font-medium">Net</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.orders.map((order, idx) => (
+                        <tr key={order.id || idx} className="border-b last:border-0 hover:bg-muted/30">
+                          <td className="p-3 font-medium">{order.order_number || '-'}</td>
+                          <td className="p-3 text-muted-foreground">
+                            {order.delivered_at ? new Date(order.delivered_at).toLocaleString('tr-TR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }) : '-'}
+                          </td>
+                          <td className="p-3">{order.courier_name || '-'}</td>
+                          <td className="p-3">
+                            {order.payment_method === 'cash' ? 'Nakit' :
+                             order.payment_method === 'card' ? 'Kart' :
+                             order.payment_method === 'meal_card' ? 'Yemek Kartı' :
+                             order.payment_method === 'online' ? 'Online' : '-'}
+                          </td>
+                          <td className="p-3 text-right">{formatMoney(order.total_amount)}</td>
+                          <td className="p-3 text-right text-red-600">{formatMoney(order.fee)}</td>
+                          <td className="p-3 text-right font-medium">{formatMoney(order.net_amount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Veri yoksa */}
+          {(!data.orders || data.orders.length === 0) && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <Package className="w-12 h-12 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">Bu tarih aralığında sipariş bulunamadı</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* İlk yükleme */}
+      {!loading && !data && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <FileText className="w-12 h-12 text-muted-foreground mb-3" />
+            <p className="text-muted-foreground">Tarih aralığı seçip "Rapor Getir" butonuna tıklayın</p>
           </CardContent>
         </Card>
       )}
