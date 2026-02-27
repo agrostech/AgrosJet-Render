@@ -13,6 +13,7 @@ import {
   MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt
 } from "lucide-react";
 import RestaurantPermissionsModal from "@/components/admin/RestaurantPermissionsModal";
+import IntegrationLogsModal from "@/components/admin/IntegrationLogsModal";
 import CollectionSettingsModal from "@/components/admin/CollectionSettingsModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
