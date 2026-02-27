@@ -301,7 +301,7 @@ export default function RestaurantDashboard() {
       case "muhasebe":
         return <RestaurantMuhasebe restaurantId={user?.restaurant_id} restaurantName={restaurant?.name} />;
       case "raporlar":
-        return <RestaurantRaporlar restaurantId={user?.restaurant_id} />;
+        return <RestaurantRaporlar restaurantId={user?.restaurant_id} companyId={restaurant?.company_id} />;
       case "entegrasyonlar":
         return <RestaurantEntegrasyonlar restaurantId={user?.restaurant_id} />;
       case "urunler":
