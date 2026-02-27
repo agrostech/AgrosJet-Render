@@ -73,7 +73,8 @@ async def register_courier(request: Request, data: CourierRegister):
 
 
 @router.post("/courier/login")
-async def login_courier(data: CourierLogin):
+@limiter.limit("5/minute")
+async def login_courier(request: Request, data: CourierLogin):
     # Telefon numarasını normalize et
     phone = data.phone.strip()
     if not phone.startswith("0"):
