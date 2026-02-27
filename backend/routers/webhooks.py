@@ -393,6 +393,8 @@ async def migros_order_webhook(
         
         if not auth_result["valid"]:
             logger.warning(f"Migros order webhook: Geçersiz API key: {x_api_key}")
+            from services.integration_log_service import save_integration_log
+            await save_integration_log("migros", "ERROR", f"Geçersiz API key: {x_api_key}")
             raise HTTPException(status_code=401, detail="Geçersiz API key")
         
         restaurant = auth_result["restaurant"]
