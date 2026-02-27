@@ -316,7 +316,16 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+from fastapi.responses import JSONResponse
+
+async def rate_limit_handler(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Çok fazla istek gönderdiniz. Lütfen 1 dakika sonra tekrar deneyiniz."}
+    )
+
+app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
 api_router = APIRouter(prefix="/api")
 
