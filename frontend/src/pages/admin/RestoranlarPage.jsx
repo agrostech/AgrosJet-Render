@@ -50,6 +50,7 @@ export default function RestoranlarPage({ companyId }) {
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [showInvoiceSettingsModal, setShowInvoiceSettingsModal] = useState(false);
+  const [showIntegrationLogs, setShowIntegrationLogs] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   
   // Invoice settings state
