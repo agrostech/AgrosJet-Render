@@ -31,9 +31,7 @@ class AdminLogin(BaseModel):
 
 # --- Courier Auth ---
 @router.post("/courier/register")
-async def register_courier(request: Request, data: CourierRegister):
-    from server import limiter
-    await limiter._check_request_limit(request, request.state, "/api/auth/courier/register", [limiter._parse_rate("3/minute")])
+async def register_courier(data: CourierRegister):
     # Telefon numarası doğrulaması
     phone = data.phone.strip()
     
