@@ -184,16 +184,16 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm table-fixed">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-center p-3 font-medium w-20">Sipariş</th>
-                      <th className="text-right p-3 font-medium">Nakit</th>
-                      <th className="text-right p-3 font-medium">Kart</th>
-                      <th className="text-right p-3 font-medium">Yemek Kartı</th>
-                      <th className="text-right p-3 font-medium">Online</th>
-                      <th className="text-right p-3 font-medium">Online Yemek Kartı</th>
-                      <th className="text-right p-3 font-medium">Toplam Ciro</th>
+                      <th className="p-3 font-medium text-center">Sipariş</th>
+                      <th className="p-3 font-medium text-right">Nakit Ciro</th>
+                      <th className="p-3 font-medium text-right">Kredi Kartı Ciro</th>
+                      <th className="p-3 font-medium text-right">Yemek Kartı Ciro</th>
+                      <th className="p-3 font-medium text-right">Online Ciro</th>
+                      <th className="p-3 font-medium text-right">Online Yemek Kartı Ciro</th>
+                      <th className="p-3 font-medium text-right">Toplam Ciro</th>
                     </tr>
                   </thead>
                   <tbody>
