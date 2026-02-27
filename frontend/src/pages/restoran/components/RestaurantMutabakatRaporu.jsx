@@ -208,13 +208,13 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                       <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
                       <td className="p-3 text-right text-red-600">{formatMoney(data.total_delivery)}</td>
                       <td className="p-3 text-right text-red-600">{formatMoney(data.pos_commission)}</td>
-                      <td className={`p-3 text-right ${data.cash_included ? '' : 'text-green-600'}`}>
+                      <td className={`p-3 text-right ${data.cash_included ? 'text-green-600' : ''}`}>
                         {formatMoney(data.cash_amount)}
                       </td>
-                      <td className={`p-3 text-right ${data.card_included ? '' : 'text-green-600'}`}>
+                      <td className={`p-3 text-right ${data.card_included ? 'text-green-600' : ''}`}>
                         {formatMoney(data.card_amount)}
                       </td>
-                      <td className={`p-3 text-right ${data.meal_card_included ? '' : 'text-green-600'}`}>
+                      <td className={`p-3 text-right ${data.meal_card_included ? 'text-green-600' : ''}`}>
                         {formatMoney(data.meal_card_amount)}
                       </td>
                       <td className={`p-3 text-right font-bold ${data.net_amount < 0 ? 'text-green-600' : 'text-red-600'}`}>
