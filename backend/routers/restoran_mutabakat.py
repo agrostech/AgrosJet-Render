@@ -797,29 +797,55 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         "restaurant_id": restaurant_id,
         "status": "delivered",
         "delivered_at": {"$gte": start_dt, "$lte": end_dt}
-    }, {"_id": 0, "total_amount": 1, "payment_method": 1}).to_list(10000)
+    }, {"_id": 0, "total_amount": 1, "payment_method": 1, "customer_name": 1, "delivery_address": 1, "order_number": 1}).to_list(10000)
     
-    # Ciro hesapla
+    # Ciro hesapla + sipariş listesi
     cash_total = 0
     card_total = 0
     meal_card_total = 0
     online_total = 0
     online_meal_card_total = 0
+
+    cash_orders = []
+    card_orders = []
+    meal_card_orders = []
+    online_orders = []
+    online_meal_card_orders = []
     
+    method_labels = {
+        "cash": "Nakit",
+        "card": "Kredi Kartı",
+        "meal_card": "Yemek Kartı",
+        "online": "Online Kredi Kartı",
+        "online_meal_card": "Online Yemek Kartı",
+    }
+
     for order in orders:
         amount = order.get("total_amount", 0) or 0
         method = order.get("payment_method", "")
+        row = {
+            "order_number": order.get("order_number", "-"),
+            "customer_name": order.get("customer_name", "-"),
+            "delivery_address": order.get("delivery_address", "-"),
+            "payment_method": method_labels.get(method, method),
+            "total_amount": amount,
+        }
         
         if method == "cash":
             cash_total += amount
+            cash_orders.append(row)
         elif method == "card":
             card_total += amount
+            card_orders.append(row)
         elif method == "meal_card":
             meal_card_total += amount
+            meal_card_orders.append(row)
         elif method == "online":
             online_total += amount
+            online_orders.append(row)
         elif method == "online_meal_card":
             online_meal_card_total += amount
+            online_meal_card_orders.append(row)
     
     total_ciro = cash_total + card_total + meal_card_total + online_total + online_meal_card_total
     
@@ -832,5 +858,10 @@ async def get_restaurant_ciro(restaurant_id: str, req: CiroRequest):
         "meal_card_total": round(meal_card_total, 2),
         "online_total": round(online_total, 2),
         "online_meal_card_total": round(online_meal_card_total, 2),
-        "total_ciro": round(total_ciro, 2)
+        "total_ciro": round(total_ciro, 2),
+        "cash_orders": cash_orders,
+        "card_orders": card_orders,
+        "meal_card_orders": meal_card_orders,
+        "online_orders": online_orders,
+        "online_meal_card_orders": online_meal_card_orders,
     }
