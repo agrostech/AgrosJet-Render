@@ -179,49 +179,36 @@ export default function RestaurantCiroRaporu({ restaurantId, companyId }) {
 
       {/* Sonuçlar */}
       {!loading && data && (
-        <div className="space-y-4">
-          {/* Detay Tablosu */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="p-3 font-medium text-center">Sipariş</th>
-                      <th className="p-3 font-medium text-right">Nakit Ciro</th>
-                      <th className="p-3 font-medium text-right">Kredi Kartı Ciro</th>
-                      <th className="p-3 font-medium text-right">Yemek Kartı Ciro</th>
-                      <th className="p-3 font-medium text-right">Online Yemek Kartı Ciro</th>
-                      <th className="p-3 font-medium text-right">Online Kredi Kartı Ciro</th>
-                      <th className="p-3 font-medium text-right">Toplam Ciro</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
-                      <td className="p-3 text-right">{formatMoney(data.cash_total)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.card_total)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.meal_card_total)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.online_meal_card_total)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.online_total)}</td>
-                      <td className="p-3 text-right font-bold text-green-600">{formatMoney(data.total_ciro)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Veri yoksa */}
-          {data.order_count === 0 && (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Package className="w-12 h-12 text-muted-foreground mb-3" />
-                <p className="text-muted-foreground">Bu tarih aralığında sipariş bulunamadı</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="p-3 font-medium text-center">Sipariş</th>
+                    <th className="p-3 font-medium text-right">Nakit Ciro</th>
+                    <th className="p-3 font-medium text-right">Kredi Kartı Ciro</th>
+                    <th className="p-3 font-medium text-right">Yemek Kartı Ciro</th>
+                    <th className="p-3 font-medium text-right">Online Yemek Kartı Ciro</th>
+                    <th className="p-3 font-medium text-right">Online Kredi Kartı Ciro</th>
+                    <th className="p-3 font-medium text-right">Toplam Ciro</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
+                    <td className="p-3 text-right">{formatMoney(data.cash_total)}</td>
+                    <td className="p-3 text-right">{formatMoney(data.card_total)}</td>
+                    <td className="p-3 text-right">{formatMoney(data.meal_card_total)}</td>
+                    <td className="p-3 text-right">{formatMoney(data.online_meal_card_total)}</td>
+                    <td className="p-3 text-right">{formatMoney(data.online_total)}</td>
+                    <td className="p-3 text-right font-bold text-green-600">{formatMoney(data.total_ciro)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* İlk yükleme */}

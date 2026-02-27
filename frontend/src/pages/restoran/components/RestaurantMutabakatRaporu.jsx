@@ -180,61 +180,48 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
 
       {/* Sonuçlar */}
       {!loading && data && (
-        <div className="space-y-4">
-          {/* Detay Tablosu - Tek satır */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="p-3 font-medium text-center">Sipariş</th>
-                      <th className="p-3 font-medium text-right">Taşıma Ücreti</th>
-                      <th className="p-3 font-medium text-right">Taşıma Ücreti KDV</th>
-                      <th className="p-3 font-medium text-right">Toplam Taşıma Ücreti</th>
-                      <th className="p-3 font-medium text-right">POS Komisyonu</th>
-                      <th className="p-3 font-medium text-right">Nakit Tahsilat</th>
-                      <th className="p-3 font-medium text-right">Kredi Kartı Tahsilat</th>
-                      <th className="p-3 font-medium text-right">Yemek Kartı Tahsilat</th>
-                      <th className="p-3 font-medium text-right">Net Sonuç</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
-                      <td className="p-3 text-right">{formatMoney(data.delivery_fee)}</td>
-                      <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
-                      <td className="p-3 text-right text-red-600">{formatMoney(data.total_delivery)}</td>
-                      <td className="p-3 text-right text-red-600">{formatMoney(data.pos_commission)}</td>
-                      <td className={`p-3 text-right ${data.cash_included ? 'text-green-600' : ''}`}>
-                        {formatMoney(data.cash_amount)}
-                      </td>
-                      <td className={`p-3 text-right ${data.card_included ? 'text-green-600' : ''}`}>
-                        {formatMoney(data.card_amount)}
-                      </td>
-                      <td className={`p-3 text-right ${data.meal_card_included ? 'text-green-600' : ''}`}>
-                        {formatMoney(data.meal_card_amount)}
-                      </td>
-                      <td className={`p-3 text-right font-bold ${data.net_amount < 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatMoney(data.net_amount)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Veri yoksa */}
-          {data.order_count === 0 && (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Package className="w-12 h-12 text-muted-foreground mb-3" />
-                <p className="text-muted-foreground">Bu tarih aralığında sipariş bulunamadı</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="p-3 font-medium text-center">Sipariş</th>
+                    <th className="p-3 font-medium text-right">Taşıma Ücreti</th>
+                    <th className="p-3 font-medium text-right">Taşıma Ücreti KDV</th>
+                    <th className="p-3 font-medium text-right">Toplam Taşıma Ücreti</th>
+                    <th className="p-3 font-medium text-right">POS Komisyonu</th>
+                    <th className="p-3 font-medium text-right">Nakit Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Kredi Kartı Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Yemek Kartı Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Net Sonuç</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
+                    <td className="p-3 text-right">{formatMoney(data.delivery_fee)}</td>
+                    <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
+                    <td className="p-3 text-right text-red-600">{formatMoney(data.total_delivery)}</td>
+                    <td className="p-3 text-right text-red-600">{formatMoney(data.pos_commission)}</td>
+                    <td className={`p-3 text-right ${data.cash_included ? 'text-green-600' : ''}`}>
+                      {formatMoney(data.cash_amount)}
+                    </td>
+                    <td className={`p-3 text-right ${data.card_included ? 'text-green-600' : ''}`}>
+                      {formatMoney(data.card_amount)}
+                    </td>
+                    <td className={`p-3 text-right ${data.meal_card_included ? 'text-green-600' : ''}`}>
+                      {formatMoney(data.meal_card_amount)}
+                    </td>
+                    <td className={`p-3 text-right font-bold ${data.net_amount < 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatMoney(data.net_amount)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* İlk yükleme */}
