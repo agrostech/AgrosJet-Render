@@ -29,12 +29,13 @@ function formatMinutes(val) {
   return `${mins} dk`;
 }
 
-function HeatMap({ points, center }) {
+function HeatMap({ points, center, totalOrders }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
   useEffect(() => {
     if (!center?.lat || !center?.lng || !mapRef.current) return;
+    if (points.length === 0) return;
 
     // Destroy previous map instance
     if (mapInstanceRef.current) {
@@ -50,18 +51,35 @@ function HeatMap({ points, center }) {
       maxZoom: 18,
     }).addTo(map);
 
-    if (points.length > 0) {
-      const heatData = points.map((p) => [p.lat, p.lng, 1]);
-      L.heatLayer(heatData, {
-        radius: 25,
-        blur: 15,
-        maxZoom: 17,
-        max: 1.0,
-        gradient: { 0.2: "#00ff00", 0.4: "#adff2f", 0.6: "#ffff00", 0.8: "#ff4500", 1.0: "#ff0000" },
+    // Heatmap layer
+    const heatData = points.map((p) => [p.lat, p.lng, 1]);
+    L.heatLayer(heatData, {
+      radius: 28,
+      blur: 20,
+      maxZoom: 16,
+      max: 1.0,
+      minOpacity: 0.4,
+      gradient: { 0.2: "#00ff00", 0.4: "#adff2f", 0.6: "#ffff00", 0.8: "#ff4500", 1.0: "#ff0000" },
+    }).addTo(map);
+
+    // Individual markers
+    points.forEach((p) => {
+      L.circleMarker([p.lat, p.lng], {
+        radius: 6,
+        fillColor: "#ef4444",
+        color: "#fff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.85,
       }).addTo(map);
+    });
+
+    // Fit bounds to show all points
+    if (points.length > 1) {
+      const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }
 
-    // Force a resize after render
     setTimeout(() => map.invalidateSize(), 100);
 
     return () => {
@@ -94,7 +112,17 @@ function HeatMap({ points, center }) {
     );
   }
 
-  return <div ref={mapRef} className="w-full h-[350px] rounded-lg" />;
+  return (
+    <div>
+      <div ref={mapRef} className="w-full h-[350px] rounded-lg" />
+      {totalOrders > points.length && (
+        <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
+          <Info className="w-3 h-3" />
+          {totalOrders - points.length} siparişin teslimat koordinatı bulunmuyor (Adisyo siparişlerinde koordinat eksik)
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function RestaurantPerformansRaporu({ restaurantId, companyId }) {
