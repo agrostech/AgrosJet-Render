@@ -185,18 +185,18 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm table-fixed">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-center p-3 font-medium w-20">Sipariş</th>
-                      <th className="text-right p-3 font-medium">Taşıma</th>
-                      <th className="text-right p-3 font-medium">KDV</th>
-                      <th className="text-right p-3 font-medium">Toplam Taşıma</th>
-                      <th className="text-right p-3 font-medium">POS Komisyon</th>
-                      <th className="text-right p-3 font-medium">Nakit</th>
-                      <th className="text-right p-3 font-medium">Kart</th>
-                      <th className="text-right p-3 font-medium">Yemek Kartı</th>
-                      <th className="text-right p-3 font-medium">Net Tutar</th>
+                      <th className="p-3 font-medium text-center">Sipariş</th>
+                      <th className="p-3 font-medium text-right">Taşıma Ücreti</th>
+                      <th className="p-3 font-medium text-right">Taşıma Ücreti KDV</th>
+                      <th className="p-3 font-medium text-right">Toplam Taşıma Ücreti</th>
+                      <th className="p-3 font-medium text-right">POS Komisyonu</th>
+                      <th className="p-3 font-medium text-right">Nakit Tahsilat</th>
+                      <th className="p-3 font-medium text-right">Kredi Kartı Tahsilat</th>
+                      <th className="p-3 font-medium text-right">Yemek Kartı Tahsilat</th>
+                      <th className="p-3 font-medium text-right">Net Sonuç</th>
                     </tr>
                   </thead>
                   <tbody>
