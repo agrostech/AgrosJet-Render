@@ -1,0 +1,194 @@
+<analysis>**original_problem_statement:**
+The user's initial request was to fix an issue with the Vardiyalarım (My Shifts) tab. This quickly evolved into a series of UI/UX refactoring requests for both the courier and restaurant panels.
+
+The session began with small UI tweaks on the courier panel: redesigning the JetPuan balance display and removing numerous toast notifications. The scope then expanded significantly to include:
+- A complete redesign of the courier's Kazanç Raporu (Earnings Report) to be a 5-card layout, which required fixing underlying data inconsistencies between different reporting endpoints.
+- Creation of a new KVKK ve Gizlilik (GDPR & Privacy) page.
+- A major refactoring of the courier panel's URL structure to support native mobile app integration (), which caused and required fixing subsequent navigation issues.
+- Full backend and frontend integration of Firebase Push Notifications for new order assignments.
+- A fix for multi-stop route generation for the native app.
+- A critical bug fix for an infinite re-render loop on the restaurant panel's order pages.
+- The creation and extensive, iterative refinement of two new reports on the restaurant panel: Mütabakat Raporu (Reconciliation Report) and Ciro Raporu (Turnover Report), including creating new backend endpoints and resolving data fetching/display issues.
+- The creation of a comprehensive guide for the native mobile app developers.
+
+**User's preferred language**: Turkish
+
+**what currently exists?**
+The application has undergone significant feature development and bug fixing in this session.
+-   **Courier Panel:**
+    -   Multiple UI elements have been refined (JetPuan card, toast removals).
+    -   The Kazanç Raporu (Earnings Report) has a new 5-card design with corrected data logic that is now consistent with the Performans Raporu (Performance Report).
+    -   A new static page for KVKK ve Gizlilik has been added.
+    -   The entire courier panel now operates under a dynamic URL structure () to facilitate native app integration. All navigation links have been updated to support this.
+    -   A frontend listener has been added to receive an FCM token from the native app and save it to the backend.
+    -   The multi-stop route generation for Google Maps now correctly encodes waypoints and also sends a structured data payload to the native app via .
+-   **Restaurant Panel:**
+    -   A critical infinite loop bug on the Teslim Edilen and İptal Edilen order pages, caused by an incorrect  dependency, has been fixed.
+    -   Two new, fully functional report pages have been created from scratch: Mütabakat Raporu and Ciro Raporu.
+    -   These reports feature refined UI/UX, including custom date filters, new table layouts, color-coded financial data, and correct data fetching logic that respects company-specific settings and timezones.
+-   **Backend:**
+    -   Firebase Admin SDK has been integrated. A new service () and endpoint () exist to handle push notifications.
+    -   The order assignment logic now triggers a push notification with a custom sound to the assigned courier.
+    -   A new endpoint () was created to serve data for the Ciro Raporu.
+    -   The earnings report endpoint was corrected to ensure data consistency with the performance report.
+-   **Documentation:**
+    -   A comprehensive guide for native app developers () has been created, detailing URL structure, location tracking, push notifications, and map integration.
+
+**Last working item**:
+-   Last item agent was working: The agent was making final UI adjustments to the Ciro Raporu (Turnover Report) in the restaurant panel. The user requested to reorder and rename the columns (Online Ciro -> Online Kredi Kartı Ciro).
+-   Status: **USER VERIFICATION PENDING**
+-   Agent Testing Done: N
+-   Which testing method agent to use? screenshot tool
+-   User Testing Done: N
+
+**All Pending/In progress Issue list**:
+-   **Issue 1: Restaurant Panel Reports Final Polish (P0)**
+    -   Description: The user requested several rapid UI/UX changes to the Mütabakat and Ciro reports. The last changes (column renaming/reordering in Ciro report and alignment fixes) are complete but await user verification.
+    -   Status: **USER VERIFICATION PENDING**
+
+-   **Issue 2: Mobile File Upload Issue (P1)**
+    -   Description: A known, recurring issue with file uploads on mobile devices.
+    -   Status: **NOT STARTED**
+    -   Is recurring issue? Y
+
+-   **Issue 3: Inefficient Scheduled Jobs for Reconciliation (P2)**
+    -   Description: Scheduled jobs in  for weekly earnings and reconciliation should be refactored to a more efficient cron-based schedule.
+    -   Status: **NOT STARTED**
+
+-   **Issue 4: Native App Location Tracking (P2)**
+    -   Description: The backend endpoint () is confirmed to be working. However, the user reported that the native app is not successfully sending location data. An integration guide has been provided to the native team.
+    -   Status: **BLOCKED** (Awaiting action from the native app team)
+
+-   **Issue 5: Data Consistency Final Verification (P3)**
+    -   Description: A full verification across all financial reporting pages is needed to confirm the success of the major timezone refactor from the previous session.
+    -   Status: **USER VERIFICATION PENDING**
+
+-   **Issue 6: Kurye Bulunamadı (Courier Not Found) Error on Termination (P3)**
+    -   Description: A fix from a previous session is awaiting user verification.
+    -   Status: **USER VERIFICATION PENDING**
+
+**In progress Task List**:
+-   None.
+
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks:**
+    -   **(P1) Incomplete Fee Calculation Integration:** The logic to calculate  on order creation must be implemented for all integration points (, , etc.). This is a critical piece of technical debt.
+    -   **(P1) Refactor Scheduled Jobs:** Improve the efficiency of the  and  jobs in .
+    -   **(P2) Finalize Migros Integration:** The decryption logic is fixed, but the user needs to trigger a new test order to verify it end-to-end.
+    -   **(P2) Finalize Yemeksepeti Integration:** Blocked until the user provides API credentials.
+-   **Future Tasks:**
+    -   Implement an API request monitor/logger in the admin panel.
+    -   Develop a Native Courier App.
+    -   Re-enable and Enhance the Chat System.
+    -   Refactor the  file.
+    -   Implement Google Maps Integration & a Dark Mode theme.
+
+**Completed work in this session**
+-   **Critical Bug Fix:** Resolved an infinite re-render loop in the restaurant panel's date filters by correcting the dependency array in a  hook.
+-   **Restaurant Panel Reports:**
+    -   Created and extensively refined the Mütabakat Raporu (Reconciliation Report).
+    -   Created and extensively refined the Ciro Raporu (Turnover Report), including a new backend endpoint.
+    -   Standardized the UI/UX of filters and tabs across report pages.
+-   **Courier Panel Features & Refinements:**
+    -   Redesigned the Kazanç Raporu (Earnings Report) with 5 cards and fixed the underlying calculation logic to be consistent with other reports.
+    -   Refactored the URL structure to  and fixed all navigation to support this dynamic routing for native app integration.
+    -   Created the KVKK ve Gizlilik page.
+    -   Removed all toast notifications from the Motosikletim, Market, Evraklarım, and Muhasebe pages.
+-   **Firebase Push Notification Integration:**
+    -   Integrated Firebase Admin SDK on the backend.
+    -   Implemented a service to send notifications with custom sounds upon order assignment.
+    -   Added an endpoint to store courier FCM tokens.
+    -   Added a frontend listener to receive the FCM token from the native app.
+-   **Native App Support:**
+    -   Fixed multi-stop route generation for Google Maps.
+    -   Created a comprehensive  for the native app development team.
+
+**Earlier issues found/mentioned but not fixed**
+-   **Incomplete Fee Calculation:** The task to integrate  calculation into all order creation endpoints (Getir, Trendyol, etc.) remains incomplete.
+-   **Inefficient Scheduled Jobs:** The  and  jobs in  are still inefficient.
+
+**Known issue recurrence from previous fork**
+-   Issue recurrence in previous fork: Mobile File Upload Issue.
+-   Recurrence count: 8+
+-   Status: NOT STARTED
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **React State & Effects:** Fixed a critical infinite re-render loop by carefully managing dependencies in  and using .
+-   **Dynamic Routing (React Router):** Refactored the application to use parameterized routes () and dynamically generate navigation links based on the current URL.
+-   **WebView to Native Communication:** Used  to communicate complex data (route waypoints, tokens) from the WebView to the native app wrapper.
+-   **Backend API Development (FastAPI):** Created new endpoints from scratch and modified existing ones to support new frontend features and fix data inconsistencies.
+-   **Firebase Admin SDK:** Integrated a third-party service on the backend for a core feature (push notifications).
+-   **Defensive UI/UX:** Iteratively built and refined complex UI components based on rapid user feedback, ensuring data, styling, and functionality met precise requirements.
+
+**key DB schema**
+-   **couriers:** A new optional field, , is now being stored to enable push notifications.
+
+**All files of reference**
+-    (New & heavily modified)
+-    (New)
+-    (New endpoint added)
+-    (Routing logic refactored)
+-    (Navigation logic refactored)
+-    (New)
+-    (Push notification logic added)
+-    (New documentation)
+-    (Critical bug fix)
+
+**Critical Info for New Agent**
+-   **You MUST communicate in Turkish.**
+-   The user provides feedback in a rapid, iterative cycle. Be prepared to implement, receive feedback, and refine features quickly, especially for UI/UX.
+-   The courier panel's URL structure is now dynamic (). All new features or navigation changes in this section must account for this.
+-   The restaurant reports (Mütabakat, Ciro) are new and have been built to very specific user requirements. Refer to the existing code for style and logic before making changes.
+-   A comprehensive guide for the native app is at . Use it as the source of truth for any questions regarding mobile integration (location, push, routing).
+-   Be mindful of  dependencies to avoid re-introducing infinite render loops. The fix was to move a function definition outside the component or wrap it in .
+
+**documents and test reports created in this job**
+-   
+
+**Last 10 User Messages and any pending HUMAN messages**
+10. **Request (Completed):** Change Online Ciro to Online Kredi Kartı Ciro and swap its position with Online Yemek Kartı Ciro.
+9.  **Request (Completed):** Remove the Restoran column from Ciro and Mütabakat reports. Use full names for headers instead of abbreviations.
+8.  **Request (Completed):** Fix the bad column alignment in the reports.
+7.  **Request (Completed):** Change the column headers in the Mütabakat report to be more descriptive.
+6.  **Request (Completed):** The Ciro report should have these specific columns and the same design as the Mütabakat report.
+5.  **Request (Completed):** In the restaurant reports, rename the tabs to Mütabakat Raporu, Ciro Raporu, Performans Raporu.
+4.  **Feedback (Completed):** Explained the logic for how payment collection settings should affect colors in the Mütabakat report.
+3.  **Request (Completed):** Color-code the numbers in the Mütabakat report and remove the Durum column.
+2.  **Bug Report (Fixed):** The Mütabakat report is crashing with a FileText is not defined error.
+1.  **Request (Completed):** The Mütabakat report needs a different set of columns and the Filtrele button icon should match other pages.
+
+**Project Health Check:**
+-   **Improved:** Application is significantly more feature-rich. Critical bugs have been resolved, and native app integration is much clearer. System stability on the restaurant panel is improved after the infinite-loop fix.
+-   **Broken**:
+    -   The core logic for  calculation is still missing for most third-party integrations, which is a significant source of technical debt.
+-   **Technical Debt**:
+    -   The scheduled jobs in  remain inefficient and have not been refactored.
+
+**3rd Party Integrations**
+-   
+-   
+-   
+-    (Blocked)
+-   
+-   
+-   
+-   
+-   
+-    (Used for Push Notifications)
+
+**Testing status**
+-   Testing agent used after significant changes: NO
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: []
+-   Known regressions: None. The routing changes caused a temporary regression where all tabs redirected to the main page, but this was identified and fixed within the session.
+
+**Credentials to test flow:**
+-   **Company Admin:**  / 
+-   **Restaurant User:** Log in as , go to the Restoranlar page, and use the Panele Git (Go to Panel) button for a restaurant.
+-   **Courier User:**  /  (Use the  page, which now redirects to )
+
+**What agent forgot to execute**
+The agent successfully kept up with a high volume of rapid-fire requests from the user and did not appear to miss or forget any explicit instructions.</analysis>
