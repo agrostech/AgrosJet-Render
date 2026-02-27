@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RefreshCw, Search, Package, FileText } from "lucide-react";
+import { RefreshCw, Package, FileText } from "lucide-react";
+import RaporFiltre from "./RaporFiltre";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -16,44 +14,14 @@ function formatMoney(val) {
 export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
-  const [initialized, setInitialized] = useState(false);
-  
-  // Company settings for default times
-  const [companySettings, setCompanySettings] = useState({ opening_time: "09:00", closing_time: "23:00" });
-  
-  // Date filters
-  const getDefaultDates = useCallback((settings) => {
-    const s = settings || { opening_time: "09:00", closing_time: "23:00" };
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const openingTime = s.opening_time || "09:00";
-    const closingTime = s.closing_time || "23:00";
-    
-    const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
-    const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
-    
-    return { startDateTime, endDateTime };
-  }, []);
-  
-  const [startDateTime, setStartDateTime] = useState("");
-  const [endDateTime, setEndDateTime] = useState("");
 
-  // Türkiye saati formatında tarih string'i oluştur
   const formatDateTurkey = (dateTimeStr) => {
     if (!dateTimeStr) return "";
-    // datetime-local input formatı: "2026-02-26T09:00"
     return `${dateTimeStr}:00+03:00`;
   };
 
-  // Veri çek
-  const fetchData = useCallback(async (params = {}) => {
-    const start = params.startDateTime || startDateTime;
-    const end = params.endDateTime || endDateTime;
-    
+  const handleFilter = useCallback(async (start, end) => {
     if (!start || !end || !restaurantId) return;
-    
     setLoading(true);
     try {
       const res = await axios.post(`${API}/restoran-mutabakat/restaurant/${restaurantId}`, {
@@ -67,109 +35,12 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
     } finally {
       setLoading(false);
     }
-  }, [restaurantId, startDateTime, endDateTime]);
-
-  // Şirket ayarlarını al ve ilk veriyi çek
-  useEffect(() => {
-    const initData = async () => {
-      if (!companyId || !restaurantId) return;
-      
-      try {
-        // Şirket ayarlarını al
-        const companyRes = await axios.get(`${API}/companies/${companyId}`);
-        const company = companyRes.data;
-        
-        const settings = {
-          opening_time: company?.opening_time || "09:00",
-          closing_time: company?.closing_time || "23:00"
-        };
-        setCompanySettings(settings);
-        
-        // Varsayılan tarihleri ayarla
-        const defaults = getDefaultDates(settings);
-        setStartDateTime(defaults.startDateTime);
-        setEndDateTime(defaults.endDateTime);
-        
-        // İlk veriyi çek
-        setLoading(true);
-        try {
-          const res = await axios.post(`${API}/restoran-mutabakat/restaurant/${restaurantId}`, {
-            start_datetime: formatDateTurkey(defaults.startDateTime),
-            end_datetime: formatDateTurkey(defaults.endDateTime)
-          });
-          setData(res.data);
-        } catch (err) {
-          console.error("Mütabakat verisi alınamadı:", err);
-          setData(null);
-        } finally {
-          setLoading(false);
-        }
-        
-        setInitialized(true);
-      } catch (err) {
-        console.error("Şirket ayarları alınamadı:", err);
-      }
-    };
-    
-    if (!initialized) {
-      initData();
-    }
-  }, [companyId, restaurantId, initialized, getDefaultDates]);
-
-  // Filtrele butonu
-  const handleFilter = () => {
-    fetchData();
-  };
+  }, [restaurantId]);
 
   return (
     <div className="space-y-4" data-testid="restaurant-mutabakat-raporu">
-      {/* Compact Filters - Teslim Edilen Siparişler ile aynı tasarım */}
-      <Card>
-        <CardContent className="p-3">
-          <div className="flex flex-wrap items-end gap-2">
-            {/* Start Date */}
-            <div className="min-w-[140px] flex-1 max-w-[200px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
-              <Input 
-                type="datetime-local" 
-                value={startDateTime} 
-                onChange={(e) => setStartDateTime(e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            
-            {/* End Date */}
-            <div className="min-w-[140px] flex-1 max-w-[200px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Bitiş</Label>
-              <Input 
-                type="datetime-local" 
-                value={endDateTime} 
-                onChange={(e) => setEndDateTime(e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex gap-1.5">
-              <Button 
-                onClick={handleFilter} 
-                disabled={loading}
-                size="sm"
-                className="h-8 px-3 text-xs gap-1.5"
-              >
-                {loading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Search className="w-3.5 h-3.5" />
-                )}
-                Filtrele
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RaporFiltre companyId={companyId} onFilter={handleFilter} loading={loading} />
 
-      {/* Loading */}
       {loading && (
         <Card>
           <CardContent className="flex items-center justify-center py-12">
@@ -178,7 +49,6 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
         </Card>
       )}
 
-      {/* Sonuçlar */}
       {!loading && data && (
         <Card>
           <CardContent className="p-0">
@@ -186,34 +56,42 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="p-3 font-medium text-center">Sipariş</th>
-                    <th className="p-3 font-medium text-right">Taşıma Ücreti</th>
-                    <th className="p-3 font-medium text-right">Taşıma Ücreti KDV</th>
-                    <th className="p-3 font-medium text-right">Toplam Taşıma Ücreti</th>
-                    <th className="p-3 font-medium text-right">POS Komisyonu</th>
+                    <th className="p-3 font-medium text-center">Sipariş Sayısı</th>
                     <th className="p-3 font-medium text-right">Nakit Tahsilat</th>
                     <th className="p-3 font-medium text-right">Kredi Kartı Tahsilat</th>
                     <th className="p-3 font-medium text-right">Yemek Kartı Tahsilat</th>
-                    <th className="p-3 font-medium text-right">Net Sonuç</th>
+                    <th className="p-3 font-medium text-right">Online Yemek Kartı Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Online Kredi Kartı Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Toplam Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Hizmet Bedeli</th>
+                    <th className="p-3 font-medium text-right">Net Tutar</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b last:border-0 hover:bg-muted/30">
                     <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
-                    <td className="p-3 text-right">{formatMoney(data.delivery_fee)}</td>
-                    <td className="p-3 text-right">{formatMoney(data.delivery_vat)}</td>
-                    <td className="p-3 text-right text-red-600">{formatMoney(data.total_delivery)}</td>
-                    <td className="p-3 text-right text-red-600">{formatMoney(data.pos_commission)}</td>
-                    <td className={`p-3 text-right ${data.cash_included ? 'text-green-600' : ''}`}>
-                      {formatMoney(data.cash_amount)}
+                    <td className={`p-3 text-right ${data.cash_collection > 0 ? 'text-green-600 font-medium' : ''}`}>
+                      {formatMoney(data.cash_collection)}
                     </td>
-                    <td className={`p-3 text-right ${data.card_included ? 'text-green-600' : ''}`}>
-                      {formatMoney(data.card_amount)}
+                    <td className={`p-3 text-right ${data.card_collection > 0 ? 'text-blue-600 font-medium' : ''}`}>
+                      {formatMoney(data.card_collection)}
                     </td>
-                    <td className={`p-3 text-right ${data.meal_card_included ? 'text-green-600' : ''}`}>
-                      {formatMoney(data.meal_card_amount)}
+                    <td className={`p-3 text-right ${data.meal_card_collection > 0 ? 'text-purple-600 font-medium' : ''}`}>
+                      {formatMoney(data.meal_card_collection)}
                     </td>
-                    <td className={`p-3 text-right font-bold ${data.net_amount < 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <td className={`p-3 text-right ${data.online_meal_card_collection > 0 ? 'text-purple-600 font-medium' : ''}`}>
+                      {formatMoney(data.online_meal_card_collection)}
+                    </td>
+                    <td className={`p-3 text-right ${data.online_collection > 0 ? 'text-blue-600 font-medium' : ''}`}>
+                      {formatMoney(data.online_collection)}
+                    </td>
+                    <td className="p-3 text-right font-medium">
+                      {formatMoney(data.total_collection)}
+                    </td>
+                    <td className="p-3 text-right text-red-600 font-medium">
+                      {formatMoney(data.service_fee)}
+                    </td>
+                    <td className="p-3 text-right text-green-600 font-bold">
                       {formatMoney(data.net_amount)}
                     </td>
                   </tr>
@@ -224,12 +102,11 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
         </Card>
       )}
 
-      {/* İlk yükleme */}
       {!loading && !data && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="w-12 h-12 text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">Tarih aralığı seçip "Rapor Getir" butonuna tıklayın</p>
+            <p className="text-muted-foreground">Tarih aralığı seçip "Filtrele" butonuna tıklayın</p>
           </CardContent>
         </Card>
       )}
