@@ -160,11 +160,9 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                 {loading ? (
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <>
-                    <FileText className="w-3.5 h-3.5" />
-                    Filtrele
-                  </>
+                  <Search className="w-3.5 h-3.5" />
                 )}
+                Filtrele
               </Button>
             </div>
           </div>
