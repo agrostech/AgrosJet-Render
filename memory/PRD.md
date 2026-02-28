@@ -5,13 +5,14 @@ Multi-panel (Admin, Restaurant, Courier) delivery management application with in
 
 ## Completed Features (as of 2026-02-28)
 
-### Latest Session
-- [x] **Kademeli Paket Başı Ücretlendirme** - Company-wide tiered pricing for couriers
+### Latest Session - Kademeli Paket Başı Ücretlendirme
+- [x] **Kurye bazlı kademeli ücretlendirme** - Mevcut ücretlendirme modalına eklendi
+  - 3 seçenek: Paket Başı / KM Aralığı / Kademeli Paket Başı
   - 5-tier pricing system based on active package count
   - Price shifting only on unassign (not on delivery/cancel)
   - Hourly rate option included
-  - Backend: `tiered_pricing_service.py`, `tiered_pricing.py`
-  - Frontend: Modal in KuryelerPage.jsx
+  - Backend: `couriers.py` (tier_prices field), `orders.py` (fee calculation)
+  - Frontend: KuryelerPage.jsx pricing modal updated
 
 ### Previous Sessions
 - [x] RestoranlarPage loading icon fixed - uses `PageLoading` component
@@ -28,13 +29,11 @@ Multi-panel (Admin, Restaurant, Courier) delivery management application with in
 
 ### Database Schema
 ```javascript
-// companies collection - tiered_pricing field
+// couriers collection - tier_prices field
 {
-  tiered_pricing: {
-    enabled: boolean,
-    tier_prices: [float, float, float, float, float], // 5 tiers
-    hourly_rate: float | null
-  }
+  pricing_type: "tiered" | "per_package" | "per_km",
+  tier_prices: [float, float, float, float, float], // 5 tiers - kurye bazlı
+  hourly_rate: float | null
 }
 
 // orders collection - new fields
@@ -51,13 +50,13 @@ Multi-panel (Admin, Restaurant, Courier) delivery management application with in
 ```
 
 ### API Endpoints
-- `GET /api/tiered-pricing/{company_id}` - Get tiered pricing settings
-- `PUT /api/tiered-pricing/{company_id}` - Update tiered pricing settings
+- `GET /api/couriers/{courier_id}/pricing` - Get courier pricing (includes tier_prices)
+- `PUT /api/couriers/{courier_id}/pricing` - Update courier pricing (pricing_type can be "tiered")
 
 ### Logic Flow
-1. When courier gets package assigned → Check active package count
-2. If tiered pricing enabled → Use tier_prices[active_count] (max index 4)
-3. On unassign → Recalculate remaining packages' fees
+1. When courier gets package assigned → Check pricing_type
+2. If pricing_type == "tiered" → Get active package count → Use tier_prices[active_count]
+3. On unassign → Recalculate remaining packages' fees using courier's tier_prices
 
 ## Backlog
 
@@ -76,12 +75,11 @@ Multi-panel (Admin, Restaurant, Courier) delivery management application with in
 - [ ] Dark Mode theme
 
 ## Key Files
-- `/app/backend/services/tiered_pricing_service.py` - Tiered pricing logic
-- `/app/backend/routers/tiered_pricing.py` - API endpoints
-- `/app/backend/routers/orders.py` - Modified assign_courier_core, unassign_courier
-- `/app/frontend/src/pages/admin/KuryelerPage.jsx` - Tiered pricing modal
+- `/app/backend/routers/couriers.py` - Courier pricing with tiered support
+- `/app/backend/routers/orders.py` - Modified assign_courier_core for tiered fee
+- `/app/backend/services/tiered_pricing_service.py` - Fee recalculation on unassign
+- `/app/frontend/src/pages/admin/KuryelerPage.jsx` - Pricing modal with tiered option
 
 ## Test Credentials
 - Admin: `superadmin` / `123456`
 - Courier: `5555555555` / `123456`
-- Company ID: `0005ec2a-04ca-4250-9530-ecc6fde165f1`
