@@ -184,11 +184,13 @@ export default function KuryelerPage({ companyId }) {
       setPerPackagePrice(res.data.per_package_price?.toString() || "");
       setKmRanges(res.data.km_ranges || DEFAULT_KM_RANGES);
       setHourlyRate(res.data.hourly_rate?.toString() || "");
+      setTierPrices(res.data.tier_prices?.map(p => p?.toString() || "") || ["", "", "", "", ""]);
     } catch (err) {
       setPricingType("per_package");
       setPerPackagePrice("");
       setKmRanges(DEFAULT_KM_RANGES);
       setHourlyRate("");
+      setTierPrices(["", "", "", "", ""]);
     }
     setShowPricingModal(true);
   };
@@ -200,6 +202,7 @@ export default function KuryelerPage({ companyId }) {
         pricing_type: pricingType,
         per_package_price: pricingType === "per_package" ? parseFloat(perPackagePrice) || 0 : null,
         km_ranges: pricingType === "per_km" ? kmRanges : null,
+        tier_prices: pricingType === "tiered" ? tierPrices.map(p => parseFloat(p) || 0) : null,
         hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null
       };
       await axios.put(`${API}/couriers/${selectedCourier.id}/pricing`, payload);
@@ -215,40 +218,6 @@ export default function KuryelerPage({ companyId }) {
     const newRanges = [...kmRanges];
     newRanges[index].price = parseFloat(price) || 0;
     setKmRanges(newRanges);
-  };
-
-  // Kademeli ücretlendirme modalını aç
-  const openTieredPricingModal = async () => {
-    setLoadingTieredPricing(true);
-    setShowTieredPricingModal(true);
-    try {
-      const res = await axios.get(`${API}/tiered-pricing/${companyId}`);
-      setTieredPricingEnabled(res.data.enabled || false);
-      setTierPrices(res.data.tier_prices?.map(p => p?.toString() || "") || ["", "", "", "", ""]);
-      setTieredHourlyRate(res.data.hourly_rate?.toString() || "");
-    } catch (err) {
-      setTieredPricingEnabled(false);
-      setTierPrices(["", "", "", "", ""]);
-      setTieredHourlyRate("");
-    } finally {
-      setLoadingTieredPricing(false);
-    }
-  };
-
-  // Kademeli ücretlendirme kaydet
-  const handleSaveTieredPricing = async () => {
-    try {
-      const prices = tierPrices.map(p => parseFloat(p) || 0);
-      await axios.put(`${API}/tiered-pricing/${companyId}`, {
-        enabled: tieredPricingEnabled,
-        tier_prices: prices,
-        hourly_rate: tieredHourlyRate ? parseFloat(tieredHourlyRate) : null
-      });
-      toast.success("Kademeli ücretlendirme kaydedildi");
-      setShowTieredPricingModal(false);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
-    }
   };
 
   // Kademe fiyatı güncelle
