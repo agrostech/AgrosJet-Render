@@ -55,7 +55,7 @@ export default function CourierRaporlarPage({ courierId, companyId }) {
           data-testid="tab-performans-raporu"
         >
           <BarChart3 className="w-4 h-4" />
-          Performans Raporu
+          Performansım
         </button>
       </div>
 
