@@ -15,6 +15,7 @@ import {
 import RestaurantPermissionsModal from "@/components/admin/RestaurantPermissionsModal";
 import IntegrationLogsModal from "@/components/admin/IntegrationLogsModal";
 import CollectionSettingsModal from "@/components/admin/CollectionSettingsModal";
+import RestaurantGroupsModal from "@/components/admin/RestaurantGroupsModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
