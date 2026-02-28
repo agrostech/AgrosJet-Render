@@ -320,49 +320,51 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
   return (
     <div className="space-y-4">
       {/* Header with Sub-tabs */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
-            <p className="text-sm text-muted-foreground">Teslim edilen siparişler</p>
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Teslim edilen siparişler</p>
           </div>
         </div>
         
-        {/* Alt Sekmeler */}
-        <div className="flex gap-1 border-b">
-          <button
-            onClick={() => handleSubPageChange('aktif')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ClipboardList className="w-4 h-4" />
-            Aktif Siparişler
-          </button>
-          <button
-            onClick={() => handleSubPageChange('gecmis')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-primary text-primary transition-colors"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Teslim Edilen Siparişler
-          </button>
-          <button
-            onClick={() => handleSubPageChange('iptal')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <XCircle className="w-4 h-4" />
-            İptal Siparişler
-          </button>
+        {/* Alt Sekmeler - Mobilde yatay scroll */}
+        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+          <div className="flex gap-1 border-b min-w-max sm:min-w-0">
+            <button
+              onClick={() => handleSubPageChange('aktif')}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            >
+              <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Aktif
+            </button>
+            <button
+              onClick={() => handleSubPageChange('gecmis')}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-primary text-primary transition-colors whitespace-nowrap"
+            >
+              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Teslim Edilen
+            </button>
+            <button
+              onClick={() => handleSubPageChange('iptal')}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+            >
+              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              İptal
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Compact Filters */}
       <Card>
-        <CardContent className="p-3">
+        <CardContent className="p-2 sm:p-3">
           <div className="flex flex-wrap items-end gap-2">
             {/* Courier / Delivery Type */}
-            <div className="min-w-[120px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Teslimat</Label>
+            <div className="min-w-[100px] flex-1 max-w-[140px] sm:max-w-[180px]">
+              <Label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Teslimat</Label>
               <Select value={courierFilter} onValueChange={setCourierFilter}>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-7 sm:h-8 text-[11px] sm:text-xs">
                   <SelectValue placeholder="Tümü" />
                 </SelectTrigger>
                 <SelectContent>
@@ -374,10 +376,10 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
             </div>
             
             {/* Courier Name Filter */}
-            <div className="min-w-[120px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Kurye</Label>
+            <div className="min-w-[100px] flex-1 max-w-[140px] sm:max-w-[180px]">
+              <Label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Kurye</Label>
               <Select value={courierNameFilter} onValueChange={setCourierNameFilter}>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-7 sm:h-8 text-[11px] sm:text-xs">
                   <SelectValue placeholder="Tümü" />
                 </SelectTrigger>
                 <SelectContent>
@@ -390,10 +392,10 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
             </div>
             
             {/* Payment */}
-            <div className="min-w-[100px] flex-1 max-w-[140px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Ödeme</Label>
+            <div className="min-w-[80px] flex-1 max-w-[110px] sm:max-w-[140px]">
+              <Label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Ödeme</Label>
               <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-7 sm:h-8 text-[11px] sm:text-xs">
                   <SelectValue placeholder="Tümü" />
                 </SelectTrigger>
                 <SelectContent>
@@ -407,34 +409,34 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
             </div>
             
             {/* Start Date */}
-            <div className="min-w-[140px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
+            <div className="min-w-[130px] flex-1 max-w-[160px] sm:max-w-[180px]">
+              <Label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Başlangıç</Label>
               <Input 
                 type="datetime-local" 
                 value={startDateTime} 
                 onChange={(e) => setStartDateTime(e.target.value)}
-                className="h-8 text-xs"
+                className="h-7 sm:h-8 text-[11px] sm:text-xs"
               />
             </div>
             
             {/* End Date */}
-            <div className="min-w-[140px] flex-1 max-w-[180px]">
-              <Label className="text-xs text-muted-foreground mb-1 block">Bitiş</Label>
+            <div className="min-w-[130px] flex-1 max-w-[160px] sm:max-w-[180px]">
+              <Label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Bitiş</Label>
               <Input 
                 type="datetime-local" 
                 value={endDateTime} 
                 onChange={(e) => setEndDateTime(e.target.value)}
-                className="h-8 text-xs"
+                className="h-7 sm:h-8 text-[11px] sm:text-xs"
               />
             </div>
             
             {/* Action Buttons */}
-            <div className="flex gap-1.5">
+            <div className="flex gap-1">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={clearFilters}
-                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                className="h-7 sm:h-8 w-7 sm:w-8 p-0 text-muted-foreground hover:text-foreground"
                 title="Temizle"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -443,14 +445,14 @@ export default function RestaurantGecmisSiparisler({ restaurantId }) {
                 onClick={handleFilter} 
                 disabled={loading}
                 size="sm"
-                className="h-8 px-3 text-xs gap-1.5"
+                className="h-7 sm:h-8 px-2 sm:px-3 text-[11px] sm:text-xs gap-1"
               >
                 {loading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
                 ) : (
-                  <Search className="w-3.5 h-3.5" />
+                  <Search className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 )}
-                Filtrele
+                <span className="hidden sm:inline">Filtrele</span>
               </Button>
             </div>
           </div>
