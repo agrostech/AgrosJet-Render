@@ -782,7 +782,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div ref={mapRef} className="w-full h-[450px] md:h-[520px] rounded-b-lg" style={{ zIndex: 1 }} />
+              <div ref={mapRef} className="w-full h-[280px] sm:h-[350px] md:h-[450px] lg:h-[520px] rounded-b-lg" style={{ zIndex: 1 }} />
             </CardContent>
           </Card>
 
