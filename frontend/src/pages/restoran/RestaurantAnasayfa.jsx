@@ -682,7 +682,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               }`}
             >
               <ListChecks className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Aktif
+              Aktif Sip.
             </button>
             <button
               onClick={() => handleSubPageChange('gecmis')}
@@ -693,7 +693,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               }`}
             >
               <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Teslim Edilen
+              Teslim Sip.
             </button>
             <button
               onClick={() => handleSubPageChange('iptal')}
@@ -704,7 +704,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               }`}
             >
               <ClipboardX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              İptal
+              İptal Sip.
             </button>
           </div>
         </div>
