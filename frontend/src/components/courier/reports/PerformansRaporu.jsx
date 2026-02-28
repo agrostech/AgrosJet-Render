@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Package, Clock, Timer, Banknote } from "lucide-react";
+import { Package, Clock, Timer, Banknote } from "lucide-react";
+import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
