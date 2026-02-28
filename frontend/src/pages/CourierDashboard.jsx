@@ -26,6 +26,18 @@ import CourierKVKKPage from "./courier/CourierKVKKPage";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// İsim kısaltma fonksiyonu (AHMET MEHMET YILMAZ -> AHMET M. YILMAZ)
+const formatCourierName = (name) => {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 2) return name;
+  // İlk isim + orta isimlerin baş harfleri + son isim
+  const firstName = parts[0];
+  const lastName = parts[parts.length - 1];
+  const middleInitials = parts.slice(1, -1).map(p => p[0] + ".").join(" ");
+  return `${firstName} ${middleInitials} ${lastName}`;
+};
+
 // Yeni sıralama - relative paths (courierId ile birleştirilecek)
 const getNavItems = (basePath) => [
   { path: basePath, label: "Siparişler", icon: ClipboardList, key: "siparis" },
