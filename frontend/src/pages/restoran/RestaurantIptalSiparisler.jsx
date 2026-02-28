@@ -360,7 +360,7 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-4">
           {loading ? (
             <div className="flex justify-center py-8">
               <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -372,7 +372,38 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              {/* Mobil Kart Görünümü */}
+              <div className="sm:hidden space-y-2">
+                {paginatedOrders.map((order) => {
+                  const feeInfo = getDeliveryFeeInfo(order);
+                  return (
+                    <div 
+                      key={order.id}
+                      className="border border-red-200 rounded-lg p-3 bg-white hover:bg-red-50/50"
+                      onClick={() => setSelectedOrder(order)}
+                    >
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">{order.customer_name || "-"}</p>
+                          <p className="text-[11px] text-muted-foreground">{formatDate(order.cancelled_at || order.created_at)}</p>
+                        </div>
+                        <p className="font-bold text-sm text-red-600 whitespace-nowrap">{order.total_amount?.toFixed(2)} ₺</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{order.delivery_address || "-"}</p>
+                      <div className="flex flex-wrap items-center gap-1.5 text-[10px] mb-1.5">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">{getPaymentLabel(order)}</Badge>
+                        <span className="text-muted-foreground">{feeInfo.distance.toFixed(1)} km</span>
+                      </div>
+                      {order.cancellation_reason && (
+                        <p className="text-[11px] text-red-600 truncate">İptal: {order.cancellation_reason}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Desktop Tablo Görünümü */}
+              <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b-2 border-red-500">
