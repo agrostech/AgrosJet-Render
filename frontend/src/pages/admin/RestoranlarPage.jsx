@@ -12,6 +12,7 @@ import {
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt, FileText
 } from "lucide-react";
+import { PageLoading } from "@/components/ui/loading-spinner";
 import RestaurantPermissionsModal from "@/components/admin/RestaurantPermissionsModal";
 import IntegrationLogsModal from "@/components/admin/IntegrationLogsModal";
 import CollectionSettingsModal from "@/components/admin/CollectionSettingsModal";
