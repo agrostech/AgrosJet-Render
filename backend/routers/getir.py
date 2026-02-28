@@ -105,7 +105,7 @@ def verify_webhook_api_key(x_api_key: str) -> bool:
     """Webhook API key doğrulama"""
     if not GETIR_WEBHOOK_API_KEY:
         # Key tanımlı değilse tüm istekleri kabul et (geliştirme modu)
-        await ilog.warning("GETIR_WEBHOOK_API_KEY tanımlı değil, doğrulama atlandı")
+        logger.warning("GETIR_WEBHOOK_API_KEY tanımlı değil, doğrulama atlandı")
         return True
     return x_api_key == GETIR_WEBHOOK_API_KEY
 
