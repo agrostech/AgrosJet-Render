@@ -427,6 +427,7 @@ from routers.restaurant_invoices import router as restaurant_invoices_router
 from routers.issued_invoices import router as issued_invoices_router
 from routers.shift_violations import router as shift_violations_router
 from routers.status_movements import router as status_movements_router
+from routers.restaurant_groups import router as restaurant_groups_router
 
 # Set db for products router
 set_products_db(db)
