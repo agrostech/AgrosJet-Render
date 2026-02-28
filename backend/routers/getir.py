@@ -52,16 +52,16 @@ class _IntLogger:
     def __init__(self, name):
         self._name = name
     async def info(self, msg):
-        logger.info(msg)
+        await ilog.info(msg)
         await _db_log(self._name, "INFO", msg)
     async def warning(self, msg):
-        logger.warning(msg)
+        await ilog.warning(msg)
         await _db_log(self._name, "WARNING", msg)
     async def error(self, msg):
-        logger.error(msg)
+        await ilog.error(msg)
         await _db_log(self._name, "ERROR", msg)
     async def exception(self, msg):
-        logger.exception(msg)
+        await ilog.exception(msg)
         await _db_log(self._name, "ERROR", msg)
 
 ilog = _IntLogger("getir")
@@ -105,7 +105,7 @@ def verify_webhook_api_key(x_api_key: str) -> bool:
     """Webhook API key doğrulama"""
     if not GETIR_WEBHOOK_API_KEY:
         # Key tanımlı değilse tüm istekleri kabul et (geliştirme modu)
-        logger.warning("GETIR_WEBHOOK_API_KEY tanımlı değil, doğrulama atlandı")
+        await ilog.warning("GETIR_WEBHOOK_API_KEY tanımlı değil, doğrulama atlandı")
         return True
     return x_api_key == GETIR_WEBHOOK_API_KEY
 
@@ -128,23 +128,23 @@ async def webhook_new_order(
     """
     # API Key doğrulama
     if not verify_webhook_api_key(x_api_key):
-        logger.warning(f"Getir webhook: Geçersiz API key")
+        await ilog.warning(f"Getir webhook: Geçersiz API key")
         raise HTTPException(status_code=401, detail="Geçersiz API key")
     
     try:
         body = await request.json()
-        logger.info(f"Getir webhook order received: {body.get('id', 'unknown')}")
+        await ilog.info(f"Getir webhook order received: {body.get('id', 'unknown')}")
         
         result = await handle_getir_webhook_order(body, x_api_key)
         
         if result.get("success"):
             return {"status": "ok", "message": result.get("message")}
         else:
-            logger.warning(f"Getir webhook order failed: {result.get('error')}")
+            await ilog.warning(f"Getir webhook order failed: {result.get('error')}")
             return {"status": "error", "message": result.get("error")}
             
     except Exception as e:
-        logger.exception("Getir webhook order hatası")
+        await ilog.exception("Getir webhook order hatası")
         return {"status": "error", "message": str(e)}
 
 
@@ -160,23 +160,23 @@ async def webhook_cancel_order(
     """
     # API Key doğrulama
     if not verify_webhook_api_key(x_api_key):
-        logger.warning(f"Getir webhook cancel: Geçersiz API key")
+        await ilog.warning(f"Getir webhook cancel: Geçersiz API key")
         raise HTTPException(status_code=401, detail="Geçersiz API key")
     
     try:
         body = await request.json()
-        logger.info(f"Getir webhook cancel received: {body.get('id', 'unknown')}")
+        await ilog.info(f"Getir webhook cancel received: {body.get('id', 'unknown')}")
         
         result = await handle_getir_webhook_cancel(body, x_api_key)
         
         if result.get("success"):
             return {"status": "ok", "message": result.get("message")}
         else:
-            logger.warning(f"Getir webhook cancel failed: {result.get('error')}")
+            await ilog.warning(f"Getir webhook cancel failed: {result.get('error')}")
             return {"status": "error", "message": result.get("error")}
             
     except Exception as e:
-        logger.exception("Getir webhook cancel hatası")
+        await ilog.exception("Getir webhook cancel hatası")
         return {"status": "error", "message": str(e)}
 
 
