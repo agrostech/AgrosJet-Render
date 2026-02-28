@@ -302,7 +302,7 @@ export default function KuryelerPage({ companyId }) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <h2 className="font-heading text-2xl font-bold tracking-tight">Kuryeler</h2>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
@@ -313,15 +313,6 @@ export default function KuryelerPage({ companyId }) {
               data-testid="filter-couriers-input"
             />
           </div>
-          <Button 
-            variant="outline" 
-            onClick={openTieredPricingModal} 
-            className="font-semibold border-2"
-            data-testid="tiered-pricing-btn"
-          >
-            <Wallet className="w-4 h-4 mr-2" />
-            Kademeli Ücret
-          </Button>
           <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-courier-btn">
             <UserPlus className="w-4 h-4 mr-2" />
             Kurye Ekle
