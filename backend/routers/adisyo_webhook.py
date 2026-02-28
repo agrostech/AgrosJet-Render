@@ -33,6 +33,13 @@ from services.adisyo_service import (
 router = APIRouter(prefix="/api/adisyo", tags=["Adisyo Webhook"])
 logger = logging.getLogger(__name__)
 
+from services.integration_log_service import save_integration_log
+
+async def _log(level, msg):
+    """Logger + MongoDB'ye kaydet"""
+    getattr(logger, level)(msg)
+    await save_integration_log("adisyo", level.upper(), msg)
+
 
 # ==================== HELPER FUNCTIONS ====================
 
