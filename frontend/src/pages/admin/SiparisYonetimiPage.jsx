@@ -800,18 +800,18 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
 
         {/* Orders Table */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 px-3 sm:px-6">
             <div className="flex flex-col gap-3">
               {/* Başlık ve Arama */}
-              <div className="flex items-center justify-between gap-4">
-                <CardTitle className="text-base whitespace-nowrap">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                <CardTitle className="text-sm sm:text-base whitespace-nowrap">
                   Siparişler ({filteredAndSortedOrders.length}{searchQuery && ` / ${orders.length}`})
                 </CardTitle>
-                <div className="relative flex-1 max-w-xs">
+                <div className="relative flex-1 max-w-full sm:max-w-xs">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Ara... (ad, adres, telefon, restoran)"
+                    placeholder="Ara..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8 h-8 text-sm"
@@ -828,12 +828,12 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </div>
               
               {/* Sıralama ve Sayfa Boyutu */}
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 {/* Sıralama */}
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center gap-1.5">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
                   <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="h-8 w-[160px] text-xs" data-testid="sort-order-select">
+                    <SelectTrigger className="h-7 w-[110px] sm:w-[140px] text-[11px] sm:text-xs" data-testid="sort-order-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -844,10 +844,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 </div>
                 
                 {/* Sayfa Boyutu */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Göster:</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">Göster:</span>
                   <Select value={pageSize.toString()} onValueChange={(val) => setPageSize(parseInt(val))}>
-                    <SelectTrigger className="h-8 w-[80px] text-xs" data-testid="page-size-select">
+                    <SelectTrigger className="h-7 w-[60px] sm:w-[70px] text-[11px] sm:text-xs" data-testid="page-size-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -860,13 +860,13 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </div>
               
               {/* Durum Filtreleri */}
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1">
                 {[
-                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-500/30 text-yellow-700 border-yellow-400/50", activeColor: "bg-yellow-500/30 text-yellow-800 border-yellow-500/70" },
-                  { value: "ready", label: "Hazır", color: "bg-orange-500/30 text-orange-700 border-orange-400/50", activeColor: "bg-orange-500/30 text-orange-800 border-orange-500/70" },
-                  { value: "assigned", label: "Atandı", color: "bg-purple-500/30 text-purple-700 border-purple-400/50", activeColor: "bg-purple-500/30 text-purple-800 border-purple-500/70" },
-                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-500/30 text-blue-700 border-blue-400/50", activeColor: "bg-blue-500/30 text-blue-800 border-blue-500/70" },
-                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-500/30 text-cyan-700 border-cyan-400/50", activeColor: "bg-cyan-500/30 text-cyan-800 border-cyan-500/70" },
+                  { value: "preparing", label: "Hazırlanıyor", shortLabel: "Hazır.", color: "bg-yellow-500/30 text-yellow-700 border-yellow-400/50", activeColor: "bg-yellow-500/30 text-yellow-800 border-yellow-500/70" },
+                  { value: "ready", label: "Hazır", shortLabel: "Hazır", color: "bg-orange-500/30 text-orange-700 border-orange-400/50", activeColor: "bg-orange-500/30 text-orange-800 border-orange-500/70" },
+                  { value: "assigned", label: "Atandı", shortLabel: "Ata.", color: "bg-purple-500/30 text-purple-700 border-purple-400/50", activeColor: "bg-purple-500/30 text-purple-800 border-purple-500/70" },
+                  { value: "confirmed", label: "Onaylandı", shortLabel: "Onay", color: "bg-blue-500/30 text-blue-700 border-blue-400/50", activeColor: "bg-blue-500/30 text-blue-800 border-blue-500/70" },
+                  { value: "on_the_way", label: "Yolda", shortLabel: "Yolda", color: "bg-cyan-500/30 text-cyan-700 border-cyan-400/50", activeColor: "bg-cyan-500/30 text-cyan-800 border-cyan-500/70" },
                 ].map((status) => {
                   const count = orders.filter(o => o.status === status.value).length;
                   const isActive = statusFilters.includes(status.value);
@@ -880,25 +880,26 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             : [...prev, status.value]
                         );
                       }}
-                      className={`px-2 py-0.5 text-xs rounded border transition-all flex items-center gap-1 ${
+                      className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded border transition-all flex items-center gap-0.5 sm:gap-1 ${
                         isActive ? status.activeColor + " font-medium shadow-sm ring-1 ring-inset ring-current/20" : status.color + " opacity-70 hover:opacity-100"
                       }`}
                     >
-                      {status.label}
-                      <span className="text-[10px] font-bold">({count})</span>
+                      <span className="sm:hidden">{status.shortLabel}</span>
+                      <span className="hidden sm:inline">{status.label}</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold">({count})</span>
                     </button>
                   );
                 })}
-                <div className="border-l pl-1.5 ml-1 flex gap-1">
+                <div className="border-l pl-1 ml-0.5 flex gap-0.5">
                   <button
                     onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
-                    className="px-1.5 py-0.5 text-[10px] text-blue-600 hover:bg-blue-50 rounded"
+                    className="px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] text-blue-600 hover:bg-blue-50 rounded"
                   >
                     Tümü
                   </button>
                   <button
                     onClick={() => setStatusFilters([])}
-                    className="px-1.5 py-0.5 text-[10px] text-gray-500 hover:bg-gray-100 rounded"
+                    className="px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] text-gray-500 hover:bg-gray-100 rounded"
                   >
                     Temizle
                   </button>
