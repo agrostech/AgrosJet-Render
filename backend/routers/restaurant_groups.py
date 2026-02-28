@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
-from database import db
+from utils.database import db
 
 router = APIRouter(prefix="/api/restaurant-groups", tags=["Restaurant Groups"])
 
