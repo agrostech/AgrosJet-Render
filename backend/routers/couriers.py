@@ -826,9 +826,10 @@ class KmRange(BaseModel):
     price: float
 
 class CourierPricingUpdate(BaseModel):
-    pricing_type: str  # "per_package" veya "per_km"
+    pricing_type: str  # "per_package", "per_km" veya "tiered"
     per_package_price: Optional[float] = None
     km_ranges: Optional[List[KmRange]] = None
+    tier_prices: Optional[List[float]] = None  # Kademeli fiyatlar [1., 2., 3., 4., 5. paket]
     hourly_rate: Optional[float] = None  # Saatlik ücret (opsiyonel)
 
 
@@ -839,7 +840,7 @@ async def update_courier_pricing(courier_id: str, data: CourierPricingUpdate):
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    if data.pricing_type not in ["per_package", "per_km"]:
+    if data.pricing_type not in ["per_package", "per_km", "tiered"]:
         raise HTTPException(status_code=400, detail="Geçersiz ücretlendirme tipi")
     
     update_data = {"pricing_type": data.pricing_type}
@@ -849,11 +850,19 @@ async def update_courier_pricing(courier_id: str, data: CourierPricingUpdate):
             raise HTTPException(status_code=400, detail="Paket başı fiyat gerekli")
         update_data["per_package_price"] = data.per_package_price
         update_data["km_ranges"] = None
-    else:
+        update_data["tier_prices"] = None
+    elif data.pricing_type == "per_km":
         if not data.km_ranges or len(data.km_ranges) == 0:
             raise HTTPException(status_code=400, detail="KM aralıkları gerekli")
         update_data["km_ranges"] = [r.dict() for r in data.km_ranges]
         update_data["per_package_price"] = None
+        update_data["tier_prices"] = None
+    elif data.pricing_type == "tiered":
+        if not data.tier_prices or len(data.tier_prices) != 5:
+            raise HTTPException(status_code=400, detail="Kademeli fiyatlandırma için 5 kademe fiyatı gerekli")
+        update_data["tier_prices"] = data.tier_prices
+        update_data["per_package_price"] = None
+        update_data["km_ranges"] = None
     
     # Saatlik ücret (opsiyonel - None ise silinir, 0 ise 0 olarak kalır)
     if data.hourly_rate is not None:
@@ -870,7 +879,7 @@ async def update_courier_pricing(courier_id: str, data: CourierPricingUpdate):
 @router.get("/couriers/{courier_id}/pricing")
 async def get_courier_pricing(courier_id: str):
     """Kurye ücretlendirme ayarlarını getir"""
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "hourly_rate": 1})
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "hourly_rate": 1, "tier_prices": 1})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
@@ -878,7 +887,8 @@ async def get_courier_pricing(courier_id: str):
         "pricing_type": courier.get("pricing_type"),
         "per_package_price": courier.get("per_package_price"),
         "km_ranges": courier.get("km_ranges"),
-        "hourly_rate": courier.get("hourly_rate")
+        "hourly_rate": courier.get("hourly_rate"),
+        "tier_prices": courier.get("tier_prices")
     }
 
 
