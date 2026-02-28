@@ -77,6 +77,7 @@ async def getir_order_webhook(
         
         if not auth_result["valid"]:
             logger.warning(f"Getir webhook: Geçersiz API key")
+            await _save_log("getir", "ERROR", f"Geçersiz API key: {x_api_key}")
             raise HTTPException(status_code=401, detail="Geçersiz API key")
         
         # JSON parse
@@ -84,14 +85,17 @@ async def getir_order_webhook(
             webhook_data = await request.json()
         except:
             logger.error("Getir webhook: JSON parse hatası")
+            await _save_log("getir", "ERROR", "JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
         logger.info(f"Getir sipariş webhook alındı: order_id={webhook_data.get('id')}")
+        await _save_log("getir", "INFO", f"Webhook alındı: order_id={webhook_data.get('id')}")
         
         # Sipariş ID kontrol
         getir_order_id = webhook_data.get("id")
         if not getir_order_id:
             logger.warning("Getir webhook: Sipariş ID bulunamadı")
+            await _save_log("getir", "WARNING", "Sipariş ID bulunamadı")
             return {"status": "error", "message": "Sipariş ID bulunamadı"}
         
         # Restoran bilgisini Getir verisinden al
@@ -107,7 +111,7 @@ async def getir_order_webhook(
         
         if not restaurant:
             logger.warning(f"Getir webhook: Restoran bulunamadı, getir_restaurant_id={getir_restaurant_id}")
-            # Yine de siparişi kabul et, sonra manuel eşleştirilebilir
+            await _save_log("getir", "WARNING", f"Restoran bulunamadı: getir_restaurant_id={getir_restaurant_id}")
         
         restaurant_id = restaurant.get("id") if restaurant else None
         
