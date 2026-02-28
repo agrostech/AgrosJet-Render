@@ -251,21 +251,21 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
               <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Aktif
+              Aktif Sip.
             </button>
             <button
               onClick={() => handleSubPageChange('gecmis')}
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
             >
               <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Teslim Edilen
+              Teslim Sip.
             </button>
             <button
               onClick={() => handleSubPageChange('iptal')}
               className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-primary text-primary transition-colors whitespace-nowrap"
             >
               <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              İptal
+              İptal Sip.
             </button>
           </div>
         </div>
