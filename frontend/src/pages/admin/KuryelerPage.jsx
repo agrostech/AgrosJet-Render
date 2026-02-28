@@ -660,6 +660,115 @@ export default function KuryelerPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Tiered Pricing Modal (Kademeli Ücretlendirme) */}
+      <Dialog open={showTieredPricingModal} onOpenChange={setShowTieredPricingModal}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-orange-600" />
+              Kademeli Paket Başı Ücretlendirme
+            </DialogTitle>
+          </DialogHeader>
+          
+          {loadingTieredPricing ? (
+            <div className="py-8 text-center text-muted-foreground">Yükleniyor...</div>
+          ) : (
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-muted-foreground">
+                Kuryeye atanan her yeni paket, mevcut aktif paket sayısına göre farklı ücretlendirilir.
+                Sadece kurye ataması kaldırıldığında fiyatlar kaydırılır.
+              </p>
+              
+              {/* Enable/Disable Switch */}
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-orange-50">
+                <div>
+                  <p className="font-medium">Kademeli Ücretlendirme</p>
+                  <p className="text-xs text-muted-foreground">Bu özellik aktifken kurye bazlı ücretlendirme devre dışı kalır</p>
+                </div>
+                <Switch
+                  checked={tieredPricingEnabled}
+                  onCheckedChange={setTieredPricingEnabled}
+                  data-testid="tiered-pricing-toggle"
+                />
+              </div>
+              
+              {/* Tier Prices */}
+              {tieredPricingEnabled && (
+                <div className="space-y-3 p-4 border rounded-lg">
+                  <Label className="font-semibold">Kademe Fiyatları (₺)</Label>
+                  {[1, 2, 3, 4, 5].map((tier, index) => (
+                    <div key={tier} className="flex items-center gap-3">
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                        index === 0 ? 'bg-green-100 text-green-700' :
+                        index === 1 ? 'bg-blue-100 text-blue-700' :
+                        index === 2 ? 'bg-yellow-100 text-yellow-700' :
+                        index === 3 ? 'bg-orange-100 text-orange-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {tier}
+                      </span>
+                      <div className="flex-1">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={tierPrices[index]}
+                          onChange={(e) => updateTierPrice(index, e.target.value)}
+                          placeholder="0.00"
+                          className="bg-white"
+                          data-testid={`tier-price-${tier}`}
+                        />
+                      </div>
+                      <span className="text-sm text-muted-foreground w-16">
+                        {index === 0 ? '1. paket' : `${tier}. paket`}
+                      </span>
+                    </div>
+                  ))}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    5+ paket durumunda 5. kademe fiyatı uygulanır.
+                  </p>
+                </div>
+              )}
+              
+              {/* Hourly Rate */}
+              {tieredPricingEnabled && (
+                <div className="border-t pt-4">
+                  <div className="space-y-2 p-4 bg-amber-50 rounded-lg">
+                    <Label className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-600" />
+                      Saatlik Ücret (₺)
+                      <span className="text-xs text-muted-foreground font-normal">(Opsiyonel)</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={tieredHourlyRate}
+                      onChange={(e) => setTieredHourlyRate(e.target.value)}
+                      placeholder="Tanımlı değil"
+                      className="bg-white"
+                      data-testid="tiered-hourly-rate"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Tanımlıysa, paket kazancına ek olarak aktif çalışma saati × bu ücret hesaplanır.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTieredPricingModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveTieredPricing} data-testid="save-tiered-pricing-btn">
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
