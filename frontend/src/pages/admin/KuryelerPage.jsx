@@ -69,6 +69,13 @@ export default function KuryelerPage({ companyId }) {
   const [kmRanges, setKmRanges] = useState(DEFAULT_KM_RANGES);
   const [hourlyRate, setHourlyRate] = useState("");
   
+  // Tiered Pricing State (Şirket geneli)
+  const [showTieredPricingModal, setShowTieredPricingModal] = useState(false);
+  const [tieredPricingEnabled, setTieredPricingEnabled] = useState(false);
+  const [tierPrices, setTierPrices] = useState(["", "", "", "", ""]);
+  const [tieredHourlyRate, setTieredHourlyRate] = useState("");
+  const [loadingTieredPricing, setLoadingTieredPricing] = useState(false);
+  
   // Payment Methods Modal State
   const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
   const [allowedPaymentMethods, setAllowedPaymentMethods] = useState(["cash", "card", "online", "meal_card", "online_meal_card"]);
