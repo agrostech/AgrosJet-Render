@@ -593,6 +593,10 @@ export default function RestoranlarPage({ companyId }) {
             />
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowGroupsModal(true)} className="font-semibold" data-testid="restaurant-groups-btn">
+              <Users className="w-4 h-4 mr-2" />
+              Gruplar
+            </Button>
             <Button variant="outline" onClick={() => setShowIntegrationLogs(true)} className="font-semibold" data-testid="integration-logs-btn">
               <FileText className="w-4 h-4 mr-2" />
               Ent. Logları
