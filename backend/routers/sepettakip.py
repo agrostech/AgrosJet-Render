@@ -31,16 +31,16 @@ class _IntLogger:
     def __init__(self, name):
         self._name = name
     async def info(self, msg):
-        logger.info(msg)
+        await ilog.info(msg)
         await _db_log(self._name, "INFO", msg)
     async def warning(self, msg):
-        logger.warning(msg)
+        await ilog.warning(msg)
         await _db_log(self._name, "WARNING", msg)
     async def error(self, msg):
-        logger.error(msg)
+        await ilog.error(msg)
         await _db_log(self._name, "ERROR", msg)
     async def exception(self, msg):
-        logger.exception(msg)
+        await ilog.exception(msg)
         await _db_log(self._name, "ERROR", msg)
 
 ilog = _IntLogger("sepettakip")
@@ -196,7 +196,7 @@ async def verify_restaurant_credentials(username: str, password: str) -> dict:
     
     # Şifre yoksa da geç (opsiyonel olabilir)
     if not stored_password:
-        logger.warning(f"Restoran {username} için şifre tanımlanmamış, geçiliyor")
+        await ilog.warning(f"Restoran {username} için şifre tanımlanmamış, geçiliyor")
     
     return {"valid": True, "restaurant": restaurant}
 
@@ -284,13 +284,13 @@ async def check_credentials(
         insert_result = await db.sepettakip_logs.insert_one(log_doc)
         log_id = insert_result.inserted_id
     except Exception as e:
-        logger.error(f"Log kaydetme hatası: {e}")
+        await ilog.error(f"Log kaydetme hatası: {e}")
     
-    logger.info(f"SepetTakip check-credentials: username={request.username}")
+    await ilog.info(f"SepetTakip check-credentials: username={request.username}")
     
     # API Key kontrolü
     if not await verify_sepettakip_api_key(api_key):
-        logger.warning("SepetTakip check-credentials: Geçersiz API Key")
+        await ilog.warning("SepetTakip check-credentials: Geçersiz API Key")
         # Log güncelle
         if log_id:
             await db.sepettakip_logs.update_one({"_id": log_id}, {"$set": {"response": "Geçersiz API Key", "success": False}})
@@ -300,13 +300,13 @@ async def check_credentials(
     result = await verify_restaurant_credentials(request.username, request.password)
     
     if not result["valid"]:
-        logger.warning(f"SepetTakip check-credentials: Doğrulama başarısız - {result['error']}")
+        await ilog.warning(f"SepetTakip check-credentials: Doğrulama başarısız - {result['error']}")
         # Log güncelle
         if log_id:
             await db.sepettakip_logs.update_one({"_id": log_id}, {"$set": {"response": result['error'], "success": False}})
         raise HTTPException(status_code=400, detail=result["error"])
     
-    logger.info(f"SepetTakip check-credentials: Başarılı - restaurant={result['restaurant'].get('name')}")
+    await ilog.info(f"SepetTakip check-credentials: Başarılı - restaurant={result['restaurant'].get('name')}")
     # Log güncelle - başarılı
     if log_id:
         await db.sepettakip_logs.update_one({"_id": log_id}, {"$set": {"response": "Başarılı", "success": True}})
@@ -337,20 +337,20 @@ async def create_package(
             "api_key_present": bool(api_key)
         })
     except Exception as e:
-        logger.error(f"Log kaydetme hatası: {e}")
+        await ilog.error(f"Log kaydetme hatası: {e}")
     
-    logger.info(f"SepetTakip create-package: order_id={request.order.order_id}, platform={request.order.platform}")
+    await ilog.info(f"SepetTakip create-package: order_id={request.order.order_id}, platform={request.order.platform}")
     
     # API Key kontrolü
     if not await verify_sepettakip_api_key(api_key):
-        logger.warning("SepetTakip create-package: Geçersiz API Key")
+        await ilog.warning("SepetTakip create-package: Geçersiz API Key")
         raise HTTPException(status_code=401, detail="Geçersiz API Key")
     
     # Restoran doğrulama
     auth_result = await verify_restaurant_credentials(request.auth.username, request.auth.password)
     
     if not auth_result["valid"]:
-        logger.warning(f"SepetTakip create-package: Restoran doğrulama başarısız - {auth_result.get('error')}")
+        await ilog.warning(f"SepetTakip create-package: Restoran doğrulama başarısız - {auth_result.get('error')}")
         # Hata logu kaydet
         await db.sepettakip_logs.insert_one({
             "type": "ERROR-create-package",
@@ -370,12 +370,12 @@ async def create_package(
     # Aynı sipariş zaten var mı kontrol et
     existing = await db.orders.find_one({"sepettakip_order_id": request.order.order_id})
     if existing:
-        logger.info(f"SepetTakip create-package: Sipariş zaten mevcut - order_id={request.order.order_id}")
+        await ilog.info(f"SepetTakip create-package: Sipariş zaten mevcut - order_id={request.order.order_id}")
         return {"status": True, "message": "Sipariş zaten mevcut"}
     
     # Koordinat kontrolü
     if not request.order.address.latitude or not request.order.address.longitude:
-        logger.warning(f"SepetTakip create-package: Koordinat bilgisi eksik")
+        await ilog.warning(f"SepetTakip create-package: Koordinat bilgisi eksik")
         # Koordinat olmadan da kabul edebiliriz
     
     # Adresi birleştir
@@ -450,7 +450,7 @@ async def create_package(
     
     await db.orders.insert_one(new_order)
     
-    logger.info(f"SepetTakip create-package: Sipariş oluşturuldu - order_id={request.order.order_id}")
+    await ilog.info(f"SepetTakip create-package: Sipariş oluşturuldu - order_id={request.order.order_id}")
     
     return {"status": True, "message": "Sipariş başarıyla oluşturuldu"}
 
@@ -465,18 +465,18 @@ async def cancel_package(
     
     Kurye firmasına iletilen bir sipariş restoran kaynaklı nedenlerle iptal edildiğinde çağrılır.
     """
-    logger.info(f"SepetTakip cancel-package: order_id={request.order_id}")
+    await ilog.info(f"SepetTakip cancel-package: order_id={request.order_id}")
     
     # API Key kontrolü
     if not await verify_sepettakip_api_key(api_key):
-        logger.warning("SepetTakip cancel-package: Geçersiz API Key")
+        await ilog.warning("SepetTakip cancel-package: Geçersiz API Key")
         raise HTTPException(status_code=401, detail="Geçersiz API Key")
     
     # Siparişi bul
     order = await db.orders.find_one({"sepettakip_order_id": request.order_id})
     
     if not order:
-        logger.warning(f"SepetTakip cancel-package: Sipariş bulunamadı - order_id={request.order_id}")
+        await ilog.warning(f"SepetTakip cancel-package: Sipariş bulunamadı - order_id={request.order_id}")
         raise HTTPException(status_code=400, detail="Sipariş bulunamadı")
     
     # Siparişi iptal et
@@ -495,7 +495,7 @@ async def cancel_package(
         }}
     )
     
-    logger.info(f"SepetTakip cancel-package: Sipariş iptal edildi - order_id={request.order_id}")
+    await ilog.info(f"SepetTakip cancel-package: Sipariş iptal edildi - order_id={request.order_id}")
     
     return {"status": True, "message": "Sipariş iptal edildi"}
 
@@ -584,17 +584,17 @@ async def notify_sepettakip_status(order_id: str, status: str, courier_eta: str 
             
             # 204 No Content = başarılı
             if response.status_code in [200, 204]:
-                logger.info(f"SepetTakip durum bildirimi başarılı: order={order_id}, status={sepettakip_status}")
+                await ilog.info(f"SepetTakip durum bildirimi başarılı: order={order_id}, status={sepettakip_status}")
                 return {"success": True, "status_code": response.status_code}
             else:
-                logger.warning(f"SepetTakip durum bildirimi başarısız: order={order_id}, status_code={response.status_code}, response={response.text}")
+                await ilog.warning(f"SepetTakip durum bildirimi başarısız: order={order_id}, status_code={response.status_code}, response={response.text}")
                 return {"success": False, "status_code": response.status_code, "error": response.text}
                 
     except httpx.TimeoutException:
-        logger.error(f"SepetTakip durum bildirimi timeout: order={order_id}")
+        await ilog.error(f"SepetTakip durum bildirimi timeout: order={order_id}")
         return {"success": False, "error": "timeout"}
     except Exception as e:
-        logger.error(f"SepetTakip durum bildirimi hatası: order={order_id}, error={str(e)}")
+        await ilog.error(f"SepetTakip durum bildirimi hatası: order={order_id}, error={str(e)}")
         return {"success": False, "error": str(e)}
 
 
@@ -608,7 +608,7 @@ async def update_order_status(
     Admin panelinden veya sistemden sipariş durumu değiştiğinde
     SepetTakip'e bildirim göndermek için kullanılır.
     """
-    logger.info(f"SepetTakip update-status: order_id={request.order_id}, status={request.status}")
+    await ilog.info(f"SepetTakip update-status: order_id={request.order_id}, status={request.status}")
     
     # Siparişi bul
     order = await db.orders.find_one({"sepettakip_order_id": request.order_id})
@@ -618,7 +618,7 @@ async def update_order_status(
         order = await db.orders.find_one({"id": request.order_id})
         
     if not order:
-        logger.warning(f"SepetTakip update-status: Sipariş bulunamadı - order_id={request.order_id}")
+        await ilog.warning(f"SepetTakip update-status: Sipariş bulunamadı - order_id={request.order_id}")
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
     # SepetTakip'e bildir
@@ -642,7 +642,7 @@ async def test_sepettakip_connection():
     SepetTakip bağlantı testi.
     API Key ve kurye şirketi anahtarının doğru yapılandırıldığını test eder.
     """
-    logger.info("SepetTakip bağlantı testi başlatılıyor...")
+    await ilog.info("SepetTakip bağlantı testi başlatılıyor...")
     
     try:
         headers = {
@@ -752,7 +752,7 @@ async def test_create_order_for_sepettakip():
     
     await db.orders.insert_one(test_order)
     
-    logger.info(f"SepetTakip test siparişi oluşturuldu: order_id={test_order_id}")
+    await ilog.info(f"SepetTakip test siparişi oluşturuldu: order_id={test_order_id}")
     
     return {
         "status": True,
@@ -913,12 +913,12 @@ async def run_test_create_order(test_number: int):
     payload = test_data.get(test_number)
     
     # PAYLOAD LOGLAMA - DEBUG
-    logger.info(f"SepetTakip test payload gönderiliyor: test={test_number}, payload_keys={list(payload.keys())}")
-    logger.info(f"SepetTakip test payload içeriği: {payload}")
+    await ilog.info(f"SepetTakip test payload gönderiliyor: test={test_number}, payload_keys={list(payload.keys())}")
+    await ilog.info(f"SepetTakip test payload içeriği: {payload}")
     
     # Payload'da latitude/longitude OLMAMALI
     if 'latitude' in payload or 'longitude' in payload:
-        logger.error(f"HATA: Payload'da latitude/longitude var! Bu olmamalı!")
+        await ilog.error(f"HATA: Payload'da latitude/longitude var! Bu olmamalı!")
     
     try:
         headers = {
