@@ -721,30 +721,30 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
       />
 
       {/* Stats - Minimal Single Row */}
-      <div className="bg-white border rounded-xl p-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-6 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold text-slate-800">{stats.todayTotal}</span>
-              <span className="text-xs text-slate-500">Bugün</span>
+      <div className="bg-white border rounded-xl p-3 sm:p-4 overflow-x-auto">
+        <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-max sm:min-w-0 flex-wrap">
+          <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xl sm:text-2xl font-semibold text-slate-800">{stats.todayTotal}</span>
+              <span className="text-[10px] sm:text-xs text-slate-500">Bugün</span>
             </div>
-            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold text-amber-600">{stats.pending}</span>
-              <span className="text-xs text-slate-500">Bekleyen</span>
+            <div className="h-5 sm:h-6 w-px bg-slate-200" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xl sm:text-2xl font-semibold text-amber-600">{stats.pending}</span>
+              <span className="text-[10px] sm:text-xs text-slate-500">Bekleyen</span>
             </div>
-            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold text-blue-600">{stats.onTheWay}</span>
-              <span className="text-xs text-slate-500">Yolda</span>
+            <div className="h-5 sm:h-6 w-px bg-slate-200" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xl sm:text-2xl font-semibold text-blue-600">{stats.onTheWay}</span>
+              <span className="text-[10px] sm:text-xs text-slate-500">Yolda</span>
             </div>
-            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold text-green-600">{stats.delivered}</span>
-              <span className="text-xs text-slate-500">Teslim</span>
+            <div className="h-5 sm:h-6 w-px bg-slate-200" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xl sm:text-2xl font-semibold text-green-600">{stats.delivered}</span>
+              <span className="text-[10px] sm:text-xs text-slate-500">Teslim</span>
             </div>
           </div>
-          <div className="flex items-center gap-4 text-slate-500">
+          <div className="hidden sm:flex items-center gap-4 text-slate-500">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
