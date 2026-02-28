@@ -818,7 +818,7 @@ async def cancel_trendyol_order(restaurant_id: str, order_id: str, reason_id: in
     package_item_ids = order.get("trendyol_raw", {}).get("packageItemIds", [])
     if not package_item_ids:
         # Eğer item ID'leri yoksa, siparişi tekrar çekerek almayı dene
-        logger.warning(f"Sipariş {order_id} için packageItemIds bulunamadı")
+        await ilog.warning(f"Sipariş {order_id} için packageItemIds bulunamadı")
         # Boş liste ile devam et - API kabul edebilir
         package_item_ids = []
     
