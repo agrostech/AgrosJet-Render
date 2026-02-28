@@ -25,6 +25,26 @@ TURKEY_TZ = timezone(timedelta(hours=3))
 router = APIRouter(prefix="/api/sepettakip", tags=["SepetTakip"])
 logger = logging.getLogger(__name__)
 
+from services.integration_log_service import save_integration_log as _db_log
+
+class _IntLogger:
+    def __init__(self, name):
+        self._name = name
+    async def info(self, msg):
+        logger.info(msg)
+        await _db_log(self._name, "INFO", msg)
+    async def warning(self, msg):
+        logger.warning(msg)
+        await _db_log(self._name, "WARNING", msg)
+    async def error(self, msg):
+        logger.error(msg)
+        await _db_log(self._name, "ERROR", msg)
+    async def exception(self, msg):
+        logger.exception(msg)
+        await _db_log(self._name, "ERROR", msg)
+
+ilog = _IntLogger("sepettakip")
+
 # SepetTakip API Kimlik Bilgileri
 COURIER_COMPANY_KEY = os.environ.get("SEPETTAKIP_COURIER_KEY", "agrosjet")
 SEPETTAKIP_API_KEY = os.environ.get("SEPETTAKIP_API_KEY", "4dd744ca-001e-44be-b17c-0178b0d3f704")
