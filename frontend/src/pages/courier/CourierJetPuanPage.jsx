@@ -162,7 +162,7 @@ export default function CourierJetPuanPage({ courierId }) {
         </div>
       </div>
 
-      {/* Tab Navigation - Atanmış/Yolda stili */}
+      {/* Tab Navigation - Mobilde kompakt */}
       <div className="flex bg-slate-100 p-1 rounded-lg gap-1">
         {TABS.map((tab) => {
           const colors = getTabClasses(tab, activeTab === tab.key);
@@ -170,15 +170,16 @@ export default function CourierJetPuanPage({ courierId }) {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
                 activeTab === tab.key
                   ? colors.active
                   : "text-slate-500 hover:text-slate-700"
               }`}
               data-testid={`courier-jetpuan-tab-${tab.key}`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">{tab.label}</span>
+              <span className="xs:hidden">{tab.key === "market" ? "Market" : tab.key === "orders" ? "Siparişler" : "Geçmiş"}</span>
             </button>
           );
         })}
