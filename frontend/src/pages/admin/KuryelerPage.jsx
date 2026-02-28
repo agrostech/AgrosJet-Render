@@ -449,8 +449,7 @@ export default function KuryelerPage({ companyId }) {
               <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-orange-50 cursor-pointer border-orange-200">
                 <RadioGroupItem value="tiered" id="courier_tiered" />
                 <Label htmlFor="courier_tiered" className="cursor-pointer flex-1">
-                  <span className="font-medium">Kademeli Paket Başı</span>
-                  <p className="text-xs text-muted-foreground font-normal">Aktif paket sayısına göre farklı ücret</p>
+                  Kademeli Paket Başı
                 </Label>
               </div>
             </RadioGroup>
