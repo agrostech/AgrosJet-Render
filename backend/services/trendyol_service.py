@@ -604,15 +604,15 @@ async def accept_trendyol_order(restaurant_id: str, order_id: str, preparation_t
             response = await client.put(url, headers=headers, json=body)
             
             if response.status_code == 200:
-                logger.info(f"Trendyol sipariş {package_id} kabul edildi")
+                await ilog.info(f"Trendyol sipariş {package_id} kabul edildi")
                 return {"success": True, "message": "Sipariş kabul edildi"}
             else:
                 error_detail = _extract_error(response)
-                logger.warning(f"Trendyol kabul hatası: {response.status_code} - {error_detail}")
+                await ilog.warning(f"Trendyol kabul hatası: {response.status_code} - {error_detail}")
                 return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
                 
     except Exception as e:
-        logger.exception("Trendyol kabul hatası")
+        await ilog.exception("Trendyol kabul hatası")
         return {"success": False, "error": str(e)}
 
 
