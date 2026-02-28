@@ -3,11 +3,23 @@
 ## Proje Özeti
 Sipariş yönetimi, kurye takibi, restoran entegrasyonları ve muhasebe işlemlerini içeren kapsamlı bir kurye yönetim sistemi.
 
-## Son Güncelleme: 26 Şubat 2026
+## Son Güncelleme: 28 Şubat 2026
 
 ## Tamamlanan Özellikler
 
-### Bu Oturumda Tamamlanan (26.02.2026)
+### Bu Oturumda Tamamlanan (28.02.2026)
+- **Kalıcı Entegrasyon Loglama Sistemi (P0)**: Deploy sonrası log kaybını önlemek için MongoDB'ye kalıcı loglama eklendi
+  - `integration_logs` MongoDB koleksiyonu oluşturuldu
+  - `/app/backend/services/integration_log_service.py` - Log kaydetme ve okuma servisi
+  - Adisyo, Getir, SepetTakip, Trendyol webhook'larına MongoDB loglama eklendi
+  - `/app/backend/routers/admins.py` - `/api/integration-logs` endpoint'i
+  - `/app/frontend/src/components/admin/IntegrationLogsModal.jsx` - Log görüntüleme modalı
+  - Admin panelinde "Ent. Logları" butonu ile loglar görüntülenebilir
+  - Entegrasyon bazlı filtreleme (Migros, Getir, Trendyol, Adisyo, SepetTakip, Yemeksepeti, Firebase)
+
+- **Recursion Hatası Düzeltmesi**: `getir.py` ve `sepettakip.py` dosyalarındaki `_IntLogger` sınıfında sonsuz döngüye neden olan hata düzeltildi
+
+### Önceki Oturumda Tamamlanan (26.02.2026)
 - **Performans Raporu Yeniden Tasarımı (P0)**: Kurye panelindeki performans raporu tamamen yeniden tasarlandı
   - "Bu Haftaki Performansın" başlığı kaldırıldı
   - Tüm kartlar renksiz (slate border) yapıldı
