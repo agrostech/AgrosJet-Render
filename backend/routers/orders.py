@@ -461,7 +461,7 @@ async def assign_courier_core(
     # Kurye bilgisini al
     courier = await db.couriers.find_one(
         {"id": courier_id}, 
-        {"_id": 0, "name": 1, "phone": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1}
+        {"_id": 0, "name": 1, "phone": 1, "pricing_type": 1, "per_package_price": 1, "km_ranges": 1, "tier_prices": 1}
     )
     if not courier:
         return {"success": False, "error": "Kurye bulunamadı"}
@@ -486,28 +486,25 @@ async def assign_courier_core(
         if order.get("restaurant_location") and order.get("delivery_location"):
             distance_km = calculate_distance(order["restaurant_location"], order["delivery_location"])
         
-        # Önce kademeli ücretlendirmeyi kontrol et
-        tiered_fee = None
-        tiered_position = None
-        if company_id:
+        pricing_type = courier.get("pricing_type", "per_package")
+        
+        # Kademeli ücretlendirme (kurye bazlı)
+        if pricing_type == "tiered" and courier.get("tier_prices"):
             try:
-                from services.tiered_pricing_service import calculate_tiered_fee, get_courier_active_package_count
-                tiered_fee = await calculate_tiered_fee(courier_id, company_id)
-                if tiered_fee is not None:
-                    # Kademe pozisyonunu kaydet
-                    active_count = await get_courier_active_package_count(courier_id, company_id)
-                    tiered_position = min(active_count + 1, 5)  # Yeni sipariş için pozisyon
+                from services.tiered_pricing_service import get_courier_active_package_count
+                active_count = await get_courier_active_package_count(courier_id, company_id)
+                tier_index = min(active_count, 4)  # 0-4 arası index (5 kademe)
+                tier_prices = courier.get("tier_prices", [0, 0, 0, 0, 0])
+                courier_fee = tier_prices[tier_index] if tier_index < len(tier_prices) else tier_prices[-1]
+                tiered_position = tier_index + 1  # 1-5 arası pozisyon
+                update_data["tiered_position"] = tiered_position
             except Exception as e:
                 logger.error(f"Kademeli ücret hesaplama hatası: {e}")
-        
-        if tiered_fee is not None:
-            # Kademeli ücretlendirme aktif
-            courier_fee = tiered_fee
-            update_data["tiered_position"] = tiered_position
+                courier_fee = 0
         else:
-            # Normal ücretlendirme
+            # Normal ücretlendirme (per_package veya per_km)
             courier_fee = calculate_fee_from_pricing(
-                courier.get("pricing_type", "per_package"),
+                pricing_type,
                 courier.get("per_package_price", 0),
                 courier.get("km_ranges", []),
                 distance_km
