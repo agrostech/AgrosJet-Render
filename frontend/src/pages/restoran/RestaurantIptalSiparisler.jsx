@@ -328,26 +328,26 @@ export default function RestaurantIptalSiparisler({ restaurantId }) {
 
       {/* Orders List */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="p-2 sm:p-4 pb-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <XCircle className="w-5 h-5 text-red-600" />
-              İptal Edilen Siparişler ({searchedOrders.length})
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+              İptal Edilen ({searchedOrders.length})
             </CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="relative flex-1 sm:flex-none">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Ara..."
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  className="h-7 w-[150px] pl-7 text-xs"
+                  className="h-7 w-full sm:w-[150px] pl-7 text-xs"
                 />
               </div>
-              <span className="text-xs text-muted-foreground">Göster:</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">Göster:</span>
               <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-                <SelectTrigger className="h-7 w-[80px] text-xs">
+                <SelectTrigger className="h-7 w-[60px] sm:w-[70px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
