@@ -529,14 +529,14 @@ export default function RestaurantUrunler({ restaurantId }) {
                           <Badge variant="outline" className="text-[10px] sm:text-xs flex-shrink-0">{group.products.length}</Badge>
                         </div>
                         <div className="flex gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                          {/* Sıralama butonları - mobilde gizle */}
+                          {/* Sıralama butonları */}
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => moveCategoryOrder(catId, 'up')}
                             disabled={catIndex === 0}
                             title="Yukarı taşı"
-                            className="hidden sm:flex text-muted-foreground hover:text-slate-900 h-7 w-7 p-0"
+                            className="text-muted-foreground hover:text-slate-900 h-7 w-7 p-0"
                           >
                             <ArrowUp className="w-3.5 h-3.5" />
                           </Button>
@@ -546,11 +546,11 @@ export default function RestaurantUrunler({ restaurantId }) {
                             onClick={() => moveCategoryOrder(catId, 'down')}
                             disabled={catIndex === catArray.length - 1}
                             title="Aşağı taşı"
-                            className="hidden sm:flex text-muted-foreground hover:text-slate-900 h-7 w-7 p-0"
+                            className="text-muted-foreground hover:text-slate-900 h-7 w-7 p-0"
                           >
                             <ArrowDown className="w-3.5 h-3.5" />
                           </Button>
-                          <div className="hidden sm:block w-px h-5 bg-slate-200 mx-0.5" />
+                          <div className="w-px h-5 bg-slate-200 mx-0.5" />
                           <Button
                             variant="ghost"
                             size="sm"
