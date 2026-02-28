@@ -45,7 +45,7 @@ async def create_restaurant_group(data: RestaurantGroupCreate):
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     await db.restaurant_groups.insert_one(group)
-    del group["_id"] if "_id" in group else None
+    group.pop("_id", None)
     return {"success": True, "group": group}
 
 
