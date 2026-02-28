@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -11,10 +12,11 @@ export default function RestaurantMobileNav({
   badges = {}
 }) {
   const location = useLocation();
+  const [open, setOpen] = useState(false);
 
   return (
     <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-primary text-white flex items-center justify-between px-4 z-50">
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" data-testid="mobile-menu-btn">
             <Menu className="w-6 h-6" />
@@ -31,7 +33,8 @@ export default function RestaurantMobileNav({
             {navItems.filter(item => !item.hidden).map((item) => (
               <Link 
                 key={item.path} 
-                to={item.path} 
+                to={item.path}
+                onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors relative ${location.pathname === item.path || (item.key === 'anasayfa' && ['/restoran', '/restoran/gecmis-siparisler', '/restoran/iptal-siparisler'].includes(location.pathname)) ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`} 
                 data-testid={`restaurant-mobile-nav-${item.key}`}
               >
@@ -49,7 +52,10 @@ export default function RestaurantMobileNav({
           <div className="absolute bottom-0 left-0 right-0 border-t border-white/20 p-2">
             <Button 
               variant="ghost" 
-              onClick={onLogout} 
+              onClick={() => {
+                setOpen(false);
+                onLogout();
+              }} 
               className="w-full text-white hover:bg-white/10 font-semibold text-sm py-3 justify-start px-4" 
               data-testid="restaurant-mobile-logout-btn"
             >
