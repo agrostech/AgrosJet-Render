@@ -663,6 +663,13 @@ export default function RestaurantUrunler({ restaurantId }) {
                           )}
                         </TableBody>
                       </Table>
+                      </div>
+                      {/* Mobil boş durum */}
+                      {group.products.length === 0 && (
+                        <div className="sm:hidden p-4 text-center text-muted-foreground text-sm border-t">
+                          Bu kategoride ürün yok
+                        </div>
+                      )}
                     </CollapsibleContent>
                   </div>
                 </Collapsible>
