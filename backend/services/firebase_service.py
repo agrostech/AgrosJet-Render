@@ -82,7 +82,7 @@ async def send_new_order_notification(fcm_token: str, order_id: str, restaurant_
     return await send_push_notification(
         fcm_token=fcm_token,
         title="Yeni Sipariş!",
-        body=f"{restaurant_name} - {address[:50]}...",
+        body=f"{restaurant_name}",
         data={
             "type": "NEW_ORDER",
             "order_id": order_id,
