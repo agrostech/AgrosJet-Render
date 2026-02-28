@@ -40,16 +40,16 @@ class _IntLogger:
     def __init__(self, name):
         self._name = name
     async def info(self, msg):
-        await ilog.info(msg)
+        logger.info(msg)
         await _db_log(self._name, "INFO", msg)
     async def warning(self, msg):
-        await ilog.warning(msg)
+        logger.warning(msg)
         await _db_log(self._name, "WARNING", msg)
     async def error(self, msg):
-        await ilog.error(msg)
+        logger.error(msg)
         await _db_log(self._name, "ERROR", msg)
     async def exception(self, msg):
-        await ilog.exception(msg)
+        logger.exception(msg)
         await _db_log(self._name, "ERROR", msg)
 
 ilog = _IntLogger("adisyo")
