@@ -49,11 +49,13 @@ Sipariş yönetimi, kurye takibi, restoran entegrasyonları ve muhasebe işlemle
 ## Bekleyen Görevler
 
 ### P1 - Yüksek Öncelik
+- **Webhook Rate Limiting**: `/api/webhooks/*`, `/api/courier/fcm-token` endpoint'lerine rate limiting eklenmeli
 - **Verimsiz Zamanlanmış Görevler**: `Haftalık Hakediş` ve `Restoran Mütabakat` job'ları CronTrigger'a geçirilmeli
 - **Fee Hesaplama Entegrasyonu**: `Getir`, `Trendyol`, `Yemeksepeti`, `Migros`, `SepetTakip` için `restaurant_fee` hesaplama eksik
 - **Push Notification Backend Kurulumu**: Firebase admin key gerekli
 
 ### P2 - Orta Öncelik  
+- **Restoranlar Yükleme İkonu**: Admin sayfasındaki yükleme ikonu şirket logosu ile değiştirilmeli
 - Veri tutarlılığı son doğrulama
 - "Kurye Bulunamadı" hatası doğrulaması
 - Geçmiş muhasebe veri tutarsızlığı
