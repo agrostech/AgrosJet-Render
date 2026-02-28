@@ -290,7 +290,7 @@ async def fetch_trendyol_packages(restaurant_id: str, statuses: str = None, page
                 return {"success": False, "error": error_msg, "packages": []}
                 
     except Exception as e:
-        logger.exception("Trendyol sipariş çekme hatası")
+        await ilog.exception("Trendyol sipariş çekme hatası")
         return {"success": False, "error": str(e), "packages": []}
 
 
