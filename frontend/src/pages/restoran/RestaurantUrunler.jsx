@@ -469,11 +469,11 @@ export default function RestaurantUrunler({ restaurantId }) {
       )}
 
       {/* Saved Products */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Package className="w-5 h-5" />
+      <Card className="overflow-hidden">
+        <CardHeader className="p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Package className="w-4 h-4 sm:w-5 sm:h-5" />
               Kayıtlı Ürünler
             </CardTitle>
             {savedProducts.products.length > 0 && (
@@ -483,30 +483,30 @@ export default function RestaurantUrunler({ restaurantId }) {
                 onClick={() => setDeleteDialog(true)}
                 data-testid="delete-all-button"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Tümünü Sil
+                <Trash2 className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Tümünü Sil</span>
               </Button>
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : savedProducts.products.length === 0 && savedProducts.categories.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Package className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Henüz ürün yok</h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
+              <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">Henüz ürün yok</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-sm px-4">
                 Yukarıdaki butonlarla manuel ürün ekleyebilir veya TGO Yemek'ten menü çekebilirsiniz.
               </p>
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="flex gap-2 mb-4">
-                <Badge variant="secondary">{savedProducts.categories_count} Kategori</Badge>
-                <Badge variant="secondary">{savedProducts.products_count} Ürün</Badge>
+              <div className="flex gap-2 mb-3 sm:mb-4">
+                <Badge variant="secondary" className="text-xs">{savedProducts.categories_count} Kategori</Badge>
+                <Badge variant="secondary" className="text-xs">{savedProducts.products_count} Ürün</Badge>
               </div>
               
               {Object.entries(groupProductsByCategory(savedProducts.products, savedProducts.categories)).map(([catId, group], catIndex, catArray) => (
@@ -515,30 +515,30 @@ export default function RestaurantUrunler({ restaurantId }) {
                   open={expandedCategories[catId]} 
                   onOpenChange={() => toggleCategory(catId)}
                 >
-                  <div className="border rounded-lg">
+                  <div className="border rounded-lg overflow-hidden">
                     <CollapsibleTrigger asChild>
-                      <div className="flex items-center justify-between p-3 hover:bg-slate-50 cursor-pointer">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between p-2 sm:p-3 hover:bg-slate-50 cursor-pointer gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
                           {expandedCategories[catId] ? (
-                            <ChevronDown className="w-4 h-4" />
+                            <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                           ) : (
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                           )}
-                          <FolderOpen className="w-4 h-4" />
-                          <span className="font-medium">{group.category.name}</span>
-                          <Badge variant="outline">{group.products.length}</Badge>
+                          <FolderOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <span className="font-medium text-sm sm:text-base truncate">{group.category.name}</span>
+                          <Badge variant="outline" className="text-[10px] sm:text-xs flex-shrink-0">{group.products.length}</Badge>
                         </div>
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          {/* Sıralama butonları */}
+                        <div className="flex gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          {/* Sıralama butonları - mobilde gizle */}
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => moveCategoryOrder(catId, 'up')}
                             disabled={catIndex === 0}
                             title="Yukarı taşı"
-                            className="text-muted-foreground hover:text-slate-900"
+                            className="hidden sm:flex text-muted-foreground hover:text-slate-900 h-7 w-7 p-0"
                           >
-                            <ArrowUp className="w-4 h-4" />
+                            <ArrowUp className="w-3.5 h-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -546,58 +546,94 @@ export default function RestaurantUrunler({ restaurantId }) {
                             onClick={() => moveCategoryOrder(catId, 'down')}
                             disabled={catIndex === catArray.length - 1}
                             title="Aşağı taşı"
-                            className="text-muted-foreground hover:text-slate-900"
+                            className="hidden sm:flex text-muted-foreground hover:text-slate-900 h-7 w-7 p-0"
                           >
-                            <ArrowDown className="w-4 h-4" />
+                            <ArrowDown className="w-3.5 h-3.5" />
                           </Button>
-                          <div className="w-px h-6 bg-slate-200 mx-1" />
+                          <div className="hidden sm:block w-px h-5 bg-slate-200 mx-0.5" />
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => openProductDialog('create', null, catId)}
                             title="Bu kategoriye ürün ekle"
+                            className="h-7 w-7 p-0"
                           >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-3.5 h-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => openCategoryDialog('edit', group.category)}
+                            className="h-7 w-7 p-0"
                           >
-                            <Pencil className="w-4 h-4" />
+                            <Pencil className="w-3.5 h-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-700 h-7 w-7 p-0"
                             onClick={() => setDeleteItemDialog({ open: true, type: 'category', item: group.category })}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
                       </div>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <Table className="table-fixed w-full">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[30%]">Ürün Adı</TableHead>
-                            <TableHead className="w-[40%] text-left">Açıklama</TableHead>
-                            <TableHead className="w-[15%] text-right">Fiyat</TableHead>
-                            <TableHead className="w-[15%]"></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {group.products.map((product) => (
-                            <TableRow key={product.id}>
-                              <TableCell className="font-medium truncate">{product.name}</TableCell>
-                              <TableCell className="text-left text-muted-foreground text-sm truncate">
-                                {product.description || "-"}
-                              </TableCell>
-                              <TableCell className="text-right font-semibold">
-                                {formatPrice(product.price)}
-                              </TableCell>
-                              <TableCell>
+                      {/* Mobil için kart görünümü */}
+                      <div className="sm:hidden border-t divide-y">
+                        {group.products.map((product) => (
+                          <div key={product.id} className="p-3 flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm truncate">{product.name}</p>
+                              {product.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{product.description}</p>
+                              )}
+                              <p className="font-semibold text-sm text-primary mt-1">{formatPrice(product.price)}</p>
+                            </div>
+                            <div className="flex gap-0.5 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openProductDialog('edit', product)}
+                                className="h-7 w-7 p-0"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 h-7 w-7 p-0"
+                                onClick={() => setDeleteItemDialog({ open: true, type: 'product', item: product })}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Desktop için tablo görünümü */}
+                      <div className="hidden sm:block">
+                        <Table className="table-fixed w-full">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[30%]">Ürün Adı</TableHead>
+                              <TableHead className="w-[40%] text-left">Açıklama</TableHead>
+                              <TableHead className="w-[15%] text-right">Fiyat</TableHead>
+                              <TableHead className="w-[15%]"></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {group.products.map((product) => (
+                              <TableRow key={product.id}>
+                                <TableCell className="font-medium truncate">{product.name}</TableCell>
+                                <TableCell className="text-left text-muted-foreground text-sm truncate">
+                                  {product.description || "-"}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {formatPrice(product.price)}
+                                </TableCell>
+                                <TableCell>
                                 <div className="flex gap-1 justify-end">
                                   <Button
                                     variant="ghost"
