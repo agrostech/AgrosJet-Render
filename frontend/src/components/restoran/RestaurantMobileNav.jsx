@@ -7,6 +7,7 @@ import { Menu, LogOut } from "lucide-react";
 export default function RestaurantMobileNav({ 
   user, 
   restaurant,
+  companyLogo,
   navItems, 
   onLogout,
   badges = {}
@@ -15,18 +16,30 @@ export default function RestaurantMobileNav({
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-primary text-white flex items-center justify-between px-4 z-50">
+    <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-primary text-white flex items-center justify-between px-3 z-50">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" data-testid="mobile-menu-btn">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 flex-shrink-0" data-testid="mobile-menu-btn">
             <Menu className="w-6 h-6" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0 bg-primary text-white border-none">
           <div className="p-4 border-b border-white/20">
-            <h1 className="font-heading text-lg font-bold truncate">{restaurant?.name || "Restoran"}</h1>
-            <p className="text-white/60 text-xs mt-1">Restoran Paneli</p>
-            <p className="text-white/80 text-xs font-mono mt-1 truncate">{user?.name}</p>
+            <div className="flex items-center gap-3">
+              {companyLogo && (
+                <img 
+                  src={companyLogo} 
+                  alt="Logo" 
+                  className="w-10 h-10 rounded object-contain bg-white/10"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              )}
+              <div className="min-w-0 flex-1">
+                <h1 className="font-heading text-base font-bold truncate">{restaurant?.name || "Restoran"}</h1>
+                <p className="text-white/60 text-[11px]">Restoran Paneli</p>
+              </div>
+            </div>
+            <p className="text-white/80 text-xs font-mono mt-2 truncate">{user?.name}</p>
           </div>
           
           <nav className="flex-1 py-2">
@@ -66,9 +79,20 @@ export default function RestaurantMobileNav({
         </SheetContent>
       </Sheet>
       
-      <h1 className="font-heading text-lg font-bold">{restaurant?.name || "Restoran"}</h1>
+      {/* Orta: Logo ve Restoran Adı */}
+      <div className="flex items-center gap-2 flex-1 justify-center min-w-0">
+        {companyLogo && (
+          <img 
+            src={companyLogo} 
+            alt="Logo" 
+            className="w-9 h-9 rounded object-contain"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        )}
+        <span className="font-heading text-base font-bold truncate">{restaurant?.name || "Restoran"}</span>
+      </div>
       
-      <div className="w-10" /> {/* Spacer for balance */}
+      <div className="w-10 flex-shrink-0" /> {/* Spacer for balance */}
     </header>
   );
 }
