@@ -656,15 +656,15 @@ async def mark_trendyol_order_ready(restaurant_id: str, order_id: str) -> dict:
             response = await client.put(url, headers=headers, json=body)
             
             if response.status_code == 200:
-                logger.info(f"Trendyol sipariş {package_id} hazır olarak işaretlendi")
+                await ilog.info(f"Trendyol sipariş {package_id} hazır olarak işaretlendi")
                 return {"success": True, "message": "Sipariş hazır olarak işaretlendi"}
             else:
                 error_detail = _extract_error(response)
-                logger.warning(f"Trendyol hazır hatası: {response.status_code} - {error_detail}")
+                await ilog.warning(f"Trendyol hazır hatası: {response.status_code} - {error_detail}")
                 return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
                 
     except Exception as e:
-        logger.exception("Trendyol hazır hatası")
+        await ilog.exception("Trendyol hazır hatası")
         return {"success": False, "error": str(e)}
 
 
