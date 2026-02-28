@@ -180,23 +180,31 @@ export default function OdemeRaporu({ courierId, companyId }) {
 
       {/* Sonuçlar */}
       {data && (
-        <div className="space-y-4">
-          {/* Nakit Kart - Özet ve Siparişler Birleşik */}
+        <div className="space-y-3">
+          {/* Nakit Kart */}
           <Card className="border-2 border-green-300 bg-white overflow-hidden">
             <CardContent className="p-0">
-              {/* Özet Başlık */}
-              <div className="p-4 flex items-center gap-3 border-b border-green-200">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <Banknote className="w-5 h-5 text-green-600" />
+              {/* Özet Başlık - Tıklanabilir */}
+              <button 
+                onClick={() => toggleCard('cash')}
+                className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-green-50/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Banknote className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs text-muted-foreground font-medium">Nakit ({data.cash_orders?.length || 0} sipariş)</p>
+                    <p className="text-lg sm:text-xl font-bold">{formatMoney(data.cash_total)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Nakit ({data.cash_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold">{formatMoney(data.cash_total)}</p>
-                </div>
-              </div>
-              {/* Sipariş Tablosu */}
-              {data.cash_orders?.length > 0 && (
-                <div className="p-3 max-h-64 overflow-y-auto">
+                {data.cash_orders?.length > 0 && (
+                  expandedCards.cash ? <ChevronUp className="w-5 h-5 text-green-600" /> : <ChevronDown className="w-5 h-5 text-green-600" />
+                )}
+              </button>
+              {/* Sipariş Tablosu - Sadece genişletilmişse göster */}
+              {expandedCards.cash && data.cash_orders?.length > 0 && (
+                <div className="p-3 border-t border-green-200 max-h-64 overflow-y-auto">
                   <OrderTable 
                     orders={data.cash_orders} 
                     colorClass={{ text: "text-green-600", border: "border-green-100" }} 
@@ -206,22 +214,28 @@ export default function OdemeRaporu({ courierId, companyId }) {
             </CardContent>
           </Card>
           
-          {/* Kredi Kartı - Özet ve Siparişler Birleşik */}
+          {/* Kredi Kartı */}
           <Card className="border-2 border-blue-300 bg-white overflow-hidden">
             <CardContent className="p-0">
-              {/* Özet Başlık */}
-              <div className="p-4 flex items-center gap-3 border-b border-blue-200">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
+              <button 
+                onClick={() => toggleCard('card')}
+                className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-blue-50/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs text-muted-foreground font-medium">Kredi Kartı ({data.card_orders?.length || 0} sipariş)</p>
+                    <p className="text-lg sm:text-xl font-bold">{formatMoney(data.card_total)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Kredi Kartı ({data.card_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold">{formatMoney(data.card_total)}</p>
-                </div>
-              </div>
-              {/* Sipariş Tablosu */}
-              {data.card_orders?.length > 0 && (
-                <div className="p-3 max-h-64 overflow-y-auto">
+                {data.card_orders?.length > 0 && (
+                  expandedCards.card ? <ChevronUp className="w-5 h-5 text-blue-600" /> : <ChevronDown className="w-5 h-5 text-blue-600" />
+                )}
+              </button>
+              {expandedCards.card && data.card_orders?.length > 0 && (
+                <div className="p-3 border-t border-blue-200 max-h-64 overflow-y-auto">
                   <OrderTable 
                     orders={data.card_orders} 
                     colorClass={{ text: "text-blue-600", border: "border-blue-100" }} 
@@ -231,22 +245,28 @@ export default function OdemeRaporu({ courierId, companyId }) {
             </CardContent>
           </Card>
 
-          {/* Yemek Kartı - Özet ve Siparişler Birleşik */}
+          {/* Yemek Kartı */}
           <Card className="border-2 border-orange-300 bg-white overflow-hidden">
             <CardContent className="p-0">
-              {/* Özet Başlık */}
-              <div className="p-4 flex items-center gap-3 border-b border-orange-200">
-                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                  <Utensils className="w-5 h-5 text-orange-600" />
+              <button 
+                onClick={() => toggleCard('meal')}
+                className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-orange-50/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <Utensils className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs text-muted-foreground font-medium">Yemek Kartı ({data.meal_card_orders?.length || 0} sipariş)</p>
+                    <p className="text-lg sm:text-xl font-bold">{formatMoney(data.meal_card_total)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Yemek Kartı ({data.meal_card_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold">{formatMoney(data.meal_card_total)}</p>
-                </div>
-              </div>
-              {/* Sipariş Tablosu */}
-              {data.meal_card_orders?.length > 0 && (
-                <div className="p-3 max-h-64 overflow-y-auto">
+                {data.meal_card_orders?.length > 0 && (
+                  expandedCards.meal ? <ChevronUp className="w-5 h-5 text-orange-600" /> : <ChevronDown className="w-5 h-5 text-orange-600" />
+                )}
+              </button>
+              {expandedCards.meal && data.meal_card_orders?.length > 0 && (
+                <div className="p-3 border-t border-orange-200 max-h-64 overflow-y-auto">
                   <OrderTable 
                     orders={data.meal_card_orders} 
                     colorClass={{ text: "text-orange-600", border: "border-orange-100" }} 
@@ -256,22 +276,28 @@ export default function OdemeRaporu({ courierId, companyId }) {
             </CardContent>
           </Card>
 
-          {/* Online - Özet ve Siparişler Birleşik */}
+          {/* Online */}
           <Card className="border-2 border-purple-300 bg-white overflow-hidden">
             <CardContent className="p-0">
-              {/* Özet Başlık */}
-              <div className="p-4 flex items-center gap-3 border-b border-purple-200">
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-purple-600" />
+              <button 
+                onClick={() => toggleCard('online')}
+                className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-purple-50/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs text-muted-foreground font-medium">Online ({data.online_orders?.length || 0} sipariş)</p>
+                    <p className="text-lg sm:text-xl font-bold">{formatMoney(data.online_total)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">Online ({data.online_orders?.length || 0} sipariş)</p>
-                  <p className="text-xl font-bold">{formatMoney(data.online_total)}</p>
-                </div>
-              </div>
-              {/* Sipariş Tablosu */}
-              {data.online_orders?.length > 0 && (
-                <div className="p-3 max-h-64 overflow-y-auto">
+                {data.online_orders?.length > 0 && (
+                  expandedCards.online ? <ChevronUp className="w-5 h-5 text-purple-600" /> : <ChevronDown className="w-5 h-5 text-purple-600" />
+                )}
+              </button>
+              {expandedCards.online && data.online_orders?.length > 0 && (
+                <div className="p-3 border-t border-purple-200 max-h-64 overflow-y-auto">
                   <OrderTable 
                     orders={data.online_orders} 
                     colorClass={{ text: "text-purple-600", border: "border-purple-100" }} 
