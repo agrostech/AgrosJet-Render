@@ -19,6 +19,12 @@ Sipariş yönetimi, kurye takibi, restoran entegrasyonları ve muhasebe işlemle
 
 - **Recursion Hatası Düzeltmesi**: `getir.py` ve `sepettakip.py` dosyalarındaki `_IntLogger` sınıfında sonsuz döngüye neden olan hata düzeltildi
 
+- **Yönetim Paneli Mobil UI Düzeltmeleri**:
+  - Canlı harita yüksekliği mobilde azaltıldı (280px mobil, 350px tablet, 450px desktop)
+  - Siparişler kartı filtre bölümü mobilde düzgün görünecek şekilde düzenlendi (kısa etiketler, responsive spacing)
+  - Header'daki hamburger menü sola taşındı, şirket seçici ortada
+  - Sidebar kurye paneli gibi soldan açılır hale getirildi
+
 ### Önceki Oturumda Tamamlanan (26.02.2026)
 - **Performans Raporu Yeniden Tasarımı (P0)**: Kurye panelindeki performans raporu tamamen yeniden tasarlandı
   - "Bu Haftaki Performansın" başlığı kaldırıldı
