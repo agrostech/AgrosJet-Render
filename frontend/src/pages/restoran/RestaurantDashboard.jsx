@@ -330,6 +330,7 @@ export default function RestaurantDashboard() {
       <RestaurantMobileNav
         user={user}
         restaurant={restaurant}
+        companyLogo={companyLogo}
         navItems={NAV_ITEMS}
         onLogout={handleLogout}
         badges={badges}
