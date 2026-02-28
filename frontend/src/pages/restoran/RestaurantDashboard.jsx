@@ -336,8 +336,8 @@ export default function RestaurantDashboard() {
       />
 
       {/* Main Content */}
-      <main className="pt-16 lg:pt-16 min-h-screen flex flex-col">
-        <div className="p-4 lg:p-6 flex-1">
+      <main className="pt-14 lg:pt-16 min-h-screen flex flex-col">
+        <div className="p-3 sm:p-4 lg:p-6 flex-1 overflow-x-hidden">
           {renderPage()}
         </div>
         <Footer />
