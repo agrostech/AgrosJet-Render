@@ -137,14 +137,19 @@ async def recalculate_tiered_fees_on_unassign(courier_id: str, company_id: str) 
     - 2. olan -> 1. kademe fiyatı
     - 3. olan -> 2. kademe fiyatı
     - vs.
-    """
-    # Şirket ayarlarını kontrol et
-    tiered_settings = await get_company_tiered_pricing(company_id)
     
-    if not tiered_settings or not tiered_settings.get("enabled"):
+    NOT: Bu artık kurye bazlı çalışır - kuryenin tier_prices ayarlarını kullanır.
+    """
+    # Kuryenin pricing ayarlarını kontrol et
+    courier = await db.couriers.find_one(
+        {"id": courier_id},
+        {"_id": 0, "pricing_type": 1, "tier_prices": 1}
+    )
+    
+    if not courier or courier.get("pricing_type") != "tiered" or not courier.get("tier_prices"):
         return {"success": True, "message": "Kademeli ücretlendirme aktif değil", "updated_count": 0}
     
-    tier_prices = tiered_settings.get("tier_prices", [0, 0, 0, 0, 0])
+    tier_prices = courier.get("tier_prices", [0, 0, 0, 0, 0])
     
     # Kuryenin kalan aktif siparişlerini al (atanma sırasına göre)
     remaining_orders = await get_courier_active_orders_sorted(courier_id, company_id)
@@ -157,7 +162,7 @@ async def recalculate_tiered_fees_on_unassign(courier_id: str, company_id: str) 
     # Her siparişi yeni pozisyonuna göre güncelle
     for index, order in enumerate(remaining_orders):
         new_tier_index = min(index, 4)  # Max 5. kademe
-        new_fee = tier_prices[new_tier_index]
+        new_fee = tier_prices[new_tier_index] if new_tier_index < len(tier_prices) else tier_prices[-1]
         old_fee = order.get("courier_fee", 0)
         
         # Sadece fiyat değiştiyse güncelle
