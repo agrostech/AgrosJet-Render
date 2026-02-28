@@ -55,17 +55,6 @@ export default function RestaurantEntegrasyonlar({ restaurantId }) {
   const [sepettakipForm, setSepettakipForm] = useState({ restaurant_id: "", password: "" });
   const [testingSepettakip, setTestingSepettakip] = useState(false);
   const [savingSepettakip, setSavingSepettakip] = useState(false);
-  
-  // SepetTakip Test Panel states
-  const [showTestPanel, setShowTestPanel] = useState(false);
-  const [testResults, setTestResults] = useState({});
-  const [runningTest, setRunningTest] = useState(null);
-  const [testOrders, setTestOrders] = useState([]);
-  
-  // SepetTakip Logs states
-  const [showLogs, setShowLogs] = useState(false);
-  const [sepettakipLogs, setSepettakipLogs] = useState([]);
-  const [loadingLogs, setLoadingLogs] = useState(false);
 
   useEffect(() => {
     if (restaurantId) {
