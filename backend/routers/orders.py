@@ -2039,6 +2039,7 @@ async def unassign_courier(company_id: str, order_id: str, admin_name: Optional[
     if order.get("status") in ["delivered", "on_the_way"]:
         raise HTTPException(status_code=400, detail="Bu durumda kurye ataması kaldırılamaz")
     
+    courier_id = order.get("courier_id")
     courier_name = order.get("courier_name", "Bilinmiyor")
     
     # Merkezi fonksiyon ile güncelle
@@ -2052,13 +2053,23 @@ async def unassign_courier(company_id: str, order_id: str, admin_name: Optional[
             "courier_id": None,
             "courier_name": None,
             "assigned_at": None,
-            "confirmed_at": None
+            "confirmed_at": None,
+            "tiered_position": None
         },
         notify_platform=False
     )
     
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])
+    
+    # Kademeli ücretlendirme: Kalan siparişlerin fiyatlarını kaydır
+    try:
+        from services.tiered_pricing_service import recalculate_tiered_fees_on_unassign
+        shift_result = await recalculate_tiered_fees_on_unassign(courier_id, company_id)
+        if shift_result.get("updated_count", 0) > 0:
+            logger.info(f"Kademeli fiyat kaydırma: {shift_result['updated_count']} sipariş güncellendi")
+    except Exception as e:
+        logger.error(f"Kademeli fiyat kaydırma hatası: {e}")
     
     return {"message": "Kurye ataması kaldırıldı"}
 
