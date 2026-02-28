@@ -181,7 +181,7 @@ async def send_order_notification(courier_id: str, order_data: dict) -> dict:
     return await send_push_notification(
         fcm_token=courier["fcm_token"],
         title="🚚 Yeni Sipariş!",
-        body=f"{order_data.get('restaurant_name', 'Restoran')} - {order_data.get('customer_address', 'Adres')}",
+        body=f"{order_data.get('restaurant_name', 'Restoran')}",
         data={
             "type": "NEW_ORDER",
             "order_id": order_data.get("id", ""),
