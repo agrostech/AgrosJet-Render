@@ -446,6 +446,13 @@ export default function KuryelerPage({ companyId }) {
                   KM Aralığı
                 </Label>
               </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-orange-50 cursor-pointer border-orange-200">
+                <RadioGroupItem value="tiered" id="courier_tiered" />
+                <Label htmlFor="courier_tiered" className="cursor-pointer flex-1">
+                  <span className="font-medium">Kademeli Paket Başı</span>
+                  <p className="text-xs text-muted-foreground font-normal">Aktif paket sayısına göre farklı ücret</p>
+                </Label>
+              </div>
             </RadioGroup>
 
             {pricingType === "per_package" && (
@@ -485,6 +492,43 @@ export default function KuryelerPage({ companyId }) {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {pricingType === "tiered" && (
+              <div className="space-y-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <Label className="font-semibold">Kademe Fiyatları (₺)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Kuryenin aktif paket sayısına göre yeni paket ücreti belirlenir.
+                </p>
+                {[1, 2, 3, 4, 5].map((tier, index) => (
+                  <div key={tier} className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                      index === 0 ? 'bg-green-100 text-green-700' :
+                      index === 1 ? 'bg-blue-100 text-blue-700' :
+                      index === 2 ? 'bg-yellow-100 text-yellow-700' :
+                      index === 3 ? 'bg-orange-100 text-orange-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {tier}
+                    </span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={tierPrices[index]}
+                      onChange={(e) => updateTierPrice(index, e.target.value)}
+                      placeholder="0.00"
+                      className="bg-white flex-1"
+                    />
+                    <span className="text-xs text-muted-foreground w-14">
+                      {tier}. paket
+                    </span>
+                  </div>
+                ))}
+                <p className="text-xs text-orange-600 mt-2">
+                  5+ paket durumunda 5. kademe fiyatı uygulanır.
+                </p>
               </div>
             )}
 
