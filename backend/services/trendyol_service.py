@@ -883,7 +883,7 @@ async def update_restaurant_working_status(restaurant_id: str, is_open: bool) ->
             
             if response.status_code == 200:
                 status_text = "açık" if is_open else "kapalı"
-                logger.info(f"Trendyol restoran durumu güncellendi: {status_text}")
+                await ilog.info(f"Trendyol restoran durumu güncellendi: {status_text}")
                 
                 # Local durumu da güncelle
                 await db.restaurants.update_one(
@@ -894,11 +894,11 @@ async def update_restaurant_working_status(restaurant_id: str, is_open: bool) ->
                 return {"success": True, "message": f"Restoran durumu {status_text} olarak güncellendi"}
             else:
                 error_detail = _extract_error(response)
-                logger.warning(f"Trendyol restoran durumu hatası: {response.status_code} - {error_detail}")
+                await ilog.warning(f"Trendyol restoran durumu hatası: {response.status_code} - {error_detail}")
                 return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
                 
     except Exception as e:
-        logger.exception("Trendyol restoran durumu güncelleme hatası")
+        await ilog.exception("Trendyol restoran durumu güncelleme hatası")
         return {"success": False, "error": str(e)}
 
 
