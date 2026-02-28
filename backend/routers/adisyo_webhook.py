@@ -88,7 +88,7 @@ def verify_adisyo_signature(payload: str, signature: str, api_key: str) -> bool:
         return hmac.compare_digest(signature, expected_signature_b64)
         
     except Exception as e:
-        await ilog.error(f"Adisyo imza doğrulama hatası: {e}")
+        logger.error(f"Adisyo imza doğrulama hatası: {e}")
         return False
 
 
