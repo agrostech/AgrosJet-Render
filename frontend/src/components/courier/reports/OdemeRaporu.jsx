@@ -74,6 +74,14 @@ export default function OdemeRaporu({ courierId, companyId }) {
   const [data, setData] = useState(null);
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
+  const [expandedCards, setExpandedCards] = useState({});
+
+  const toggleCard = (cardKey) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [cardKey]: !prev[cardKey]
+    }));
+  };
 
   useEffect(() => {
     const initDates = async () => {
