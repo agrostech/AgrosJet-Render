@@ -138,7 +138,7 @@ async def test_trendyol_connection(restaurant_id: str) -> dict:
     except httpx.TimeoutException:
         return {"success": False, "error": "Bağlantı zaman aşımı"}
     except Exception as e:
-        logger.exception("Trendyol bağlantı testi hatası")
+        await ilog.exception("Trendyol bağlantı testi hatası")
         return {"success": False, "error": f"Bağlantı hatası: {str(e)}"}
 
 
