@@ -115,7 +115,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
     order_result = await get_order_details(restaurant_id, order_id)
     
     if not order_result.get("success"):
-        logger.warning(f"Adisyo sipariş detayları alınamadı: order_id={order_id}, error={order_result.get('error')}")
+        await _log("warning",(f"Adisyo sipariş detayları alınamadı: order_id={order_id}, error={order_result.get('error')}")
         return {"success": False, "error": order_result.get("error")}
     
     adisyo_order = order_result.get("order")
@@ -129,7 +129,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
     if existing:
         # Sipariş zaten var
         if event_type == "order.created":
-            logger.info(f"Adisyo sipariş zaten mevcut: order_id={order_id}")
+            await _log("info",(f"Adisyo sipariş zaten mevcut: order_id={order_id}")
             return {"success": True, "action": "skipped", "message": "Sipariş zaten mevcut"}
         
         # order.updated - durumu güncelle
@@ -139,7 +139,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
         shiftjet_priority_statuses = ["assigned", "confirmed", "on_the_way", "delivered", "cancelled"]
         
         if current_status in shiftjet_priority_statuses:
-            logger.info(f"Adisyo sipariş atlandı (durum zaten ilerletilmiş): order_id={order_id}")
+            await _log("info",(f"Adisyo sipariş atlandı (durum zaten ilerletilmiş): order_id={order_id}")
             return {"success": True, "action": "skipped", "message": "Sipariş durumu zaten ilerletilmiş"}
         
         # Adisyo'dan gelen durumu map'le
@@ -172,7 +172,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
                 {"$set": update_data}
             )
             
-            logger.info(f"Adisyo sipariş güncellendi: order_id={order_id}, yeni durum: {new_status}")
+            await _log("info",(f"Adisyo sipariş güncellendi: order_id={order_id}, yeni durum: {new_status}")
             return {"success": True, "action": "updated", "new_status": new_status}
         
         return {"success": True, "action": "skipped", "message": "Durum değişmedi"}
@@ -192,7 +192,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
     shiftjet_order["preparation_end_at"] = prep_end.isoformat()
     
     await db.orders.insert_one(shiftjet_order)
-    logger.info(f"Adisyo yeni sipariş oluşturuldu: adisyo_order_id={order_id}, shiftjet_id={shiftjet_order['id']}")
+    await _log("info",(f"Adisyo yeni sipariş oluşturuldu: adisyo_order_id={order_id}, shiftjet_id={shiftjet_order['id']}")
     
     return {"success": True, "action": "created", "order_id": shiftjet_order["id"]}
 
@@ -225,7 +225,7 @@ async def adisyo_webhook(
         
         # URL Doğrulama - Adisyo kurulum sırasında "adisyo" string'i gönderir
         if body_str == 'adisyo' or body_str == '"adisyo"':
-            logger.info("Adisyo URL doğrulama isteği alındı")
+            await _log("info",("Adisyo URL doğrulama isteği alındı")
             return Response(content="adisyo", media_type="text/plain")
         
         # JSON parse
@@ -233,7 +233,7 @@ async def adisyo_webhook(
             import json
             webhook_data = json.loads(body_str)
         except:
-            logger.error("Adisyo webhook: JSON parse hatası")
+            await _log("error",("Adisyo webhook: JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
         # Event bilgilerini al
@@ -243,19 +243,19 @@ async def adisyo_webhook(
         event_data = webhook_data.get("data", {})
         restaurant_identity = webhook_data.get("restaurantIdentity", "")
         
-        logger.info(f"Adisyo webhook alındı: event_type={event_type}, event_id={event_id}, restaurant_identity={restaurant_identity}")
+        await _log("info",(f"Adisyo webhook alındı: event_type={event_type}, event_id={event_id}, restaurant_identity={restaurant_identity}")
         
         # Duplicate kontrolü - aynı event_id daha önce işlendi mi?
         existing_event = await db.adisyo_webhook_events.find_one({"event_id": event_id})
         if existing_event:
-            logger.info(f"Adisyo webhook duplicate: event_id={event_id}")
+            await _log("info",(f"Adisyo webhook duplicate: event_id={event_id}")
             return {"status": "ok", "message": "Event zaten işlendi", "action": "duplicate"}
         
         # Restoranı bul
         restaurant = await get_restaurant_by_identity(restaurant_identity)
         
         if not restaurant:
-            logger.warning(f"Adisyo webhook: Restoran bulunamadı, restaurant_identity={restaurant_identity}")
+            await _log("warning",(f"Adisyo webhook: Restoran bulunamadı, restaurant_identity={restaurant_identity}")
             # Yine de 200 dön, Adisyo retry yapmasın
             return {"status": "ok", "message": "Restoran bulunamadı"}
         
@@ -264,7 +264,7 @@ async def adisyo_webhook(
         
         if api_key and x_adisyo_signature:
             if not verify_adisyo_signature(body_str, x_adisyo_signature, api_key):
-                logger.warning(f"Adisyo webhook: Geçersiz imza, restaurant_identity={restaurant_identity}")
+                await _log("warning",(f"Adisyo webhook: Geçersiz imza, restaurant_identity={restaurant_identity}")
                 # Güvenlik için 401 dönebiliriz ama Adisyo retry yapabilir
                 # Şimdilik loglayıp devam edelim
         
@@ -279,12 +279,12 @@ async def adisyo_webhook(
             
         elif event_type == "stock.depleted":
             # Stok tükenmesi - şimdilik sadece logla
-            logger.info(f"Adisyo stok tükendi: restaurant={restaurant.get('name')}, data={event_data}")
+            await _log("info",(f"Adisyo stok tükendi: restaurant={restaurant.get('name')}, data={event_data}")
             result = {"success": True, "action": "logged", "message": "Stok tükenmesi kaydedildi"}
             
         elif event_type == "stock.restocked":
             # Stok yenilenmesi - şimdilik sadece logla
-            logger.info(f"Adisyo stok yenilendi: restaurant={restaurant.get('name')}, data={event_data}")
+            await _log("info",(f"Adisyo stok yenilendi: restaurant={restaurant.get('name')}, data={event_data}")
             result = {"success": True, "action": "logged", "message": "Stok yenilenmesi kaydedildi"}
         
         # Event'i kaydet (duplicate önleme için)
@@ -326,7 +326,7 @@ async def adisyo_webhook_by_restaurant(
         
         # URL Doğrulama
         if body_str == 'adisyo' or body_str == '"adisyo"':
-            logger.info(f"Adisyo URL doğrulama isteği alındı: restaurant_id={restaurant_id}")
+            await _log("info",(f"Adisyo URL doğrulama isteği alındı: restaurant_id={restaurant_id}")
             return Response(content="adisyo", media_type="text/plain")
         
         # Restoranı bul
@@ -336,7 +336,7 @@ async def adisyo_webhook_by_restaurant(
         )
         
         if not restaurant:
-            logger.warning(f"Adisyo webhook: Restoran bulunamadı, restaurant_id={restaurant_id}")
+            await _log("warning",(f"Adisyo webhook: Restoran bulunamadı, restaurant_id={restaurant_id}")
             raise HTTPException(status_code=404, detail="Restoran bulunamadı")
         
         # JSON parse
@@ -344,7 +344,7 @@ async def adisyo_webhook_by_restaurant(
             import json
             webhook_data = json.loads(body_str)
         except:
-            logger.error("Adisyo webhook: JSON parse hatası")
+            await _log("error",("Adisyo webhook: JSON parse hatası")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
         # Event bilgilerini al
@@ -352,7 +352,7 @@ async def adisyo_webhook_by_restaurant(
         event_type = webhook_data.get("webhookEventType", "")
         event_data = webhook_data.get("data", {})
         
-        logger.info(f"Adisyo webhook alındı (by restaurant): event_type={event_type}, restaurant_id={restaurant_id}")
+        await _log("info",(f"Adisyo webhook alındı (by restaurant): event_type={event_type}, restaurant_id={restaurant_id}")
         
         # Event'i işle
         result = {"success": True, "action": "ignored"}
