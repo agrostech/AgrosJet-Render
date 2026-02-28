@@ -835,15 +835,15 @@ async def cancel_trendyol_order(restaurant_id: str, order_id: str, reason_id: in
             response = await client.put(url, headers=headers, json=body)
             
             if response.status_code == 200:
-                logger.info(f"Trendyol sipariş {package_id} iptal edildi")
+                await ilog.info(f"Trendyol sipariş {package_id} iptal edildi")
                 return {"success": True, "message": "Sipariş iptal edildi"}
             else:
                 error_detail = _extract_error(response)
-                logger.warning(f"Trendyol iptal hatası: {response.status_code} - {error_detail}")
+                await ilog.warning(f"Trendyol iptal hatası: {response.status_code} - {error_detail}")
                 return {"success": False, "error": f"API hatası: {response.status_code} - {error_detail}"}
                 
     except Exception as e:
-        logger.exception("Trendyol iptal hatası")
+        await ilog.exception("Trendyol iptal hatası")
         return {"success": False, "error": str(e)}
 
 
