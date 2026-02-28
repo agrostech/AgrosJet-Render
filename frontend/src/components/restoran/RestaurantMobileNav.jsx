@@ -28,11 +28,11 @@ export default function RestaurantMobileNav({
           </div>
           
           <nav className="flex-1 py-2">
-            {navItems.map((item) => (
+            {navItems.filter(item => !item.hidden).map((item) => (
               <Link 
                 key={item.path} 
                 to={item.path} 
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors relative ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`} 
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors relative ${location.pathname === item.path || (item.key === 'anasayfa' && ['/restoran', '/restoran/gecmis-siparisler', '/restoran/iptal-siparisler'].includes(location.pathname)) ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`} 
                 data-testid={`restaurant-mobile-nav-${item.key}`}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
