@@ -1563,6 +1563,13 @@ export default function RestoranlarPage({ companyId }) {
       </Dialog>
 
       <IntegrationLogsModal open={showIntegrationLogs} onClose={() => setShowIntegrationLogs(false)} />
+      
+      <RestaurantGroupsModal 
+        open={showGroupsModal} 
+        onClose={() => setShowGroupsModal(false)} 
+        companyId={companyId}
+        restaurants={restaurants}
+      />
     </div>
   );
 }
