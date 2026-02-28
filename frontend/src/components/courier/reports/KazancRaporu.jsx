@@ -121,7 +121,7 @@ export default function KazancRaporu({ courierId, companyId }) {
           data-testid="btn-earnings-report"
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            <InlineLoading className="mr-2" />
           ) : (
             <Search className="w-4 h-4 mr-2" />
           )}
