@@ -625,22 +625,22 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
   };
 
   return (
-    <div className="space-y-6" data-testid="restaurant-anasayfa">
+    <div className="space-y-4 sm:space-y-6" data-testid="restaurant-anasayfa">
       {/* Header with Sub-tabs */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
-            <p className="text-sm text-muted-foreground">Güncel sipariş durumu</p>
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Sipariş Yönetimi</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Güncel sipariş durumu</p>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Mock Sipariş Butonları */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            {/* Mock Sipariş Butonları - Mobilde gizle */}
             <Button 
               onClick={handleGenerateMock}
               variant="outline"
               size="sm"
               disabled={mockLoading}
-              className="text-green-600 border-green-300 hover:bg-green-50"
+              className="hidden sm:flex text-green-600 border-green-300 hover:bg-green-50"
               data-testid="generate-mock-btn"
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -651,7 +651,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               variant="outline"
               size="sm"
               disabled={mockLoading}
-              className="text-red-600 border-red-300 hover:bg-red-50"
+              className="hidden sm:flex text-red-600 border-red-300 hover:bg-red-50"
               data-testid="clear-mock-btn"
             >
               <Trash2 className="w-4 h-4 mr-1" />
@@ -659,50 +659,54 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             </Button>
             <Button 
               onClick={() => setNewOrderModalOpen(true)} 
+              size="sm"
               className="bg-primary hover:bg-primary/90"
               data-testid="new-order-btn"
             >
-              <Phone className="w-4 h-4 mr-2" />
-              Telefon Siparişi
+              <Phone className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Telefon Siparişi</span>
+              <span className="sm:hidden">Sipariş</span>
             </Button>
           </div>
         </div>
         
-        {/* Alt Sekmeler */}
-        <div className="flex gap-1 border-b">
-          <button
-            onClick={() => handleSubPageChange('aktif')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              currentSubPage === 'aktif' 
-                ? 'border-primary text-primary' 
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <ListChecks className="w-4 h-4" />
-            Aktif Siparişler
-          </button>
-          <button
-            onClick={() => handleSubPageChange('gecmis')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              currentSubPage === 'gecmis' 
-                ? 'border-primary text-primary' 
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <CheckCircle className="w-4 h-4" />
-            Teslim Edilen Siparişler
-          </button>
-          <button
-            onClick={() => handleSubPageChange('iptal')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              currentSubPage === 'iptal' 
-                ? 'border-primary text-primary' 
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <ClipboardX className="w-4 h-4" />
-            İptal Siparişler
-          </button>
+        {/* Alt Sekmeler - Mobilde yatay scroll */}
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-1 border-b min-w-max sm:min-w-0">
+            <button
+              onClick={() => handleSubPageChange('aktif')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                currentSubPage === 'aktif' 
+                  ? 'border-primary text-primary' 
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ListChecks className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Aktif
+            </button>
+            <button
+              onClick={() => handleSubPageChange('gecmis')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                currentSubPage === 'gecmis' 
+                  ? 'border-primary text-primary' 
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              Teslim Edilen
+            </button>
+            <button
+              onClick={() => handleSubPageChange('iptal')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                currentSubPage === 'iptal' 
+                  ? 'border-primary text-primary' 
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ClipboardX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              İptal
+            </button>
+          </div>
         </div>
       </div>
 
