@@ -468,6 +468,7 @@ async def assign_courier_core(
     
     now = datetime.now(TURKEY_TZ).isoformat()
     order_id = order["id"]
+    company_id = order.get("company_id")
     
     # Güncelleme verileri
     update_data = {
@@ -485,12 +486,33 @@ async def assign_courier_core(
         if order.get("restaurant_location") and order.get("delivery_location"):
             distance_km = calculate_distance(order["restaurant_location"], order["delivery_location"])
         
-        courier_fee = calculate_fee_from_pricing(
-            courier.get("pricing_type", "per_package"),
-            courier.get("per_package_price", 0),
-            courier.get("km_ranges", []),
-            distance_km
-        )
+        # Önce kademeli ücretlendirmeyi kontrol et
+        tiered_fee = None
+        tiered_position = None
+        if company_id:
+            try:
+                from services.tiered_pricing_service import calculate_tiered_fee, get_courier_active_package_count
+                tiered_fee = await calculate_tiered_fee(courier_id, company_id)
+                if tiered_fee is not None:
+                    # Kademe pozisyonunu kaydet
+                    active_count = await get_courier_active_package_count(courier_id, company_id)
+                    tiered_position = min(active_count + 1, 5)  # Yeni sipariş için pozisyon
+            except Exception as e:
+                logger.error(f"Kademeli ücret hesaplama hatası: {e}")
+        
+        if tiered_fee is not None:
+            # Kademeli ücretlendirme aktif
+            courier_fee = tiered_fee
+            update_data["tiered_position"] = tiered_position
+        else:
+            # Normal ücretlendirme
+            courier_fee = calculate_fee_from_pricing(
+                courier.get("pricing_type", "per_package"),
+                courier.get("per_package_price", 0),
+                courier.get("km_ranges", []),
+                distance_km
+            )
+        
         update_data["courier_fee"] = round(courier_fee, 2)
     
     # History entry
