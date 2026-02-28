@@ -33,6 +33,12 @@ from services.adisyo_service import (
 router = APIRouter(prefix="/api/adisyo", tags=["Adisyo Webhook"])
 logger = logging.getLogger(__name__)
 
+from services.integration_log_service import save_integration_log as _save_log
+
+async def _log(level, msg):
+    getattr(logger, level)(msg)
+    await _save_log("adisyo", level.upper(), msg)
+
 from services.integration_log_service import save_integration_log
 
 async def _log(level, msg):
