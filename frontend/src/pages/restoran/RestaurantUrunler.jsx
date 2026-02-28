@@ -318,20 +318,22 @@ export default function RestaurantUrunler({ restaurantId }) {
   };
 
   return (
-    <div className="space-y-6" data-testid="restaurant-urunler">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6" data-testid="restaurant-urunler">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Ürünler</h1>
-          <p className="text-sm text-muted-foreground">Menü ve ürün yönetimi</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Ürünler</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Menü ve ürün yönetimi</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => openCategoryDialog('create')} data-testid="add-category-btn">
-            <Plus className="w-4 h-4 mr-2" />
-            Kategori Ekle
+          <Button variant="outline" size="sm" onClick={() => openCategoryDialog('create')} data-testid="add-category-btn">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Kategori Ekle</span>
+            <span className="sm:hidden">Kategori</span>
           </Button>
-          <Button onClick={() => openProductDialog('create')} data-testid="add-product-btn">
-            <Plus className="w-4 h-4 mr-2" />
-            Ürün Ekle
+          <Button size="sm" onClick={() => openProductDialog('create')} data-testid="add-product-btn">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Ürün Ekle</span>
+            <span className="sm:hidden">Ürün</span>
           </Button>
         </div>
       </div>
