@@ -223,6 +223,47 @@ export default function KuryelerPage({ companyId }) {
     setKmRanges(newRanges);
   };
 
+  // Kademeli ücretlendirme modalını aç
+  const openTieredPricingModal = async () => {
+    setLoadingTieredPricing(true);
+    setShowTieredPricingModal(true);
+    try {
+      const res = await axios.get(`${API}/tiered-pricing/${companyId}`);
+      setTieredPricingEnabled(res.data.enabled || false);
+      setTierPrices(res.data.tier_prices?.map(p => p?.toString() || "") || ["", "", "", "", ""]);
+      setTieredHourlyRate(res.data.hourly_rate?.toString() || "");
+    } catch (err) {
+      setTieredPricingEnabled(false);
+      setTierPrices(["", "", "", "", ""]);
+      setTieredHourlyRate("");
+    } finally {
+      setLoadingTieredPricing(false);
+    }
+  };
+
+  // Kademeli ücretlendirme kaydet
+  const handleSaveTieredPricing = async () => {
+    try {
+      const prices = tierPrices.map(p => parseFloat(p) || 0);
+      await axios.put(`${API}/tiered-pricing/${companyId}`, {
+        enabled: tieredPricingEnabled,
+        tier_prices: prices,
+        hourly_rate: tieredHourlyRate ? parseFloat(tieredHourlyRate) : null
+      });
+      toast.success("Kademeli ücretlendirme kaydedildi");
+      setShowTieredPricingModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    }
+  };
+
+  // Kademe fiyatı güncelle
+  const updateTierPrice = (index, value) => {
+    const newPrices = [...tierPrices];
+    newPrices[index] = value;
+    setTierPrices(newPrices);
+  };
+
   // Ödeme yöntemleri modalını aç
   const openPaymentMethodsModal = async (courier) => {
     setSelectedCourier(courier);
