@@ -196,7 +196,11 @@ async def log_dispatch_action(
     logger.info(f"Dispatch: {action} - Order: {order_id} - Courier: {courier_id} - Reason: {reason}")
 
 
-async def process_single_order(order: Dict, settings: Dict) -> Dict:
+async def process_single_order(
+    order: Dict, 
+    settings: Dict,
+    assigned_in_this_cycle: Dict = None
+) -> Dict:
     """
     Tek bir sipariş için dispatch kararı verir.
     
@@ -204,9 +208,17 @@ async def process_single_order(order: Dict, settings: Dict) -> Dict:
     1. Pickup Aşaması (yolda yok): Detour modeli - sipariş birleştirme
     2. On-the-way (1 yolda var): D_return vs D_idle karşılaştırması
     
+    Args:
+        order: Sipariş bilgileri
+        settings: Dispatch ayarları
+        assigned_in_this_cycle: Bu döngüde atanan sipariş sayısı {courier_id: count}
+    
     Returns:
         {"action": "assigned"|"waiting"|"no_courier", "courier_id": str|None, "reason": str}
     """
+    if assigned_in_this_cycle is None:
+        assigned_in_this_cycle = {}
+    
     company_id = order.get("company_id")
     order_id = order.get("id")
     restaurant_id = order.get("restaurant_id")
@@ -228,7 +240,8 @@ async def process_single_order(order: Dict, settings: Dict) -> Dict:
         target_restaurant_id=restaurant_id,
         target_restaurant_location=restaurant_location,
         target_delivery_location=delivery_location,
-        max_detour=max_detour
+        max_detour=max_detour,
+        assigned_in_this_cycle=assigned_in_this_cycle
     )
     
     # Tüm boş ve pickup kuryelerini birleştir (pickup aşaması için)
