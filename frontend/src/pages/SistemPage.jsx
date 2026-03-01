@@ -224,6 +224,39 @@ export default function SistemPage({ companyId }) {
     }
   };
 
+  // Auto Dispatch Functions
+  const fetchAutoDispatchSettings = async () => {
+    if (!companyId) return;
+    try {
+      const res = await axios.get(`${API}/auto-dispatch/settings/${companyId}`);
+      setAutoDispatchSettings({
+        enabled: res.data.enabled || false,
+        distance_tolerance: res.data.distance_tolerance || 500,
+        max_wait_time: res.data.max_wait_time || 5,
+        fairness_threshold: res.data.fairness_threshold || 200,
+        fairness_enabled: res.data.fairness_enabled || false
+      });
+    } catch (err) {
+      console.error("Auto dispatch settings fetch error:", err);
+    } finally {
+      setAutoDispatchLoading(false);
+    }
+  };
+
+  const handleAutoDispatchSave = async () => {
+    setAutoDispatchSaving(true);
+    try {
+      await axios.put(`${API}/auto-dispatch/settings/${companyId}`, autoDispatchSettings);
+      toast.success("Otomatik atama ayarları kaydedildi");
+    } catch (err) {
+      if (!err.handled) {
+        toast.error("Kaydetme başarısız");
+      }
+    } finally {
+      setAutoDispatchSaving(false);
+    }
+  };
+
   const handleBackupSave = async () => {
     if (backupSettings.enabled && !backupSettings.email) {
       toast.error("Otomatik yedekleme için e-posta adresi gerekli");
