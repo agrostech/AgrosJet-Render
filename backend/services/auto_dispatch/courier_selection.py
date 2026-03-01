@@ -355,11 +355,18 @@ async def is_courier_eligible(
             
             # HER mevcut siparişle açı ve detour kontrolü yap
             for existing_delivery in all_existing_deliveries:
+                # Kontroller kapalıysa atla
+                if not angle_check_enabled and not detour_check_enabled:
+                    continue
+                
                 can_combine, detour_value, detour_reason = should_combine_orders(
                     target_restaurant_location,
                     existing_delivery,
                     target_delivery_location,
-                    max_detour
+                    max_detour if detour_check_enabled else 99999,
+                    max_angle_diff if angle_check_enabled else 180,
+                    angle_skip_distance or 1000,
+                    detour_skip_distance or 500
                 )
                 
                 if not can_combine:
