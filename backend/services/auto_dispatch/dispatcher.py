@@ -233,6 +233,8 @@ async def process_single_order(
     fairness_enabled = settings.get("fairness_enabled", False)
     fairness_threshold = settings.get("fairness_threshold", 200)
     max_detour = settings.get("max_detour", 700)
+    same_location_radius = settings.get("same_location_radius", 30)
+    same_location_max_packages = settings.get("same_location_max_packages", 10)
     
     # Uygun kuryeleri getir (restoran grubu + detour kontrolü dahil)
     idle_couriers, pickup_couriers, one_on_way_couriers = await get_eligible_couriers(
@@ -241,7 +243,9 @@ async def process_single_order(
         target_restaurant_location=restaurant_location,
         target_delivery_location=delivery_location,
         max_detour=max_detour,
-        assigned_in_this_cycle=assigned_in_this_cycle
+        assigned_in_this_cycle=assigned_in_this_cycle,
+        same_location_radius=same_location_radius,
+        same_location_max_packages=same_location_max_packages
     )
     
     # Tüm boş ve pickup kuryelerini birleştir (pickup aşaması için)
