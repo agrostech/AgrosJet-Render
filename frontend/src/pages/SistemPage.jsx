@@ -88,6 +88,7 @@ export default function SistemPage({ companyId }) {
     fetchEmailSettings();
     fetchBackupSettings();
     fetchWorkingHours();
+    fetchAutoDispatchSettings();
   }, [companyId]);
 
   const fetchCompanyInfo = async () => {
