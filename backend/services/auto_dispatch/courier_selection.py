@@ -413,7 +413,6 @@ async def get_eligible_couriers(
         max_angle_diff: Maksimum açı farkı (derece)
         detour_check_enabled: Detour kontrolü aktif mi
         detour_skip_distance: Bu mesafeden yakın paketler için detour kontrolü atlanır
-        min_savings_threshold: Minimum tasarruf eşiği (metre)
     
     Returns:
         (idle_couriers, pickup_couriers, one_on_way_couriers)
