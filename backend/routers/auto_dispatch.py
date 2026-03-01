@@ -27,6 +27,13 @@ class DispatchSettingsUpdate(BaseModel):
     max_detour: int  # metre - Pickup aşamasında maksimum rota sapması
     same_location_radius: int = 30  # metre - Aynı konum sayılacak mesafe
     same_location_max_packages: int = 10  # Aynı konumda maksimum paket
+    # Açı kontrolü ayarları
+    angle_check_enabled: bool = True
+    angle_skip_distance: int = 1000  # metre
+    max_angle_diff: int = 90  # derece
+    # Detour kontrolü ayarları
+    detour_check_enabled: bool = True
+    detour_skip_distance: int = 500  # metre
 
 
 @router.get("/settings/{company_id}")
@@ -48,6 +55,11 @@ async def update_settings(company_id: str, data: DispatchSettingsUpdate):
         "max_detour": data.max_detour,
         "same_location_radius": data.same_location_radius,
         "same_location_max_packages": data.same_location_max_packages,
+        "angle_check_enabled": data.angle_check_enabled,
+        "angle_skip_distance": data.angle_skip_distance,
+        "max_angle_diff": data.max_angle_diff,
+        "detour_check_enabled": data.detour_check_enabled,
+        "detour_skip_distance": data.detour_skip_distance,
     }
     
     result = await update_dispatch_settings(company_id, settings)
