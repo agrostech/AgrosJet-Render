@@ -389,7 +389,12 @@ async def get_eligible_couriers(
     max_detour: Optional[float] = None,
     assigned_in_this_cycle: Optional[Dict] = None,
     same_location_radius: Optional[float] = None,
-    same_location_max_packages: Optional[int] = None
+    same_location_max_packages: Optional[int] = None,
+    angle_check_enabled: bool = True,
+    angle_skip_distance: Optional[float] = None,
+    max_angle_diff: Optional[float] = None,
+    detour_check_enabled: bool = True,
+    detour_skip_distance: Optional[float] = None
 ) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Şirkete ait uygun kuryeleri getirir ve kategorize eder.
@@ -403,6 +408,11 @@ async def get_eligible_couriers(
         assigned_in_this_cycle: Bu döngüde atanan sipariş sayısı {courier_id: count}
         same_location_radius: Aynı konum sayılacak mesafe (metre)
         same_location_max_packages: Aynı konumda maksimum paket limiti
+        angle_check_enabled: Açı kontrolü aktif mi
+        angle_skip_distance: Bu mesafeden yakın paketler için açı kontrolü atlanır
+        max_angle_diff: Maksimum açı farkı (derece)
+        detour_check_enabled: Detour kontrolü aktif mi
+        detour_skip_distance: Bu mesafeden yakın paketler için detour kontrolü atlanır
     
     Returns:
         (idle_couriers, pickup_couriers, one_on_way_couriers)
@@ -437,7 +447,12 @@ async def get_eligible_couriers(
             max_detour,
             assigned_in_this_cycle,
             same_location_radius,
-            same_location_max_packages
+            same_location_max_packages,
+            angle_check_enabled,
+            angle_skip_distance,
+            max_angle_diff,
+            detour_check_enabled,
+            detour_skip_distance
         )
         
         if not eligible:
