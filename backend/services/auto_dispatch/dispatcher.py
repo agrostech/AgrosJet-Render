@@ -200,13 +200,18 @@ async def process_single_order(order: Dict, settings: Dict) -> Dict:
     """
     Tek bir sipariş için dispatch kararı verir.
     
+    İKİ KATMANLI SİSTEM:
+    1. Pickup Aşaması (yolda yok): Detour modeli - sipariş birleştirme
+    2. On-the-way (1 yolda var): D_return vs D_idle karşılaştırması
+    
     Returns:
         {"action": "assigned"|"waiting"|"no_courier", "courier_id": str|None, "reason": str}
     """
     company_id = order.get("company_id")
     order_id = order.get("id")
-    restaurant_id = order.get("restaurant_id")  # Restoran grubu kontrolü için
+    restaurant_id = order.get("restaurant_id")
     restaurant_location = order.get("restaurant_location")
+    delivery_location = order.get("delivery_location")
     
     if not restaurant_location:
         return {"action": "error", "reason": "Restoran konumu yok"}
@@ -215,16 +220,24 @@ async def process_single_order(order: Dict, settings: Dict) -> Dict:
     distance_tolerance = settings.get("distance_tolerance", 500)
     fairness_enabled = settings.get("fairness_enabled", False)
     fairness_threshold = settings.get("fairness_threshold", 200)
+    max_detour = settings.get("max_detour", 700)
     
-    # Uygun kuryeleri getir (restoran grubu kontrolü dahil)
-    idle_couriers, one_on_way_couriers = await get_eligible_couriers(
+    # Uygun kuryeleri getir (restoran grubu + detour kontrolü dahil)
+    idle_couriers, pickup_couriers, one_on_way_couriers = await get_eligible_couriers(
         company_id, 
-        target_restaurant_id=restaurant_id
+        target_restaurant_id=restaurant_id,
+        target_restaurant_location=restaurant_location,
+        target_delivery_location=delivery_location,
+        max_detour=max_detour
     )
     
-    # En iyi boş kuryeyi bul
+    # Tüm boş ve pickup kuryelerini birleştir (pickup aşaması için)
+    # Pickup kuryeleri de aslında "boş" gibi değerlendirilir - restorana gitmeleri gerekiyor
+    all_idle_type_couriers = idle_couriers + pickup_couriers
+    
+    # En iyi boş/pickup kuryeyi bul
     best_idle, d_idle_min = await find_best_idle_courier(
-        idle_couriers, 
+        all_idle_type_couriers, 
         restaurant_location, 
         company_id,
         fairness_enabled,
@@ -244,16 +257,17 @@ async def process_single_order(order: Dict, settings: Dict) -> Dict:
     if not best_idle and not best_return:
         return {"action": "no_courier", "reason": "Uygun kurye bulunamadı"}
     
-    # Sadece boş kurye varsa
+    # Sadece boş/pickup kurye varsa
     if best_idle and not best_return:
-        result = await assign_order_to_courier(order, best_idle, "Tek boş kurye")
+        courier_type = best_idle.get("type", "idle")
+        reason = "Pickup aşamasında kuryeye eklendi" if courier_type == "pickup_with_orders" else "Boş kurye atandı"
+        result = await assign_order_to_courier(order, best_idle, reason)
         if result.get("success"):
-            return {"action": "assigned", "courier_id": best_idle["courier"]["id"], "reason": "Boş kurye atandı"}
+            return {"action": "assigned", "courier_id": best_idle["courier"]["id"], "reason": reason}
         return {"action": "error", "reason": result.get("error")}
     
     # Sadece 1-yolda kurye varsa
     if not best_idle and best_return:
-        # Bekleme moduna al
         courier = best_return["courier"]
         await set_order_waiting(order_id, courier["id"], courier["name"])
         return {"action": "waiting", "courier_id": courier["id"], "reason": "1-yolda kurye bekleniyor"}
