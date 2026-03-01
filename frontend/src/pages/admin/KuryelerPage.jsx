@@ -693,6 +693,44 @@ export default function KuryelerPage({ companyId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Max Packages Modal */}
+      <Dialog open={showMaxPackagesModal} onOpenChange={setShowMaxPackagesModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="w-5 h-5 text-blue-600" />
+              Maksimum Paket - {selectedCourier?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Bu kuryenin aynı anda taşıyabileceği maksimum paket sayısını belirleyin.
+              Otomatik atama sistemi bu değeri kullanır.
+            </p>
+            <div className="space-y-2">
+              <Label>Maksimum Paket Sayısı</Label>
+              <Input
+                type="number"
+                min="1"
+                max="20"
+                value={maxPackages}
+                onChange={(e) => setMaxPackages(e.target.value)}
+                placeholder="5"
+              />
+              <p className="text-xs text-muted-foreground">1-20 arası bir değer girin</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMaxPackagesModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveMaxPackages}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
