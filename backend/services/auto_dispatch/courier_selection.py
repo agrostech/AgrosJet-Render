@@ -271,21 +271,26 @@ async def is_courier_eligible(
 
 async def get_eligible_couriers(
     company_id: str,
-    target_restaurant_id: Optional[str] = None
-) -> Tuple[List[Dict], List[Dict]]:
+    target_restaurant_id: Optional[str] = None,
+    target_restaurant_location: Optional[Dict] = None,
+    target_delivery_location: Optional[Dict] = None,
+    max_detour: Optional[float] = None
+) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Şirkete ait uygun kuryeleri getirir ve kategorize eder.
     
     Args:
         company_id: Şirket ID
         target_restaurant_id: Hedef siparişin restoran ID'si (grup kontrolü için)
+        target_restaurant_location: Hedef siparişin restoran konumu (detour için)
+        target_delivery_location: Hedef siparişin teslimat konumu (detour için)
+        max_detour: Maksimum izin verilen rota sapması (metre)
     
     Returns:
-        (idle_couriers, one_on_way_couriers)
-        Her kurye dict'i şunları içerir:
-        - courier: Kurye bilgileri
-        - type: "idle" veya "one_on_way"
-        - on_way_order: Yolda sipariş (varsa)
+        (idle_couriers, pickup_couriers, one_on_way_couriers)
+        - idle_couriers: Tamamen boş kuryeler
+        - pickup_couriers: Pickup aşamasında (aktif var, yolda yok) - detour uygun
+        - one_on_way_couriers: 1 yolda siparişi olan kuryeler
     """
     # Aktif kuryeleri getir
     couriers = await db.couriers.find(
@@ -298,11 +303,17 @@ async def get_eligible_couriers(
     ).to_list(500)
     
     idle_couriers = []
+    pickup_couriers = []
     one_on_way_couriers = []
     
     for courier in couriers:
         eligible, reason, extra = await is_courier_eligible(
-            courier, company_id, target_restaurant_id
+            courier, 
+            company_id, 
+            target_restaurant_id,
+            target_restaurant_location,
+            target_delivery_location,
+            max_detour
         )
         
         if not eligible:
@@ -311,15 +322,19 @@ async def get_eligible_couriers(
         courier_data = {
             "courier": courier,
             "type": extra.get("type"),
-            "on_way_order": extra.get("on_way_order")
+            "on_way_order": extra.get("on_way_order"),
+            "active_orders": extra.get("active_orders", [])
         }
         
-        if extra.get("type") == "idle":
+        courier_type = extra.get("type")
+        if courier_type == "idle":
             idle_couriers.append(courier_data)
-        else:
+        elif courier_type == "pickup_with_orders":
+            pickup_couriers.append(courier_data)
+        elif courier_type == "one_on_way":
             one_on_way_couriers.append(courier_data)
     
-    return idle_couriers, one_on_way_couriers
+    return idle_couriers, pickup_couriers, one_on_way_couriers
 
 
 def calculate_idle_courier_distance(courier_data: Dict, restaurant_location: Dict) -> Optional[float]:
