@@ -75,15 +75,21 @@ export function CourierCards({
             </Button>
           </div>
           
-          {/* Row 2: Payment Methods */}
-          {onPaymentMethods && (
-            <div className="mb-2">
-              <Button size="sm" variant="outline" onClick={() => onPaymentMethods(c)} className="w-full border-2">
+          {/* Row 2: Payment Methods & Max Packages */}
+          <div className="flex gap-2 mb-2">
+            {onPaymentMethods && (
+              <Button size="sm" variant="outline" onClick={() => onPaymentMethods(c)} className="flex-1 border-2">
                 <CreditCard className="w-4 h-4 mr-1" />
-                <span className="text-xs">Ödeme Yöntemleri</span>
+                <span className="text-xs">Ödeme</span>
               </Button>
-            </div>
-          )}
+            )}
+            {onMaxPackages && (
+              <Button size="sm" variant="outline" onClick={() => onMaxPackages(c)} className="flex-1 border-2">
+                <Package className="w-4 h-4 mr-1" />
+                <span className="text-xs">Maks. Paket</span>
+              </Button>
+            )}
+          </div>
           
           {/* Row 3: Merge button for ghost couriers */}
           {c.is_ghost && onMerge && (
