@@ -118,7 +118,8 @@ def should_combine_orders(
     delivery_location_a: Dict,
     delivery_location_b: Dict,
     max_detour: float,
-    max_angle_diff: float = 90.0
+    max_angle_diff: float = 90.0,
+    angle_skip_distance: float = 1000.0
 ) -> Tuple[bool, float, str]:
     """
     İki siparişin aynı kuryeye atanıp atanamayacağını belirler.
@@ -129,18 +130,30 @@ def should_combine_orders(
         delivery_location_b: Yeni sipariş teslimat konumu
         max_detour: Maksimum izin verilen rota sapması (metre)
         max_angle_diff: Maksimum açı farkı (derece) - varsayılan 90°
+        angle_skip_distance: Bu mesafeden yakın paketler için açı kontrolü atlanır (metre) - varsayılan 1000m
     
     Returns:
         (should_combine, detour_value, reason)
     """
-    # ÖNCELİKLE AÇI KONTROLÜ
+    # Paketlerin restorana mesafesini hesapla
+    dist_a = calculate_distance_meters(restaurant_location, delivery_location_a)
+    dist_b = calculate_distance_meters(restaurant_location, delivery_location_b)
+    
+    # AÇI KONTROLÜ - Restorana yakın paketler için atla
+    skip_angle_check = False
+    if dist_a is not None and dist_a <= angle_skip_distance:
+        skip_angle_check = True
+    if dist_b is not None and dist_b <= angle_skip_distance:
+        skip_angle_check = True
+    
     bearing_a = calculate_bearing(restaurant_location, delivery_location_a)
     bearing_b = calculate_bearing(restaurant_location, delivery_location_b)
+    angle_diff = 0
     
     if bearing_a is not None and bearing_b is not None:
         angle_diff = calculate_angle_difference(bearing_a, bearing_b)
         
-        if angle_diff > max_angle_diff:
+        if not skip_angle_check and angle_diff > max_angle_diff:
             return False, 0, f"Açı farkı çok büyük: {angle_diff:.0f}° > {max_angle_diff:.0f}° (farklı yönler)"
     
     # DETOUR HESABI
@@ -153,13 +166,19 @@ def should_combine_orders(
     if detour is None:
         return False, 0, "Koordinat eksik - detour hesaplanamadı"
     
+    # Bilgi mesajı oluştur
+    if skip_angle_check:
+        distance_info = f"Yakın paket ({min(dist_a or 9999, dist_b or 9999):.0f}m), açı kontrolü atlandı"
+    else:
+        distance_info = f"Açı farkı: {angle_diff:.0f}°"
+    
     # Negatif detour = birleştirmek daha verimli (tasarruf)
     if detour < 0:
-        return True, detour, f"Aynı yön (açı farkı: {angle_diff:.0f}°), {abs(detour):.0f}m tasarruf"
+        return True, detour, f"{distance_info}, {abs(detour):.0f}m tasarruf"
     
     # Pozitif detour - eşik kontrolü (ekstra mesafe)
     if detour <= max_detour:
-        return True, detour, f"Detour ({detour:.0f}m) <= Eşik ({max_detour}m) - birleştirilebilir"
+        return True, detour, f"{distance_info}, detour {detour:.0f}m <= {max_detour}m"
     else:
         return False, detour, f"Detour ({detour:.0f}m) > Eşik ({max_detour}m) - ayrı kurye gerekli"
 
