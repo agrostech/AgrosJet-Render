@@ -711,6 +711,104 @@ export default function SistemPage({ companyId }) {
                       Örn: 30m yarıçapında tüm siparişler "aynı konum" sayılır ve 10 pakete kadar alınabilir.
                     </p>
                   </div>
+
+                  {/* Açı Kontrolü Ayarları */}
+                  <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-blue-800">Açı Kontrolü</span>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={autoDispatchSettings.angle_check_enabled}
+                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, angle_check_enabled: e.target.checked }))}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span className="text-xs text-muted-foreground">Aktif</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Farklı yönlerdeki paketlerin aynı kuryeye atanmasını engeller.
+                    </p>
+                    
+                    {autoDispatchSettings.angle_check_enabled && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs font-medium">Maks. Açı Farkı (°)</Label>
+                          <Input
+                            type="number"
+                            min="30"
+                            max="180"
+                            value={autoDispatchSettings.max_angle_diff}
+                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_angle_diff: parseInt(e.target.value) || 90 }))}
+                            placeholder="90"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs font-medium">Atla Mesafesi (m)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="3000"
+                            value={autoDispatchSettings.angle_skip_distance}
+                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, angle_skip_distance: parseInt(e.target.value) || 1000 }))}
+                            placeholder="1000"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-xs text-blue-700">
+                      {autoDispatchSettings.angle_skip_distance}m yakınlıktaki paketler için açı kontrolü atlanır.
+                    </p>
+                  </div>
+
+                  {/* Detour Kontrolü Ayarları */}
+                  <div className="space-y-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-orange-800">Detour (Rota Sapması) Kontrolü</span>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={autoDispatchSettings.detour_check_enabled}
+                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, detour_check_enabled: e.target.checked }))}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span className="text-xs text-muted-foreground">Aktif</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Rota sapması çok fazla olan paketlerin birleştirilmesini engeller.
+                    </p>
+                    
+                    {autoDispatchSettings.detour_check_enabled && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs font-medium">Maks. Detour (m)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="3000"
+                            value={autoDispatchSettings.max_detour}
+                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_detour: parseInt(e.target.value) || 700 }))}
+                            placeholder="700"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs font-medium">Atla Mesafesi (m)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="2000"
+                            value={autoDispatchSettings.detour_skip_distance}
+                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, detour_skip_distance: parseInt(e.target.value) || 500 }))}
+                            placeholder="500"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-xs text-orange-700">
+                      {autoDispatchSettings.detour_skip_distance}m yakınlıktaki paketler için detour kontrolü atlanır.
+                    </p>
+                  </div>
                 </div>
               )}
 
