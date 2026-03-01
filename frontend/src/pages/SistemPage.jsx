@@ -713,7 +713,7 @@ export default function SistemPage({ companyId }) {
                       </div>
                       
                       {autoDispatchSettings.detour_check_enabled && (
-                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-100">
                           <div className="space-y-2">
                             <Label className="text-xs text-slate-600">Maks. Sapma (m)</Label>
                             <Input
@@ -722,6 +722,17 @@ export default function SistemPage({ companyId }) {
                               max="3000"
                               value={autoDispatchSettings.max_detour}
                               onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_detour: parseInt(e.target.value) || 700 }))}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-600">Min. Tasarruf (m)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="2000"
+                              value={autoDispatchSettings.min_savings_threshold}
+                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, min_savings_threshold: parseInt(e.target.value) || 0 }))}
                               className="h-9"
                             />
                           </div>
@@ -736,8 +747,10 @@ export default function SistemPage({ companyId }) {
                               className="h-9"
                             />
                           </div>
-                          <p className="col-span-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
-                            💡 {autoDispatchSettings.detour_skip_distance}m içindeki paketler için sapma kontrolü atlanır
+                          <p className="col-span-3 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                            💡 {autoDispatchSettings.min_savings_threshold > 0 
+                              ? `${autoDispatchSettings.min_savings_threshold}m'den az tasarruf varsa paketler ayrı gönderilir. ` 
+                              : ''}{autoDispatchSettings.detour_skip_distance}m içindeki paketler için sapma kontrolü atlanır.
                           </p>
                         </div>
                       )}
