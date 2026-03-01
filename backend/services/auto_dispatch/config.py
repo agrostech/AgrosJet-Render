@@ -12,6 +12,7 @@ DEFAULT_SETTINGS = {
     "max_wait_time": 5,  # dakika - Bekleme modunda maksimum süre
     "fairness_threshold": 200,  # metre - Adalet filtresi mesafe eşiği
     "fairness_enabled": False,  # Son 1 saat adalet sistemi aktif mi
+    "max_detour": 700,  # metre - Pickup aşamasında maksimum rota sapması
     "check_interval": 30,  # saniye - Dispatch kontrolü aralığı
 }
 
