@@ -92,6 +92,11 @@ export function CourierTable({
                         <span className="ml-1 text-xs">Ödeme</span>
                       </Button>
                     )}
+                    {onMaxPackages && (
+                      <Button size="sm" variant="outline" onClick={() => onMaxPackages(c)} className="h-8 px-3 border-2" title="Maks. Paket">
+                        <Package className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2">
                       <Pencil className="w-4 h-4" />
                     </Button>
