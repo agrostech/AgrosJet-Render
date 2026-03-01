@@ -120,7 +120,8 @@ def should_combine_orders(
     max_detour: float,
     max_angle_diff: float = 90.0,
     angle_skip_distance: float = 1000.0,
-    detour_skip_distance: float = 500.0
+    detour_skip_distance: float = 500.0,
+    min_savings_threshold: float = 0.0
 ) -> Tuple[bool, float, str]:
     """
     İki siparişin aynı kuryeye atanıp atanamayacağını belirler.
@@ -133,6 +134,7 @@ def should_combine_orders(
         max_angle_diff: Maksimum açı farkı (derece) - varsayılan 90°
         angle_skip_distance: Bu mesafeden yakın paketler için açı kontrolü atlanır (metre) - varsayılan 1000m
         detour_skip_distance: Bu mesafeden yakın paketler için detour kontrolü atlanır (metre) - varsayılan 500m
+        min_savings_threshold: Minimum tasarruf eşiği (metre) - bu değerden az tasarruf varsa ayrı gönder - varsayılan 0
     
     Returns:
         (should_combine, detour_value, reason)
