@@ -9,6 +9,12 @@ RESTORAN GRUBU KURALI (KRİTİK):
 - Eğer kurye üzerinde aktif sipariş varsa ve yeni siparişin restoran grubu 
   farklıysa → kurye aday listesinden çıkarılır.
 - Boş kurye için grup kısıtı yoktur.
+
+ROTA SAPMASI (DETOUR) KURALI:
+- Pickup aşamasında (yolda paketi olmayan kurye) siparişler birleştirilirken
+  rota sapması kontrolü yapılır.
+- Detour = BirleşikMesafe - AyrıToplam
+- Detour ≤ MaksimumRotaSapması ise birleştirilebilir.
 """
 
 from typing import List, Dict, Any, Optional, Tuple
@@ -22,6 +28,7 @@ from .config import (
     DEFAULT_MAX_PACKAGES,
 )
 from .distance import calculate_distance_meters
+from .detour import should_combine_orders, calculate_detour
 
 
 async def get_restaurant_group_for_restaurant(restaurant_id: str, company_id: str) -> Optional[str]:
