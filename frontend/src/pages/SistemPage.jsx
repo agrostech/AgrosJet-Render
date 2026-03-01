@@ -238,7 +238,9 @@ export default function SistemPage({ companyId }) {
         max_wait_time: res.data.max_wait_time || 5,
         fairness_threshold: res.data.fairness_threshold || 200,
         fairness_enabled: res.data.fairness_enabled || false,
-        max_detour: res.data.max_detour || 700
+        max_detour: res.data.max_detour || 700,
+        same_location_radius: res.data.same_location_radius || 30,
+        same_location_max_packages: res.data.same_location_max_packages || 10
       });
     } catch (err) {
       console.error("Auto dispatch settings fetch error:", err);
