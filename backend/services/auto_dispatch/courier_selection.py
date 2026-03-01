@@ -332,7 +332,9 @@ async def get_eligible_couriers(
     target_restaurant_location: Optional[Dict] = None,
     target_delivery_location: Optional[Dict] = None,
     max_detour: Optional[float] = None,
-    assigned_in_this_cycle: Optional[Dict] = None
+    assigned_in_this_cycle: Optional[Dict] = None,
+    same_location_radius: Optional[float] = None,
+    same_location_max_packages: Optional[int] = None
 ) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Şirkete ait uygun kuryeleri getirir ve kategorize eder.
@@ -344,6 +346,8 @@ async def get_eligible_couriers(
         target_delivery_location: Hedef siparişin teslimat konumu (detour için)
         max_detour: Maksimum izin verilen rota sapması (metre)
         assigned_in_this_cycle: Bu döngüde atanan sipariş sayısı {courier_id: count}
+        same_location_radius: Aynı konum sayılacak mesafe (metre)
+        same_location_max_packages: Aynı konumda maksimum paket limiti
     
     Returns:
         (idle_couriers, pickup_couriers, one_on_way_couriers)
@@ -376,7 +380,9 @@ async def get_eligible_couriers(
             target_restaurant_location,
             target_delivery_location,
             max_detour,
-            assigned_in_this_cycle
+            assigned_in_this_cycle,
+            same_location_radius,
+            same_location_max_packages
         )
         
         if not eligible:
