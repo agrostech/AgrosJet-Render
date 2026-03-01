@@ -24,7 +24,7 @@ class DispatchSettingsUpdate(BaseModel):
     max_wait_time: int  # dakika
     fairness_threshold: int  # metre
     fairness_enabled: bool
-    max_detour: int  # metre - Pickup aşamasında maksimum rota sapması
+    max_detour: int  # metre - Pozitif: ekstra sapma toleransı, Negatif: minimum tasarruf gereksinimi
     same_location_radius: int = 30  # metre - Aynı konum sayılacak mesafe
     same_location_max_packages: int = 10  # Aynı konumda maksimum paket
     # Açı kontrolü ayarları
@@ -34,7 +34,6 @@ class DispatchSettingsUpdate(BaseModel):
     # Detour kontrolü ayarları
     detour_check_enabled: bool = True
     detour_skip_distance: int = 500  # metre
-    min_savings_threshold: int = 0  # metre - Minimum tasarruf eşiği
 
 
 @router.get("/settings/{company_id}")
