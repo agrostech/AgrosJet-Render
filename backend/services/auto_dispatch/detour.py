@@ -187,7 +187,11 @@ def should_combine_orders(
     
     # Negatif detour = birleştirmek daha verimli (tasarruf)
     if detour < 0:
-        return True, detour, f"{distance_info}, {abs(detour):.0f}m tasarruf"
+        savings = abs(detour)
+        # Minimum tasarruf eşiği kontrolü
+        if min_savings_threshold > 0 and savings < min_savings_threshold:
+            return False, detour, f"Tasarruf ({savings:.0f}m) < Min. Eşik ({min_savings_threshold:.0f}m) - ayrı kurye gerekli"
+        return True, detour, f"{distance_info}, {savings:.0f}m tasarruf"
     
     # Pozitif detour - eşik kontrolü (ekstra mesafe)
     if detour <= max_detour:
