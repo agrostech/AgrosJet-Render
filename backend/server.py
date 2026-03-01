@@ -291,6 +291,23 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
+    # Otomatik Atama Job'ı (her 30 saniyede)
+    async def auto_dispatch_job():
+        try:
+            from services.auto_dispatch import run_all_companies_dispatch
+            await run_all_companies_dispatch()
+        except Exception as e:
+            print(f"Auto dispatch error: {e}")
+    
+    scheduler.add_job(
+        auto_dispatch_job,
+        'interval',
+        seconds=30,
+        id="auto_dispatch",
+        name="Auto Dispatch (30s)",
+        replace_existing=True
+    )
+    
     # Scheduler'ı shift_scheduler modülüne kaydet
     from utils.shift_scheduler import set_scheduler, load_shift_jobs
     set_scheduler(scheduler)
