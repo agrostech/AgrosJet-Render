@@ -81,7 +81,12 @@ export default function SistemPage({ companyId }) {
     fairness_enabled: false,
     max_detour: 700,
     same_location_radius: 30,
-    same_location_max_packages: 10
+    same_location_max_packages: 10,
+    angle_check_enabled: true,
+    angle_skip_distance: 1000,
+    max_angle_diff: 90,
+    detour_check_enabled: true,
+    detour_skip_distance: 500
   });
   const [autoDispatchLoading, setAutoDispatchLoading] = useState(true);
   const [autoDispatchSaving, setAutoDispatchSaving] = useState(false);
