@@ -971,3 +971,39 @@ async def save_courier_fcm_token(data: FCMTokenRequest):
     
     return {"success": True, "message": "FCM token kaydedildi"}
 
+
+
+# --- Kurye Maksimum Paket Kapasitesi ---
+class MaxPackagesUpdate(BaseModel):
+    max_packages: int
+
+
+@router.get("/couriers/{courier_id}/max-packages")
+async def get_courier_max_packages(courier_id: str):
+    """Kuryenin maksimum paket kapasitesini getir"""
+    courier = await db.couriers.find_one(
+        {"id": courier_id}, 
+        {"_id": 0, "max_packages": 1}
+    )
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    return {"max_packages": courier.get("max_packages", 5)}
+
+
+@router.put("/couriers/{courier_id}/max-packages")
+async def update_courier_max_packages(courier_id: str, data: MaxPackagesUpdate):
+    """Kuryenin maksimum paket kapasitesini güncelle"""
+    if data.max_packages < 1 or data.max_packages > 20:
+        raise HTTPException(status_code=400, detail="Maksimum paket 1-20 arasında olmalı")
+    
+    result = await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"max_packages": data.max_packages}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    return {"message": "Maksimum paket kapasitesi güncellendi"}
+
