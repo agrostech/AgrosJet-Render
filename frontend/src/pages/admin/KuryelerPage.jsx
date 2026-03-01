@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Switch } from "@/components/ui/switch";
-import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
