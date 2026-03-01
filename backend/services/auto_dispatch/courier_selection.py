@@ -233,9 +233,6 @@ async def is_courier_eligible(
     if total_active_count >= max_packages:
         return False, f"Kapasite dolu: {total_active_count}/{max_packages} (DB:{db_active_count} + Döngü:{cycle_assigned_count})", {}
     
-    if active_count >= max_packages:
-        return False, f"Kapasite dolu: {active_count}/{max_packages}", {}
-    
     # Yolda sipariş kontrolü
     on_way_orders = await get_courier_on_the_way_orders(courier_id, company_id)
     on_way_count = len(on_way_orders)
@@ -245,7 +242,7 @@ async def is_courier_eligible(
     
     # RESTORAN GRUBU KONTROLÜ (KRİTİK)
     # Boş olmayan kurye için grup uyumluluğu kontrol edilmeli
-    if active_count > 0 and target_restaurant_id:
+    if db_active_count > 0 and target_restaurant_id:
         compatible, reason = await is_courier_compatible_with_restaurant_group(
             courier_id, company_id, target_restaurant_id
         )
