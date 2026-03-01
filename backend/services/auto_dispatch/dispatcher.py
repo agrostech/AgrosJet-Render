@@ -545,11 +545,11 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
         if best_match and best_score < 99999:
             order = best_match["order"]
             courier = best_match["courier"]
+            courier_data = {"courier": courier, "type": "best_match", "score": best_score}
             
-            result = await assign_courier_to_order(
-                order.get("id"),
-                courier.get("id"),
-                company_id,
+            result = await assign_order_to_courier(
+                order,
+                courier_data,
                 f"En iyi eşleşme (skor: {best_score:.0f})"
             )
             
