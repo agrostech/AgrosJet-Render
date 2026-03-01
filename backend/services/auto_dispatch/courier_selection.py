@@ -2,6 +2,13 @@
 Otomatik Atama Sistemi - Kurye Seçimi ve Filtreleme
 
 Kurye adaylık kontrolü, kapasite kontrolü ve sıralama işlemleri.
+
+RESTORAN GRUBU KURALI (KRİTİK):
+- Bir kurye üzerinde birden fazla sipariş olabilmesi için siparişlerin 
+  restoranları AYNI restoran grubunda olmalıdır.
+- Eğer kurye üzerinde aktif sipariş varsa ve yeni siparişin restoran grubu 
+  farklıysa → kurye aday listesinden çıkarılır.
+- Boş kurye için grup kısıtı yoktur.
 """
 
 from typing import List, Dict, Any, Optional, Tuple
@@ -15,6 +22,102 @@ from .config import (
     DEFAULT_MAX_PACKAGES,
 )
 from .distance import calculate_distance_meters
+
+
+async def get_restaurant_group_for_restaurant(restaurant_id: str, company_id: str) -> Optional[str]:
+    """
+    Bir restoranın ait olduğu grup ID'sini bulur.
+    
+    Returns:
+        group_id: Grup ID veya None (grupsuz)
+    """
+    group = await db.restaurant_groups.find_one(
+        {
+            "company_id": company_id,
+            "restaurant_ids": restaurant_id
+        },
+        {"_id": 0, "id": 1}
+    )
+    return group.get("id") if group else None
+
+
+async def get_courier_active_restaurant_group(courier_id: str, company_id: str) -> Optional[str]:
+    """
+    Kuryenin aktif siparişlerinin ait olduğu restoran grubunu bulur.
+    
+    Returns:
+        group_id: Kuryenin aktif siparişlerinin grubu veya None (boş kurye veya grupsuz)
+    """
+    # Kuryenin aktif siparişlerini al
+    active_order = await db.orders.find_one(
+        {
+            "courier_id": courier_id,
+            "company_id": company_id,
+            "status": {"$in": ACTIVE_ORDER_STATUSES}
+        },
+        {"_id": 0, "restaurant_id": 1}
+    )
+    
+    if not active_order:
+        return None  # Boş kurye
+    
+    # Bu restoranın grubunu bul
+    restaurant_id = active_order.get("restaurant_id")
+    if not restaurant_id:
+        return None
+    
+    return await get_restaurant_group_for_restaurant(restaurant_id, company_id)
+
+
+async def is_courier_compatible_with_restaurant_group(
+    courier_id: str, 
+    company_id: str, 
+    target_restaurant_id: str
+) -> Tuple[bool, str]:
+    """
+    Kuryenin yeni siparişin restoran grubuyla uyumlu olup olmadığını kontrol eder.
+    
+    KURAL:
+    - Boş kurye → Her zaman uyumlu
+    - Aktif siparişi var → Yeni sipariş aynı grupta olmalı
+    
+    Returns:
+        (compatible: bool, reason: str)
+    """
+    # Kuryenin mevcut aktif siparişlerinin grubunu bul
+    courier_group = await get_courier_active_restaurant_group(courier_id, company_id)
+    
+    # Kurye boşsa (grubu yok) → her zaman uyumlu
+    if courier_group is None:
+        # Kuryenin gerçekten boş olup olmadığını kontrol et
+        active_count = await db.orders.count_documents({
+            "courier_id": courier_id,
+            "company_id": company_id,
+            "status": {"$in": ACTIVE_ORDER_STATUSES}
+        })
+        if active_count == 0:
+            return True, "Boş kurye - grup kısıtı yok"
+        else:
+            # Aktif siparişi var ama grupsuz restorandan
+            # Yeni siparişin grubu da grupsuz mu kontrol et
+            target_group = await get_restaurant_group_for_restaurant(target_restaurant_id, company_id)
+            if target_group is None:
+                return True, "Her iki restoran da grupsuz"
+            else:
+                return False, "Kuryenin grupsuz restoranı var, yeni sipariş gruplu"
+    
+    # Kuryenin aktif grubu var - yeni siparişin grubunu kontrol et
+    target_group = await get_restaurant_group_for_restaurant(target_restaurant_id, company_id)
+    
+    # Yeni sipariş grupsuzsa
+    if target_group is None:
+        return False, "Kurye başka bir grupta aktif, yeni sipariş grupsuz"
+    
+    # Her ikisi de gruplu - aynı grup mu?
+    if courier_group == target_group:
+        return True, "Aynı restoran grubunda"
+    else:
+        return False, f"Farklı restoran grupları: kurye={courier_group}, yeni={target_group}"
 
 
 async def get_courier_active_orders(courier_id: str, company_id: str) -> List[Dict]:
