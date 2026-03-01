@@ -290,33 +290,41 @@ async def is_courier_eligible(
         if not compatible:
             return False, f"Restoran grubu uyumsuz: {reason}", {}
     
-    # ROTA SAPMASI (DETOUR) KONTROLÜ
+    # ROTA SAPMASI (DETOUR) VE AÇI KONTROLÜ
     # Pickup aşamasında (yolda paketi yok) ve aktif siparişi varken (DB veya döngü içi)
     if on_way_count == 0 and (db_active_count > 0 or cycle_assigned_count > 0) and max_detour is not None:
         if target_restaurant_location and target_delivery_location:
-            # Mevcut teslimat konumunu al: önce DB'den, yoksa döngü içinden
-            existing_delivery = None
+            # TÜM mevcut teslimat konumlarını topla
+            all_existing_deliveries = []
             
-            if db_active_count > 0:
-                existing_delivery = active_orders[0].get("delivery_location")
-            elif cycle_assigned_count > 0 and cycle_assigned_locations[0]:
-                existing_delivery = cycle_assigned_locations[0]
+            # DB'deki aktif siparişlerin teslimat konumları
+            for order in active_orders:
+                dl = order.get("delivery_location")
+                if dl:
+                    ex_lat = dl.get("lat") or dl.get("latitude")
+                    ex_lng = dl.get("lng") or dl.get("longitude")
+                    if ex_lat is not None and ex_lng is not None:
+                        all_existing_deliveries.append(dl)
             
-            # existing_delivery'nin geçerli koordinatları olup olmadığını kontrol et
-            if existing_delivery:
-                ex_lat = existing_delivery.get("lat") or existing_delivery.get("latitude")
-                ex_lng = existing_delivery.get("lng") or existing_delivery.get("longitude")
+            # Bu döngüde atanan siparişlerin teslimat konumları
+            for dl in cycle_assigned_locations:
+                if dl:
+                    ex_lat = dl.get("lat") or dl.get("latitude")
+                    ex_lng = dl.get("lng") or dl.get("longitude")
+                    if ex_lat is not None and ex_lng is not None:
+                        all_existing_deliveries.append(dl)
+            
+            # HER mevcut siparişle açı ve detour kontrolü yap
+            for existing_delivery in all_existing_deliveries:
+                can_combine, detour_value, detour_reason = should_combine_orders(
+                    target_restaurant_location,
+                    existing_delivery,
+                    target_delivery_location,
+                    max_detour
+                )
                 
-                if ex_lat is not None and ex_lng is not None:
-                    can_combine, detour_value, detour_reason = should_combine_orders(
-                        target_restaurant_location,
-                        existing_delivery,
-                        target_delivery_location,
-                        max_detour
-                    )
-                    
-                    if not can_combine:
-                        return False, f"Detour aşıldı: {detour_reason}", {}
+                if not can_combine:
+                    return False, f"Rota uyumsuz: {detour_reason}", {}
     
     # Kurye tipi belirleme (total_active_count kullan)
     if on_way_count == 0 and total_active_count == 0:
