@@ -251,7 +251,7 @@ async def is_courier_eligible(
     
     # ROTA SAPMASI (DETOUR) KONTROLÜ
     # Sadece pickup aşamasında (yolda paketi yok) ve aktif siparişi varken
-    if on_way_count == 0 and active_count > 0 and max_detour is not None:
+    if on_way_count == 0 and db_active_count > 0 and max_detour is not None:
         if target_restaurant_location and target_delivery_location:
             # Kuryenin mevcut siparişinin teslimat konumunu al
             existing_delivery = active_orders[0].get("delivery_location")
@@ -268,9 +268,9 @@ async def is_courier_eligible(
                     return False, f"Detour aşıldı: {detour_reason}", {}
     
     # Kurye tipi belirleme
-    if on_way_count == 0 and active_count == 0:
+    if on_way_count == 0 and db_active_count == 0:
         return True, "Boş kurye", {"type": "idle", "on_way_order": None, "active_orders": []}
-    elif on_way_count == 0 and active_count > 0:
+    elif on_way_count == 0 and db_active_count > 0:
         return True, "Pickup aşamasında (yolda yok, aktif var)", {"type": "pickup_with_orders", "on_way_order": None, "active_orders": active_orders}
     else:
         return True, "1 yolda siparişli kurye", {"type": "one_on_way", "on_way_order": on_way_orders[0], "active_orders": active_orders}
