@@ -396,6 +396,7 @@ export default function KuryelerPage({ companyId }) {
         onPricing={openPricingModal}
         onPaymentMethods={openPaymentMethodsModal}
         onFinance={openFinanceModal}
+        onMaxPackages={openMaxPackagesModal}
       />
 
       {/* Mobile Cards */}
@@ -414,6 +415,7 @@ export default function KuryelerPage({ companyId }) {
         onPricing={openPricingModal}
         onPaymentMethods={openPaymentMethodsModal}
         onFinance={openFinanceModal}
+        onMaxPackages={openMaxPackagesModal}
       />
 
       {/* Modals */}
