@@ -304,6 +304,7 @@ async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
     
     for order in waiting_orders:
         order_id = order.get("id")
+        restaurant_id = order.get("restaurant_id")  # Restoran grubu kontrolü için
         waiting_courier_id = order.get("dispatch_waiting_courier_id")
         waiting_started = order.get("dispatch_waiting_started")
         restaurant_location = order.get("restaurant_location")
@@ -317,7 +318,11 @@ async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
                 # FALLBACK - Süre doldu, en yakın boş kuryeye ata
                 await clear_order_waiting(order_id)
                 
-                idle_couriers, _ = await get_eligible_couriers(company_id)
+                # Restoran grubu kontrolü ile kurye getir
+                idle_couriers, _ = await get_eligible_couriers(
+                    company_id,
+                    target_restaurant_id=restaurant_id
+                )
                 best_idle, d_idle_min = await find_best_idle_courier(
                     idle_couriers, 
                     restaurant_location, 
@@ -339,7 +344,7 @@ async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
                     results.append({
                         "order_id": order_id,
                         "action": "fallback_no_courier",
-                        "reason": "Fallback için boş kurye bulunamadı"
+                        "reason": "Fallback için uygun kurye bulunamadı (grup kısıtı dahil)"
                     })
                 continue
         
