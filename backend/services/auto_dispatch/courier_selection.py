@@ -236,9 +236,16 @@ async def is_courier_eligible(
         return True, "1 yolda siparişli kurye", {"type": "one_on_way", "on_way_order": on_way_orders[0]}
 
 
-async def get_eligible_couriers(company_id: str) -> Tuple[List[Dict], List[Dict]]:
+async def get_eligible_couriers(
+    company_id: str,
+    target_restaurant_id: Optional[str] = None
+) -> Tuple[List[Dict], List[Dict]]:
     """
     Şirkete ait uygun kuryeleri getirir ve kategorize eder.
+    
+    Args:
+        company_id: Şirket ID
+        target_restaurant_id: Hedef siparişin restoran ID'si (grup kontrolü için)
     
     Returns:
         (idle_couriers, one_on_way_couriers)
@@ -261,7 +268,9 @@ async def get_eligible_couriers(company_id: str) -> Tuple[List[Dict], List[Dict]
     one_on_way_couriers = []
     
     for courier in couriers:
-        eligible, reason, extra = await is_courier_eligible(courier, company_id)
+        eligible, reason, extra = await is_courier_eligible(
+            courier, company_id, target_restaurant_id
+        )
         
         if not eligible:
             continue
