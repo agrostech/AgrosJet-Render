@@ -71,6 +71,18 @@ export default function SistemPage({ companyId }) {
   });
   const [workingHoursSaving, setWorkingHoursSaving] = useState(false);
 
+  // Auto Dispatch Settings
+  const [autoDispatchExpanded, setAutoDispatchExpanded] = useState(false);
+  const [autoDispatchSettings, setAutoDispatchSettings] = useState({
+    enabled: false,
+    distance_tolerance: 500,
+    max_wait_time: 5,
+    fairness_threshold: 200,
+    fairness_enabled: false
+  });
+  const [autoDispatchLoading, setAutoDispatchLoading] = useState(true);
+  const [autoDispatchSaving, setAutoDispatchSaving] = useState(false);
+
   useEffect(() => {
     fetchCompanyInfo();
     fetchEmailSettings();
