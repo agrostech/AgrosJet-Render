@@ -1,0 +1,289 @@
+"""
+Otomatik Atama Sistemi - Kurye Seçimi ve Filtreleme
+
+Kurye adaylık kontrolü, kapasite kontrolü ve sıralama işlemleri.
+"""
+
+from typing import List, Dict, Any, Optional, Tuple
+from datetime import datetime, timedelta, timezone
+from utils.database import db
+
+from .config import (
+    ELIGIBLE_COURIER_STATUSES,
+    ACTIVE_ORDER_STATUSES,
+    ON_THE_WAY_STATUS,
+    DEFAULT_MAX_PACKAGES,
+)
+from .distance import calculate_distance_meters
+
+
+async def get_courier_active_orders(courier_id: str, company_id: str) -> List[Dict]:
+    """
+    Kuryenin aktif siparişlerini getirir.
+    
+    Returns:
+        Aktif siparişler listesi
+    """
+    orders = await db.orders.find(
+        {
+            "courier_id": courier_id,
+            "company_id": company_id,
+            "status": {"$in": ACTIVE_ORDER_STATUSES}
+        },
+        {"_id": 0, "id": 1, "status": 1, "delivery_location": 1}
+    ).to_list(100)
+    
+    return orders
+
+
+async def get_courier_on_the_way_orders(courier_id: str, company_id: str) -> List[Dict]:
+    """
+    Kuryenin yolda olan siparişlerini getirir.
+    
+    Returns:
+        Yolda siparişler listesi
+    """
+    orders = await db.orders.find(
+        {
+            "courier_id": courier_id,
+            "company_id": company_id,
+            "status": ON_THE_WAY_STATUS
+        },
+        {"_id": 0, "id": 1, "delivery_location": 1}
+    ).to_list(100)
+    
+    return orders
+
+
+async def get_courier_order_count_last_hour(courier_id: str, company_id: str) -> int:
+    """
+    Kuryenin son 1 saatte aldığı sipariş sayısını getirir.
+    Adalet filtresi için kullanılır.
+    """
+    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    
+    count = await db.orders.count_documents({
+        "courier_id": courier_id,
+        "company_id": company_id,
+        "assigned_at": {"$gte": one_hour_ago}
+    })
+    
+    return count
+
+
+async def is_courier_eligible(courier: Dict, company_id: str) -> Tuple[bool, str, Dict]:
+    """
+    Kuryenin aday olup olmadığını kontrol eder.
+    
+    Returns:
+        (eligible: bool, reason: str, extra_data: dict)
+        extra_data: {"type": "idle"|"one_on_way", "on_way_order": order|None}
+    """
+    courier_id = courier.get("id")
+    
+    # Durum kontrolü
+    if courier.get("status") not in ELIGIBLE_COURIER_STATUSES:
+        return False, f"Kurye durumu uygun değil: {courier.get('status')}", {}
+    
+    # Mola kontrolü
+    if courier.get("is_on_break"):
+        return False, "Kurye molada", {}
+    
+    # Konum kontrolü
+    if not courier.get("current_location"):
+        return False, "Kurye konumu yok", {}
+    
+    # Kapasite kontrolü
+    max_packages = courier.get("max_packages", DEFAULT_MAX_PACKAGES)
+    active_orders = await get_courier_active_orders(courier_id, company_id)
+    active_count = len(active_orders)
+    
+    if active_count >= max_packages:
+        return False, f"Kapasite dolu: {active_count}/{max_packages}", {}
+    
+    # Yolda sipariş kontrolü
+    on_way_orders = await get_courier_on_the_way_orders(courier_id, company_id)
+    on_way_count = len(on_way_orders)
+    
+    if on_way_count >= 2:
+        return False, f"2+ yolda sipariş var: {on_way_count}", {}
+    
+    # Kurye tipi belirleme
+    if on_way_count == 0:
+        return True, "Boş kurye", {"type": "idle", "on_way_order": None}
+    else:
+        return True, "1 yolda siparişli kurye", {"type": "one_on_way", "on_way_order": on_way_orders[0]}
+
+
+async def get_eligible_couriers(company_id: str) -> Tuple[List[Dict], List[Dict]]:
+    """
+    Şirkete ait uygun kuryeleri getirir ve kategorize eder.
+    
+    Returns:
+        (idle_couriers, one_on_way_couriers)
+        Her kurye dict'i şunları içerir:
+        - courier: Kurye bilgileri
+        - type: "idle" veya "one_on_way"
+        - on_way_order: Yolda sipariş (varsa)
+    """
+    # Aktif kuryeleri getir
+    couriers = await db.couriers.find(
+        {
+            "company_id": company_id,
+            "status": {"$in": ELIGIBLE_COURIER_STATUSES},
+            "is_on_break": {"$ne": True}
+        },
+        {"_id": 0}
+    ).to_list(500)
+    
+    idle_couriers = []
+    one_on_way_couriers = []
+    
+    for courier in couriers:
+        eligible, reason, extra = await is_courier_eligible(courier, company_id)
+        
+        if not eligible:
+            continue
+        
+        courier_data = {
+            "courier": courier,
+            "type": extra.get("type"),
+            "on_way_order": extra.get("on_way_order")
+        }
+        
+        if extra.get("type") == "idle":
+            idle_couriers.append(courier_data)
+        else:
+            one_on_way_couriers.append(courier_data)
+    
+    return idle_couriers, one_on_way_couriers
+
+
+def calculate_idle_courier_distance(courier_data: Dict, restaurant_location: Dict) -> Optional[float]:
+    """
+    Boş kuryenin restorana olan mesafesini hesaplar.
+    D_idle = KuryeKonumu → RestoranKonumu
+    """
+    courier = courier_data.get("courier", {})
+    courier_location = courier.get("current_location")
+    
+    return calculate_distance_meters(courier_location, restaurant_location)
+
+
+def calculate_return_courier_distance(courier_data: Dict, restaurant_location: Dict) -> Optional[float]:
+    """
+    1 yolda siparişli kuryenin dönüş mesafesini hesaplar.
+    D_return = MüşteriKonumu (mevcut teslimat) → RestoranKonumu
+    """
+    on_way_order = courier_data.get("on_way_order", {})
+    delivery_location = on_way_order.get("delivery_location")
+    
+    return calculate_distance_meters(delivery_location, restaurant_location)
+
+
+async def find_best_idle_courier(
+    idle_couriers: List[Dict], 
+    restaurant_location: Dict,
+    company_id: str,
+    fairness_enabled: bool = False,
+    fairness_threshold: float = 200
+) -> Tuple[Optional[Dict], Optional[float]]:
+    """
+    En uygun boş kuryeyi bulur.
+    
+    Returns:
+        (best_courier_data, d_idle_min)
+    """
+    if not idle_couriers:
+        return None, None
+    
+    # Her kurye için mesafe hesapla
+    couriers_with_distance = []
+    for courier_data in idle_couriers:
+        distance = calculate_idle_courier_distance(courier_data, restaurant_location)
+        if distance is not None:
+            couriers_with_distance.append({
+                **courier_data,
+                "distance": distance
+            })
+    
+    if not couriers_with_distance:
+        return None, None
+    
+    # Mesafeye göre sırala
+    couriers_with_distance.sort(key=lambda x: x["distance"])
+    
+    best = couriers_with_distance[0]
+    d_idle_min = best["distance"]
+    
+    # Adalet filtresi kontrolü
+    if fairness_enabled and len(couriers_with_distance) > 1:
+        # Eşik içindeki kuryeleri bul
+        candidates_in_threshold = [
+            c for c in couriers_with_distance 
+            if c["distance"] <= d_idle_min + fairness_threshold
+        ]
+        
+        if len(candidates_in_threshold) > 1:
+            # Son 1 saatte en az sipariş alan kuryeyi seç
+            for candidate in candidates_in_threshold:
+                courier_id = candidate["courier"]["id"]
+                candidate["orders_last_hour"] = await get_courier_order_count_last_hour(courier_id, company_id)
+            
+            candidates_in_threshold.sort(key=lambda x: x["orders_last_hour"])
+            best = candidates_in_threshold[0]
+    
+    return best, d_idle_min
+
+
+async def find_best_return_courier(
+    one_on_way_couriers: List[Dict], 
+    restaurant_location: Dict,
+    company_id: str,
+    fairness_enabled: bool = False,
+    fairness_threshold: float = 200
+) -> Tuple[Optional[Dict], Optional[float]]:
+    """
+    En uygun 1-yolda kuryeyi bulur.
+    
+    Returns:
+        (best_courier_data, d_return_min)
+    """
+    if not one_on_way_couriers:
+        return None, None
+    
+    # Her kurye için dönüş mesafesi hesapla
+    couriers_with_distance = []
+    for courier_data in one_on_way_couriers:
+        distance = calculate_return_courier_distance(courier_data, restaurant_location)
+        if distance is not None:
+            couriers_with_distance.append({
+                **courier_data,
+                "distance": distance
+            })
+    
+    if not couriers_with_distance:
+        return None, None
+    
+    # Mesafeye göre sırala
+    couriers_with_distance.sort(key=lambda x: x["distance"])
+    
+    best = couriers_with_distance[0]
+    d_return_min = best["distance"]
+    
+    # Adalet filtresi kontrolü
+    if fairness_enabled and len(couriers_with_distance) > 1:
+        candidates_in_threshold = [
+            c for c in couriers_with_distance 
+            if c["distance"] <= d_return_min + fairness_threshold
+        ]
+        
+        if len(candidates_in_threshold) > 1:
+            for candidate in candidates_in_threshold:
+                courier_id = candidate["courier"]["id"]
+                candidate["orders_last_hour"] = await get_courier_order_count_last_hour(courier_id, company_id)
+            
+            candidates_in_threshold.sort(key=lambda x: x["orders_last_hour"])
+            best = candidates_in_threshold[0]
+    
+    return best, d_return_min
