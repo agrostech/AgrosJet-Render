@@ -299,6 +299,36 @@ export default function KuryelerPage({ companyId }) {
     }
   };
 
+  // Maksimum paket modalını aç
+  const openMaxPackagesModal = async (courier) => {
+    setSelectedCourier(courier);
+    try {
+      const res = await axios.get(`${API}/couriers/${courier.id}/max-packages`);
+      setMaxPackages(res.data.max_packages?.toString() || "5");
+    } catch (err) {
+      setMaxPackages("5");
+    }
+    setShowMaxPackagesModal(true);
+  };
+
+  // Maksimum paket kaydet
+  const handleSaveMaxPackages = async () => {
+    try {
+      const value = parseInt(maxPackages) || 5;
+      if (value < 1 || value > 20) {
+        toast.error("Maksimum paket 1-20 arasında olmalı");
+        return;
+      }
+      await axios.put(`${API}/couriers/${selectedCourier.id}/max-packages`, {
+        max_packages: value
+      });
+      toast.success("Maksimum paket kapasitesi kaydedildi");
+      setShowMaxPackagesModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    }
+  };
+
   if (loading) return <PageLoading />;
 
   return (
