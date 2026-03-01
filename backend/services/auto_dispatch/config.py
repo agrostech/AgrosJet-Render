@@ -16,6 +16,11 @@ DEFAULT_SETTINGS = {
     "check_interval": 30,  # saniye - Dispatch kontrolü aralığı
     "same_location_radius": 30,  # metre - "aynı konum" sayılacak mesafe
     "same_location_max_packages": 10,  # aynı konumda maksimum paket limiti
+    "angle_check_enabled": True,  # Açı kontrolü aktif mi
+    "angle_skip_distance": 1000,  # metre - Bu mesafeden yakın paketler için açı kontrolü atlanır
+    "max_angle_diff": 90,  # derece - Maksimum açı farkı
+    "detour_check_enabled": True,  # Detour kontrolü aktif mi
+    "detour_skip_distance": 500,  # metre - Bu mesafeden yakın paketler için detour kontrolü atlanır
 }
 
 # Kurye varsayılan maksimum paket kapasitesi
