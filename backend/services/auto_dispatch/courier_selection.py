@@ -394,8 +394,7 @@ async def get_eligible_couriers(
     angle_skip_distance: Optional[float] = None,
     max_angle_diff: Optional[float] = None,
     detour_check_enabled: bool = True,
-    detour_skip_distance: Optional[float] = None,
-    min_savings_threshold: Optional[float] = None
+    detour_skip_distance: Optional[float] = None
 ) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Şirkete ait uygun kuryeleri getirir ve kategorize eder.
