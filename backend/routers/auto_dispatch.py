@@ -25,6 +25,8 @@ class DispatchSettingsUpdate(BaseModel):
     fairness_threshold: int  # metre
     fairness_enabled: bool
     max_detour: int  # metre - Pickup aşamasında maksimum rota sapması
+    same_location_radius: int = 30  # metre - Aynı konum sayılacak mesafe
+    same_location_max_packages: int = 10  # Aynı konumda maksimum paket
 
 
 @router.get("/settings/{company_id}")
@@ -44,6 +46,8 @@ async def update_settings(company_id: str, data: DispatchSettingsUpdate):
         "fairness_threshold": data.fairness_threshold,
         "fairness_enabled": data.fairness_enabled,
         "max_detour": data.max_detour,
+        "same_location_radius": data.same_location_radius,
+        "same_location_max_packages": data.same_location_max_packages,
     }
     
     result = await update_dispatch_settings(company_id, settings)
