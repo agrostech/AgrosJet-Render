@@ -78,7 +78,8 @@ export default function SistemPage({ companyId }) {
     distance_tolerance: 500,
     max_wait_time: 5,
     fairness_threshold: 200,
-    fairness_enabled: false
+    fairness_enabled: false,
+    max_detour: 700
   });
   const [autoDispatchLoading, setAutoDispatchLoading] = useState(true);
   const [autoDispatchSaving, setAutoDispatchSaving] = useState(false);
