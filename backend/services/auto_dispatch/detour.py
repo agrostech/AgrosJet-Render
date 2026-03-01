@@ -119,7 +119,8 @@ def should_combine_orders(
     delivery_location_b: Dict,
     max_detour: float,
     max_angle_diff: float = 90.0,
-    angle_skip_distance: float = 1000.0
+    angle_skip_distance: float = 1000.0,
+    detour_skip_distance: float = 500.0
 ) -> Tuple[bool, float, str]:
     """
     İki siparişin aynı kuryeye atanıp atanamayacağını belirler.
@@ -131,6 +132,7 @@ def should_combine_orders(
         max_detour: Maksimum izin verilen rota sapması (metre)
         max_angle_diff: Maksimum açı farkı (derece) - varsayılan 90°
         angle_skip_distance: Bu mesafeden yakın paketler için açı kontrolü atlanır (metre) - varsayılan 1000m
+        detour_skip_distance: Bu mesafeden yakın paketler için detour kontrolü atlanır (metre) - varsayılan 500m
     
     Returns:
         (should_combine, detour_value, reason)
@@ -139,12 +141,19 @@ def should_combine_orders(
     dist_a = calculate_distance_meters(restaurant_location, delivery_location_a)
     dist_b = calculate_distance_meters(restaurant_location, delivery_location_b)
     
-    # AÇI KONTROLÜ - Restorana yakın paketler için atla
+    # AÇI KONTROLÜ - Restorana yakın paketler için atla (1km)
     skip_angle_check = False
     if dist_a is not None and dist_a <= angle_skip_distance:
         skip_angle_check = True
     if dist_b is not None and dist_b <= angle_skip_distance:
         skip_angle_check = True
+    
+    # DETOUR KONTROLÜ - Restorana çok yakın paketler için atla (500m)
+    skip_detour_check = False
+    if dist_a is not None and dist_a <= detour_skip_distance:
+        skip_detour_check = True
+    if dist_b is not None and dist_b <= detour_skip_distance:
+        skip_detour_check = True
     
     bearing_a = calculate_bearing(restaurant_location, delivery_location_a)
     bearing_b = calculate_bearing(restaurant_location, delivery_location_b)
@@ -167,7 +176,9 @@ def should_combine_orders(
         return False, 0, "Koordinat eksik - detour hesaplanamadı"
     
     # Bilgi mesajı oluştur
-    if skip_angle_check:
+    if skip_detour_check:
+        return True, detour, f"Yakın paket ({min(dist_a or 9999, dist_b or 9999):.0f}m), detour kontrolü atlandı"
+    elif skip_angle_check:
         distance_info = f"Yakın paket ({min(dist_a or 9999, dist_b or 9999):.0f}m), açı kontrolü atlandı"
     else:
         distance_info = f"Açı farkı: {angle_diff:.0f}°"
