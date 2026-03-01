@@ -61,6 +61,7 @@ async def update_settings(company_id: str, data: DispatchSettingsUpdate):
         "max_angle_diff": data.max_angle_diff,
         "detour_check_enabled": data.detour_check_enabled,
         "detour_skip_distance": data.detour_skip_distance,
+        "min_savings_threshold": data.min_savings_threshold,
     }
     
     result = await update_dispatch_settings(company_id, settings)
