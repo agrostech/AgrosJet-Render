@@ -847,13 +847,6 @@ export default function SistemPage({ companyId }) {
             </div>
           )
         )}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {autoDispatchSaving ? "Kaydediliyor..." : "Kaydet"}
-              </Button>
-            </div>
-          )
-        )}
       </div>
 
       {/* E-posta (SMTP) Ayarları - Collapsible */}
