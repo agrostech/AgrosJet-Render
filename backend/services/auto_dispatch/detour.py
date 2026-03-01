@@ -185,13 +185,25 @@ def should_combine_orders(
     else:
         distance_info = f"Açı farkı: {angle_diff:.0f}°"
     
-    # Negatif detour = birleştirmek daha verimli (tasarruf)
+    # max_detour negatif ise: minimum tasarruf eşiği olarak yorumla
+    # Örnek: max_detour = -500 → en az 500m tasarruf gerekli
+    if max_detour < 0:
+        min_savings_required = abs(max_detour)
+        if detour < 0:
+            # Tasarruf var
+            savings = abs(detour)
+            if savings >= min_savings_required:
+                return True, detour, f"{distance_info}, {savings:.0f}m tasarruf (>= {min_savings_required:.0f}m)"
+            else:
+                return False, detour, f"Tasarruf ({savings:.0f}m) < Gerekli ({min_savings_required:.0f}m) - ayrı kurye"
+        else:
+            # Ekstra mesafe var, tasarruf yok
+            return False, detour, f"Tasarruf yok (detour: +{detour:.0f}m), min {min_savings_required:.0f}m gerekli - ayrı kurye"
+    
+    # max_detour pozitif ise: normal sapma toleransı
+    # Negatif detour = tasarruf var, her zaman kabul
     if detour < 0:
-        savings = abs(detour)
-        # Minimum tasarruf eşiği kontrolü
-        if min_savings_threshold > 0 and savings < min_savings_threshold:
-            return False, detour, f"Tasarruf ({savings:.0f}m) < Min. Eşik ({min_savings_threshold:.0f}m) - ayrı kurye gerekli"
-        return True, detour, f"{distance_info}, {savings:.0f}m tasarruf"
+        return True, detour, f"{distance_info}, {abs(detour):.0f}m tasarruf"
     
     # Pozitif detour - eşik kontrolü (ekstra mesafe)
     if detour <= max_detour:
