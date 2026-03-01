@@ -74,6 +74,10 @@ export default function KuryelerPage({ companyId }) {
   const [showPaymentMethodsModal, setShowPaymentMethodsModal] = useState(false);
   const [allowedPaymentMethods, setAllowedPaymentMethods] = useState(["cash", "card", "online", "meal_card", "online_meal_card"]);
   
+  // Max Packages Modal State
+  const [showMaxPackagesModal, setShowMaxPackagesModal] = useState(false);
+  const [maxPackages, setMaxPackages] = useState("5");
+  
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
