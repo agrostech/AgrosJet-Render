@@ -213,7 +213,12 @@ async def is_courier_eligible(
     max_detour: Optional[float] = None,
     assigned_in_this_cycle: Optional[Dict] = None,
     same_location_radius: Optional[float] = None,
-    same_location_max_packages: Optional[int] = None
+    same_location_max_packages: Optional[int] = None,
+    angle_check_enabled: bool = True,
+    angle_skip_distance: Optional[float] = None,
+    max_angle_diff: Optional[float] = None,
+    detour_check_enabled: bool = True,
+    detour_skip_distance: Optional[float] = None
 ) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
@@ -228,6 +233,11 @@ async def is_courier_eligible(
         assigned_in_this_cycle: Bu döngüde atanan siparişler {courier_id: [delivery_location_list]}
         same_location_radius: Aynı konum sayılacak mesafe (metre)
         same_location_max_packages: Aynı konumda maksimum paket limiti
+        angle_check_enabled: Açı kontrolü aktif mi
+        angle_skip_distance: Bu mesafeden yakın paketler için açı kontrolü atlanır
+        max_angle_diff: Maksimum açı farkı (derece)
+        detour_check_enabled: Detour kontrolü aktif mi
+        detour_skip_distance: Bu mesafeden yakın paketler için detour kontrolü atlanır
     
     Returns:
         (eligible: bool, reason: str, extra_data: dict)
