@@ -205,6 +205,7 @@ async def process_single_order(order: Dict, settings: Dict) -> Dict:
     """
     company_id = order.get("company_id")
     order_id = order.get("id")
+    restaurant_id = order.get("restaurant_id")  # Restoran grubu kontrolü için
     restaurant_location = order.get("restaurant_location")
     
     if not restaurant_location:
@@ -215,8 +216,11 @@ async def process_single_order(order: Dict, settings: Dict) -> Dict:
     fairness_enabled = settings.get("fairness_enabled", False)
     fairness_threshold = settings.get("fairness_threshold", 200)
     
-    # Uygun kuryeleri getir
-    idle_couriers, one_on_way_couriers = await get_eligible_couriers(company_id)
+    # Uygun kuryeleri getir (restoran grubu kontrolü dahil)
+    idle_couriers, one_on_way_couriers = await get_eligible_couriers(
+        company_id, 
+        target_restaurant_id=restaurant_id
+    )
     
     # En iyi boş kuryeyi bul
     best_idle, d_idle_min = await find_best_idle_courier(
