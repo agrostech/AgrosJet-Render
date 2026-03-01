@@ -516,8 +516,7 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
                 angle_skip_distance=angle_skip_distance,
                 max_angle_diff=max_angle_diff,
                 detour_check_enabled=detour_check_enabled,
-                detour_skip_distance=detour_skip_distance,
-                min_savings_threshold=min_savings_threshold
+                detour_skip_distance=detour_skip_distance
             )
             
             all_couriers = idle_couriers + pickup_couriers
