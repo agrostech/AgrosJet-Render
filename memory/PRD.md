@@ -1,54 +1,60 @@
 # Fleet Order System - PRD
 
-## Original Problem Statement
-Multi-panel (Admin, Restaurant, Courier) delivery management application.
-
 ## Completed Features (as of 2026-03-01)
 
-### Latest - Otomatik Atama Sistemi + Restoran Grubu Kuralı
-- [x] **Auto Dispatch System** - Modüler yapı
-- [x] **Restoran Grubu Kuralı (KRİTİK)**
-  - Boş kurye → Tüm siparişlere atanabilir
-  - Aktif siparişi olan kurye → Sadece AYNI restoran grubundan sipariş alabilir
-  - Farklı grup → Kurye aday listesinden çıkarılır
+### Otomatik Atama Sistemi - TAMAMLANDI
 
-### Auto Dispatch Logic
-1. Sipariş sıralama: FIFO (ready_at ASC)
-2. Kurye filtreleme:
-   - Durum: active, mola değil
-   - Kapasite: active_count < max_packages
-   - Yolda: max 1 yolda sipariş
-   - **GRUP: Aktif siparişin grubu == Yeni siparişin grubu**
-3. Mesafe karşılaştırma: D_idle vs D_return + tolerance
-4. Bekleme modu + Fallback
+**İki Katmanlı Model:**
 
-### Previous Sessions
-- [x] Kurye bazlı kademeli ücretlendirme
+| Aşama | Model | Açıklama |
+|-------|-------|----------|
+| **Pickup** | Detour | Yolda paketi olmayan kurye - sipariş birleştirme |
+| **On-the-way** | D_return vs D_idle | 1 yolda paketi olan kurye - bekleme/atama |
+
+**Panel Ayarları:**
+1. Mesafe Toleransı (metre) - D_return vs D_idle karşılaştırması
+2. Maksimum Bekleme Süresi (dk) - Yolda kurye beklerken timeout
+3. Adalet Sistemi + Eşik - Son 1 saat sipariş dağılımı
+4. Maksimum Rota Sapması (metre) - Pickup birleştirme detour limiti
+
+**Detour Formülü:**
+```
+AyrıToplam = (R→A) + (R→B)
+D1 = (R→A) + (A→B)
+D2 = (R→B) + (B→A)
+BirleşikMesafe = min(D1, D2)
+Detour = BirleşikMesafe - AyrıToplam
+
+Detour ≤ max_detour → Birleştir
+Detour > max_detour → Ayrı kurye
+```
+
+**Kısıtlar (Her Zaman Geçerli):**
+- FIFO korunur (ready_at ASC)
+- Restoran grubu kontrolü
+- Kapasite kontrolü (max_packages)
+- Yolda max 1 sipariş
+
+**Dosya Yapısı:**
+```
+/app/backend/services/auto_dispatch/
+├── config.py           # Ayarlar ve sabitler
+├── distance.py         # Haversine mesafe
+├── detour.py           # Rota sapması hesaplama
+├── courier_selection.py # Kurye filtreleme + grup + detour
+└── dispatcher.py       # Ana dispatch mantığı
+```
+
+### Diğer Tamamlanan Özellikler:
+- [x] Kurye kademeli ücretlendirme
 - [x] Kurye maksimum paket kapasitesi
 - [x] Restaurant Groups CRUD
 - [x] Mobile UI Overhaul
-
-## Key Files - Auto Dispatch
-```
-/app/backend/services/auto_dispatch/
-├── config.py           # Constants
-├── distance.py         # Haversine
-├── courier_selection.py # Filtering + GROUP CHECK
-└── dispatcher.py       # Main logic
-```
-
-## Database Collections Used
-- `orders` - Siparişler
-- `couriers` - Kuryeler (max_packages field)
-- `restaurant_groups` - Restoran grupları
-- `companies` - Şirket ayarları (auto_dispatch_settings)
-- `dispatch_logs` - Dispatch logları
-
-## Test Credentials
-- Admin: `superadmin` / `123456`
-- Courier: `5555555555` / `123456`
 
 ## Backlog
 - [ ] `restaurant_fee` calculation
 - [ ] `jobs.py` refactor
 - [ ] Native Courier App
+
+## Test Credentials
+- Admin: `superadmin` / `123456`
