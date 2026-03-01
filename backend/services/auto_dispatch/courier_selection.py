@@ -254,16 +254,17 @@ async def is_courier_eligible(
             if dl:
                 all_delivery_locations.append(dl)
         
-        # Yeni sipariş tüm mevcut siparişlere yakın mı kontrol et
+        # Yeni sipariş EN AZ BİR mevcut siparişe yakın mı kontrol et
+        # (Aynı bina = en az bir siparişle 30m içinde)
         if all_delivery_locations:
-            all_within_radius = True
+            any_within_radius = False
             for existing_dl in all_delivery_locations:
                 distance = calculate_distance_meters(target_delivery_location, existing_dl)
-                if distance is None or distance > same_location_radius:
-                    all_within_radius = False
+                if distance is not None and distance <= same_location_radius:
+                    any_within_radius = True
                     break
             
-            if all_within_radius:
+            if any_within_radius:
                 is_same_location = True
                 effective_max_packages = same_location_max_packages or 10
     
