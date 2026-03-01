@@ -471,6 +471,11 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     max_detour = settings.get("max_detour", 700)
     same_location_radius = settings.get("same_location_radius", 30)
     same_location_max_packages = settings.get("same_location_max_packages", 10)
+    angle_check_enabled = settings.get("angle_check_enabled", True)
+    angle_skip_distance = settings.get("angle_skip_distance", 1000)
+    max_angle_diff = settings.get("max_angle_diff", 90)
+    detour_check_enabled = settings.get("detour_check_enabled", True)
+    detour_skip_distance = settings.get("detour_skip_distance", 500)
     
     # EN İYİ EŞLEŞME DÖNGÜSÜ
     # Her iterasyonda en iyi kurye-sipariş eşleşmesini bul ve ata
@@ -506,7 +511,12 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
                 max_detour=max_detour,
                 assigned_in_this_cycle=assigned_in_this_cycle,
                 same_location_radius=same_location_radius,
-                same_location_max_packages=same_location_max_packages
+                same_location_max_packages=same_location_max_packages,
+                angle_check_enabled=angle_check_enabled,
+                angle_skip_distance=angle_skip_distance,
+                max_angle_diff=max_angle_diff,
+                detour_check_enabled=detour_check_enabled,
+                detour_skip_distance=detour_skip_distance
             )
             
             all_couriers = idle_couriers + pickup_couriers
