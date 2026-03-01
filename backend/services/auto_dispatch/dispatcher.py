@@ -476,7 +476,6 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     max_angle_diff = settings.get("max_angle_diff", 90)
     detour_check_enabled = settings.get("detour_check_enabled", True)
     detour_skip_distance = settings.get("detour_skip_distance", 500)
-    min_savings_threshold = settings.get("min_savings_threshold", 0)
     
     # EN İYİ EŞLEŞME DÖNGÜSÜ
     # Her iterasyonda en iyi kurye-sipariş eşleşmesini bul ve ata
