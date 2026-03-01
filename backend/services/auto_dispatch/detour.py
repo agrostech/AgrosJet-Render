@@ -89,13 +89,15 @@ def should_combine_orders(
     if detour is None:
         return False, 0, "Koordinat eksik - detour hesaplanamadı"
     
-    # Mutlak değer kontrolü - negatif veya pozitif fark etmez
-    abs_detour = abs(detour)
+    # Negatif detour = birleştirmek daha verimli (tasarruf)
+    if detour < 0:
+        return True, detour, f"Negatif detour ({detour:.0f}m) - birleştirmek {abs(detour):.0f}m tasarruf sağlar"
     
-    if abs_detour <= max_detour:
-        return True, detour, f"Detour ({detour:.0f}m, |{abs_detour:.0f}m|) <= Eşik ({max_detour}m) - birleştirilebilir"
+    # Pozitif detour - eşik kontrolü (ekstra mesafe)
+    if detour <= max_detour:
+        return True, detour, f"Detour ({detour:.0f}m) <= Eşik ({max_detour}m) - birleştirilebilir"
     else:
-        return False, detour, f"Detour ({detour:.0f}m, |{abs_detour:.0f}m|) > Eşik ({max_detour}m) - ayrı kurye gerekli"
+        return False, detour, f"Detour ({detour:.0f}m) > Eşik ({max_detour}m) - ayrı kurye gerekli"
 
 
 def calculate_multi_order_detour(
