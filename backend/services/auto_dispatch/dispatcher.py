@@ -426,9 +426,16 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     """
     Tek bir şirket için dispatch döngüsünü çalıştırır.
     
+    EN İYİ EŞLEŞME MODU:
+    - Her kurye için tüm uygun siparişlere bakılır
+    - En düşük skorlu (en iyi eşleşen) sipariş atanır
+    - Bu sayede "ilk gelen alır" yerine "en mantıklı eşleşme" yapılır
+    
     Returns:
         {"processed": int, "assigned": int, "waiting": int, "errors": int}
     """
+    from .detour import calculate_order_match_score
+    
     settings = await get_dispatch_settings(company_id)
     
     # Otomatik atama kapalıysa çık
@@ -437,9 +444,9 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     
     stats = {"processed": 0, "assigned": 0, "waiting": 0, "no_courier": 0, "errors": 0}
     
-    # Bu döngüde atanan siparişleri takip et (kapasite + detour kontrolü için)
-    # {courier_id: [delivery_location_list]} - Her atanan siparişin teslimat konumu
+    # Bu döngüde atanan siparişleri takip et
     assigned_in_this_cycle = {}
+    assigned_order_ids = set()  # Atanan sipariş ID'leri
     
     # Önce bekleme modundaki siparişleri kontrol et
     waiting_results = await check_waiting_orders(company_id, settings)
@@ -448,33 +455,123 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
             stats["assigned"] += 1
             courier_id = result.get("courier_id")
             delivery_loc = result.get("delivery_location")
+            order_id = result.get("order_id")
             if courier_id:
                 if courier_id not in assigned_in_this_cycle:
                     assigned_in_this_cycle[courier_id] = []
                 assigned_in_this_cycle[courier_id].append(delivery_loc)
+            if order_id:
+                assigned_order_ids.add(order_id)
     
-    # Hazır siparişleri işle (FIFO)
+    # Hazır siparişleri al
     ready_orders = await get_ready_orders(company_id)
+    stats["processed"] = len(ready_orders)
     
-    for order in ready_orders:
-        stats["processed"] += 1
-        result = await process_single_order(order, settings, assigned_in_this_cycle)
+    # Ayarları çıkar
+    max_detour = settings.get("max_detour", 700)
+    same_location_radius = settings.get("same_location_radius", 30)
+    same_location_max_packages = settings.get("same_location_max_packages", 10)
+    
+    # EN İYİ EŞLEŞME DÖNGÜSÜ
+    # Her iterasyonda en iyi kurye-sipariş eşleşmesini bul ve ata
+    max_iterations = len(ready_orders) * 2  # Sonsuz döngü koruması
+    iteration = 0
+    
+    while iteration < max_iterations:
+        iteration += 1
+        best_match = None
+        best_score = float('inf')
         
-        action = result.get("action")
-        if action == "assigned":
-            stats["assigned"] += 1
-            courier_id = result.get("courier_id")
-            if courier_id:
+        # Henüz atanmamış siparişleri filtrele
+        unassigned_orders = [o for o in ready_orders if o.get("id") not in assigned_order_ids]
+        
+        if not unassigned_orders:
+            break  # Tüm siparişler atandı
+        
+        # Her sipariş için en iyi kuryeyi bul ve skorla
+        for order in unassigned_orders:
+            restaurant_id = order.get("restaurant_id")
+            restaurant_location = order.get("restaurant_location")
+            delivery_location = order.get("delivery_location")
+            
+            if not restaurant_location:
+                continue
+            
+            # Bu sipariş için uygun kuryeleri getir
+            idle_couriers, pickup_couriers, one_on_way_couriers = await get_eligible_couriers(
+                company_id,
+                target_restaurant_id=restaurant_id,
+                target_restaurant_location=restaurant_location,
+                target_delivery_location=delivery_location,
+                max_detour=max_detour,
+                assigned_in_this_cycle=assigned_in_this_cycle,
+                same_location_radius=same_location_radius,
+                same_location_max_packages=same_location_max_packages
+            )
+            
+            all_couriers = idle_couriers + pickup_couriers
+            
+            for courier_data in all_couriers:
+                courier = courier_data.get("courier")
+                courier_id = courier.get("id")
+                active_orders = courier_data.get("active_orders", [])
+                
+                # Mevcut teslimat konumu (varsa)
+                existing_delivery = None
+                if active_orders:
+                    existing_delivery = active_orders[0].get("delivery_location")
+                elif courier_id in assigned_in_this_cycle and assigned_in_this_cycle[courier_id]:
+                    existing_delivery = assigned_in_this_cycle[courier_id][0]
+                
+                # Skor hesapla
+                score, reason = calculate_order_match_score(
+                    restaurant_location,
+                    existing_delivery,
+                    delivery_location,
+                    max_detour
+                )
+                
+                # En iyi eşleşmeyi kaydet
+                if score < best_score:
+                    best_score = score
+                    best_match = {
+                        "order": order,
+                        "courier": courier,
+                        "score": score,
+                        "reason": reason
+                    }
+        
+        # En iyi eşleşme bulunduysa ata
+        if best_match and best_score < 99999:
+            order = best_match["order"]
+            courier = best_match["courier"]
+            
+            result = await assign_courier_to_order(
+                order.get("id"),
+                courier.get("id"),
+                company_id,
+                f"En iyi eşleşme (skor: {best_score:.0f})"
+            )
+            
+            if result.get("success"):
+                stats["assigned"] += 1
+                courier_id = courier.get("id")
+                assigned_order_ids.add(order.get("id"))
+                
                 if courier_id not in assigned_in_this_cycle:
                     assigned_in_this_cycle[courier_id] = []
-                # Siparişin teslimat konumunu kaydet (detour kontrolü için)
                 assigned_in_this_cycle[courier_id].append(order.get("delivery_location"))
-        elif action == "waiting":
-            stats["waiting"] += 1
-        elif action == "no_courier":
-            stats["no_courier"] += 1
-        elif action == "error":
-            stats["errors"] += 1
+                
+                logger.info(f"Dispatch: En iyi eşleşme - Order {order.get('id')[:8]} → Courier {courier.get('name')} (skor: {best_score:.0f})")
+            else:
+                stats["errors"] += 1
+        else:
+            # Uygun eşleşme bulunamadı, döngüden çık
+            break
+    
+    # Atanamayan siparişleri say
+    unassigned_count = len([o for o in ready_orders if o.get("id") not in assigned_order_ids])
+    stats["no_courier"] = unassigned_count
     
     return stats
 
