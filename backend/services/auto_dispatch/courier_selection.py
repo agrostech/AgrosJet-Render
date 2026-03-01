@@ -48,6 +48,29 @@ async def get_restaurant_group_for_restaurant(restaurant_id: str, company_id: st
     return group.get("id") if group else None
 
 
+async def is_courier_blocked_for_restaurant(courier_id: str, restaurant_id: str) -> bool:
+    """
+    Kuryenin bu restoran tarafından engellenip engellenmediğini kontrol eder.
+    
+    Returns:
+        True: Kurye engellenmiş
+        False: Kurye engellenmemiş
+    """
+    if not restaurant_id:
+        return False
+    
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "blocked_couriers": 1}
+    )
+    
+    if not restaurant:
+        return False
+    
+    blocked_couriers = restaurant.get("blocked_couriers", [])
+    return courier_id in blocked_couriers
+
+
 async def get_courier_active_restaurant_group(courier_id: str, company_id: str) -> Optional[str]:
     """
     Kuryenin aktif siparişlerinin ait olduğu restoran grubunu bulur.
