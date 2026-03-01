@@ -486,6 +486,7 @@ app.include_router(shift_violations_router)
 app.include_router(status_movements_router)
 app.include_router(restaurant_groups_router)
 app.include_router(tiered_pricing_router)
+app.include_router(auto_dispatch_router)
 
 # Health check
 @api_router.get("/")
