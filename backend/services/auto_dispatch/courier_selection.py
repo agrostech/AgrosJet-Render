@@ -274,7 +274,8 @@ async def get_eligible_couriers(
     target_restaurant_id: Optional[str] = None,
     target_restaurant_location: Optional[Dict] = None,
     target_delivery_location: Optional[Dict] = None,
-    max_detour: Optional[float] = None
+    max_detour: Optional[float] = None,
+    assigned_in_this_cycle: Optional[Dict] = None
 ) -> Tuple[List[Dict], List[Dict], List[Dict]]:
     """
     Şirkete ait uygun kuryeleri getirir ve kategorize eder.
@@ -285,6 +286,7 @@ async def get_eligible_couriers(
         target_restaurant_location: Hedef siparişin restoran konumu (detour için)
         target_delivery_location: Hedef siparişin teslimat konumu (detour için)
         max_detour: Maksimum izin verilen rota sapması (metre)
+        assigned_in_this_cycle: Bu döngüde atanan sipariş sayısı {courier_id: count}
     
     Returns:
         (idle_couriers, pickup_couriers, one_on_way_couriers)
@@ -292,6 +294,9 @@ async def get_eligible_couriers(
         - pickup_couriers: Pickup aşamasında (aktif var, yolda yok) - detour uygun
         - one_on_way_couriers: 1 yolda siparişi olan kuryeler
     """
+    if assigned_in_this_cycle is None:
+        assigned_in_this_cycle = {}
+    
     # Aktif kuryeleri getir
     couriers = await db.couriers.find(
         {
@@ -313,7 +318,8 @@ async def get_eligible_couriers(
             target_restaurant_id,
             target_restaurant_location,
             target_delivery_location,
-            max_detour
+            max_detour,
+            assigned_in_this_cycle
         )
         
         if not eligible:
