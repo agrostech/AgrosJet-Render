@@ -174,9 +174,18 @@ async def get_courier_order_count_last_hour(courier_id: str, company_id: str) ->
     return count
 
 
-async def is_courier_eligible(courier: Dict, company_id: str) -> Tuple[bool, str, Dict]:
+async def is_courier_eligible(
+    courier: Dict, 
+    company_id: str,
+    target_restaurant_id: Optional[str] = None
+) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
+    
+    Args:
+        courier: Kurye bilgileri
+        company_id: Şirket ID
+        target_restaurant_id: Hedef siparişin restoran ID'si (grup kontrolü için)
     
     Returns:
         (eligible: bool, reason: str, extra_data: dict)
@@ -210,6 +219,15 @@ async def is_courier_eligible(courier: Dict, company_id: str) -> Tuple[bool, str
     
     if on_way_count >= 2:
         return False, f"2+ yolda sipariş var: {on_way_count}", {}
+    
+    # RESTORAN GRUBU KONTROLÜ (KRİTİK)
+    # Boş olmayan kurye için grup uyumluluğu kontrol edilmeli
+    if active_count > 0 and target_restaurant_id:
+        compatible, reason = await is_courier_compatible_with_restaurant_group(
+            courier_id, company_id, target_restaurant_id
+        )
+        if not compatible:
+            return False, f"Restoran grubu uyumsuz: {reason}", {}
     
     # Kurye tipi belirleme
     if on_way_count == 0:
