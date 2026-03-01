@@ -188,7 +188,9 @@ async def is_courier_eligible(
     target_restaurant_location: Optional[Dict] = None,
     target_delivery_location: Optional[Dict] = None,
     max_detour: Optional[float] = None,
-    assigned_in_this_cycle: Optional[Dict] = None
+    assigned_in_this_cycle: Optional[Dict] = None,
+    same_location_radius: Optional[float] = None,
+    same_location_max_packages: Optional[int] = None
 ) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
@@ -201,6 +203,8 @@ async def is_courier_eligible(
         target_delivery_location: Hedef siparişin teslimat konumu (detour için)
         max_detour: Maksimum izin verilen rota sapması (metre)
         assigned_in_this_cycle: Bu döngüde atanan siparişler {courier_id: [delivery_location_list]}
+        same_location_radius: Aynı konum sayılacak mesafe (metre)
+        same_location_max_packages: Aynı konumda maksimum paket limiti
     
     Returns:
         (eligible: bool, reason: str, extra_data: dict)
@@ -231,8 +235,43 @@ async def is_courier_eligible(
     cycle_assigned_count = len(cycle_assigned_locations)
     total_active_count = db_active_count + cycle_assigned_count
     
-    if total_active_count >= max_packages:
-        return False, f"Kapasite dolu: {total_active_count}/{max_packages} (DB:{db_active_count} + Döngü:{cycle_assigned_count})", {}
+    # "Aynı konum" kontrolü - limit aşılabilir mi?
+    effective_max_packages = max_packages
+    is_same_location = False
+    
+    if total_active_count >= max_packages and target_delivery_location and same_location_radius:
+        # Tüm mevcut teslimat konumlarını topla
+        all_delivery_locations = []
+        
+        # DB'deki aktif siparişlerin teslimat konumları
+        for order in active_orders:
+            dl = order.get("delivery_location")
+            if dl:
+                all_delivery_locations.append(dl)
+        
+        # Bu döngüde atanan siparişlerin teslimat konumları
+        for dl in cycle_assigned_locations:
+            if dl:
+                all_delivery_locations.append(dl)
+        
+        # Yeni sipariş tüm mevcut siparişlere yakın mı kontrol et
+        if all_delivery_locations:
+            all_within_radius = True
+            for existing_dl in all_delivery_locations:
+                distance = calculate_distance_meters(target_delivery_location, existing_dl)
+                if distance is None or distance > same_location_radius:
+                    all_within_radius = False
+                    break
+            
+            if all_within_radius:
+                is_same_location = True
+                effective_max_packages = same_location_max_packages or 10
+    
+    if total_active_count >= effective_max_packages:
+        if is_same_location:
+            return False, f"Aynı konum limiti dolu: {total_active_count}/{effective_max_packages}", {}
+        else:
+            return False, f"Kapasite dolu: {total_active_count}/{max_packages} (DB:{db_active_count} + Döngü:{cycle_assigned_count})", {}
     
     # Yolda sipariş kontrolü
     on_way_orders = await get_courier_on_the_way_orders(courier_id, company_id)
