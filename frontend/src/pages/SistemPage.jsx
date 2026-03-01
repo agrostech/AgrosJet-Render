@@ -656,24 +656,6 @@ export default function SistemPage({ companyId }) {
                     )}
                   </div>
 
-                  {/* Max Detour - Rota Sapması */}
-                  <div className="space-y-1.5 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                    <Label className="text-sm font-medium">Maksimum Rota Sapması (metre)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="3000"
-                      value={autoDispatchSettings.max_detour}
-                      onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_detour: parseInt(e.target.value) || 700 }))}
-                      placeholder="700"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Pickup aşamasında siparişler birleştirilirken izin verilen maksimum rota sapması.
-                      <br/>
-                      <span className="text-amber-700">Önerilen: 600-800 metre</span>
-                    </p>
-                  </div>
-
                   {/* Aynı Konum Ayarları */}
                   <div className="space-y-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
                     <div className="flex items-center gap-2 mb-2">
