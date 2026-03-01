@@ -187,7 +187,8 @@ async def is_courier_eligible(
     target_restaurant_id: Optional[str] = None,
     target_restaurant_location: Optional[Dict] = None,
     target_delivery_location: Optional[Dict] = None,
-    max_detour: Optional[float] = None
+    max_detour: Optional[float] = None,
+    assigned_in_this_cycle: Optional[Dict] = None
 ) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
@@ -199,11 +200,15 @@ async def is_courier_eligible(
         target_restaurant_location: Hedef siparişin restoran konumu (detour için)
         target_delivery_location: Hedef siparişin teslimat konumu (detour için)
         max_detour: Maksimum izin verilen rota sapması (metre)
+        assigned_in_this_cycle: Bu döngüde atanan sipariş sayısı {courier_id: count}
     
     Returns:
         (eligible: bool, reason: str, extra_data: dict)
         extra_data: {"type": "idle"|"one_on_way"|"pickup_with_orders", "on_way_order": order|None, "active_orders": list}
     """
+    if assigned_in_this_cycle is None:
+        assigned_in_this_cycle = {}
+    
     courier_id = courier.get("id")
     
     # Durum kontrolü
@@ -218,10 +223,15 @@ async def is_courier_eligible(
     if not courier.get("current_location"):
         return False, "Kurye konumu yok", {}
     
-    # Kapasite kontrolü
+    # Kapasite kontrolü - veritabanı + bu döngüde atananlar
     max_packages = courier.get("max_packages", DEFAULT_MAX_PACKAGES)
     active_orders = await get_courier_active_orders(courier_id, company_id)
-    active_count = len(active_orders)
+    db_active_count = len(active_orders)
+    cycle_assigned_count = assigned_in_this_cycle.get(courier_id, 0)
+    total_active_count = db_active_count + cycle_assigned_count
+    
+    if total_active_count >= max_packages:
+        return False, f"Kapasite dolu: {total_active_count}/{max_packages} (DB:{db_active_count} + Döngü:{cycle_assigned_count})", {}
     
     if active_count >= max_packages:
         return False, f"Kapasite dolu: {active_count}/{max_packages}", {}
