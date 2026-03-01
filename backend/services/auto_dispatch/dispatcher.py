@@ -420,22 +420,32 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     
     stats = {"processed": 0, "assigned": 0, "waiting": 0, "no_courier": 0, "errors": 0}
     
+    # Bu döngüde atanan siparişleri takip et (kapasite kontrolü için)
+    # {courier_id: atanan_siparis_sayisi}
+    assigned_in_this_cycle = {}
+    
     # Önce bekleme modundaki siparişleri kontrol et
     waiting_results = await check_waiting_orders(company_id, settings)
     for result in waiting_results:
         if "assigned" in result.get("action", ""):
             stats["assigned"] += 1
+            courier_id = result.get("courier_id")
+            if courier_id:
+                assigned_in_this_cycle[courier_id] = assigned_in_this_cycle.get(courier_id, 0) + 1
     
     # Hazır siparişleri işle (FIFO)
     ready_orders = await get_ready_orders(company_id)
     
     for order in ready_orders:
         stats["processed"] += 1
-        result = await process_single_order(order, settings)
+        result = await process_single_order(order, settings, assigned_in_this_cycle)
         
         action = result.get("action")
         if action == "assigned":
             stats["assigned"] += 1
+            courier_id = result.get("courier_id")
+            if courier_id:
+                assigned_in_this_cycle[courier_id] = assigned_in_this_cycle.get(courier_id, 0) + 1
         elif action == "waiting":
             stats["waiting"] += 1
         elif action == "no_courier":
