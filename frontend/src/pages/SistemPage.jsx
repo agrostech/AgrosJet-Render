@@ -663,6 +663,44 @@ export default function SistemPage({ companyId }) {
                       <span className="text-amber-700">Önerilen: 600-800 metre</span>
                     </p>
                   </div>
+
+                  {/* Aynı Konum Ayarları */}
+                  <div className="space-y-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-semibold text-purple-800">Aynı Bina/Konum Ayarları</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Teslimat noktaları çok yakınsa (aynı bina), kurye daha fazla paket alabilir.
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Aynı Konum Mesafesi (m)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="200"
+                          value={autoDispatchSettings.same_location_radius}
+                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_radius: parseInt(e.target.value) || 30 }))}
+                          placeholder="30"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Max Paket (Aynı Konum)</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={autoDispatchSettings.same_location_max_packages}
+                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_max_packages: parseInt(e.target.value) || 10 }))}
+                          placeholder="10"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-purple-700">
+                      Örn: 30m yarıçapında tüm siparişler "aynı konum" sayılır ve 10 pakete kadar alınabilir.
+                    </p>
+                  </div>
                 </div>
               )}
 
