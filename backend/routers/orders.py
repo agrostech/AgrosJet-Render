@@ -522,14 +522,18 @@ async def assign_courier_core(
         "actor_name": actor_name
     }
     
-    # Veritabanı güncelleme
-    await db.orders.update_one(
-        {"id": order_id},
+    # Veritabanı güncelleme - Sadece henüz kurye atanmamış siparişleri güncelle
+    update_result = await db.orders.update_one(
+        {"id": order_id, "courier_id": None},  # Sadece kurye atanmamışsa
         {
             "$set": update_data,
             "$push": {"status_history": history_entry}
         }
     )
+    
+    # Eğer sipariş bulunamadıysa veya zaten kurye atandıysa
+    if update_result.matched_count == 0:
+        return {"success": False, "error": "Sipariş zaten kuryeye atanmış veya bulunamadı"}
     
     # Push notification gönder
     if send_push:
