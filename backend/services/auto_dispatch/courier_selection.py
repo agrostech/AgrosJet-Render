@@ -184,7 +184,10 @@ async def get_courier_order_count_last_hour(courier_id: str, company_id: str) ->
 async def is_courier_eligible(
     courier: Dict, 
     company_id: str,
-    target_restaurant_id: Optional[str] = None
+    target_restaurant_id: Optional[str] = None,
+    target_restaurant_location: Optional[Dict] = None,
+    target_delivery_location: Optional[Dict] = None,
+    max_detour: Optional[float] = None
 ) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
@@ -193,10 +196,13 @@ async def is_courier_eligible(
         courier: Kurye bilgileri
         company_id: Şirket ID
         target_restaurant_id: Hedef siparişin restoran ID'si (grup kontrolü için)
+        target_restaurant_location: Hedef siparişin restoran konumu (detour için)
+        target_delivery_location: Hedef siparişin teslimat konumu (detour için)
+        max_detour: Maksimum izin verilen rota sapması (metre)
     
     Returns:
         (eligible: bool, reason: str, extra_data: dict)
-        extra_data: {"type": "idle"|"one_on_way", "on_way_order": order|None}
+        extra_data: {"type": "idle"|"one_on_way"|"pickup_with_orders", "on_way_order": order|None, "active_orders": list}
     """
     courier_id = courier.get("id")
     
@@ -236,11 +242,31 @@ async def is_courier_eligible(
         if not compatible:
             return False, f"Restoran grubu uyumsuz: {reason}", {}
     
+    # ROTA SAPMASI (DETOUR) KONTROLÜ
+    # Sadece pickup aşamasında (yolda paketi yok) ve aktif siparişi varken
+    if on_way_count == 0 and active_count > 0 and max_detour is not None:
+        if target_restaurant_location and target_delivery_location:
+            # Kuryenin mevcut siparişinin teslimat konumunu al
+            existing_delivery = active_orders[0].get("delivery_location")
+            
+            if existing_delivery:
+                can_combine, detour_value, detour_reason = should_combine_orders(
+                    target_restaurant_location,
+                    existing_delivery,
+                    target_delivery_location,
+                    max_detour
+                )
+                
+                if not can_combine:
+                    return False, f"Detour aşıldı: {detour_reason}", {}
+    
     # Kurye tipi belirleme
-    if on_way_count == 0:
-        return True, "Boş kurye", {"type": "idle", "on_way_order": None}
+    if on_way_count == 0 and active_count == 0:
+        return True, "Boş kurye", {"type": "idle", "on_way_order": None, "active_orders": []}
+    elif on_way_count == 0 and active_count > 0:
+        return True, "Pickup aşamasında (yolda yok, aktif var)", {"type": "pickup_with_orders", "on_way_order": None, "active_orders": active_orders}
     else:
-        return True, "1 yolda siparişli kurye", {"type": "one_on_way", "on_way_order": on_way_orders[0]}
+        return True, "1 yolda siparişli kurye", {"type": "one_on_way", "on_way_order": on_way_orders[0], "active_orders": active_orders}
 
 
 async def get_eligible_couriers(
