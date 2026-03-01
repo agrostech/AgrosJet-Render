@@ -11,8 +11,59 @@ Kapsam:
 Kurye yola çıktıktan sonra bu model devre dışıdır.
 """
 
+import math
 from typing import Dict, List, Optional, Tuple
 from .distance import calculate_distance_meters
+
+
+def calculate_bearing(from_location: Dict, to_location: Dict) -> Optional[float]:
+    """
+    İki nokta arasındaki yön açısını (bearing) hesaplar.
+    
+    Args:
+        from_location: Başlangıç konumu (restoran)
+        to_location: Hedef konumu (teslimat)
+    
+    Returns:
+        Açı (derece, 0-360) - Kuzey=0, Doğu=90, Güney=180, Batı=270
+        None döner koordinat eksikse
+    """
+    lat1 = from_location.get("lat") or from_location.get("latitude")
+    lng1 = from_location.get("lng") or from_location.get("longitude")
+    lat2 = to_location.get("lat") or to_location.get("latitude")
+    lng2 = to_location.get("lng") or to_location.get("longitude")
+    
+    if lat1 is None or lng1 is None or lat2 is None or lng2 is None:
+        return None
+    
+    # Radyana çevir
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lng = math.radians(lng2 - lng1)
+    
+    # Bearing hesapla
+    x = math.sin(delta_lng) * math.cos(lat2_rad)
+    y = math.cos(lat1_rad) * math.sin(lat2_rad) - math.sin(lat1_rad) * math.cos(lat2_rad) * math.cos(delta_lng)
+    
+    bearing = math.atan2(x, y)
+    bearing_degrees = math.degrees(bearing)
+    
+    # 0-360 aralığına normalize et
+    return (bearing_degrees + 360) % 360
+
+
+def calculate_angle_difference(angle1: float, angle2: float) -> float:
+    """
+    İki açı arasındaki en küçük farkı hesaplar (0-180 derece).
+    
+    Örnek:
+    - 10° ile 350° arası fark = 20° (360° etrafından)
+    - 90° ile 270° arası fark = 180°
+    """
+    diff = abs(angle1 - angle2)
+    if diff > 180:
+        diff = 360 - diff
+    return diff
 
 
 def calculate_detour(
