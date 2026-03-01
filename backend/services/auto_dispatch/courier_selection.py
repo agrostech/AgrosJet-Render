@@ -368,8 +368,7 @@ async def is_courier_eligible(
                     max_detour if detour_check_enabled else 99999,
                     max_angle_diff if angle_check_enabled else 180,
                     angle_skip_distance or 1000,
-                    detour_skip_distance or 500,
-                    min_savings_threshold or 0
+                    detour_skip_distance or 500
                 )
                 
                 if not can_combine:
