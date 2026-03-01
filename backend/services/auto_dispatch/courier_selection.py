@@ -457,7 +457,8 @@ async def get_eligible_couriers(
             angle_skip_distance,
             max_angle_diff,
             detour_check_enabled,
-            detour_skip_distance
+            detour_skip_distance,
+            min_savings_threshold
         )
         
         if not eligible:
