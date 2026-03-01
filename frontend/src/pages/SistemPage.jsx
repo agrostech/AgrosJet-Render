@@ -564,24 +564,17 @@ export default function SistemPage({ companyId }) {
           autoDispatchLoading ? (
             <div className="py-8"><LoadingSpinner size="default" /></div>
           ) : (
-            <div className="p-3 md:p-4 space-y-4 md:space-y-6">
-              {/* Info Banner */}
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 md:p-4">
-                <div className="flex gap-2 md:gap-3">
-                  <Zap className="w-4 h-4 md:w-5 md:h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs md:text-sm text-orange-800">
-                    <p className="font-medium mb-1">Otomatik Atama Sistemi</p>
-                    <p>Hazır siparişler, kuryelere mesafe ve kapasite durumuna göre otomatik atanır.</p>
-                    <p className="mt-1">Sistem her 30 saniyede bir kontrol yapar.</p>
+            <div className="p-4 md:p-6 space-y-6">
+              {/* Ana Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-orange-500" />
                   </div>
-                </div>
-              </div>
-
-              {/* Enable/Disable Switch */}
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
-                <div>
-                  <p className="font-medium text-sm">Otomatik Atama</p>
-                  <p className="text-xs text-muted-foreground">Hazır siparişleri otomatik olarak kuryelere ata</p>
+                  <div>
+                    <p className="font-semibold text-sm">Otomatik Atama</p>
+                    <p className="text-xs text-muted-foreground">Her 10 saniyede kontrol edilir</p>
+                  </div>
                 </div>
                 <Switch 
                   checked={autoDispatchSettings.enabled}
@@ -590,214 +583,270 @@ export default function SistemPage({ companyId }) {
               </div>
 
               {autoDispatchSettings.enabled && (
-                <div className="space-y-4 border-t pt-4">
-                  {/* Distance Tolerance */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium">Mesafe Toleransı (metre)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="5000"
-                        value={autoDispatchSettings.distance_tolerance}
-                        onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, distance_tolerance: parseInt(e.target.value) || 0 }))}
-                        placeholder="500"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Yolda kurye ile boş kurye arasındaki tolerans mesafesi
-                      </p>
-                    </div>
-
-                    {/* Max Wait Time */}
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium">Maksimum Bekleme Süresi (dk)</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="30"
-                        value={autoDispatchSettings.max_wait_time}
-                        onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_wait_time: parseInt(e.target.value) || 5 }))}
-                        placeholder="5"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Yolda kurye beklenirken maksimum süre
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Fairness Section */}
-                  <div className="border rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">Adalet Sistemi</p>
-                        <p className="text-xs text-muted-foreground">Son 1 saatte daha az sipariş alan kuryeyi tercih et</p>
-                      </div>
-                      <Switch 
-                        checked={autoDispatchSettings.fairness_enabled}
-                        onCheckedChange={(checked) => setAutoDispatchSettings(prev => ({ ...prev, fairness_enabled: checked }))}
-                      />
-                    </div>
-                    
-                    {autoDispatchSettings.fairness_enabled && (
-                      <div className="space-y-1.5 pt-2 border-t">
-                        <Label className="text-sm font-medium">Adalet Mesafe Eşiği (metre)</Label>
+                <div className="space-y-5">
+                  
+                  {/* BÖLÜM 1: Temel Ayarlar */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Temel Ayarlar</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                          </div>
+                          <Label className="text-sm font-medium">Mesafe Toleransı</Label>
+                        </div>
                         <Input
                           type="number"
                           min="0"
-                          max="2000"
-                          value={autoDispatchSettings.fairness_threshold}
-                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, fairness_threshold: parseInt(e.target.value) || 200 }))}
-                          placeholder="200"
+                          max="5000"
+                          value={autoDispatchSettings.distance_tolerance}
+                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, distance_tolerance: parseInt(e.target.value) || 0 }))}
+                          className="h-10"
                         />
                         <p className="text-xs text-muted-foreground">
-                          Bu mesafe içindeki kuryeler arasında adalet kontrolü yapılır
+                          Yolda kurye ile boş kurye arasındaki mesafe toleransı (metre)
                         </p>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Aynı Konum Ayarları */}
-                  <div className="space-y-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-semibold text-purple-800">Aynı Bina/Konum Ayarları</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Teslimat noktaları çok yakınsa (aynı bina), kurye daha fazla paket alabilir.
-                    </p>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">Aynı Konum Mesafesi (m)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="200"
-                          value={autoDispatchSettings.same_location_radius}
-                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_radius: parseInt(e.target.value) || 30 }))}
-                          placeholder="30"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">Max Paket (Aynı Konum)</Label>
+                      <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <Label className="text-sm font-medium">Maks. Bekleme Süresi</Label>
+                        </div>
                         <Input
                           type="number"
                           min="1"
-                          max="20"
-                          value={autoDispatchSettings.same_location_max_packages}
-                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_max_packages: parseInt(e.target.value) || 10 }))}
-                          placeholder="10"
+                          max="30"
+                          value={autoDispatchSettings.max_wait_time}
+                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_wait_time: parseInt(e.target.value) || 5 }))}
+                          className="h-10"
                         />
+                        <p className="text-xs text-muted-foreground">
+                          Yolda kurye beklenirken maksimum süre (dakika)
+                        </p>
                       </div>
                     </div>
-                    <p className="text-xs text-purple-700">
-                      Örn: 30m yarıçapında tüm siparişler "aynı konum" sayılır ve 10 pakete kadar alınabilir.
-                    </p>
                   </div>
 
-                  {/* Açı Kontrolü Ayarları */}
-                  <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-blue-800">Açı Kontrolü</span>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
+                  {/* BÖLÜM 2: Rota Optimizasyonu */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rota Optimizasyonu</h4>
+                    
+                    {/* Açı Kontrolü */}
+                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">Açı Kontrolü</p>
+                            <p className="text-xs text-muted-foreground">Farklı yönlerdeki paketleri ayır</p>
+                          </div>
+                        </div>
+                        <Switch 
                           checked={autoDispatchSettings.angle_check_enabled}
-                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, angle_check_enabled: e.target.checked }))}
-                          className="w-4 h-4 rounded"
+                          onCheckedChange={(checked) => setAutoDispatchSettings(prev => ({ ...prev, angle_check_enabled: checked }))}
                         />
-                        <span className="text-xs text-muted-foreground">Aktif</span>
-                      </label>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Farklı yönlerdeki paketlerin aynı kuryeye atanmasını engeller.
-                    </p>
-                    
-                    {autoDispatchSettings.angle_check_enabled && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs font-medium">Maks. Açı Farkı (°)</Label>
-                          <Input
-                            type="number"
-                            min="30"
-                            max="180"
-                            value={autoDispatchSettings.max_angle_diff}
-                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_angle_diff: parseInt(e.target.value) || 90 }))}
-                            placeholder="90"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs font-medium">Atla Mesafesi (m)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="3000"
-                            value={autoDispatchSettings.angle_skip_distance}
-                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, angle_skip_distance: parseInt(e.target.value) || 1000 }))}
-                            placeholder="1000"
-                          />
-                        </div>
                       </div>
-                    )}
-                    <p className="text-xs text-blue-700">
-                      {autoDispatchSettings.angle_skip_distance}m yakınlıktaki paketler için açı kontrolü atlanır.
-                    </p>
+                      
+                      {autoDispatchSettings.angle_check_enabled && (
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-600">Maks. Açı Farkı (°)</Label>
+                            <Input
+                              type="number"
+                              min="30"
+                              max="180"
+                              value={autoDispatchSettings.max_angle_diff}
+                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_angle_diff: parseInt(e.target.value) || 90 }))}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-600">İstisna Mesafesi (m)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="3000"
+                              value={autoDispatchSettings.angle_skip_distance}
+                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, angle_skip_distance: parseInt(e.target.value) || 1000 }))}
+                              className="h-9"
+                            />
+                          </div>
+                          <p className="col-span-2 text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+                            💡 {autoDispatchSettings.angle_skip_distance}m içindeki paketler için açı kontrolü atlanır
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Detour Kontrolü */}
+                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">Rota Sapması Kontrolü</p>
+                            <p className="text-xs text-muted-foreground">Fazla sapma olan paketleri ayır</p>
+                          </div>
+                        </div>
+                        <Switch 
+                          checked={autoDispatchSettings.detour_check_enabled}
+                          onCheckedChange={(checked) => setAutoDispatchSettings(prev => ({ ...prev, detour_check_enabled: checked }))}
+                        />
+                      </div>
+                      
+                      {autoDispatchSettings.detour_check_enabled && (
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-600">Maks. Sapma (m)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="3000"
+                              value={autoDispatchSettings.max_detour}
+                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_detour: parseInt(e.target.value) || 700 }))}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-600">İstisna Mesafesi (m)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="2000"
+                              value={autoDispatchSettings.detour_skip_distance}
+                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, detour_skip_distance: parseInt(e.target.value) || 500 }))}
+                              className="h-9"
+                            />
+                          </div>
+                          <p className="col-span-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                            💡 {autoDispatchSettings.detour_skip_distance}m içindeki paketler için sapma kontrolü atlanır
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Detour Kontrolü Ayarları */}
-                  <div className="space-y-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-orange-800">Detour (Rota Sapması) Kontrolü</span>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={autoDispatchSettings.detour_check_enabled}
-                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, detour_check_enabled: e.target.checked }))}
-                          className="w-4 h-4 rounded"
-                        />
-                        <span className="text-xs text-muted-foreground">Aktif</span>
-                      </label>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Rota sapması çok fazla olan paketlerin birleştirilmesini engeller.
-                    </p>
+                  {/* BÖLÜM 3: Kapasite Yönetimi */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kapasite Yönetimi</h4>
                     
-                    {autoDispatchSettings.detour_check_enabled && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs font-medium">Maks. Detour (m)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="3000"
-                            value={autoDispatchSettings.max_detour}
-                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_detour: parseInt(e.target.value) || 700 }))}
-                            placeholder="700"
-                          />
+                    {/* Aynı Konum */}
+                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs font-medium">Atla Mesafesi (m)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="2000"
-                            value={autoDispatchSettings.detour_skip_distance}
-                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, detour_skip_distance: parseInt(e.target.value) || 500 }))}
-                            placeholder="500"
-                          />
+                        <div>
+                          <p className="font-medium text-sm">Aynı Bina Optimizasyonu</p>
+                          <p className="text-xs text-muted-foreground">Yakın teslimatlar için kapasite artışı</p>
                         </div>
                       </div>
-                    )}
-                    <p className="text-xs text-orange-700">
-                      {autoDispatchSettings.detour_skip_distance}m yakınlıktaki paketler için detour kontrolü atlanır.
-                    </p>
+                      
+                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-600">Yakınlık Mesafesi (m)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="200"
+                            value={autoDispatchSettings.same_location_radius}
+                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_radius: parseInt(e.target.value) || 30 }))}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-600">Maks. Paket</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="20"
+                            value={autoDispatchSettings.same_location_max_packages}
+                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_max_packages: parseInt(e.target.value) || 10 }))}
+                            className="h-9"
+                          />
+                        </div>
+                        <p className="col-span-2 text-xs text-purple-600 bg-purple-50 rounded-lg px-3 py-2">
+                          💡 {autoDispatchSettings.same_location_radius}m içindeki siparişler aynı bina sayılır, {autoDispatchSettings.same_location_max_packages} pakete kadar alınabilir
+                        </p>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* BÖLÜM 4: Adalet Sistemi */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Adalet Sistemi</h4>
+                    
+                    <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">Kurye Dengesi</p>
+                            <p className="text-xs text-muted-foreground">Az sipariş alan kuryeyi tercih et</p>
+                          </div>
+                        </div>
+                        <Switch 
+                          checked={autoDispatchSettings.fairness_enabled}
+                          onCheckedChange={(checked) => setAutoDispatchSettings(prev => ({ ...prev, fairness_enabled: checked }))}
+                        />
+                      </div>
+                      
+                      {autoDispatchSettings.fairness_enabled && (
+                        <div className="pt-3 border-t border-slate-100">
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-600">Adalet Mesafe Eşiği (m)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="2000"
+                              value={autoDispatchSettings.fairness_threshold}
+                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, fairness_threshold: parseInt(e.target.value) || 200 }))}
+                              className="h-9"
+                            />
+                          </div>
+                          <p className="text-xs text-green-600 bg-green-50 rounded-lg px-3 py-2 mt-3">
+                            💡 {autoDispatchSettings.fairness_threshold}m içindeki kuryeler arasında son 1 saatteki sipariş sayısına göre seçim yapılır
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
               )}
 
               <Button 
                 onClick={handleAutoDispatchSave} 
                 disabled={autoDispatchSaving} 
-                className="h-10 md:h-11 font-semibold text-sm"
+                className="w-full h-11 font-semibold"
+              >
+                {autoDispatchSaving ? "Kaydediliyor..." : "Ayarları Kaydet"}
+              </Button>
+            </div>
+          )
+        )}
               >
                 <Save className="w-4 h-4 mr-2" />
                 {autoDispatchSaving ? "Kaydediliyor..." : "Kaydet"}
