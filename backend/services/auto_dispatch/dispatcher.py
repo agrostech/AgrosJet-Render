@@ -433,8 +433,8 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     
     stats = {"processed": 0, "assigned": 0, "waiting": 0, "no_courier": 0, "errors": 0}
     
-    # Bu döngüde atanan siparişleri takip et (kapasite kontrolü için)
-    # {courier_id: atanan_siparis_sayisi}
+    # Bu döngüde atanan siparişleri takip et (kapasite + detour kontrolü için)
+    # {courier_id: [delivery_location_list]} - Her atanan siparişin teslimat konumu
     assigned_in_this_cycle = {}
     
     # Önce bekleme modundaki siparişleri kontrol et
@@ -443,8 +443,11 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
         if "assigned" in result.get("action", ""):
             stats["assigned"] += 1
             courier_id = result.get("courier_id")
+            delivery_loc = result.get("delivery_location")
             if courier_id:
-                assigned_in_this_cycle[courier_id] = assigned_in_this_cycle.get(courier_id, 0) + 1
+                if courier_id not in assigned_in_this_cycle:
+                    assigned_in_this_cycle[courier_id] = []
+                assigned_in_this_cycle[courier_id].append(delivery_loc)
     
     # Hazır siparişleri işle (FIFO)
     ready_orders = await get_ready_orders(company_id)
@@ -458,7 +461,10 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
             stats["assigned"] += 1
             courier_id = result.get("courier_id")
             if courier_id:
-                assigned_in_this_cycle[courier_id] = assigned_in_this_cycle.get(courier_id, 0) + 1
+                if courier_id not in assigned_in_this_cycle:
+                    assigned_in_this_cycle[courier_id] = []
+                # Siparişin teslimat konumunu kaydet (detour kontrolü için)
+                assigned_in_this_cycle[courier_id].append(order.get("delivery_location"))
         elif action == "waiting":
             stats["waiting"] += 1
         elif action == "no_courier":
