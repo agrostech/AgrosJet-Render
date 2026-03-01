@@ -235,3 +235,68 @@ def calculate_multi_order_detour(
     detour = extension + new_to_restaurant - last_to_restaurant
     
     return detour, f"Çoklu sipariş üzerine ekleme - detour: {detour:.0f}m"
+
+
+def calculate_order_match_score(
+    restaurant_location: Dict,
+    existing_delivery: Optional[Dict],
+    new_delivery: Dict,
+    max_detour: float = 700
+) -> Tuple[float, str]:
+    """
+    Bir siparişin kuryeye ne kadar uygun olduğunu puanlar.
+    Düşük skor = daha iyi eşleşme.
+    
+    Args:
+        restaurant_location: Restoran konumu
+        existing_delivery: Kuryenin mevcut siparişinin teslimat konumu (None = boş kurye)
+        new_delivery: Yeni siparişin teslimat konumu
+        max_detour: Maksimum detour limiti
+    
+    Returns:
+        (score, reason) - Düşük skor daha iyi
+    """
+    # Boş kurye için sadece restorana mesafe
+    if existing_delivery is None:
+        dist = calculate_distance_meters(restaurant_location, new_delivery)
+        if dist is None:
+            return 99999, "Koordinat eksik"
+        return dist, f"Boş kurye, teslimat mesafesi: {dist:.0f}m"
+    
+    # Açı farkını hesapla
+    bearing_existing = calculate_bearing(restaurant_location, existing_delivery)
+    bearing_new = calculate_bearing(restaurant_location, new_delivery)
+    
+    if bearing_existing is None or bearing_new is None:
+        return 99999, "Açı hesaplanamadı"
+    
+    angle_diff = calculate_angle_difference(bearing_existing, bearing_new)
+    
+    # Detour hesapla
+    detour, _, _ = calculate_detour(restaurant_location, existing_delivery, new_delivery)
+    if detour is None:
+        return 99999, "Detour hesaplanamadı"
+    
+    # Restorana yakınlık kontrolü (açı istisnası için)
+    dist_existing = calculate_distance_meters(restaurant_location, existing_delivery)
+    dist_new = calculate_distance_meters(restaurant_location, new_delivery)
+    
+    is_close = (dist_existing and dist_existing <= 1000) or (dist_new and dist_new <= 1000)
+    
+    # Skor hesapla:
+    # - Açı farkı ne kadar küçükse o kadar iyi (0-180 arası)
+    # - Detour ne kadar negatif (tasarruf) o kadar iyi
+    # - Açı > 90° ve yakın değilse çok yüksek skor (uyumsuz)
+    
+    if angle_diff > 90 and not is_close:
+        # Ters yön ve uzak - çok kötü eşleşme
+        return 99999, f"Ters yön ({angle_diff:.0f}°) ve uzak"
+    
+    # Skor = açı_farkı * 10 + detour (negatif detour skoru düşürür)
+    # Açı 0° ve detour -1000m → skor = 0 + (-1000) = -1000 (çok iyi)
+    # Açı 45° ve detour 0 → skor = 450 + 0 = 450 (orta)
+    # Açı 89° ve detour 500m → skor = 890 + 500 = 1390 (kötü)
+    
+    score = (angle_diff * 10) + detour
+    
+    return score, f"Açı: {angle_diff:.0f}°, Detour: {detour:.0f}m, Skor: {score:.0f}"
