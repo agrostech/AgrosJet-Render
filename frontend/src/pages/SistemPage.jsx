@@ -235,7 +235,8 @@ export default function SistemPage({ companyId }) {
         distance_tolerance: res.data.distance_tolerance || 500,
         max_wait_time: res.data.max_wait_time || 5,
         fairness_threshold: res.data.fairness_threshold || 200,
-        fairness_enabled: res.data.fairness_enabled || false
+        fairness_enabled: res.data.fairness_enabled || false,
+        max_detour: res.data.max_detour || 700
       });
     } catch (err) {
       console.error("Auto dispatch settings fetch error:", err);
