@@ -14,6 +14,8 @@ DEFAULT_SETTINGS = {
     "fairness_enabled": False,  # Son 1 saat adalet sistemi aktif mi
     "max_detour": 700,  # metre - Pickup aşamasında maksimum rota sapması
     "check_interval": 30,  # saniye - Dispatch kontrolü aralığı
+    "same_location_radius": 30,  # metre - "aynı konum" sayılacak mesafe
+    "same_location_max_packages": 10,  # aynı konumda maksimum paket limiti
 }
 
 # Kurye varsayılan maksimum paket kapasitesi
