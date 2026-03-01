@@ -262,16 +262,21 @@ async def is_courier_eligible(
             elif cycle_assigned_count > 0 and cycle_assigned_locations[0]:
                 existing_delivery = cycle_assigned_locations[0]
             
+            # existing_delivery'nin geçerli koordinatları olup olmadığını kontrol et
             if existing_delivery:
-                can_combine, detour_value, detour_reason = should_combine_orders(
-                    target_restaurant_location,
-                    existing_delivery,
-                    target_delivery_location,
-                    max_detour
-                )
+                ex_lat = existing_delivery.get("lat") or existing_delivery.get("latitude")
+                ex_lng = existing_delivery.get("lng") or existing_delivery.get("longitude")
                 
-                if not can_combine:
-                    return False, f"Detour aşıldı: {detour_reason}", {}
+                if ex_lat is not None and ex_lng is not None:
+                    can_combine, detour_value, detour_reason = should_combine_orders(
+                        target_restaurant_location,
+                        existing_delivery,
+                        target_delivery_location,
+                        max_detour
+                    )
+                    
+                    if not can_combine:
+                        return False, f"Detour aşıldı: {detour_reason}", {}
     
     # Kurye tipi belirleme (total_active_count kullan)
     if on_way_count == 0 and total_active_count == 0:
