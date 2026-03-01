@@ -245,7 +245,12 @@ export default function SistemPage({ companyId }) {
         fairness_enabled: res.data.fairness_enabled || false,
         max_detour: res.data.max_detour || 700,
         same_location_radius: res.data.same_location_radius || 30,
-        same_location_max_packages: res.data.same_location_max_packages || 10
+        same_location_max_packages: res.data.same_location_max_packages || 10,
+        angle_check_enabled: res.data.angle_check_enabled !== false,
+        angle_skip_distance: res.data.angle_skip_distance || 1000,
+        max_angle_diff: res.data.max_angle_diff || 90,
+        detour_check_enabled: res.data.detour_check_enabled !== false,
+        detour_skip_distance: res.data.detour_skip_distance || 500
       });
     } catch (err) {
       console.error("Auto dispatch settings fetch error:", err);
