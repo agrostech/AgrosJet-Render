@@ -521,6 +521,140 @@ export default function SistemPage({ companyId }) {
         )}
       </div>
 
+      {/* Otomatik Atama Ayarları - Collapsible */}
+      <div className="border-2 border-border bg-white">
+        <button 
+          type="button"
+          onClick={() => setAutoDispatchExpanded(!autoDispatchExpanded)}
+          className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
+            <h3 className="font-semibold text-sm md:text-base">Otomatik Atama</h3>
+            {autoDispatchSettings.enabled && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
+                Aktif
+              </span>
+            )}
+          </div>
+          {autoDispatchExpanded ? (
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+          )}
+        </button>
+        
+        {autoDispatchExpanded && (
+          autoDispatchLoading ? (
+            <div className="py-8"><LoadingSpinner size="default" /></div>
+          ) : (
+            <div className="p-3 md:p-4 space-y-4 md:space-y-6">
+              {/* Info Banner */}
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 md:p-4">
+                <div className="flex gap-2 md:gap-3">
+                  <Zap className="w-4 h-4 md:w-5 md:h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs md:text-sm text-orange-800">
+                    <p className="font-medium mb-1">Otomatik Atama Sistemi</p>
+                    <p>Hazır siparişler, kuryelere mesafe ve kapasite durumuna göre otomatik atanır.</p>
+                    <p className="mt-1">Sistem her 30 saniyede bir kontrol yapar.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enable/Disable Switch */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+                <div>
+                  <p className="font-medium text-sm">Otomatik Atama</p>
+                  <p className="text-xs text-muted-foreground">Hazır siparişleri otomatik olarak kuryelere ata</p>
+                </div>
+                <Switch 
+                  checked={autoDispatchSettings.enabled}
+                  onCheckedChange={(checked) => setAutoDispatchSettings(prev => ({ ...prev, enabled: checked }))}
+                />
+              </div>
+
+              {autoDispatchSettings.enabled && (
+                <div className="space-y-4 border-t pt-4">
+                  {/* Distance Tolerance */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">Mesafe Toleransı (metre)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="5000"
+                        value={autoDispatchSettings.distance_tolerance}
+                        onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, distance_tolerance: parseInt(e.target.value) || 0 }))}
+                        placeholder="500"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Yolda kurye ile boş kurye arasındaki tolerans mesafesi
+                      </p>
+                    </div>
+
+                    {/* Max Wait Time */}
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">Maksimum Bekleme Süresi (dk)</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="30"
+                        value={autoDispatchSettings.max_wait_time}
+                        onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_wait_time: parseInt(e.target.value) || 5 }))}
+                        placeholder="5"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Yolda kurye beklenirken maksimum süre
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Fairness Section */}
+                  <div className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">Adalet Sistemi</p>
+                        <p className="text-xs text-muted-foreground">Son 1 saatte daha az sipariş alan kuryeyi tercih et</p>
+                      </div>
+                      <Switch 
+                        checked={autoDispatchSettings.fairness_enabled}
+                        onCheckedChange={(checked) => setAutoDispatchSettings(prev => ({ ...prev, fairness_enabled: checked }))}
+                      />
+                    </div>
+                    
+                    {autoDispatchSettings.fairness_enabled && (
+                      <div className="space-y-1.5 pt-2 border-t">
+                        <Label className="text-sm font-medium">Adalet Mesafe Eşiği (metre)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="2000"
+                          value={autoDispatchSettings.fairness_threshold}
+                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, fairness_threshold: parseInt(e.target.value) || 200 }))}
+                          placeholder="200"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Bu mesafe içindeki kuryeler arasında adalet kontrolü yapılır
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <Button 
+                onClick={handleAutoDispatchSave} 
+                disabled={autoDispatchSaving} 
+                className="h-10 md:h-11 font-semibold text-sm"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {autoDispatchSaving ? "Kaydediliyor..." : "Kaydet"}
+              </Button>
+            </div>
+          )
+        )}
+      </div>
+
       {/* E-posta (SMTP) Ayarları - Collapsible */}
       <div className="border-2 border-border bg-white">
         <button 
