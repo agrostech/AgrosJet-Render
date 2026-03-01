@@ -1,71 +1,104 @@
 # Fleet Order System - PRD
 
 ## Original Problem Statement
-Multi-panel (Admin, Restaurant, Courier) delivery management application with integrations for third-party platforms (Adisyo, Getir, Trendyol, etc.)
+Multi-panel (Admin, Restaurant, Courier) delivery management application with integrations for third-party platforms.
 
-## Completed Features (as of 2026-02-28)
+## Completed Features (as of 2026-03-01)
 
-### Latest Session - Kademeli Paket Başı Ücretlendirme
-- [x] **Kurye bazlı kademeli ücretlendirme** - Mevcut ücretlendirme modalına eklendi
-  - 3 seçenek: Paket Başı / KM Aralığı / Kademeli Paket Başı
-  - 5-tier pricing system based on active package count
-  - Price shifting only on unassign (not on delivery/cancel)
-  - Hourly rate option included
-  - Backend: `couriers.py` (tier_prices field), `orders.py` (fee calculation)
-  - Frontend: KuryelerPage.jsx pricing modal updated
+### Latest Session - Otomatik Atama Sistemi
+- [x] **Auto Dispatch System** - Modüler yapı ile implement edildi
+  - Sipariş sıralama: FIFO (ready_at ASC)
+  - Kurye seçimi: Boş vs 1-yolda karşılaştırması
+  - Mesafe hesaplama: Haversine (metre)
+  - Bekleme modu ve fallback mantığı
+  - Adalet sistemi (opsiyonel)
+  - Backend: `/app/backend/services/auto_dispatch/`
+  - Scheduler: Her 30 saniyede çalışır
+  
+- [x] **Kurye Maksimum Paket Kapasitesi**
+  - Kuryeler sayfasında "Maks. Paket" butonu ve modal
+  - API: GET/PUT `/api/couriers/{id}/max-packages`
+  
+- [x] **Panel Ayarları**
+  - Sistem Ayarları > Otomatik Atama kartı
+  - Mesafe Toleransı, Maks. Bekleme Süresi, Adalet Sistemi
 
 ### Previous Sessions
-- [x] RestoranlarPage loading icon fixed - uses `PageLoading` component
-- [x] Push notification simplified - only shows restaurant name in body
+- [x] Kurye bazlı kademeli ücretlendirme (tiered pricing)
+- [x] RestoranlarPage loading icon fix
+- [x] Push notification simplification
 - [x] Persistent Integration Logging System
 - [x] Restaurant Groups CRUD feature
-- [x] Admin Panel Mobile UI Overhaul
-- [x] Restaurant Panel Mobile UI Overhaul
-- [x] Courier Panel Mobile UI Overhaul
-- [x] Deprecated features removed (Entegrasyon Testleri, Gelen İstek Logları)
-- [x] Rate limiting for auth endpoints
+- [x] Mobile UI Overhaul (Admin, Restaurant, Courier panels)
 
-## Key Technical Details - Tiered Pricing
+## Auto Dispatch Technical Details
 
-### Database Schema
+### Files Structure
+```
+/app/backend/services/auto_dispatch/
+├── __init__.py         # Exports
+├── config.py           # Constants, defaults
+├── distance.py         # Haversine calculation
+├── courier_selection.py # Courier filtering/selection
+└── dispatcher.py       # Main dispatch logic
+```
+
+### Database Fields
 ```javascript
-// couriers collection - tier_prices field
+// companies collection
 {
-  pricing_type: "tiered" | "per_package" | "per_km",
-  tier_prices: [float, float, float, float, float], // 5 tiers - kurye bazlı
-  hourly_rate: float | null
+  auto_dispatch_settings: {
+    enabled: boolean,
+    distance_tolerance: int,    // metre
+    max_wait_time: int,         // dakika
+    fairness_threshold: int,    // metre
+    fairness_enabled: boolean
+  }
 }
 
-// orders collection - new fields
+// couriers collection
 {
-  tiered_position: int | null, // 1-5
-  fee_history: [{
-    timestamp: string,
-    old_fee: float,
-    new_fee: float,
-    reason: string,
-    new_position: int
-  }]
+  max_packages: int  // default: 5
+}
+
+// orders collection
+{
+  dispatch_waiting: boolean,
+  dispatch_waiting_courier_id: string,
+  dispatch_waiting_started: datetime
 }
 ```
 
 ### API Endpoints
-- `GET /api/couriers/{courier_id}/pricing` - Get courier pricing (includes tier_prices)
-- `PUT /api/couriers/{courier_id}/pricing` - Update courier pricing (pricing_type can be "tiered")
+- `GET /api/auto-dispatch/settings/{company_id}`
+- `PUT /api/auto-dispatch/settings/{company_id}`
+- `POST /api/auto-dispatch/run/{company_id}` (manual trigger)
+- `GET /api/couriers/{id}/max-packages`
+- `PUT /api/couriers/{id}/max-packages`
 
-### Logic Flow
-1. When courier gets package assigned → Check pricing_type
-2. If pricing_type == "tiered" → Get active package count → Use tier_prices[active_count]
-3. On unassign → Recalculate remaining packages' fees using courier's tier_prices
+### Decision Logic
+```
+1. Get ready orders (FIFO by ready_at)
+2. For each order:
+   a. Get eligible couriers (idle + 1-on-way)
+   b. Calculate D_idle_min and D_return_min
+   c. If D_return_min ≤ D_idle_min + tolerance:
+      → Wait for 1-on-way courier
+   d. Else:
+      → Assign to idle courier
+3. Check waiting orders:
+   a. If courier became idle → assign
+   b. If wait time expired → fallback to idle
+```
 
 ## Backlog
 
 ### P1 - High Priority
-- [ ] `restaurant_fee` calculation in integrations (Getir, Trendyol, etc.)
+- [ ] `restaurant_fee` calculation in integrations
 - [ ] Refactor scheduled jobs in `jobs.py`
 
 ### P2 - Medium Priority
-- [ ] API request monitor/logger in admin panel
+- [ ] API request monitor/logger
 - [ ] orders.py refactoring
 
 ### P3 - Future
@@ -73,12 +106,6 @@ Multi-panel (Admin, Restaurant, Courier) delivery management application with in
 - [ ] Chat System re-enable
 - [ ] Google Maps Integration
 - [ ] Dark Mode theme
-
-## Key Files
-- `/app/backend/routers/couriers.py` - Courier pricing with tiered support
-- `/app/backend/routers/orders.py` - Modified assign_courier_core for tiered fee
-- `/app/backend/services/tiered_pricing_service.py` - Fee recalculation on unassign
-- `/app/frontend/src/pages/admin/KuryelerPage.jsx` - Pricing modal with tiered option
 
 ## Test Credentials
 - Admin: `superadmin` / `123456`
