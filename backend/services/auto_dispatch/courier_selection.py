@@ -218,7 +218,8 @@ async def is_courier_eligible(
     angle_skip_distance: Optional[float] = None,
     max_angle_diff: Optional[float] = None,
     detour_check_enabled: bool = True,
-    detour_skip_distance: Optional[float] = None
+    detour_skip_distance: Optional[float] = None,
+    min_savings_threshold: Optional[float] = None
 ) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
