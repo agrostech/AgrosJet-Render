@@ -34,6 +34,7 @@ class DispatchSettingsUpdate(BaseModel):
     # Detour kontrolü ayarları
     detour_check_enabled: bool = True
     detour_skip_distance: int = 500  # metre
+    min_savings_threshold: int = 0  # metre - Minimum tasarruf eşiği
 
 
 @router.get("/settings/{company_id}")
