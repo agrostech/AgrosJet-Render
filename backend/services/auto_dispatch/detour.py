@@ -117,7 +117,8 @@ def should_combine_orders(
     restaurant_location: Dict,
     delivery_location_a: Dict,
     delivery_location_b: Dict,
-    max_detour: float
+    max_detour: float,
+    max_angle_diff: float = 90.0
 ) -> Tuple[bool, float, str]:
     """
     İki siparişin aynı kuryeye atanıp atanamayacağını belirler.
@@ -127,10 +128,22 @@ def should_combine_orders(
         delivery_location_a: Mevcut sipariş teslimat konumu (kuryedeki)
         delivery_location_b: Yeni sipariş teslimat konumu
         max_detour: Maksimum izin verilen rota sapması (metre)
+        max_angle_diff: Maksimum açı farkı (derece) - varsayılan 90°
     
     Returns:
         (should_combine, detour_value, reason)
     """
+    # ÖNCELİKLE AÇI KONTROLÜ
+    bearing_a = calculate_bearing(restaurant_location, delivery_location_a)
+    bearing_b = calculate_bearing(restaurant_location, delivery_location_b)
+    
+    if bearing_a is not None and bearing_b is not None:
+        angle_diff = calculate_angle_difference(bearing_a, bearing_b)
+        
+        if angle_diff > max_angle_diff:
+            return False, 0, f"Açı farkı çok büyük: {angle_diff:.0f}° > {max_angle_diff:.0f}° (farklı yönler)"
+    
+    # DETOUR HESABI
     detour, combined, separate = calculate_detour(
         restaurant_location,
         delivery_location_a,
@@ -142,7 +155,7 @@ def should_combine_orders(
     
     # Negatif detour = birleştirmek daha verimli (tasarruf)
     if detour < 0:
-        return True, detour, f"Negatif detour ({detour:.0f}m) - birleştirmek {abs(detour):.0f}m tasarruf sağlar"
+        return True, detour, f"Aynı yön (açı farkı: {angle_diff:.0f}°), {abs(detour):.0f}m tasarruf"
     
     # Pozitif detour - eşik kontrolü (ekstra mesafe)
     if detour <= max_detour:
