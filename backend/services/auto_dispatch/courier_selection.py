@@ -250,6 +250,12 @@ async def is_courier_eligible(
     if not courier.get("current_location"):
         return False, "Kurye konumu yok", {}
     
+    # ENGELLEME KONTROLÜ - Restoran bu kuryeyi engellemiş mi?
+    if target_restaurant_id:
+        is_blocked = await is_courier_blocked_for_restaurant(courier_id, target_restaurant_id)
+        if is_blocked:
+            return False, "Kurye bu restoran tarafından engellenmiş", {}
+    
     # Kapasite kontrolü - veritabanı + bu döngüde atananlar
     max_packages = courier.get("max_packages", DEFAULT_MAX_PACKAGES)
     active_orders = await get_courier_active_orders(courier_id, company_id)
