@@ -135,7 +135,6 @@ export default function SistemPage({ companyId }) {
     fetchCompanyInfo();
     fetchEmailSettings();
     fetchBackupSettings();
-    fetchWorkingHours();
     fetchAutoDispatchSettings();
   }, [companyId]);
 
