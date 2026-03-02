@@ -250,13 +250,14 @@ async def is_courier_eligible(
     
     courier_id = courier.get("id")
     
-    # Durum kontrolü
-    if courier.get("status") not in ELIGIBLE_COURIER_STATUSES:
-        return False, f"Kurye durumu uygun değil: {courier.get('status')}", {}
-    
-    # Mola kontrolü
-    if courier.get("is_on_break"):
-        return False, "Kurye molada", {}
+    # AKTİFLİK DURUMU KONTROLÜ (Kurye panelinden belirlenen)
+    # availability_status: "active", "on_break", "offline"
+    availability_status = courier.get("availability_status", "offline")
+    if availability_status != "active":
+        if availability_status == "on_break":
+            return False, "Kurye molada", {}
+        else:  # offline veya tanımsız
+            return False, "Kurye çevrimdışı", {}
     
     # Konum kontrolü
     if not courier.get("current_location"):
