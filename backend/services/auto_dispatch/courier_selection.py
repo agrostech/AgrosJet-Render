@@ -28,7 +28,7 @@ from .config import (
     DEFAULT_MAX_PACKAGES,
 )
 from .distance import calculate_distance_meters
-from .detour import should_combine_orders, calculate_detour
+from .detour import should_combine_orders, calculate_detour, calculate_multi_order_detour, calculate_bearing, calculate_angle_difference
 
 
 async def get_restaurant_group_for_restaurant(restaurant_id: str, company_id: str) -> Optional[str]:
