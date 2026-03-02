@@ -107,14 +107,19 @@ def calculate_multi_package_detour(
     """
     Çoklu paket durumunda toplam rota mesafesi üzerinden detour hesaplar.
     
+    TASARRUF BAZLI HESAPLAMA:
+    - Tasarruf = (Ayrı gönderim maliyeti) - (Birlikte gönderim ek maliyeti)
+    - Pozitif tasarruf = birleştirmek daha iyi
+    - Negatif tasarruf = ayrı göndermek daha iyi
+    
     Args:
         restaurant_location: Restoran konumu
         existing_deliveries: Mevcut teslimat noktaları
         new_delivery: Yeni teslimat noktası
     
     Returns:
-        (detour, new_route_distance, old_route_distance, reason)
-        - detour: Eklenen mesafe (metre) - negatif = daha verimli
+        (savings, new_route_distance, old_route_distance, reason)
+        - savings: Tasarruf (metre) - negatif ise detour olarak düşün
         - new_route_distance: Yeni paket dahil rota mesafesi
         - old_route_distance: Mevcut rota mesafesi
         - reason: Açıklama
@@ -137,22 +142,32 @@ def calculate_multi_package_detour(
     if new_route is None:
         return None, None, None, "Yeni rota hesaplanamadı"
     
-    # Detour = yeni rota - eski rota
-    detour = new_route - old_route
+    # Ek maliyet = yeni rota - eski rota (rotaya eklenen mesafe)
+    added_distance = new_route - old_route
     
-    # Ayrı gönderilse mesafe (yeni paket için)
+    # Ayrı gönderilse mesafe (yeni paket için ayrı kurye)
     separate_distance = calculate_distance_meters(restaurant_location, new_delivery)
+    if separate_distance is None:
+        return None, None, None, "Ayrı mesafe hesaplanamadı"
     
-    # Tasarruf/Kayıp hesabı
-    if detour < 0:
-        reason = f"Toplam rota: {new_route:.0f}m (önceki: {old_route:.0f}m) - {abs(detour):.0f}m tasarruf"
-    elif separate_distance and detour < separate_distance:
-        saved = separate_distance - detour
-        reason = f"Toplam rota: {new_route:.0f}m - ayrı göndermekten {saved:.0f}m daha kısa"
+    # TASARRUF = Ayrı gönderim maliyeti - Birlikte gönderim ek maliyeti
+    # Pozitif = birleştirmek kazançlı
+    # Negatif = ayrı göndermek daha iyi (detour çok fazla)
+    savings = separate_distance - added_distance
+    
+    # Reason oluştur
+    if savings > 0:
+        reason = f"Toplam rota: {new_route:.0f}m (+{added_distance:.0f}m) - {savings:.0f}m tasarruf"
+    elif savings == 0:
+        reason = f"Toplam rota: {new_route:.0f}m - fark yok"
     else:
-        reason = f"Toplam rota: {new_route:.0f}m (önceki: {old_route:.0f}m) - {detour:.0f}m eklendi"
+        reason = f"Toplam rota: {new_route:.0f}m (+{added_distance:.0f}m) - ayrı göndermek {abs(savings):.0f}m daha iyi"
     
-    return detour, new_route, old_route, reason
+    # Negatif savings döndür (detour mantığıyla uyumlu: negatif = tasarruf)
+    # Aslında burada savings zaten doğru işaretli:
+    # - savings > 0 → birleştirmek iyi → detour olarak -savings döndür
+    # - savings < 0 → birleştirmek kötü → detour olarak -savings döndür (pozitif detour)
+    return -savings, new_route, old_route, reason
 
 
 def calculate_angle_difference(angle1: float, angle2: float) -> float:
