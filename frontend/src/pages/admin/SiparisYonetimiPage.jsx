@@ -175,8 +175,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   useEffect(() => {
     fetchAll();
     // Performans optimizasyonu: Polling süresini 5s'den 15s'e çıkardık
-    const orderInterval = setInterval(fetchOrders, 10000);
-    const courierInterval = setInterval(fetchCouriers, 10000);
+    const orderInterval = setInterval(fetchOrders, 5000);
+    const courierInterval = setInterval(fetchCouriers, 5000);
     
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {

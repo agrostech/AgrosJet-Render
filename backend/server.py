@@ -302,7 +302,7 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(
         auto_dispatch_job,
         'interval',
-        seconds=10,
+        seconds=5,
         id="auto_dispatch",
         name="Auto Dispatch (10s)",
         replace_existing=True

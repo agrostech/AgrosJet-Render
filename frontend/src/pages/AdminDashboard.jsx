@@ -156,7 +156,7 @@ export default function AdminDashboard() {
     
     // İlk kontrol ve her 10 saniyede bir kontrol
     checkPermissionUpdate();
-    const permInterval = setInterval(checkPermissionUpdate, 10000);
+    const permInterval = setInterval(checkPermissionUpdate, 5000);
     
     // Fetch badges initially and every 30 seconds
     fetchBadges();
