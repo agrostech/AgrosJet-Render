@@ -268,6 +268,15 @@ async def is_courier_eligible(
         if is_blocked:
             return False, "Kurye bu restoran tarafından engellenmiş", {}
     
+    # ÖDEME TÜRÜ KONTROLÜ - Sipariş ödeme türü kuryenin izinli türlerinden biri mi?
+    if order_payment_method:
+        # Varsayılan: tüm ödeme türlerine izin ver
+        default_payment_methods = ["cash", "card", "online", "meal_card", "online_meal_card"]
+        courier_allowed_methods = courier.get("allowed_payment_methods", default_payment_methods)
+        
+        if order_payment_method not in courier_allowed_methods:
+            return False, f"Ödeme türü uyumsuz: {order_payment_method}", {}
+    
     # Kapasite kontrolü - veritabanı + bu döngüde atananlar
     max_packages = courier.get("max_packages", DEFAULT_MAX_PACKAGES)
     active_orders = await get_courier_active_orders(courier_id, company_id)
