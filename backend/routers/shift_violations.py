@@ -19,7 +19,8 @@ VIOLATION_TYPES = {
     "active_without_shift": "Vardiyası yok ama aktif",
     "offline_before_shift_end": "Vardiya bitmeden çevrimdışı",
     "still_active_after_shift_end": "Vardiya bitti ama çevrimdışı olmadı",
-    "break_limit_exceeded": "Mola limitini aştı"
+    "break_limit_exceeded": "Mola limitini aştı",
+    "package_not_confirmed": "Paketi onaylamadı, paket otomatik olarak üzerinden alındı"
 }
 
 
