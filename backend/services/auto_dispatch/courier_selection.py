@@ -527,7 +527,8 @@ async def get_eligible_couriers(
             max_angle_diff,
             detour_check_enabled,
             detour_skip_distance,
-            order_payment_method
+            order_payment_method,
+            excluded_courier_ids
         )
         
         if not eligible:
