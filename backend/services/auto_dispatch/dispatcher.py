@@ -501,8 +501,11 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
                 "$push": {
                     "status_history": {
                         "status": "ready",
+                        "label": "Otomatik İptal",
                         "timestamp": now.isoformat(),
-                        "note": f"Otomatik iptal - Kurye ({courier_name}) {timeout_minutes} dk içinde onaylamadı"
+                        "note": f"Kurye ({courier_name}) {timeout_minutes} dk içinde onaylamadı",
+                        "actor_type": "system",
+                        "actor_name": "Otomatik Atama"
                     },
                     "excluded_couriers": courier_id  # Bu kuryeye tekrar atama yapma
                 }
