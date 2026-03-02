@@ -646,7 +646,8 @@ export default function SistemPage({ companyId }) {
                           min="0"
                           max="5000"
                           value={autoDispatchSettings.distance_tolerance}
-                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, distance_tolerance: parseInt(e.target.value) || 0 }))}
+                          onChange={(e) => handleDispatchInputChange('distance_tolerance', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('distance_tolerance')}
                           className="h-10"
                         />
                         <p className="text-xs text-muted-foreground">
