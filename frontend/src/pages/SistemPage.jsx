@@ -875,7 +875,8 @@ export default function SistemPage({ companyId }) {
                               min="0"
                               max="2000"
                               value={autoDispatchSettings.fairness_threshold}
-                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, fairness_threshold: parseInt(e.target.value) || 200 }))}
+                              onChange={(e) => handleDispatchInputChange('fairness_threshold', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('fairness_threshold')}
                               className="h-9"
                             />
                           </div>
