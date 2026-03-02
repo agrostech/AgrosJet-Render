@@ -558,14 +558,23 @@ async def add_shift_violation(
     """
     Vardiya ihlali kaydı ekler.
     """
+    # Mevcut sistemle uyumlu format
+    violation_labels = {
+        "package_not_confirmed": "Paketi onaylamadı"
+    }
+    
     violation = {
         "id": str(__import__("uuid").uuid4()),
         "company_id": company_id,
-        "courier_id": courier_id,
-        "courier_name": courier_name,
-        "type": violation_type,
-        "description": description,
-        "order_id": order_id,
+        "entity_type": "courier",
+        "entity_id": courier_id,
+        "entity_name": courier_name,
+        "violation_type": violation_type,
+        "violation_label": violation_labels.get(violation_type, description),
+        "details": {
+            "order_id": order_id,
+            "description": description
+        },
         "created_at": datetime.now(timezone.utc).isoformat(),
         "resolved": False
     }
