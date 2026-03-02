@@ -503,7 +503,8 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
                         "status": "ready",
                         "timestamp": now.isoformat(),
                         "note": f"Otomatik iptal - Kurye ({courier_name}) {timeout_minutes} dk içinde onaylamadı"
-                    }
+                    },
+                    "excluded_couriers": courier_id  # Bu kuryeye tekrar atama yapma
                 }
             }
         )
