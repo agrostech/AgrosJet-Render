@@ -304,7 +304,7 @@ async def lifespan(app: FastAPI):
         'interval',
         seconds=5,
         id="auto_dispatch",
-        name="Auto Dispatch (10s)",
+        name="Auto Dispatch (5s)",
         replace_existing=True
     )
     
