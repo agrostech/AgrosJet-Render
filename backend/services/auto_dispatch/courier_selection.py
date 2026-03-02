@@ -380,8 +380,16 @@ async def is_courier_eligible(
                     new_bearing = calculate_bearing(target_restaurant_location, target_delivery_location)
                     new_dist = calculate_distance_meters(target_restaurant_location, target_delivery_location)
                     
-                    # Yakın paketler için açı kontrolü atlanabilir
+                    # Yakın paketler için açı kontrolü atlanabilir (restorana yakınlık)
                     skip_angle = new_dist is not None and new_dist <= (angle_skip_distance or 1000)
+                    
+                    # Paketler arası mesafe kontrolü - 750m'den yakınsa açı kontrolü atla
+                    if not skip_angle:
+                        for existing_delivery in all_existing_deliveries:
+                            dist_between = calculate_distance_meters(target_delivery_location, existing_delivery)
+                            if dist_between is not None and dist_between <= 750:
+                                skip_angle = True
+                                break
                     
                     if not skip_angle and new_bearing is not None:
                         for existing_delivery in all_existing_deliveries:
