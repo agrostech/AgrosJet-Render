@@ -252,7 +252,9 @@ export default function SistemPage({ companyId }) {
         angle_skip_distance: res.data.angle_skip_distance || 1000,
         max_angle_diff: res.data.max_angle_diff || 90,
         detour_check_enabled: res.data.detour_check_enabled !== false,
-        detour_skip_distance: res.data.detour_skip_distance || 500
+        detour_skip_distance: res.data.detour_skip_distance || 500,
+        auto_cancel_enabled: res.data.auto_cancel_enabled || false,
+        auto_cancel_timeout: res.data.auto_cancel_timeout || 5
       });
     } catch (err) {
       console.error("Auto dispatch settings fetch error:", err);
