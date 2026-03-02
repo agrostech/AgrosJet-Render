@@ -491,7 +491,7 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
                 courier_id=courier_id,
                 courier_name=courier_name,
                 violation_type="package_not_confirmed",
-                description=f"Paketi onaylamadı, paket otomatik olarak üzerinden alındı",
+                description="Paketi onaylamadı, paket otomatik olarak üzerinden alındı",
                 order_id=order_id
             )
             
