@@ -34,6 +34,9 @@ class DispatchSettingsUpdate(BaseModel):
     # Detour kontrolü ayarları
     detour_check_enabled: bool = True
     detour_skip_distance: int = 500  # metre
+    # Otomatik iptal ayarları
+    auto_cancel_enabled: bool = False
+    auto_cancel_timeout: int = 5  # dakika
 
 
 @router.get("/settings/{company_id}")
