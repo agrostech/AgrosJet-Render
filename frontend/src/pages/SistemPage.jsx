@@ -669,7 +669,8 @@ export default function SistemPage({ companyId }) {
                           min="1"
                           max="30"
                           value={autoDispatchSettings.max_wait_time}
-                          onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_wait_time: parseInt(e.target.value) || 5 }))}
+                          onChange={(e) => handleDispatchInputChange('max_wait_time', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('max_wait_time')}
                           className="h-10"
                         />
                         <p className="text-xs text-muted-foreground">
