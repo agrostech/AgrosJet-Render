@@ -63,13 +63,12 @@ export default function SistemPage({ companyId }) {
   const [replaceExisting, setReplaceExisting] = useState(false);
   const backupFileRef = useRef(null);
 
-  // Working Hours Settings
+  // Working Hours Settings (Sabit - Değiştirilemez)
   const [workingHoursExpanded, setWorkingHoursExpanded] = useState(false);
-  const [workingHours, setWorkingHours] = useState({
-    opening_time: "09:00",
-    closing_time: "22:00"
-  });
-  const [workingHoursSaving, setWorkingHoursSaving] = useState(false);
+  const workingHours = {
+    opening_time: "06:00",
+    closing_time: "06:00"
+  };
 
   // Auto Dispatch Settings
   const [autoDispatchExpanded, setAutoDispatchExpanded] = useState(false);
