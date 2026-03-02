@@ -1,60 +1,58 @@
-# Fleet Order System - PRD
+# AgrosJet - Automatic Dispatch System PRD
 
-## Completed Features (as of 2026-03-01)
+## Original Problem Statement
+Sophisticated **Automatic Dispatch System** for a multi-panel application (Admin, Restaurant, Courier). The core is to automatically assign "ready" orders to the most suitable couriers based on complex business rules.
 
-### Otomatik Atama Sistemi - TAMAMLANDI
+## User Language
+Turkish
 
-**İki Katmanlı Model:**
+## Core Features Implemented
 
-| Aşama | Model | Açıklama |
-|-------|-------|----------|
-| **Pickup** | Detour | Yolda paketi olmayan kurye - sipariş birleştirme |
-| **On-the-way** | D_return vs D_idle | 1 yolda paketi olan kurye - bekleme/atama |
+### Dispatch Logic
+- Detour calculation based on total optimal route distance (TSP heuristic)
+- Angle check with configurable skip distance for nearby packages
+- Detour check with negative values for minimum savings threshold
+- Proximity-based skips for both angle and detour checks
+- Courier state validation (availability_status, allowed_payment_methods)
+- Atomic order assignment to prevent race conditions
+- Auto-cancellation of unconfirmed assignments with shift violation logging
+- Excluded couriers list to prevent re-assignment after failed confirmation
 
-**Panel Ayarları:**
-1. Mesafe Toleransı (metre) - D_return vs D_idle karşılaştırması
-2. Maksimum Bekleme Süresi (dk) - Yolda kurye beklerken timeout
-3. Adalet Sistemi + Eşik - Son 1 saat sipariş dağılımı
-4. Maksimum Rota Sapması (metre) - Pickup birleştirme detour limiti
+### UI/Settings
+- Flexible numeric inputs allowing 0 and negative values
+- "Optimize Ayarları Yükle" button for preset configuration
+- Disabled "Çalışma Saatleri" card (24-hour operation)
+- Email notification toggles for all notification types
 
-**Detour Formülü:**
-```
-AyrıToplam = (R→A) + (R→B)
-D1 = (R→A) + (A→B)
-D2 = (R→B) + (B→A)
-BirleşikMesafe = min(D1, D2)
-Detour = BirleşikMesafe - AyrıToplam
+## Completed Work (March 2, 2026)
+- [x] E-posta Bildirimleri UI - removed separate "Otomatik Atama Bildirimleri" category
+- [x] All notification toggles now in same grid with consistent styling
 
-Detour ≤ max_detour → Birleştir
-Detour > max_detour → Ayrı kurye
-```
+## In Progress Tasks
+1. **P1: Email Notification Backend** - Backend logic to actually send emails based on `notify_shift_violation` and `notify_auto_cancel` settings
 
-**Kısıtlar (Her Zaman Geçerli):**
-- FIFO korunur (ready_at ASC)
-- Restoran grubu kontrolü
-- Kapasite kontrolü (max_packages)
-- Yolda max 1 sipariş
+## Upcoming Tasks
+1. **P1: "Stop Count" Capacity Logic** - Count unique drop-off locations instead of raw package count
+2. **P1: Restaurant Fee Calculation** - Implement `restaurant_fee` on order creation for all webhooks
 
-**Dosya Yapısı:**
-```
-/app/backend/services/auto_dispatch/
-├── config.py           # Ayarlar ve sabitler
-├── distance.py         # Haversine mesafe
-├── detour.py           # Rota sapması hesaplama
-├── courier_selection.py # Kurye filtreleme + grup + detour
-└── dispatcher.py       # Ana dispatch mantığı
-```
+## Future/Backlog Tasks
+- Refactor scheduled jobs (Haftalık Hakediş, Restoran Mutabakat)
+- Investigate/remove unused `dispatch_decision` function
+- API request monitor in admin panel
+- Refactor `/app/backend/routers/orders.py`
+- Native Courier App development
 
-### Diğer Tamamlanan Özellikler:
-- [x] Kurye kademeli ücretlendirme
-- [x] Kurye maksimum paket kapasitesi
-- [x] Restaurant Groups CRUD
-- [x] Mobile UI Overhaul
+## Key Files
+- `/app/backend/services/auto_dispatch/dispatcher.py` - Core dispatch loop
+- `/app/backend/services/auto_dispatch/courier_selection.py` - Eligibility logic
+- `/app/backend/services/auto_dispatch/detour.py` - Route optimization
+- `/app/frontend/src/pages/SistemPage.jsx` - Settings UI
 
-## Backlog
-- [ ] `restaurant_fee` calculation
-- [ ] `jobs.py` refactor
-- [ ] Native Courier App
+## Database Schema (Key Fields)
+- **companies.auto_dispatch_settings**: max_detour, auto_cancel_enabled, auto_cancel_timeout, send_violation_emails, send_cancellation_emails
+- **orders**: excluded_couriers, status_history
+- **couriers**: availability_status, allowed_payment_methods
 
 ## Test Credentials
 - Admin: `superadmin` / `123456`
+- Courier: `5555555555` / `123456`
