@@ -725,7 +725,8 @@ export default function SistemPage({ companyId }) {
                               min="0"
                               max="3000"
                               value={autoDispatchSettings.angle_skip_distance}
-                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, angle_skip_distance: parseInt(e.target.value) || 1000 }))}
+                              onChange={(e) => handleDispatchInputChange('angle_skip_distance', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('angle_skip_distance')}
                               className="h-9"
                             />
                           </div>
