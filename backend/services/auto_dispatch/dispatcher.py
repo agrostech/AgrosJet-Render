@@ -568,13 +568,17 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
     if not settings.get("enabled"):
         return {"skipped": True, "reason": "Otomatik atama kapalı"}
     
-    stats = {"processed": 0, "assigned": 0, "waiting": 0, "no_courier": 0, "errors": 0}
+    stats = {"processed": 0, "assigned": 0, "waiting": 0, "no_courier": 0, "errors": 0, "auto_cancelled": 0}
     
     # Bu döngüde atanan siparişleri takip et
     assigned_in_this_cycle = {}
     assigned_order_ids = set()  # Atanan sipariş ID'leri
     
-    # Önce bekleme modundaki siparişleri kontrol et
+    # Önce onaylanmayan siparişleri kontrol et ve iptal et
+    cancelled_results = await check_unconfirmed_orders(company_id, settings)
+    stats["auto_cancelled"] = len(cancelled_results)
+    
+    # Bekleme modundaki siparişleri kontrol et
     waiting_results = await check_waiting_orders(company_id, settings)
     for result in waiting_results:
         if "assigned" in result.get("action", ""):
