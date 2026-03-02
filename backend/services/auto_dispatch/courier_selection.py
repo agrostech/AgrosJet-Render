@@ -381,16 +381,27 @@ async def is_courier_eligible(
                 
                 # DETOUR KONTROLÜ - Toplam rota mesafesi üzerinden
                 if detour_check_enabled:
-                    # Yakın paket kontrolü
-                    new_dist = calculate_distance_meters(target_restaurant_location, target_delivery_location)
-                    skip_detour = new_dist is not None and new_dist <= (detour_skip_distance or 500)
+                    skip_detour = False
                     
-                    # Mevcut paketlerden herhangi biri yakınsa da atla
-                    for existing_delivery in all_existing_deliveries:
-                        existing_dist = calculate_distance_meters(target_restaurant_location, existing_delivery)
-                        if existing_dist is not None and existing_dist <= (detour_skip_distance or 500):
-                            skip_detour = True
-                            break
+                    # Yeni paket restorana yakınsa atla
+                    new_dist_to_restaurant = calculate_distance_meters(target_restaurant_location, target_delivery_location)
+                    if new_dist_to_restaurant is not None and new_dist_to_restaurant <= (detour_skip_distance or 500):
+                        skip_detour = True
+                    
+                    # Yeni paket MEVCUT PAKETLERDEN HERHANGİ BİRİNE yakınsa atla
+                    if not skip_detour:
+                        for existing_delivery in all_existing_deliveries:
+                            # Mevcut paket restorana yakınsa
+                            existing_dist_to_restaurant = calculate_distance_meters(target_restaurant_location, existing_delivery)
+                            if existing_dist_to_restaurant is not None and existing_dist_to_restaurant <= (detour_skip_distance or 500):
+                                skip_detour = True
+                                break
+                            
+                            # YENİ: Yeni paket mevcut pakete yakınsa (paketler arası mesafe)
+                            dist_between_packages = calculate_distance_meters(target_delivery_location, existing_delivery)
+                            if dist_between_packages is not None and dist_between_packages <= (detour_skip_distance or 500):
+                                skip_detour = True
+                                break
                     
                     if not skip_detour:
                         # TOPLAM ROTA HESABI - Tüm paketler birlikte değerlendirilir
