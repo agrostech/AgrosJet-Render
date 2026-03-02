@@ -442,7 +442,6 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
     
     timeout_minutes = settings.get("auto_cancel_timeout", 5)
     now = datetime.now(timezone.utc)
-    timeout_threshold = now - timedelta(minutes=timeout_minutes)
     
     # "assigned" statüsündeki siparişleri bul (henüz onaylanmamış)
     unconfirmed_orders = await db.orders.find(
@@ -450,7 +449,7 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
             "company_id": company_id,
             "status": "assigned",
             "courier_id": {"$ne": None},
-            "assigned_at": {"$lt": timeout_threshold.isoformat()}
+            "assigned_at": {"$ne": None}
         },
         {"_id": 0}
     ).to_list(100)
@@ -459,7 +458,32 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
         order_id = order.get("id")
         courier_id = order.get("courier_id")
         courier_name = order.get("courier_name", "Bilinmeyen Kurye")
-        assigned_at = order.get("assigned_at")
+        assigned_at_str = order.get("assigned_at")
+        
+        if not assigned_at_str:
+            continue
+        
+        # assigned_at'ı datetime'a çevir
+        try:
+            if isinstance(assigned_at_str, str):
+                # ISO format parse
+                assigned_at = datetime.fromisoformat(assigned_at_str.replace('Z', '+00:00'))
+            else:
+                assigned_at = assigned_at_str
+            
+            # UTC'ye çevir
+            if assigned_at.tzinfo is None:
+                assigned_at = assigned_at.replace(tzinfo=timezone.utc)
+            else:
+                assigned_at = assigned_at.astimezone(timezone.utc)
+        except Exception as e:
+            logger.error(f"assigned_at parse hatası: {e}")
+            continue
+        
+        # Zaman aşımı kontrolü
+        elapsed_minutes = (now - assigned_at).total_seconds() / 60
+        if elapsed_minutes < timeout_minutes:
+            continue  # Henüz zaman dolmadı
         
         # Siparişi ready durumuna geri al
         update_result = await db.orders.update_one(
@@ -501,11 +525,12 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
                 order_id=order_id,
                 courier_id=courier_id,
                 action="auto_cancelled",
-                reason=f"Kurye {timeout_minutes} dk içinde onaylamadı",
+                reason=f"Kurye {timeout_minutes} dk içinde onaylamadı ({elapsed_minutes:.1f} dk geçti)",
                 details={
                     "courier_name": courier_name,
-                    "assigned_at": assigned_at,
-                    "timeout_minutes": timeout_minutes
+                    "assigned_at": assigned_at_str,
+                    "timeout_minutes": timeout_minutes,
+                    "elapsed_minutes": elapsed_minutes
                 }
             )
             
@@ -516,7 +541,7 @@ async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict
                 "action": "auto_cancelled"
             })
             
-            logger.info(f"Sipariş {order_id[:8]}... otomatik iptal edildi - Kurye: {courier_name}")
+            logger.info(f"Sipariş {order_id[:8]}... otomatik iptal edildi - Kurye: {courier_name} ({elapsed_minutes:.1f} dk)")
     
     return results
 
