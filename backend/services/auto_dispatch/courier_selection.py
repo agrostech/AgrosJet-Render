@@ -494,8 +494,7 @@ async def get_eligible_couriers(
     couriers = await db.couriers.find(
         {
             "company_id": company_id,
-            "status": {"$in": ELIGIBLE_COURIER_STATUSES},
-            "is_on_break": {"$ne": True}
+            "availability_status": "active"  # Sadece aktif kuryeler
         },
         {"_id": 0}
     ).to_list(500)
