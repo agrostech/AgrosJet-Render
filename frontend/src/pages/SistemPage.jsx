@@ -831,7 +831,8 @@ export default function SistemPage({ companyId }) {
                             min="1"
                             max="20"
                             value={autoDispatchSettings.same_location_max_packages}
-                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_max_packages: parseInt(e.target.value) || 10 }))}
+                            onChange={(e) => handleDispatchInputChange('same_location_max_packages', e.target.value)}
+                            onBlur={() => handleDispatchInputBlur('same_location_max_packages')}
                             className="h-9"
                           />
                         </div>
