@@ -52,6 +52,109 @@ def calculate_bearing(from_location: Dict, to_location: Dict) -> Optional[float]
     return (bearing_degrees + 360) % 360
 
 
+def calculate_optimal_route_distance(
+    restaurant_location: Dict,
+    delivery_locations: List[Dict]
+) -> Optional[float]:
+    """
+    Restorandan başlayıp tüm teslimat noktalarını ziyaret eden
+    en kısa rotanın mesafesini hesaplar (Greedy Nearest Neighbor).
+    
+    Args:
+        restaurant_location: Restoran konumu
+        delivery_locations: Teslimat noktaları listesi
+    
+    Returns:
+        Toplam rota mesafesi (metre) veya None
+    """
+    if not delivery_locations:
+        return 0
+    
+    if len(delivery_locations) == 1:
+        return calculate_distance_meters(restaurant_location, delivery_locations[0])
+    
+    # Greedy Nearest Neighbor algoritması
+    # Her adımda en yakın noktaya git
+    remaining = delivery_locations.copy()
+    current = restaurant_location
+    total_distance = 0
+    
+    while remaining:
+        # En yakın noktayı bul
+        min_dist = float('inf')
+        nearest_idx = 0
+        
+        for i, loc in enumerate(remaining):
+            dist = calculate_distance_meters(current, loc)
+            if dist is not None and dist < min_dist:
+                min_dist = dist
+                nearest_idx = i
+        
+        if min_dist == float('inf'):
+            return None  # Koordinat eksik
+        
+        total_distance += min_dist
+        current = remaining.pop(nearest_idx)
+    
+    return total_distance
+
+
+def calculate_multi_package_detour(
+    restaurant_location: Dict,
+    existing_deliveries: List[Dict],
+    new_delivery: Dict
+) -> Tuple[Optional[float], Optional[float], Optional[float], str]:
+    """
+    Çoklu paket durumunda toplam rota mesafesi üzerinden detour hesaplar.
+    
+    Args:
+        restaurant_location: Restoran konumu
+        existing_deliveries: Mevcut teslimat noktaları
+        new_delivery: Yeni teslimat noktası
+    
+    Returns:
+        (detour, new_route_distance, old_route_distance, reason)
+        - detour: Eklenen mesafe (metre) - negatif = daha verimli
+        - new_route_distance: Yeni paket dahil rota mesafesi
+        - old_route_distance: Mevcut rota mesafesi
+        - reason: Açıklama
+    """
+    if not existing_deliveries:
+        # İlk paket - sadece restorana mesafe
+        dist = calculate_distance_meters(restaurant_location, new_delivery)
+        if dist is None:
+            return None, None, None, "Koordinat eksik"
+        return 0, dist, 0, "İlk paket - detour yok"
+    
+    # Mevcut rota mesafesi
+    old_route = calculate_optimal_route_distance(restaurant_location, existing_deliveries)
+    if old_route is None:
+        return None, None, None, "Mevcut rota hesaplanamadı"
+    
+    # Yeni paket dahil rota mesafesi
+    all_deliveries = existing_deliveries + [new_delivery]
+    new_route = calculate_optimal_route_distance(restaurant_location, all_deliveries)
+    if new_route is None:
+        return None, None, None, "Yeni rota hesaplanamadı"
+    
+    # Detour = yeni rota - eski rota
+    detour = new_route - old_route
+    
+    # Ayrı gönderilse mesafe (yeni paket için)
+    separate_distance = calculate_distance_meters(restaurant_location, new_delivery)
+    
+    # Tasarruf/Kayıp hesabı
+    if detour < 0:
+        reason = f"Toplam rota: {new_route:.0f}m (önceki: {old_route:.0f}m) - {abs(detour):.0f}m tasarruf"
+    elif separate_distance and detour < separate_distance:
+        saved = separate_distance - detour
+        reason = f"Toplam rota: {new_route:.0f}m - ayrı göndermekten {saved:.0f}m daha kısa"
+    else:
+        reason = f"Toplam rota: {new_route:.0f}m (önceki: {old_route:.0f}m) - {detour:.0f}m eklendi"
+    
+    return detour, new_route, old_route, reason
+
+
 def calculate_angle_difference(angle1: float, angle2: float) -> float:
     """
     İki açı arasındaki en küçük farkı hesaplar (0-180 derece).
