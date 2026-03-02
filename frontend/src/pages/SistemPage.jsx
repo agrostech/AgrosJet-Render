@@ -766,7 +766,8 @@ export default function SistemPage({ companyId }) {
                               min="-3000"
                               max="3000"
                               value={autoDispatchSettings.max_detour}
-                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_detour: parseInt(e.target.value) || 0 }))}
+                              onChange={(e) => handleDispatchInputChange('max_detour', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('max_detour')}
                               className="h-9"
                             />
                           </div>
