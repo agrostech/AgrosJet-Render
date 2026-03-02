@@ -21,6 +21,8 @@ DEFAULT_SETTINGS = {
     "max_angle_diff": 90,  # derece - Maksimum açı farkı
     "detour_check_enabled": True,  # Detour kontrolü aktif mi
     "detour_skip_distance": 500,  # metre - Bu mesafeden yakın paketler için detour kontrolü atlanır
+    "auto_cancel_enabled": False,  # Otomatik iptal aktif mi
+    "auto_cancel_timeout": 5,  # dakika - Onaylanmayan paket iptal süresi
 }
 
 # Kurye varsayılan maksimum paket kapasitesi
