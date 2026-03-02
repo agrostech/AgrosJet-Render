@@ -93,6 +93,45 @@ export default function SistemPage({ companyId }) {
   const [autoDispatchLoading, setAutoDispatchLoading] = useState(true);
   const [autoDispatchSaving, setAutoDispatchSaving] = useState(false);
 
+  // Optimize edilmiş varsayılan ayarlar
+  const OPTIMAL_DISPATCH_SETTINGS = {
+    enabled: true,
+    distance_tolerance: 2000,
+    max_wait_time: 5,
+    fairness_threshold: 200,
+    fairness_enabled: false,
+    max_detour: -500,
+    same_location_radius: 30,
+    same_location_max_packages: 10,
+    angle_check_enabled: true,
+    angle_skip_distance: 1000,
+    max_angle_diff: 90,
+    detour_check_enabled: true,
+    detour_skip_distance: 500,
+    auto_cancel_enabled: true,
+    auto_cancel_timeout: 5
+  };
+
+  // Input değişikliği handler - serbest giriş
+  const handleDispatchInputChange = (field, value) => {
+    const numValue = value === '' || value === '-' ? value : parseInt(value);
+    setAutoDispatchSettings(prev => ({ ...prev, [field]: numValue }));
+  };
+
+  // Input blur handler - boş bırakılırsa 0 yap
+  const handleDispatchInputBlur = (field) => {
+    setAutoDispatchSettings(prev => ({
+      ...prev,
+      [field]: prev[field] === '' || prev[field] === '-' ? 0 : prev[field]
+    }));
+  };
+
+  // Optimal ayarlara geri dön
+  const restoreOptimalSettings = () => {
+    setAutoDispatchSettings(OPTIMAL_DISPATCH_SETTINGS);
+    toast.success("Optimize ayarlar yüklendi");
+  };
+
   useEffect(() => {
     fetchCompanyInfo();
     fetchEmailSettings();
