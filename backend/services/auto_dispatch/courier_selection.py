@@ -353,24 +353,66 @@ async def is_courier_eligible(
                     if ex_lat is not None and ex_lng is not None:
                         all_existing_deliveries.append(dl)
             
-            # HER mevcut siparişle açı ve detour kontrolü yap
-            for existing_delivery in all_existing_deliveries:
-                # Kontroller kapalıysa atla
-                if not angle_check_enabled and not detour_check_enabled:
-                    continue
+            # Kontroller kapalıysa atla
+            if not angle_check_enabled and not detour_check_enabled:
+                pass  # Kontrol yapma
+            elif all_existing_deliveries:
+                # AÇI KONTROLÜ - Yeni paketin yönü mevcut paketlerle uyumlu mu?
+                if angle_check_enabled:
+                    new_bearing = calculate_bearing(target_restaurant_location, target_delivery_location)
+                    new_dist = calculate_distance_meters(target_restaurant_location, target_delivery_location)
+                    
+                    # Yakın paketler için açı kontrolü atlanabilir
+                    skip_angle = new_dist is not None and new_dist <= (angle_skip_distance or 1000)
+                    
+                    if not skip_angle and new_bearing is not None:
+                        for existing_delivery in all_existing_deliveries:
+                            existing_bearing = calculate_bearing(target_restaurant_location, existing_delivery)
+                            existing_dist = calculate_distance_meters(target_restaurant_location, existing_delivery)
+                            
+                            # Mevcut paket de yakınsa atla
+                            if existing_dist is not None and existing_dist <= (angle_skip_distance or 1000):
+                                continue
+                            
+                            if existing_bearing is not None:
+                                angle_diff = calculate_angle_difference(new_bearing, existing_bearing)
+                                if angle_diff > (max_angle_diff or 90):
+                                    return False, f"Açı farkı çok büyük: {angle_diff:.0f}° > {max_angle_diff or 90}° (farklı yönler)", {}
                 
-                can_combine, detour_value, detour_reason = should_combine_orders(
-                    target_restaurant_location,
-                    existing_delivery,
-                    target_delivery_location,
-                    max_detour if detour_check_enabled else 99999,
-                    max_angle_diff if angle_check_enabled else 180,
-                    angle_skip_distance or 1000,
-                    detour_skip_distance or 500
-                )
-                
-                if not can_combine:
-                    return False, f"Rota uyumsuz: {detour_reason}", {}
+                # DETOUR KONTROLÜ - Toplam rota mesafesi üzerinden
+                if detour_check_enabled:
+                    # Yakın paket kontrolü
+                    new_dist = calculate_distance_meters(target_restaurant_location, target_delivery_location)
+                    skip_detour = new_dist is not None and new_dist <= (detour_skip_distance or 500)
+                    
+                    # Mevcut paketlerden herhangi biri yakınsa da atla
+                    for existing_delivery in all_existing_deliveries:
+                        existing_dist = calculate_distance_meters(target_restaurant_location, existing_delivery)
+                        if existing_dist is not None and existing_dist <= (detour_skip_distance or 500):
+                            skip_detour = True
+                            break
+                    
+                    if not skip_detour:
+                        # TOPLAM ROTA HESABI - Tüm paketler birlikte değerlendirilir
+                        detour_value, detour_reason = calculate_multi_order_detour(
+                            target_restaurant_location,
+                            all_existing_deliveries,
+                            target_delivery_location
+                        )
+                        
+                        if detour_value is not None:
+                            # max_detour negatif ise: minimum tasarruf gerekli
+                            if max_detour < 0:
+                                min_savings = abs(max_detour)
+                                if detour_value >= 0:
+                                    # Tasarruf yok, ekstra mesafe var
+                                    return False, f"Rota uyumsuz: Tasarruf yok (+{detour_value:.0f}m), min {min_savings:.0f}m gerekli", {}
+                                elif abs(detour_value) < min_savings:
+                                    # Tasarruf yetersiz
+                                    return False, f"Rota uyumsuz: Tasarruf ({abs(detour_value):.0f}m) < Gerekli ({min_savings:.0f}m)", {}
+                            # max_detour pozitif ise: maksimum sapma toleransı
+                            elif detour_value > max_detour:
+                                return False, f"Rota uyumsuz: Detour ({detour_value:.0f}m) > Eşik ({max_detour:.0f}m)", {}
     
     # Kurye tipi belirleme (total_active_count kullan)
     if on_way_count == 0 and total_active_count == 0:
