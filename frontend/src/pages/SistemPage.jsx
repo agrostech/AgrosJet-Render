@@ -177,7 +177,9 @@ export default function SistemPage({ companyId }) {
           notify_zimmet: res.data.notify_zimmet !== false,
           notify_evrak: res.data.notify_evrak !== false,
           notify_jetpuan: res.data.notify_jetpuan !== false,
-          notify_fesih: res.data.notify_fesih !== false
+          notify_fesih: res.data.notify_fesih !== false,
+          notify_shift_violation: res.data.notify_shift_violation || false,
+          notify_auto_cancel: res.data.notify_auto_cancel || false
         });
         setEmailStatus({ exists: true });
       }
