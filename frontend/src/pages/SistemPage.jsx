@@ -94,22 +94,22 @@ export default function SistemPage({ companyId }) {
   const [autoDispatchSaving, setAutoDispatchSaving] = useState(false);
 
   // Optimize edilmiş varsayılan ayarlar
-  const OPTIMAL_DISPATCH_SETTINGS = {
+  const OPTIMIZED_DISPATCH_SETTINGS = {
     enabled: true,
-    distance_tolerance: 2000,
+    distance_tolerance: 1000,
     max_wait_time: 5,
-    fairness_threshold: 200,
-    fairness_enabled: false,
-    max_detour: -500,
+    fairness_threshold: 500,
+    fairness_enabled: true,
+    max_detour: 1000,
     same_location_radius: 30,
-    same_location_max_packages: 10,
+    same_location_max_packages: 5,
     angle_check_enabled: true,
-    angle_skip_distance: 1000,
-    max_angle_diff: 90,
+    angle_skip_distance: 1500,
+    max_angle_diff: 40,
     detour_check_enabled: true,
     detour_skip_distance: 500,
     auto_cancel_enabled: true,
-    auto_cancel_timeout: 5
+    auto_cancel_timeout: 3
   };
 
   // Input değişikliği handler - serbest giriş
@@ -126,9 +126,9 @@ export default function SistemPage({ companyId }) {
     }));
   };
 
-  // Optimal ayarlara geri dön
-  const restoreOptimalSettings = () => {
-    setAutoDispatchSettings(OPTIMAL_DISPATCH_SETTINGS);
+  // Optimize ayarlara geri dön
+  const restoreOptimizedSettings = () => {
+    setAutoDispatchSettings(OPTIMIZED_DISPATCH_SETTINGS);
     toast.success("Optimize ayarlar yüklendi");
   };
 
