@@ -40,7 +40,10 @@ export default function SistemPage({ companyId }) {
     notify_zimmet: true,
     notify_evrak: true,
     notify_jetpuan: true,
-    notify_fesih: true
+    notify_fesih: true,
+    // Otomatik atama bildirimleri
+    notify_shift_violation: false,
+    notify_auto_cancel: false
   });
   const [emailStatus, setEmailStatus] = useState({ exists: false });
   const [emailLoading, setEmailLoading] = useState(true);
