@@ -519,7 +519,7 @@ export default function SistemPage({ companyId }) {
         )}
       </div>
 
-      {/* Çalışma Saatleri - Collapsible */}
+      {/* Çalışma Saatleri - Collapsible (Sabit) */}
       <div className="border-2 border-border bg-white">
         <button 
           type="button"
@@ -543,7 +543,7 @@ export default function SistemPage({ companyId }) {
         {workingHoursExpanded && (
           <div className="p-3 md:p-4 space-y-4">
             <p className="text-sm text-muted-foreground">
-              Şirketinizin çalışma saatlerini belirleyin. Bu saatler raporlarda varsayılan olarak kullanılacaktır.
+              Şirket çalışma saatleri sabit olarak ayarlanmıştır.
             </p>
             
             <div className="grid grid-cols-2 gap-4">
@@ -552,8 +552,8 @@ export default function SistemPage({ companyId }) {
                 <Input 
                   type="time"
                   value={workingHours.opening_time}
-                  onChange={(e) => setWorkingHours({...workingHours, opening_time: e.target.value})}
-                  className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  disabled
+                  className="mt-1 h-10 md:h-11 border-2 text-sm bg-slate-50 cursor-not-allowed"
                 />
               </div>
               <div>
@@ -561,20 +561,15 @@ export default function SistemPage({ companyId }) {
                 <Input 
                   type="time"
                   value={workingHours.closing_time}
-                  onChange={(e) => setWorkingHours({...workingHours, closing_time: e.target.value})}
-                  className="mt-1 h-10 md:h-11 border-2 text-sm"
+                  disabled
+                  className="mt-1 h-10 md:h-11 border-2 text-sm bg-slate-50 cursor-not-allowed"
                 />
               </div>
             </div>
             
-            <Button 
-              onClick={handleWorkingHoursSave} 
-              disabled={workingHoursSaving} 
-              className="h-10 md:h-11 font-semibold text-sm"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {workingHoursSaving ? "Kaydediliyor..." : "Kaydet"}
-            </Button>
+            <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
+              💡 24 saat çalışma - 06:00'dan ertesi gün 06:00'a kadar
+            </p>
           </div>
         )}
       </div>
