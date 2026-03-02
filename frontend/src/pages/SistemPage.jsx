@@ -215,23 +215,6 @@ export default function SistemPage({ companyId }) {
     }
   };
 
-  // Backup functions
-  const fetchBackupSettings = async () => {
-    if (!companyId) return;
-    try {
-      const res = await axios.get(`${API}/backup/company/${companyId}/schedule`);
-      setBackupSettings({
-        enabled: res.data.enabled || false,
-        hour: res.data.hour ?? 3,
-        email: res.data.email || ""
-      });
-    } catch (err) {
-      console.error("Backup settings fetch error:", err);
-    } finally {
-      setBackupLoading(false);
-    }
-  };
-
   // Auto Dispatch Functions
   const fetchAutoDispatchSettings = async () => {
     if (!companyId) return;
