@@ -122,7 +122,6 @@ export default function SistemPage({ companyId }) {
   useEffect(() => {
     fetchCompanyInfo();
     fetchEmailSettings();
-    fetchBackupSettings();
     fetchAutoDispatchSettings();
   }, [companyId]);
 
