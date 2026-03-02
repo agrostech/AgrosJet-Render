@@ -713,7 +713,8 @@ export default function SistemPage({ companyId }) {
                               min="30"
                               max="180"
                               value={autoDispatchSettings.max_angle_diff}
-                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, max_angle_diff: parseInt(e.target.value) || 90 }))}
+                              onChange={(e) => handleDispatchInputChange('max_angle_diff', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('max_angle_diff')}
                               className="h-9"
                             />
                           </div>
