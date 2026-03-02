@@ -348,25 +348,17 @@ def calculate_multi_order_detour(
             return None, "Koordinat eksik"
         return detour, f"Tek sipariş üzerine ekleme - detour: {detour:.0f}m"
     
-    # Birden fazla mevcut sipariş varsa
-    # En son teslimat noktasından yeni noktaya mesafe ekle
-    # Bu basitleştirilmiş bir yaklaşım
-    last_delivery = existing_deliveries[-1]
+    # Birden fazla mevcut sipariş varsa - TOPLAM ROTA HESABI
+    detour, new_route, old_route, reason = calculate_multi_package_detour(
+        restaurant_location,
+        existing_deliveries,
+        new_delivery
+    )
     
-    # Mevcut son noktadan yeni noktaya mesafe
-    extension = calculate_distance_meters(last_delivery, new_delivery)
+    if detour is None:
+        return None, reason
     
-    # Yeni noktadan restorana geri dönüş vs direkt
-    new_to_restaurant = calculate_distance_meters(new_delivery, restaurant_location)
-    last_to_restaurant = calculate_distance_meters(last_delivery, restaurant_location)
-    
-    if extension is None or new_to_restaurant is None or last_to_restaurant is None:
-        return None, "Koordinat eksik"
-    
-    # Detour = (eski son → yeni) + (yeni → R) - (eski son → R)
-    detour = extension + new_to_restaurant - last_to_restaurant
-    
-    return detour, f"Çoklu sipariş üzerine ekleme - detour: {detour:.0f}m"
+    return detour, reason
 
 
 def calculate_order_match_score(
