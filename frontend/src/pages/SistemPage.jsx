@@ -819,7 +819,8 @@ export default function SistemPage({ companyId }) {
                             min="0"
                             max="200"
                             value={autoDispatchSettings.same_location_radius}
-                            onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, same_location_radius: parseInt(e.target.value) || 30 }))}
+                            onChange={(e) => handleDispatchInputChange('same_location_radius', e.target.value)}
+                            onBlur={() => handleDispatchInputBlur('same_location_radius')}
                             className="h-9"
                           />
                         </div>
