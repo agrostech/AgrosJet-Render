@@ -290,9 +290,23 @@ async def process_single_order(
         return {"action": "waiting", "courier_id": courier["id"], "reason": "1-yolda kurye bekleniyor"}
     
     # Her iki tip de varsa - ANA KARAR MANTIĞI
-    # D_return_min ≤ D_idle_min + MesafeToleransı ?
-    if d_return_min <= d_idle_min + distance_tolerance:
-        # 1-yolda kurye daha avantajlı - bekleme moduna al
+    # Fark = D_idle - D_return
+    # Fark <= Tolerans ise → Boş kuryeye ata (bekletme)
+    # Fark > Tolerans ise → Yolda kurye için beklet
+    distance_difference = d_idle_min - d_return_min
+    
+    if distance_difference <= distance_tolerance:
+        # Fark küçük - boş kuryeye direkt ata, bekletme
+        result = await assign_order_to_courier(
+            order, 
+            best_idle, 
+            f"Fark({distance_difference:.0f}m) <= Tolerans({distance_tolerance}m) - boş kurye atandı"
+        )
+        if result.get("success"):
+            return {"action": "assigned", "courier_id": best_idle["courier"]["id"], "reason": f"Boş kurye atandı (fark: {distance_difference:.0f}m)"}
+        return {"action": "error", "reason": result.get("error")}
+    else:
+        # Fark büyük - yolda kurye çok daha yakın, beklet
         courier = best_return["courier"]
         await set_order_waiting(order_id, courier["id"], courier["name"])
         
@@ -301,25 +315,16 @@ async def process_single_order(
             order_id=order_id,
             courier_id=courier["id"],
             action="waiting",
-            reason=f"D_return({d_return_min:.0f}m) <= D_idle({d_idle_min:.0f}m) + Tolerans({distance_tolerance}m)",
+            reason=f"Fark({distance_difference:.0f}m) > Tolerans({distance_tolerance}m) - yolda kurye bekleniyor",
             details={
                 "d_return_min": d_return_min,
                 "d_idle_min": d_idle_min,
+                "distance_difference": distance_difference,
                 "distance_tolerance": distance_tolerance
             }
         )
         
-        return {"action": "waiting", "courier_id": courier["id"], "reason": f"1-yolda kurye bekleniyor (D_return: {d_return_min:.0f}m)"}
-    else:
-        # Boş kurye daha avantajlı - direkt ata
-        result = await assign_order_to_courier(
-            order, 
-            best_idle, 
-            f"D_return({d_return_min:.0f}m) > D_idle({d_idle_min:.0f}m) + Tolerans({distance_tolerance}m)"
-        )
-        if result.get("success"):
-            return {"action": "assigned", "courier_id": best_idle["courier"]["id"], "reason": f"Boş kurye atandı (D_idle: {d_idle_min:.0f}m)"}
-        return {"action": "error", "reason": result.get("error")}
+        return {"action": "waiting", "courier_id": courier["id"], "reason": f"Yolda kurye bekleniyor (fark: {distance_difference:.0f}m)"}
 
 
 async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
