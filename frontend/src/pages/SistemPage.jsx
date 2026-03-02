@@ -920,7 +920,8 @@ export default function SistemPage({ companyId }) {
                               min="1"
                               max="30"
                               value={autoDispatchSettings.auto_cancel_timeout}
-                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, auto_cancel_timeout: parseInt(e.target.value) || 5 }))}
+                              onChange={(e) => handleDispatchInputChange('auto_cancel_timeout', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('auto_cancel_timeout')}
                               className="h-9"
                             />
                           </div>
