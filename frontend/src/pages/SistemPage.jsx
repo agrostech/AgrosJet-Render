@@ -1033,7 +1033,7 @@ export default function SistemPage({ companyId }) {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border sm:col-span-2">
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
                       <div>
                         <p className="text-sm font-medium">Fesih Süreçleri</p>
                         <p className="text-xs text-muted-foreground">Fesih süresi 3 gün kala ve son gün</p>
@@ -1043,33 +1043,27 @@ export default function SistemPage({ companyId }) {
                         onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_fesih: checked})}
                       />
                     </div>
-                  </div>
 
-                  {/* Otomatik Atama Bildirimleri */}
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Otomatik Atama Bildirimleri</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <div className="flex items-center justify-between p-2.5 bg-red-50 rounded border border-red-100">
-                        <div>
-                          <p className="text-sm font-medium">Vardiya İhlalleri</p>
-                          <p className="text-xs text-muted-foreground">İhlal oluştuğunda mail gönder</p>
-                        </div>
-                        <Switch 
-                          checked={emailSettings.notify_shift_violation}
-                          onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_shift_violation: checked})}
-                        />
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
+                      <div>
+                        <p className="text-sm font-medium">Vardiya İhlalleri</p>
+                        <p className="text-xs text-muted-foreground">İhlal oluştuğunda mail gönder</p>
                       </div>
+                      <Switch 
+                        checked={emailSettings.notify_shift_violation}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_shift_violation: checked})}
+                      />
+                    </div>
 
-                      <div className="flex items-center justify-between p-2.5 bg-orange-50 rounded border border-orange-100">
-                        <div>
-                          <p className="text-sm font-medium">Otomatik İptal</p>
-                          <p className="text-xs text-muted-foreground">Atama iptal edildiğinde mail gönder</p>
-                        </div>
-                        <Switch 
-                          checked={emailSettings.notify_auto_cancel}
-                          onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_auto_cancel: checked})}
-                        />
+                    <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded border">
+                      <div>
+                        <p className="text-sm font-medium">Otomatik İptal</p>
+                        <p className="text-xs text-muted-foreground">Atama iptal edildiğinde mail gönder</p>
                       </div>
+                      <Switch 
+                        checked={emailSettings.notify_auto_cancel}
+                        onCheckedChange={(checked) => setEmailSettings({...emailSettings, notify_auto_cancel: checked})}
+                      />
                     </div>
                   </div>
                 </div>
