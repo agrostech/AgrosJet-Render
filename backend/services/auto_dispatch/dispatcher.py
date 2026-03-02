@@ -427,6 +427,127 @@ async def check_waiting_orders(company_id: str, settings: Dict) -> List[Dict]:
     return results
 
 
+async def check_unconfirmed_orders(company_id: str, settings: Dict) -> List[Dict]:
+    """
+    Onaylanmayan siparişleri kontrol eder ve zaman aşımına uğrayanları iptal eder.
+    
+    Returns:
+        İptal edilen sipariş sonuçları listesi
+    """
+    results = []
+    
+    # Otomatik iptal kapalıysa çık
+    if not settings.get("auto_cancel_enabled", False):
+        return results
+    
+    timeout_minutes = settings.get("auto_cancel_timeout", 5)
+    now = datetime.now(timezone.utc)
+    timeout_threshold = now - timedelta(minutes=timeout_minutes)
+    
+    # "assigned" statüsündeki siparişleri bul (henüz onaylanmamış)
+    unconfirmed_orders = await db.orders.find(
+        {
+            "company_id": company_id,
+            "status": "assigned",
+            "courier_id": {"$ne": None},
+            "assigned_at": {"$lt": timeout_threshold.isoformat()}
+        },
+        {"_id": 0}
+    ).to_list(100)
+    
+    for order in unconfirmed_orders:
+        order_id = order.get("id")
+        courier_id = order.get("courier_id")
+        courier_name = order.get("courier_name", "Bilinmeyen Kurye")
+        assigned_at = order.get("assigned_at")
+        
+        # Siparişi ready durumuna geri al
+        update_result = await db.orders.update_one(
+            {"id": order_id, "status": "assigned"},
+            {
+                "$set": {
+                    "status": "ready",
+                    "courier_id": None,
+                    "courier_name": None,
+                    "courier_phone": None,
+                    "auto_cancelled": True,
+                    "auto_cancelled_at": now.isoformat(),
+                    "auto_cancelled_reason": f"Kurye {timeout_minutes} dakika içinde onaylamadı"
+                },
+                "$push": {
+                    "status_history": {
+                        "status": "ready",
+                        "timestamp": now.isoformat(),
+                        "note": f"Otomatik iptal - Kurye ({courier_name}) {timeout_minutes} dk içinde onaylamadı"
+                    }
+                }
+            }
+        )
+        
+        if update_result.modified_count > 0:
+            # İhlal kaydı ekle
+            await add_shift_violation(
+                company_id=company_id,
+                courier_id=courier_id,
+                courier_name=courier_name,
+                violation_type="package_not_confirmed",
+                description=f"Paketi onaylamadı, paket otomatik olarak üzerinden alındı",
+                order_id=order_id
+            )
+            
+            # Dispatch log
+            await log_dispatch_action(
+                company_id=company_id,
+                order_id=order_id,
+                courier_id=courier_id,
+                action="auto_cancelled",
+                reason=f"Kurye {timeout_minutes} dk içinde onaylamadı",
+                details={
+                    "courier_name": courier_name,
+                    "assigned_at": assigned_at,
+                    "timeout_minutes": timeout_minutes
+                }
+            )
+            
+            results.append({
+                "order_id": order_id,
+                "courier_id": courier_id,
+                "courier_name": courier_name,
+                "action": "auto_cancelled"
+            })
+            
+            logger.info(f"Sipariş {order_id[:8]}... otomatik iptal edildi - Kurye: {courier_name}")
+    
+    return results
+
+
+async def add_shift_violation(
+    company_id: str,
+    courier_id: str,
+    courier_name: str,
+    violation_type: str,
+    description: str,
+    order_id: str = None
+):
+    """
+    Vardiya ihlali kaydı ekler.
+    """
+    violation = {
+        "id": str(__import__("uuid").uuid4()),
+        "company_id": company_id,
+        "courier_id": courier_id,
+        "courier_name": courier_name,
+        "type": violation_type,
+        "description": description,
+        "order_id": order_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "resolved": False
+    }
+    
+    await db.shift_violations.insert_one(violation)
+    return violation
+
+
 async def run_dispatch_cycle(company_id: str) -> Dict:
     """
     Tek bir şirket için dispatch döngüsünü çalıştırır.
