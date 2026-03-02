@@ -219,7 +219,8 @@ async def is_courier_eligible(
     max_angle_diff: Optional[float] = None,
     detour_check_enabled: bool = True,
     detour_skip_distance: Optional[float] = None,
-    order_payment_method: Optional[str] = None
+    order_payment_method: Optional[str] = None,
+    excluded_courier_ids: Optional[List[str]] = None
 ) -> Tuple[bool, str, Dict]:
     """
     Kuryenin aday olup olmadığını kontrol eder.
@@ -240,6 +241,7 @@ async def is_courier_eligible(
         detour_check_enabled: Detour kontrolü aktif mi
         detour_skip_distance: Bu mesafeden yakın paketler için detour kontrolü atlanır
         order_payment_method: Siparişin ödeme türü (cash, card, online, meal_card, online_meal_card)
+        excluded_courier_ids: Bu siparişe atanmaması gereken kurye ID'leri (otomatik iptal edilenler)
     
     Returns:
         (eligible: bool, reason: str, extra_data: dict)
@@ -249,6 +251,10 @@ async def is_courier_eligible(
         assigned_in_this_cycle = {}
     
     courier_id = courier.get("id")
+    
+    # DIŞLANAN KURYE KONTROLÜ (Otomatik iptal edilenler)
+    if excluded_courier_ids and courier_id in excluded_courier_ids:
+        return False, "Kurye daha önce bu siparişi onaylamadı", {}
     
     # AKTİFLİK DURUMU KONTROLÜ (Kurye panelinden belirlenen)
     # availability_status: "active", "on_break", "offline"
