@@ -498,6 +498,7 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
             restaurant_id = order.get("restaurant_id")
             restaurant_location = order.get("restaurant_location")
             delivery_location = order.get("delivery_location")
+            payment_method = order.get("payment_method")  # Ödeme türü
             
             if not restaurant_location:
                 continue
@@ -516,7 +517,8 @@ async def run_dispatch_cycle(company_id: str) -> Dict:
                 angle_skip_distance=angle_skip_distance,
                 max_angle_diff=max_angle_diff,
                 detour_check_enabled=detour_check_enabled,
-                detour_skip_distance=detour_skip_distance
+                detour_skip_distance=detour_skip_distance,
+                order_payment_method=payment_method
             )
             
             all_couriers = idle_couriers + pickup_couriers
