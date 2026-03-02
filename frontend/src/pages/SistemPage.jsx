@@ -778,7 +778,8 @@ export default function SistemPage({ companyId }) {
                               min="0"
                               max="2000"
                               value={autoDispatchSettings.detour_skip_distance}
-                              onChange={(e) => setAutoDispatchSettings(prev => ({ ...prev, detour_skip_distance: parseInt(e.target.value) || 500 }))}
+                              onChange={(e) => handleDispatchInputChange('detour_skip_distance', e.target.value)}
+                              onBlur={() => handleDispatchInputBlur('detour_skip_distance')}
                               className="h-9"
                             />
                           </div>
