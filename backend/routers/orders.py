@@ -13,6 +13,7 @@ import logging
 import math
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
+from services.credit_service import deduct_order_credit
 
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
@@ -2672,6 +2673,9 @@ async def create_manual_order(data: ManualOrderCreate):
     
     # Veritabanına kaydet
     await db.orders.insert_one(order)
+    
+    # Kontör düş
+    await deduct_order_credit(order.get("company_id"), order.get("id"))
     
     # Müşteriyi otomatik kaydet
     try:

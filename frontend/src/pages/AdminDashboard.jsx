@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle } from "lucide-react";
 
 // Page components
 import VardiyaPage from "./VardiyaPage";
@@ -43,6 +43,9 @@ export default function AdminDashboard() {
   // Multi-company state
   const [activeCompanyId, setActiveCompanyId] = useState(null);
   const [accessibleCompanies, setAccessibleCompanies] = useState([]);
+  
+  // Kontör durumu
+  const [creditInfo, setCreditInfo] = useState({ credits: null, unlimited: false, allowed: true });
 
   // Fetch admin status
   const fetchAdminStatus = useCallback(async (adminId) => {
@@ -83,6 +86,23 @@ export default function AdminDashboard() {
     }
   }, [activeCompanyId]);
 
+  // Kontör bilgisini çek
+  const fetchCreditInfo = useCallback(async () => {
+    try {
+      const companyId = activeCompanyId;
+      if (!companyId) return;
+      
+      const res = await axios.get(`${API}/credits/company/${companyId}/access`);
+      setCreditInfo({
+        credits: res.data.credits,
+        unlimited: res.data.unlimited,
+        allowed: res.data.allowed
+      });
+    } catch (err) {
+      console.error("Credit info fetch error:", err);
+    }
+  }, [activeCompanyId]);
+
   // Handle company switch
   const handleCompanySwitch = useCallback((newCompanyId) => {
     const newCompany = accessibleCompanies.find(c => c.id === newCompanyId);
@@ -102,9 +122,12 @@ export default function AdminDashboard() {
     
     toast.success(`${newCompany.name} şirketine geçildi`);
     
-    // Refresh badges for new company
-    setTimeout(() => fetchBadges(), 100);
-  }, [accessibleCompanies, fetchBadges]);
+    // Refresh badges and credit info for new company
+    setTimeout(() => {
+      fetchBadges();
+      fetchCreditInfo();
+    }, 100);
+  }, [accessibleCompanies, fetchBadges, fetchCreditInfo]);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -162,6 +185,10 @@ export default function AdminDashboard() {
     fetchBadges();
     const badgeInterval = setInterval(fetchBadges, 30000);
     
+    // Fetch credit info initially and every 60 seconds
+    fetchCreditInfo();
+    const creditInterval = setInterval(fetchCreditInfo, 60000);
+    
     // Listen for badge refresh events
     const handleBadgeRefresh = () => fetchBadges();
     window.addEventListener('refreshBadges', handleBadgeRefresh);
@@ -169,6 +196,7 @@ export default function AdminDashboard() {
     return () => {
       clearInterval(permInterval);
       clearInterval(badgeInterval);
+      clearInterval(creditInterval);
       window.removeEventListener('refreshBadges', handleBadgeRefresh);
     };
   }, [navigate, fetchBadges]);
@@ -179,6 +207,36 @@ export default function AdminDashboard() {
   };
 
   if (!user) return null;
+
+  // Kontör erişim kontrolü
+  if (!creditInfo.allowed && !creditInfo.unlimited) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-600" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Erişim Kısıtlandı</h1>
+          <p className="text-slate-600 mb-6">
+            Yetersiz bakiye sebebiyle yönetim paneli erişiminiz kısıtlandı. 
+            Bu süreçte operasyon sistem tarafından otomatik yürütülecektir.
+          </p>
+          <div className="bg-slate-50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-slate-600 mb-2">Bakiye yüklemek için lütfen AgrosJet ile iletişime geçin:</p>
+            <a href="tel:05393236232" className="text-lg font-bold text-primary hover:underline">
+              0539 323 62 32
+            </a>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-sm text-slate-500 hover:text-slate-700 underline"
+          >
+            Çıkış Yap
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const isSuperAdmin = user.role === "superadmin" || user.is_super_admin === true;
   const permissions = user.permissions || {};
@@ -239,7 +297,31 @@ export default function AdminDashboard() {
             )
           )}
         </div>
-        <div className="w-10" /> {/* Spacer for balance */}
+        {/* Kontör Gösterimi */}
+        <div className="flex items-center gap-2">
+          {creditInfo.unlimited ? (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-100 rounded-md">
+              <Coins className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-semibold text-blue-600">Sınırsız</span>
+            </div>
+          ) : creditInfo.credits !== null && (
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${
+              creditInfo.credits < 100 ? 'bg-red-100' : 
+              creditInfo.credits < 500 ? 'bg-orange-100' : 'bg-green-100'
+            }`}>
+              <Coins className={`w-4 h-4 ${
+                creditInfo.credits < 100 ? 'text-red-600' : 
+                creditInfo.credits < 500 ? 'text-orange-500' : 'text-green-600'
+              }`} />
+              <span className={`text-xs font-semibold ${
+                creditInfo.credits < 100 ? 'text-red-600' : 
+                creditInfo.credits < 500 ? 'text-orange-500' : 'text-green-600'
+              }`}>
+                {creditInfo.credits.toLocaleString('tr-TR')}
+              </span>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Mobile Sidebar - Slide from left like courier panel */}

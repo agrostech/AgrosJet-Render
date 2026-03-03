@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
+from services.credit_service import deduct_order_credit
 
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
@@ -620,6 +621,10 @@ async def sync_restaurant_orders(restaurant_id: str) -> dict:
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         
         await db.orders.insert_one(shiftjet_order)
+        
+        # Kontör düş
+        await deduct_order_credit(shiftjet_order.get("company_id"), shiftjet_order.get("id"))
+        
         synced_count += 1
     
     # Son senkronizasyon zamanını güncelle

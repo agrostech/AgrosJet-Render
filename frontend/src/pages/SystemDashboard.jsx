@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -385,6 +385,352 @@ function SirketlerPage() {
         onConfirm={confirmConfig.onConfirm}
         variant="destructive"
       />
+    </div>
+  );
+}
+
+
+// ============ KONTÖR YÖNETİMİ PAGE ============
+function KontorYonetimiPage() {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState("add"); // add | deduct | history
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await axios.get(`${API}/credits/companies`);
+      setCompanies(res.data.companies || []);
+    } catch (err) {
+      toast.error("Şirketler yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const getCreditColor = (credits, unlimited) => {
+    if (unlimited) return "text-blue-600";
+    if (credits < 100) return "text-red-600";
+    if (credits < 500) return "text-orange-500";
+    return "text-green-600";
+  };
+
+  const getCreditBgColor = (credits, unlimited) => {
+    if (unlimited) return "bg-blue-50";
+    if (credits < 100) return "bg-red-50";
+    if (credits < 500) return "bg-orange-50";
+    return "bg-green-50";
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("tr-TR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  };
+
+  const openModal = (company, mode) => {
+    setSelectedCompany(company);
+    setModalMode(mode);
+    setAmount("");
+    setNote("");
+    setShowModal(true);
+    
+    if (mode === "history") {
+      fetchTransactions(company.id);
+    }
+  };
+
+  const fetchTransactions = async (companyId) => {
+    try {
+      const res = await axios.get(`${API}/credits/company/${companyId}/transactions`);
+      setTransactions(res.data.transactions || []);
+    } catch (err) {
+      toast.error("İşlem geçmişi yüklenemedi");
+    }
+  };
+
+  const handleAddCredits = async () => {
+    if (!amount || parseInt(amount) <= 0) {
+      toast.error("Geçerli bir miktar girin");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await axios.post(`${API}/credits/company/${selectedCompany.id}/add`, {
+        amount: parseInt(amount),
+        note: note || undefined,
+        admin_name: "Sistem Yöneticisi"
+      });
+      toast.success(`${amount} kontör eklendi`);
+      setShowModal(false);
+      fetchCompanies();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeductCredits = async () => {
+    if (!amount || parseInt(amount) <= 0) {
+      toast.error("Geçerli bir miktar girin");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await axios.post(`${API}/credits/company/${selectedCompany.id}/deduct`, {
+        amount: parseInt(amount),
+        note: note || undefined,
+        admin_name: "Sistem Yöneticisi"
+      });
+      toast.success(`${amount} kontör düşüldü`);
+      setShowModal(false);
+      fetchCompanies();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleUnlimited = async (company) => {
+    try {
+      await axios.put(`${API}/credits/company/${company.id}/unlimited`, {
+        unlimited: !company.unlimited,
+        admin_name: "Sistem Yöneticisi"
+      });
+      toast.success(company.unlimited ? "Sınırsız kontör kapatıldı" : "Sınırsız kontör açıldı");
+      fetchCompanies();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
+    }
+  };
+
+  const getTransactionTypeLabel = (type) => {
+    const labels = {
+      admin_add: "Manuel Ekleme",
+      admin_deduct: "Manuel Düşüm",
+      order_deduct: "Sipariş",
+      unlimited_toggle: "Sınırsız Değişim"
+    };
+    return labels[type] || type;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="kontor-yonetimi-page">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="font-heading text-2xl font-bold tracking-tight">Kontör Yönetimi</h2>
+          <p className="text-muted-foreground text-sm mt-1">Şirket bazlı kontör bakiyeleri ve işlemler</p>
+        </div>
+      </div>
+
+      {/* Şirket Listesi */}
+      <div className="bg-white border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Şirket</TableHead>
+              <TableHead className="w-[150px]">Kontör</TableHead>
+              <TableHead className="w-[120px]">Sınırsız</TableHead>
+              <TableHead className="w-[150px]">Son Yükleme</TableHead>
+              <TableHead className="text-right">İşlemler</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {companies.map((company) => (
+              <TableRow key={company.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    {company.logo_url ? (
+                      <img src={company.logo_url} alt="" className="w-8 h-8 rounded object-contain" />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-slate-400" />
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-medium">{company.name}</span>
+                      {company.is_shared_pool && (
+                        <span className="text-[10px] text-blue-600 block">Ortak Havuz</span>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${getCreditBgColor(company.credits, company.unlimited)}`}>
+                    <Coins className={`w-4 h-4 ${getCreditColor(company.credits, company.unlimited)}`} />
+                    <span className={`font-bold ${getCreditColor(company.credits, company.unlimited)}`}>
+                      {company.unlimited ? "Sınırsız" : company.credits.toLocaleString("tr-TR")}
+                    </span>
+                  </div>
+                  {company.last_credit_date && !company.unlimited && (
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      Son: {formatDate(company.last_credit_date)}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <button
+                    onClick={() => handleToggleUnlimited(company)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      company.unlimited ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        company.unlimited ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {formatDate(company.last_credit_date)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openModal(company, "add")}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      disabled={company.unlimited}
+                      title="Kontör Ekle"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openModal(company, "deduct")}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      disabled={company.unlimited}
+                      title="Kontör Düş"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openModal(company, "history")}
+                      title="İşlem Geçmişi"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {companies.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  Henüz şirket bulunmuyor
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Modal */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Coins className="w-5 h-5" />
+              {modalMode === "add" && "Kontör Ekle"}
+              {modalMode === "deduct" && "Kontör Düş"}
+              {modalMode === "history" && "İşlem Geçmişi"}
+              {selectedCompany && ` - ${selectedCompany.name}`}
+            </DialogTitle>
+          </DialogHeader>
+
+          {(modalMode === "add" || modalMode === "deduct") && (
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Miktar</Label>
+                <Input
+                  type="number"
+                  placeholder="Kontör miktarı"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  min="1"
+                />
+              </div>
+              <div>
+                <Label>Not (Opsiyonel)</Label>
+                <Input
+                  placeholder="İşlem notu..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowModal(false)}>
+                  İptal
+                </Button>
+                <Button
+                  onClick={modalMode === "add" ? handleAddCredits : handleDeductCredits}
+                  disabled={saving}
+                  className={modalMode === "add" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  {modalMode === "add" ? "Ekle" : "Düş"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {modalMode === "history" && (
+            <div className="py-4 max-h-96 overflow-y-auto">
+              {transactions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">Henüz işlem yok</p>
+              ) : (
+                <div className="space-y-2">
+                  {transactions.map((tx) => (
+                    <div key={tx.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                      <div>
+                        <span className="font-medium text-sm">{getTransactionTypeLabel(tx.type)}</span>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(tx.created_at).toLocaleString("tr-TR")}
+                        </div>
+                        {tx.note && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{tx.note}</div>
+                        )}
+                      </div>
+                      <span className={`font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {tx.amount > 0 ? '+' : ''}{tx.amount}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1225,6 +1571,7 @@ export default function SystemDashboard() {
 
   const NAV_ITEMS = [
     { path: "/system", label: "Şirketler", icon: Building2 },
+    { path: "/system/kontor", label: "Kontör Yönetimi", icon: Coins },
     { path: "/system/yoneticiler", label: "Yöneticiler", icon: UserCog },
     { path: "/system/kuryeler", label: "Kuryeler", icon: Users },
     { path: "/system/ayarlar", label: "Ayarlar", icon: Settings },
@@ -1281,6 +1628,7 @@ export default function SystemDashboard() {
           <div className="p-4 md:p-8 min-h-[calc(100vh-80px)]">
             <Routes>
               <Route index element={<SirketlerPage />} />
+              <Route path="kontor" element={<KontorYonetimiPage />} />
               <Route path="yoneticiler" element={<YoneticilerPage />} />
               <Route path="kuryeler" element={<KuryelerPage />} />
               <Route path="ayarlar" element={<SistemAyarlariPage />} />

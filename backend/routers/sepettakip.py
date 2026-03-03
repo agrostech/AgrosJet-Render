@@ -18,6 +18,7 @@ import httpx
 from datetime import datetime, timezone, timedelta
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
+from services.credit_service import deduct_order_credit
 
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
@@ -450,6 +451,9 @@ async def create_package(
     }
     
     await db.orders.insert_one(new_order)
+    
+    # Kontör düş
+    await deduct_order_credit(new_order.get("company_id"), new_order.get("id"))
     
     await ilog.info(f"SepetTakip create-package: Sipariş oluşturuldu - order_id={request.order.order_id}")
     

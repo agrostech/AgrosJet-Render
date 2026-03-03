@@ -404,6 +404,7 @@ async def sync_restaurant_migros_orders(restaurant_id: str) -> dict:
     Tek bir restoran için Migros siparişlerini senkronize et
     """
     from utils.database import db
+    from services.credit_service import deduct_order_credit
     
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
@@ -476,6 +477,10 @@ async def sync_restaurant_migros_orders(restaurant_id: str) -> dict:
             )
             
             await db.orders.insert_one(shiftjet_order)
+            
+            # Kontör düş
+            await deduct_order_credit(shiftjet_order.get("company_id"), shiftjet_order.get("id"))
+            
             synced_count += 1
             logger.info(f"Migros sipariş senkronize edildi: {migros_order_id}")
         
