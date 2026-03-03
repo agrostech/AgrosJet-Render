@@ -669,20 +669,19 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   const renderCustomerStep = () => (
     <div className="space-y-4 py-4 max-w-lg mx-auto">
       {/* Kayıtlı Müşteri Arama */}
-      <div className="p-3 rounded-lg border bg-blue-50/50 border-blue-200 space-y-2">
-        <Label className="text-sm font-medium text-blue-700 flex items-center gap-2">
-          <Search className="w-4 h-4" />
+      <div className="space-y-2">
+        <Label className="text-sm text-muted-foreground flex items-center gap-2">
+          <Search className="w-3.5 h-3.5" />
           Kayıtlı Müşterilerde Ara
         </Label>
         <div className="relative">
           <Input
-            placeholder="İsim, telefon veya adres ile ara..."
+            placeholder="İsim veya telefon ile ara..."
             value={customerSearchQuery}
             onChange={(e) => {
               setCustomerSearchQuery(e.target.value);
               searchCustomers(e.target.value);
             }}
-            className="bg-white"
           />
           {searchingCustomer && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">

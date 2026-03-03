@@ -68,6 +68,11 @@ export default function RestaurantMusteriler({ restaurantId }) {
   useEffect(() => {
     if (!window.google || !window.google.maps || !window.google.maps.places) return;
 
+    // pac-container'ı modal üstünde göster
+    const style = document.createElement('style');
+    style.textContent = '.pac-container { z-index: 10000 !important; }';
+    document.head.appendChild(style);
+
     const setupAutocomplete = (inputRef, inputId) => {
       const input = document.getElementById(inputId);
       if (!input) return null;
@@ -108,7 +113,7 @@ export default function RestaurantMusteriler({ restaurantId }) {
     }
 
     return () => {
-      // Cleanup is handled by Google internally
+      style.remove();
     };
   }, [showAddModal, showEditModal, addAddressInputId, editAddressInputId]);
 
@@ -340,7 +345,15 @@ export default function RestaurantMusteriler({ restaurantId }) {
 
       {/* Add Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent 
+          className="sm:max-w-md"
+          onPointerDownOutside={(e) => {
+            // Google Places dropdown'ına tıklanınca modal kapanmasın
+            if (e.target.closest('.pac-container')) {
+              e.preventDefault();
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plus className="w-5 h-5" />
@@ -419,7 +432,15 @@ export default function RestaurantMusteriler({ restaurantId }) {
 
       {/* Edit Modal */}
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent 
+          className="sm:max-w-md"
+          onPointerDownOutside={(e) => {
+            // Google Places dropdown'ına tıklanınca modal kapanmasın
+            if (e.target.closest('.pac-container')) {
+              e.preventDefault();
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit2 className="w-5 h-5" />

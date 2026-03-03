@@ -51,8 +51,7 @@ async def get_customers(restaurant_id: str, search: Optional[str] = None):
     if search:
         query["$or"] = [
             {"name": {"$regex": search, "$options": "i"}},
-            {"phone": {"$regex": search, "$options": "i"}},
-            {"address": {"$regex": search, "$options": "i"}}
+            {"phone": {"$regex": search, "$options": "i"}}
         ]
     
     customers = await db.customers.find(
