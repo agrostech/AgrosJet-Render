@@ -57,14 +57,14 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="p-3 font-medium text-center">Sipariş</th>
-                    <th className="p-3 font-medium text-right">Taşıma</th>
-                    <th className="p-3 font-medium text-right">KDV</th>
-                    <th className="p-3 font-medium text-right">Top. Taşıma</th>
-                    <th className="p-3 font-medium text-right">POS Kom.</th>
-                    <th className="p-3 font-medium text-right">Nakit</th>
-                    <th className="p-3 font-medium text-right">Kart</th>
-                    <th className="p-3 font-medium text-right">Y.Kartı</th>
-                    <th className="p-3 font-medium text-right">Net Tutar</th>
+                    <th className="p-3 font-medium text-right">Taşıma Ücreti</th>
+                    <th className="p-3 font-medium text-right">Taşıma Ücreti Kdv</th>
+                    <th className="p-3 font-medium text-right">Toplam Taşıma Ücreti</th>
+                    <th className="p-3 font-medium text-right">Pos Komisyonu</th>
+                    <th className="p-3 font-medium text-right">Nakit Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Kredi Kartı Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Yemek Kartı Tahsilat</th>
+                    <th className="p-3 font-medium text-right">Sonuç</th>
                   </tr>
                 </thead>
                 <tbody>
