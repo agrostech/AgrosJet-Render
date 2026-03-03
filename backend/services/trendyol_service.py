@@ -545,6 +545,9 @@ async def sync_restaurant_trendyol_orders(restaurant_id: str) -> dict:
         
         await db.orders.insert_one(shiftjet_order)
         synced_count += 1
+        
+        # Log yeni sipariş detayları
+        logger.info(f"Trendyol yeni sipariş kaydedildi: order_id={shiftjet_order['id']}, company_id={shiftjet_order.get('company_id')}, restaurant_id={shiftjet_order.get('restaurant_id')}, trendyol_package_id={package_id}")
     
     # Son senkronizasyon zamanını güncelle
     await db.restaurants.update_one(
