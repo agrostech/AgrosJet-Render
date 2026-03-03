@@ -253,3 +253,45 @@ async def check_permissions_update(admin_id: str, timestamp: str = None):
         return {"updated": True, "new_timestamp": current_timestamp}
     
     return {"updated": False, "current_timestamp": current_timestamp}
+
+
+class CourierDeleteAccount(BaseModel):
+    phone: str
+    password: str
+
+
+@router.post("/courier/delete-account")
+async def delete_courier_account(data: CourierDeleteAccount):
+    """Kurye hesabını kalıcı olarak sil"""
+    # Telefon numarasını normalize et
+    phone = data.phone.strip()
+    if not phone.startswith("0"):
+        phone = "0" + phone
+    
+    # Kurye bul
+    courier = await db.couriers.find_one({"phone": phone})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    # Şifre doğrula
+    if courier.get("password") != hash_password(data.password):
+        raise HTTPException(status_code=401, detail="Geçersiz şifre")
+    
+    courier_id = courier["id"]
+    
+    # Şirket bağlantılarını sil
+    await db.company_couriers.delete_many({"courier_id": courier_id})
+    
+    # Kurye belgelerini sil
+    await db.courier_documents.delete_many({"courier_id": courier_id})
+    
+    # Kurye status loglarını sil
+    await db.courier_status_logs.delete_many({"courier_id": courier_id})
+    
+    # Bildirimleri sil
+    await db.notifications.delete_many({"user_id": courier_id})
+    
+    # Kurye kaydını sil
+    await db.couriers.delete_one({"id": courier_id})
+    
+    return {"message": "Hesabınız başarıyla silindi"}

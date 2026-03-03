@@ -10,6 +10,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import SystemDashboard from "@/pages/SystemDashboard";
 import RestaurantDashboard from "@/pages/restoran/RestaurantDashboard";
 import CourierKVKKPage from "@/pages/courier/CourierKVKKPage";
+import CourierDeleteAccountPage from "@/pages/courier/CourierDeleteAccountPage";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 // Initialize axios interceptors for permission headers
 import "@/utils/axiosConfig";
@@ -56,6 +57,7 @@ function App() {
           <Route path="/courier-login" element={<CourierLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/kurye/kvkk" element={<CourierKVKKPage companyName="AgrosJet" />} />
+          <Route path="/kurye/hesap-sil" element={<CourierDeleteAccountPage />} />
           <Route path="/courier/*" element={<CourierRedirect />} />
           <Route path="/kurye/:courierId/*" element={<CourierDashboard />} />
           <Route path="/admin/*" element={<AdminDashboard />} />
