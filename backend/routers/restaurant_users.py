@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
-from utils.helpers import hash_password
+from utils.helpers import hash_password, get_turkey_now
 from utils.rate_limit import limiter
 
 router = APIRouter(prefix="/api/restaurant-users", tags=["Restaurant Users"])
