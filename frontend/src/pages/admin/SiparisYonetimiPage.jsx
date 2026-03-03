@@ -71,7 +71,16 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [offlineCouriersExpanded, setOfflineCouriersExpanded] = useState({});
   
   // Status confirmation modal
-  const [confirmStatusModal, setConfirmStatusModal] = useState({ open: false, orderId: null, newStatus: null, customerName: null });
+  const [confirmStatusModal, setConfirmStatusModal] = useState({ 
+    open: false, 
+    orderId: null, 
+    newStatus: null, 
+    customerName: null,
+    orderSource: null  // Platform bilgisi için
+  });
+  const [cancelReasons, setCancelReasons] = useState([]);
+  const [selectedCancelReason, setSelectedCancelReason] = useState("");
+  const [cancelNote, setCancelNote] = useState("");
   
   // Shift data for courier status check
   const [shiftAssignments, setShiftAssignments] = useState([]);
@@ -609,26 +618,46 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   }, [focusMapOnCourier]);
 
   // Onay gerektiren durum değişikliği kontrolü
-  const handleStatusChangeRequest = (orderId, newStatus, preparationTime = null, customerName = null) => {
+  const handleStatusChangeRequest = (orderId, newStatus, preparationTime = null, customerName = null, orderSource = null) => {
     // Teslim edildi veya iptal edildi için onay iste
     if (newStatus === 'delivered' || newStatus === 'cancelled') {
-      setConfirmStatusModal({ open: true, orderId, newStatus, customerName, preparationTime });
+      setConfirmStatusModal({ open: true, orderId, newStatus, customerName, preparationTime, orderSource });
+      // İptal durumunda sebepleri yükle
+      if (newStatus === 'cancelled' && orderSource) {
+        fetchCancelReasons(orderSource);
+      }
     } else {
       handleUpdateStatus(orderId, newStatus, preparationTime);
+    }
+  };
+
+  // İptal sebeplerini yükle
+  const fetchCancelReasons = async (source) => {
+    try {
+      const res = await axios.get(`${API}/orders/platform-cancel-reasons/${source}`);
+      setCancelReasons(res.data.reasons || []);
+    } catch (err) {
+      console.error("İptal sebepleri yüklenemedi:", err);
+      setCancelReasons([]);
     }
   };
 
   // Onaylanan durum değişikliği
   const handleConfirmStatusChange = () => {
     const { orderId, newStatus, preparationTime } = confirmStatusModal;
-    handleUpdateStatus(orderId, newStatus, preparationTime);
-    setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null });
+    handleUpdateStatus(orderId, newStatus, preparationTime, selectedCancelReason, cancelNote);
+    setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null, orderSource: null });
+    setSelectedCancelReason("");
+    setCancelNote("");
+    setCancelReasons([]);
   };
 
-  const handleUpdateStatus = async (orderId, newStatus, preparationTime = null) => {
+  const handleUpdateStatus = async (orderId, newStatus, preparationTime = null, cancelReasonId = null, cancelNoteText = null) => {
     try {
       const payload = { status: newStatus, admin_name: adminName || "Admin" };
       if (preparationTime) payload.preparation_time = parseInt(preparationTime);
+      if (cancelReasonId) payload.cancel_reason_id = cancelReasonId;
+      if (cancelNoteText) payload.cancel_note = cancelNoteText;
       
       await axios.post(`${API}/orders/${companyId}/${orderId}/status`, payload);
       
@@ -1007,9 +1036,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               value={order.status} 
                               onValueChange={(newValue) => {
                                 if (newValue.startsWith('preparing_')) {
-                                  handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name);
+                                  handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name, order.source);
                                 } else {
-                                  handleStatusChangeRequest(order.id, newValue, null, order.customer_name);
+                                  handleStatusChangeRequest(order.id, newValue, null, order.customer_name, order.source);
                                 }
                               }}
                             >
@@ -1379,7 +1408,14 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         />
 
         {/* Status Confirmation Modal */}
-        <Dialog open={confirmStatusModal.open} onOpenChange={(open) => !open && setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null })}>
+        <Dialog open={confirmStatusModal.open} onOpenChange={(open) => {
+          if (!open) {
+            setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null, orderSource: null });
+            setSelectedCancelReason("");
+            setCancelNote("");
+            setCancelReasons([]);
+          }
+        }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -1396,7 +1432,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 )}
               </DialogTitle>
             </DialogHeader>
-            <div className="py-4">
+            <div className="py-4 space-y-4">
               <p className="text-sm text-muted-foreground">
                 <strong>{confirmStatusModal.customerName || 'Müşteri'}</strong> siparişini{' '}
                 <strong className={confirmStatusModal.newStatus === 'delivered' ? 'text-green-600' : 'text-red-600'}>
@@ -1404,8 +1440,50 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 </strong>{' '}
                 olarak işaretlemek istediğinize emin misiniz?
               </p>
+              
+              {/* İptal Sebebi Seçimi - Sadece iptal durumunda ve sebepler varsa göster */}
+              {confirmStatusModal.newStatus === 'cancelled' && cancelReasons.length > 0 && (
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      İptal Sebebi {confirmStatusModal.orderSource === 'getir' && <span className="text-red-500">*</span>}
+                    </label>
+                    <Select value={selectedCancelReason} onValueChange={setSelectedCancelReason}>
+                      <SelectTrigger className="w-full" data-testid="admin-cancel-reason-select">
+                        <SelectValue placeholder="Sebep seçin..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cancelReasons.map((reason) => (
+                          <SelectItem key={reason.id} value={reason.id}>
+                            {reason.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">İptal Notu (Opsiyonel)</label>
+                    <textarea
+                      className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      rows={2}
+                      placeholder="Ek açıklama..."
+                      value={cancelNote}
+                      onChange={(e) => setCancelNote(e.target.value)}
+                      data-testid="admin-cancel-note-input"
+                    />
+                  </div>
+
+                  {confirmStatusModal.orderSource === 'getir' && !selectedCancelReason && (
+                    <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                      Getir siparişleri için iptal sebebi seçmeniz zorunludur.
+                    </p>
+                  )}
+                </div>
+              )}
+              
               {confirmStatusModal.newStatus === 'cancelled' && (
-                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-xs text-red-700">
                     <strong>Uyarı:</strong> İptal edilen siparişler geri alınamaz ve kurye ataması kaldırılır.
                   </p>
@@ -1413,12 +1491,18 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               )}
             </div>
             <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null })}>
+              <Button variant="outline" onClick={() => {
+                setConfirmStatusModal({ open: false, orderId: null, newStatus: null, customerName: null, orderSource: null });
+                setSelectedCancelReason("");
+                setCancelNote("");
+                setCancelReasons([]);
+              }}>
                 Vazgeç
               </Button>
               <Button 
                 onClick={handleConfirmStatusChange}
                 className={confirmStatusModal.newStatus === 'delivered' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+                disabled={confirmStatusModal.newStatus === 'cancelled' && confirmStatusModal.orderSource === 'getir' && !selectedCancelReason}
               >
                 {confirmStatusModal.newStatus === 'delivered' ? 'Teslim Edildi' : 'İptal Et'}
               </Button>
