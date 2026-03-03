@@ -634,29 +634,6 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             <p className="text-xs sm:text-sm text-muted-foreground">Güncel sipariş durumu</p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-            {/* Mock Sipariş Butonları - Mobilde gizle */}
-            <Button 
-              onClick={handleGenerateMock}
-              variant="outline"
-              size="sm"
-              disabled={mockLoading}
-              className="hidden sm:flex text-green-600 border-green-300 hover:bg-green-50"
-              data-testid="generate-mock-btn"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              20 Test Sipariş
-            </Button>
-            <Button 
-              onClick={handleClearMock}
-              variant="outline"
-              size="sm"
-              disabled={mockLoading}
-              className="hidden sm:flex text-red-600 border-red-300 hover:bg-red-50"
-              data-testid="clear-mock-btn"
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              Test Sil
-            </Button>
             <Button 
               onClick={() => setNewOrderModalOpen(true)} 
               size="sm"
