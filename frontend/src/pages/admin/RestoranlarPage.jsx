@@ -893,48 +893,6 @@ export default function RestoranlarPage({ companyId }) {
                 </p>
               )}
             </div>
-
-            <div className="border-t pt-4 mt-4">
-              <div className="flex items-center justify-between mb-3">
-                <Label className="text-base font-semibold">Adisyo API Entegrasyonu</Label>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setShowApiKeys(!showApiKeys)}
-                >
-                  {showApiKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <Label>API Key</Label>
-                  <Input
-                    type={showApiKeys ? "text" : "password"}
-                    value={formData.adisyo_api_key}
-                    onChange={(e) => setFormData({...formData, adisyo_api_key: e.target.value})}
-                    placeholder="Adisyo API Key"
-                  />
-                </div>
-                <div>
-                  <Label>API Secret</Label>
-                  <Input
-                    type={showApiKeys ? "text" : "password"}
-                    value={formData.adisyo_api_secret}
-                    onChange={(e) => setFormData({...formData, adisyo_api_secret: e.target.value})}
-                    placeholder="Adisyo API Secret"
-                  />
-                </div>
-                <div>
-                  <Label>Branch ID</Label>
-                  <Input
-                    value={formData.adisyo_branch_id}
-                    onChange={(e) => setFormData({...formData, adisyo_branch_id: e.target.value})}
-                    placeholder="Adisyo Şube ID"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setShowAddModal(false); resetForm(); }}>
