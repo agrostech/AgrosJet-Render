@@ -132,37 +132,6 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
-    # Add Migros sync job - runs every 60 seconds
-    async def sync_migros_orders():
-        """Tüm şirketler için Migros siparişlerini senkronize et"""
-        try:
-            from services.migros_service import sync_all_company_migros_orders
-            
-            # Şirketleri bul
-            companies = await db.companies.find(
-                {"is_archived": {"$ne": True}},
-                {"_id": 0, "id": 1}
-            ).to_list(100)
-            
-            for company in companies:
-                try:
-                    result = await sync_all_company_migros_orders(company["id"])
-                    if result.get("total_synced", 0) > 0:
-                        print(f"Migros sync: {result['total_synced']} new orders for company {company['id']}")
-                except Exception as e:
-                    print(f"Migros sync error for company {company['id']}: {e}")
-        except Exception as e:
-            print(f"Migros sync job error: {e}")
-    
-    scheduler.add_job(
-        sync_migros_orders,
-        'interval',
-        seconds=60,  # Her 60 saniyede bir
-        id="migros_sync",
-        name="Migros Order Sync",
-        replace_existing=True
-    )
-    
     # Add break time reset job - checks every minute if any company's closing time has passed
     async def reset_courier_break_times():
         """Şirket kapanış saatinde kurye mola sürelerini sıfırla"""
