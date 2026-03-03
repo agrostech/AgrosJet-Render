@@ -91,7 +91,12 @@ async def delete_courier_permanently(courier_id: str):
 @router.get("/couriers/search")
 async def search_courier(phone: str):
     """Search courier by phone number"""
-    courier = await courier_service.search_courier_by_phone(phone)
+    # Telefon numarasını normalize et
+    phone = phone.strip()
+    if not phone.startswith("0"):
+        phone = "0" + phone
+    
+    courier = await db.couriers.find_one({"phone": phone}, {"_id": 0, "password": 0})
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     return courier
