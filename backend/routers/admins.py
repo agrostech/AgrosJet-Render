@@ -68,7 +68,7 @@ class PermissionsUpdate(BaseModel):
 
 
 class AdminResponse(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="allow")
     id: str
     name: str
     username: str
@@ -80,8 +80,8 @@ class AdminResponse(BaseModel):
     linked_courier_id: Optional[str] = None
     hourly_rate: Optional[float] = None
     availability_status: Optional[str] = None
-    last_active_at: Optional[str] = None
-    created_at: str
+    last_active_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
 
 
 # --- Admin Management ---
