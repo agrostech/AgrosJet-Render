@@ -83,17 +83,17 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                       <div className="inline-flex items-center">{formatMoney(data.pos_commission || 0)}</div>
                     </td>
                     <td className="p-3 text-right">
-                      <div className={`inline-flex items-center ${(data.cash_amount || 0) > 0 ? 'text-green-600 font-medium' : ''}`}>
+                      <div className={`inline-flex items-center font-medium ${data.cash_included ? 'text-green-600' : 'text-slate-900'}`}>
                         {formatMoney(data.cash_amount || 0)}
                       </div>
                     </td>
                     <td className="p-3 text-right">
-                      <div className={`inline-flex items-center ${((data.card_amount || 0) + (data.online_amount || 0)) > 0 ? 'text-blue-600 font-medium' : ''}`}>
+                      <div className={`inline-flex items-center font-medium ${data.card_included ? 'text-green-600' : 'text-slate-900'}`}>
                         {formatMoney((data.card_amount || 0) + (data.online_amount || 0))}
                       </div>
                     </td>
                     <td className="p-3 text-right">
-                      <div className={`inline-flex items-center ${(data.meal_card_amount || 0) > 0 ? 'text-purple-600 font-medium' : ''}`}>
+                      <div className={`inline-flex items-center font-medium ${data.meal_card_included ? 'text-green-600' : 'text-slate-900'}`}>
                         {formatMoney(data.meal_card_amount || 0)}
                       </div>
                     </td>
