@@ -347,7 +347,23 @@ async def sync_restaurant_migros_orders(restaurant_id: str) -> dict:
     if not restaurant:
         return {"success": False, "error": "Restoran bulunamadı"}
     
+    # Önce migros_config'e bak, yoksa integration_stores'dan al
     migros_config = restaurant.get("migros_config", {})
+    
+    if not migros_config.get("api_key"):
+        # integration_stores'dan Migros config'i bul
+        integration_stores = restaurant.get("integration_stores", [])
+        for store in integration_stores:
+            if store.get("platform") == "migros" and store.get("enabled"):
+                creds = store.get("credentials", {})
+                migros_config = {
+                    "api_key": creds.get("api_key"),
+                    "secret_key": creds.get("secret_key"),
+                    "store_id": creds.get("store_id"),
+                    "is_test": creds.get("is_test", False)
+                }
+                break
+    
     if not migros_config.get("api_key") or not migros_config.get("secret_key"):
         return {"success": False, "error": "Migros yapılandırması eksik"}
     
@@ -414,12 +430,14 @@ async def sync_all_company_migros_orders(company_id: str) -> dict:
     """
     from utils.database import db
     
-    # Migros yapılandırması olan restoranları bul
+    # Migros yapılandırması olan restoranları bul (hem migros_config hem integration_stores)
     restaurants = await db.restaurants.find(
         {
             "company_id": company_id,
-            "migros_config.api_key": {"$exists": True, "$ne": ""},
-            "migros_config.secret_key": {"$exists": True, "$ne": ""}
+            "$or": [
+                {"migros_config.api_key": {"$exists": True, "$ne": ""}},
+                {"integration_stores": {"$elemMatch": {"platform": "migros", "enabled": True}}}
+            ]
         },
         {"_id": 0, "id": 1, "name": 1}
     ).to_list(100)
