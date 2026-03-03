@@ -447,6 +447,7 @@ from routers.status_movements import router as status_movements_router
 from routers.restaurant_groups import router as restaurant_groups_router
 from routers.tiered_pricing import router as tiered_pricing_router
 from routers.auto_dispatch import router as auto_dispatch_router
+from routers.customers import router as customers_router
 
 # Set db for products router
 set_products_db(db)
@@ -504,6 +505,7 @@ app.include_router(status_movements_router)
 app.include_router(restaurant_groups_router)
 app.include_router(tiered_pricing_router)
 app.include_router(auto_dispatch_router)
+app.include_router(customers_router)
 
 # Health check
 @api_router.get("/")

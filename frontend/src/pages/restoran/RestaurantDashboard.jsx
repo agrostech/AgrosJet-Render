@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Settings, AlertTriangle } from "lucide-react";
+import { Calculator, FileText, Link2, UtensilsCrossed, ClipboardList, Settings, AlertTriangle, Users } from "lucide-react";
 
 import RestaurantSidebar from "@/components/restoran/RestaurantSidebar";
 import RestaurantMobileNav from "@/components/restoran/RestaurantMobileNav";
@@ -11,6 +11,7 @@ import RestaurantMuhasebe from "./RestaurantMuhasebe";
 import RestaurantRaporlar from "./RestaurantRaporlar";
 import RestaurantEntegrasyonlar from "./RestaurantEntegrasyonlar";
 import RestaurantUrunler from "./RestaurantUrunler";
+import RestaurantMusteriler from "./RestaurantMusteriler";
 import RestaurantAyarlar from "./RestaurantAyarlar";
 import RestaurantGecmisSiparisler from "./RestaurantGecmisSiparisler";
 import RestaurantIptalSiparisler from "./RestaurantIptalSiparisler";
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { key: "raporlar", label: "Raporlar", icon: FileText, path: "/restoran/raporlar" },
   { key: "muhasebe", label: "Muhasebe", icon: Calculator, path: "/restoran/muhasebe" },
   { key: "urunler", label: "Ürünler", icon: UtensilsCrossed, path: "/restoran/urunler" },
+  { key: "musteriler", label: "Müşteriler", icon: Users, path: "/restoran/musteriler" },
   { key: "entegrasyonlar", label: "Entegrasyonlar", icon: Link2, path: "/restoran/entegrasyonlar" },
   { key: "ayarlar", label: "Ayarlar", icon: Settings, path: "/restoran/ayarlar" },
 ];
@@ -307,6 +309,8 @@ export default function RestaurantDashboard() {
         return <RestaurantEntegrasyonlar restaurantId={user?.restaurant_id} />;
       case "urunler":
         return <RestaurantUrunler restaurantId={user?.restaurant_id} />;
+      case "musteriler":
+        return <RestaurantMusteriler restaurantId={user?.restaurant_id} />;
       case "ayarlar":
         return <RestaurantAyarlar restaurantId={user?.restaurant_id} restaurantName={restaurant?.name} />;
       default:

@@ -2673,6 +2673,13 @@ async def create_manual_order(data: ManualOrderCreate):
     # Veritabanına kaydet
     await db.orders.insert_one(order)
     
+    # Müşteriyi otomatik kaydet
+    try:
+        from routers.customers import auto_save_customer_from_order
+        await auto_save_customer_from_order(order)
+    except Exception as e:
+        logger.warning(f"Müşteri otomatik kayıt hatası: {e}")
+    
     # _id'yi kaldır
     order.pop("_id", None)
     
