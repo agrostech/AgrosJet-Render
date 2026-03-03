@@ -199,7 +199,14 @@ export default function AdminDashboard() {
       clearInterval(creditInterval);
       window.removeEventListener('refreshBadges', handleBadgeRefresh);
     };
-  }, [navigate, fetchBadges]);
+  }, [navigate, fetchBadges, fetchCreditInfo]);
+
+  // activeCompanyId değişince kontör bilgisini güncelle
+  useEffect(() => {
+    if (activeCompanyId) {
+      fetchCreditInfo();
+    }
+  }, [activeCompanyId, fetchCreditInfo]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
