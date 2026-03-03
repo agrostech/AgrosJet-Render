@@ -125,14 +125,15 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
             <div className="space-y-3 text-sm text-slate-600">
               <div>
                 <p className="font-medium text-slate-700 mb-1">Tahsilat Renk Göstergeleri</p>
+                <p className="text-slate-500 text-xs mb-2">Nakit, Kredi Kartı ve Yemek Kartı sütunları için geçerlidir.</p>
                 <ul className="space-y-1 ml-1">
                   <li className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span><span className="text-green-600 font-medium">Yeşil</span> değerler kurye şirketi tarafından tahsil edilmiş ve mütabakat hesaplamasına dahil edilmiştir.</span>
+                    <span><span className="text-green-600 font-medium">Yeşil</span> — Kurye şirketi tarafından tahsil edilmiş, mütabakat hesaplamasına dahildir.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-slate-800"></span>
-                    <span><span className="text-slate-800 font-medium">Siyah</span> değerler restoran tarafından tahsil edilmiş olup mütabakat hesaplamasına dahil değildir.</span>
+                    <span><span className="text-slate-800 font-medium">Siyah</span> — Restoran tarafından tahsil edilmiş, mütabakat hesaplamasına dahil değildir.</span>
                   </li>
                 </ul>
               </div>
