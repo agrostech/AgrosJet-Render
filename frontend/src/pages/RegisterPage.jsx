@@ -30,7 +30,7 @@ export default function RegisterPage() {
     try {
       await axios.post(`${API}/auth/courier/register`, formData);
       toast.success("Kayıt başarılı! Giriş yapabilirsiniz.");
-      navigate("/login");
+      navigate("/courier-login");
     } catch (err) {
       if (!err.handled) {
         toast.error(err.response?.data?.detail || "Kayıt başarısız");
@@ -83,7 +83,7 @@ export default function RegisterPage() {
 
           <p className="mt-4 text-sm text-center text-muted-foreground">
             Zaten hesabınız var mı?{" "}
-            <Link to="/login" className="text-primary font-semibold hover:underline" data-testid="login-link">Giriş Yap</Link>
+            <Link to="/courier-login" className="text-primary font-semibold hover:underline" data-testid="login-link">Giriş Yap</Link>
           </p>
 
           {/* Footer */}
