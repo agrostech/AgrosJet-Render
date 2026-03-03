@@ -331,3 +331,112 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
             "original_status": migros_order.get("status")
         }
     }
+
+
+async def sync_restaurant_migros_orders(restaurant_id: str) -> dict:
+    """
+    Tek bir restoran için Migros siparişlerini senkronize et
+    """
+    from utils.database import db
+    
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0}
+    )
+    
+    if not restaurant:
+        return {"success": False, "error": "Restoran bulunamadı"}
+    
+    migros_config = restaurant.get("migros_config", {})
+    if not migros_config.get("api_key") or not migros_config.get("secret_key"):
+        return {"success": False, "error": "Migros yapılandırması eksik"}
+    
+    try:
+        service = MigrosYemekService(
+            api_key=migros_config["api_key"],
+            secret_key=migros_config["secret_key"],
+            is_test=migros_config.get("is_test", False)
+        )
+        
+        store_id = migros_config.get("store_id")
+        if not store_id:
+            return {"success": False, "error": "Store ID eksik"}
+        
+        # Bekleyen siparişleri çek
+        result = await service.get_pending_orders(
+            store_ids=[store_id],
+            limit=50,
+            offset=0
+        )
+        
+        if not result.get("success"):
+            return {"success": False, "error": result.get("error", "Siparişler alınamadı")}
+        
+        orders = result.get("data", {}).get("orders", [])
+        synced_count = 0
+        
+        for migros_order in orders:
+            migros_order_id = migros_order.get("id")
+            
+            # Bu sipariş zaten var mı?
+            existing = await db.orders.find_one({
+                "migros_data.order_id": migros_order_id
+            })
+            
+            if existing:
+                continue
+            
+            # Yeni sipariş oluştur
+            shiftjet_order = transform_migros_order_to_shiftjet(
+                migros_order, 
+                restaurant_id, 
+                restaurant.get("company_id")
+            )
+            
+            await db.orders.insert_one(shiftjet_order)
+            synced_count += 1
+            logger.info(f"Migros sipariş senkronize edildi: {migros_order_id}")
+        
+        return {
+            "success": True,
+            "total_fetched": len(orders),
+            "total_synced": synced_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Migros sync hatası: {e}")
+        return {"success": False, "error": str(e)}
+
+
+async def sync_all_company_migros_orders(company_id: str) -> dict:
+    """
+    Bir şirketin tüm restoranları için Migros siparişlerini senkronize et
+    """
+    from utils.database import db
+    
+    # Migros yapılandırması olan restoranları bul
+    restaurants = await db.restaurants.find(
+        {
+            "company_id": company_id,
+            "migros_config.api_key": {"$exists": True, "$ne": ""},
+            "migros_config.secret_key": {"$exists": True, "$ne": ""}
+        },
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(100)
+    
+    total_synced = 0
+    errors = []
+    
+    for restaurant in restaurants:
+        result = await sync_restaurant_migros_orders(restaurant["id"])
+        if result.get("success"):
+            total_synced += result.get("total_synced", 0)
+        else:
+            errors.append(f"{restaurant['name']}: {result.get('error')}")
+    
+    return {
+        "success": True,
+        "total_synced": total_synced,
+        "restaurants_checked": len(restaurants),
+        "errors": errors if errors else None
+    }
