@@ -3,7 +3,7 @@ Raporlar API Router
 - Kurye raporları
 - Restoran raporları
 """
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 from utils.database import db

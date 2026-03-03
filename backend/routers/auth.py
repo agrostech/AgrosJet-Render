@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import uuid
 
 from utils.database import db
-from utils.helpers import hash_password, format_name
+from utils.helpers import hash_password, format_name, get_turkey_now
 from utils.rate_limit import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])

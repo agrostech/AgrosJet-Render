@@ -7,6 +7,8 @@ import re
 from datetime import datetime, timezone
 import uuid
 
+from utils.helpers import get_turkey_now
+
 router = APIRouter(prefix="/api/products", tags=["Products"])
 
 # Database reference (will be set from server.py)
