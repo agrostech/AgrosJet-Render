@@ -2,7 +2,7 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "yarn install && yarn build"
+    "buildCommand": "CI=false yarn install && CI=false yarn build"
   },
   "deploy": {
     "startCommand": "npx serve -s build -l $PORT",
