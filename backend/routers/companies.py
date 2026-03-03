@@ -36,7 +36,7 @@ class CompanyUpdate(BaseModel):
 
 
 class CompanyResponse(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="allow")
     id: str
     name: str
     logo_url: Optional[str] = None
@@ -49,7 +49,9 @@ class CompanyResponse(BaseModel):
     city_lng: Optional[float] = None
     opening_time: Optional[str] = "09:00"
     closing_time: Optional[str] = "22:00"
-    created_at: Optional[str] = None
+    created_at: Optional[datetime] = None
+    shift_tolerance_minutes: Optional[int] = 5
+    auto_dispatch_settings: Optional[dict] = None
 
 
 # --- Company Routes ---
