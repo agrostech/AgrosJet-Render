@@ -228,8 +228,28 @@ async def poll_orders(restaurant_id: str):
         if not restaurant:
             raise HTTPException(status_code=404, detail="Restoran bulunamadı")
         
+        # Önce migros_credentials, sonra migros_config, sonra integration_stores'a bak
         migros_config = restaurant.get("migros_credentials", {})
-        if not migros_config.get("enabled"):
+        
+        if not migros_config.get("api_key"):
+            migros_config = restaurant.get("migros_config", {})
+        
+        if not migros_config.get("api_key"):
+            # integration_stores'dan Migros config'i bul
+            integration_stores = restaurant.get("integration_stores", [])
+            for store in integration_stores:
+                if store.get("platform") == "migros" and store.get("enabled"):
+                    creds = store.get("credentials", {})
+                    migros_config = {
+                        "enabled": True,
+                        "api_key": creds.get("api_key"),
+                        "secret_key": creds.get("secret_key"),
+                        "store_id": creds.get("store_id"),
+                        "is_test": creds.get("is_test", False)
+                    }
+                    break
+        
+        if not migros_config.get("api_key"):
             return {"success": False, "error": "Migros entegrasyonu aktif değil"}
         
         service = MigrosYemekService(
