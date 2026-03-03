@@ -92,13 +92,21 @@ async def delete_courier_permanently(courier_id: str):
 async def search_courier(phone: str):
     """Search courier by phone number"""
     # Telefon numarasını normalize et
+    original_phone = phone
     phone = phone.strip()
     if not phone.startswith("0"):
         phone = "0" + phone
     
     courier = await db.couriers.find_one({"phone": phone}, {"_id": 0, "password": 0})
+    
     if not courier:
-        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+        # Debug: tüm kurye telefonlarını getir
+        all_phones = await db.couriers.find({}, {"_id": 0, "phone": 1}).to_list(100)
+        phones_list = [c.get("phone") for c in all_phones]
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Kurye bulunamadı. Aranan: {phone}, DB'deki telefonlar: {phones_list}"
+        )
     return courier
 
 
