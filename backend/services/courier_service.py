@@ -52,6 +52,11 @@ async def get_all_couriers():
 
 async def search_courier_by_phone(phone: str):
     """Search courier by phone number"""
+    # Telefon numarasını normalize et
+    phone = phone.strip()
+    if not phone.startswith("0"):
+        phone = "0" + phone
+    
     return await db.couriers.find_one({"phone": phone}, {"_id": 0, "password": 0})
 
 
