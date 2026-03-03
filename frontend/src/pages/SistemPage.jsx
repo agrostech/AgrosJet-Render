@@ -177,20 +177,11 @@ export default function SistemPage({ companyId }) {
   const handleEmailSave = async (e) => {
     e.preventDefault();
     
-    if (!emailSettings.smtp_host || !emailSettings.smtp_user) {
-      toast.error("SMTP sunucu ve kullanıcı adı gereklidir");
-      return;
-    }
-    
-    if (!emailStatus.exists && !emailSettings.smtp_password) {
-      toast.error("SMTP şifresi gereklidir");
-      return;
-    }
-    
+    // Sadece bildirim tercihlerini kaydet (SMTP artık sistem panelinde)
     setEmailSaving(true);
     try {
       await axios.post(`${API}/email/settings/${companyId}`, emailSettings);
-      toast.success("E-posta ayarları kaydedildi");
+      toast.success("Bildirim tercihleri kaydedildi");
       fetchEmailSettings();
     } catch (err) {
       if (!err.handled) {
@@ -937,96 +928,24 @@ export default function SistemPage({ companyId }) {
                 </div>
               )}
 
-              {/* SMTP Settings */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                <div>
-                  <Label className="text-xs md:text-sm font-semibold">SMTP Sunucu *</Label>
-                  <Input 
-                    value={emailSettings.smtp_host} 
-                    onChange={(e) => setEmailSettings({...emailSettings, smtp_host: e.target.value})}
-                    className="mt-1 h-10 md:h-11 border-2 text-sm"
-                    placeholder="smtp.gmail.com"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs md:text-sm font-semibold">Port</Label>
-                  <Input 
-                    type="number"
-                    value={emailSettings.smtp_port} 
-                    onChange={(e) => setEmailSettings({...emailSettings, smtp_port: parseInt(e.target.value) || 587})}
-                    className="mt-1 h-10 md:h-11 border-2 text-sm"
-                    placeholder="587"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs md:text-sm font-semibold">SMTP Kullanıcı Adı *</Label>
-                  <Input 
-                    value={emailSettings.smtp_user} 
-                    onChange={(e) => setEmailSettings({...emailSettings, smtp_user: e.target.value})}
-                    className="mt-1 h-10 md:h-11 border-2 text-sm"
-                    placeholder="email@sirket.com"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs md:text-sm font-semibold">SMTP Şifresi *</Label>
-                  <div className="relative mt-1">
-                    <Input 
-                      type={showSmtpPassword ? "text" : "password"}
-                      value={emailSettings.smtp_password} 
-                      onChange={(e) => setEmailSettings({...emailSettings, smtp_password: e.target.value})}
-                      className="h-10 md:h-11 border-2 pr-10 text-sm"
-                      placeholder={emailStatus.exists ? "••••••••" : "Şifre girin"}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-                      onClick={() => setShowSmtpPassword(!showSmtpPassword)}
-                    >
-                      {showSmtpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
+              {/* SMTP Info - Sistem tarafından yönetiliyor */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4">
+                <div className="flex gap-2 md:gap-3">
+                  <Mail className="w-4 h-4 md:w-5 md:h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs md:text-sm text-blue-800">
+                    <p className="font-medium mb-1">SMTP Ayarları</p>
+                    <p>E-posta gönderim ayarları sistem panelinden merkezi olarak yönetilmektedir. 
+                    Yukarıdaki bildirim tercihleriniz bu sistem ayarları ile çalışacaktır.</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Gmail için App Password kullanın</p>
-                </div>
-                <div>
-                  <Label className="text-xs md:text-sm font-semibold">Gönderici E-posta</Label>
-                  <Input 
-                    value={emailSettings.from_email} 
-                    onChange={(e) => setEmailSettings({...emailSettings, from_email: e.target.value})}
-                    className="mt-1 h-10 md:h-11 border-2 text-sm"
-                    placeholder="Boş bırakılırsa SMTP kullanıcısı kullanılır"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs md:text-sm font-semibold">Gönderici Adı</Label>
-                  <Input 
-                    value={emailSettings.from_name} 
-                    onChange={(e) => setEmailSettings({...emailSettings, from_name: e.target.value})}
-                    className="mt-1 h-10 md:h-11 border-2 text-sm"
-                    placeholder="AgrosJet"
-                  />
                 </div>
               </div>
 
-              {/* Test & Save */}
-              <div className="pt-3 md:pt-4 border-t border-border flex flex-wrap gap-2">
+              {/* Save */}
+              <div className="pt-3 md:pt-4 border-t border-border">
                 <Button type="submit" disabled={emailSaving} className="h-10 md:h-11 font-semibold text-sm">
                   <Save className="w-4 h-4 mr-2" />
-                  {emailSaving ? "Kaydediliyor..." : "Ayarları Kaydet"}
+                  {emailSaving ? "Kaydediliyor..." : "Tercihleri Kaydet"}
                 </Button>
-                {emailStatus.exists && (
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={handleTestEmail}
-                    disabled={testingEmail}
-                    className="h-10 md:h-11 text-sm"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    {testingEmail ? "Gönderiliyor..." : "Test E-postası Gönder"}
-                  </Button>
-                )}
               </div>
             </form>
           )

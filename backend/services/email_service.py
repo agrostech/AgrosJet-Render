@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
-    """SMTP Email Service"""
+    """SMTP Email Service - Sistem ayarlarından SMTP kullanır"""
     
     def __init__(self):
         self.smtp_host = None
@@ -23,11 +23,15 @@ class EmailService:
         self.smtp_password = None
         self.from_email = None
         self.from_name = "AgrosJet"
+        self.enabled = True
     
-    async def load_settings(self, company_id: str) -> bool:
-        """Load SMTP settings from database"""
-        settings = await db.email_settings.find_one({"company_id": company_id}, {"_id": 0})
+    async def load_system_settings(self) -> bool:
+        """Load SMTP settings from system settings (central configuration)"""
+        settings = await db.system_settings.find_one({"type": "smtp"}, {"_id": 0})
         if not settings:
+            return False
+        
+        if not settings.get("enabled", True):
             return False
         
         self.smtp_host = settings.get("smtp_host")
@@ -36,8 +40,16 @@ class EmailService:
         self.smtp_password = settings.get("smtp_password")
         self.from_email = settings.get("from_email") or self.smtp_user
         self.from_name = settings.get("from_name", "AgrosJet")
+        self.enabled = settings.get("enabled", True)
         
         return all([self.smtp_host, self.smtp_user, self.smtp_password])
+    
+    async def load_settings(self, company_id: str = None) -> bool:
+        """
+        Load SMTP settings - Artık sistem ayarlarını kullanır.
+        company_id parametresi geriye uyumluluk için tutuldu.
+        """
+        return await self.load_system_settings()
     
     def send_email(self, to_email: str, subject: str, html_body: str, plain_body: str = None) -> dict:
         """Send email via SMTP. Returns dict with success status and error message."""
@@ -95,37 +107,39 @@ async def get_superadmin_email(company_id: str) -> Optional[str]:
 
 
 async def send_notification_email(company_id: str, title: str, message: str, notification_type: str = None) -> bool:
-    """Send notification email to super admin"""
-    # Check if email settings exist and are enabled
-    settings = await db.email_settings.find_one({"company_id": company_id}, {"_id": 0})
-    if not settings or not settings.get("enabled"):
-        return False
+    """
+    Send notification email to super admin.
+    Sistem SMTP ayarlarını kullanır, şirket bazlı bildirim tercihlerini kontrol eder.
+    """
+    # Check if company has notification settings (bildirim tercihleri şirket bazlı kalabilir)
+    company_settings = await db.email_settings.find_one({"company_id": company_id}, {"_id": 0})
     
-    # Check if this notification type is enabled
-    type_to_setting = {
-        "muhasebe_hareket": "notify_muhasebe",
-        "zimmet_hareket": "notify_zimmet",
-        "evrak_yuklendi": "notify_evrak",
-        "jetpuan_siparis": "notify_jetpuan",
-        "fesih_3_gun": "notify_fesih",
-        "fesih_yarin": "notify_fesih",
-    }
+    # Check if this notification type is enabled for the company
+    if company_settings:
+        type_to_setting = {
+            "muhasebe_hareket": "notify_muhasebe",
+            "zimmet_hareket": "notify_zimmet",
+            "evrak_yuklendi": "notify_evrak",
+            "jetpuan_siparis": "notify_jetpuan",
+            "fesih_3_gun": "notify_fesih",
+            "fesih_yarin": "notify_fesih",
+        }
+        
+        setting_key = type_to_setting.get(notification_type)
+        if setting_key and not company_settings.get(setting_key, True):
+            logger.info(f"Email notification disabled for type: {notification_type}")
+            return False
     
-    setting_key = type_to_setting.get(notification_type)
-    if setting_key and not settings.get(setting_key, True):
-        logger.info(f"Email notification disabled for type: {notification_type}")
-        return False
-    
-    # Get super admin email
+    # Get super admin email for this company
     email = await get_superadmin_email(company_id)
     if not email:
         logger.warning(f"No super admin email found for company {company_id}")
         return False
     
-    # Initialize email service
+    # Initialize email service with SYSTEM settings
     service = EmailService()
-    if not await service.load_settings(company_id):
-        logger.warning(f"SMTP settings incomplete for company {company_id}")
+    if not await service.load_system_settings():
+        logger.warning("System SMTP settings not configured")
         return False
     
     # Create email content

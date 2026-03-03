@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -1346,6 +1346,248 @@ function KuryelerPage() {
 }
 
 
+// ============ SMTP AYARLARI PAGE ============
+function SMTPAyarlariPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [configured, setConfigured] = useState(false);
+  
+  const [settings, setSettings] = useState({
+    smtp_host: "",
+    smtp_port: 587,
+    smtp_user: "",
+    smtp_password: "",
+    from_email: "",
+    from_name: "AgrosJet",
+    enabled: true
+  });
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/system-settings/smtp`);
+      setConfigured(res.data.configured);
+      setSettings({
+        smtp_host: res.data.smtp_host || "",
+        smtp_port: res.data.smtp_port || 587,
+        smtp_user: res.data.smtp_user || "",
+        smtp_password: res.data.smtp_password_masked || "",
+        from_email: res.data.from_email || "",
+        from_name: res.data.from_name || "AgrosJet",
+        enabled: res.data.enabled !== false
+      });
+    } catch (err) {
+      toast.error("SMTP ayarları yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!settings.smtp_host || !settings.smtp_user) {
+      toast.error("SMTP sunucu ve kullanıcı adı gereklidir");
+      return;
+    }
+    
+    if (!configured && !settings.smtp_password) {
+      toast.error("SMTP şifresi gereklidir");
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      await axios.post(`${API}/system-settings/smtp`, settings);
+      toast.success("SMTP ayarları kaydedildi");
+      setConfigured(true);
+      fetchSettings();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTest = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await axios.post(`${API}/system-settings/smtp/test`);
+      setTestResult(res.data);
+    } catch (err) {
+      setTestResult({ success: false, message: err.response?.data?.detail || "Test başarısız" });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="smtp-ayarlari-page">
+      <div className="mb-6">
+        <h2 className="font-heading text-2xl font-bold tracking-tight">E-posta Ayarları (SMTP)</h2>
+        <p className="text-muted-foreground text-sm mt-1">
+          Tüm şirketler için merkezi e-posta gönderim ayarları
+        </p>
+      </div>
+
+      <div className="bg-white border rounded-lg p-6 max-w-2xl">
+        {/* Status Badge */}
+        <div className="flex items-center gap-2 mb-6">
+          {configured ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+              <CheckCircle className="w-4 h-4" />
+              Yapılandırıldı
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+              <XCircle className="w-4 h-4" />
+              Yapılandırılmadı
+            </span>
+          )}
+        </div>
+
+        {/* Enable Toggle */}
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg mb-6">
+          <div>
+            <p className="font-medium">E-posta Bildirimleri</p>
+            <p className="text-sm text-muted-foreground">Sistem genelinde e-posta gönderimini aç/kapat</p>
+          </div>
+          <button
+            onClick={() => setSettings({...settings, enabled: !settings.enabled})}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              settings.enabled ? 'bg-green-600' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                settings.enabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Form Fields */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>SMTP Sunucu</Label>
+              <Input
+                placeholder="smtp.gmail.com"
+                value={settings.smtp_host}
+                onChange={(e) => setSettings({...settings, smtp_host: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Port</Label>
+              <Input
+                type="number"
+                placeholder="587"
+                value={settings.smtp_port}
+                onChange={(e) => setSettings({...settings, smtp_port: parseInt(e.target.value) || 587})}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>SMTP Kullanıcı (E-posta)</Label>
+            <Input
+              placeholder="bildirim@agrosjet.com"
+              value={settings.smtp_user}
+              onChange={(e) => setSettings({...settings, smtp_user: e.target.value})}
+            />
+          </div>
+
+          <div>
+            <Label>SMTP Şifre</Label>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder={configured ? "••••••••" : "Şifre girin"}
+                value={settings.smtp_password}
+                onChange={(e) => setSettings({...settings, smtp_password: e.target.value})}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-700"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Gmail için "Uygulama Şifresi" (App Password) kullanın
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Gönderen E-posta (Opsiyonel)</Label>
+              <Input
+                placeholder="SMTP kullanıcısı kullanılır"
+                value={settings.from_email}
+                onChange={(e) => setSettings({...settings, from_email: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Gönderen Adı</Label>
+              <Input
+                placeholder="AgrosJet"
+                value={settings.from_name}
+                onChange={(e) => setSettings({...settings, from_name: e.target.value})}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Test Result */}
+        {testResult && (
+          <div className={`mt-4 p-4 rounded-lg ${testResult.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+            <div className="flex items-center gap-2">
+              {testResult.success ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+              <span className="font-medium">{testResult.message}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 mt-6 pt-4 border-t">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Kaydet
+          </Button>
+          <Button variant="outline" onClick={handleTest} disabled={testing || !configured}>
+            {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Bağlantıyı Test Et
+          </Button>
+        </div>
+
+        {/* Info Box */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm text-blue-700">
+          <p className="font-medium mb-1">Bilgi</p>
+          <p>
+            Bu ayarlar tüm şirketler için geçerlidir. E-postalar bu SMTP sunucusu üzerinden gönderilir.
+            Her şirket kendi bildirim tercihlerini (muhasebe, zimmet vb.) ayrıca yönetebilir.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 // ============ SİSTEM AYARLARI PAGE ============
 function SistemAyarlariPage() {
   const [loading, setLoading] = useState(true);
@@ -1572,6 +1814,7 @@ export default function SystemDashboard() {
   const NAV_ITEMS = [
     { path: "/system", label: "Şirketler", icon: Building2 },
     { path: "/system/kontor", label: "Kontör Yönetimi", icon: Coins },
+    { path: "/system/smtp", label: "E-posta Ayarları", icon: Mail },
     { path: "/system/yoneticiler", label: "Yöneticiler", icon: UserCog },
     { path: "/system/kuryeler", label: "Kuryeler", icon: Users },
     { path: "/system/ayarlar", label: "Ayarlar", icon: Settings },
@@ -1629,6 +1872,7 @@ export default function SystemDashboard() {
             <Routes>
               <Route index element={<SirketlerPage />} />
               <Route path="kontor" element={<KontorYonetimiPage />} />
+              <Route path="smtp" element={<SMTPAyarlariPage />} />
               <Route path="yoneticiler" element={<YoneticilerPage />} />
               <Route path="kuryeler" element={<KuryelerPage />} />
               <Route path="ayarlar" element={<SistemAyarlariPage />} />
