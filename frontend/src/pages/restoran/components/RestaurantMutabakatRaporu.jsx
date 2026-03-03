@@ -39,7 +39,7 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
 
   return (
     <div className="space-y-4" data-testid="restaurant-mutabakat-raporu">
-      <RaporFiltre companyId={companyId} onFilter={handleFilter} loading={loading} />
+      <RaporFiltre companyId={companyId} onFilter={handleFilter} loading={loading} defaultPreset="bu_hafta" />
 
       {loading && (
         <Card>

@@ -67,8 +67,8 @@ function calcDates(preset, opening, closing) {
   }
 }
 
-export default function RaporFiltre({ companyId, onFilter, loading }) {
-  const [activePreset, setActivePreset] = useState("bugun");
+export default function RaporFiltre({ companyId, onFilter, loading, defaultPreset = "bugun" }) {
+  const [activePreset, setActivePreset] = useState(defaultPreset);
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
   const [opening, setOpening] = useState("09:00");
@@ -86,7 +86,7 @@ export default function RaporFiltre({ companyId, onFilter, loading }) {
       setOpening(o);
       setClosing(cl);
 
-      const dates = calcDates("bugun", o, cl);
+      const dates = calcDates(defaultPreset, o, cl);
       setStartDateTime(dates.start);
       setEndDateTime(dates.end);
       setReady(true);
@@ -94,7 +94,7 @@ export default function RaporFiltre({ companyId, onFilter, loading }) {
       onFilter(dates.start, dates.end);
     });
     return () => { cancelled = true; };
-  }, [companyId]);
+  }, [companyId, defaultPreset]);
 
   const handlePreset = (key) => {
     setActivePreset(key);
