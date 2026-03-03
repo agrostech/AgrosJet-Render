@@ -9,6 +9,7 @@ import base64
 import json
 import logging
 import httpx
+import uuid
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone, timedelta
 from Crypto.Cipher import AES
@@ -248,9 +249,23 @@ class MigrosYemekService:
             return {"success": False, "error": str(e)}
 
 
-def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_id: str) -> Dict[str, Any]:
+def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_id: str, company_id: str = None) -> Dict[str, Any]:
     """
-    Migros Yemek sipariş formatını ShiftJet formatına dönüştür
+    Migros Yemek sipariş formatını AgrosJet formatına dönüştür.
+    Bu fonksiyon hem polling hem de webhook için kullanılabilir.
+    
+    Migros Order Yapısı:
+    - id: Sipariş ID
+    - description: Sipariş özeti
+    - status: NEW_PENDING, APPROVED, etc.
+    - deliveryProvider: RESTAURANT veya MIGROS
+    - store: {id, name, group: {id, name}}
+    - customer: {id, firstName, lastName, fullName, phoneNumber, deliveryAddress: {...}}
+    - prices: {total, discounted, restaurantDiscounted, migrosDiscounted}
+    - items: [{id, productId, name, price, priceText, amount, note, options: [...]}]
+    - payment: {type: {name, description, isOnlinePayment, ...}}
+    - extendedProperties: {orderNote, saveGreen, contactlessDelivery, ringDoorBell}
+    - log: {createdAsMs}
     """
     customer = migros_order.get("customer", {})
     delivery_address = customer.get("deliveryAddress", {})
@@ -258,34 +273,49 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
     prices = migros_order.get("prices", {})
     payment = migros_order.get("payment", {}).get("type", {})
     extended = migros_order.get("extendedProperties", {})
+    store = migros_order.get("store", {})
     
     # Ödeme tipi dönüşümü
     payment_type_map = {
         "CASH_ON_DELIVERY": "cash",
         "CREDIT_CARD_ON_DELIVERY": "card",
+        "CREDIT_CARD": "online",
         "ONLINE_PAYMENT": "online",
-        "MEAL_CARD": "meal_card"
+        "MEAL_CARD": "meal_card",
+        "MEAL_CARD_ON_DELIVERY": "meal_card"
     }
-    payment_name = payment.get("simplifiedName", "CASH_ON_DELIVERY")
-    payment_type = payment_type_map.get(payment_name, "cash")
+    payment_name = payment.get("name") or payment.get("simplifiedName", "CASH_ON_DELIVERY")
+    is_online = payment.get("isOnlinePayment", False)
+    payment_type = payment_type_map.get(payment_name, "online" if is_online else "cash")
     
     # Ürünleri dönüştür
     items = []
     for item in migros_order.get("items", []):
+        # Fiyat kuruş cinsinden geliyor
+        unit_price = item.get("price", 0) / 100
+        quantity = item.get("amount", 1)
+        
         item_data = {
-            "name": item.get("name"),
-            "quantity": item.get("amount", 1),
-            "price": item.get("price", 0) / 100,  # Kuruştan TL'ye
-            "total_price": (item.get("price", 0) * item.get("amount", 1)) / 100,
+            "id": str(item.get("productId", item.get("id", ""))),
+            "name": item.get("name", ""),
+            "quantity": quantity,
+            "unit_price": unit_price,
+            "total_price": unit_price * quantity,
             "note": item.get("note", ""),
             "options": []
         }
         
         # Opsiyonları ekle
-        for opt in item.get("options", []):
+        item_options = item.get("options") or []
+        for opt in item_options:
+            opt_price = opt.get("primaryPrice", 0) / 100
             item_data["options"].append({
-                "name": f"{opt.get('headerName')}: {opt.get('itemNames')}",
-                "price": opt.get("primaryPrice", 0) / 100
+                "name": f"{opt.get('headerName', '')}: {opt.get('itemNames', '')}",
+                "header": opt.get("headerName", ""),
+                "value": opt.get("itemNames", ""),
+                "price": opt_price,
+                "quantity": opt.get("quantity", 1),
+                "excluded": opt.get("excluded", False)
             })
         
         items.append(item_data)
@@ -295,14 +325,32 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
     if total_amount == 0:
         total_amount = prices.get("total", {}).get("amountAsPenny", 0) / 100
     
+    # İndirim hesapla
+    original_total = prices.get("total", {}).get("amountAsPenny", 0) / 100
+    discount = original_total - total_amount if original_total > total_amount else 0
+    
+    # Oluşturma zamanı
+    created_ms = migros_order.get("log", {}).get("createdAsMs", 0)
+    if created_ms:
+        created_at = datetime.fromtimestamp(created_ms / 1000, tz=TURKEY_TZ).isoformat()
+    else:
+        created_at = get_turkey_now()
+    
     return {
+        "id": str(uuid.uuid4()),
         "external_id": f"migros_{migros_order.get('id')}",
         "platform": "migros",
-        "platform_order_id": str(migros_order.get("id")),
+        "platform_id": str(migros_order.get("id")),
         "restaurant_id": restaurant_id,
+        "company_id": company_id,
+        "source": "migros",
+        "status": "pending",
+        
+        # Müşteri bilgileri
         "customer_name": customer.get("fullName", ""),
         "customer_phone": customer.get("phoneNumber", ""),
         "delivery_address": delivery_address.get("detail", ""),
+        "address_direction": delivery_address.get("direction", ""),
         "delivery_location": {
             "latitude": geo_location.get("latitude"),
             "longitude": geo_location.get("longitude")
@@ -310,26 +358,44 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
         "city": delivery_address.get("city", {}).get("name", ""),
         "district": delivery_address.get("town", {}).get("name", ""),
         "neighborhood": delivery_address.get("district", {}).get("name", ""),
+        
+        # Ürünler
+        "items": items,
+        "description": migros_order.get("description", ""),
+        
+        # Ödeme bilgileri
         "total_amount": total_amount,
         "payment_type": payment_type,
         "payment_method": payment.get("description", ""),
-        "is_paid": payment.get("isOnlinePayment", False),
-        "items": items,
+        "is_paid": is_online,
+        "discount": discount,
+        
+        # Ek özellikler
         "note": extended.get("orderNote", ""),
         "contactless_delivery": extended.get("contactlessDelivery", False),
         "ring_doorbell": extended.get("ringDoorBell", True),
-        "status": "pending",
-        "source": "migros",
-        "created_at": get_turkey_now(),
-        "updated_at": get_turkey_now(),
+        "save_green": extended.get("saveGreen", False),
+        
+        # Migros spesifik veriler
         "migros_data": {
             "order_id": migros_order.get("id"),
             "user_id": customer.get("id"),
-            "store_id": migros_order.get("store", {}).get("id"),
-            "store_group_id": migros_order.get("store", {}).get("group", {}).get("id"),
+            "store_id": store.get("id"),
+            "store_name": store.get("name"),
+            "store_group_id": store.get("group", {}).get("id"),
+            "store_group_name": store.get("group", {}).get("name"),
             "delivery_provider": migros_order.get("deliveryProvider"),
-            "original_status": migros_order.get("status")
-        }
+            "original_status": migros_order.get("status"),
+            "prices": prices
+        },
+        
+        # Zaman damgaları
+        "created_at": created_at,
+        "updated_at": get_turkey_now(),
+        "platform_created_at": created_at,
+        
+        # Orijinal veriyi sakla
+        "platform_data": migros_order
     }
 
 
