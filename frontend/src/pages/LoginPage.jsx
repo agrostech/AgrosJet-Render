@@ -13,11 +13,9 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function LoginPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [rememberCourier, setRememberCourier] = useState(false);
   const [rememberAdmin, setRememberAdmin] = useState(false);
   const [rememberRestaurant, setRememberRestaurant] = useState(false);
   
-  const [courierData, setCourierData] = useState({ phone: "", password: "" });
   const [adminData, setAdminData] = useState({ username: "", password: "" });
   const [restaurantData, setRestaurantData] = useState({ username: "", password: "" });
 
@@ -50,37 +48,6 @@ export default function LoginPage() {
       expiresAt: remember ? null : Date.now() + (60 * 60 * 1000) // 60 dakika
     };
     localStorage.setItem("user", JSON.stringify(sessionData));
-  };
-
-  const handleCourierLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post(`${API}/auth/courier/login`, courierData);
-      // Set company_id from first company
-      const userData = {
-        ...res.data,
-        company_id: res.data.companies?.[0]?.id || null
-      };
-      saveSession(userData, rememberCourier);
-      
-      // Native app'e bildir (AgrosJet App)
-      if (window.isAgrosJetApp && window.AgrosJetNative) {
-        window.AgrosJetNative.notifyLogin();
-      }
-      if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'SET_COURIER_ID',
-          data: res.data.id
-        }));
-      }
-      
-      navigate("/courier");
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Giriş başarısız");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleAdminLogin = async (e) => {
@@ -130,15 +97,8 @@ export default function LoginPage() {
             />
           </div>
 
-          <Tabs defaultValue="courier" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-slate-800 border border-slate-700">
-              <TabsTrigger 
-                value="courier" 
-                data-testid="courier-tab"
-                className="font-semibold text-sm text-slate-300 data-[state=active]:bg-slate-700 data-[state=active]:text-white"
-              >
-                Kurye
-              </TabsTrigger>
+          <Tabs defaultValue="admin" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-800 border border-slate-700">
               <TabsTrigger 
                 value="admin" 
                 data-testid="admin-tab"
@@ -154,70 +114,6 @@ export default function LoginPage() {
                 Restoran
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="courier">
-              <form onSubmit={handleCourierLogin} className="space-y-4">
-                <div>
-                  <Label htmlFor="phone" className="text-sm font-semibold text-slate-300">
-                    Telefon No
-                  </Label>
-                  <Input
-                    id="phone"
-                    data-testid="courier-phone-input"
-                    type="tel"
-                    placeholder="05XXXXXXXXX"
-                    value={courierData.phone}
-                    onChange={(e) => setCourierData({ ...courierData, phone: e.target.value })}
-                    className="mt-1 h-12 border-2 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="courier-password" className="text-sm font-semibold text-slate-300">
-                    Şifre
-                  </Label>
-                  <Input
-                    id="courier-password"
-                    data-testid="courier-password-input"
-                    type="password"
-                    value={courierData.password}
-                    onChange={(e) => setCourierData({ ...courierData, password: e.target.value })}
-                    className="mt-1 h-12 border-2 bg-slate-800 border-slate-600 text-white"
-                    required
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  data-testid="courier-login-btn"
-                  className="w-full h-12 font-semibold bg-[#e13c10] hover:bg-[#c53510] text-white"
-                  disabled={loading}
-                >
-                  {loading ? "Yükleniyor..." : "Giriş Yap"}
-                </Button>
-                <div className="flex items-center gap-2 mt-2">
-                  <Checkbox 
-                    id="rememberCourier" 
-                    checked={rememberCourier}
-                    onCheckedChange={setRememberCourier}
-                    data-testid="remember-courier-checkbox"
-                    className="border-slate-500 data-[state=checked]:bg-orange-500"
-                  />
-                  <Label htmlFor="rememberCourier" className="text-sm text-slate-400 cursor-pointer">
-                    Beni Hatırla
-                  </Label>
-                </div>
-              </form>
-              <p className="mt-4 text-sm text-center text-slate-400">
-                Hesabınız yok mu?{" "}
-                <Link 
-                  to="/register" 
-                  className="text-orange-600 font-semibold hover:underline" 
-                  data-testid="register-link"
-                >
-                  Kayıt Ol
-                </Link>
-              </p>
-            </TabsContent>
 
             <TabsContent value="admin">
               <form onSubmit={handleAdminLogin} className="space-y-4">
