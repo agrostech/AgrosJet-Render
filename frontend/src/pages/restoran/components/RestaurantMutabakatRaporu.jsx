@@ -71,28 +71,34 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                   <tr className="border-b last:border-0 hover:bg-muted/30">
                     <td className="p-3 text-center font-medium">{data.order_count || 0}</td>
                     <td className="p-3 text-right">
-                      {formatMoney(data.delivery_fee || 0)}
+                      <div className="inline-flex items-center">{formatMoney(data.delivery_fee || 0)}</div>
                     </td>
                     <td className="p-3 text-right">
-                      {formatMoney(data.delivery_vat || 0)}
+                      <div className="inline-flex items-center">{formatMoney(data.delivery_vat || 0)}</div>
                     </td>
                     <td className="p-3 text-right font-medium">
-                      {formatMoney(data.total_delivery || 0)}
+                      <div className="inline-flex items-center">{formatMoney(data.total_delivery || 0)}</div>
                     </td>
                     <td className="p-3 text-right text-red-600">
-                      {formatMoney(data.pos_commission || 0)}
+                      <div className="inline-flex items-center">{formatMoney(data.pos_commission || 0)}</div>
                     </td>
-                    <td className={`p-3 text-right ${(data.cash_amount || 0) > 0 ? 'text-green-600 font-medium' : ''}`}>
-                      {formatMoney(data.cash_amount || 0)}
+                    <td className="p-3 text-right">
+                      <div className={`inline-flex items-center ${(data.cash_amount || 0) > 0 ? 'text-green-600 font-medium' : ''}`}>
+                        {formatMoney(data.cash_amount || 0)}
+                      </div>
                     </td>
-                    <td className={`p-3 text-right ${((data.card_amount || 0) + (data.online_amount || 0)) > 0 ? 'text-blue-600 font-medium' : ''}`}>
-                      {formatMoney((data.card_amount || 0) + (data.online_amount || 0))}
+                    <td className="p-3 text-right">
+                      <div className={`inline-flex items-center ${((data.card_amount || 0) + (data.online_amount || 0)) > 0 ? 'text-blue-600 font-medium' : ''}`}>
+                        {formatMoney((data.card_amount || 0) + (data.online_amount || 0))}
+                      </div>
                     </td>
-                    <td className={`p-3 text-right ${(data.meal_card_amount || 0) > 0 ? 'text-purple-600 font-medium' : ''}`}>
-                      {formatMoney(data.meal_card_amount || 0)}
+                    <td className="p-3 text-right">
+                      <div className={`inline-flex items-center ${(data.meal_card_amount || 0) > 0 ? 'text-purple-600 font-medium' : ''}`}>
+                        {formatMoney(data.meal_card_amount || 0)}
+                      </div>
                     </td>
-                    <td className="p-3 text-right text-green-600 font-bold">
-                      {formatMoney(data.net_amount || 0)}
+                    <td className="p-3 text-right font-bold text-green-600">
+                      <div className="inline-flex items-center">{formatMoney(data.net_amount || 0)}</div>
                     </td>
                   </tr>
                 </tbody>
