@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Scale, Receipt, BarChart3, Store, UserCog } from "lucide-react";
+import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Receipt, BarChart3, Store, UserCog, Bike } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
@@ -17,11 +17,11 @@ const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
   { key: "isletmeler", label: "Restoranlar", icon: Building2 },
   { key: "cariler", label: "Cariler", icon: Wallet },
-  { key: "kurye-mutabakat", label: "Kurye Mütabakat", icon: Scale },
+  { key: "kurye-mutabakat", label: "Kurye Mütabakat", icon: Bike },
   { key: "restoran-mutabakat", label: "Restoran Mütabakat", icon: Store },
   { key: "yonetici-mutabakat", label: "Yönetici Mütabakat", icon: UserCog },
   { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
-  { key: "kurye-faturalari", label: "Kurye Faturaları", icon: FileText },
+  { key: "kurye-faturalari", label: "Kurye Faturaları", icon: Receipt },
   { key: "isletme-faturalari", label: "Restoran Faturaları", icon: Receipt },
   { key: "raporlar", label: "Raporlar", icon: BarChart3, superAdminOnly: true },
   { key: "hareketler", label: "Hareketler", icon: History },

@@ -226,17 +226,17 @@ export default function RestaurantMusteriler({ restaurantId }) {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-4" data-testid="restaurant-musteriler">
+    <div className="space-y-4 sm:space-y-6" data-testid="restaurant-musteriler">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Users className="w-6 h-6 text-slate-700" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
           <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Müşteriler</h1>
-          <span className="text-sm text-muted-foreground">({customers.length})</span>
+          <p className="text-xs sm:text-sm text-muted-foreground">Kayıtlı müşteri yönetimi ({customers.length} müşteri)</p>
         </div>
-        <Button onClick={() => { resetForm(); setShowAddModal(true); }} data-testid="add-customer-btn">
-          <Plus className="w-4 h-4 mr-2" />
-          Müşteri Ekle
+        <Button size="sm" onClick={() => { resetForm(); setShowAddModal(true); }} data-testid="add-customer-btn">
+          <Plus className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Müşteri Ekle</span>
+          <span className="sm:hidden">Ekle</span>
         </Button>
       </div>
 
