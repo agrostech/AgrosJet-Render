@@ -22,7 +22,7 @@ class EmailService:
         self.smtp_user = None
         self.smtp_password = None
         self.from_email = None
-        self.from_name = "ShiftJet"
+        self.from_name = "AgrosJet"
     
     async def load_settings(self, company_id: str) -> bool:
         """Load SMTP settings from database"""
@@ -35,7 +35,7 @@ class EmailService:
         self.smtp_user = settings.get("smtp_user")
         self.smtp_password = settings.get("smtp_password")
         self.from_email = settings.get("from_email") or self.smtp_user
-        self.from_name = settings.get("from_name", "ShiftJet")
+        self.from_name = settings.get("from_name", "AgrosJet")
         
         return all([self.smtp_host, self.smtp_user, self.smtp_password])
     
@@ -162,7 +162,7 @@ async def send_notification_email(company_id: str, title: str, message: str, not
     <body>
         <div class="container">
             <div class="header">
-                <h1>ShiftJet</h1>
+                <h1>AgrosJet</h1>
             </div>
             <div class="content">
                 <div class="notification-box">
@@ -172,7 +172,7 @@ async def send_notification_email(company_id: str, title: str, message: str, not
                 <p style="color: #64748b; font-size: 14px;">Bu bildirim otomatik olarak gönderilmiştir.</p>
             </div>
             <div class="footer">
-                ShiftJet Kurye Yönetim Sistemi<br>
+                AgrosJet Kurye Yönetim Sistemi<br>
                 Bu e-postayı almak istemiyorsanız, Sistem &gt; E-posta Ayarları'ndan bildirimleri kapatabilirsiniz.
             </div>
         </div>
@@ -186,10 +186,10 @@ async def send_notification_email(company_id: str, title: str, message: str, not
     {message}
     
     ---
-    ShiftJet Kurye Yönetim Sistemi
+    AgrosJet Kurye Yönetim Sistemi
     """
     
-    subject = f"[ShiftJet] {title}"
+    subject = f"[AgrosJet] {title}"
     
     result = service.send_email(email, subject, html_body, plain_body)
     return result.get("success", False)

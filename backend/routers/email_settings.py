@@ -21,7 +21,7 @@ class EmailSettingsCreate(BaseModel):
     smtp_user: str
     smtp_password: str
     from_email: Optional[str] = None
-    from_name: str = "ShiftJet"
+    from_name: str = "AgrosJet"
     enabled: bool = True
     # Bildirim türleri
     notify_muhasebe: bool = True      # Hakediş işlemleri
@@ -49,7 +49,7 @@ async def get_email_settings(company_id: str):
         "smtp_user": settings.get("smtp_user", ""),
         "smtp_password_masked": masked_password,
         "from_email": settings.get("from_email", ""),
-        "from_name": settings.get("from_name", "ShiftJet"),
+        "from_name": settings.get("from_name", "AgrosJet"),
         "enabled": settings.get("enabled", True),
         # Bildirim türleri (varsayılan hepsi açık)
         "notify_muhasebe": settings.get("notify_muhasebe", True),
@@ -141,13 +141,13 @@ async def test_email(company_id: str):
         # Send test email
         html_body = """
         <div style="font-family: sans-serif; padding: 20px;">
-            <h2>ShiftJet E-posta Test</h2>
+            <h2>AgrosJet E-posta Test</h2>
             <p>Bu bir test e-postasıdır. E-posta bildirimleri başarıyla yapılandırılmıştır.</p>
             <p style="color: #22c55e; font-weight: bold;">✓ Bağlantı Başarılı</p>
         </div>
         """
         
-        result = service.send_email(email, "[ShiftJet] E-posta Test", html_body)
+        result = service.send_email(email, "[AgrosJet] E-posta Test", html_body)
         
         if result.get("success"):
             return {"success": True, "message": f"Test e-postası {email} adresine gönderildi"}
