@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"5d89824770804cb2964e700ef11f1d5d","collectionName":"mali_bellek_logs","type":"collection"}

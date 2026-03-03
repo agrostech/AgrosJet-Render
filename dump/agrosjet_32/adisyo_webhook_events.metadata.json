@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"8ebc6ea5614148588d72f43581884432","collectionName":"adisyo_webhook_events","type":"collection"}

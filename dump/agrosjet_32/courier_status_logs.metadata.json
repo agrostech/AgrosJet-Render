@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"f0aab3ef98ac468a8d53d5d4c6a45802","collectionName":"courier_status_logs","type":"collection"}

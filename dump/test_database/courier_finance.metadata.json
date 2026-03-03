@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"c986e89973d141908be646ae95580408","collectionName":"courier_finance","type":"collection"}

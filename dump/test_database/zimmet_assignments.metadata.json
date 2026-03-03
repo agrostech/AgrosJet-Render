@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"362c5caf6aa040c1949e969e95e9c0df","collectionName":"zimmet_assignments","type":"collection"}

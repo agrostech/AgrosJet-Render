@@ -1,194 +1,271 @@
 <analysis>**original_problem_statement:**
-The user is iteratively building and refining a sophisticated **Automatic Dispatch System** for a multi-panel application (Admin, Restaurant, Courier). The core of the project is to automatically assign ready orders to the most suitable couriers based on a complex and evolving set of business rules.
-
-During this session, the user requested numerous features and bug fixes to enhance the dispatch logic, including:
-1.  A minimum savings threshold for combining orders, allowing negative values in the Max Detour setting.
-2.  A fix for a critical bug where couriers were assigned more packages than their capacity limit.
-3.  A more advanced detour calculation based on the total optimal route of all packages, not just pairwise comparisons.
-4.  Logic to skip the angle check if a new package is close to any of the courier's existing packages.
-5.  An automatic cancellation feature for assignments that are not confirmed by the courier within a set time, with associated shift violation logging.
-6.  Ensuring a courier whose assignment was auto-cancelled is not reassigned the same package.
-7.  Checks for courier payment method permissions and availability status (, , ).
-8.  UI improvements to the settings page, including input freedom and an Optimize Settings button.
-9.  Addition of email notification toggles for shift violations and auto-cancellations.
+The initial goal was to build a sophisticated Automatic Dispatch System. The focus of this session shifted entirely to deploying the existing application from the preview environment to a live production environment on Railway. This involved a massive effort in debugging and resolving numerous issues related to environment configuration, database migration, build processes, CORS, DNS, and application logic that behaved differently in the new environment. The user is now trying to stabilize the deployed application () by fixing critical integration bugs that have surfaced post-deployment.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A full-stack application with a highly complex, configurable Automatic Dispatch System. The backend logic in  has been significantly enhanced during this session.
-
-**Key enhancements from this session:**
--   **Detour Logic:** Refactored to use a single  field. A negative value (e.g., -500) acts as a minimum savings threshold, meaning an order bundle is only created if it saves at least 500m.
--   **Route Optimization:** The detour calculation now considers the optimal total route for a multi-package delivery (a TSP heuristic), replacing the previous pairwise comparison logic.
--   **Proximity Skips:** Both the angle and detour checks can now be skipped if a new package is within a configurable distance of any of the courier's *existing packages*, not just the restaurant.
--   **Courier State Checks:** The system now validates a courier's  (only assigns to  couriers) and their  against the order's payment type.
--   **Auto-Cancellation:** A new scheduled job checks for  orders. If an order is not confirmed by the courier within a configurable timeout, the assignment is cancelled, the order returns to the  pool, a shift violation is logged, and the courier is added to an  list for that specific order to prevent immediate re-assignment.
--   **Bug Fixes:** Resolved a critical race condition that allowed couriers to exceed their  limit by making the database update for order assignment an atomic operation that checks for .
--   **UI/UX:** The Sistem Ayarları page now has more flexible input fields, an Optimize Settings button to load a preset configuration, and the Working Hours card has been disabled. New toggles for email notifications have been added.
--   **System Speed:** Dispatch cycle and admin panel polling intervals have been reduced to 5 seconds.
+A full-stack dispatch application (FastAPI backend, React frontend) has been successfully deployed to Railway.
+-   **Frontend:** Live at , configured via Railway's build/start process.
+-   **Backend:** Live at , configured similarly.
+-   **Database:** MongoDB is running as a service on Railway. The data from the preview environment has been migrated to this new database.
+-   **Integrations:** The system is connected to various third-party services (Getir, Trendyol, Adisyo, Migros), but some are malfunctioning post-deployment.
 
 **Last working item**:
--   Last item agent was working: Adding toggles to the E-posta Bildirimleri (Email Notifications) card to enable/disable emails for  (Shift Violation) and  (Assignment Cancellation). The agent successfully added the UI toggles and updated the frontend state management.
--   Status: **IN PROGRESS**
+-   Last item agent was working: The user reported that the Migros webhook integration is failing. The agent confirmed from the logs that the webhook is being received by the server ( returns ), but the order is not being created in the database. The user then provided the official Migros API documentation and Postman collection and asked the agent to review it to find the discrepancy.
+-   Status: **NOT STARTED**
 -   Agent Testing Done: N
--   Which testing method agent to use? **both**. The frontend changes need a screenshot for visual verification. The backend part, which involves reading these new settings and sending emails, has not been implemented and will require testing once built.
--   User Testing Done: N
+-   Which testing method agent to use? **backend testing agent**. The agent needs to simulate a webhook POST request with a valid payload (based on the provided documentation) to the  endpoint and verify that an order is created in the database.
+-   User Testing Done: Y (User confirmed the issue persists on the live deployment)
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Unresolved Dispatch Failure (P0)**
-    -   Description: The user reported a specific scenario where the system failed to assign a package (Package C) to a courier, even though it was very close (300m) to one of the courier's existing packages (Package B). The user tried increasing the detour tolerance to 3000m, and it still failed, indicating the problem is not the detour logic.
-    -   User's last message on this: YOK BU İŞE YARAMADI, HATTA SAPMAYI 3000 YAPTIM YİNE ATAMA YAPMADI. SORUN BAŞKA YERDE OLABİLİR. İYİ DÜŞÜN. ONAYIMI ALMADAN İŞLEM YAPMA. (This didn't work, I even set the detour to 3000 and it still didn't assign. The problem must be somewhere else. Think hard. Don't do anything without my approval.)
-    -   Attempted fixes: The agent implemented a rule to skip the *angle check* if packages are close to each other. This was the agent's best guess, but the user confirmed it did not solve the problem.
+-   **Issue 1: Migros Webhook Integration Failure (P0)**
+    -   Description: Migros webhooks are successfully received by the backend but fail to create an order. The log shows a  response to the webhook, but no order appears in the panel, and no error is logged, indicating a silent failure within the handler logic.
+    -   Attempted fixes: The agent identified and fixed an issue where the API key verification logic was looking in the wrong place for credentials ( instead of ). This was pushed, but it did not solve the root cause.
     -   Next debug checklist:
-        1.  Re-engage the user about this specific bug.
-        2.  Ask for critical context: Was the angle check enabled? What was the courier's capacity at that moment? Was the courier's status ?
-        3.  Use the response to trace the logic in , specifically checking the  function to see which check is returning  for that scenario (Angle, Capacity, Restaurant Group, Blocked Courier, etc.).
-    -   Why fix this issue and what will be achieved with the fix?: This is a core logic failure that undermines the system's intelligence. Fixing it will make the dispatching more efficient and align with user expectations.
+        1.  Analyze the provided  and Postman collection.
+        2.  **Crucially, investigate the  encryption requirement mentioned in the docs.** The current webhook handler might be failing to decrypt the payload, causing the process to fail silently.
+        3.  Examine the  dependency and the main handler function in .
+        4.  Add extensive logging inside the handler to print the raw headers, the raw (potentially encrypted) body, and the state of the payload after each processing step (e.g., after decryption).
+        5.  Use the Postman collection to send a test webhook to the deployed API to replicate the issue.
+    -   Why fix this issue and what will be achieved with the fix?: This is a critical business integration required for receiving orders from Migros.
     -   Status: **IN PROGRESS**
     -   Is recurring issue?: Y
     -   Should Test frontend/backend/both after fix?: backend
 
-**In progress Task List**:
--   **Task 1: Complete Email Notification Feature (P1)**
-    -   Description: The frontend toggles for Vardiya İhlali and Atama İptali emails are implemented, but the backend functionality is missing.
-    -   Where to resume:
-        1.  Modify the backend logic where shift violations and auto-cancellations are created ().
-        2.  Before creating the log, fetch the company's notification settings.
-        3.  If the corresponding setting ( or ) is , trigger an email sending function.
-    -   What will be achieved with this?: Admins will be actively notified of important system events, improving operational awareness.
-    -   Status: **IN PROGRESS**
+-   **Issue 2: Adisyo Webhook Fails to Find Restaurant (P1)**
+    -   Description: Logs show that Adisyo webhooks are being received but are failing with the warning: .
+    -   Attempted fixes: None. The user prioritized the Migros issue.
+    -   Next debug checklist:
+        1.  Check the logic in .
+        2.  Verify how the  is being looked up in the  collection. It's likely searching for a field (e.g., ) that doesn't contain the provided UUID.
+        3.  Check the database to see if the restaurant with the Adisyo integration has the correct  stored.
+    -   Why fix this issue and what will be achieved with the fix?: This is another critical integration for receiving orders.
+    -   Status: **NOT STARTED**
+    -   Is recurring issue?: N
     -   Should Test frontend/backend/both after fix?: backend
-    -   Blocked on something: None
+
+**In progress Task List**:
+-   None. Current focus is entirely on stabilizing the production deployment.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **(P0) Implement Stop Count Based Capacity Logic:** This is a major pending task from the *previous* handoff. The idea is to count unique drop-off locations (stops) towards a courier's capacity instead of raw package count. This would allow a courier to take 4 packages to the same building even if their limit is 3, as it's only 1 stop. This needs to be implemented in .
+    -   **(P0) Implement Stop Count Based Capacity Logic:** A major pending feature. The system should count unique drop-off locations (stops) towards a courier's capacity, not just the raw package count. To be implemented in .
 -   **Future Tasks:**
-    -   (P1) Incomplete Fee Calculation Integration: The logic to calculate  on order creation must be implemented for all webhook integration points (, , etc.).
-    -   (P1) Refactor Scheduled Jobs: Improve the efficiency of the  and  scheduled jobs in .
-    -   (P2) Investigate unused  function in  which seems to contain redundant logic.
+    -   (P1) Implement  calculation on order creation for all webhook integrations.
+    -   (P1) Refactor the  and  scheduled jobs in .
+    -   (P2) Investigate and remove the potentially unused  function in .
     -   (P2) Implement an API request monitor/logger in the admin panel.
     -   (P2) Refactor .
     -   (P2) Develop a Native Courier App.
 
 **Completed work in this session**
--   **Feature:** Implemented a minimum savings threshold by allowing the  setting to accept negative values.
--   **Feature:** Re-architected detour logic to calculate based on **total optimal route distance** for multi-package deliveries.
--   **Feature:** Implemented **automatic cancellation** of unconfirmed assignments after a timeout.
--   **Feature:** Added **shift violation logging** when an assignment is auto-cancelled.
--   **Feature:** A courier whose assignment is auto-cancelled is now added to an  list on the order to prevent immediate re-assignment.
--   **Feature:** The dispatch logic now checks courier  (, , ) and .
--   **Feature:** The logic to skip angle/detour checks now correctly evaluates the distance between packages, not just from the restaurant.
--   **Bug Fix:** Resolved a critical race condition that allowed couriers to exceed their capacity by ensuring atomic updates to order documents.
--   **Bug Fix:** Corrected the data format for new shift violation logs to match the existing schema.
--   **Bug Fix:** Fixed the order history log to include a proper title and actor for auto-cancellation events.
--   **UI/UX:** Freed the numeric inputs on the Sistem Ayarları page to allow  and negative values.
--   **UI/UX:** Added an Optimize Ayarları Yükle button to load a known-good configuration.
--   **UI/UX:** Disabled the Çalışma Saatleri card and hardcoded it to 24-hour operation.
--   **UI/UX:** Added toggles for new email notifications on the admin settings page.
--   **Tuning:** Reduced dispatch and admin polling intervals to 5 seconds.
--   **Tuning:** Corrected the logic for the Mesafe Toleransı setting to match the user's intent.
+-   **Deployment:** Successfully deployed the entire application (frontend, backend, database) to Railway with custom domains ( and ).
+-   **Database Migration:** Migrated all data from the preview environment to the production Railway MongoDB instance to resolve data structure inconsistencies.
+-   **Environment Configuration:** Set up all necessary environment variables on Railway for both frontend and backend services.
+-   **Bug Fix (Deployment):** Resolved numerous build and deployment errors on Railway, including 
+Usage:   
+  pip <command> [options]
 
-**Earlier issues found/mentioned but not fixed**
--   The primary one is the **Unresolved Dispatch Failure (P0)** detailed in the pending issues list.
+Commands:
+  install                     Install packages.
+  lock                        Generate a lock file.
+  download                    Download packages.
+  uninstall                   Uninstall packages.
+  freeze                      Output installed packages in requirements format.
+  inspect                     Inspect the python environment.
+  list                        List installed packages.
+  show                        Show information about installed packages.
+  check                       Verify installed packages have compatible dependencies.
+  config                      Manage local and global configuration.
+  search                      Search PyPI for packages.
+  cache                       Inspect and manage pip's wheel cache.
+  index                       Inspect information available from package indexes.
+  wheel                       Build wheels from your requirements.
+  hash                        Compute hashes of package archives.
+  completion                  A helper command used for command completion.
+  debug                       Show information useful for debugging.
+  help                        Show help for commands.
 
-**Known issue recurrence from previous fork**
--   None.
+General Options:
+  -h, --help                  Show help.
+  --debug                     Let unhandled exceptions propagate outside the
+                              main subroutine, instead of logging them to
+                              stderr.
+  --isolated                  Run pip in an isolated mode, ignoring
+                              environment variables and user configuration.
+  --require-virtualenv        Allow pip to only run in a virtual environment;
+                              exit with an error otherwise.
+  --python <python>           Run pip with the specified Python interpreter.
+  -v, --verbose               Give more output. Option is additive, and can be
+                              used up to 3 times.
+  -V, --version               Show version and exit.
+  -q, --quiet                 Give less output. Option is additive, and can be
+                              used up to 3 times (corresponding to WARNING,
+                              ERROR, and CRITICAL logging levels).
+  --log <path>                Path to a verbose appending log.
+  --no-input                  Disable prompting for input.
+  --keyring-provider <keyring_provider>
+                              Enable the credential lookup via the keyring
+                              library if user input is allowed. Specify which
+                              mechanism to use [auto, disabled, import,
+                              subprocess]. (default: auto)
+  --proxy <proxy>             Specify a proxy in the form
+                              scheme://[user:passwd@]proxy.server:port.
+  --retries <retries>         Maximum attempts to establish a new HTTP
+                              connection. (default: 5)
+  --timeout <sec>             Set the socket timeout (default 15 seconds).
+  --exists-action <action>    Default action when a path already exists:
+                              (s)witch, (i)gnore, (w)ipe, (b)ackup, (a)bort.
+  --trusted-host <hostname>   Mark this host or host:port pair as trusted,
+                              even though it does not have valid or any HTTPS.
+  --cert <path>               Path to PEM-encoded CA certificate bundle. If
+                              provided, overrides the default. See 'SSL
+                              Certificate Verification' in pip documentation
+                              for more information.
+  --client-cert <path>        Path to SSL client certificate, a single file
+                              containing the private key and the certificate
+                              in PEM format.
+  --cache-dir <dir>           Store the cache data in <dir>.
+  --no-cache-dir              Disable the cache.
+  --disable-pip-version-check
+                              Don't periodically check PyPI to determine
+                              whether a new version of pip is available for
+                              download. Implied with --no-index.
+  --no-color                  Suppress colored output.
+  --use-feature <feature>     Enable new functionality, that may be backward
+                              incompatible.
+  --use-deprecated <feature>  Enable deprecated functionality, that will be
+                              removed in the future.
+  --resume-retries <resume_retries>
+                              Maximum attempts to resume or restart an
+                              incomplete download. (default: 5)/npm <command>
+
+Usage:
+
+npm install        install all the dependencies in your project
+npm install <foo>  add the <foo> dependency to your project
+npm test           run this project's tests
+npm run <foo>      run the script named <foo>
+npm <command> -h   quick help on <command>
+npm -l             display usage info for all commands
+npm help <term>    search for help on <term>
+npm help npm       more involved overview
+
+All commands:
+
+    access, adduser, audit, bugs, cache, ci, completion,
+    config, dedupe, deprecate, diff, dist-tag, docs, doctor,
+    edit, exec, explain, explore, find-dupes, fund, get, help,
+    help-search, hook, init, install, install-ci-test,
+    install-test, link, ll, login, logout, ls, org, outdated,
+    owner, pack, ping, pkg, prefix, profile, prune, publish,
+    query, rebuild, repo, restart, root, run-script, sbom,
+    search, set, shrinkwrap, star, stars, start, stop, team,
+    test, token, uninstall, unpublish, unstar, update, version,
+    view, whoami
+
+Specify configs in the ini-formatted file:
+    /root/.npmrc
+or on the command line via: npm <command> --key=value
+
+More configuration info: npm help config
+Configuration fields: npm help 7 config
+
+npm@10.8.2 /usr/lib/node_modules/npm issues,  dependency removal, and ESLint CI failures.
+-   **Bug Fix (Login & CORS):** Fixed an infinite login loop by correcting  and  to support the new dual-domain setup.
+-   **Bug Fix (API Routing):** Fixed a critical bug where  was failing by reordering the routes in  to resolve a path parameter conflict.
+-   **Bug Fix (Data Integrity):** Fixed multiple backend crashes and frontend data loading errors by adding missing imports (, , etc.) and making data models (, ) more robust to handle  objects.
+-   **Bug Fix (Data Fetching):** Patched several data-fetching endpoints to support two different database schemas (the old preview structure and the new production one), ensuring data appeared correctly in the UI.
+-   **Feature (Auth):** Created a public-facing Delete Account page for couriers at  with a corresponding backend endpoint.
+-   **Feature (UI):** Created a public-facing KVKK page at .
+-   **Refactoring:** Removed the Kurye tab from the main login page, removed the Yedekleme (Backup) feature, cleaned up hardcoded ShiftJet branding in emails, and removed the unnecessary Migros polling job.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Atomic Updates:** Fixed a race condition by adding  to the  query filter when assigning an order, ensuring only one process can claim it. The result's  is now checked.
--   **State-based Timeout Job:** A function () runs every dispatch cycle to query for documents in a specific state () and checks a timestamp () to trigger a state change (cancellation).
--   **Exclusion Lists:** A list of  is now stored on the  document itself to prevent re-assignment to couriers who have previously failed to confirm the order.
--   **TSP Heuristic (Total Route Optimization):** The system moved from simple pairwise checks to a more advanced logic that calculates the change in total route distance using  to find the most efficient delivery order.
+-   **Railway Deployment:** Deployed a monorepo by setting  for each service, configuring  and , and managing environment variables.
+-   **Dual Domain Architecture:** The core challenge of the session. The app now runs with  for the frontend and  for the backend.
+-   **CORS Configuration:** Correctly setting  on the backend was critical to allow the frontend domain to make API calls.
+-   **FastAPI Route Specificity:** A key bug was fixed by understanding that FastAPI matches routes in order, and specific paths () must be defined before generic path parameter routes ().
+-   **Database Migration (/):** The final solution to data inconsistency was a full database migration from the preview environment to the production Railway instance.
 
 **key DB schema**
--   **companies:** (in )
-    -    (can be negative)
-    -   
-    -    (minutes)
-    -    (new)
-    -    (new)
--   **orders:**
-    -    (newly added)
-    -   : now correctly populated for auto-cancellation events.
--   **shift_violations:**
-    -   Schema corrected to use , , , etc. for consistency.
--   **couriers:**
-    -    (active, on_break, offline) is now the primary status for dispatch eligibility.
-    -    is used for validation.
+-   **companies:**  and integration fields like  exist.
+-   **restaurants:**  is a newer field storing multiple integration credentials, which caused conflicts with older logic looking for ,  etc. on the top level.
+-   **couriers & company_couriers:** The system was patched to handle two different ways of linking couriers to companies: a  field directly on the  document, or a separate entry in the  linking collection.
 
 **changes in tech stack**
--   None.
+-   **Hosting Environment:** The entire application stack was migrated from the Emergent preview environment to a production setup on **Railway**.
 
 **All files of reference**
--   **/app/backend/services/auto_dispatch/dispatcher.py**: Core dispatch loop, now includes auto-cancellation logic.
--   **/app/backend/services/auto_dispatch/courier_selection.py**: The heart of eligibility logic, contains all new checks.
--   **/app/backend/services/auto_dispatch/detour.py**: New total route optimization and scoring logic.
--   **/app/frontend/src/pages/admin/SistemPage.jsx**: The redesigned frontend component for managing all dispatch settings.
--   **/app/frontend/src/pages/admin/AdminNotificationSettings.jsx**: New toggles for email notifications.
+-   **/app/backend/routers/webhooks/migros_webhook.py**: The location of the failing Migros webhook handler.
+-   **/app/backend/services/migros_service.py**: Contains the logic for processing Migros data.
+-   **/app/backend/routers/couriers.py**: The file where the  vs  route order bug was fixed.
+-   **/app/backend/server.py**: Main FastAPI application file, where scheduled jobs are configured.
+-   **/app/frontend/src/App.js**: Main React router configuration.
+-   **/app/MIGROS YEMEK API DOKUMANTASYONU.docx**: The official documentation provided by the user to debug the webhook.
 
 **Areas that need refactoring**:
--   The analysis requested by the user revealed a potentially unused and conflicting function, , within . This should be investigated and likely removed to avoid confusion.
--   The  function in  remains highly complex and could benefit from being broken into smaller, single-responsibility functions.
+-   The data access layer has several patches to support inconsistent database schemas (e.g., reading from  OR ). Now that the database is migrated, this logic should be simplified to use the single, correct schema.
+-   The codebase still contains remnants of the old ShiftJet branding in comments, function names, and email templates. These should be globally replaced with AgrosJet.
 
 **key api endpoints**
--   : Updates the auto-dispatch settings for the company.
--   : Manually triggers one cycle of the dispatch algorithm for testing.
--   : Fetches shift violation logs.
+-   : The failing Migros webhook endpoint.
+-   : The Adisyo webhook endpoint that is failing to find restaurants.
+-   : The new endpoint for courier account deletion.
+-   : The endpoint that was fixed by reordering routes.
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   **Priority #1 is the Unresolved Dispatch Failure.** The user's last bug report (YOK BU İŞE YARAMADI...) is the most critical pending item. Do not attempt a fix without first asking the user for more diagnostic information (e.g., Açı kontrolü o sırada açık mıydı?).
--   **Priority #2 is to complete the email notification feature.** The backend logic to actually send emails based on the new UI toggles is missing.
--   **Priority #3 is the Stop Count capacity logic.** This was a key feature request from the previous session that has still not been implemented. You should propose this to the user after addressing the more urgent bug.
--   The user is highly technical and provides specific, scenario-based feedback. Always confirm your understanding of a new feature or bug before implementing.
+-   The application is **LIVE** on Railway. The primary goal is to fix production bugs. The preview environment is for development and testing fixes before deploying.
+-   **Priority #1 is fixing the Migros webhook.** You have the official documentation. The problem is likely related to **payload decryption (Rijndael AES)** or a mismatch in the expected data structure. Start by adding detailed logging to the webhook handler.
+-   The separation of frontend () and backend () is a permanent architectural change. All external services (webhooks, mobile app) must point to .
+-   The user is technical and understands deployment concepts. You can discuss Railway configurations, environment variables, and DNS with them directly.
 
 **documents and test reports created in this job**
--   None.
+-   /app/MIGROS YEMEK API DOKUMANTASYONU.docx
 
 **Last 10 User Messages and any pending HUMAN messages**
--   **User**: Set company working hours to 06:00-06:00 by default and disable changes on that card. (Completed)
--   **User**: The current settings are the new optimized ones. Also change optimal to optimize. (Completed)
--   **User**: The inputs on the auto dispatch settings page are restrictive; free them up. Add a button to restore the current optimized settings. (Completed)
--   **User**: For packages closer than 750m, the angle check should be disabled. (Completed)
--   **User**: **(BUG)** My change to skip the angle check didn't work. The problem is somewhere else. Think carefully and don't act without my approval. (PENDING - HIGHEST PRIORITY)
--   **User**: Explain how the Kurye Dengesi (Fairness) setting works. (Completed)
--   **User**: Explain how the Mesafe Toleransı (Distance Tolerance) setting works. It feels illogical. (Completed, logic was corrected)
--   **User**: The new logic for Mesafe Toleransı is correct. Implement it. (Completed)
--   **User**: Analyze the entire auto-dispatch system and tell me if anything is illogical. (Completed, analysis provided)
--   **User**: A courier should not be reassigned a package they failed to confirm. (Completed)
+-   User: (Provides Railway logs showing Adisyo webhook failures)
+-   Agent: Explains the Adisyo failure is due to a missing restaurant ID in the DB.
+-   User: Let's ignore Adisyo. Migros is the problem. Should we re-code it from scratch or should I give you the docs to analyze? (pending)
+-   Agent: Give me the docs, I will analyze them and compare with our code.
+-   User: (Provides Migros API documentation and Postman collection link) Analyze this and compare, but don't act on it yet. (pending)
+-   (No further agent action was taken on this request).
 
 **Project Health Check:**
--   **Broken:** The dispatch logic has a critical flaw identified by the user (Unresolved Dispatch Failure) where it fails to assign a nearby package under certain conditions.
+-   **Broken:**
+    -   **Migros integration:** Webhooks are received but not processed, preventing new orders.
+    -   **Adisyo integration:** Webhooks are failing because the restaurant cannot be identified.
 -   **Mocked:** None.
 -   **Technical Debt:**
-    -   The email notification feature is incomplete (backend is missing).
-    -   The  function is very complex and hard to maintain.
-    -   A potentially obsolete function () exists in .
+    -   Data access logic contains compatibility code for multiple DB schemas which should be refactored.
+    -   Old ShiftJet branding still exists in various parts of the codebase.
 
 **3rd Party Integrations**
--   , , , , , 
--   
--   
--   
--   
--    & related libraries
+-   Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, **Migros Yemek** (currently broken)
+-   APScheduler
+-   Cloudflare R2
+-   Firebase Admin SDK
+-   Railway (Hosting)
 
 **Testing status**
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None.
+-   Known regressions: Migros and Adisyo integrations are broken on production.
 
 **Credentials to test flow:**
--   **Company Admin:**  / 
--   **Restaurant User:** Log in as , go to the Restoranlar page, and use the Panele Git (Go to Panel) button for a restaurant.
--   **Courier User:**  / 
+-   **System Admin Panel:**
+    -   User: 
+    -   Password: 
+-   **Company Admin Panel:**
+    -   User: 
+    -   Password: 
+-   **Courier Login:** 
+    -   Phone: 
+    -   Password: 
 
 **What agent forgot to execute**
--   **Resolve the user's last reported bug.** The agent's fix was incorrect, and the issue remains the highest priority blocker.
--   **Complete the backend implementation for the new email notification settings.**
--   **Implement the Stop Count capacity logic**, a major carry-over task from the previous fork.</analysis>
+-   The agent did not start the analysis of the Migros documentation as requested by the user in the final messages. This is the immediate next step.</analysis>

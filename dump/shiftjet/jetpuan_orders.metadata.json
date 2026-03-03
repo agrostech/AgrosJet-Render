@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"2520e6cc9e194565970f9b75b4958d7a","collectionName":"jetpuan_orders","type":"collection"}

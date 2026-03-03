@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"3622421d7ca349ef8aef094057e70b7f","collectionName":"admin_cumulative_resets","type":"collection"}
