@@ -28,6 +28,10 @@ Turkish
 - [x] E-posta Bildirimleri UI - removed separate "Otomatik Atama Bildirimleri" category
 - [x] All notification toggles now in same grid with consistent styling
 
+## Completed Work (March 3, 2026)
+- [x] Dashboard istatistik güncellemesi - "Bekleyen" ve "Yolda" sekmelerindeki count badge'leri kaldırıldı
+- [x] "İptal" sipariş sayısı istatistik satırında zaten mevcuttu (kırmızı renkte)
+
 ## In Progress Tasks
 1. **P1: Email Notification Backend** - Backend logic to actually send emails based on `notify_shift_violation` and `notify_auto_cancel` settings
 

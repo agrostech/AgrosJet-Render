@@ -720,6 +720,11 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               <span className="text-xl sm:text-2xl font-semibold text-green-600">{stats.delivered}</span>
               <span className="text-[10px] sm:text-xs text-slate-500">Teslim</span>
             </div>
+            <div className="h-5 sm:h-6 w-px bg-slate-200" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xl sm:text-2xl font-semibold text-red-600">{stats.cancelled || 0}</span>
+              <span className="text-[10px] sm:text-xs text-slate-500">İptal</span>
+            </div>
           </div>
           <div className="hidden sm:flex items-center gap-4 text-slate-500">
             <TooltipProvider>
@@ -767,17 +772,11 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                 <TabsTrigger value="pending" className="flex items-center justify-center gap-2 w-44" data-testid="tab-pending">
                   <ClipboardList className="w-4 h-4" />
                   <span>Bekleyen</span>
-                  {stats.pending > 0 && (
-                    <Badge variant="secondary" className="ml-1">{stats.pending}</Badge>
-                  )}
                 </TabsTrigger>
                 <TabsTrigger value="on_the_way" className="flex items-center justify-center gap-2 w-44" data-testid="tab-on-the-way">
                   <Truck className="w-4 h-4" />
                   <span>Yolda</span>
-                {stats.onTheWay > 0 && (
-                  <Badge variant="secondary" className="ml-1">{stats.onTheWay}</Badge>
-                )}
-              </TabsTrigger>
+                </TabsTrigger>
               </TabsList>
             </div>
 
