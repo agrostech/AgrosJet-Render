@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
@@ -151,8 +151,19 @@ export default function CourierLoginPage() {
           </Button>
         </form>
 
+        <p className="mt-6 text-sm text-center text-slate-400">
+          Hesabınız yok mu?{" "}
+          <Link 
+            to="/register" 
+            className="text-orange-500 font-semibold hover:underline"
+            data-testid="courier-register-link"
+          >
+            Kayıt Ol
+          </Link>
+        </p>
+
         {/* Footer */}
-        <p className="mt-8 text-center text-xs text-slate-500">
+        <p className="mt-6 text-center text-xs text-slate-500">
           © 2026 AgrosJet. Tüm hakları saklıdır.
         </p>
       </div>
