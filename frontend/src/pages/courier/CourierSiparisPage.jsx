@@ -1169,7 +1169,10 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
               className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5"
             >
               <Phone className="w-3 h-3" />
-              {order.customer_phone}
+              {order.customer_phone?.includes(',,') 
+                ? `${order.customer_phone.split(',,')[0]} (Dahili: ${order.customer_phone.split(',,')[1]})`
+                : order.customer_phone
+              }
             </button>
           </div>
 

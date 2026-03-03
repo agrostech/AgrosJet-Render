@@ -236,16 +236,29 @@ export function OrderDetailModal({
             {/* Customer */}
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
               <User className="w-5 h-5 text-slate-500 mt-0.5" />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p className="font-medium">{order.customer_name}</p>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5" />
-                  {order.customer_phone}
-                </p>
+                <div className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="font-mono truncate">
+                      {order.customer_phone?.includes(',,') 
+                        ? order.customer_phone.split(',,')[0]
+                        : order.customer_phone
+                      }
+                    </span>
+                  </div>
+                  {order.customer_phone?.includes(',,') && (
+                    <div className="flex items-center gap-2 mt-1 text-xs text-blue-600">
+                      <span className="ml-5">Dahili: {order.customer_phone.split(',,')[1]}</span>
+                    </div>
+                  )}
+                </div>
               </div>
               <a 
                 href={`tel:${order.customer_phone}`}
-                className="p-2 bg-slate-100 rounded-full hover:bg-slate-200"
+                className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 flex-shrink-0"
+                title="Ara (otomatik dahili tuşlama)"
               >
                 <Phone className="w-4 h-4 text-slate-600" />
               </a>

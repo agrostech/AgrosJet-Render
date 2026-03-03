@@ -1007,10 +1007,17 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               {order.restaurant_name || "-"}
                             </span>
                           </td>
-                          <td className="p-2 max-w-[120px]">
+                          <td className="p-2 max-w-[140px]">
                             <div>
                               <span className="text-sm">{order.customer_name || "-"}</span>
-                              {order.customer_phone && <div className="text-xs text-muted-foreground font-mono">{order.customer_phone}</div>}
+                              {order.customer_phone && (
+                                <div className="text-xs text-muted-foreground font-mono truncate" title={order.customer_phone}>
+                                  {order.customer_phone.includes(',,') 
+                                    ? order.customer_phone.split(',,')[0] + ' 📞'
+                                    : order.customer_phone
+                                  }
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="p-2 text-xs max-w-[280px] align-top" title={order.delivery_address}>
