@@ -24,6 +24,7 @@ from services.getir_service import (
     convert_getir_order_to_shiftjet
 )
 from services.migros_service import MigrosYemekService
+from services.credit_service import insert_order
 from utils.database import db
 
 router = APIRouter(prefix="/api/webhooks", tags=["Webhooks"])
@@ -156,7 +157,7 @@ async def getir_order_webhook(
         shiftjet_order["preparation_time"] = prep_time
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         
-        await db.orders.insert_one(shiftjet_order)
+        await insert_order(shiftjet_order)
         logger.info(f"Getir yeni sipariş oluşturuldu: {getir_order_id}")
         
         return {"status": "ok", "message": "Sipariş oluşturuldu", "action": "created", "order_id": shiftjet_order["id"]}
@@ -680,8 +681,8 @@ async def migros_order_webhook(
         # Siparişi AgrosJet formatına dönüştür
         order = transform_migros_webhook_to_order(webhook_data, restaurant)
         
-        # Veritabanına kaydet
-        await db.orders.insert_one(order)
+        # Veritabanına kaydet (ve kontör düş)
+        await insert_order(order)
         logger.info(f"Migros siparişi kaydedildi: {order['id']} (platform_id: {migros_order_id}, restaurant: {restaurant_id})")
         await save_integration_log("migros", "INFO", f"Sipariş kaydedildi: {order['id']} (migros_id: {migros_order_id})")
         

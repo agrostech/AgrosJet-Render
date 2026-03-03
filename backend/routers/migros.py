@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from utils.database import db
 from services.migros_service import MigrosYemekService, transform_migros_order_to_shiftjet
+from services.credit_service import insert_order
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/migros", tags=["Migros Yemek"])
@@ -282,8 +283,8 @@ async def poll_orders(restaurant_id: str):
             # ShiftJet formatına dönüştür
             order_data = transform_migros_order_to_shiftjet(migros_order, restaurant_id)
             
-            # Veritabanına ekle
-            await db.orders.insert_one(order_data)
+            # Veritabanına ekle (ve kontör düş)
+            await insert_order(order_data)
             new_orders.append(order_data)
             
             logger.info(f"Migros sipariş eklendi: {external_id}")

@@ -1,9 +1,13 @@
 """
-Kontör düşme servisi - Sipariş oluşturulduğunda çağrılır
+Kontör düşme servisi - Merkezi sipariş ekleme fonksiyonu ile otomatik kontör düşme
+Her sipariş insert_order() fonksiyonu üzerinden eklenmeli.
 """
 from utils.database import db
 from utils.helpers import get_turkey_now
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def get_company_pool_id(company_id: str) -> str:
@@ -95,3 +99,72 @@ async def deduct_order_credit(company_id: str, order_id: str = None) -> dict:
     except Exception as e:
         print(f"Credit deduction error for company {company_id}: {e}")
         return {"deducted": False, "credits": None, "unlimited": False, "error": str(e)}
+
+
+async def insert_order(order_data: dict) -> dict:
+    """
+    Merkezi sipariş ekleme fonksiyonu.
+    Tüm sipariş eklemeleri bu fonksiyon üzerinden yapılmalıdır.
+    
+    1. Siparişi veritabanına ekler
+    2. Otomatik olarak kontör düşer (sınırsız değilse)
+    
+    Args:
+        order_data: Sipariş verisi (dict)
+    
+    Returns:
+        Eklenen sipariş verisi (_id hariç)
+    """
+    # Siparişi ekle
+    await db.orders.insert_one(order_data)
+    
+    # Kontör düş (company_id varsa)
+    company_id = order_data.get("company_id")
+    if company_id:
+        order_id = order_data.get("id")
+        result = await deduct_order_credit(company_id, order_id)
+        
+        if result.get("deducted"):
+            logger.info(f"Kontör düşüldü: company={company_id}, order={order_id}, kalan={result.get('credits')}")
+        elif result.get("unlimited"):
+            logger.debug(f"Sınırsız kontör: company={company_id}, order={order_id}")
+    
+    # _id'yi kaldır (MongoDB tarafından ekleniyor)
+    order_data.pop("_id", None)
+    
+    return order_data
+
+
+async def insert_orders(orders: list) -> list:
+    """
+    Toplu sipariş ekleme fonksiyonu.
+    
+    1. Siparişleri veritabanına ekler
+    2. Her sipariş için kontör düşer (sınırsız değilse)
+    
+    Args:
+        orders: Sipariş listesi
+    
+    Returns:
+        Eklenen sipariş listesi (_id hariç)
+    """
+    if not orders:
+        return []
+    
+    # Siparişleri ekle
+    await db.orders.insert_many(orders)
+    
+    # Her sipariş için kontör düş
+    for order_data in orders:
+        company_id = order_data.get("company_id")
+        if company_id:
+            order_id = order_data.get("id")
+            result = await deduct_order_credit(company_id, order_id)
+            
+            if result.get("deducted"):
+                logger.info(f"Kontör düşüldü: company={company_id}, order={order_id}, kalan={result.get('credits')}")
+        
+        # _id'yi kaldır
+        order_data.pop("_id", None)
+    
+    return orders

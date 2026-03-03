@@ -16,7 +16,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
-from services.credit_service import deduct_order_credit
+from services.credit_service import insert_order
 
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
@@ -1044,11 +1044,7 @@ async def sync_restaurant_getir_orders(restaurant_id: str) -> dict:
             # İleri tarihli sipariş - convert fonksiyonundaki hesaplamayı kullan
             logger.info(f"İleri tarihli sipariş, hesaplanan bekleme: {shiftjet_order.get('preparation_time')} dk")
         
-        await db.orders.insert_one(shiftjet_order)
-        
-        # Kontör düş
-        await deduct_order_credit(shiftjet_order.get("company_id"), shiftjet_order.get("id"))
-        
+        await insert_order(shiftjet_order)
         synced_count += 1
         
         shiftjet_order_id = shiftjet_order.get("id")
@@ -1631,7 +1627,7 @@ async def handle_getir_webhook_order(webhook_data: dict, x_api_key: str) -> dict
     shiftjet_order["webhook_received_at"] = datetime.now(TURKEY_TZ).isoformat()
     
     # DB'ye kaydet
-    await db.orders.insert_one(shiftjet_order)
+    await insert_order(shiftjet_order)
     
     # Otomatik onay gönder (30 saniye kuralı!)
     raw_status = webhook_data.get("status", 400)

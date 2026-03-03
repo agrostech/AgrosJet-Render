@@ -13,7 +13,7 @@ import logging
 import math
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
-from services.credit_service import deduct_order_credit
+from services.credit_service import insert_order, insert_orders
 
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
@@ -1399,9 +1399,9 @@ async def generate_mock_orders(company_id: str, count: int = 5, restaurant_id: s
         
         orders.append(order)
     
-    # Veritabanına kaydet
+    # Veritabanına kaydet (ve kontör düş)
     if orders:
-        await db.orders.insert_many(orders)
+        await insert_orders(orders)
     
     return orders
 
@@ -2671,11 +2671,8 @@ async def create_manual_order(data: ManualOrderCreate):
     order["delivery_fee"] = round(delivery_fee, 2)
     order["delivery_fee_kdv"] = round(delivery_fee_kdv, 2)
     
-    # Veritabanına kaydet
-    await db.orders.insert_one(order)
-    
-    # Kontör düş
-    await deduct_order_credit(order.get("company_id"), order.get("id"))
+    # Veritabanına kaydet (ve kontör düş)
+    await insert_order(order)
     
     # Müşteriyi otomatik kaydet
     try:

@@ -15,7 +15,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any
 from utils.database import db
 from utils.helpers import ensure_turkey_timezone, get_turkey_now
-from services.credit_service import deduct_order_credit
+from services.credit_service import insert_order
 
 # Türkiye timezone (UTC+3)
 TURKEY_TZ = timezone(timedelta(hours=3))
@@ -425,11 +425,7 @@ async def process_yemeksepeti_webhook(webhook_data: dict, vendor_id: str) -> dic
         shiftjet_order["preparation_time"] = prep_time
         shiftjet_order["preparation_end_at"] = prep_end.isoformat()
         
-        await db.orders.insert_one(shiftjet_order)
-        
-        # Kontör düş
-        await deduct_order_credit(shiftjet_order.get("company_id"), shiftjet_order.get("id"))
-        
+        await insert_order(shiftjet_order)
         logger.info(f"Yemeksepeti yeni sipariş oluşturuldu: {order_id}")
         
         return {"success": True, "message": "Sipariş oluşturuldu", "order_id": shiftjet_order["id"]}

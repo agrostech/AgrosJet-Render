@@ -24,6 +24,7 @@ from datetime import datetime, timezone, timedelta
 TURKEY_TZ = timezone(timedelta(hours=3))
 
 from utils.database import db
+from services.credit_service import insert_order
 from services.adisyo_service import (
     get_order_details,
     convert_adisyo_order_to_shiftjet,
@@ -205,7 +206,7 @@ async def process_order_event(event_data: dict, restaurant: dict, event_type: st
     shiftjet_order["preparation_time"] = prep_time
     shiftjet_order["preparation_end_at"] = prep_end.isoformat()
     
-    await db.orders.insert_one(shiftjet_order)
+    await insert_order(shiftjet_order)
     await ilog.info(f"Adisyo yeni sipariş oluşturuldu: adisyo_order_id={order_id}, shiftjet_id={shiftjet_order['id']}")
     
     return {"success": True, "action": "created", "order_id": shiftjet_order["id"]}
