@@ -1981,6 +1981,52 @@ async def assign_courier(company_id: str, order_id: str, data: OrderAssign):
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
     
+    # Sipariş zaten başka kuryeye atanmışsa, önce atamayı kaldır
+    existing_courier_id = order.get("courier_id")
+    if existing_courier_id and existing_courier_id != data.courier_id:
+        # Eski kuryeden ata kaldır
+        now = datetime.now(TURKEY_TZ).isoformat()
+        old_courier = await db.couriers.find_one({"id": existing_courier_id}, {"_id": 0, "name": 1})
+        old_courier_name = old_courier.get("name", "Kurye") if old_courier else "Kurye"
+        
+        # Kademeli ücretlendirme için yeniden hesapla
+        old_tiered_position = order.get("tiered_position")
+        if old_tiered_position:
+            try:
+                from services.tiered_pricing_service import recalculate_tiered_fees_on_unassign
+                await recalculate_tiered_fees_on_unassign(existing_courier_id, company_id)
+            except Exception as e:
+                logger.error(f"Eski kurye kademeli ücret güncelleme hatası: {e}")
+        
+        # Siparişi kurye atanmamış duruma getir
+        history_entry = {
+            "status": "reassigned",
+            "label": "Kurye Değiştirildi",
+            "timestamp": now,
+            "note": f"{old_courier_name} → Yeni kurye atanıyor",
+            "actor_type": "admin",
+            "actor_name": data.admin_name or "Admin"
+        }
+        
+        await db.orders.update_one(
+            {"id": order_id},
+            {
+                "$set": {
+                    "courier_id": None,
+                    "courier_name": None,
+                    "courier_phone": None,
+                    "courier_fee": None,
+                    "tiered_position": None,
+                    "updated_at": now
+                },
+                "$push": {"status_history": history_entry}
+            }
+        )
+        
+        # Order'ı yeniden al (courier_id = None olmuş hali)
+        order = await db.orders.find_one({"id": order_id, "company_id": company_id})
+        logger.info(f"Kurye değişikliği: Sipariş {order_id}, {old_courier_name} -> yeni kurye atanacak")
+    
     # Restoran engel kontrolü
     restaurant_id = order.get("restaurant_id")
     if restaurant_id:

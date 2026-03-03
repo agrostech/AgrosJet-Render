@@ -1394,6 +1394,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
           companyId={companyId}
           adminName={adminName}
           isSuperAdmin={isSuperAdmin}
+          isAdminActive={isAdminActive}
           onUnassignCourier={handleUnassignCourier}
           onAssignCourier={() => setShowAssignModal(true)}
           onStatusUpdated={fetchOrders}

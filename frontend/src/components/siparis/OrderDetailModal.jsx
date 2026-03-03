@@ -27,6 +27,7 @@ export function OrderDetailModal({
   companyId,
   adminName,
   isSuperAdmin,
+  isAdminActive,
   onUnassignCourier,
   onAssignCourier,
   onStatusUpdated
@@ -380,13 +381,14 @@ export function OrderDetailModal({
             ) : (
               <Button 
                 className="w-full"
+                disabled={!isAdminActive}
                 onClick={() => {
                   onOpenChange(false);
                   onAssignCourier();
                 }}
               >
                 <Bike className="w-4 h-4 mr-2" />
-                Kurye Ata
+                {isAdminActive ? 'Kurye Ata' : 'Atama için aktif olun'}
               </Button>
             )}
           </TabsContent>
