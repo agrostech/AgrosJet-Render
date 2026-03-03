@@ -85,7 +85,7 @@ class AdminResponse(BaseModel):
 
 
 # --- Admin Management ---
-@router.get("/admins/all", response_model=List[AdminResponse])
+@router.get("/admins/all")
 async def get_all_admins():
     """Tüm adminleri getir (systemadmin hariç) - Sistem paneli için"""
     admins = await db.admins.find(
@@ -108,11 +108,17 @@ async def get_all_admins():
                 admin["permissions"] = get_full_permissions()
             else:
                 admin["permissions"] = get_default_permissions()
+        
+        # Convert datetime to string
+        if admin.get("created_at"):
+            admin["created_at"] = str(admin["created_at"])
+        if admin.get("last_active_at"):
+            admin["last_active_at"] = str(admin["last_active_at"])
     
     return admins
 
 
-@router.get("/admins", response_model=List[AdminResponse])
+@router.get("/admins")
 async def get_admins(company_id: Optional[str] = None):
     if company_id:
         query = {"company_id": company_id}
@@ -137,6 +143,12 @@ async def get_admins(company_id: Optional[str] = None):
                 admin["permissions"] = get_full_permissions()
             else:
                 admin["permissions"] = get_default_permissions()
+        
+        # Convert datetime to string
+        if admin.get("created_at"):
+            admin["created_at"] = str(admin["created_at"])
+        if admin.get("last_active_at"):
+            admin["last_active_at"] = str(admin["last_active_at"])
     
     return admins
 

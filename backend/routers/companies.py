@@ -55,17 +55,22 @@ class CompanyResponse(BaseModel):
 
 
 # --- Company Routes ---
-@router.get("/companies", response_model=List[CompanyResponse])
+@router.get("/companies")
 async def get_companies():
     companies = await db.companies.find({}, {"_id": 0}).to_list(100)
+    for company in companies:
+        if company.get("created_at"):
+            company["created_at"] = str(company["created_at"])
     return companies
 
 
-@router.get("/companies/{company_id}", response_model=CompanyResponse)
+@router.get("/companies/{company_id}")
 async def get_company(company_id: str):
     company = await db.companies.find_one({"id": company_id}, {"_id": 0})
     if not company:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    if company.get("created_at"):
+        company["created_at"] = str(company["created_at"])
     return company
 
 
