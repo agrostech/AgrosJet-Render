@@ -81,13 +81,19 @@ export default function CollectionSettingsModal({
       >
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="courier" id={`${label}-courier`} />
-          <Label htmlFor={`${label}-courier`} className="text-sm font-normal cursor-pointer">
+          <Label 
+            htmlFor={`${label}-courier`} 
+            className={`text-sm font-normal cursor-pointer ${value === 'courier' ? 'text-green-600 font-medium' : ''}`}
+          >
             Şirket
           </Label>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="restaurant" id={`${label}-restaurant`} />
-          <Label htmlFor={`${label}-restaurant`} className="text-sm font-normal cursor-pointer">
+          <Label 
+            htmlFor={`${label}-restaurant`} 
+            className={`text-sm font-normal cursor-pointer ${value === 'restaurant' ? 'text-slate-900 font-medium' : ''}`}
+          >
             Restoran
           </Label>
         </div>
