@@ -251,7 +251,7 @@ export default function CourierDashboard() {
       if (res.data.should_logout) {
         // Pasife alınmış, logout yap
         localStorage.removeItem("user");
-        navigate("/login", { state: { message: res.data.reason || "Hesabınız pasif durumda" } });
+        navigate("/courier-login", { state: { message: res.data.reason || "Hesabınız pasif durumda" } });
       }
     } catch (err) {
       // Sessizce devam et
@@ -303,12 +303,12 @@ export default function CourierDashboard() {
     // Normal akış - localStorage'dan oku
     const stored = localStorage.getItem("user");
     if (!stored) {
-      navigate("/login");
+      navigate("/courier-login");
       return;
     }
     const parsed = JSON.parse(stored);
     if (parsed.role !== "courier") {
-      navigate("/login");
+      navigate("/courier-login");
       return;
     }
     setUser(parsed);
@@ -347,10 +347,8 @@ export default function CourierDashboard() {
     }
     if (window.ReactNativeWebView) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' }));
-      navigate("/courier-login");
-    } else {
-      navigate("/login");
     }
+    navigate("/courier-login");
   };
 
   if (!user) return null;
