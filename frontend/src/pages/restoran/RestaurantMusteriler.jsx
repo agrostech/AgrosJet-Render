@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useId } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,7 +32,8 @@ import {
   MapPin,
   User,
   RefreshCw,
-  Package
+  Package,
+  Navigation
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -52,8 +53,64 @@ export default function RestaurantMusteriler({ restaurantId }) {
     phone: "",
     address: "",
     address_direction: "",
-    note: ""
+    note: "",
+    latitude: null,
+    longitude: null
   });
+
+  // Google Places için
+  const addAddressInputId = useId();
+  const editAddressInputId = useId();
+  const addAddressInputRef = useRef(null);
+  const editAddressInputRef = useRef(null);
+
+  // Google Places Autocomplete Setup
+  useEffect(() => {
+    if (!window.google || !window.google.maps || !window.google.maps.places) return;
+
+    const setupAutocomplete = (inputRef, inputId) => {
+      const input = document.getElementById(inputId);
+      if (!input) return null;
+
+      const autocomplete = new window.google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: "tr" },
+        fields: ["formatted_address", "geometry", "address_components"],
+      });
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry) {
+          setFormData(prev => ({
+            ...prev,
+            address: place.formatted_address || "",
+            latitude: place.geometry.location.lat(),
+            longitude: place.geometry.location.lng()
+          }));
+        }
+      });
+
+      return autocomplete;
+    };
+
+    let addAutocomplete = null;
+    let editAutocomplete = null;
+
+    if (showAddModal) {
+      setTimeout(() => {
+        addAutocomplete = setupAutocomplete(addAddressInputRef, addAddressInputId);
+      }, 100);
+    }
+
+    if (showEditModal) {
+      setTimeout(() => {
+        editAutocomplete = setupAutocomplete(editAddressInputRef, editAddressInputId);
+      }, 100);
+    }
+
+    return () => {
+      // Cleanup is handled by Google internally
+    };
+  }, [showAddModal, showEditModal, addAddressInputId, editAddressInputId]);
 
   const fetchCustomers = useCallback(async () => {
     if (!restaurantId) return;
@@ -85,13 +142,15 @@ export default function RestaurantMusteriler({ restaurantId }) {
       phone: "",
       address: "",
       address_direction: "",
-      note: ""
+      note: "",
+      latitude: null,
+      longitude: null
     });
   };
 
   const handleAdd = async () => {
-    if (!formData.name || !formData.phone) {
-      toast.error("Ad ve telefon zorunludur");
+    if (!formData.name || !formData.phone || !formData.address) {
+      toast.error("Ad, telefon ve adres zorunludur");
       return;
     }
 
@@ -110,8 +169,8 @@ export default function RestaurantMusteriler({ restaurantId }) {
   };
 
   const handleEdit = async () => {
-    if (!formData.name || !formData.phone) {
-      toast.error("Ad ve telefon zorunludur");
+    if (!formData.name || !formData.phone || !formData.address) {
+      toast.error("Ad, telefon ve adres zorunludur");
       return;
     }
 
@@ -149,7 +208,9 @@ export default function RestaurantMusteriler({ restaurantId }) {
       phone: customer.phone || "",
       address: customer.address || "",
       address_direction: customer.address_direction || "",
-      note: customer.note || ""
+      note: customer.note || "",
+      latitude: customer.latitude || null,
+      longitude: customer.longitude || null
     });
     setShowEditModal(true);
   };
@@ -308,14 +369,24 @@ export default function RestaurantMusteriler({ restaurantId }) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="add-address">Adres</Label>
+              <Label htmlFor={addAddressInputId} className="flex items-center gap-2">
+                <Navigation className="w-4 h-4 text-blue-600" />
+                Adres *
+              </Label>
               <Input
-                id="add-address"
-                placeholder="Teslimat adresi"
+                id={addAddressInputId}
+                ref={addAddressInputRef}
+                placeholder="Adres aramak için yazmaya başlayın..."
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 data-testid="customer-address-input"
+                className="focus:ring-2 focus:ring-blue-500"
               />
+              {formData.latitude && formData.longitude && (
+                <p className="text-xs text-green-600 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> Konum alındı
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="add-direction">Adres Tarifi</Label>
@@ -375,13 +446,23 @@ export default function RestaurantMusteriler({ restaurantId }) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-address">Adres</Label>
+              <Label htmlFor={editAddressInputId} className="flex items-center gap-2">
+                <Navigation className="w-4 h-4 text-blue-600" />
+                Adres *
+              </Label>
               <Input
-                id="edit-address"
-                placeholder="Teslimat adresi"
+                id={editAddressInputId}
+                ref={editAddressInputRef}
+                placeholder="Adres aramak için yazmaya başlayın..."
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="focus:ring-2 focus:ring-blue-500"
               />
+              {formData.latitude && formData.longitude && (
+                <p className="text-xs text-green-600 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> Konum alındı
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-direction">Adres Tarifi</Label>

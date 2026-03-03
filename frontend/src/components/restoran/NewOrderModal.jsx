@@ -41,6 +41,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -97,6 +98,12 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     { id: "edenred", label: "Edenred" },
     { id: "other", label: "Diğer" },
   ];
+
+  // Customer search state
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
+  const [customerSearchResults, setCustomerSearchResults] = useState([]);
+  const [searchingCustomer, setSearchingCustomer] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
 
   // Form state
   const [customerName, setCustomerName] = useState("");
@@ -199,6 +206,43 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     }
   };
 
+  // Müşteri arama fonksiyonu
+  const searchCustomers = async (query) => {
+    if (!query || query.length < 2) {
+      setCustomerSearchResults([]);
+      setShowCustomerDropdown(false);
+      return;
+    }
+    
+    setSearchingCustomer(true);
+    try {
+      const res = await axios.get(`${API}/customers/${restaurantId}`, {
+        params: { search: query }
+      });
+      setCustomerSearchResults(res.data.customers || []);
+      setShowCustomerDropdown(true);
+    } catch (err) {
+      console.error("Müşteri arama hatası:", err);
+      setCustomerSearchResults([]);
+    } finally {
+      setSearchingCustomer(false);
+    }
+  };
+
+  // Müşteri seçildiğinde bilgileri doldur
+  const selectCustomer = (customer) => {
+    setCustomerName(customer.name || "");
+    setCustomerPhone(customer.phone || "");
+    setDeliveryAddress(customer.address || "");
+    setAddressDetails(customer.address_direction || "");
+    if (customer.latitude && customer.longitude) {
+      setDeliveryLocation({ lat: customer.latitude, lng: customer.longitude });
+    }
+    setShowCustomerDropdown(false);
+    setCustomerSearchQuery("");
+    toast.success("Müşteri bilgileri dolduruldu");
+  };
+
   const resetForm = () => {
     setCurrentStep(0);
     setCustomerName("");
@@ -217,6 +261,9 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
     setProductSearch("");
     setSelectedCategory("all");
     setManualAmount("");
+    setCustomerSearchQuery("");
+    setCustomerSearchResults([]);
+    setShowCustomerDropdown(false);
     setManualAmountNote("");
     if (autocompleteRef.current) {
       window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
@@ -621,6 +668,59 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   // Step 2: Customer Info
   const renderCustomerStep = () => (
     <div className="space-y-4 py-4 max-w-lg mx-auto">
+      {/* Kayıtlı Müşteri Arama */}
+      <div className="p-3 rounded-lg border bg-blue-50/50 border-blue-200 space-y-2">
+        <Label className="text-sm font-medium text-blue-700 flex items-center gap-2">
+          <Search className="w-4 h-4" />
+          Kayıtlı Müşterilerde Ara
+        </Label>
+        <div className="relative">
+          <Input
+            placeholder="İsim, telefon veya adres ile ara..."
+            value={customerSearchQuery}
+            onChange={(e) => {
+              setCustomerSearchQuery(e.target.value);
+              searchCustomers(e.target.value);
+            }}
+            className="bg-white"
+          />
+          {searchingCustomer && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <RefreshCw className="w-4 h-4 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {/* Dropdown */}
+          {showCustomerDropdown && customerSearchResults.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {customerSearchResults.map((customer) => (
+                <div
+                  key={customer.id}
+                  className="p-2 hover:bg-slate-50 cursor-pointer border-b last:border-b-0"
+                  onClick={() => selectCustomer(customer)}
+                >
+                  <div className="font-medium text-sm">{customer.name}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2">
+                    <Phone className="w-3 h-3" />
+                    {customer.phone}
+                  </div>
+                  {customer.address && (
+                    <div className="text-xs text-muted-foreground flex items-center gap-2 truncate">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{customer.address}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {showCustomerDropdown && customerSearchResults.length === 0 && customerSearchQuery.length >= 2 && !searchingCustomer && (
+            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg p-3 text-center text-sm text-muted-foreground">
+              Müşteri bulunamadı
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Customer Name */}
       <div className="space-y-2">
         <Label htmlFor="customer-name" className="flex items-center gap-2">
