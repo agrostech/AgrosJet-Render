@@ -50,6 +50,21 @@ async def get_all_couriers_system():
     return await courier_service.get_all_couriers()
 
 
+@router.get("/couriers/search")
+async def search_courier(phone: str):
+    """Search courier by phone number"""
+    # Telefon numarasını normalize et
+    phone = phone.strip()
+    if not phone.startswith("0"):
+        phone = "0" + phone
+    
+    courier = await db.couriers.find_one({"phone": phone}, {"_id": 0, "password": 0})
+    
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    return courier
+
+
 @router.get("/couriers")
 async def get_all_couriers():
     """Get all couriers in the system (for system admin)"""
@@ -86,28 +101,6 @@ async def delete_courier_permanently(courier_id: str):
     await db.couriers.delete_one({"id": courier_id})
     
     return {"message": "Kurye hesabı kalıcı olarak silindi"}
-
-
-@router.get("/couriers/search")
-async def search_courier(phone: str):
-    """Search courier by phone number"""
-    # Telefon numarasını normalize et
-    original_phone = phone
-    phone = phone.strip()
-    if not phone.startswith("0"):
-        phone = "0" + phone
-    
-    courier = await db.couriers.find_one({"phone": phone}, {"_id": 0, "password": 0})
-    
-    if not courier:
-        # Debug: tüm kurye telefonlarını getir
-        all_phones = await db.couriers.find({}, {"_id": 0, "phone": 1}).to_list(100)
-        phones_list = [c.get("phone") for c in all_phones]
-        raise HTTPException(
-            status_code=404, 
-            detail=f"Kurye bulunamadı. Aranan: {phone}, DB'deki telefonlar: {phones_list}"
-        )
-    return courier
 
 
 @router.get("/companies/{company_id}/couriers")
