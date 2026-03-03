@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     address: "",
     iban: "",
     plate: "",
@@ -59,6 +60,10 @@ export default function RegisterPage() {
             <div>
               <Label htmlFor="phone" className="text-sm font-semibold">Telefon No *</Label>
               <Input id="phone" name="phone" data-testid="register-phone-input" type="tel" placeholder="05XXXXXXXXX" value={formData.phone} onChange={handleChange} className="mt-1 h-12 border-2" maxLength={11} required />
+            </div>
+            <div>
+              <Label htmlFor="email" className="text-sm font-semibold">E-posta (Şifre sıfırlama için)</Label>
+              <Input id="email" name="email" data-testid="register-email-input" type="email" placeholder="ornek@email.com" value={formData.email} onChange={handleChange} className="mt-1 h-12 border-2" />
             </div>
             <div>
               <Label htmlFor="address" className="text-sm font-semibold">Adres *</Label>

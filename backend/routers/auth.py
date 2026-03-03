@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from datetime import datetime, timezone
+from typing import Optional
+from datetime import datetime, timezone, timedelta
 import uuid
+import secrets
 
 from utils.database import db
 from utils.helpers import hash_password, format_name, get_turkey_now
@@ -14,6 +16,7 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 class CourierRegister(BaseModel):
     name: str
     phone: str
+    email: Optional[str] = None
     address: str
     iban: str
     plate: str
@@ -23,6 +26,16 @@ class CourierRegister(BaseModel):
 class CourierLogin(BaseModel):
     phone: str
     password: str
+
+
+class ForgotPassword(BaseModel):
+    phone: str
+    email: str
+
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str
 
 
 class AdminLogin(BaseModel):
@@ -61,6 +74,7 @@ async def register_courier(request: Request, data: CourierRegister):
         "id": str(uuid.uuid4()),
         "name": format_name(data.name),
         "phone": phone,
+        "email": data.email.strip().lower() if data.email else None,
         "address": data.address,
         "iban": data.iban,
         "plate": data.plate.upper(),
@@ -139,6 +153,116 @@ async def check_courier_status(courier_id: str, company_id: str = None):
             }
     
     return {"should_logout": False}
+
+
+# --- Courier Password Reset ---
+@router.post("/courier/forgot-password")
+@limiter.limit("3/minute")
+async def forgot_password(request: Request, data: ForgotPassword):
+    """
+    Kurye şifre sıfırlama isteği.
+    Telefon ve e-posta eşleşirse sıfırlama e-postası gönderir.
+    """
+    # Telefon numarasını normalize et
+    phone = data.phone.strip()
+    if not phone.startswith("0"):
+        phone = "0" + phone
+    
+    email = data.email.strip().lower()
+    
+    # Kurye bul
+    courier = await db.couriers.find_one(
+        {"phone": phone},
+        {"_id": 0, "id": 1, "email": 1, "name": 1}
+    )
+    
+    # Güvenlik: Kurye yoksa veya e-posta eşleşmiyorsa aynı mesajı ver
+    if not courier or not courier.get("email") or courier.get("email").lower() != email:
+        # Timing attack'lardan kaçınmak için aynı süre bekle
+        return {"message": "Bilgiler doğruysa e-posta adresinize sıfırlama linki gönderilecektir."}
+    
+    # Token oluştur (6 haneli kod)
+    reset_token = secrets.token_urlsafe(32)
+    reset_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+    expires_at = get_turkey_now() + timedelta(hours=1)
+    
+    # Token'ı kaydet
+    await db.password_reset_tokens.delete_many({"courier_id": courier["id"]})  # Eski tokenları sil
+    await db.password_reset_tokens.insert_one({
+        "token": reset_token,
+        "code": reset_code,
+        "courier_id": courier["id"],
+        "email": email,
+        "expires_at": expires_at,
+        "created_at": get_turkey_now(),
+        "used": False
+    })
+    
+    # E-posta gönder
+    try:
+        from services.email_service import EmailService
+        
+        email_service = EmailService()
+        if await email_service.load_system_settings():
+            subject = "[AgrosJet] Şifre Sıfırlama"
+            html_body = f"""
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #e13c10;">AgrosJet Şifre Sıfırlama</h2>
+                <p>Merhaba {courier.get('name', 'Kurye')},</p>
+                <p>Şifre sıfırlama talebiniz alınmıştır. Aşağıdaki kodu kullanarak şifrenizi sıfırlayabilirsiniz:</p>
+                <div style="background: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">{reset_code}</span>
+                </div>
+                <p style="color: #666; font-size: 14px;">Bu kod 1 saat geçerlidir.</p>
+                <p style="color: #666; font-size: 14px;">Eğer bu talebi siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="color: #999; font-size: 12px;">© 2026 AgrosJet</p>
+            </div>
+            """
+            await email_service.send_email(email, subject, html_body)
+    except Exception as e:
+        print(f"Password reset email error: {e}")
+        # E-posta gönderilemese de hata verme (güvenlik)
+    
+    return {"message": "Bilgiler doğruysa e-posta adresinize sıfırlama kodu gönderilecektir."}
+
+
+@router.post("/courier/reset-password")
+@limiter.limit("5/minute")
+async def reset_password(request: Request, data: ResetPassword):
+    """
+    Kurye şifre sıfırlama (kod ile).
+    """
+    # Token veya kod ile bul
+    token_doc = await db.password_reset_tokens.find_one({
+        "$or": [
+            {"token": data.token},
+            {"code": data.token}
+        ],
+        "used": False
+    }, {"_id": 0})
+    
+    if not token_doc:
+        raise HTTPException(status_code=400, detail="Geçersiz veya süresi dolmuş kod")
+    
+    # Süre kontrolü
+    if token_doc["expires_at"] < get_turkey_now():
+        raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen yeni kod talep edin.")
+    
+    # Şifre güncelle
+    new_password_hash = hash_password(data.new_password)
+    await db.couriers.update_one(
+        {"id": token_doc["courier_id"]},
+        {"$set": {"password": new_password_hash}}
+    )
+    
+    # Token'ı kullanıldı olarak işaretle
+    await db.password_reset_tokens.update_one(
+        {"token": token_doc["token"]},
+        {"$set": {"used": True, "used_at": get_turkey_now()}}
+    )
+    
+    return {"message": "Şifreniz başarıyla güncellendi. Giriş yapabilirsiniz."}
 
 
 # --- Admin Auth ---

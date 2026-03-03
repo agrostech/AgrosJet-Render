@@ -128,17 +128,26 @@ export default function CourierLoginPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Checkbox 
-              id="remember" 
-              checked={rememberMe}
-              onCheckedChange={setRememberMe}
-              className="border-slate-500 data-[state=checked]:bg-[#e13c10] data-[state=checked]:border-[#e13c10]"
-              data-testid="remember-checkbox"
-            />
-            <Label htmlFor="remember" className="text-sm text-slate-400 cursor-pointer">
-              Beni Hatırla
-            </Label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="remember" 
+                checked={rememberMe}
+                onCheckedChange={setRememberMe}
+                className="border-slate-500 data-[state=checked]:bg-[#e13c10] data-[state=checked]:border-[#e13c10]"
+                data-testid="remember-checkbox"
+              />
+              <Label htmlFor="remember" className="text-sm text-slate-400 cursor-pointer">
+                Beni Hatırla
+              </Label>
+            </div>
+            <Link 
+              to="/courier-forgot-password" 
+              className="text-sm text-orange-500 hover:underline"
+              data-testid="forgot-password-link"
+            >
+              Şifremi unuttum?
+            </Link>
           </div>
 
           <Button 
