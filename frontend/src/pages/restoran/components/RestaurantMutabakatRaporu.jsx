@@ -76,7 +76,7 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                     <td className="p-3 text-right">
                       <div className="inline-flex items-center">{formatMoney(data.delivery_vat || 0)}</div>
                     </td>
-                    <td className="p-3 text-right font-medium">
+                    <td className="p-3 text-right font-medium text-red-600">
                       <div className="inline-flex items-center">{formatMoney(data.total_delivery || 0)}</div>
                     </td>
                     <td className="p-3 text-right text-red-600">
