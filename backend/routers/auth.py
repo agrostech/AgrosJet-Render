@@ -4,12 +4,15 @@ from typing import Optional
 from datetime import datetime, timezone, timedelta
 import uuid
 import secrets
+import pytz
 
 from utils.database import db
 from utils.helpers import hash_password, format_name, get_turkey_now
 from utils.rate_limit import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
+
+TURKEY_TZ = pytz.timezone('Europe/Istanbul')
 
 
 # --- Pydantic Models ---
@@ -184,7 +187,8 @@ async def forgot_password(request: Request, data: ForgotPassword):
     # Token oluştur (6 haneli kod)
     reset_token = secrets.token_urlsafe(32)
     reset_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
-    expires_at = get_turkey_now() + timedelta(hours=1)
+    now_utc = datetime.now(timezone.utc)
+    expires_at = now_utc + timedelta(hours=1)
     
     # Token'ı kaydet
     await db.password_reset_tokens.delete_many({"courier_id": courier["id"]})  # Eski tokenları sil
@@ -194,7 +198,7 @@ async def forgot_password(request: Request, data: ForgotPassword):
         "courier_id": courier["id"],
         "email": email,
         "expires_at": expires_at,
-        "created_at": get_turkey_now(),
+        "created_at": now_utc,
         "used": False
     })
     
@@ -245,8 +249,17 @@ async def reset_password(request: Request, data: ResetPassword):
     if not token_doc:
         raise HTTPException(status_code=400, detail="Geçersiz veya süresi dolmuş kod")
     
-    # Süre kontrolü
-    if token_doc["expires_at"] < get_turkey_now():
+    # Süre kontrolü - UTC kullan
+    now_utc = datetime.now(timezone.utc)
+    expires_at = token_doc["expires_at"]
+    
+    # MongoDB'den gelen datetime'ı UTC'ye çevir
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    else:
+        expires_at = expires_at.astimezone(timezone.utc)
+    
+    if expires_at < now_utc:
         raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen yeni kod talep edin.")
     
     # Şifre güncelle
@@ -259,7 +272,7 @@ async def reset_password(request: Request, data: ResetPassword):
     # Token'ı kullanıldı olarak işaretle
     await db.password_reset_tokens.update_one(
         {"token": token_doc["token"]},
-        {"$set": {"used": True, "used_at": get_turkey_now()}}
+        {"$set": {"used": True, "used_at": datetime.now(timezone.utc)}}
     )
     
     return {"message": "Şifreniz başarıyla güncellendi. Giriş yapabilirsiniz."}
