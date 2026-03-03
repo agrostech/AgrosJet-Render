@@ -434,6 +434,7 @@ export default function AdminDashboard() {
           adminStatus={adminStatus}
           onToggleStatus={handleToggleAdminStatus}
           hasLinkedCourier={hasLinkedCourier}
+          creditInfo={creditInfo}
           companySwitcher={
             accessibleCompanies.length > 1 ? (
               <CompanySwitcher

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, Settings, Power } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, Settings, Power, Coins } from "lucide-react";
 
 export default function AdminSidebar({ 
   user, 
@@ -14,20 +14,36 @@ export default function AdminSidebar({
   companySwitcher = null,
   adminStatus = "offline",
   onToggleStatus = null,
-  hasLinkedCourier = false
+  hasLinkedCourier = false,
+  creditInfo = { credits: null, unlimited: false }
 }) {
   const location = useLocation();
   const isSuperAdmin = user?.role === "superadmin";
   const isActive = adminStatus === "active";
 
+  const getCreditColor = (credits, unlimited) => {
+    if (unlimited) return { text: 'text-blue-400', bg: 'bg-blue-500/20' };
+    if (credits < 100) return { text: 'text-red-400', bg: 'bg-red-500/20' };
+    if (credits < 500) return { text: 'text-orange-400', bg: 'bg-orange-500/20' };
+    return { text: 'text-green-400', bg: 'bg-green-500/20' };
+  };
+
   return (
     <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
-      <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2 flex justify-center' : ''}`}>
+      <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2 flex flex-col items-center' : ''}`}>
         {sidebarCollapsed ? (
-          // Kapalı halde sadece logo
-          company?.logo_url && (
-            <img src={company.logo_url} alt={company.name} className="h-10 object-contain" />
-          )
+          // Kapalı halde sadece logo ve kontör
+          <>
+            {company?.logo_url && (
+              <img src={company.logo_url} alt={company.name} className="h-10 object-contain" />
+            )}
+            {/* Kontör - Kapalı */}
+            {(creditInfo.unlimited || creditInfo.credits !== null) && (
+              <div className={`mt-2 p-1.5 rounded ${getCreditColor(creditInfo.credits, creditInfo.unlimited).bg}`} title={creditInfo.unlimited ? 'Sınırsız Kontör' : `${creditInfo.credits} Kontör`}>
+                <Coins className={`w-4 h-4 ${getCreditColor(creditInfo.credits, creditInfo.unlimited).text}`} />
+              </div>
+            )}
+          </>
         ) : (
           <>
             {company?.logo_url ? (
@@ -37,6 +53,16 @@ export default function AdminSidebar({
             )}
             <p className="text-white/60 text-xs mt-1">{isSuperAdmin ? "Süper Admin" : "Admin"}</p>
             <p className="text-white/80 text-xs font-mono mt-1 truncate">{user?.name}</p>
+            
+            {/* Kontör - Açık */}
+            {(creditInfo.unlimited || creditInfo.credits !== null) && (
+              <div className={`mt-3 flex items-center gap-2 px-2.5 py-1.5 rounded-md ${getCreditColor(creditInfo.credits, creditInfo.unlimited).bg}`}>
+                <Coins className={`w-4 h-4 ${getCreditColor(creditInfo.credits, creditInfo.unlimited).text}`} />
+                <span className={`text-xs font-semibold ${getCreditColor(creditInfo.credits, creditInfo.unlimited).text}`}>
+                  {creditInfo.unlimited ? 'Sınırsız' : creditInfo.credits?.toLocaleString('tr-TR')}
+                </span>
+              </div>
+            )}
           </>
         )}
       </div>
