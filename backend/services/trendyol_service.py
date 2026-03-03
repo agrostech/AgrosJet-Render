@@ -345,8 +345,19 @@ async def convert_trendyol_package_to_shiftjet(package: dict, restaurant: dict) 
             delivery_lat = None
             delivery_lng = None
     
-    # Telefon - çağrı merkezi numarası + sipariş kodu ile aranabilir
-    customer_phone = address.get("phone", package.get("callCenterPhone", ""))
+    # Telefon - çağrı merkezi numarası + orderId ile otomatik tuşlama
+    # Format: 02123653403,,orderId (virgüller DTMF için pause)
+    raw_phone = address.get("phone", package.get("callCenterPhone", ""))
+    order_id = package.get("orderId", "")
+    
+    # Telefon numarasından boşluk ve tire kaldır
+    clean_phone = raw_phone.replace(" ", "").replace("-", "") if raw_phone else ""
+    
+    # orderId varsa otomatik tuşlama formatı ekle
+    if clean_phone and order_id:
+        customer_phone = f"{clean_phone},,{order_id}"
+    else:
+        customer_phone = clean_phone or raw_phone
     
     # Ürünleri dönüştür
     items = []
