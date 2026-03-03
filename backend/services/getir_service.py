@@ -431,9 +431,36 @@ def _extract_customer_info(getir_order: dict) -> dict:
     """Getir siparişinden müşteri bilgilerini çıkar"""
     client = getir_order.get("client", {})
     raw_phone = client.get("clientPhoneNumber", "")
+    
+    # Getir telefon formatı: "+90 (850) 3469382 / 855662"
+    # Hedef format: "08503469382,,855662"
+    formatted_phone = ""
+    if raw_phone:
+        # "/" ile dahili kod ayrılmış mı kontrol et
+        if "/" in raw_phone:
+            parts = raw_phone.split("/")
+            phone_part = parts[0].strip()
+            extension_part = parts[1].strip() if len(parts) > 1 else ""
+            
+            # Telefon numarasını temizle: +90 (850) 3469382 -> 08503469382
+            clean_phone = phone_part.replace("+90", "").replace("(", "").replace(")", "").replace(" ", "").replace("-", "")
+            if not clean_phone.startswith("0"):
+                clean_phone = "0" + clean_phone
+            
+            # Dahili kod varsa ekle
+            if extension_part:
+                formatted_phone = f"{clean_phone},,{extension_part}"
+            else:
+                formatted_phone = clean_phone
+        else:
+            # Normal telefon numarası
+            formatted_phone = raw_phone.replace("-", "").replace(" ", "").replace("(", "").replace(")", "").replace("+90", "")
+            if formatted_phone and not formatted_phone.startswith("0"):
+                formatted_phone = "0" + formatted_phone
+    
     return {
         "name": client.get("name", "Müşteri"),
-        "phone": raw_phone.replace("-", "") if raw_phone else "",
+        "phone": formatted_phone,
         "support_phone": client.get("contactPhoneNumber", "")
     }
 
