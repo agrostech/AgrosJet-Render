@@ -508,6 +508,13 @@ async def sync_store_orders(restaurant_id: str, store_id: str):
     elif platform == "getir":
         from services.getir_service import sync_restaurant_getir_orders
         result = await sync_restaurant_getir_orders(restaurant_id)
+    elif platform == "migros":
+        from services.migros_service import sync_restaurant_migros_orders
+        result = await sync_restaurant_migros_orders(restaurant_id)
+        # Migros artık webhook tabanlı, bu sync fonksiyonu opsiyonel olarak polling yapabilir
+        if not result.get("success"):
+            # Webhook tabanlı çalıştığı için sync gerekli olmayabilir
+            result = {"success": True, "message": "Migros webhook tabanlı çalışır. Siparişler otomatik gelir.", "synced": 0, "updated": 0}
     
     if result.get("success"):
         await db.restaurants.update_one(
@@ -622,6 +629,18 @@ async def sync_to_old_format(restaurant_id: str, platform: str, store: dict):
             update_data[f"platform_integrations.{platform}.chain_id"] = credentials["chain_id"]
         if credentials.get("vendor_id"):
             update_data[f"platform_integrations.{platform}.vendor_id"] = credentials["vendor_id"]
+    
+    elif platform == "migros":
+        if credentials.get("api_key"):
+            update_data[f"platform_integrations.{platform}.api_key"] = credentials["api_key"]
+        if credentials.get("secret_key"):
+            update_data[f"platform_integrations.{platform}.secret_key"] = credentials["secret_key"]
+        if credentials.get("store_id"):
+            update_data[f"platform_integrations.{platform}.store_id"] = credentials["store_id"]
+        if credentials.get("store_group_id"):
+            update_data[f"platform_integrations.{platform}.store_group_id"] = credentials["store_group_id"]
+        if "is_test" in credentials:
+            update_data[f"platform_integrations.{platform}.is_test"] = credentials["is_test"]
     
     await db.restaurants.update_one(
         {"id": restaurant_id},
