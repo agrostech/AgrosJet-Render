@@ -362,9 +362,25 @@ async def verify_migros_api_key(api_key: str) -> dict:
     if not api_key:
         return {"valid": False, "restaurant": None}
     
-    # Migros entegrasyonu olan restoranları ara
+    # Önce platform_integrations'da ara
     restaurant = await db.restaurants.find_one(
         {"platform_integrations.migros.api_key": api_key},
+        {"_id": 0}
+    )
+    
+    if restaurant:
+        return {"valid": True, "restaurant": restaurant}
+    
+    # integration_stores'da ara
+    restaurant = await db.restaurants.find_one(
+        {
+            "integration_stores": {
+                "$elemMatch": {
+                    "platform": "migros",
+                    "credentials.api_key": api_key
+                }
+            }
+        },
         {"_id": 0}
     )
     
