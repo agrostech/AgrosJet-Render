@@ -97,8 +97,10 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
                         {formatMoney(data.meal_card_amount || 0)}
                       </div>
                     </td>
-                    <td className="p-3 text-right font-bold text-green-600">
-                      <div className="inline-flex items-center">{formatMoney(data.net_amount || 0)}</div>
+                    <td className="p-3 text-right font-bold">
+                      <div className={`inline-flex items-center ${(data.net_amount || 0) <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatMoney(data.net_amount || 0)}
+                      </div>
                     </td>
                   </tr>
                 </tbody>
