@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { RefreshCw, Package, FileText } from "lucide-react";
+import { RefreshCw, Package, FileText, Info } from "lucide-react";
 import RaporFiltre from "./RaporFiltre";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -116,6 +116,36 @@ export default function RestaurantMutabakatRaporu({ restaurantId, companyId }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Bilgi Kutucuğu */}
+      <Card className="border-slate-200 bg-slate-50/50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-slate-500 mt-0.5 flex-shrink-0" />
+            <div className="space-y-3 text-sm text-slate-600">
+              <div>
+                <p className="font-medium text-slate-700 mb-1">Tahsilat Renk Göstergeleri</p>
+                <ul className="space-y-1 ml-1">
+                  <li className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span><span className="text-green-600 font-medium">Yeşil</span> değerler kurye şirketi tarafından tahsil edilmiş ve mütabakat hesaplamasına dahil edilmiştir.</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-slate-800"></span>
+                    <span><span className="text-slate-800 font-medium">Siyah</span> değerler restoran tarafından tahsil edilmiş olup mütabakat hesaplamasına dahil değildir.</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-2 border-t border-slate-200">
+                <p className="text-slate-500">
+                  <span className="font-medium text-slate-600">Not:</span> Restoran teslimatı olarak işaretlenen siparişler bu rapora dahil edilmez. 
+                  Tüm siparişlerinizi ve doğru ciro bilgisini görmek için <span className="font-medium">Ciro Raporları</span> sekmesini inceleyiniz.
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
