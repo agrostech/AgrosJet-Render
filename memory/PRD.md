@@ -32,8 +32,19 @@ Turkish
 - [x] Dashboard istatistik güncellemesi - "Bekleyen" ve "Yolda" sekmelerindeki count badge'leri kaldırıldı
 - [x] "İptal" sipariş sayısı istatistik satırında zaten mevcuttu (kırmızı renkte)
 
+## Completed Work (March 4, 2026)
+- [x] **Kontör Yönetimi (Credit Management)**: Firma bazlı kredi sistemi eklendi
+- [x] **SMTP Ayarları Merkezleştirildi**: Firma bazlı yerine sistem geneli tek SMTP yapılandırması
+- [x] **Kurye E-posta Doğrulama**: Kayıt sırasında zorunlu e-posta ve 6 haneli kod doğrulaması
+- [x] **Şifremi Unuttum Akışı**: Kurye şifre sıfırlama özelliği eklendi
+- [x] **Tek Sayfa Kimlik Doğrulama**: Login, Kayıt ve Şifremi Unuttum akışları `CourierLoginPage.jsx` içinde birleştirildi (sayfa yenilemesi yok)
+- [x] **Temizlik**: `CourierForgotPasswordPage.jsx` dosyası ve `/courier-forgot-password` route'u kaldırıldı
+
 ## In Progress Tasks
-1. **P1: Email Notification Backend** - Backend logic to actually send emails based on `notify_shift_violation` and `notify_auto_cancel` settings
+- None currently
+
+## Pending Issues
+1. **P1: Adisyo Webhook Hatası** - `Restoran bulunamadı` hatası, webhook'lar başarısız oluyor
 
 ## Upcoming Tasks
 1. **P1: "Stop Count" Capacity Logic** - Count unique drop-off locations instead of raw package count
