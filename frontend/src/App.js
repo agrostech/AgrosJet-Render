@@ -3,7 +3,6 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
 import CourierLoginPage from "@/pages/CourierLoginPage";
 import CourierForgotPasswordPage from "@/pages/CourierForgotPasswordPage";
 import CourierDashboard from "@/pages/CourierDashboard";
@@ -57,7 +56,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/courier-login" element={<CourierLoginPage />} />
           <Route path="/courier-forgot-password" element={<CourierForgotPasswordPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register" element={<Navigate to="/courier-login" replace />} />
           <Route path="/kurye/kvkk" element={<CourierKVKKPage companyName="AgrosJet" />} />
           <Route path="/kurye/hesap-sil" element={<CourierDeleteAccountPage />} />
           <Route path="/courier/*" element={<CourierRedirect />} />
