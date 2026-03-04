@@ -19,11 +19,17 @@ TURKEY_TZ = pytz.timezone('Europe/Istanbul')
 class CourierRegister(BaseModel):
     name: str
     phone: str
-    email: Optional[str] = None
+    email: str  # Zorunlu
     address: str
     iban: str
     plate: str
     password: str
+
+
+class VerifyEmail(BaseModel):
+    email: str
+    code: str
+    registration_token: str
 
 
 class CourierLogin(BaseModel):
@@ -48,8 +54,22 @@ class AdminLogin(BaseModel):
 
 # --- Courier Auth ---
 @router.post("/courier/register")
-@limiter.limit("3/minute")
+@limiter.limit("5/minute")
 async def register_courier(request: Request, data: CourierRegister):
+    """
+    Kurye kayıt - İlk adım: E-posta doğrulama kodu gönderir.
+    Kayıt tamamlanmaz, pending_registrations'a kaydedilir.
+    """
+    # E-posta zorunlu
+    if not data.email or not data.email.strip():
+        raise HTTPException(status_code=400, detail="E-posta adresi zorunludur")
+    
+    email = data.email.strip().lower()
+    
+    # E-posta formatı kontrolü
+    if "@" not in email or "." not in email:
+        raise HTTPException(status_code=400, detail="Geçerli bir e-posta adresi giriniz")
+    
     # Telefon numarası doğrulaması
     phone = data.phone.strip()
     
@@ -69,24 +89,140 @@ async def register_courier(request: Request, data: CourierRegister):
     if not phone.startswith("05"):
         raise HTTPException(status_code=400, detail="Geçerli bir cep telefonu numarası giriniz (05 ile başlamalı)")
     
+    # Telefon kontrolü
     existing = await db.couriers.find_one({"phone": phone})
     if existing:
         raise HTTPException(status_code=400, detail="Bu telefon numarası zaten kayıtlı")
     
-    courier = {
-        "id": str(uuid.uuid4()),
+    # E-posta kontrolü
+    existing_email = await db.couriers.find_one({"email": email})
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı")
+    
+    # Doğrulama kodu oluştur
+    verification_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+    registration_token = secrets.token_urlsafe(32)
+    now_utc = datetime.now(timezone.utc)
+    expires_at = now_utc + timedelta(minutes=15)
+    
+    # Pending kayıt oluştur
+    pending_registration = {
+        "registration_token": registration_token,
+        "verification_code": verification_code,
         "name": format_name(data.name),
         "phone": phone,
-        "email": data.email.strip().lower() if data.email else None,
+        "email": email,
         "address": data.address,
         "iban": data.iban,
         "plate": data.plate.upper(),
         "password": hash_password(data.password),
+        "expires_at": expires_at,
+        "created_at": now_utc,
+        "verified": False
+    }
+    
+    # Eski pending kayıtları temizle (aynı telefon veya email)
+    await db.pending_registrations.delete_many({
+        "$or": [{"phone": phone}, {"email": email}]
+    })
+    await db.pending_registrations.insert_one(pending_registration)
+    
+    # E-posta gönder
+    try:
+        from services.email_service import EmailService
+        
+        email_service = EmailService()
+        if await email_service.load_system_settings():
+            subject = "[AgrosJet] E-posta Doğrulama Kodu"
+            html_body = f"""
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #e13c10;">AgrosJet Kurye Kayıt</h2>
+                <p>Merhaba {format_name(data.name)},</p>
+                <p>Kurye kaydınızı tamamlamak için aşağıdaki doğrulama kodunu kullanın:</p>
+                <div style="background: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">{verification_code}</span>
+                </div>
+                <p style="color: #666; font-size: 14px;">Bu kod 15 dakika geçerlidir.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="color: #999; font-size: 12px;">© 2026 AgrosJet</p>
+            </div>
+            """
+            await email_service.send_email(email, subject, html_body)
+    except Exception as e:
+        print(f"Email verification error: {e}")
+    
+    return {
+        "message": "Doğrulama kodu e-posta adresinize gönderildi",
+        "registration_token": registration_token,
+        "email": email,
+        "requires_verification": True
+    }
+
+
+@router.post("/courier/verify-email")
+@limiter.limit("10/minute")
+async def verify_email_and_complete_registration(request: Request, data: VerifyEmail):
+    """
+    E-posta doğrulama ve kayıt tamamlama.
+    """
+    email = data.email.strip().lower()
+    code = data.code.strip()
+    
+    # Pending kaydı bul
+    pending = await db.pending_registrations.find_one({
+        "registration_token": data.registration_token,
+        "email": email,
+        "verified": False
+    }, {"_id": 0})
+    
+    if not pending:
+        raise HTTPException(status_code=400, detail="Geçersiz veya süresi dolmuş kayıt. Lütfen tekrar kayıt olun.")
+    
+    # Süre kontrolü
+    now_utc = datetime.now(timezone.utc)
+    expires_at = pending["expires_at"]
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < now_utc:
+        await db.pending_registrations.delete_one({"registration_token": data.registration_token})
+        raise HTTPException(status_code=400, detail="Doğrulama kodunun süresi dolmuş. Lütfen tekrar kayıt olun.")
+    
+    # Kod kontrolü
+    if pending["verification_code"] != code:
+        raise HTTPException(status_code=400, detail="Geçersiz doğrulama kodu")
+    
+    # Telefon ve email tekrar kontrolü (race condition için)
+    existing_phone = await db.couriers.find_one({"phone": pending["phone"]})
+    if existing_phone:
+        await db.pending_registrations.delete_one({"registration_token": data.registration_token})
+        raise HTTPException(status_code=400, detail="Bu telefon numarası zaten kayıtlı")
+    
+    existing_email = await db.couriers.find_one({"email": pending["email"]})
+    if existing_email:
+        await db.pending_registrations.delete_one({"registration_token": data.registration_token})
+        raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı")
+    
+    # Kurye oluştur
+    courier = {
+        "id": str(uuid.uuid4()),
+        "name": pending["name"],
+        "phone": pending["phone"],
+        "email": pending["email"],
+        "address": pending["address"],
+        "iban": pending["iban"],
+        "plate": pending["plate"],
+        "password": pending["password"],
         "status": "active",
+        "email_verified": True,
         "created_at": get_turkey_now()
     }
     await db.couriers.insert_one(courier)
-    return {"message": "Kayıt başarılı.", "id": courier["id"]}
+    
+    # Pending kaydı sil
+    await db.pending_registrations.delete_one({"registration_token": data.registration_token})
+    
+    return {"message": "Kayıt başarılı! Giriş yapabilirsiniz.", "id": courier["id"]}
 
 
 @router.post("/courier/login")
