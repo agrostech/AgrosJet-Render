@@ -263,6 +263,10 @@ async def login_courier(request: Request, data: CourierLogin):
     if not active_in_any_company and len(company_relations) > 0:
         raise HTTPException(status_code=403, detail="Hesabınız pasif durumda. Yöneticinizle iletişime geçin.")
     
+    # Hiçbir şirkete eklenmemişse giriş engelle
+    if len(company_relations) == 0:
+        raise HTTPException(status_code=403, detail="Henüz bir şirkete eklenmemişsiniz. Çalışacağınız şirketin yöneticisiyle iletişime geçin.")
+    
     return {
         "id": courier["id"],
         "name": courier["name"],
