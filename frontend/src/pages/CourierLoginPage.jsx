@@ -357,15 +357,16 @@ export default function CourierLoginPage() {
         {/* ==================== REGISTER MODE ==================== */}
         {mode === "register" && (
           <>
-            <button
-              onClick={() => setMode("login")}
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-6 text-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Giriş sayfasına dön
-            </button>
-
-            <h2 className="text-xl font-bold text-white mb-1">Kurye Kaydı</h2>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-xl font-bold text-white">Kurye Kaydı</h2>
+              <button
+                onClick={() => setMode("login")}
+                className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Giriş sayfasına dön
+              </button>
+            </div>
             <p className="text-slate-400 text-sm mb-6">Bilgilerinizi doldurun</p>
 
             <form onSubmit={handleRegister} className="space-y-3">
@@ -712,10 +713,12 @@ export default function CourierLoginPage() {
           </div>
         )}
 
-        {/* Footer */}
-        <p className="mt-6 text-center text-xs text-slate-500">
-          © 2026 AgrosJet. Tüm hakları saklıdır.
-        </p>
+        {/* Footer - Kayıt modunda gizle */}
+        {mode !== "register" && (
+          <p className="mt-6 text-center text-xs text-slate-500">
+            © 2026 AgrosJet. Tüm hakları saklıdır.
+          </p>
+        )}
       </div>
     </div>
   );
