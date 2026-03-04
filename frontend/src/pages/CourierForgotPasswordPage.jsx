@@ -80,15 +80,6 @@ export default function CourierForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-6">
-      {/* Logo */}
-      <div className="mb-8">
-        <img 
-          src="/agrosjet-login-logo.png" 
-          alt="AgrosJet" 
-          className="h-16 md:h-20"
-        />
-      </div>
-
       {/* Card */}
       <div className="w-full max-w-sm">
         {/* Back Link */}
