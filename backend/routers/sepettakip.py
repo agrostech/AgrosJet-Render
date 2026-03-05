@@ -413,6 +413,10 @@ async def create_package(
     if request.order.address.description:
         notes_parts.append(f"ADDRESS:{request.order.address.description}")
     
+    # Hazırlık süresini hesapla
+    prep_time = request.order.preparation_time or restaurant.get("preparation_time") or 20
+    prep_end = get_turkey_now() + timedelta(minutes=prep_time)
+    
     # Yeni sipariş oluştur
     import uuid
     new_order = {
@@ -443,7 +447,8 @@ async def create_package(
         "status": "preparing",
         "notes": "|".join(notes_parts) if notes_parts else "",
         "source": "sepettakip",
-        "preparation_time": request.order.preparation_time or 20,
+        "preparation_time": prep_time,
+        "preparation_end_at": prep_end.isoformat(),
         "created_at": get_turkey_now(),
         "updated_at": get_turkey_now(),
         "courier_id": None,
