@@ -422,7 +422,7 @@ async def create_package(
         await ilog.warning(f"SepetTakip create-package: Koordinat bilgisi eksik")
         # Koordinat olmadan da kabul edebiliriz
     
-    # Adresi birleştir
+    # Adresi birleştir - Görüntüleme için
     address_parts = []
     if request.order.address.neighborhood:
         address_parts.append(request.order.address.neighborhood)
@@ -437,6 +437,26 @@ async def create_package(
     address_parts.append(f"{request.order.address.town}/{request.order.address.city}")
     
     full_address = ", ".join(filter(None, address_parts))
+    
+    # Geocoding için optimize edilmiş adres formatı
+    geocoding_parts = []
+    if request.order.address.neighborhood:
+        # "Mah" yoksa ekle
+        neighborhood = request.order.address.neighborhood
+        if not any(x in neighborhood.lower() for x in ['mah', 'mahallesi']):
+            neighborhood = f"{neighborhood} Mahallesi"
+        geocoding_parts.append(neighborhood)
+    if request.order.address.address:
+        # Sokak/Cadde numarası olabilir
+        street = request.order.address.address
+        if street.isdigit():
+            street = f"{street}. Sokak"
+        geocoding_parts.append(street)
+    if request.order.address.building_no:
+        geocoding_parts.append(f"No:{request.order.address.building_no}")
+    geocoding_parts.append(f"{request.order.address.town}, {request.order.address.city}")
+    
+    geocoding_address = " ".join(filter(None, geocoding_parts))
     
     # Ürünleri dönüştür
     items = []
@@ -465,8 +485,8 @@ async def create_package(
     delivery_lng = request.order.address.longitude
     
     if not delivery_lat or not delivery_lng:
-        await ilog.info(f"Koordinat eksik, geocoding yapılıyor: {full_address[:50]}...")
-        geo_result = await geocode_address(full_address)
+        await ilog.info(f"Koordinat eksik, geocoding yapılıyor: {geocoding_address}")
+        geo_result = await geocode_address(geocoding_address)
         delivery_lat = geo_result.get("latitude")
         delivery_lng = geo_result.get("longitude")
         
