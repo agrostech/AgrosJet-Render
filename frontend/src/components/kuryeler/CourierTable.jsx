@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package } from "lucide-react";
+import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package, Coffee, Eye } from "lucide-react";
 
 export function CourierTable({ 
   couriers, 
@@ -24,7 +24,8 @@ export function CourierTable({
   onPricing,
   onFinance,
   onPaymentMethods,
-  onMaxPackages
+  onMaxPackages,
+  onBreakLimit
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
@@ -76,9 +77,10 @@ export function CourierTable({
                   {c.plate || <span className="text-muted-foreground">-</span>}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex gap-2 justify-end">
-                    <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="h-8 px-3 border-2">
-                      Detaylar
+                  <div className="flex gap-2 justify-end flex-wrap">
+                    <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="h-8 px-3 border-2" title="Detaylar">
+                      <Eye className="w-4 h-4" />
+                      <span className="ml-1 text-xs">Detaylar</span>
                     </Button>
                     {onPricing && (
                       <Button size="sm" variant="outline" onClick={() => onPricing(c)} className="h-8 px-3 border-2" title="Ücretlendirme">
@@ -95,14 +97,23 @@ export function CourierTable({
                     {onMaxPackages && (
                       <Button size="sm" variant="outline" onClick={() => onMaxPackages(c)} className="h-8 px-3 border-2" title="Maks. Paket">
                         <Package className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Paket</span>
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2">
+                    {onBreakLimit && (
+                      <Button size="sm" variant="outline" onClick={() => onBreakLimit(c)} className="h-8 px-3 border-2" title="Mola Ayarları">
+                        <Coffee className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Mola</span>
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2" title="Düzenle">
                       <Pencil className="w-4 h-4" />
+                      <span className="ml-1 text-xs">Düzenle</span>
                     </Button>
                     {c.is_ghost && onMerge && (
                       <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="h-8 px-3 border-2" title="Birleştir">
                         <Merge className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Birleştir</span>
                       </Button>
                     )}
                     {activeTab === "active" ? (
@@ -110,23 +121,28 @@ export function CourierTable({
                         {c.termination_start_date ? (
                           <Button size="sm" variant="outline" onClick={() => onCancelTermination(c.id)} className="h-8 px-3 border-2" title="Fesih İptal">
                             <XCircle className="w-4 h-4" />
+                            <span className="ml-1 text-xs">Fesih İptal</span>
                           </Button>
                         ) : (
                           <Button size="sm" variant="outline" onClick={() => onStartTermination(c.id)} className="h-8 px-3 border-2" title="Fesih Başlat">
                             <AlertTriangle className="w-4 h-4" />
+                            <span className="ml-1 text-xs">Fesih</span>
                           </Button>
                         )}
                         <Button size="sm" variant="outline" onClick={() => onDeactivate(c.id)} className="h-8 px-3 border-2" title="Pasife Al">
                           <PowerOff className="w-4 h-4" />
+                          <span className="ml-1 text-xs">Pasif</span>
                         </Button>
                       </>
                     ) : (
                       <Button size="sm" variant="outline" onClick={() => onActivate(c.id)} className="h-8 px-3 border-2" title="Aktife Al">
                         <Power className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Aktif</span>
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => onRemove(c.id)} className="h-8 px-3 border-2">
+                    <Button size="sm" variant="outline" onClick={() => onRemove(c.id)} className="h-8 px-3 border-2" title="Sil">
                       <Trash2 className="w-4 h-4" />
+                      <span className="ml-1 text-xs">Sil</span>
                     </Button>
                   </div>
                 </TableCell>

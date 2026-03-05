@@ -8,37 +8,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Pencil, Coffee } from "lucide-react";
-import axios from "axios";
+import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-// Mola süresi seçenekleri (dakika)
-const BREAK_LIMIT_OPTIONS = [
-  { value: 15, label: "15 dakika" },
-  { value: 30, label: "30 dakika" },
-  { value: 45, label: "45 dakika" },
-  { value: 60, label: "1 saat" },
-  { value: 90, label: "1.5 saat" },
-  { value: 120, label: "2 saat" },
-];
 
 export function CourierEditModal({ open, onOpenChange, courier, onSave }) {
   const [editData, setEditData] = useState({ 
     name: courier?.name || "", 
     phone: courier?.phone || "", 
     plate: courier?.plate || "", 
-    address: courier?.address || "", 
-    password: "",
-    daily_break_limit: courier?.daily_break_limit || 30
+    address: courier?.address || "",
+    email: courier?.email || "",
+    iban: courier?.iban || "",
+    password: ""
   });
   const [loading, setLoading] = useState(false);
 
@@ -50,8 +33,9 @@ export function CourierEditModal({ open, onOpenChange, courier, onSave }) {
         phone: courier.phone || "",
         plate: courier.plate || "",
         address: courier.address || "",
-        password: "",
-        daily_break_limit: courier.daily_break_limit || 30
+        email: courier.email || "",
+        iban: courier.iban || "",
+        password: ""
       });
     }
   }, [courier?.id]);
@@ -65,15 +49,9 @@ export function CourierEditModal({ open, onOpenChange, courier, onSave }) {
       if (editData.phone && editData.phone !== courier.phone) updatePayload.phone = editData.phone;
       if (editData.plate && editData.plate !== courier.plate) updatePayload.plate = editData.plate;
       if (editData.address !== courier.address) updatePayload.address = editData.address;
+      if (editData.email !== courier.email) updatePayload.email = editData.email;
+      if (editData.iban !== courier.iban) updatePayload.iban = editData.iban;
       if (editData.password) updatePayload.password = editData.password;
-
-      // Mola süresi değiştiyse ayrı endpoint'e gönder
-      if (editData.daily_break_limit !== (courier.daily_break_limit || 30)) {
-        await axios.put(`${API}/couriers/${courier.id}/break-limit`, {
-          daily_break_limit: editData.daily_break_limit
-        });
-        toast.success(`Mola limiti güncellendi: ${editData.daily_break_limit} dakika`);
-      }
 
       if (Object.keys(updatePayload).length > 0) {
         await onSave(courier.id, updatePayload);
@@ -120,24 +98,14 @@ export function CourierEditModal({ open, onOpenChange, courier, onSave }) {
                 <Input value={editData.plate} onChange={(e) => setEditData({ ...editData, plate: e.target.value })} className="mt-1 h-9 sm:h-10 border-2 font-mono uppercase text-sm" />
               </div>
               <div>
-                <Label className="text-xs sm:text-sm font-semibold flex items-center gap-1">
-                  <Coffee className="w-3.5 h-3.5" />
-                  Günlük Mola
-                </Label>
-                <Select 
-                  value={String(editData.daily_break_limit)} 
-                  onValueChange={(val) => setEditData({ ...editData, daily_break_limit: parseInt(val) })}
-                >
-                  <SelectTrigger className="mt-1 h-9 sm:h-10 border-2 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BREAK_LIMIT_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-xs sm:text-sm font-semibold">E-posta</Label>
+                <Input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} className="mt-1 h-9 sm:h-10 border-2 text-sm" placeholder="kurye@email.com" />
               </div>
+            </div>
+            
+            <div>
+              <Label className="text-xs sm:text-sm font-semibold">IBAN</Label>
+              <Input value={editData.iban} onChange={(e) => setEditData({ ...editData, iban: e.target.value.toUpperCase() })} className="mt-1 h-9 sm:h-10 border-2 font-mono text-sm" placeholder="TR00 0000 0000 0000 0000 0000 00" />
             </div>
             
             <div>

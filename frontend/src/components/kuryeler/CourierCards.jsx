@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package } from "lucide-react";
+import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package, Coffee, Eye } from "lucide-react";
 
 export function CourierCards({ 
   couriers, 
@@ -16,7 +16,8 @@ export function CourierCards({
   onPricing,
   onFinance,
   onPaymentMethods,
-  onMaxPackages
+  onMaxPackages,
+  onBreakLimit
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
@@ -68,6 +69,7 @@ export function CourierCards({
           {/* Row 1: Details, Edit */}
           <div className="flex gap-2 mb-2">
             <Button size="sm" variant="outline" onClick={() => onDetail(c)} className="flex-1 border-2">
+              <Eye className="w-4 h-4 mr-1" />
               Detaylar
             </Button>
             <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="flex-1 border-2">
@@ -75,7 +77,7 @@ export function CourierCards({
             </Button>
           </div>
           
-          {/* Row 2: Payment Methods & Max Packages */}
+          {/* Row 2: Payment Methods & Max Packages & Break Limit */}
           <div className="flex gap-2 mb-2">
             {onPaymentMethods && (
               <Button size="sm" variant="outline" onClick={() => onPaymentMethods(c)} className="flex-1 border-2">
@@ -86,7 +88,13 @@ export function CourierCards({
             {onMaxPackages && (
               <Button size="sm" variant="outline" onClick={() => onMaxPackages(c)} className="flex-1 border-2">
                 <Package className="w-4 h-4 mr-1" />
-                <span className="text-xs">Maks. Paket</span>
+                <span className="text-xs">Paket</span>
+              </Button>
+            )}
+            {onBreakLimit && (
+              <Button size="sm" variant="outline" onClick={() => onBreakLimit(c)} className="flex-1 border-2">
+                <Coffee className="w-4 h-4 mr-1" />
+                <span className="text-xs">Mola</span>
               </Button>
             )}
           </div>

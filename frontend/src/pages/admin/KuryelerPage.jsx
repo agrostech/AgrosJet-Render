@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Switch } from "@/components/ui/switch";
-import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
@@ -77,6 +77,10 @@ export default function KuryelerPage({ companyId }) {
   // Max Packages Modal State
   const [showMaxPackagesModal, setShowMaxPackagesModal] = useState(false);
   const [maxPackages, setMaxPackages] = useState("5");
+  
+  // Break Limit Modal State
+  const [showBreakLimitModal, setShowBreakLimitModal] = useState(false);
+  const [breakLimit, setBreakLimit] = useState("30");
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -329,6 +333,32 @@ export default function KuryelerPage({ companyId }) {
     }
   };
 
+  // Mola limiti modalını aç
+  const openBreakLimitModal = async (courier) => {
+    setSelectedCourier(courier);
+    try {
+      const res = await axios.get(`${API}/couriers/${courier.id}`);
+      setBreakLimit(res.data.daily_break_limit?.toString() || "30");
+    } catch (err) {
+      setBreakLimit("30");
+    }
+    setShowBreakLimitModal(true);
+  };
+
+  // Mola limiti kaydet
+  const handleSaveBreakLimit = async () => {
+    try {
+      const value = parseInt(breakLimit) || 30;
+      await axios.put(`${API}/couriers/${selectedCourier.id}/break-limit`, {
+        daily_break_limit: value
+      });
+      toast.success(`Mola limiti güncellendi: ${value} dakika`);
+      setShowBreakLimitModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Kaydetme başarısız");
+    }
+  };
+
   if (loading) return <PageLoading />;
 
   return (
@@ -397,6 +427,7 @@ export default function KuryelerPage({ companyId }) {
         onPaymentMethods={openPaymentMethodsModal}
         onFinance={openFinanceModal}
         onMaxPackages={openMaxPackagesModal}
+        onBreakLimit={openBreakLimitModal}
       />
 
       {/* Mobile Cards */}
@@ -416,6 +447,7 @@ export default function KuryelerPage({ companyId }) {
         onPaymentMethods={openPaymentMethodsModal}
         onFinance={openFinanceModal}
         onMaxPackages={openMaxPackagesModal}
+        onBreakLimit={openBreakLimitModal}
       />
 
       {/* Modals */}
@@ -726,6 +758,47 @@ export default function KuryelerPage({ companyId }) {
               İptal
             </Button>
             <Button onClick={handleSaveMaxPackages}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Break Limit Modal */}
+      <Dialog open={showBreakLimitModal} onOpenChange={setShowBreakLimitModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Coffee className="w-5 h-5 text-amber-600" />
+              Mola Ayarları - {selectedCourier?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Bu kuryenin günlük mola kullanım limitini belirleyin.
+            </p>
+            <div className="space-y-2">
+              <Label>Günlük Mola Limiti (dakika)</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[15, 30, 45, 60, 90, 120].map(val => (
+                  <Button
+                    key={val}
+                    type="button"
+                    variant={parseInt(breakLimit) === val ? "default" : "outline"}
+                    className="h-10"
+                    onClick={() => setBreakLimit(val.toString())}
+                  >
+                    {val >= 60 ? `${val/60} saat` : `${val} dk`}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBreakLimitModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSaveBreakLimit}>
               Kaydet
             </Button>
           </DialogFooter>
