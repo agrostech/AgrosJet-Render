@@ -531,6 +531,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
             "id": str(item.get("productId", item.get("id", ""))),
             "name": item.get("name", ""),
             "quantity": quantity,
+            "price": unit_price,
             "unit_price": unit_price,
             "total_price": unit_price * quantity,
             "note": item.get("note", ""),
