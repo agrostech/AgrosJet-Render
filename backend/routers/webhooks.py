@@ -547,8 +547,19 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
     else:
         created_at = now.isoformat()
     
-    # Store bilgileri
+    # Store bilgileri - store hem dict hem int olabilir
     store = webhook_data.get("store", {})
+    if isinstance(store, dict):
+        store_id = store.get("id")
+        store_name = store.get("name", "")
+        store_group = store.get("group", {})
+        store_group_id = store_group.get("id") if isinstance(store_group, dict) else None
+        store_group_name = store_group.get("name", "") if isinstance(store_group, dict) else ""
+    else:
+        store_id = store
+        store_name = ""
+        store_group_id = None
+        store_group_name = ""
     
     # Sipariş objesi oluştur
     order = {
@@ -595,10 +606,10 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
         "migros_data": {
             "order_id": webhook_data.get("id"),
             "user_id": customer.get("id"),
-            "store_id": store.get("id"),
-            "store_name": store.get("name"),
-            "store_group_id": store.get("group", {}).get("id"),
-            "store_group_name": store.get("group", {}).get("name"),
+            "store_id": store_id,
+            "store_name": store_name,
+            "store_group_id": store_group_id,
+            "store_group_name": store_group_name,
             "delivery_provider": webhook_data.get("deliveryProvider"),
             "original_status": webhook_data.get("status"),
             "prices": prices
@@ -651,7 +662,12 @@ async def migros_order_webhook(
         
         # Webhook verilerini logla
         migros_order_id = webhook_data.get("id")
-        migros_store_id = webhook_data.get("store", {}).get("id")
+        store_data = webhook_data.get("store", {})
+        # store hem dict hem int olabilir
+        if isinstance(store_data, dict):
+            migros_store_id = store_data.get("id")
+        else:
+            migros_store_id = store_data  # Direkt store ID gelmiş olabilir
         logger.info(f"Migros webhook alındı: order_id={migros_order_id}, store_id={migros_store_id}, keys={list(webhook_data.keys())}")
         await save_integration_log("migros", "INFO", f"Webhook alındı: order_id={migros_order_id}, store_id={migros_store_id}")
         
