@@ -415,7 +415,8 @@ async def create_package(
     
     # Hazırlık süresini hesapla
     prep_time = request.order.preparation_time or restaurant.get("preparation_time") or 20
-    prep_end = get_turkey_now() + timedelta(minutes=prep_time)
+    now = datetime.now(TURKEY_TZ)
+    prep_end = now + timedelta(minutes=prep_time)
     
     # Yeni sipariş oluştur
     import uuid
