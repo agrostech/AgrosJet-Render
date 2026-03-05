@@ -36,21 +36,16 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingDeleteShiftId, setPendingDeleteShiftId] = useState(null);
 
-  // Vardiya takibi için ek veriler
-  const [trackingData, setTrackingData] = useState({
-    shifts: [],
-    assignments: [],
-    leaves: []
-  });
-  const [trackingLoading, setTrackingLoading] = useState(true);
-  
   // Tolerans ayarı
   const [toleranceMinutes, setToleranceMinutes] = useState(5);
   const [showToleranceInput, setShowToleranceInput] = useState(false);
   const [tempTolerance, setTempTolerance] = useState(5);
+  const [toleranceLoading, setToleranceLoading] = useState(true);
 
   const {
     shifts,
+    assignments,
+    leaves,
     couriers,
     loading,
     editMode,
@@ -77,39 +72,27 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     refetch,
   } = useVardiyaData(companyId);
 
-  // Vardiya takibi verilerini çek
-  const fetchTrackingData = useCallback(async () => {
+  // Tolerans verisini çek
+  const fetchTolerance = useCallback(async () => {
     if (!companyId) return;
-    setTrackingLoading(true);
     try {
-      const [shiftsRes, assignmentsRes, leavesRes, toleranceRes] = await Promise.all([
-        axios.get(`${API}/companies/${companyId}/shifts`),
-        axios.get(`${API}/companies/${companyId}/shift-assignments?include_admin_linked=true`),
-        axios.get(`${API}/companies/${companyId}/leaves`),
-        axios.get(`${API}/companies/${companyId}/shift-tolerance`),
-      ]);
-      setTrackingData({
-        shifts: shiftsRes.data,
-        assignments: assignmentsRes.data,
-        leaves: leavesRes.data
-      });
+      const toleranceRes = await axios.get(`${API}/companies/${companyId}/shift-tolerance`);
       setToleranceMinutes(toleranceRes.data.shift_tolerance_minutes || 5);
       setTempTolerance(toleranceRes.data.shift_tolerance_minutes || 5);
     } catch (err) {
-      console.error("Takip verileri yüklenemedi:", err);
+      console.error("Tolerans yüklenemedi:", err);
     } finally {
-      setTrackingLoading(false);
+      setToleranceLoading(false);
     }
   }, [companyId]);
 
   useEffect(() => {
-    fetchTrackingData();
-  }, [fetchTrackingData]);
+    fetchTolerance();
+  }, [fetchTolerance]);
 
-  // Vardiya yönetimi değişikliklerinde takip verilerini de güncelle
+  // Vardiya yönetimi değişikliklerinde verileri güncelle
   const refreshAll = () => {
     refetch();
-    fetchTrackingData();
   };
   
   // Tolerans güncelleme
@@ -141,7 +124,6 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     await confirmDeleteShift(pendingDeleteShiftId);
     setShowDeleteConfirm(false);
     setPendingDeleteShiftId(null);
-    fetchTrackingData();
   };
 
   const openAssignModal = (shift, day) => {
@@ -170,14 +152,12 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
   const onAssignCourier = (courierId) => {
     handleAssignCourier(selectedShift.id, courierId, selectedDay, () => {
       setShowAssignModal(false);
-      fetchTrackingData();
     });
   };
 
   const onAddLeave = (courierId) => {
     handleAddLeave(courierId, selectedDay, () => {
       setShowLeaveModal(false);
-      fetchTrackingData();
     });
   };
 
@@ -185,7 +165,6 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
     setBulkAssigning(true);
     await handleBulkAssign(courierId, () => {
       setShowBulkAssignModal(false);
-      fetchTrackingData();
     });
     setBulkAssigning(false);
   };
@@ -278,18 +257,12 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         </div>
       </div>
 
-      {/* Vardiya Takibi Kartı */}
-      {trackingLoading ? (
-        <div className="border-2 border-border bg-white p-8 text-center">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-slate-400" />
-        </div>
-      ) : (
-        <VardiyaTakibiCard
-          shifts={trackingData.shifts}
-          assignments={trackingData.assignments}
-          leaves={trackingData.leaves}
-        />
-      )}
+      {/* Vardiya Takibi Kartı - Hook'tan gelen verilerle */}
+      <VardiyaTakibiCard
+        shifts={shifts}
+        assignments={assignments}
+        leaves={leaves}
+      />
 
       {/* Vardiya Yönetimi Kartı */}
       <div className="border-2 border-border bg-white p-4 space-y-4">
@@ -411,8 +384,8 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
             getLeavesForDay={getLeavesForDay}
             onCellClick={handleCellClick}
             onDeleteShift={handleDeleteShift}
-            onRemoveAssignment={(assignmentId) => { handleRemoveAssignment(assignmentId); fetchTrackingData(); }}
-            onRemoveLeave={(leaveId) => { handleRemoveLeave(leaveId); fetchTrackingData(); }}
+            onRemoveAssignment={(assignmentId) => { handleRemoveAssignment(assignmentId); }}
+            onRemoveLeave={(leaveId) => { handleRemoveLeave(leaveId); }}
             onOpenAssignModal={openAssignModal}
             onOpenLeaveModal={openLeaveModal}
             courierFilter={courierFilter}
@@ -424,7 +397,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
       <AddShiftModal
         open={showAddShiftModal}
         onOpenChange={setShowAddShiftModal}
-        onSubmit={(data) => { handleAddShift(data); fetchTrackingData(); }}
+        onSubmit={(data) => { handleAddShift(data); }}
       />
 
       <AssignCourierModal

@@ -487,7 +487,7 @@ def normalize_payment_method(payment_info: dict) -> str:
     return "cash"
 
 
-def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> dict:
+def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, preparation_time: int = None) -> dict:
     """
     Migros webhook payload'ını AgrosJet sipariş formatına dönüştür.
     
@@ -503,9 +503,18 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
     - payment: {type: {name, description, isOnlinePayment, ...}}
     - extendedProperties: {orderNote, saveGreen, contactlessDelivery, ringDoorBell}
     - log: {createdAsMs}
+    
+    Args:
+        webhook_data: Migros'tan gelen webhook verisi
+        restaurant: Restoran bilgisi
+        preparation_time: Hazırlık süresi (dakika). None ise restorandan alınır.
     """
     turkey_tz = timezone(timedelta(hours=3))
     now = datetime.now(turkey_tz)
+    
+    # Hazırlık süresi - parametre verilmişse onu kullan, yoksa restorandan al
+    prep_time = preparation_time or restaurant.get("preparation_time", 15)
+    preparation_end_at = now + timedelta(minutes=prep_time)
     
     # Müşteri bilgileri
     customer = webhook_data.get("customer", {})
@@ -610,6 +619,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
         store_group_name = ""
     
     # Sipariş objesi oluştur
+    # Migros siparişleri otomatik onaylanır, doğrudan "preparing" durumunda başlar
     order = {
         "id": str(uuid.uuid4()),
         "platform": "migros",
@@ -618,8 +628,12 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
         "restaurant_id": restaurant.get("id"),
         "restaurant_name": restaurant.get("name"),
         "company_id": restaurant.get("company_id"),
-        "status": "pending",
+        "status": "preparing",  # Otomatik onay - doğrudan hazırlanıyor durumunda
         "source": "migros",
+        
+        # Hazırlık süresi bilgileri
+        "preparation_time": prep_time,
+        "preparation_end_at": preparation_end_at.isoformat(),
         
         # Müşteri bilgileri
         "customer_name": customer.get("fullName", ""),
@@ -792,19 +806,91 @@ async def migros_order_webhook(
                 "action": "skipped"
             }
         
-        # Siparişi AgrosJet formatına dönüştür
-        order = transform_migros_webhook_to_order(webhook_data, restaurant)
+        # Hazırlık süresini hesapla
+        try:
+            from routers.orders import calculate_preparation_time_async
+            prep_time = await calculate_preparation_time_async(restaurant_id, webhook_data.get("items", []))
+        except Exception as prep_err:
+            logger.warning(f"Hazırlık süresi hesaplanamadı: {prep_err}, restoran default kullanılacak")
+            prep_time = restaurant.get("preparation_time", 15)
+        
+        # Siparişi AgrosJet formatına dönüştür (preparing durumunda, hazırlık süresiyle)
+        order = transform_migros_webhook_to_order(webhook_data, restaurant, preparation_time=prep_time)
         
         # Veritabanına kaydet (ve kontör düş)
         await insert_order(order)
-        logger.info(f"Migros siparişi kaydedildi: {order['id']} (platform_id: {migros_order_id}, restaurant: {restaurant_id})")
-        await save_integration_log("migros", "INFO", f"Sipariş kaydedildi: {order['id']} (migros_id: {migros_order_id})")
+        logger.info(f"Migros siparişi kaydedildi: {order['id']} (platform_id: {migros_order_id}, restaurant: {restaurant_id}, prep_time: {prep_time}dk)")
+        await save_integration_log("migros", "INFO", f"Sipariş kaydedildi: {order['id']} (migros_id: {migros_order_id}, hazırlık: {prep_time}dk)")
+        
+        # Migros API'sine otomatik onay gönder (arka planda)
+        migros_approval_success = False
+        migros_approval_error = None
+        try:
+            # Restoran Migros credentials'larını al
+            migros_config = restaurant.get("platform_integrations", {}).get("migros", {})
+            
+            # integration_stores'dan da kontrol et
+            if not migros_config.get("api_key"):
+                for store in restaurant.get("integration_stores", []):
+                    if store.get("platform") == "migros" and store.get("enabled"):
+                        creds = store.get("credentials", {})
+                        migros_config = {
+                            "api_key": creds.get("api_key"),
+                            "secret_key": creds.get("secret_key"),
+                            "store_id": creds.get("store_id"),
+                            "is_test": creds.get("is_test", False)
+                        }
+                        break
+            
+            if migros_config.get("api_key") and migros_config.get("secret_key"):
+                service = MigrosYemekService(
+                    api_key=migros_config["api_key"],
+                    secret_key=migros_config["secret_key"],
+                    is_test=migros_config.get("is_test", False)
+                )
+                
+                # Migros'a "Approved" gönder
+                approval_result = await service.update_order_status(
+                    order_id=migros_order_id,
+                    store_id=int(migros_store_id) if migros_store_id else 0,
+                    status="Approved"
+                )
+                
+                if approval_result.get("success"):
+                    migros_approval_success = True
+                    logger.info(f"Migros siparişi otomatik onaylandı: {migros_order_id}")
+                    await save_integration_log("migros", "INFO", f"Sipariş otomatik onaylandı: {migros_order_id}")
+                    
+                    # Siparişte onay bilgisini güncelle
+                    await db.orders.update_one(
+                        {"id": order["id"]},
+                        {"$set": {
+                            "migros_data.auto_approved": True,
+                            "migros_data.approved_at": datetime.now(turkey_tz).isoformat()
+                        }}
+                    )
+                else:
+                    migros_approval_error = approval_result.get("error", "Bilinmeyen hata")
+                    logger.warning(f"Migros otomatik onay başarısız: {migros_order_id} - {migros_approval_error}")
+                    await save_integration_log("migros", "WARNING", f"Otomatik onay başarısız: {migros_order_id} - {migros_approval_error}")
+            else:
+                migros_approval_error = "Migros API credentials bulunamadı"
+                logger.warning(f"Migros otomatik onay atlandı: {migros_order_id} - credentials eksik")
+                await save_integration_log("migros", "WARNING", f"Otomatik onay atlandı (credentials eksik): {migros_order_id}")
+        
+        except Exception as approval_err:
+            migros_approval_error = str(approval_err)
+            logger.error(f"Migros otomatik onay hatası: {migros_order_id} - {approval_err}")
+            await save_integration_log("migros", "ERROR", f"Otomatik onay hatası: {migros_order_id} - {approval_err}")
         
         return {
             "success": True,
-            "message": "Sipariş başarıyla alındı",
+            "message": "Sipariş başarıyla alındı ve onaylandı" if migros_approval_success else "Sipariş alındı (otomatik onay gönderilemedi)",
             "orderId": order["id"],
             "platformOrderId": str(migros_order_id),
+            "preparationTime": prep_time,
+            "autoApproved": migros_approval_success,
+            "approvalError": migros_approval_error,
             "timestamp": datetime.now(turkey_tz).isoformat()
         }
         
