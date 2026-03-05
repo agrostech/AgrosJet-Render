@@ -468,12 +468,13 @@ async def create_package(
             "notes": product.note or ""
         })
     
-    # Sipariş notları
+    # Sipariş notları - ADDRESS bilgisini ayrı sakla, görüntüleme notuna ekleme
     notes_parts = []
     if request.order.note:
-        notes_parts.append(f"CUSTOMER:{request.order.note}")
-    if request.order.address.description:
-        notes_parts.append(f"ADDRESS:{request.order.address.description}")
+        notes_parts.append(request.order.note)
+    
+    # Adres açıklamasını ayrı alana kaydet (görüntülenmeyecek)
+    address_description = request.order.address.description or ""
     
     # Hazırlık süresini hesapla
     prep_time = request.order.preparation_time or restaurant.get("preparation_time") or 20
@@ -524,6 +525,7 @@ async def create_package(
         "is_paid": request.order.is_paid,
         "status": "preparing",
         "notes": "|".join(notes_parts) if notes_parts else "",
+        "address_description": address_description,
         "source": "sepettakip",
         "preparation_time": prep_time,
         "preparation_end_at": prep_end.isoformat(),

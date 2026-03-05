@@ -255,6 +255,10 @@ export const parseOrderNotes = (notes) => {
   
   parts.forEach(part => {
     const trimmed = part.trim();
+    // ADDRESS: prefix'li notları atla - bunlar görüntülenmeyecek
+    if (trimmed.startsWith('ADDRESS:')) {
+      return;
+    }
     if (trimmed.startsWith('CUSTOMER:')) {
       result.customer = trimmed.replace('CUSTOMER:', '').trim();
     } else if (trimmed.startsWith('KITCHEN:')) {

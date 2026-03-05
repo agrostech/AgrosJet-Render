@@ -1032,7 +1032,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         </div>
 
         {/* Not - Renkli kalacak */}
-        {order.notes && (
+        {order.notes && !order.notes.match(/^ADDRESS:[^|]*$/i) && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2 text-xs space-y-1">
             {/* Müşteri notları (kırmızı) */}
             {order.notes.includes("CUSTOMER:") && (() => {
@@ -1054,12 +1054,19 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
                 </div>
               );
             })()}
-            {/* Eski format notlar (CUSTOMER/KITCHEN içermeyenler) */}
-            {!order.notes.includes("CUSTOMER:") && !order.notes.includes("KITCHEN:") && (
-              <div className="text-yellow-800">
-                📝 {order.notes}
-              </div>
-            )}
+            {/* Eski format notlar (CUSTOMER/KITCHEN/ADDRESS içermeyenler) */}
+            {(() => {
+              const cleanNotes = order.notes
+                .split('|')
+                .filter(n => !n.trim().startsWith('CUSTOMER:') && !n.trim().startsWith('KITCHEN:') && !n.trim().startsWith('ADDRESS:'))
+                .join(' • ')
+                .trim();
+              return cleanNotes && (
+                <div className="text-yellow-800">
+                  📝 {cleanNotes}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1215,11 +1222,19 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
           </div>
 
           {/* Not */}
-          {order.notes && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs">
-              <span className="font-medium text-yellow-800">Not:</span> {order.notes}
-            </div>
-          )}
+          {order.notes && (() => {
+            const cleanNotes = order.notes
+              .split('|')
+              .filter(n => !n.trim().startsWith('ADDRESS:'))
+              .map(n => n.trim().replace(/^CUSTOMER:/, '').replace(/^KITCHEN:/, ''))
+              .filter(n => n)
+              .join(' • ');
+            return cleanNotes && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs">
+                <span className="font-medium text-yellow-800">Not:</span> {cleanNotes}
+              </div>
+            );
+          })()}
 
           {/* Aksiyonlar */}
           <div className="flex gap-2 pt-1">
