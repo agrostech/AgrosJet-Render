@@ -455,6 +455,38 @@ async def find_restaurant_by_migros_store_id(store_id) -> Optional[dict]:
     return restaurant
 
 
+def normalize_payment_method(payment_info: dict) -> str:
+    """
+    Migros ödeme bilgisini standart formata dönüştür.
+    Standart değerler: cash, card, online, meal_card, online_meal_card
+    """
+    if not payment_info:
+        return "cash"
+    
+    name = payment_info.get("name", "").upper()
+    description = payment_info.get("description", "").lower()
+    is_online = payment_info.get("isOnlinePayment", False)
+    
+    # Online ödeme
+    if is_online:
+        if "multinet" in description or "sodexo" in description or "setcard" in description or "ticket" in description:
+            return "online_meal_card"
+        return "online"
+    
+    # Kapıda ödeme
+    if "CASH" in name or "nakit" in description:
+        return "cash"
+    if "CARD" in name or "kredi" in description or "kart" in description:
+        if "multinet" in description or "sodexo" in description or "setcard" in description or "ticket" in description:
+            return "meal_card"
+        return "card"
+    if "multinet" in description or "sodexo" in description or "setcard" in description or "ticket" in description:
+        return "meal_card"
+    
+    # Varsayılan
+    return "cash"
+
+
 def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> dict:
     """
     Migros webhook payload'ını AgrosJet sipariş formatına dönüştür.
@@ -609,7 +641,8 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
         # Ödeme bilgileri
         "total_amount": total_price,
         "payment_type": payment_method,
-        "payment_method": payment_info.get("description", ""),
+        "payment_method": normalize_payment_method(payment_info),
+        "payment_method_detail": payment_info.get("description", ""),
         "is_paid": is_online,
         "discount": discount,
         
