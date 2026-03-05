@@ -584,6 +584,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
         "platform_id": str(webhook_data.get("id", "")),
         "external_id": f"migros_{webhook_data.get('id', '')}",
         "restaurant_id": restaurant.get("id"),
+        "restaurant_name": restaurant.get("name"),
         "company_id": restaurant.get("company_id"),
         "status": "pending",
         "source": "migros",
