@@ -52,11 +52,53 @@ COURIER_COMPANY_KEY = os.environ.get("SEPETTAKIP_COURIER_KEY", "agrosjet")
 SEPETTAKIP_API_KEY = os.environ.get("SEPETTAKIP_API_KEY", "4dd744ca-001e-44be-b17c-0178b0d3f704")
 SEPETTAKIP_TEST_RESTAURANT_ID = "934"
 
+# Google Geocoding API
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "AIzaSyDGDqxbHb9Oh6jtDXohRlFisr8JqkR7Vz4")
+
 # SepetTakip API Base URL - Test ve Production
 SEPETTAKIP_API_BASE_TEST = "https://test-api.sepettakip.com"
 SEPETTAKIP_API_BASE_PROD = "https://api.sepettakip.com"
 # Şimdilik test ortamını kullan
 SEPETTAKIP_API_BASE = os.environ.get("SEPETTAKIP_API_BASE", SEPETTAKIP_API_BASE_TEST)
+
+
+async def geocode_address(address_text: str) -> dict:
+    """
+    Adres metninden koordinat hesapla (Google Geocoding API)
+    Returns: {"latitude": float, "longitude": float} veya {"latitude": None, "longitude": None}
+    """
+    if not address_text or not GOOGLE_MAPS_API_KEY:
+        return {"latitude": None, "longitude": None}
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://maps.googleapis.com/maps/api/geocode/json",
+                params={
+                    "address": address_text,
+                    "key": GOOGLE_MAPS_API_KEY,
+                    "language": "tr",
+                    "region": "tr"
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "OK" and data.get("results"):
+                    location = data["results"][0]["geometry"]["location"]
+                    logger.info(f"Geocoding başarılı: {address_text[:50]}... -> {location}")
+                    return {
+                        "latitude": location.get("lat"),
+                        "longitude": location.get("lng")
+                    }
+                else:
+                    logger.warning(f"Geocoding sonuç yok: {address_text[:50]}... status={data.get('status')}")
+            else:
+                logger.warning(f"Geocoding API hatası: {response.status_code}")
+    except Exception as e:
+        logger.error(f"Geocoding exception: {e}")
+    
+    return {"latitude": None, "longitude": None}
 
 
 # ==================== PYDANTIC MODELS ====================
@@ -418,6 +460,21 @@ async def create_package(
     now = datetime.now(TURKEY_TZ)
     prep_end = now + timedelta(minutes=prep_time)
     
+    # Koordinatları al - eksikse geocoding yap
+    delivery_lat = request.order.address.latitude
+    delivery_lng = request.order.address.longitude
+    
+    if not delivery_lat or not delivery_lng:
+        await ilog.info(f"Koordinat eksik, geocoding yapılıyor: {full_address[:50]}...")
+        geo_result = await geocode_address(full_address)
+        delivery_lat = geo_result.get("latitude")
+        delivery_lng = geo_result.get("longitude")
+        
+        if delivery_lat and delivery_lng:
+            await ilog.info(f"Geocoding başarılı: {delivery_lat}, {delivery_lng}")
+        else:
+            await ilog.warning(f"Geocoding başarısız, koordinat bulunamadı")
+    
     # Yeni sipariş oluştur
     import uuid
     new_order = {
@@ -437,8 +494,8 @@ async def create_package(
         "customer_phone": request.order.customer.phone_number,
         "delivery_address": full_address,
         "delivery_location": {
-            "latitude": request.order.address.latitude,
-            "longitude": request.order.address.longitude
+            "latitude": delivery_lat,
+            "longitude": delivery_lng
         },
         "items": items,
         "total_amount": request.order.amount,
