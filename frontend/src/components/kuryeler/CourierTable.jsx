@@ -106,10 +106,6 @@ export function CourierTable({
                         <span className="ml-1 text-xs">Mola</span>
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2" title="Düzenle">
-                      <Pencil className="w-4 h-4" />
-                      <span className="ml-1 text-xs">Düzenle</span>
-                    </Button>
                     {c.is_ghost && onMerge && (
                       <Button size="sm" variant="outline" onClick={() => onMerge(c)} className="h-8 px-3 border-2" title="Birleştir">
                         <Merge className="w-4 h-4" />
@@ -140,9 +136,11 @@ export function CourierTable({
                         <span className="ml-1 text-xs">Aktif</span>
                       </Button>
                     )}
+                    <Button size="sm" variant="outline" onClick={() => onEdit(c)} className="h-8 px-3 border-2" title="Düzenle">
+                      <Pencil className="w-4 h-4" />
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => onRemove(c.id)} className="h-8 px-3 border-2" title="Sil">
                       <Trash2 className="w-4 h-4" />
-                      <span className="ml-1 text-xs">Sil</span>
                     </Button>
                   </div>
                 </TableCell>
