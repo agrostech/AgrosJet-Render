@@ -265,11 +265,43 @@ export function OrderDetailModal({
               </a>
             </div>
 
+            {/* Özel Teslimat Uyarıları */}
+            {(order.contactless_delivery || order.save_green) && (
+              <div className="space-y-2">
+                {order.contactless_delivery && (
+                  <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    <span className="text-lg">⚠️</span>
+                    <span className="font-medium">Temassız teslimat! Adrese ulaştığınızda müşteriyi arayın.</span>
+                  </div>
+                )}
+                {order.save_green && (
+                  <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                    <span className="text-lg">♻️</span>
+                    <span>Plastik çatal, bıçak ve peçete göndermeyin.</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sipariş Notu */}
+            {order.note && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm font-medium text-yellow-800">📝 Sipariş Notu</p>
+                <p className="text-sm text-yellow-700 mt-1">{order.note}</p>
+              </div>
+            )}
+
             {/* Delivery Address */}
             <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
               <MapPin className="w-3 h-3 text-slate-500 mt-0.5" />
               <div className="flex-1">
                 <p className="font-medium">{order.delivery_address}</p>
+                {/* Adres Tarifi */}
+                {order.address_direction && (
+                  <p className="text-sm text-blue-600 mt-1">
+                    <span className="font-medium">📍 Tarif:</span> {order.address_direction}
+                  </p>
+                )}
                 {order.notes && (() => {
                   const parsedNotes = parseOrderNotes(order.notes);
                   return (
@@ -306,11 +338,30 @@ export function OrderDetailModal({
             {/* Items */}
             <div className="border rounded-lg p-3">
               <p className="font-medium mb-2">Ürünler</p>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {order.items?.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span>{item.quantity}x {item.name}</span>
-                    <span>{formatCurrency(item.price * item.quantity)}</span>
+                  <div key={idx} className="border-b pb-2 last:border-b-0 last:pb-0">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">{item.quantity}x {item.name}</span>
+                      <span>{formatCurrency(item.price * item.quantity)}</span>
+                    </div>
+                    {/* Ürün Opsiyonları */}
+                    {item.options && item.options.length > 0 && (
+                      <div className="mt-1 ml-4 text-xs text-muted-foreground space-y-0.5">
+                        {item.options.map((opt, optIdx) => (
+                          <div key={optIdx} className={opt.excluded ? 'text-red-600' : ''}>
+                            {opt.excluded ? '- Çıkarılan: ' : '+ '}{opt.value || opt.name}
+                            {opt.price > 0 && ` (+${formatCurrency(opt.price)})`}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Ürün Notu */}
+                    {item.note && (
+                      <div className="mt-1 ml-4 text-xs bg-yellow-50 text-yellow-800 px-2 py-1 rounded">
+                        📝 {item.note}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

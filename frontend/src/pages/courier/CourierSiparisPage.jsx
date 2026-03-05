@@ -1155,6 +1155,32 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
             </div>
           </div>
 
+          {/* Özel Teslimat Uyarıları */}
+          {(order.contactless_delivery || order.save_green) && (
+            <div className="space-y-1.5">
+              {order.contactless_delivery && (
+                <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-xs">
+                  <span>⚠️</span>
+                  <span className="font-medium">Temassız teslimat! Müşteriyi arayın.</span>
+                </div>
+              )}
+              {order.save_green && (
+                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-xs">
+                  <span>♻️</span>
+                  <span>Plastik çatal/bıçak göndermeyin.</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sipariş Notu */}
+          {order.note && (
+            <div className="p-2 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-xs font-medium text-yellow-800">📝 Sipariş Notu</p>
+              <p className="text-xs text-yellow-700">{order.note}</p>
+            </div>
+          )}
+
           {/* Restoran */}
           <div className="border rounded p-2">
             <div className="flex items-center gap-1.5 text-xs font-medium mb-0.5">
@@ -1190,6 +1216,12 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
               Teslimat Adresi
             </div>
             <p className="text-xs">{order.delivery_address}</p>
+            {/* Adres Tarifi */}
+            {order.address_direction && (
+              <p className="text-xs text-blue-600 mt-1">
+                <span className="font-medium">📍 Tarif:</span> {order.address_direction}
+              </p>
+            )}
             <Button
               variant="link"
               size="sm"
@@ -1207,11 +1239,29 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
               <FileText className="w-3.5 h-3.5 text-muted-foreground" />
               Sipariş İçeriği
             </div>
-            <ul className="space-y-0.5">
+            <ul className="space-y-1.5">
               {order.items?.map((item, idx) => (
-                <li key={idx} className="text-xs flex justify-between">
-                  <span>{item.quantity}x {item.name}</span>
-                  <span className="text-muted-foreground">{formatCurrency(item.price * item.quantity)}</span>
+                <li key={idx} className="text-xs">
+                  <div className="flex justify-between">
+                    <span className="font-medium">{item.quantity}x {item.name}</span>
+                    <span className="text-muted-foreground">{formatCurrency(item.price * item.quantity)}</span>
+                  </div>
+                  {/* Ürün Opsiyonları */}
+                  {item.options && item.options.length > 0 && (
+                    <div className="ml-3 mt-0.5 text-[10px] text-muted-foreground space-y-0.5">
+                      {item.options.map((opt, optIdx) => (
+                        <div key={optIdx} className={opt.excluded ? 'text-red-600' : ''}>
+                          {opt.excluded ? '- ' : '+ '}{opt.value || opt.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Ürün Notu */}
+                  {item.note && (
+                    <div className="ml-3 mt-0.5 text-[10px] bg-yellow-50 text-yellow-800 px-1.5 py-0.5 rounded inline-block">
+                      📝 {item.note}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

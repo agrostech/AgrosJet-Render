@@ -303,6 +303,32 @@ function OrderDetails({
         </div>
       )}
 
+      {/* Özel Teslimat Uyarıları */}
+      {(order.contactless_delivery || order.save_green) && (
+        <div className="space-y-2">
+          {order.contactless_delivery && (
+            <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-300 rounded-lg text-red-700 text-sm">
+              <span className="text-lg">⚠️</span>
+              <span className="font-semibold">Temassız teslimat! Adrese ulaştığında müşteriyi arayın.</span>
+            </div>
+          )}
+          {order.save_green && (
+            <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-300 rounded-lg text-green-700 text-sm">
+              <span className="text-lg">♻️</span>
+              <span>Plastik çatal, bıçak ve peçete göndermeyin.</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sipariş Notu (note alanı) */}
+      {order.note && (
+        <div className="p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+          <p className="text-sm font-semibold text-yellow-800">📝 Sipariş Notu</p>
+          <p className="text-sm text-yellow-700 mt-1">{order.note}</p>
+        </div>
+      )}
+
       {/* Zaman Bilgileri */}
       <div className="bg-slate-50 rounded-lg p-3 space-y-1.5">
         <div className="flex items-center gap-2 text-xs">
@@ -344,6 +370,12 @@ function OrderDetails({
             <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-red-500" />
             <div className="flex-1">
               <p className="leading-relaxed">{order.delivery_address || "-"}</p>
+              {/* Adres Tarifi */}
+              {order.address_direction && (
+                <p className="text-blue-600 mt-1">
+                  <span className="font-medium">📍 Tarif:</span> {order.address_direction}
+                </p>
+              )}
               {order.delivery_location?.latitude && (
                 <Button
                   variant="link"
@@ -394,12 +426,31 @@ function OrderDetails({
           {order.items?.length > 0 ? (
             <>
               {order.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-sm">
-                  <span>
-                    <span className="font-medium">{item.quantity}x</span>{" "}
-                    {item.name}
-                  </span>
-                  <span className="text-slate-600">{formatCurrency(item.price * item.quantity)}</span>
+                <div key={idx} className="border-b pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
+                  <div className="flex justify-between text-sm">
+                    <span>
+                      <span className="font-medium">{item.quantity}x</span>{" "}
+                      {item.name}
+                    </span>
+                    <span className="text-slate-600">{formatCurrency(item.price * item.quantity)}</span>
+                  </div>
+                  {/* Ürün Opsiyonları */}
+                  {item.options && item.options.length > 0 && (
+                    <div className="mt-1 ml-4 text-xs text-muted-foreground space-y-0.5">
+                      {item.options.map((opt, optIdx) => (
+                        <div key={optIdx} className={opt.excluded ? 'text-red-600 font-medium' : 'text-slate-600'}>
+                          {opt.excluded ? '- Çıkarılan: ' : '+ '}{opt.value || opt.name}
+                          {opt.price > 0 && ` (+${formatCurrency(opt.price)})`}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Ürün Notu */}
+                  {item.note && (
+                    <div className="mt-1 ml-4 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded inline-block">
+                      📝 {item.note}
+                    </div>
+                  )}
                 </div>
               ))}
               <div className="border-t mt-2 pt-2">
