@@ -396,31 +396,61 @@ async def verify_migros_webhook(request: Request, x_api_key: Optional[str] = Non
     return {"valid": False, "restaurant": None, "auth_method": None}
 
 
-async def find_restaurant_by_migros_store_id(store_id: int) -> Optional[dict]:
+async def find_restaurant_by_migros_store_id(store_id) -> Optional[dict]:
     """
     Migros store ID ile restoran bul.
+    store_id hem int hem string olabilir, her iki formatı da dene.
     """
-    # platform_integrations'da ara
+    # store_id'nin hem string hem int versiyonunu hazırla
+    store_id_str = str(store_id)
+    store_id_int = int(store_id) if str(store_id).isdigit() else None
+    
+    # platform_integrations'da ara (string ve int)
     restaurant = await db.restaurants.find_one(
-        {"platform_integrations.migros.store_id": store_id},
+        {"platform_integrations.migros.store_id": store_id_str},
         {"_id": 0}
     )
     
     if restaurant:
         return restaurant
     
-    # integration_stores'da ara
+    if store_id_int is not None:
+        restaurant = await db.restaurants.find_one(
+            {"platform_integrations.migros.store_id": store_id_int},
+            {"_id": 0}
+        )
+        if restaurant:
+            return restaurant
+    
+    # integration_stores'da ara (string)
     restaurant = await db.restaurants.find_one(
         {
             "integration_stores": {
                 "$elemMatch": {
                     "platform": "migros",
-                    "credentials.store_id": store_id
+                    "credentials.store_id": store_id_str
                 }
             }
         },
         {"_id": 0}
     )
+    
+    if restaurant:
+        return restaurant
+    
+    # integration_stores'da ara (int)
+    if store_id_int is not None:
+        restaurant = await db.restaurants.find_one(
+            {
+                "integration_stores": {
+                    "$elemMatch": {
+                        "platform": "migros",
+                        "credentials.store_id": store_id_int
+                    }
+                }
+            },
+            {"_id": 0}
+        )
     
     return restaurant
 
