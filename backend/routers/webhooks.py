@@ -481,13 +481,28 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict) -> d
     geo_location = delivery_address.get("geoLocation", {})
     
     # Fiyat bilgileri (kuruştan TL'ye çevir)
+    # Migros fiyat formatı değişken olabilir: 
+    # - {"total": 30000} (direkt integer, kuruş)
+    # - {"total": {"amountAsPenny": 30000}} (dict)
     prices = webhook_data.get("prices", {})
-    total_price = prices.get("discounted", {}).get("amountAsPenny", 0) / 100
+    
+    def extract_price(price_data):
+        """Fiyatı hem dict hem int formatından çıkar"""
+        if isinstance(price_data, dict):
+            return price_data.get("amountAsPenny", 0) / 100
+        elif isinstance(price_data, (int, float)):
+            return price_data / 100  # Kuruş cinsinden geliyorsa
+        return 0
+    
+    discounted = prices.get("discounted")
+    total = prices.get("total")
+    
+    total_price = extract_price(discounted) if discounted else 0
     if total_price == 0:
-        total_price = prices.get("total", {}).get("amountAsPenny", 0) / 100
+        total_price = extract_price(total) if total else 0
     
     # İndirim hesapla
-    original_total = prices.get("total", {}).get("amountAsPenny", 0) / 100
+    original_total = extract_price(total) if total else 0
     discount = original_total - total_price if original_total > total_price else 0
     
     # Ödeme bilgileri
