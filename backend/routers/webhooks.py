@@ -663,16 +663,34 @@ async def migros_order_webhook(
     turkey_tz = timezone(timedelta(hours=3))
     from services.integration_log_service import save_integration_log
     
+    # DEBUG: Ham veriyi hemen kaydet (ne gelirse gelsin)
     try:
-        # Raw body'yi al (loglama için)
         raw_body = await request.body()
-        
-        # JSON parse
+        headers_dict = dict(request.headers)
+        debug_entry = {
+            "id": str(uuid.uuid4()),
+            "platform": "migros",
+            "endpoint": "order",
+            "raw_body": raw_body.decode('utf-8', errors='replace')[:5000] if raw_body else "EMPTY",
+            "raw_body_length": len(raw_body) if raw_body else 0,
+            "headers": {k: v for k, v in headers_dict.items() if k.lower() not in ['authorization', 'cookie']},
+            "content_type": request.headers.get("content-type", "NOT_SET"),
+            "timestamp": datetime.now(turkey_tz).isoformat(),
+            "client_ip": request.client.host if request.client else "unknown"
+        }
+        await db.webhook_debug_logs.insert_one(debug_entry)
+        logger.info(f"Migros DEBUG: Raw body kaydedildi, length={len(raw_body) if raw_body else 0}, content_type={debug_entry['content_type']}")
+    except Exception as debug_err:
+        logger.error(f"Migros DEBUG kayıt hatası: {debug_err}")
+    
+    try:
+        # JSON parse - raw_body'den parse et (request.json() body'yi tekrar okuyamaz)
         try:
-            webhook_data = await request.json()
+            import json as json_module
+            webhook_data = json_module.loads(raw_body.decode('utf-8')) if raw_body else {}
         except Exception as json_err:
             logger.error(f"Migros order webhook: JSON parse hatası: {json_err}")
-            await save_integration_log("migros", "ERROR", f"JSON parse hatası: {json_err}, body: {raw_body[:500] if raw_body else 'empty'}")
+            await save_integration_log("migros", "ERROR", f"JSON parse hatası: {json_err}, body: {raw_body[:500] if raw_body else b'empty'}")
             raise HTTPException(status_code=400, detail="Geçersiz JSON")
         
         # Webhook verilerini logla
