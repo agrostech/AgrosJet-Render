@@ -291,32 +291,78 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
     # Ürünleri dönüştür
     items = []
     for item in migros_order.get("items", []):
-        # Fiyat kuruş cinsinden geliyor
-        unit_price = item.get("price", 0) / 100
+        # Migros'ta price toplam fiyat olarak geliyor (kuruş cinsinden)
+        # price = quantity * birim fiyat
+        total_price_penny = item.get("price", 0)
         quantity = item.get("amount", 1)
+        
+        # Birim fiyatı hesapla
+        if quantity > 0:
+            unit_price = (total_price_penny / 100) / quantity
+        else:
+            unit_price = total_price_penny / 100
+        
+        total_price = total_price_penny / 100
         
         item_data = {
             "id": str(item.get("productId", item.get("id", ""))),
             "name": item.get("name", ""),
             "quantity": quantity,
             "unit_price": unit_price,
-            "total_price": unit_price * quantity,
+            "total_price": total_price,
             "note": item.get("note", ""),
             "options": []
         }
         
-        # Opsiyonları ekle
-        item_options = item.get("options") or []
-        for opt in item_options:
-            opt_price = opt.get("primaryPrice", 0) / 100
-            item_data["options"].append({
-                "name": f"{opt.get('headerName', '')}: {opt.get('itemNames', '')}",
-                "header": opt.get("headerName", ""),
-                "value": opt.get("itemNames", ""),
-                "price": opt_price,
-                "quantity": opt.get("quantity", 1),
-                "excluded": opt.get("excluded", False)
-            })
+        # Opsiyonları recursive olarak ekle (nested options desteği)
+        def parse_options(options_list, parent_header=None):
+            """Migros opsiyonlarını recursive olarak parse et"""
+            parsed = []
+            for opt in (options_list or []):
+                opt_price = opt.get("primaryPrice", 0) / 100
+                header_name = opt.get("headerName", "")
+                item_names = opt.get("itemNames", "")
+                quantity = opt.get("quantity", 1)
+                excluded = opt.get("excluded", False)
+                
+                # Ana opsiyon
+                if item_names:
+                    # Eğer itemNames virgülle ayrılmış birden fazla öğe içeriyorsa, her birini ayrı ekle
+                    items_split = [x.strip() for x in item_names.split(",") if x.strip()]
+                    
+                    if len(items_split) > 1:
+                        # Birden fazla öğe var (örn: "Biber, Extra Şerbet, Mayonez")
+                        for single_item in items_split:
+                            parsed.append({
+                                "name": f"{header_name}: {single_item}" if header_name else single_item,
+                                "header": header_name,
+                                "value": single_item,
+                                "price": 0,  # Çoklu öğelerde fiyat genelde ana satırda
+                                "quantity": 1,
+                                "excluded": excluded,
+                                "parent_header": parent_header
+                            })
+                    else:
+                        parsed.append({
+                            "name": f"{header_name}: {item_names}" if header_name else item_names,
+                            "header": header_name,
+                            "value": item_names,
+                            "price": opt_price,
+                            "quantity": quantity,
+                            "excluded": excluded,
+                            "parent_header": parent_header
+                        })
+                
+                # Alt seçenekleri (child options) recursive olarak parse et
+                child_options = opt.get("options") or opt.get("childOptions") or opt.get("subOptions") or []
+                if child_options:
+                    # Alt seçenek için parent header'ı ayarla
+                    child_parent = header_name or item_names or parent_header
+                    parsed.extend(parse_options(child_options, child_parent))
+            
+            return parsed
+        
+        item_data["options"] = parse_options(item.get("options") or [])
         
         items.append(item_data)
     
