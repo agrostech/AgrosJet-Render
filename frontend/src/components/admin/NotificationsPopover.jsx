@@ -96,6 +96,7 @@ export default function NotificationsPopover({ companyId }) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const prevUnreadCount = useRef(0);
+  const prevBreakRequestsCount = useRef(0);
   const isFirstLoad = useRef(true);
   
   // Confirm Modal State
@@ -105,6 +106,32 @@ export default function NotificationsPopover({ companyId }) {
   const [breakRequests, setBreakRequests] = useState([]);
   const [breakRequestsCount, setBreakRequestsCount] = useState(0);
   const [activeTab, setActiveTab] = useState("notifications"); // "notifications" | "break_requests"
+
+  // Mola taleplerini çek (polling için ayrı fonksiyon)
+  const fetchBreakRequests = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const breakRes = await axios.get(`${API}/companies/${companyId}/break-status`);
+      if (breakRes.data.break_mode === "manual" && breakRes.data.pending_requests) {
+        const newCount = breakRes.data.pending_requests.length;
+        
+        // Yeni mola talebi geldiğinde ses çal
+        if (!isFirstLoad.current && newCount > prevBreakRequestsCount.current) {
+          playNotificationSound();
+        }
+        
+        prevBreakRequestsCount.current = newCount;
+        setBreakRequests(breakRes.data.pending_requests);
+        setBreakRequestsCount(newCount);
+      } else {
+        prevBreakRequestsCount.current = 0;
+        setBreakRequests([]);
+        setBreakRequestsCount(0);
+      }
+    } catch (err) {
+      console.error("Mola talepleri yüklenemedi");
+    }
+  }, [companyId]);
 
   const fetchUnreadCount = useCallback(async () => {
     if (!companyId) return;
@@ -120,10 +147,13 @@ export default function NotificationsPopover({ companyId }) {
       prevUnreadCount.current = newCount;
       isFirstLoad.current = false;
       setUnreadCount(newCount);
+      
+      // Mola taleplerini de güncelle
+      fetchBreakRequests();
     } catch (err) {
       console.error("Bildirim sayısı alınamadı");
     }
-  }, [companyId]);
+  }, [companyId, fetchBreakRequests]);
 
   const fetchNotifications = useCallback(async () => {
     if (!companyId) return;
@@ -281,6 +311,9 @@ export default function NotificationsPopover({ companyId }) {
     return date.toLocaleDateString('tr-TR');
   };
 
+  // Toplam badge sayısı (bildirimler + mola talepleri)
+  const totalBadgeCount = unreadCount + breakRequestsCount;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -292,9 +325,9 @@ export default function NotificationsPopover({ companyId }) {
         >
           <Bell className="w-4 h-4 mr-2" />
           Bildirimler
-          {unreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-              {unreadCount > 9 ? "9+" : unreadCount}
+          {totalBadgeCount > 0 && (
+            <span className={`absolute -top-2 -right-2 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center ${breakRequestsCount > 0 ? 'bg-amber-500' : 'bg-red-500'}`}>
+              {totalBadgeCount > 9 ? "9+" : totalBadgeCount}
             </span>
           )}
         </Button>
