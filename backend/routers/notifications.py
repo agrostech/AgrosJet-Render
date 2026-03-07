@@ -143,7 +143,25 @@ async def delete_notification(notification_id: str):
 
 @router.delete("/company/{company_id}/all")
 async def delete_all_notifications(company_id: str):
-    """Delete all notifications for a company"""
+    """Delete all notifications for a company and track fatura_eksik ones"""
+    # First get fatura_eksik notifications to track them
+    fatura_notifications = await db.notifications.find(
+        {"company_id": company_id, "type": "fatura_eksik", "entity_id": {"$exists": True}},
+        {"_id": 0, "entity_id": 1, "type": 1}
+    ).to_list(1000)
+    
+    # Track them in dismissed_notifications
+    for notif in fatura_notifications:
+        await db.dismissed_notifications.update_one(
+            {
+                "company_id": company_id,
+                "entity_id": notif["entity_id"],
+                "type": notif["type"]
+            },
+            {"$set": {"dismissed_at": get_turkey_now()}},
+            upsert=True
+        )
+    
     result = await db.notifications.delete_many({"company_id": company_id})
     return {"message": f"{result.deleted_count} bildirim silindi"}
 
