@@ -184,7 +184,21 @@ export default function CourierDashboard() {
   const fetchAvailabilityStatus = useCallback(async (courierId) => {
     try {
       const res = await axios.get(`${API}/couriers/${courierId}`);
-      setAvailabilityStatus(res.data.availability_status || "offline");
+      const newStatus = res.data.availability_status || "offline";
+      
+      // Durum değiştiyse native'e bildir
+      setAvailabilityStatus(prevStatus => {
+        if (prevStatus !== newStatus && window.AgrosJetNative) {
+          const statusMap = {
+            'active': 'aktif',
+            'on_break': 'molada',
+            'offline': 'çevrimdışı'
+          };
+          window.AgrosJetNative.statusChange(statusMap[newStatus] || 'çevrimdışı');
+          console.log('Native app bilgilendirildi (polling):', statusMap[newStatus]);
+        }
+        return newStatus;
+      });
     } catch (err) {
       console.error("Kurye durumu alınamadı", err);
     }
@@ -230,6 +244,20 @@ export default function CourierDashboard() {
     }
   };
 
+  // Native app'e durum değişikliğini bildir
+  const notifyNativeStatusChange = useCallback((status) => {
+    if (window.AgrosJetNative) {
+      const statusMap = {
+        'active': 'aktif',
+        'on_break': 'molada',
+        'offline': 'çevrimdışı'
+      };
+      const nativeStatus = statusMap[status] || 'çevrimdışı';
+      window.AgrosJetNative.statusChange(nativeStatus);
+      console.log('Native app bilgilendirildi:', nativeStatus);
+    }
+  }, []);
+
   // Update availability status
   const updateAvailabilityStatus = async (newStatus) => {
     if (!user?.id) return;
@@ -239,6 +267,10 @@ export default function CourierDashboard() {
         availability_status: newStatus
       });
       setAvailabilityStatus(newStatus);
+      
+      // Native app'e bildir
+      notifyNativeStatusChange(newStatus);
+      
       // Mola durumunu yenile
       fetchBreakStatus(user.id);
       fetchCourierBreakInfo(user.id);
