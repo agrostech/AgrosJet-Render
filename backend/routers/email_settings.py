@@ -29,6 +29,9 @@ class EmailSettingsCreate(BaseModel):
     notify_evrak: bool = True         # Evrak yüklemeleri
     notify_jetpuan: bool = True       # Market siparişleri
     notify_fesih: bool = True         # Fesih süreçleri
+    # Otomatik atama bildirimleri
+    notify_shift_violation: bool = False  # Vardiya ihlalleri
+    notify_auto_cancel: bool = False      # Otomatik iptal
 
 
 # --- Email Settings Routes ---
@@ -57,6 +60,9 @@ async def get_email_settings(company_id: str):
         "notify_evrak": settings.get("notify_evrak", True),
         "notify_jetpuan": settings.get("notify_jetpuan", True),
         "notify_fesih": settings.get("notify_fesih", True),
+        # Otomatik atama bildirimleri (varsayılan kapalı)
+        "notify_shift_violation": settings.get("notify_shift_violation", False),
+        "notify_auto_cancel": settings.get("notify_auto_cancel", False),
         "created_at": settings.get("created_at", ""),
         "updated_at": settings.get("updated_at")
     }
@@ -82,6 +88,8 @@ async def save_email_settings(company_id: str, data: EmailSettingsCreate):
             "notify_evrak": data.notify_evrak,
             "notify_jetpuan": data.notify_jetpuan,
             "notify_fesih": data.notify_fesih,
+            "notify_shift_violation": data.notify_shift_violation,
+            "notify_auto_cancel": data.notify_auto_cancel,
             "updated_at": now
         }
         # Only update password if not masked
@@ -109,6 +117,8 @@ async def save_email_settings(company_id: str, data: EmailSettingsCreate):
             "notify_evrak": data.notify_evrak,
             "notify_jetpuan": data.notify_jetpuan,
             "notify_fesih": data.notify_fesih,
+            "notify_shift_violation": data.notify_shift_violation,
+            "notify_auto_cancel": data.notify_auto_cancel,
             "created_at": now
         }
         await db.email_settings.insert_one(settings)
