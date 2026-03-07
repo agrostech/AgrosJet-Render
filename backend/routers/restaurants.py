@@ -451,6 +451,31 @@ async def get_restaurant(company_id: str, restaurant_id: str):
 @router.post("")
 async def create_restaurant(data: RestaurantCreate):
     """Yeni restoran oluştur"""
+    from routers.restaurant_permissions import PERMISSION_DEFINITIONS
+    
+    # Varsayılan tahsilat ayarları (hepsi kurye tahsil eder)
+    default_collection_settings = {
+        "cash_collection": "courier",
+        "card_collection": "courier",
+        "meal_card_collection": "courier"
+    }
+    
+    # Varsayılan fatura ayarları (hepsi kapalı)
+    default_invoice_settings = {
+        "cash": False,
+        "credit_card": False,
+        "online": False,
+        "meal_card": False,
+        "online_meal_card": False,
+        "percentage": 10,
+        "percentage_name": "Yeme-İçme"
+    }
+    
+    # Varsayılan izinler (PERMISSION_DEFINITIONS'dan)
+    default_permissions = {
+        key: val["default"] for key, val in PERMISSION_DEFINITIONS.items()
+    }
+    
     restaurant = {
         "id": str(uuid.uuid4()),
         "name": data.name,
@@ -460,12 +485,16 @@ async def create_restaurant(data: RestaurantCreate):
         "longitude": data.longitude,
         "company_id": data.company_id,
         "preparation_time": data.preparation_time,  # Hazırlık süresi (dakika)
+        "pricing_type": "per_package",  # Varsayılan ücretlendirme türü
         "adisyo_api_key": data.adisyo_api_key,
         "adisyo_api_secret": data.adisyo_api_secret,
         "adisyo_branch_id": data.adisyo_branch_id,
         "adisyo_connected": False,  # Bağlantı test edilince True olacak
         "is_active": True,
         "is_archived": False,
+        "collection_settings": default_collection_settings,
+        "invoice_settings": default_invoice_settings,
+        "permissions": default_permissions,
         "created_at": get_turkey_now()
     }
     
