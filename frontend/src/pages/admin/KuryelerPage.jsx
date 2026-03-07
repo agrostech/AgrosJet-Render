@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Switch } from "@/components/ui/switch";
-import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee, LayoutGrid, List } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
@@ -18,6 +18,7 @@ import { CourierEditModal } from "@/components/kuryeler/CourierEditModal";
 import { CourierAddModal } from "@/components/kuryeler/CourierAddModal";
 import { CourierDetailModal } from "@/components/kuryeler/CourierDetailModal";
 import { CourierMergeModal } from "@/components/kuryeler/CourierMergeModal";
+import CourierMatrixView from "@/components/admin/CourierMatrixView";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -56,6 +57,7 @@ export default function KuryelerPage({ companyId }) {
 
   const [activeTab, setActiveTab] = useState("active");
   const [filterQuery, setFilterQuery] = useState("");
+  const [viewMode, setViewMode] = useState("list"); // list, matrix
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -384,71 +386,109 @@ export default function KuryelerPage({ companyId }) {
         </div>
       </div>
 
-      {/* Active/Inactive Tabs */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => setActiveTab("active")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-            activeTab === "active" 
-              ? "bg-primary text-white" 
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          <UserCheck className="w-4 h-4" />
-          Aktif ({activeCouriers.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("inactive")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-            activeTab === "inactive" 
-              ? "bg-slate-700 text-white" 
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          <UserX className="w-4 h-4" />
-          Pasif ({inactiveCouriers.length})
-        </button>
+      {/* Active/Inactive Tabs + View Mode Toggle */}
+      <div className="flex justify-between items-center gap-2 mb-4">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab("active")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              activeTab === "active" 
+                ? "bg-primary text-white" 
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            Aktif ({activeCouriers.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("inactive")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              activeTab === "inactive" 
+                ? "bg-slate-700 text-white" 
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <UserX className="w-4 h-4" />
+            Pasif ({inactiveCouriers.length})
+          </button>
+        </div>
+        
+        {/* View Mode Toggle */}
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              viewMode === "list" 
+                ? "bg-white shadow text-primary" 
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <List className="w-4 h-4" />
+            Liste
+          </button>
+          <button
+            onClick={() => setViewMode("matrix")}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              viewMode === "matrix" 
+                ? "bg-white shadow text-primary" 
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            Ayar Matrisi
+          </button>
+        </div>
       </div>
 
-      {/* Desktop Table */}
-      <CourierTable
-        couriers={filteredCouriers}
-        activeTab={activeTab}
-        filterQuery={filterQuery}
-        onDetail={(c) => { setSelectedCourier(c); setShowDetailModal(true); }}
-        onEdit={(c) => { setSelectedCourier(c); setShowEditModal(true); }}
-        onRemove={handleRemove}
-        onStartTermination={handleStartTermination}
-        onCancelTermination={handleCancelTermination}
-        onDeactivate={handleDeactivate}
-        onActivate={handleActivate}
-        onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
-        onPricing={openPricingModal}
-        onPaymentMethods={openPaymentMethodsModal}
-        onFinance={openFinanceModal}
-        onMaxPackages={openMaxPackagesModal}
-        onBreakLimit={openBreakLimitModal}
-      />
+      {/* Matrix View */}
+      {viewMode === "matrix" ? (
+        <CourierMatrixView 
+          companyId={companyId} 
+          onCourierClick={(courier) => { setSelectedCourier(courier); setShowDetailModal(true); }}
+        />
+      ) : (
+        <>
+          {/* Desktop Table */}
+          <CourierTable
+            couriers={filteredCouriers}
+            activeTab={activeTab}
+            filterQuery={filterQuery}
+            onDetail={(c) => { setSelectedCourier(c); setShowDetailModal(true); }}
+            onEdit={(c) => { setSelectedCourier(c); setShowEditModal(true); }}
+            onRemove={handleRemove}
+            onStartTermination={handleStartTermination}
+            onCancelTermination={handleCancelTermination}
+            onDeactivate={handleDeactivate}
+            onActivate={handleActivate}
+            onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
+            onPricing={openPricingModal}
+            onPaymentMethods={openPaymentMethodsModal}
+            onFinance={openFinanceModal}
+            onMaxPackages={openMaxPackagesModal}
+            onBreakLimit={openBreakLimitModal}
+          />
 
-      {/* Mobile Cards */}
-      <CourierCards
-        couriers={filteredCouriers}
-        activeTab={activeTab}
-        filterQuery={filterQuery}
-        onDetail={(c) => { setSelectedCourier(c); setShowDetailModal(true); }}
-        onEdit={(c) => { setSelectedCourier(c); setShowEditModal(true); }}
-        onRemove={handleRemove}
-        onStartTermination={handleStartTermination}
-        onCancelTermination={handleCancelTermination}
-        onDeactivate={handleDeactivate}
-        onActivate={handleActivate}
-        onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
-        onPricing={openPricingModal}
-        onPaymentMethods={openPaymentMethodsModal}
-        onFinance={openFinanceModal}
+          {/* Mobile Cards */}
+          <CourierCards
+            couriers={filteredCouriers}
+            activeTab={activeTab}
+            filterQuery={filterQuery}
+            onDetail={(c) => { setSelectedCourier(c); setShowDetailModal(true); }}
+            onEdit={(c) => { setSelectedCourier(c); setShowEditModal(true); }}
+            onRemove={handleRemove}
+            onStartTermination={handleStartTermination}
+            onCancelTermination={handleCancelTermination}
+            onDeactivate={handleDeactivate}
+            onActivate={handleActivate}
+            onMerge={(c) => { setSelectedCourier(c); setShowMergeModal(true); }}
+            onPricing={openPricingModal}
+            onPaymentMethods={openPaymentMethodsModal}
+            onFinance={openFinanceModal}
         onMaxPackages={openMaxPackagesModal}
         onBreakLimit={openBreakLimitModal}
       />
+        </>
+      )}
 
       {/* Modals */}
       <CourierAddModal

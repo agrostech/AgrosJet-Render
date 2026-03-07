@@ -1026,3 +1026,129 @@ async def update_courier_max_packages(courier_id: str, data: MaxPackagesUpdate):
     
     return {"message": "Maksimum paket kapasitesi güncellendi"}
 
+
+
+# --- Kurye Matrix View ---
+@router.get("/companies/{company_id}/couriers/matrix")
+async def get_couriers_matrix(company_id: str, include_inactive: bool = False):
+    """
+    Şirketteki tüm kuryelerin ayarlarını matrix görünümü için getir.
+    Tek API çağrısıyla tüm ayarları döner.
+    """
+    # Şirkete bağlı kuryeleri bul
+    query = {"company_id": company_id}
+    if not include_inactive:
+        query["is_active"] = {"$ne": False}
+    
+    company_couriers = await db.company_couriers.find(query, {"_id": 0}).to_list(500)
+    courier_ids = [cc["courier_id"] for cc in company_couriers]
+    
+    if not courier_ids:
+        return {"couriers": []}
+    
+    # Kurye bilgilerini çek
+    couriers = await db.couriers.find(
+        {"id": {"$in": courier_ids}},
+        {"_id": 0}
+    ).to_list(500)
+    
+    # company_couriers'dan ek bilgileri al (is_active gibi)
+    company_courier_map = {cc["courier_id"]: cc for cc in company_couriers}
+    
+    result = []
+    for c in couriers:
+        cc = company_courier_map.get(c["id"], {})
+        
+        # Ödeme yöntemleri
+        allowed_methods = c.get("allowed_payment_methods", ["cash", "card", "online", "meal_card", "online_meal_card"])
+        
+        result.append({
+            "id": c.get("id"),
+            "name": c.get("name"),
+            "phone": c.get("phone"),
+            "plate": c.get("plate"),
+            "is_active": cc.get("is_active", True),
+            # Ücretlendirme
+            "pricing_type": c.get("pricing_type", "per_package"),
+            "per_package_price": c.get("per_package_price"),
+            "hourly_rate": c.get("hourly_rate"),
+            # Ödeme yöntemleri
+            "payment_methods": {
+                "cash": "cash" in allowed_methods,
+                "card": "card" in allowed_methods,
+                "online": "online" in allowed_methods,
+                "meal_card": "meal_card" in allowed_methods,
+                "online_meal_card": "online_meal_card" in allowed_methods
+            },
+            # Diğer ayarlar
+            "max_packages": c.get("max_packages", 5),
+            "daily_break_limit": c.get("daily_break_limit", 30)
+        })
+    
+    # İsme göre sırala
+    result.sort(key=lambda x: x.get("name", "").lower())
+    
+    return {"couriers": result}
+
+
+# --- Kurye Matrix Toplu Güncelleme ---
+class CourierMatrixUpdate(BaseModel):
+    courier_id: str
+    setting_type: str  # "pricing" | "payment_method" | "max_packages" | "break_limit"
+    setting_key: str
+    value: any
+
+
+@router.put("/companies/{company_id}/couriers/matrix/bulk-update")
+async def bulk_update_courier_settings(company_id: str, updates: List[dict]):
+    """
+    Birden fazla kurye ayarını tek seferde güncelle.
+    """
+    for update in updates:
+        courier_id = update.get("courier_id")
+        setting_type = update.get("setting_type")
+        setting_key = update.get("setting_key")
+        value = update.get("value")
+        
+        if setting_type == "payment_method":
+            # Ödeme yöntemi toggle
+            courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "allowed_payment_methods": 1})
+            if not courier:
+                continue
+            
+            current_methods = courier.get("allowed_payment_methods", ["cash", "card", "online", "meal_card", "online_meal_card"])
+            
+            if value:
+                # Ekle
+                if setting_key not in current_methods:
+                    current_methods.append(setting_key)
+            else:
+                # Çıkar
+                if setting_key in current_methods:
+                    current_methods.remove(setting_key)
+            
+            await db.couriers.update_one(
+                {"id": courier_id},
+                {"$set": {"allowed_payment_methods": current_methods}}
+            )
+        
+        elif setting_type == "max_packages":
+            await db.couriers.update_one(
+                {"id": courier_id},
+                {"$set": {"max_packages": int(value)}}
+            )
+        
+        elif setting_type == "break_limit":
+            await db.couriers.update_one(
+                {"id": courier_id},
+                {"$set": {"daily_break_limit": int(value)}}
+            )
+        
+        elif setting_type == "pricing":
+            if setting_key == "hourly_rate":
+                await db.couriers.update_one(
+                    {"id": courier_id},
+                    {"$set": {"hourly_rate": float(value) if value else None}}
+                )
+    
+    return {"message": "Ayarlar güncellendi"}
