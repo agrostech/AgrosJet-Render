@@ -413,8 +413,10 @@ async def reset_daily_break_time():
 
 
 async def send_break_notification_internal(company_id: str, courier_id: str, notification_type: str, message: str):
-    """Internal bildirim gönderme fonksiyonu"""
+    """Internal bildirim gönderme fonksiyonu - DB + Push Notification"""
     import uuid
+    from services.push_notification_service import send_push_notification
+    
     now = datetime.now(TURKEY_TZ)
     
     try:
@@ -428,11 +430,25 @@ async def send_break_notification_internal(company_id: str, courier_id: str, not
         if recent:
             return  # Son 5 dakikada aynı bildirim gönderilmiş
         
+        # Bildirim başlığı belirle
+        title_map = {
+            "break_approaching": "Mola Yaklaşıyor",
+            "break_started": "Mola Başladı",
+            "break_ended": "Mola Bitti",
+            "break_ready": "Mola Sıranız Geldi",
+            "break_ending_soon": "Mola Bitiyor",
+            "break_approved": "Mola Onaylandı",
+            "break_rejected": "Mola Reddedildi",
+            "break_request": "Mola Talebi"
+        }
+        title = title_map.get(notification_type, "Mola Sistemi")
+        
+        # DB'ye kaydet
         notification = {
             "id": str(uuid.uuid4()),
             "company_id": company_id,
             "type": notification_type,
-            "title": "Mola Sistemi",
+            "title": title,
             "message": message,
             "courier_id": courier_id,
             "is_read": False,
@@ -440,7 +456,23 @@ async def send_break_notification_internal(company_id: str, courier_id: str, not
         }
         
         await db.notifications.insert_one(notification)
-        logger.debug(f"Bildirim gönderildi: {notification_type} -> {courier_id}")
+        logger.debug(f"Bildirim DB'ye kaydedildi: {notification_type} -> {courier_id}")
+        
+        # Push Notification gönder (mobil uygulama için)
+        try:
+            await send_push_notification(
+                courier_id=courier_id,
+                title=title,
+                body=message,
+                data={
+                    "type": notification_type,
+                    "notification_id": notification["id"]
+                },
+                sound="notification"
+            )
+            logger.debug(f"Push notification gönderildi: {notification_type} -> {courier_id}")
+        except Exception as push_err:
+            logger.warning(f"Push notification gönderilemedi: {push_err}")
         
     except Exception as e:
         logger.error(f"Bildirim gönderme hatası: {e}")

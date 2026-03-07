@@ -763,25 +763,54 @@ async def send_break_notification(
     notification_type: str,
     message: str
 ):
-    """Mola bildirimi gönder"""
+    """Mola bildirimi gönder - DB + Push Notification"""
+    from services.push_notification_service import send_push_notification
+    
     now = datetime.now(TURKEY_TZ)
+    
+    # Bildirim başlığı belirle
+    title_map = {
+        "break_approaching": "Mola Yaklaşıyor",
+        "break_started": "Mola Başladı",
+        "break_ended": "Mola Bitti",
+        "break_ready": "Mola Sıranız Geldi",
+        "break_ending_soon": "Mola Bitiyor",
+        "break_approved": "Mola Onaylandı",
+        "break_rejected": "Mola Reddedildi",
+        "break_request": "Mola Talebi"
+    }
+    title = title_map.get(notification_type, "Mola Sistemi")
     
     notification = {
         "id": str(uuid.uuid4()),
         "company_id": company_id,
         "type": notification_type,
-        "title": "Mola Sistemi",
+        "title": title,
         "message": message,
         "courier_id": courier_id,
         "courier_name": courier_name,
-        "read": False,
+        "is_read": False,
         "created_at": now.isoformat()
     }
     
     await db.notifications.insert_one(notification)
+    logger.info(f"Break notification saved: {notification_type} - {courier_name}")
     
-    # TODO: Push notification gönderimi eklenecek
-    logger.info(f"Break notification: {notification_type} - {courier_name} - {message}")
+    # Push notification gönder (mobil uygulama için)
+    try:
+        await send_push_notification(
+            courier_id=courier_id,
+            title=title,
+            body=message,
+            data={
+                "type": notification_type,
+                "notification_id": notification["id"]
+            },
+            sound="notification"
+        )
+        logger.debug(f"Push notification sent: {notification_type} -> {courier_id}")
+    except Exception as push_err:
+        logger.warning(f"Push notification failed: {push_err}")
 
 
 

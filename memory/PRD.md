@@ -40,11 +40,22 @@ Turkish
 - [x] **Tek Sayfa Kimlik Doğrulama**: Login, Kayıt ve Şifremi Unuttum akışları `CourierLoginPage.jsx` içinde birleştirildi (sayfa yenilemesi yok)
 - [x] **Temizlik**: `CourierForgotPasswordPage.jsx` dosyası ve `/courier-forgot-password` route'u kaldırıldı
 
+## Completed Work (March 7, 2026)
+- [x] **Akıllı Mola Sistemi (Smart Break System)**: Tam fonksiyonel mola yönetim sistemi
+  - Otomatik mod: Kuryeler sıraya girer, sistem otomatik molaya alır
+  - Manuel mod: Kuryeler talep eder, admin onaylar/reddeder
+  - Push notification entegrasyonu (FCM + Web Push)
+  - Admin Mola Talep UI (`NotificationsPopover.jsx` içinde)
+  - Vardiya bazlı mola limitleri
+  - Günlük mola hakkı takibi
+  - Paket teslimi sonrası mola başlatma
+
 ## In Progress Tasks
 - None currently
 
 ## Pending Issues
 1. **P1: Adisyo Webhook Hatası** - `Restoran bulunamadı` hatası, webhook'lar başarısız oluyor
+2. **P0: Migros Webhook URL** - Migros'un webhook URL'sini `https://api.agrosjet.app/api/webhooks/migros/order` olarak güncellemesi gerekiyor (BLOCKED - Migros ile iletişim gerekli)
 
 ## Upcoming Tasks
 1. **P1: "Stop Count" Capacity Logic** - Count unique drop-off locations instead of raw package count
@@ -56,6 +67,7 @@ Turkish
 - API request monitor in admin panel
 - Refactor `/app/backend/routers/orders.py`
 - Native Courier App development
+- Caller ID entegrasyonu araştırması
 
 ## Key Files
 - `/app/backend/services/auto_dispatch/dispatcher.py` - Core dispatch loop
