@@ -142,8 +142,14 @@ export default function CourierSidebar({
       
       <nav className="flex-1 py-2 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path || 
-            (item.path !== "/courier" && location.pathname.startsWith(item.path));
+          // Ana sayfa (siparişler) için tam eşleşme kontrol et
+          // Diğer sayfalar için startsWith kullan ama sadece tam path match olmalı
+          const isExactMatch = location.pathname === item.path;
+          const isSubPath = item.path !== basePath && 
+            location.pathname.startsWith(item.path) && 
+            (location.pathname === item.path || location.pathname.charAt(item.path.length) === '/');
+          const isActive = isExactMatch || isSubPath;
+          
           const showMaintenanceBadge = item.path === "/courier/motosikletim" && maintenanceNotifications > 0;
           const showChatBadge = item.path === "/courier/mesajlar" && chatUnreadCount > 0;
           return (
