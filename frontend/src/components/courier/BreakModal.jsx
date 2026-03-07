@@ -67,6 +67,12 @@ export function BreakModal({
   };
 
   const handleJoinQueue = async () => {
+    // Minimum 5 dakika kontrolü
+    if (!selectedDuration || selectedDuration < 5) {
+      toast.error("5 dakikadan daha az mola kullanamazsınız");
+      return;
+    }
+    
     if (selectedDuration > remainingBreakTime) {
       toast.error(`Kalan mola hakkınız: ${remainingBreakTime} dakika`);
       return;
@@ -89,6 +95,12 @@ export function BreakModal({
   };
 
   const handleBreakRequest = async () => {
+    // Minimum 5 dakika kontrolü
+    if (!selectedDuration || selectedDuration < 5) {
+      toast.error("5 dakikadan daha az mola kullanamazsınız");
+      return;
+    }
+    
     if (selectedDuration > remainingBreakTime) {
       toast.error(`Kalan mola hakkınız: ${remainingBreakTime} dakika`);
       return;
@@ -220,7 +232,7 @@ export function BreakModal({
                   <div className="relative">
                     <Input
                       type="number"
-                      min={1}
+                      min={5}
                       max={remainingBreakTime}
                       value={selectedDuration || ''}
                       onChange={(e) => {
@@ -233,9 +245,9 @@ export function BreakModal({
                         }
                       }}
                       onBlur={() => {
-                        // Boş veya 0 ise minimum 1 yap
-                        if (!selectedDuration || selectedDuration < 1) {
-                          setSelectedDuration(1);
+                        // Boş veya 5'ten az ise minimum 5 yap
+                        if (!selectedDuration || selectedDuration < 5) {
+                          setSelectedDuration(5);
                         }
                       }}
                       className="w-20 h-8 text-center text-sm font-semibold pr-7"
@@ -250,13 +262,18 @@ export function BreakModal({
                     size="sm"
                     className="h-8 px-2 text-xs"
                     onClick={() => setSelectedDuration(remainingBreakTime)}
-                    disabled={remainingBreakTime <= 0}
+                    disabled={remainingBreakTime < 5}
                   >
                     <Maximize2 className="w-3 h-3 mr-1" />
                     Tümü
                   </Button>
                 </div>
               </div>
+              
+              {/* Minimum süre uyarısı */}
+              {selectedDuration && selectedDuration < 5 && (
+                <p className="text-xs text-red-500">Minimum 5 dakika mola kullanabilirsiniz</p>
+              )}
               
               {/* Hızlı Seçim Butonları - 3x2 Grid */}
               <div className="grid grid-cols-3 gap-2">
