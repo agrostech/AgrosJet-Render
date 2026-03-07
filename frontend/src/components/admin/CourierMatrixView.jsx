@@ -360,40 +360,42 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                       const isUpdatingCell = updating[`${courier.id}-max_packages`];
                       
                       return (
-                        <div className="flex items-center justify-center gap-0.5">
-                          <button
-                            onClick={() => {
-                              const newVal = Math.max(1, currentValue - 1);
-                              handleNumericChange(courier.id, "max_packages", newVal);
-                            }}
-                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            max="20"
-                            value={currentValue}
-                            onChange={(e) => handleNumericChange(courier.id, "max_packages", e.target.value)}
-                            className="matrix-input w-8 h-5 border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary text-[11px]"
-                          />
-                          <button
-                            onClick={() => {
-                              const newVal = Math.min(20, currentValue + 1);
-                              handleNumericChange(courier.id, "max_packages", newVal);
-                            }}
-                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={() => {
+                                const newVal = Math.max(1, currentValue - 1);
+                                handleNumericChange(courier.id, "max_packages", newVal);
+                              }}
+                              className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              max="20"
+                              value={currentValue}
+                              onChange={(e) => handleNumericChange(courier.id, "max_packages", e.target.value)}
+                              className="matrix-input w-8 h-5 border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary text-[11px]"
+                            />
+                            <button
+                              onClick={() => {
+                                const newVal = Math.min(20, currentValue + 1);
+                                handleNumericChange(courier.id, "max_packages", newVal);
+                              }}
+                              className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
                           {hasChanged && (
                             isUpdatingCell ? (
-                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400 ml-0.5" />
+                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
                             ) : (
                               <button
                                 onClick={() => handleNumericSave(courier.id, "max_packages", originalValue)}
-                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded ml-0.5"
+                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
                                 title="Kaydet"
                               >
                                 <Save className="w-3 h-3" />
@@ -415,41 +417,43 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                       const isUpdatingCell = updating[`${courier.id}-break_limit`];
                       
                       return (
-                        <div className="flex items-center justify-center gap-0.5">
-                          <button
-                            onClick={() => {
-                              const newVal = Math.max(0, currentValue - 5);
-                              handleNumericChange(courier.id, "daily_break_limit", newVal);
-                            }}
-                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <input
-                            type="number"
-                            min="0"
-                            max="480"
-                            step="5"
-                            value={currentValue}
-                            onChange={(e) => handleNumericChange(courier.id, "daily_break_limit", e.target.value)}
-                            className="matrix-input w-10 h-5 border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary text-[11px]"
-                          />
-                          <button
-                            onClick={() => {
-                              const newVal = Math.min(480, currentValue + 5);
-                              handleNumericChange(courier.id, "daily_break_limit", newVal);
-                            }}
-                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={() => {
+                                const newVal = Math.max(0, currentValue - 5);
+                                handleNumericChange(courier.id, "daily_break_limit", newVal);
+                              }}
+                              className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <input
+                              type="number"
+                              min="0"
+                              max="480"
+                              step="5"
+                              value={currentValue}
+                              onChange={(e) => handleNumericChange(courier.id, "daily_break_limit", e.target.value)}
+                              className="matrix-input w-10 h-5 border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary text-[11px]"
+                            />
+                            <button
+                              onClick={() => {
+                                const newVal = Math.min(480, currentValue + 5);
+                                handleNumericChange(courier.id, "daily_break_limit", newVal);
+                              }}
+                              className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
                           {hasChanged && (
                             isUpdatingCell ? (
-                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400 ml-0.5" />
+                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
                             ) : (
                               <button
                                 onClick={() => handleNumericSave(courier.id, "break_limit", originalValue)}
-                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded ml-0.5"
+                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
                                 title="Kaydet"
                               >
                                 <Save className="w-3 h-3" />
