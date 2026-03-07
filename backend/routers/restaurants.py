@@ -298,17 +298,19 @@ async def get_restaurants_matrix(company_id: str, include_archived: bool = False
     Tüm restoranların tüm ayarlarını matrix görünümü için getir.
     Tek API çağrısıyla tüm ayarları döner.
     """
+    from routers.restaurant_permissions import PERMISSION_DEFINITIONS
+    
     query = {"company_id": company_id}
     if not include_archived:
         query["is_archived"] = {"$ne": True}
     
     restaurants = await db.restaurants.find(query, {"_id": 0}).to_list(500)
     
-    # Permission definitions'ı çek
-    permission_defs = await db.permission_definitions.find(
-        {"scope": "restaurant"},
-        {"_id": 0, "key": 1, "label": 1, "category": 1}
-    ).to_list(100)
+    # Permission definitions'ı döndür
+    permission_defs = [
+        {"key": key, "label": val["label"], "category": "permission"}
+        for key, val in PERMISSION_DEFINITIONS.items()
+    ]
     
     result = []
     for r in restaurants:
@@ -318,14 +320,22 @@ async def get_restaurants_matrix(company_id: str, include_archived: bool = False
         # Fatura ayarları
         invoice = r.get("invoice_settings", {})
         
-        # İzinler
-        perms = r.get("permissions", {})
+        # İzinler - default değerlerle birleştir
+        current_perms = r.get("permissions", {})
+        perms = {}
+        for key, definition in PERMISSION_DEFINITIONS.items():
+            perms[key] = current_perms.get(key, definition["default"])
+        
+        # Ücretlendirme
+        pricing_type = r.get("pricing_type", "per_package")
         
         result.append({
             "id": r.get("id"),
             "name": r.get("name"),
             "is_archived": r.get("is_archived", False),
             "preparation_time": r.get("preparation_time", 15),
+            # Ücretlendirme türü
+            "pricing_type": pricing_type,
             # Tahsilat (courier = kurye tahsil eder, restaurant = restoran tahsil eder)
             "collection": {
                 "cash": collection.get("cash_collection", "courier"),

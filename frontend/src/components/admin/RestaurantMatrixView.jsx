@@ -31,13 +31,25 @@ import {
   Shield,
   ChevronDown,
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  Package,
+  MapPin
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Sütun grupları
 const COLUMN_GROUPS = [
+  {
+    id: "pricing",
+    label: "Ücret",
+    icon: Banknote,
+    color: "bg-amber-50",
+    headerColor: "bg-amber-100",
+    columns: [
+      { key: "type", label: "Tür", icon: Package }
+    ]
+  },
   {
     id: "collection",
     label: "Tahsilat",
@@ -72,9 +84,10 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
   const [search, setSearch] = useState("");
   const [updating, setUpdating] = useState({});
   const [expandedGroups, setExpandedGroups] = useState({
+    pricing: true,
     collection: true,
     invoice: true,
-    permissions: false
+    permissions: true
   });
 
   useEffect(() => {
@@ -175,12 +188,18 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
     const cellKey = `${restaurant.id}-${groupId}-${column.key}`;
     const isUpdating = updating[cellKey];
     
-    let value, displayValue, cellClass;
+    let value, displayValue, cellClass, isClickable = true;
     
-    if (groupId === "collection") {
+    if (groupId === "pricing") {
+      // Ücretlendirme türü - sadece gösterim, tıklanamaz
+      value = restaurant.pricing_type || "per_package";
+      displayValue = value === "per_km" ? "KM" : "Paket";
+      cellClass = value === "per_km" ? "bg-purple-100 text-purple-800" : "bg-amber-100 text-amber-800";
+      isClickable = false; // Ücretlendirme modaldan değiştirilmeli
+    } else if (groupId === "collection") {
       value = restaurant.collection?.[column.key] || "courier";
       const isCourier = value === "courier";
-      displayValue = isCourier ? "Kurye" : "Restoran";
+      displayValue = isCourier ? "Kurye" : "Rest.";
       cellClass = isCourier ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800";
     } else if (groupId === "invoice") {
       value = restaurant.invoice?.[column.key] || false;
@@ -195,8 +214,8 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
     return (
       <TableCell 
         key={column.key} 
-        className={`text-center p-1 cursor-pointer hover:opacity-80 transition-opacity ${cellClass}`}
-        onClick={() => !isUpdating && handleCellUpdate(restaurant.id, groupId, column.key, value)}
+        className={`text-center p-1 transition-opacity ${cellClass} ${isClickable ? 'cursor-pointer hover:opacity-80' : ''}`}
+        onClick={() => isClickable && !isUpdating && handleCellUpdate(restaurant.id, groupId, column.key, value)}
       >
         {isUpdating ? (
           <RefreshCw className="w-3 h-3 animate-spin mx-auto" />
@@ -210,7 +229,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="large" />
+        <LoadingSpinner size="default" />
       </div>
     );
   }
@@ -269,11 +288,29 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                 Restoran
               </TableHead>
               
+              {/* Ücretlendirme Grubu */}
+              {expandedGroups.pricing && COLUMN_GROUPS[0].columns.map(col => (
+                <TableHead 
+                  key={`pricing-${col.key}`} 
+                  className={`text-center text-xs p-2 ${COLUMN_GROUPS[0].headerColor}`}
+                >
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="flex flex-col items-center gap-1">
+                        <col.icon className="w-3 h-3" />
+                        <span>{col.label}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>Ücretlendirme Türü</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableHead>
+              ))}
+              
               {/* Tahsilat Grubu */}
-              {expandedGroups.collection && COLUMN_GROUPS[0].columns.map(col => (
+              {expandedGroups.collection && COLUMN_GROUPS[1].columns.map(col => (
                 <TableHead 
                   key={`collection-${col.key}`} 
-                  className={`text-center text-xs p-2 ${COLUMN_GROUPS[0].headerColor}`}
+                  className={`text-center text-xs p-2 ${COLUMN_GROUPS[1].headerColor}`}
                 >
                   <TooltipProvider>
                     <Tooltip>
@@ -288,10 +325,10 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
               ))}
               
               {/* Fatura Grubu */}
-              {expandedGroups.invoice && COLUMN_GROUPS[1].columns.map(col => (
+              {expandedGroups.invoice && COLUMN_GROUPS[2].columns.map(col => (
                 <TableHead 
                   key={`invoice-${col.key}`} 
-                  className={`text-center text-xs p-2 ${COLUMN_GROUPS[1].headerColor}`}
+                  className={`text-center text-xs p-2 ${COLUMN_GROUPS[2].headerColor}`}
                 >
                   <TooltipProvider>
                     <Tooltip>
@@ -331,9 +368,23 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                 </span>
               </TableHead>
               
-              {expandedGroups.collection && (
+              {expandedGroups.pricing && (
                 <TableHead 
                   colSpan={COLUMN_GROUPS[0].columns.length}
+                  className="text-center cursor-pointer hover:bg-amber-200 bg-amber-100"
+                  onClick={() => toggleGroup("pricing")}
+                >
+                  <div className="flex items-center justify-center gap-1 text-xs font-semibold text-amber-800">
+                    <Package className="w-3 h-3" />
+                    Ücret
+                    <ChevronDown className="w-3 h-3" />
+                  </div>
+                </TableHead>
+              )}
+              
+              {expandedGroups.collection && (
+                <TableHead 
+                  colSpan={COLUMN_GROUPS[1].columns.length}
                   className="text-center cursor-pointer hover:bg-green-200 bg-green-100"
                   onClick={() => toggleGroup("collection")}
                 >
@@ -347,7 +398,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
               
               {expandedGroups.invoice && (
                 <TableHead 
-                  colSpan={COLUMN_GROUPS[1].columns.length}
+                  colSpan={COLUMN_GROUPS[2].columns.length}
                   className="text-center cursor-pointer hover:bg-blue-200 bg-blue-100"
                   onClick={() => toggleGroup("invoice")}
                 >
@@ -390,13 +441,18 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                   </div>
                 </TableCell>
                 
+                {/* Ücretlendirme hücreleri */}
+                {expandedGroups.pricing && COLUMN_GROUPS[0].columns.map(col => 
+                  renderCell(restaurant, "pricing", col)
+                )}
+                
                 {/* Tahsilat hücreleri */}
-                {expandedGroups.collection && COLUMN_GROUPS[0].columns.map(col => 
+                {expandedGroups.collection && COLUMN_GROUPS[1].columns.map(col => 
                   renderCell(restaurant, "collection", col)
                 )}
                 
                 {/* Fatura hücreleri */}
-                {expandedGroups.invoice && COLUMN_GROUPS[1].columns.map(col => 
+                {expandedGroups.invoice && COLUMN_GROUPS[2].columns.map(col => 
                   renderCell(restaurant, "invoice", col)
                 )}
                 
@@ -411,7 +467,19 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
       </div>
 
       {/* Collapsed Groups - Mini buttons to expand */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
+        {!expandedGroups.pricing && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => toggleGroup("pricing")}
+            className="text-amber-700 border-amber-300 hover:bg-amber-50"
+          >
+            <ChevronRight className="w-3 h-3 mr-1" />
+            <Package className="w-3 h-3 mr-1" />
+            Ücret
+          </Button>
+        )}
         {!expandedGroups.collection && (
           <Button 
             variant="outline" 
