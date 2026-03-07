@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
+import { BreakModal } from "@/components/courier/BreakModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +74,8 @@ export default function CourierDashboard() {
   const [availabilityStatus, setAvailabilityStatus] = useState("offline");
   const [statusLoading, setStatusLoading] = useState(false);
   const [breakStatus, setBreakStatus] = useState(null);
+  const [showBreakModal, setShowBreakModal] = useState(false);
+  const [courierBreakInfo, setCourierBreakInfo] = useState({ dailyLimit: 30, usedTime: 0 });
   
   // Base path for navigation (dynamic based on URL)
   const basePath = urlCourierId ? `/kurye/${urlCourierId}` : '/courier';
@@ -197,6 +200,36 @@ export default function CourierDashboard() {
     }
   }, []);
 
+  // Fetch courier break info (daily limit, used time)
+  const fetchCourierBreakInfo = useCallback(async (courierId) => {
+    try {
+      const res = await axios.get(`${API}/couriers/${courierId}`);
+      setCourierBreakInfo({
+        dailyLimit: res.data.daily_break_limit || 30,
+        usedTime: res.data.used_break_time || 0
+      });
+    } catch (err) {
+      console.error("Kurye mola bilgisi alınamadı", err);
+    }
+  }, []);
+
+  // Handle status change - Mola için modal aç
+  const handleStatusChange = (newStatus) => {
+    if (newStatus === "on_break") {
+      // Önce günlük mola hakkını kontrol et
+      const remaining = courierBreakInfo.dailyLimit - courierBreakInfo.usedTime;
+      if (remaining <= 0) {
+        toast.error("Günlük mola hakkınız doldu");
+        return;
+      }
+      // Mola modalını aç
+      setShowBreakModal(true);
+    } else {
+      // Diğer durumlar için direkt güncelle
+      updateAvailabilityStatus(newStatus);
+    }
+  };
+
   // Update availability status
   const updateAvailabilityStatus = async (newStatus) => {
     if (!user?.id) return;
@@ -208,6 +241,7 @@ export default function CourierDashboard() {
       setAvailabilityStatus(newStatus);
       // Mola durumunu yenile
       fetchBreakStatus(user.id);
+      fetchCourierBreakInfo(user.id);
     } catch (err) {
       // Mola limiti dolmuşsa özel hata mesajı göster
       const errorMsg = err.response?.data?.detail || "Durum güncellenemedi";
@@ -282,12 +316,14 @@ export default function CourierDashboard() {
           checkMaintenanceNotifications(courierData.id);
           fetchAvailabilityStatus(courierData.id);
           fetchBreakStatus(courierData.id);
+          fetchCourierBreakInfo(courierData.id);
           checkCourierStatus(courierData.id, courierData.company_id);
           
           // Her 30 saniyede bir pasif durumunu ve mola durumunu kontrol et
           const intervalId = setInterval(() => {
             checkCourierStatus(courierData.id, courierData.company_id);
             fetchBreakStatus(courierData.id);
+            fetchCourierBreakInfo(courierData.id);
           }, 30000);
           
           return () => clearInterval(intervalId);
@@ -322,6 +358,7 @@ export default function CourierDashboard() {
       checkMaintenanceNotifications(parsed.id);
       fetchAvailabilityStatus(parsed.id);
       fetchBreakStatus(parsed.id);
+      fetchCourierBreakInfo(parsed.id);
       
       // İlk kontrol
       checkCourierStatus(parsed.id, parsed.company_id);
@@ -330,11 +367,12 @@ export default function CourierDashboard() {
       const intervalId = setInterval(() => {
         checkCourierStatus(parsed.id, parsed.company_id);
         fetchBreakStatus(parsed.id);
+        fetchCourierBreakInfo(parsed.id);
       }, 30000);
       
       return () => clearInterval(intervalId);
     }
-  }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus]);
+  }, [urlCourierId, navigate, fetchCompanyInfo, checkDocumentStatus, checkMaintenanceNotifications, checkCourierStatus, fetchAvailabilityStatus, fetchBreakStatus, fetchCourierBreakInfo]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -404,7 +442,7 @@ export default function CourierDashboard() {
                 return (
                   <DropdownMenuItem
                     key={key}
-                    onClick={() => updateAvailabilityStatus(key)}
+                    onClick={() => handleStatusChange(key)}
                     className={`flex items-center justify-between ${availabilityStatus === key ? 'bg-accent' : ''}`}
                   >
                     <div className="flex items-center gap-2">
@@ -522,7 +560,7 @@ export default function CourierDashboard() {
           companyLogo={companyLogo}
           maintenanceNotifications={maintenanceNotifications}
           availabilityStatus={availabilityStatus}
-          onStatusChange={updateAvailabilityStatus}
+          onStatusChange={handleStatusChange}
           statusLoading={statusLoading}
         />
 
@@ -557,6 +595,21 @@ export default function CourierDashboard() {
           </footer>
         </main>
       </div>
+
+      {/* Mola Modalı */}
+      <BreakModal
+        open={showBreakModal}
+        onOpenChange={setShowBreakModal}
+        courierId={user.id}
+        companyId={user.company_id}
+        dailyBreakLimit={courierBreakInfo.dailyLimit}
+        usedBreakTime={courierBreakInfo.usedTime}
+        onBreakStarted={() => {
+          fetchAvailabilityStatus(user.id);
+          fetchBreakStatus(user.id);
+          fetchCourierBreakInfo(user.id);
+        }}
+      />
     </div>
   );
 }
