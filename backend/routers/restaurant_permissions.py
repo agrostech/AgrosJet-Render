@@ -17,31 +17,37 @@ router = APIRouter(prefix="/api/restaurant-permissions", tags=["Restoran İzinle
 PERMISSION_DEFINITIONS = {
     "can_assign_courier": {
         "label": "Kurye Atama",
+        "short_label": "K.Atama",
         "description": "Kurye atandıktan sonra yeni gelen siparişleri aynı kuryeye atayabilir",
         "default": False
     },
     "can_view_courier_phone": {
         "label": "Kurye Telefonu Görüntüleme",
+        "short_label": "K.Tel",
         "description": "Atanan kuryenin telefon numarasını görüntüleyebilir",
         "default": True
     },
     "can_view_courier_location": {
         "label": "Kurye Konumu Görüntüleme",
+        "short_label": "K.Konum",
         "description": "Haritada kuryenin anlık konumunu görüntüleyebilir",
         "default": True
     },
     "can_view_courier_eta": {
         "label": "Kurye Tahmini Varış Süresi",
+        "short_label": "K.ETA",
         "description": "Kuryenin restorana tahmini varış süresini görüntüleyebilir",
         "default": True
     },
     "can_mark_restaurant_delivery": {
         "label": "Restoran Teslimatı İşaretleme",
+        "short_label": "R.Tslm",
         "description": "Siparişi restoran teslimatı olarak işaretleyebilir. Bu siparişler mütabakat ve raporlara dahil edilmez.",
         "default": False
     },
     "can_change_order_status": {
         "label": "Sipariş Durumu Değiştirme",
+        "short_label": "S.Durum",
         "description": "Sipariş durumunu değiştirebilir (Hazırlanıyor, Hazır vb.). Restoran teslimatı olan siparişler için bu izin aranmaz.",
         "default": True
     }

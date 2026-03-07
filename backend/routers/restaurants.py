@@ -308,7 +308,12 @@ async def get_restaurants_matrix(company_id: str, include_archived: bool = False
     
     # Permission definitions'ı döndür
     permission_defs = [
-        {"key": key, "label": val["label"], "category": "permission"}
+        {
+            "key": key, 
+            "label": val["label"], 
+            "short_label": val.get("short_label", val["label"][:8]),
+            "category": "permission"
+        }
         for key, val in PERMISSION_DEFINITIONS.items()
     ]
     
