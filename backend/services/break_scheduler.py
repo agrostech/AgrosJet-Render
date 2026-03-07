@@ -412,8 +412,12 @@ async def reset_daily_break_time():
         logger.error(f"Günlük mola sıfırlama hatası: {e}")
 
 
-async def send_break_notification_internal(company_id: str, courier_id: str, notification_type: str, message: str):
-    """Internal bildirim gönderme fonksiyonu - DB + Push Notification"""
+async def send_break_notification_internal(company_id: str, courier_id: str, notification_type: str, message: str, target: str = "courier"):
+    """
+    Internal bildirim gönderme fonksiyonu - DB + Push Notification
+    target: "courier" = kuryeye bildirim (push notification gönderilir, admin panelinde görünmez)
+            "admin" = admine bildirim (admin panelinde görünür, push gönderilmez)
+    """
     import uuid
     from services.push_notification_service import send_push_notification
     
@@ -451,28 +455,30 @@ async def send_break_notification_internal(company_id: str, courier_id: str, not
             "title": title,
             "message": message,
             "courier_id": courier_id,
+            "target": target,  # "courier" veya "admin"
             "is_read": False,
             "created_at": now.isoformat()
         }
         
         await db.notifications.insert_one(notification)
-        logger.debug(f"Bildirim DB'ye kaydedildi: {notification_type} -> {courier_id}")
+        logger.debug(f"Bildirim DB'ye kaydedildi: {notification_type} -> {target} ({courier_id})")
         
-        # Push Notification gönder (mobil uygulama için)
-        try:
-            await send_push_notification(
-                courier_id=courier_id,
-                title=title,
-                body=message,
-                data={
-                    "type": notification_type,
-                    "notification_id": notification["id"]
-                },
-                sound="notification"
-            )
-            logger.debug(f"Push notification gönderildi: {notification_type} -> {courier_id}")
-        except Exception as push_err:
-            logger.warning(f"Push notification gönderilemedi: {push_err}")
+        # Push Notification sadece kuryeye gönderilir
+        if target == "courier":
+            try:
+                await send_push_notification(
+                    courier_id=courier_id,
+                    title=title,
+                    body=message,
+                    data={
+                        "type": notification_type,
+                        "notification_id": notification["id"]
+                    },
+                    sound="notification"
+                )
+                logger.debug(f"Push notification gönderildi: {notification_type} -> {courier_id}")
+            except Exception as push_err:
+                logger.warning(f"Push notification gönderilemedi: {push_err}")
         
     except Exception as e:
         logger.error(f"Bildirim gönderme hatası: {e}")

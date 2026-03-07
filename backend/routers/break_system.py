@@ -473,7 +473,8 @@ async def create_break_request(courier_id: str, data: BreakRequest):
         courier_id=courier_id,
         courier_name=courier.get("name"),
         notification_type="break_request",
-        message=f"{courier.get('name')} {data.duration} dakikalık mola talep etti"
+        message=f"{courier.get('name')} {data.duration} dakikalık mola talep etti",
+        target="admin"  # Admin panelinde görünecek
     )
     
     return {
@@ -548,7 +549,8 @@ async def handle_break_request(request_id: str, data: BreakRequestAction):
             courier_id=courier_id,
             courier_name=courier_name,
             notification_type="break_approved",
-            message=message
+            message=message,
+            target="courier"  # Sadece kuryeye push notification
         )
         
         return {"message": "Talep onaylandı"}
@@ -565,7 +567,8 @@ async def handle_break_request(request_id: str, data: BreakRequestAction):
             courier_id=courier_id,
             courier_name=courier_name,
             notification_type="break_rejected",
-            message="Mola talebiniz reddedildi."
+            message="Mola talebiniz reddedildi.",
+            target="courier"  # Sadece kuryeye push notification
         )
         
         return {"message": "Talep reddedildi"}
@@ -747,7 +750,8 @@ async def start_break_from_queue(courier_id: str, queue_id: str) -> dict:
         courier_id=courier_id,
         courier_name=courier.get("name"),
         notification_type="break_started",
-        message=message
+        message=message,
+        target="courier"  # Sadece kuryeye
     )
     
     return {
@@ -761,9 +765,14 @@ async def send_break_notification(
     courier_id: str,
     courier_name: str,
     notification_type: str,
-    message: str
+    message: str,
+    target: str = "courier"  # "courier" veya "admin"
 ):
-    """Mola bildirimi gönder - DB + Push Notification"""
+    """
+    Mola bildirimi gönder - DB + Push Notification
+    target: "courier" = kuryeye bildirim (push notification gönderilir)
+            "admin" = admine bildirim (admin panelinde görünür)
+    """
     from services.push_notification_service import send_push_notification
     
     now = datetime.now(TURKEY_TZ)
@@ -789,28 +798,30 @@ async def send_break_notification(
         "message": message,
         "courier_id": courier_id,
         "courier_name": courier_name,
+        "target": target,  # "courier" veya "admin"
         "is_read": False,
         "created_at": now.isoformat()
     }
     
     await db.notifications.insert_one(notification)
-    logger.info(f"Break notification saved: {notification_type} - {courier_name}")
+    logger.info(f"Break notification saved: {notification_type} -> {target} ({courier_name})")
     
-    # Push notification gönder (mobil uygulama için)
-    try:
-        await send_push_notification(
-            courier_id=courier_id,
-            title=title,
-            body=message,
-            data={
-                "type": notification_type,
-                "notification_id": notification["id"]
-            },
-            sound="notification"
-        )
-        logger.debug(f"Push notification sent: {notification_type} -> {courier_id}")
-    except Exception as push_err:
-        logger.warning(f"Push notification failed: {push_err}")
+    # Push notification sadece kuryeye gönderilir
+    if target == "courier":
+        try:
+            await send_push_notification(
+                courier_id=courier_id,
+                title=title,
+                body=message,
+                data={
+                    "type": notification_type,
+                    "notification_id": notification["id"]
+                },
+                sound="notification"
+            )
+            logger.debug(f"Push notification sent: {notification_type} -> {courier_id}")
+        except Exception as push_err:
+            logger.warning(f"Push notification failed: {push_err}")
 
 
 

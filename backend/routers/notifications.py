@@ -24,11 +24,29 @@ class NotificationCreate(BaseModel):
 # ============ ENDPOINTS ============
 
 @router.get("/company/{company_id}")
-async def get_notifications(company_id: str, limit: int = 50, include_read: bool = False):
-    """Get notifications for a company"""
+async def get_notifications(company_id: str, limit: int = 50, include_read: bool = False, target: str = None):
+    """
+    Get notifications for a company
+    target: "admin" = sadece admin bildirimleri (admin paneli için)
+            "courier" = sadece kurye bildirimleri
+            None = tüm bildirimler (varsayılan, ama admin panelinde kurye bildirimlerini hariç tutar)
+    """
     query = {"company_id": company_id}
     if not include_read:
         query["is_read"] = False
+    
+    # Admin panelinde kurye'ye özel bildirimleri gösterme
+    # target="courier" olan bildirimler sadece kuryenin mobil uygulamasında görünmeli
+    if target == "admin":
+        query["target"] = {"$ne": "courier"}  # courier olmayanlar
+    elif target == "courier":
+        query["target"] = "courier"
+    else:
+        # Varsayılan: target="courier" olanları hariç tut (admin paneli için)
+        query["$or"] = [
+            {"target": {"$exists": False}},  # eski bildirimler
+            {"target": {"$ne": "courier"}}   # admin veya belirtilmemiş
+        ]
     
     notifications = await db.notifications.find(
         query,
@@ -39,12 +57,29 @@ async def get_notifications(company_id: str, limit: int = 50, include_read: bool
 
 
 @router.get("/company/{company_id}/unread-count")
-async def get_unread_count(company_id: str):
-    """Get count of unread notifications"""
-    count = await db.notifications.count_documents({
+async def get_unread_count(company_id: str, target: str = None):
+    """
+    Get count of unread notifications
+    Admin panelinde kurye bildirimlerini sayma
+    """
+    query = {
         "company_id": company_id,
         "is_read": False
-    })
+    }
+    
+    # Admin panelinde kurye bildirimlerini sayma
+    if target == "admin":
+        query["target"] = {"$ne": "courier"}
+    elif target == "courier":
+        query["target"] = "courier"
+    else:
+        # Varsayılan: kurye bildirimlerini hariç tut
+        query["$or"] = [
+            {"target": {"$exists": False}},
+            {"target": {"$ne": "courier"}}
+        ]
+    
+    count = await db.notifications.count_documents(query)
     return {"count": count}
 
 
