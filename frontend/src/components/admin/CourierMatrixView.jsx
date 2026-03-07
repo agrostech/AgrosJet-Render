@@ -360,7 +360,7 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                       const isUpdatingCell = updating[`${courier.id}-max_packages`];
                       
                       return (
-                        <div className="flex items-center justify-between px-1">
+                        <div className="relative flex items-center justify-center">
                           <div className="flex items-center gap-0.5">
                             <button
                               onClick={() => {
@@ -390,17 +390,19 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                             </button>
                           </div>
                           {hasChanged && (
-                            isUpdatingCell ? (
-                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
-                            ) : (
-                              <button
-                                onClick={() => handleNumericSave(courier.id, "max_packages", originalValue)}
-                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
-                                title="Kaydet"
-                              >
-                                <Save className="w-3 h-3" />
-                              </button>
-                            )
+                            <div className="absolute right-1">
+                              {isUpdatingCell ? (
+                                <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                              ) : (
+                                <button
+                                  onClick={() => handleNumericSave(courier.id, "max_packages", originalValue)}
+                                  className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
+                                  title="Kaydet"
+                                >
+                                  <Save className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       );
@@ -417,7 +419,7 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                       const isUpdatingCell = updating[`${courier.id}-break_limit`];
                       
                       return (
-                        <div className="flex items-center justify-between px-1">
+                        <div className="relative flex items-center justify-center">
                           <div className="flex items-center gap-0.5">
                             <button
                               onClick={() => {
@@ -448,17 +450,19 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                             </button>
                           </div>
                           {hasChanged && (
-                            isUpdatingCell ? (
-                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
-                            ) : (
-                              <button
-                                onClick={() => handleNumericSave(courier.id, "break_limit", originalValue)}
-                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
-                                title="Kaydet"
-                              >
-                                <Save className="w-3 h-3" />
-                              </button>
-                            )
+                            <div className="absolute right-1">
+                              {isUpdatingCell ? (
+                                <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                              ) : (
+                                <button
+                                  onClick={() => handleNumericSave(courier.id, "break_limit", originalValue)}
+                                  className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
+                                  title="Kaydet"
+                                >
+                                  <Save className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       );
