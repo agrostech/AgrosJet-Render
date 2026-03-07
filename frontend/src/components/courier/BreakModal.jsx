@@ -227,9 +227,9 @@ export function BreakModal({
                         const val = parseInt(e.target.value) || 0;
                         setSelectedDuration(Math.min(Math.max(1, val), remainingBreakTime));
                       }}
-                      className="w-16 h-8 text-center text-sm font-semibold pr-6"
+                      className="w-20 h-8 text-center text-sm font-semibold pr-7"
                     />
-                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                       dk
                     </span>
                   </div>
