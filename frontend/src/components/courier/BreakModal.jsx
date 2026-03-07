@@ -222,10 +222,21 @@ export function BreakModal({
                       type="number"
                       min={1}
                       max={remainingBreakTime}
-                      value={selectedDuration}
+                      value={selectedDuration || ''}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0;
-                        setSelectedDuration(Math.min(Math.max(1, val), remainingBreakTime));
+                        const val = e.target.value;
+                        if (val === '') {
+                          setSelectedDuration('');
+                        } else {
+                          const num = parseInt(val) || 0;
+                          setSelectedDuration(Math.min(num, remainingBreakTime));
+                        }
+                      }}
+                      onBlur={() => {
+                        // Boş veya 0 ise minimum 1 yap
+                        if (!selectedDuration || selectedDuration < 1) {
+                          setSelectedDuration(1);
+                        }
                       }}
                       className="w-20 h-8 text-center text-sm font-semibold pr-7"
                     />
