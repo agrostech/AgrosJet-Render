@@ -315,7 +315,7 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
         }
         
         # Opsiyonları recursive olarak ekle (nested options desteği)
-        def parse_options(options_list, parent_header=None):
+        def parse_options(options_list, parent_header=None, depth=0):
             """Migros opsiyonlarını recursive olarak parse et"""
             parsed = []
             for opt in (options_list or []):
@@ -324,6 +324,9 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
                 item_names = opt.get("itemNames", "")
                 quantity = opt.get("quantity", 1)
                 excluded = opt.get("excluded", False)
+                
+                # Debug log - tüm option key'lerini göster
+                logger.debug(f"[Migros Parse] Depth={depth}, Keys={list(opt.keys())}, header={header_name}, items={item_names}")
                 
                 # Ana opsiyon
                 if item_names:
@@ -354,11 +357,19 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
                         })
                 
                 # Alt seçenekleri (child options) recursive olarak parse et
-                child_options = opt.get("options") or opt.get("childOptions") or opt.get("subOptions") or []
+                # Migros farklı key isimleri kullanabilir
+                child_options = (
+                    opt.get("options") or 
+                    opt.get("childOptions") or 
+                    opt.get("subOptions") or 
+                    opt.get("children") or
+                    opt.get("items") or
+                    []
+                )
                 if child_options:
                     # Alt seçenek için parent header'ı ayarla
                     child_parent = header_name or item_names or parent_header
-                    parsed.extend(parse_options(child_options, child_parent))
+                    parsed.extend(parse_options(child_options, child_parent, depth + 1))
             
             return parsed
         
@@ -432,7 +443,8 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
             "store_group_name": store.get("group", {}).get("name"),
             "delivery_provider": migros_order.get("deliveryProvider"),
             "original_status": migros_order.get("status"),
-            "prices": prices
+            "prices": prices,
+            "raw_items": migros_order.get("items", [])  # Debug için ham item verisi
         },
         
         # Zaman damgaları
