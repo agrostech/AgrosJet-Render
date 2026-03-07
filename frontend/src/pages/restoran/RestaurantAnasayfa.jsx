@@ -960,10 +960,10 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                       <Tooltip>
                                         <TooltipTrigger asChild>
                                           <button
-                                            className="h-7 w-7 rounded border-2 border-blue-400 flex items-center justify-center hover:border-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                                            className="h-7 w-7 rounded border-2 border-slate-400 flex items-center justify-center hover:border-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
                                             onClick={() => setUnmarkDeliveryConfirm(order)}
                                           >
-                                            <Send className="w-4 h-4 text-blue-500" />
+                                            <Send className="w-4 h-4 text-slate-500" />
                                           </button>
                                         </TooltipTrigger>
                                         <TooltipContent>Kurye Şirketine Aktar</TooltipContent>
@@ -971,8 +971,8 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     </TooltipProvider>
                                   ) : (
                                     // Teslim edilmiş veya izin yoksa sadece görsel
-                                    <div className="h-7 w-7 rounded border-2 border-blue-200 flex items-center justify-center opacity-50">
-                                      <Send className="w-4 h-4 text-blue-300" />
+                                    <div className="h-7 w-7 rounded border-2 border-slate-300 flex items-center justify-center opacity-50">
+                                      <Send className="w-4 h-4 text-slate-400" />
                                     </div>
                                   )
                                 ) : !order.manual_transfer_mode && canMarkRestaurantDelivery && (() => {
