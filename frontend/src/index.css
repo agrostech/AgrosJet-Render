@@ -200,3 +200,15 @@ body {
     font-weight: 600;
 }
 
+
+
+/* Matrix view number inputs - centered text */
+input[type="number"].matrix-input {
+    text-align: center !important;
+    -moz-appearance: textfield;
+}
+input[type="number"].matrix-input::-webkit-outer-spin-button,
+input[type="number"].matrix-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
