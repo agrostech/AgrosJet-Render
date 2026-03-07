@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -10,12 +11,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Coffee, Clock, Users, AlertCircle, Loader2 } from "lucide-react";
+import { Coffee, Clock, Users, AlertCircle, Loader2, Maximize2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Dakika seçenekleri
-const DURATION_OPTIONS = [15, 30, 45, 60, 90, 120];
+// Hızlı seçim butonları
+const QUICK_OPTIONS = [15, 30, 45, 60];
 
 export function BreakModal({ 
   open, 
@@ -48,10 +49,15 @@ export function BreakModal({
       const res = await axios.get(`${API}/companies/${companyId}/break-status`);
       setBreakStatus(res.data);
       
-      // Varsayılan süreyi kalan hakka göre ayarla
+      // Varsayılan süreyi kalan hakka göre ayarla (tam kalan süre veya en yakın hızlı seçenek)
       const maxAllowed = Math.min(remainingBreakTime, 120);
-      const defaultDuration = DURATION_OPTIONS.find(d => d <= maxAllowed) || DURATION_OPTIONS[0];
-      setSelectedDuration(Math.min(defaultDuration, maxAllowed));
+      if (maxAllowed > 0) {
+        // Eğer kalan süre hızlı seçeneklerden birine eşitse onu seç, değilse tam kalan süreyi seç
+        const quickOption = QUICK_OPTIONS.find(d => d === maxAllowed);
+        setSelectedDuration(quickOption || maxAllowed);
+      } else {
+        setSelectedDuration(15);
+      }
     } catch (err) {
       setError("Mola durumu yüklenemedi");
       console.error(err);
@@ -206,10 +212,42 @@ export function BreakModal({
             )}
 
             {/* Süre Seçimi */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Mola Süresi Seçin</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {DURATION_OPTIONS.map(duration => {
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Mola Süresi</Label>
+              
+              {/* Manuel Input + Tümünü Kullan */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={remainingBreakTime}
+                    value={selectedDuration}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      setSelectedDuration(Math.min(Math.max(1, val), remainingBreakTime));
+                    }}
+                    className="pr-12 text-center text-lg font-semibold h-12"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    dk
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="h-12 px-4 whitespace-nowrap"
+                  onClick={() => setSelectedDuration(remainingBreakTime)}
+                  disabled={remainingBreakTime <= 0}
+                >
+                  <Maximize2 className="w-4 h-4 mr-1" />
+                  Tümü ({remainingBreakTime})
+                </Button>
+              </div>
+              
+              {/* Hızlı Seçim Butonları */}
+              <div className="flex gap-2 flex-wrap">
+                {QUICK_OPTIONS.map(duration => {
                   const isDisabled = duration > remainingBreakTime;
                   const isSelected = selectedDuration === duration;
                   return (
@@ -217,7 +255,8 @@ export function BreakModal({
                       key={duration}
                       type="button"
                       variant={isSelected ? "default" : "outline"}
-                      className={`h-12 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      size="sm"
+                      className={`flex-1 min-w-[60px] ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                       disabled={isDisabled}
                       onClick={() => !isDisabled && setSelectedDuration(duration)}
                     >
