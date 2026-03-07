@@ -18,7 +18,8 @@ import {
   ShoppingBag,
   FileText,
   AlertTriangle,
-  X
+  X,
+  Coffee
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -65,6 +66,11 @@ const NOTIFICATION_ICONS = {
   fatura_eksik: AlertTriangle,
   fesih_3_gun: AlertTriangle,
   fesih_yarin: AlertTriangle,
+  break_request: Coffee,
+  break_approved: Coffee,
+  break_rejected: Coffee,
+  break_started: Coffee,
+  break_ended: Coffee,
 };
 
 const NOTIFICATION_COLORS = {
@@ -76,6 +82,11 @@ const NOTIFICATION_COLORS = {
   fatura_eksik: "text-orange-600 bg-orange-100",
   fesih_3_gun: "text-orange-600 bg-orange-100",
   fesih_yarin: "text-red-600 bg-red-100",
+  break_request: "text-amber-600 bg-amber-100",
+  break_approved: "text-green-600 bg-green-100",
+  break_rejected: "text-red-600 bg-red-100",
+  break_started: "text-blue-600 bg-blue-100",
+  break_ended: "text-gray-600 bg-gray-100",
 };
 
 export default function NotificationsPopover({ companyId }) {
@@ -88,6 +99,11 @@ export default function NotificationsPopover({ companyId }) {
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
+  
+  // Mola talepleri
+  const [breakRequests, setBreakRequests] = useState([]);
+  const [breakRequestsCount, setBreakRequestsCount] = useState(0);
+  const [activeTab, setActiveTab] = useState("notifications"); // "notifications" | "break_requests"
 
   const fetchUnreadCount = useCallback(async () => {
     if (!companyId) return;
@@ -123,6 +139,20 @@ export default function NotificationsPopover({ companyId }) {
       // Update unread count
       const unread = res.data.filter(n => !n.is_read).length;
       setUnreadCount(unread);
+      
+      // Mola taleplerini çek (manuel mod için)
+      try {
+        const breakRes = await axios.get(`${API}/companies/${companyId}/break-status`);
+        if (breakRes.data.break_mode === "manual" && breakRes.data.pending_requests) {
+          setBreakRequests(breakRes.data.pending_requests);
+          setBreakRequestsCount(breakRes.data.pending_requests.length);
+        } else {
+          setBreakRequests([]);
+          setBreakRequestsCount(0);
+        }
+      } catch (err) {
+        console.error("Mola talepleri yüklenemedi");
+      }
     } catch (err) {
       console.error("Bildirimler yüklenemedi");
     } finally {
@@ -210,6 +240,19 @@ export default function NotificationsPopover({ companyId }) {
       }
     } finally {
       setConfirmOpen(false);
+    }
+  };
+
+  // Mola talebi işlemleri
+  const handleBreakRequestAction = async (requestId, action) => {
+    try {
+      await axios.put(`${API}/break-requests/${requestId}/action`, { action });
+      toast.success(action === "approve" ? "Mola talebi onaylandı" : "Mola talebi reddedildi");
+      // Talepleri yenile
+      setBreakRequests(prev => prev.filter(r => r.id !== requestId));
+      setBreakRequestsCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "İşlem başarısız");
     }
   };
 

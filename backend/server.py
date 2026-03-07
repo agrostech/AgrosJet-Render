@@ -312,12 +312,87 @@ async def lifespan(app: FastAPI):
     from utils.shift_scheduler import set_scheduler, load_shift_jobs
     set_scheduler(scheduler)
     
+    # Mola sistemi scheduler job'ları
+    async def break_queue_job():
+        """Mola sırasını işle - her 30 saniyede"""
+        try:
+            from services.break_scheduler import process_break_queue
+            await process_break_queue()
+        except Exception as e:
+            print(f"Break queue job error: {e}")
+    
+    async def break_completion_job():
+        """Mola bitiş kontrolü - her 30 saniyede"""
+        try:
+            from services.break_scheduler import check_break_completions
+            await check_break_completions()
+        except Exception as e:
+            print(f"Break completion job error: {e}")
+    
+    async def delivery_break_job():
+        """Paket teslim sonrası mola kontrolü - her 15 saniyede"""
+        try:
+            from services.break_scheduler import check_delivery_completion_for_break
+            await check_delivery_completion_for_break()
+        except Exception as e:
+            print(f"Delivery break job error: {e}")
+    
+    async def daily_break_reset_job():
+        """Günlük mola kullanımını sıfırla - gece yarısı"""
+        try:
+            from services.break_scheduler import reset_daily_break_time
+            await reset_daily_break_time()
+        except Exception as e:
+            print(f"Daily break reset job error: {e}")
+    
+    # Mola sıra işleme - her 30 saniye
+    scheduler.add_job(
+        break_queue_job,
+        'interval',
+        seconds=30,
+        id="break_queue_process",
+        name="Break Queue Process",
+        replace_existing=True
+    )
+    
+    # Mola bitiş kontrolü - her 30 saniye
+    scheduler.add_job(
+        break_completion_job,
+        'interval',
+        seconds=30,
+        id="break_completion_check",
+        name="Break Completion Check",
+        replace_existing=True
+    )
+    
+    # Paket teslim sonrası mola kontrolü - her 15 saniye
+    scheduler.add_job(
+        delivery_break_job,
+        'interval',
+        seconds=15,
+        id="delivery_break_check",
+        name="Delivery Break Check",
+        replace_existing=True
+    )
+    
+    # Günlük mola sıfırlama - her gün 00:00 (Türkiye saati)
+    scheduler.add_job(
+        daily_break_reset_job,
+        'cron',
+        hour=0,
+        minute=0,
+        timezone='Europe/Istanbul',
+        id="daily_break_reset",
+        name="Daily Break Time Reset",
+        replace_existing=True
+    )
+    
     scheduler.start()
     
     # Mevcut vardiyaların job'larını yükle
     await load_shift_jobs()
     
-    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break reset (1m), weekly hakedis (1m), restaurant invoices (Monday 02:00), shift jobs (dynamic)")
+    print("Schedulers started - backup (hourly), adisyo sync (30s), trendyol sync (30s), getir sync (30s), break system (30s), break reset (daily 00:00), weekly hakedis (1m), restaurant invoices (Monday 02:00), shift jobs (dynamic)")
     
     yield
     

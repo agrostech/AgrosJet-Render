@@ -771,3 +771,96 @@ async def send_break_notification(
     
     # TODO: Push notification gönderimi eklenecek
     logger.info(f"Break notification: {notification_type} - {courier_name} - {message}")
+
+
+
+# --- Kurye Mola Durumu Kontrolü (Admin Atama için) ---
+@router.get("/couriers/{courier_id}/break-queue-status")
+async def check_courier_break_queue_status(courier_id: str):
+    """
+    Admin manuel atama yaparken kuryenin mola sırasında olup olmadığını kontrol et.
+    Eğer sıradaysa ve tahmini süre X dk'dan azsa uyarı döndür.
+    """
+    now = datetime.now(TURKEY_TZ)
+    
+    # Kurye bilgisini al
+    courier = await db.couriers.find_one(
+        {"id": courier_id},
+        {"_id": 0, "id": 1, "name": 1, "company_ids": 1}
+    )
+    
+    if not courier:
+        return {"in_queue": False, "warning": None}
+    
+    company_ids = courier.get("company_ids", [])
+    company_id = company_ids[0] if company_ids else None
+    
+    if not company_id:
+        return {"in_queue": False, "warning": None}
+    
+    # Şirket ayarlarını al
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "break_settings": 1}
+    )
+    break_settings = company.get("break_settings", {}) if company else {}
+    break_mode = break_settings.get("break_mode", "automatic")
+    
+    if break_mode != "automatic":
+        return {"in_queue": False, "warning": None}
+    
+    # Mola sırasında mı kontrol et
+    queue_entry = await db.break_queue.find_one(
+        {
+            "courier_id": courier_id,
+            "status": {"$in": ["waiting", "ready"]}
+        },
+        {"_id": 0, "estimated_wait_minutes": 1, "created_at": 1, "status": 1, "duration": 1}
+    )
+    
+    if not queue_entry:
+        return {"in_queue": False, "warning": None}
+    
+    # Tahmini bekleme süresini hesapla
+    estimated_wait = queue_entry.get("estimated_wait_minutes", 0)
+    created_at = queue_entry.get("created_at")
+    
+    if created_at:
+        try:
+            created_time = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            if created_time.tzinfo is None:
+                created_time = created_time.replace(tzinfo=TURKEY_TZ)
+            elapsed = (now - created_time).total_seconds() / 60
+            remaining_wait = max(0, estimated_wait - elapsed)
+        except:
+            remaining_wait = estimated_wait
+    else:
+        remaining_wait = estimated_wait
+    
+    # Uyarı mesajı oluştur
+    assignment_restriction = break_settings.get("break_assignment_restriction", 10)
+    
+    if queue_entry.get("status") == "ready":
+        # Sırası gelmiş, paket bekliyor
+        return {
+            "in_queue": True,
+            "warning": f"Bu kuryenin mola sırası geldi ve paket teslimini bekliyor. Yine de atamak istiyor musunuz?",
+            "remaining_minutes": 0,
+            "status": "ready"
+        }
+    elif remaining_wait <= assignment_restriction:
+        # Sırası yaklaşmış
+        return {
+            "in_queue": True,
+            "warning": f"Bu kuryenin molasına {int(remaining_wait)} dakika kaldı. Yine de atamak istiyor musunuz?",
+            "remaining_minutes": int(remaining_wait),
+            "status": "approaching"
+        }
+    else:
+        # Sırada ama henüz zamanı gelmemiş
+        return {
+            "in_queue": True,
+            "warning": None,
+            "remaining_minutes": int(remaining_wait),
+            "status": "waiting"
+        }

@@ -36,6 +36,7 @@ import { CourierDetailModal } from "@/components/siparis/CourierDetailModal";
 import NotificationsPopover from "@/components/admin/NotificationsPopover";
 import GecmisSiparislerPage from "./GecmisSiparislerPage";
 import IptalSiparislerPage from "./IptalSiparislerPage";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -86,6 +87,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const [shiftAssignments, setShiftAssignments] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [leaves, setLeaves] = useState([]);
+  
+  // Mola uyarısı için state
+  const [breakWarning, setBreakWarning] = useState(null);
+  const [showBreakConfirm, setShowBreakConfirm] = useState(false);
+  const [pendingAssignment, setPendingAssignment] = useState(null);
   
   // Map ref
   const mapRef = useRef(null);
@@ -516,17 +522,52 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     }
   };
 
+  // Mola kontrolü ve atama
+  const checkBreakAndAssign = async (courierId) => {
+    try {
+      // Mola durumunu kontrol et
+      const breakRes = await axios.get(`${API}/couriers/${courierId}/break-queue-status`);
+      
+      if (breakRes.data.warning) {
+        // Uyarı var - onay al
+        setBreakWarning(breakRes.data.warning);
+        setPendingAssignment({ courierId });
+        setShowBreakConfirm(true);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("Mola kontrolü hatası:", err);
+      return true; // Hata durumunda devam et
+    }
+  };
+
   const handleAssignCourier = async () => {
     if (!selectedOrder || !selectedCourierId) return;
     
     const courier = couriers.find(c => c.id === selectedCourierId);
     
+    // Önce mola kontrolü yap
+    const canProceed = await checkBreakAndAssign(selectedCourierId);
+    if (!canProceed) {
+      // Onay beklenecek
+      return;
+    }
+    
+    // Atamayı gerçekleştir
+    await performAssignment(selectedCourierId, courier);
+  };
+
+  const performAssignment = async (courierId, courier) => {
     setShowAssignModal(false);
+    setShowBreakConfirm(false);
     setSelectedCourierId("");
+    setPendingAssignment(null);
+    setBreakWarning(null);
     
     try {
       await axios.post(`${API}/orders/${companyId}/${selectedOrder.id}/assign`, {
-        courier_id: selectedCourierId,
+        courier_id: courierId,
         admin_name: adminName || "Admin"
       });
       
@@ -536,7 +577,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
           return {
             ...order,
             status: 'assigned',
-            courier_id: selectedCourierId,
+            courier_id: courierId,
             courier_name: courier?.name || '',
             assigned_at: new Date().toISOString()
           };
@@ -545,6 +586,13 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
       }));
     } catch (err) {
       toast.error("Kurye atanamadı");
+    }
+  };
+
+  const handleBreakConfirmAssign = () => {
+    if (pendingAssignment) {
+      const courier = couriers.find(c => c.id === pendingAssignment.courierId);
+      performAssignment(pendingAssignment.courierId, courier);
     }
   };
 
@@ -1517,6 +1565,18 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Mola Uyarısı Onay Modalı */}
+        <ConfirmModal
+          open={showBreakConfirm}
+          onOpenChange={setShowBreakConfirm}
+          title="Mola Uyarısı"
+          description={breakWarning || "Bu kuryenin molası yaklaşıyor. Yine de atamak istiyor musunuz?"}
+          onConfirm={handleBreakConfirmAssign}
+          confirmText="Evet, Ata"
+          cancelText="Vazgeç"
+          variant="warning"
+        />
       </div>
     </div>
   );
