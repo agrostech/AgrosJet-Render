@@ -989,7 +989,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                             className="h-7 w-7 p-0 hover:bg-slate-100"
                                             onClick={() => setRestaurantDeliveryConfirm(order)}
                                           >
-                                            <Truck className="w-4 h-4 text-slate-400" />
+                                            <Store className="w-4 h-4 text-slate-500" />
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>Restoran Teslimatı</TooltipContent>
