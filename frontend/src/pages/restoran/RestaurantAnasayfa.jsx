@@ -959,19 +959,21 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                     <TooltipProvider>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
-                                          <button
-                                            className="h-7 w-7 rounded border-2 border-slate-400 flex items-center justify-center hover:border-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 hover:bg-slate-100"
                                             onClick={() => setUnmarkDeliveryConfirm(order)}
                                           >
-                                            <Send className="w-4 h-4 text-slate-500" />
-                                          </button>
+                                            <Send className="w-4 h-4 text-slate-400" />
+                                          </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>Kurye Şirketine Aktar</TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>
                                   ) : (
                                     // Teslim edilmiş veya izin yoksa sadece görsel
-                                    <div className="h-7 w-7 rounded border-2 border-slate-300 flex items-center justify-center opacity-50">
+                                    <div className="h-7 w-7 flex items-center justify-center opacity-50">
                                       <Send className="w-4 h-4 text-slate-400" />
                                     </div>
                                   )
