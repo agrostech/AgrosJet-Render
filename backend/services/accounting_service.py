@@ -33,6 +33,16 @@ async def get_entity_transactions(entity_type: str, entity_id: str, skip: int = 
         {"_id": 0}
     ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
+    # Hakediş işlemleri için fatura onay durumunu kontrol et
+    for tx in transactions:
+        if tx.get("is_hakedis"):
+            # Bu işlem için onaylanmış fatura var mı?
+            verified_invoice = await db.invoices.find_one({
+                "transaction_id": tx["id"],
+                "verified": True
+            })
+            tx["invoice_verified"] = verified_invoice is not None
+    
     # Calculate balance using aggregation (optimized)
     # payment_out/given = borç artırır (pozitif bakiye)
     # payment_in/received = borç azaltır (negatif bakiye)

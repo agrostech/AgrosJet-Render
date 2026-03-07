@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard } from "lucide-react";
+import { Plus, Minus, Archive, ArchiveRestore, Clock, Search, Download, Pencil, Trash2, CreditCard, CheckCircle2 } from "lucide-react";
 import { formatMoney, formatDate } from "@/hooks/useAccountingTab";
 
 export default function CourierTransactions({
@@ -310,9 +310,14 @@ function TransactionHistory({
                 <tr key={tx.id} className="border-b border-border hover:bg-slate-50">
                   <td className="p-2 text-xs font-mono whitespace-nowrap">{formatDate(tx.created_at)}</td>
                   <td className="p-2 text-xs">
-                    {tx.description}
-                    {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Hakediş</span>}
-                    {tx.installment_product_id && <span className="ml-1 px-1 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Taksit</span>}
+                    <div className="flex items-center gap-1">
+                      {tx.description}
+                      {tx.is_hakedis && <span className="ml-1 px-1 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded">Hakediş</span>}
+                      {tx.is_hakedis && tx.invoice_verified && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600 ml-1" title="Fatura onaylandı" />
+                      )}
+                      {tx.installment_product_id && <span className="ml-1 px-1 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded">Taksit</span>}
+                    </div>
                   </td>
                   <td className={`p-2 text-xs font-mono text-right font-semibold ${tx.type === 'payment_out' ? 'text-green-600' : 'text-red-600'}`}>
                     {tx.type === 'payment_in' ? '-' : ''}{formatMoney(tx.amount)}
