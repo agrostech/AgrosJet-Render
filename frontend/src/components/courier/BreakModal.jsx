@@ -16,7 +16,7 @@ import { Coffee, Clock, Users, AlertCircle, Loader2, Maximize2 } from "lucide-re
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Hızlı seçim butonları
-const QUICK_OPTIONS = [15, 30, 45, 60];
+const QUICK_OPTIONS = [15, 30, 45, 60, 90, 120];
 
 export function BreakModal({ 
   open, 
@@ -213,40 +213,42 @@ export function BreakModal({
 
             {/* Süre Seçimi */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Mola Süresi</Label>
-              
-              {/* Manuel Input + Tümünü Kullan */}
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={remainingBreakTime}
-                    value={selectedDuration}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value) || 0;
-                      setSelectedDuration(Math.min(Math.max(1, val), remainingBreakTime));
-                    }}
-                    className="pr-12 text-center text-lg font-semibold h-12"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    dk
-                  </span>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Mola Süresi</Label>
+                {/* Kompakt Input + Tümünü Kullan */}
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={remainingBreakTime}
+                      value={selectedDuration}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        setSelectedDuration(Math.min(Math.max(1, val), remainingBreakTime));
+                      }}
+                      className="w-16 h-8 text-center text-sm font-semibold pr-6"
+                    />
+                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                      dk
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 px-2 text-xs"
+                    onClick={() => setSelectedDuration(remainingBreakTime)}
+                    disabled={remainingBreakTime <= 0}
+                  >
+                    <Maximize2 className="w-3 h-3 mr-1" />
+                    Tümü
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="h-12 px-4 whitespace-nowrap"
-                  onClick={() => setSelectedDuration(remainingBreakTime)}
-                  disabled={remainingBreakTime <= 0}
-                >
-                  <Maximize2 className="w-4 h-4 mr-1" />
-                  Tümü ({remainingBreakTime})
-                </Button>
               </div>
               
-              {/* Hızlı Seçim Butonları */}
-              <div className="flex gap-2 flex-wrap">
+              {/* Hızlı Seçim Butonları - 3x2 Grid */}
+              <div className="grid grid-cols-3 gap-2">
                 {QUICK_OPTIONS.map(duration => {
                   const isDisabled = duration > remainingBreakTime;
                   const isSelected = selectedDuration === duration;
@@ -256,7 +258,7 @@ export function BreakModal({
                       type="button"
                       variant={isSelected ? "default" : "outline"}
                       size="sm"
-                      className={`flex-1 min-w-[60px] ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                      className={`h-9 ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                       disabled={isDisabled}
                       onClick={() => !isDisabled && setSelectedDuration(duration)}
                     >
