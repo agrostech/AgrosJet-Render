@@ -867,7 +867,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                               {/* Restoran teslimatı ise "Restoran" göster */}
                               {order.is_restaurant_delivery ? (
                                 <span className="text-xs px-2 py-1 border border-slate-300 text-slate-600 rounded font-medium flex items-center gap-1 w-fit">
-                                  <Truck className="w-3 h-3" />
+                                  <Store className="w-3 h-3" />
                                   Restoran
                                 </span>
                               ) : order.courier_name ? (
@@ -1056,7 +1056,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-slate-600" />
+              <Store className="w-5 h-5 text-slate-600" />
               Restoran Teslimatı
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
@@ -1088,7 +1088,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-slate-600" />
+              <Send className="w-5 h-5 text-slate-600" />
               Kurye Şirketine Aktar
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
