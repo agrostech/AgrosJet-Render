@@ -106,8 +106,10 @@ async def insert_order(order_data: dict) -> dict:
     Merkezi sipariş ekleme fonksiyonu.
     Tüm sipariş eklemeleri bu fonksiyon üzerinden yapılmalıdır.
     
-    1. Siparişi veritabanına ekler
-    2. Otomatik olarak kontör düşer (sınırsız değilse)
+    1. Restoran'ın order_transfer_mode ayarını kontrol eder
+    2. Manuel moddaysa is_restaurant_delivery=True yapar
+    3. Siparişi veritabanına ekler
+    4. Otomatik olarak kontör düşer (sınırsız değilse)
     
     Args:
         order_data: Sipariş verisi (dict)
@@ -115,6 +117,18 @@ async def insert_order(order_data: dict) -> dict:
     Returns:
         Eklenen sipariş verisi (_id hariç)
     """
+    # Restoran'ın order_transfer_mode ayarını kontrol et
+    restaurant_id = order_data.get("restaurant_id")
+    if restaurant_id and not order_data.get("is_restaurant_delivery"):
+        restaurant = await db.restaurants.find_one(
+            {"id": restaurant_id}, 
+            {"_id": 0, "order_transfer_mode": 1}
+        )
+        if restaurant and restaurant.get("order_transfer_mode") == "manual":
+            order_data["is_restaurant_delivery"] = True
+            order_data["manual_transfer_mode"] = True  # Manuel mod işareti
+            logger.info(f"Manuel aktarım modu - sipariş restoran teslimatı olarak işaretlendi: {order_data.get('id')}")
+    
     # Siparişi ekle
     await db.orders.insert_one(order_data)
     

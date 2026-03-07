@@ -15,7 +15,8 @@ import {
   FileText,
   Shield,
   RefreshCw,
-  Package
+  Package,
+  ArrowRightLeft
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -62,6 +63,8 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
     let newValue;
     if (settingType === "collection") {
       newValue = currentValue === "courier" ? "restaurant" : "courier";
+    } else if (settingType === "transfer_mode") {
+      newValue = currentValue; // Zaten yeni değer geçiliyor
     } else {
       newValue = !currentValue;
     }
@@ -78,6 +81,8 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
           return { ...r, invoice: { ...r.invoice, [settingKey]: newValue } };
         } else if (settingType === "permission") {
           return { ...r, permissions: { ...r.permissions, [settingKey]: newValue } };
+        } else if (settingType === "transfer_mode") {
+          return { ...r, order_transfer_mode: newValue };
         }
         return r;
       })
@@ -103,6 +108,8 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
             return { ...r, invoice: { ...r.invoice, [settingKey]: currentValue } };
           } else if (settingType === "permission") {
             return { ...r, permissions: { ...r.permissions, [settingKey]: currentValue } };
+          } else if (settingType === "transfer_mode") {
+            return { ...r, order_transfer_mode: currentValue === "auto" ? "manual" : "auto" };
           }
           return r;
         })
@@ -192,6 +199,12 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                   Ücret
                 </div>
               </th>
+              <th className="p-2 text-center font-semibold bg-cyan-100 border-r-2 border-slate-300">
+                <div className="flex items-center justify-center gap-1">
+                  <ArrowRightLeft className="w-3 h-3" />
+                  Aktarım
+                </div>
+              </th>
               <th colSpan={3} className="p-2 text-center font-semibold bg-green-100 border-r-2 border-slate-300">
                 <div className="flex items-center justify-center gap-1">
                   <Banknote className="w-3 h-3" />
@@ -221,6 +234,9 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
               </th>
               <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-amber-50 border-r-2 border-slate-300">
                 Tür
+              </th>
+              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-cyan-50 border-r-2 border-slate-300">
+                Mod
               </th>
               {collectionCols.map((col, i) => (
                 <th 
@@ -280,6 +296,35 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                     }`}>
                       {restaurant.pricing_type === "per_km" ? "KM" : "Pkt Başı"}
                     </span>
+                  </td>
+                  
+                  {/* Aktarım Modu */}
+                  <td className="p-1 text-center border-r-2 border-slate-300">
+                    {(() => {
+                      const mode = restaurant.order_transfer_mode || "auto";
+                      const cellKey = `${restaurant.id}-transfer_mode`;
+                      const isUpdatingCell = updating[cellKey];
+                      
+                      return (
+                        <button
+                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-medium cursor-pointer transition-colors ${
+                            mode === "auto" 
+                              ? "bg-green-100 text-green-700 hover:bg-green-200" 
+                              : "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                          }`}
+                          onClick={() => {
+                            if (isUpdatingCell) return;
+                            const newMode = mode === "auto" ? "manual" : "auto";
+                            handleCellUpdate(restaurant.id, "transfer_mode", "order_transfer_mode", newMode);
+                          }}
+                          disabled={isUpdatingCell}
+                        >
+                          {isUpdatingCell ? (
+                            <RefreshCw className="w-3 h-3 animate-spin inline" />
+                          ) : mode === "auto" ? "Oto" : "Manuel"}
+                        </button>
+                      );
+                    })()}
                   </td>
                   
                   {/* Tahsilat */}

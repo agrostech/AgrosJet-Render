@@ -341,6 +341,8 @@ async def get_restaurants_matrix(company_id: str, include_archived: bool = False
             "preparation_time": r.get("preparation_time", 15),
             # Ücretlendirme türü
             "pricing_type": pricing_type,
+            # Paket aktarım modu
+            "order_transfer_mode": r.get("order_transfer_mode", "auto"),
             # Tahsilat (courier = kurye tahsil eder, restaurant = restoran tahsil eder)
             "collection": {
                 "cash": collection.get("cash_collection", "courier"),
@@ -372,7 +374,7 @@ async def bulk_update_restaurant_settings(company_id: str, updates: List[dict]):
     """
     Birden fazla restoran ayarını tek seferde güncelle.
     Her update: { restaurant_id, setting_type, setting_key, value }
-    setting_type: "collection" | "invoice" | "permission"
+    setting_type: "collection" | "invoice" | "permission" | "transfer_mode"
     """
     results = []
     
@@ -400,6 +402,12 @@ async def bulk_update_restaurant_settings(company_id: str, updates: List[dict]):
                 await db.restaurants.update_one(
                     {"id": restaurant_id, "company_id": company_id},
                     {"$set": {f"permissions.{setting_key}": value}}
+                )
+            elif setting_type == "transfer_mode":
+                # Paket aktarım modu
+                await db.restaurants.update_one(
+                    {"id": restaurant_id, "company_id": company_id},
+                    {"$set": {"order_transfer_mode": value}}
                 )
             
             results.append({"restaurant_id": restaurant_id, "success": True})
@@ -489,6 +497,7 @@ async def create_restaurant(data: RestaurantCreate):
         "company_id": data.company_id,
         "preparation_time": data.preparation_time,  # Hazırlık süresi (dakika)
         "pricing_type": "per_package",  # Varsayılan ücretlendirme türü
+        "order_transfer_mode": "auto",  # Varsayılan: otomatik aktarım
         "adisyo_api_key": data.adisyo_api_key,
         "adisyo_api_secret": data.adisyo_api_secret,
         "adisyo_branch_id": data.adisyo_branch_id,
@@ -587,6 +596,26 @@ async def delete_restaurant(restaurant_id: str):
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
     
     return {"message": "Restoran silindi"}
+
+
+# --- Paket Aktarım Modu Güncelleme ---
+@router.put("/{restaurant_id}/order-transfer-mode")
+async def update_order_transfer_mode(restaurant_id: str, mode: str):
+    """Restoran paket aktarım modunu güncelle (auto/manual)"""
+    if mode not in ["auto", "manual"]:
+        raise HTTPException(status_code=400, detail="Geçersiz mod. 'auto' veya 'manual' olmalı")
+    
+    result = await db.restaurants.update_one(
+        {"id": restaurant_id},
+        {"$set": {"order_transfer_mode": mode, "updated_at": get_turkey_now()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    return {"message": "Paket aktarım modu güncellendi", "mode": mode}
+
+
 
 
 # --- Adisyo API Bağlantı Test ---

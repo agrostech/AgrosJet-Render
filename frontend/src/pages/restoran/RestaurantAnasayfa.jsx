@@ -975,7 +975,9 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                       <Truck className="w-4 h-4 text-slate-400" />
                                     </div>
                                   )
-                                ) : canMarkRestaurantDelivery && (() => {
+                                ) : !order.manual_transfer_mode && canMarkRestaurantDelivery && (() => {
+                                  // Manuel transfer modunda olan siparişler için bu butonu gösterme
+                                  // çünkü zaten is_restaurant_delivery:true olarak geliyorlar
                                   const check = canMarkAsRestaurantDelivery(order);
                                   return check.allowed ? (
                                     <TooltipProvider>
