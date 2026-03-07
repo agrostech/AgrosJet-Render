@@ -9,3 +9,4 @@ export {
 export { default as VardiyaTakibiCard } from "./VardiyaTakibiCard";
 export { default as VardiyaIhlalleriModal } from "./VardiyaIhlalleriModal";
 export { StatusMovementsModal } from "./StatusMovementsModal";
+export { BreakSettingsModal } from "./BreakSettingsModal";

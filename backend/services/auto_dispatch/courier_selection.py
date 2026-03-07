@@ -31,6 +31,81 @@ from .distance import calculate_distance_meters
 from .detour import should_combine_orders, calculate_detour, calculate_multi_order_detour, calculate_bearing, calculate_angle_difference
 
 
+# Türkiye timezone
+TURKEY_TZ = timezone(timedelta(hours=3))
+
+
+async def check_break_assignment_restriction(courier_id: str, company_id: str) -> Dict:
+    """
+    Kuryenin mola sırasına girip girmediğini ve molasına kaç dakika kaldığını kontrol eder.
+    Otomatik mola modunda, molasına X dakika kala paket atanmaz.
+    
+    Returns:
+        {"eligible": bool, "reason": str, "minutes_until_break": int|None}
+    """
+    # Mola sırasında mı kontrol et
+    queue_entry = await db.break_queue.find_one(
+        {
+            "courier_id": courier_id,
+            "status": {"$in": ["waiting", "ready"]}
+        },
+        {"_id": 0, "estimated_wait_minutes": 1, "created_at": 1}
+    )
+    
+    if not queue_entry:
+        return {"eligible": True, "reason": "Mola sırasında değil", "minutes_until_break": None}
+    
+    # Şirket ayarlarını al
+    company = await db.companies.find_one(
+        {"id": company_id},
+        {"_id": 0, "break_settings": 1}
+    )
+    break_settings = company.get("break_settings", {}) if company else {}
+    break_mode = break_settings.get("break_mode", "automatic")
+    
+    # Manuel modda kısıtlama yok
+    if break_mode != "automatic":
+        return {"eligible": True, "reason": "Manuel mola modu", "minutes_until_break": None}
+    
+    # Paket atama kısıtlama süresini al (varsayılan 10 dk)
+    restriction_minutes = break_settings.get("break_assignment_restriction", 10)
+    
+    if restriction_minutes <= 0:
+        return {"eligible": True, "reason": "Kısıtlama devre dışı", "minutes_until_break": None}
+    
+    # Tahmini bekleme süresi
+    estimated_wait = queue_entry.get("estimated_wait_minutes", 0)
+    
+    # Sıraya girme zamanından bu yana geçen süre
+    created_at = queue_entry.get("created_at")
+    if created_at:
+        try:
+            created_time = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            now = datetime.now(TURKEY_TZ)
+            if created_time.tzinfo is None:
+                created_time = created_time.replace(tzinfo=TURKEY_TZ)
+            elapsed = (now - created_time).total_seconds() / 60
+            remaining_wait = max(0, estimated_wait - elapsed)
+        except:
+            remaining_wait = estimated_wait
+    else:
+        remaining_wait = estimated_wait
+    
+    # Molasına X dakikadan az kaldıysa paket atanmaz
+    if remaining_wait <= restriction_minutes:
+        return {
+            "eligible": False,
+            "reason": f"Molasına {int(remaining_wait)} dakika kaldı (kısıtlama: {restriction_minutes} dk)",
+            "minutes_until_break": int(remaining_wait)
+        }
+    
+    return {
+        "eligible": True,
+        "reason": f"Molasına {int(remaining_wait)} dakika var",
+        "minutes_until_break": int(remaining_wait)
+    }
+
+
 async def get_restaurant_group_for_restaurant(restaurant_id: str, company_id: str) -> Optional[str]:
     """
     Bir restoranın ait olduğu grup ID'sini bulur.
@@ -264,6 +339,11 @@ async def is_courier_eligible(
             return False, "Kurye molada", {}
         else:  # offline veya tanımsız
             return False, "Kurye çevrimdışı", {}
+    
+    # MOLA SIRASI KONTROLÜ - Kuryenin molasına X dakika kaldıysa paket atanmaz
+    break_restriction_result = await check_break_assignment_restriction(courier_id, company_id)
+    if not break_restriction_result["eligible"]:
+        return False, break_restriction_result["reason"], {}
     
     # Konum kontrolü
     if not courier.get("current_location"):

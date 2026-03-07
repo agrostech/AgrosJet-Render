@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { X, Clock, Pencil, Check, Users, Search, PointerIcon, AlertTriangle, RefreshCw, Settings } from "lucide-react";
+import { X, Clock, Pencil, Check, Users, Search, PointerIcon, AlertTriangle, RefreshCw, Settings, Coffee } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import {
   useVardiyaData,
@@ -15,6 +15,7 @@ import {
   BulkAssignModal,
   VardiyaTakibiCard,
   VardiyaIhlalleriModal,
+  BreakSettingsModal,
 } from "@/components/vardiya";
 import { StatusMovementsModal } from "@/components/vardiya/StatusMovementsModal";
 
@@ -27,6 +28,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
   const [showIhlallerModal, setShowIhlallerModal] = useState(false);
   const [showMovementsModal, setShowMovementsModal] = useState(false);
+  const [showBreakSettingsModal, setShowBreakSettingsModal] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [bulkAssigning, setBulkAssigning] = useState(false);
@@ -245,6 +247,16 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
             <Clock className="w-4 h-4 mr-1" />
             Hareketler
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowBreakSettingsModal(true)}
+            className="font-semibold border-2 border-amber-500 text-amber-700 hover:bg-amber-50"
+            data-testid="break-settings-btn"
+          >
+            <Coffee className="w-4 h-4 mr-1" />
+            Mola Ayarları
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 
@@ -438,6 +450,14 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         open={showMovementsModal}
         onOpenChange={setShowMovementsModal}
         companyId={companyId}
+      />
+
+      {/* Mola Ayarları Modalı */}
+      <BreakSettingsModal
+        open={showBreakSettingsModal}
+        onOpenChange={setShowBreakSettingsModal}
+        companyId={companyId}
+        shifts={shifts}
       />
 
       {/* Vardiya Silme Onay Modalı */}
