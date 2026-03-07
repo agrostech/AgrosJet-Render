@@ -1096,7 +1096,7 @@ class CourierMatrixUpdate(BaseModel):
     courier_id: str
     setting_type: str  # "pricing" | "payment_method" | "max_packages" | "break_limit"
     setting_key: str
-    value: any
+    value: Optional[str] = None
 
 
 @router.put("/companies/{company_id}/couriers/matrix/bulk-update")
