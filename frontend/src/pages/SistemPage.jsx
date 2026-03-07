@@ -463,8 +463,8 @@ export default function SistemPage({ companyId }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
                           </div>
@@ -486,8 +486,8 @@ export default function SistemPage({ companyId }) {
 
                       <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
@@ -790,7 +790,7 @@ export default function SistemPage({ companyId }) {
         )}
       </div>
 
-      {/* E-posta (SMTP) Ayarları - Collapsible */}
+      {/* E-posta Bildirimleri Ayarları - Collapsible */}
       <div className="border-2 border-border bg-white">
         <button 
           type="button"
@@ -798,8 +798,8 @@ export default function SistemPage({ companyId }) {
           className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
         >
           <div className="flex items-center gap-2">
-            <Mail className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
-            <h3 className="font-semibold text-sm md:text-base">E-posta Bildirimleri (SMTP)</h3>
+            <Mail className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+            <h3 className="font-semibold text-sm md:text-base">E-posta Bildirimleri</h3>
             {emailStatus.exists && emailSettings.enabled && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
                 Aktif
