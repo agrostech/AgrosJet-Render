@@ -60,11 +60,13 @@ async def get_notifications(company_id: str, limit: int = 50, include_read: bool
 async def get_unread_count(company_id: str, target: str = None):
     """
     Get count of unread notifications
-    Admin panelinde kurye bildirimlerini sayma
+    Admin panelinde kurye bildirimlerini ve break_request'leri sayma
+    (break_request ayrı sekmede gösteriliyor)
     """
     query = {
         "company_id": company_id,
-        "is_read": False
+        "is_read": False,
+        "type": {"$ne": "break_request"}  # break_request ayrı sekmede
     }
     
     # Admin panelinde kurye bildirimlerini sayma
@@ -74,10 +76,14 @@ async def get_unread_count(company_id: str, target: str = None):
         query["target"] = "courier"
     else:
         # Varsayılan: kurye bildirimlerini hariç tut
-        query["$or"] = [
-            {"target": {"$exists": False}},
-            {"target": {"$ne": "courier"}}
+        query["$and"] = [
+            {"type": {"$ne": "break_request"}},
+            {"$or": [
+                {"target": {"$exists": False}},
+                {"target": {"$ne": "courier"}}
+            ]}
         ]
+        del query["type"]  # $and içinde zaten var
     
     count = await db.notifications.count_documents(query)
     return {"count": count}
