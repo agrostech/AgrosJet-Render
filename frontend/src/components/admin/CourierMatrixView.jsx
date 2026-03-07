@@ -376,7 +376,8 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                             max="20"
                             value={currentValue}
                             onChange={(e) => handleNumericChange(courier.id, "max_packages", e.target.value)}
-                            className="w-8 h-5 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-8 h-5 border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                            style={{ textAlign: 'center', fontSize: '11px', MozAppearance: 'textfield' }}
                           />
                           <button
                             onClick={() => {
@@ -432,7 +433,8 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                             step="5"
                             value={currentValue}
                             onChange={(e) => handleNumericChange(courier.id, "daily_break_limit", e.target.value)}
-                            className="w-10 h-5 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-10 h-5 border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                            style={{ textAlign: 'center', fontSize: '11px', MozAppearance: 'textfield' }}
                           />
                           <button
                             onClick={() => {
