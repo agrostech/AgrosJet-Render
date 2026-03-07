@@ -451,19 +451,17 @@ async def get_restaurant(company_id: str, restaurant_id: str):
 @router.post("")
 async def create_restaurant(data: RestaurantCreate):
     """Yeni restoran oluştur"""
-    from routers.restaurant_permissions import PERMISSION_DEFINITIONS
-    
-    # Varsayılan tahsilat ayarları (hepsi kurye tahsil eder)
+    # Varsayılan tahsilat ayarları
     default_collection_settings = {
-        "cash_collection": "courier",
-        "card_collection": "courier",
-        "meal_card_collection": "courier"
+        "cash_collection": "courier",      # Nakit: Kurye
+        "card_collection": "courier",      # Kart: Kurye
+        "meal_card_collection": "restaurant"  # Y.Kartı: Restoran
     }
     
-    # Varsayılan fatura ayarları (hepsi kapalı)
+    # Varsayılan fatura ayarları (sadece kredi kartı açık)
     default_invoice_settings = {
         "cash": False,
-        "credit_card": False,
+        "credit_card": True,  # Sadece kredi kartı açık
         "online": False,
         "meal_card": False,
         "online_meal_card": False,
@@ -471,9 +469,14 @@ async def create_restaurant(data: RestaurantCreate):
         "percentage_name": "Yeme-İçme"
     }
     
-    # Varsayılan izinler (PERMISSION_DEFINITIONS'dan)
+    # Varsayılan izinler (hepsi aktif)
     default_permissions = {
-        key: val["default"] for key, val in PERMISSION_DEFINITIONS.items()
+        "can_assign_courier": True,           # K.Atama: aktif
+        "can_view_courier_phone": True,       # K.Tel: aktif
+        "can_view_courier_location": True,    # K.Konum: aktif
+        "can_view_courier_eta": True,         # K.ETA: aktif
+        "can_mark_restaurant_delivery": True, # R.Tslm: aktif
+        "can_change_order_status": True       # S.Durum: aktif
     }
     
     restaurant = {
