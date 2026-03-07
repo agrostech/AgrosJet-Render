@@ -16,7 +16,8 @@ import {
   Coffee,
   Clock,
   RefreshCw,
-  User
+  User,
+  Save
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -26,6 +27,7 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [updating, setUpdating] = useState({});
+  const [editedValues, setEditedValues] = useState({}); // { "courierId-field": value }
 
   useEffect(() => {
     if (companyId) {
@@ -101,39 +103,56 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
     }
   };
 
-  // Sayısal değer güncelleme (max paket, mola limiti)
-  const handleNumericUpdate = async (courierId, settingType, currentValue, newValue) => {
-    if (newValue === currentValue) return;
+  // Sayısal değer değişikliğini local state'e kaydet
+  const handleNumericChange = (courierId, field, value) => {
+    const key = `${courierId}-${field}`;
+    setEditedValues(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Sayısal değer kaydetme (max paket, mola limiti)
+  const handleNumericSave = async (courierId, settingType, originalValue) => {
+    const key = `${courierId}-${settingType === "max_packages" ? "max_packages" : "daily_break_limit"}`;
+    const newValue = editedValues[key];
+    
+    if (newValue === undefined || parseInt(newValue) === originalValue) {
+      // Değişiklik yok, edited state'i temizle
+      setEditedValues(prev => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
+      return;
+    }
     
     const cellKey = `${courierId}-${settingType}`;
     setUpdating(prev => ({ ...prev, [cellKey]: true }));
     
-    // Optimistic update
     const fieldName = settingType === "max_packages" ? "max_packages" : "daily_break_limit";
-    setData(prev => ({
-      ...prev,
-      couriers: prev.couriers.map(c => {
-        if (c.id !== courierId) return c;
-        return { ...c, [fieldName]: newValue };
-      })
-    }));
+    const numValue = parseInt(newValue);
     
     try {
       await axios.put(`${API}/companies/${companyId}/couriers/matrix/bulk-update`, [{
         courier_id: courierId,
         setting_type: settingType,
         setting_key: fieldName,
-        value: newValue
+        value: numValue
       }]);
-    } catch (err) {
-      // Revert on error
+      
+      // Başarılı - data'yı güncelle ve edited state'i temizle
       setData(prev => ({
         ...prev,
         couriers: prev.couriers.map(c => {
           if (c.id !== courierId) return c;
-          return { ...c, [fieldName]: currentValue };
+          return { ...c, [fieldName]: numValue };
         })
       }));
+      setEditedValues(prev => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
+      toast.success("Kaydedildi");
+    } catch (err) {
       toast.error("Güncelleme başarısız");
     } finally {
       setUpdating(prev => ({ ...prev, [cellKey]: false }));
@@ -328,37 +347,77 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                   
                   {/* Max Paket */}
                   <td className="p-1 text-center border-r-2 border-slate-300">
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={courier.max_packages || 5}
-                      onChange={(e) => {
-                        const newVal = parseInt(e.target.value) || 5;
-                        if (newVal >= 1 && newVal <= 20) {
-                          handleNumericUpdate(courier.id, "max_packages", courier.max_packages || 5, newVal);
-                        }
-                      }}
-                      className="w-10 h-6 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
+                    {(() => {
+                      const editKey = `${courier.id}-max_packages`;
+                      const originalValue = courier.max_packages || 5;
+                      const currentValue = editedValues[editKey] !== undefined ? editedValues[editKey] : originalValue;
+                      const hasChanged = editedValues[editKey] !== undefined && parseInt(editedValues[editKey]) !== originalValue;
+                      const isUpdatingCell = updating[`${courier.id}-max_packages`];
+                      
+                      return (
+                        <div className="flex items-center justify-center gap-1">
+                          <input
+                            type="number"
+                            min="1"
+                            max="20"
+                            value={currentValue}
+                            onChange={(e) => handleNumericChange(courier.id, "max_packages", e.target.value)}
+                            className="w-10 h-6 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          {hasChanged && (
+                            isUpdatingCell ? (
+                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                            ) : (
+                              <button
+                                onClick={() => handleNumericSave(courier.id, "max_packages", originalValue)}
+                                className="w-4 h-4 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
+                                title="Kaydet"
+                              >
+                                <Save className="w-3 h-3" />
+                              </button>
+                            )
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   
                   {/* Mola Limiti */}
                   <td className="p-1 text-center">
-                    <input
-                      type="number"
-                      min="0"
-                      max="480"
-                      step="5"
-                      value={courier.daily_break_limit || 30}
-                      onChange={(e) => {
-                        const newVal = parseInt(e.target.value) || 30;
-                        if (newVal >= 0 && newVal <= 480) {
-                          handleNumericUpdate(courier.id, "break_limit", courier.daily_break_limit || 30, newVal);
-                        }
-                      }}
-                      className="w-12 h-6 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
+                    {(() => {
+                      const editKey = `${courier.id}-daily_break_limit`;
+                      const originalValue = courier.daily_break_limit || 30;
+                      const currentValue = editedValues[editKey] !== undefined ? editedValues[editKey] : originalValue;
+                      const hasChanged = editedValues[editKey] !== undefined && parseInt(editedValues[editKey]) !== originalValue;
+                      const isUpdatingCell = updating[`${courier.id}-break_limit`];
+                      
+                      return (
+                        <div className="flex items-center justify-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="480"
+                            step="5"
+                            value={currentValue}
+                            onChange={(e) => handleNumericChange(courier.id, "daily_break_limit", e.target.value)}
+                            className="w-12 h-6 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          {hasChanged && (
+                            isUpdatingCell ? (
+                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                            ) : (
+                              <button
+                                onClick={() => handleNumericSave(courier.id, "break_limit", originalValue)}
+                                className="w-4 h-4 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
+                                title="Kaydet"
+                              >
+                                <Save className="w-3 h-3" />
+                              </button>
+                            )
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                 </tr>
               );
