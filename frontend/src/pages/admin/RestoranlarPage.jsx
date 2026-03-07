@@ -10,13 +10,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
-  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt, FileText
+  MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt, FileText,
+  LayoutGrid, List
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import RestaurantPermissionsModal from "@/components/admin/RestaurantPermissionsModal";
 import IntegrationLogsModal from "@/components/admin/IntegrationLogsModal";
 import CollectionSettingsModal from "@/components/admin/CollectionSettingsModal";
 import RestaurantGroupsModal from "@/components/admin/RestaurantGroupsModal";
+import RestaurantMatrixView from "@/components/admin/RestaurantMatrixView";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -40,6 +42,7 @@ export default function RestoranlarPage({ companyId }) {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("active"); // active, archived
+  const [viewMode, setViewMode] = useState("list"); // list, matrix
   
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -610,35 +613,69 @@ export default function RestoranlarPage({ companyId }) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => setActiveTab("active")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-            activeTab === "active" 
-              ? "bg-primary text-white" 
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          <Store className="w-4 h-4" />
-          Aktif ({activeRestaurants.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("archived")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-            activeTab === "archived" 
-              ? "bg-slate-700 text-white" 
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          <Archive className="w-4 h-4" />
-          Arşiv ({archivedRestaurants.length})
-        </button>
+      {/* Tabs + View Mode Toggle */}
+      <div className="flex justify-between items-center gap-2 mb-4">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab("active")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              activeTab === "active" 
+                ? "bg-primary text-white" 
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <Store className="w-4 h-4" />
+            Aktif ({activeRestaurants.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("archived")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              activeTab === "archived" 
+                ? "bg-slate-700 text-white" 
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <Archive className="w-4 h-4" />
+            Arşiv ({archivedRestaurants.length})
+          </button>
+        </div>
+        
+        {/* View Mode Toggle */}
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              viewMode === "list" 
+                ? "bg-white shadow text-primary" 
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <List className="w-4 h-4" />
+            Liste
+          </button>
+          <button
+            onClick={() => setViewMode("matrix")}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              viewMode === "matrix" 
+                ? "bg-white shadow text-primary" 
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            Ayar Matrisi
+          </button>
+        </div>
       </div>
 
-      {/* Restaurant List */}
+      {/* Restaurant View */}
       {loading ? (
         <PageLoading />
+      ) : viewMode === "matrix" ? (
+        /* Matrix View */
+        <RestaurantMatrixView 
+          companyId={companyId} 
+          onRestaurantClick={(restaurant) => openEditModal(restaurant)}
+        />
       ) : filteredRestaurants.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">

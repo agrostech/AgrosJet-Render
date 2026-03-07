@@ -292,6 +292,108 @@ async def update_collection_settings(restaurant_id: str, data: CollectionSetting
 
 # --- CRUD Endpoints ---
 
+@router.get("/{company_id}/matrix")
+async def get_restaurants_matrix(company_id: str, include_archived: bool = False):
+    """
+    Tüm restoranların tüm ayarlarını matrix görünümü için getir.
+    Tek API çağrısıyla tüm ayarları döner.
+    """
+    query = {"company_id": company_id}
+    if not include_archived:
+        query["is_archived"] = {"$ne": True}
+    
+    restaurants = await db.restaurants.find(query, {"_id": 0}).to_list(500)
+    
+    # Permission definitions'ı çek
+    permission_defs = await db.permission_definitions.find(
+        {"scope": "restaurant"},
+        {"_id": 0, "key": 1, "label": 1, "category": 1}
+    ).to_list(100)
+    
+    result = []
+    for r in restaurants:
+        # Tahsilat ayarları
+        collection = r.get("collection_settings", {})
+        
+        # Fatura ayarları
+        invoice = r.get("invoice_settings", {})
+        
+        # İzinler
+        perms = r.get("permissions", {})
+        
+        result.append({
+            "id": r.get("id"),
+            "name": r.get("name"),
+            "is_archived": r.get("is_archived", False),
+            "preparation_time": r.get("preparation_time", 15),
+            # Tahsilat (courier = kurye tahsil eder, restaurant = restoran tahsil eder)
+            "collection": {
+                "cash": collection.get("cash_collection", "courier"),
+                "card": collection.get("card_collection", "courier"),
+                "meal_card": collection.get("meal_card_collection", "courier")
+            },
+            # Fatura (true = fatura kesilecek)
+            "invoice": {
+                "cash": invoice.get("cash", False),
+                "credit_card": invoice.get("credit_card", False),
+                "online": invoice.get("online", False),
+                "meal_card": invoice.get("meal_card", False),
+                "online_meal_card": invoice.get("online_meal_card", False),
+                "percentage": invoice.get("percentage", 10),
+                "percentage_name": invoice.get("percentage_name", "Yeme-İçme")
+            },
+            # İzinler
+            "permissions": perms
+        })
+    
+    return {
+        "restaurants": result,
+        "permission_definitions": permission_defs
+    }
+
+
+@router.put("/{company_id}/matrix/bulk-update")
+async def bulk_update_restaurant_settings(company_id: str, updates: List[dict]):
+    """
+    Birden fazla restoran ayarını tek seferde güncelle.
+    Her update: { restaurant_id, setting_type, setting_key, value }
+    setting_type: "collection" | "invoice" | "permission"
+    """
+    results = []
+    
+    for update in updates:
+        restaurant_id = update.get("restaurant_id")
+        setting_type = update.get("setting_type")
+        setting_key = update.get("setting_key")
+        value = update.get("value")
+        
+        try:
+            if setting_type == "collection":
+                # Tahsilat ayarı
+                await db.restaurants.update_one(
+                    {"id": restaurant_id, "company_id": company_id},
+                    {"$set": {f"collection_settings.{setting_key}_collection": value}}
+                )
+            elif setting_type == "invoice":
+                # Fatura ayarı
+                await db.restaurants.update_one(
+                    {"id": restaurant_id, "company_id": company_id},
+                    {"$set": {f"invoice_settings.{setting_key}": value}}
+                )
+            elif setting_type == "permission":
+                # İzin ayarı
+                await db.restaurants.update_one(
+                    {"id": restaurant_id, "company_id": company_id},
+                    {"$set": {f"permissions.{setting_key}": value}}
+                )
+            
+            results.append({"restaurant_id": restaurant_id, "success": True})
+        except Exception as e:
+            results.append({"restaurant_id": restaurant_id, "success": False, "error": str(e)})
+    
+    return {"results": results}
+
+
 @router.get("/{company_id}")
 async def get_restaurants(company_id: str, include_archived: bool = False):
     """Şirkete ait tüm restoranları getir"""
