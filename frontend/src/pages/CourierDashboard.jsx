@@ -319,12 +319,13 @@ export default function CourierDashboard() {
           fetchCourierBreakInfo(courierData.id);
           checkCourierStatus(courierData.id, courierData.company_id);
           
-          // Her 30 saniyede bir pasif durumunu ve mola durumunu kontrol et
+          // Her 10 saniyede bir durumu kontrol et (mola onayı için hızlı güncelleme)
           const intervalId = setInterval(() => {
             checkCourierStatus(courierData.id, courierData.company_id);
+            fetchAvailabilityStatus(courierData.id);
             fetchBreakStatus(courierData.id);
             fetchCourierBreakInfo(courierData.id);
-          }, 30000);
+          }, 10000);
           
           return () => clearInterval(intervalId);
         } catch (err) {
@@ -363,12 +364,13 @@ export default function CourierDashboard() {
       // İlk kontrol
       checkCourierStatus(parsed.id, parsed.company_id);
       
-      // Her 30 saniyede bir pasif durumunu ve mola durumunu kontrol et
+      // Her 10 saniyede bir durumu kontrol et (mola onayı için hızlı güncelleme)
       const intervalId = setInterval(() => {
         checkCourierStatus(parsed.id, parsed.company_id);
+        fetchAvailabilityStatus(parsed.id);
         fetchBreakStatus(parsed.id);
         fetchCourierBreakInfo(parsed.id);
-      }, 30000);
+      }, 10000);
       
       return () => clearInterval(intervalId);
     }
