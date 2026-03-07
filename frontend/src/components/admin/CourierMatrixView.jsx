@@ -17,7 +17,9 @@ import {
   Clock,
   RefreshCw,
   User,
-  Save
+  Save,
+  Plus,
+  Minus
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -284,12 +286,15 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
           </thead>
           
           <tbody>
-            {filteredCouriers.map(courier => {
+            {filteredCouriers.map((courier, rowIndex) => {
+              const isEvenRow = rowIndex % 2 === 0;
+              const rowBgClass = isEvenRow ? "bg-white" : "bg-slate-50";
+              
               return (
-                <tr key={courier.id} className="border-b border-slate-300 hover:bg-slate-50/50">
+                <tr key={courier.id} className={`border-b border-slate-300 hover:bg-blue-50/50 ${rowBgClass}`}>
                   {/* Kurye İsmi */}
                   <td 
-                    className="sticky left-0 z-10 bg-white p-2 font-medium border-r-2 border-slate-300 cursor-pointer hover:text-primary"
+                    className={`sticky left-0 z-10 ${rowBgClass} p-2 font-medium border-r-2 border-slate-300 cursor-pointer hover:text-primary`}
                     onClick={() => onCourierClick?.(courier)}
                   >
                     <div className="flex items-center gap-1.5">
@@ -350,27 +355,45 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                     {(() => {
                       const editKey = `${courier.id}-max_packages`;
                       const originalValue = courier.max_packages || 5;
-                      const currentValue = editedValues[editKey] !== undefined ? editedValues[editKey] : originalValue;
+                      const currentValue = editedValues[editKey] !== undefined ? parseInt(editedValues[editKey]) : originalValue;
                       const hasChanged = editedValues[editKey] !== undefined && parseInt(editedValues[editKey]) !== originalValue;
                       const isUpdatingCell = updating[`${courier.id}-max_packages`];
                       
                       return (
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex items-center justify-center gap-0.5">
+                          <button
+                            onClick={() => {
+                              const newVal = Math.max(1, currentValue - 1);
+                              handleNumericChange(courier.id, "max_packages", newVal);
+                            }}
+                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
                           <input
                             type="number"
                             min="1"
                             max="20"
                             value={currentValue}
                             onChange={(e) => handleNumericChange(courier.id, "max_packages", e.target.value)}
-                            className="w-10 h-6 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-8 h-5 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
                           />
+                          <button
+                            onClick={() => {
+                              const newVal = Math.min(20, currentValue + 1);
+                              handleNumericChange(courier.id, "max_packages", newVal);
+                            }}
+                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
                           {hasChanged && (
                             isUpdatingCell ? (
-                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400 ml-0.5" />
                             ) : (
                               <button
                                 onClick={() => handleNumericSave(courier.id, "max_packages", originalValue)}
-                                className="w-4 h-4 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
+                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded ml-0.5"
                                 title="Kaydet"
                               >
                                 <Save className="w-3 h-3" />
@@ -387,12 +410,21 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                     {(() => {
                       const editKey = `${courier.id}-daily_break_limit`;
                       const originalValue = courier.daily_break_limit || 30;
-                      const currentValue = editedValues[editKey] !== undefined ? editedValues[editKey] : originalValue;
+                      const currentValue = editedValues[editKey] !== undefined ? parseInt(editedValues[editKey]) : originalValue;
                       const hasChanged = editedValues[editKey] !== undefined && parseInt(editedValues[editKey]) !== originalValue;
                       const isUpdatingCell = updating[`${courier.id}-break_limit`];
                       
                       return (
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex items-center justify-center gap-0.5">
+                          <button
+                            onClick={() => {
+                              const newVal = Math.max(0, currentValue - 5);
+                              handleNumericChange(courier.id, "daily_break_limit", newVal);
+                            }}
+                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
                           <input
                             type="number"
                             min="0"
@@ -400,15 +432,24 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                             step="5"
                             value={currentValue}
                             onChange={(e) => handleNumericChange(courier.id, "daily_break_limit", e.target.value)}
-                            className="w-12 h-6 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-10 h-5 text-center text-[11px] border rounded bg-white focus:outline-none focus:ring-1 focus:ring-primary"
                           />
+                          <button
+                            onClick={() => {
+                              const newVal = Math.min(480, currentValue + 5);
+                              handleNumericChange(courier.id, "daily_break_limit", newVal);
+                            }}
+                            className="w-5 h-5 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-600"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
                           {hasChanged && (
                             isUpdatingCell ? (
-                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400" />
+                              <RefreshCw className="w-3 h-3 animate-spin text-slate-400 ml-0.5" />
                             ) : (
                               <button
                                 onClick={() => handleNumericSave(courier.id, "break_limit", originalValue)}
-                                className="w-4 h-4 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded"
+                                className="w-5 h-5 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded ml-0.5"
                                 title="Kaydet"
                               >
                                 <Save className="w-3 h-3" />

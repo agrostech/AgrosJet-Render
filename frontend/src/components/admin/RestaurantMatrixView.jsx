@@ -251,14 +251,16 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
           </thead>
           
           <tbody>
-            {filteredRestaurants.map(restaurant => {
+            {filteredRestaurants.map((restaurant, rowIndex) => {
               const isUpdatingAny = Object.keys(updating).some(k => k.startsWith(restaurant.id) && updating[k]);
+              const isEvenRow = rowIndex % 2 === 0;
+              const rowBgClass = isEvenRow ? "bg-white" : "bg-slate-50";
               
               return (
-                <tr key={restaurant.id} className="border-b border-slate-300 hover:bg-slate-50/50">
+                <tr key={restaurant.id} className={`border-b border-slate-300 hover:bg-blue-50/50 ${rowBgClass}`}>
                   {/* Restoran İsmi */}
                   <td 
-                    className="sticky left-0 z-10 bg-white p-2 font-medium border-r-2 border-slate-300 cursor-pointer hover:text-primary"
+                    className={`sticky left-0 z-10 ${rowBgClass} p-2 font-medium border-r-2 border-slate-300 cursor-pointer hover:text-primary`}
                     onClick={() => onRestaurantClick?.(restaurant)}
                   >
                     <div className="flex items-center gap-1.5">
