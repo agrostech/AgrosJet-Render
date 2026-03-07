@@ -137,8 +137,8 @@ export default function NotificationsPopover({ companyId }) {
       const res = await axios.get(`${API}/notifications/company/${companyId}?include_read=true&limit=30`);
       setNotifications(res.data);
       
-      // Update unread count
-      const unread = res.data.filter(n => !n.is_read).length;
+      // Update unread count - break_request tipini hariç tut (ayrı sekmede gösteriliyor)
+      const unread = res.data.filter(n => !n.is_read && n.type !== 'break_request').length;
       setUnreadCount(unread);
       
       // Mola taleplerini çek (manuel mod için)
@@ -249,9 +249,18 @@ export default function NotificationsPopover({ companyId }) {
     try {
       await axios.put(`${API}/break-requests/${requestId}/action`, { action });
       toast.success(action === "approve" ? "Mola talebi onaylandı" : "Mola talebi reddedildi");
-      // Talepleri yenile
+      
+      // Talepleri listeden çıkar
       setBreakRequests(prev => prev.filter(r => r.id !== requestId));
       setBreakRequestsCount(prev => Math.max(0, prev - 1));
+      
+      // İlgili break_request bildirimini de notifications'dan çıkar
+      const request = breakRequests.find(r => r.id === requestId);
+      if (request) {
+        setNotifications(prev => prev.filter(n => 
+          !(n.type === 'break_request' && n.courier_id === request.courier_id)
+        ));
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || "İşlem başarısız");
     }
