@@ -7,6 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { 
   Bell,
@@ -290,169 +291,169 @@ export default function NotificationsPopover({ companyId }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[calc(100vw-2rem)] sm:w-96 p-0 mx-4" align="end">
-        {/* Header with Tabs */}
-        <div className="flex items-center justify-between p-3 border-b">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab("notifications")}
-              className={`text-sm font-semibold px-2 py-1 rounded transition-colors ${activeTab === "notifications" ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
-            >
-              Bildirimler {unreadCount > 0 && <span className="ml-1">({unreadCount})</span>}
-            </button>
-            {breakRequestsCount > 0 && (
-              <button
-                onClick={() => setActiveTab("break_requests")}
-                className={`text-sm font-semibold px-2 py-1 rounded flex items-center gap-1 transition-colors ${activeTab === "break_requests" ? 'bg-amber-500 text-white' : 'text-amber-600 hover:bg-amber-50'}`}
-              >
-                <Coffee className="w-3 h-3" />
-                Mola ({breakRequestsCount})
-              </button>
-            )}
-          </div>
-          <div className="flex gap-1">
-            {activeTab === "notifications" && unreadCount > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleMarkAllAsRead}
-                className="h-8 px-2 text-xs"
-                title="Tümünü okundu işaretle"
-              >
-                <CheckCheck className="w-4 h-4" />
-              </Button>
-            )}
-            {activeTab === "notifications" && notifications.length > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleDeleteAll}
-                className="h-8 px-2 text-xs hover:text-red-600"
-                title="Tümünü sil"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="max-h-[400px] overflow-y-auto">
-          {activeTab === "break_requests" ? (
-            /* Mola Talepleri Tab */
-            breakRequests.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Coffee className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Bekleyen mola talebi yok</p>
-              </div>
-            ) : (
-              breakRequests.map((request) => (
-                <div key={request.id} className="p-3 border-b hover:bg-amber-50/50 transition-colors">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-                        <Coffee className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{request.courier_name}</p>
-                        <p className="text-xs text-muted-foreground">{request.duration} dakika mola</p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {formatTime(request.created_at)}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 ml-10">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs border-green-500 text-green-600 hover:bg-green-50"
-                      onClick={() => handleBreakRequestAction(request.id, "approve")}
-                    >
-                      <Check className="w-3 h-3 mr-1" />
-                      Onayla
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs border-red-500 text-red-600 hover:bg-red-50"
-                      onClick={() => handleBreakRequestAction(request.id, "reject")}
-                    >
-                      <X className="w-3 h-3 mr-1" />
-                      Reddet
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )
-          ) : (
-            /* Bildirimler Tab */
-            loading ? (
-              <div className="flex items-center justify-center py-8">
-                <img 
-                  src="https://customer-assets.emergentagent.com/job_kurye-yonetim-2/artifacts/27ukt5rk_shiftjetlogo.png" 
-                  alt="Yükleniyor" 
-                  className="w-8 h-8 animate-spin"
-                />
-              </div>
-            ) : notifications.filter(n => n.type !== 'break_request').length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Bell className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Bildirim yok</p>
-              </div>
-            ) : (
-              notifications.filter(n => n.type !== 'break_request').map((notification) => {
-                const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
-                const colorClass = NOTIFICATION_COLORS[notification.type] || "text-slate-600 bg-slate-100";
-                
-                return (
-                  <div 
-                    key={notification.id}
-                    className={`p-3 border-b hover:bg-slate-50 transition-colors ${
-                      !notification.is_read ? 'bg-blue-50/50' : ''
-                    }`}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Header with Tabs */}
+          <div className="p-3 border-b">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-semibold text-sm">Bildirimler</h4>
+              <div className="flex gap-1">
+                {activeTab === "notifications" && unreadCount > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleMarkAllAsRead}
+                    className="h-7 px-2 text-xs"
+                    title="Tümünü okundu işaretle"
                   >
-                    <div className="flex gap-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className={`text-sm font-medium ${!notification.is_read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {notification.title}
-                          </p>
-                          <div className="flex gap-1 flex-shrink-0">
-                            {!notification.is_read && (
-                              <button
-                                onClick={() => handleMarkAsRead(notification.id)}
-                                className="p-1 rounded hover:bg-green-100 text-green-600"
-                                title="Okundu işaretle"
-                              >
-                                <Check className="w-3 h-3" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDelete(notification.id)}
-                              className="p-1 rounded hover:bg-red-100 text-red-600"
-                              title="Sil"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
+                    <CheckCheck className="w-4 h-4" />
+                  </Button>
+                )}
+                {activeTab === "notifications" && notifications.filter(n => n.type !== 'break_request').length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleDeleteAll}
+                    className="h-7 px-2 text-xs hover:text-red-600"
+                    title="Tümünü sil"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+            <TabsList className="grid w-full grid-cols-2 h-9">
+              <TabsTrigger value="notifications" className="text-xs flex items-center gap-1.5">
+                <Bell className="w-3.5 h-3.5" />
+                Bildirimler {unreadCount > 0 && `(${unreadCount})`}
+              </TabsTrigger>
+              <TabsTrigger value="break_requests" className="text-xs flex items-center gap-1.5">
+                <Coffee className="w-3.5 h-3.5" />
+                Mola Talepleri {breakRequestsCount > 0 && `(${breakRequestsCount})`}
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Content */}
+          <div className="max-h-[400px] overflow-y-auto">
+            <TabsContent value="break_requests" className="m-0">
+              {/* Mola Talepleri Tab */}
+              {breakRequests.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Coffee className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Bekleyen mola talebi yok</p>
+                </div>
+              ) : (
+                breakRequests.map((request) => (
+                  <div key={request.id} className="p-3 border-b hover:bg-amber-50/50 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                          <Coffee className="w-4 h-4 text-amber-600" />
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5 break-words">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">
-                          {formatTime(notification.created_at)}
-                        </p>
+                        <div>
+                          <p className="font-medium text-sm">{request.courier_name}</p>
+                          <p className="text-xs text-muted-foreground">{request.duration} dakika mola</p>
+                        </div>
                       </div>
+                      <span className="text-xs text-muted-foreground">
+                        {formatTime(request.created_at)}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 ml-10">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs border-green-500 text-green-600 hover:bg-green-50"
+                        onClick={() => handleBreakRequestAction(request.id, "approve")}
+                      >
+                        <Check className="w-3 h-3 mr-1" />
+                        Onayla
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs border-red-500 text-red-600 hover:bg-red-50"
+                        onClick={() => handleBreakRequestAction(request.id, "reject")}
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        Reddet
+                      </Button>
                     </div>
                   </div>
-                );
-              })
-            )
-          )}
-        </div>
+                ))
+              )}
+            </TabsContent>
+            
+            <TabsContent value="notifications" className="m-0">
+              {/* Bildirimler Tab */}
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <img 
+                    src="https://customer-assets.emergentagent.com/job_kurye-yonetim-2/artifacts/27ukt5rk_shiftjetlogo.png" 
+                    alt="Yükleniyor" 
+                    className="w-8 h-8 animate-spin"
+                  />
+                </div>
+              ) : notifications.filter(n => n.type !== 'break_request').length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bell className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Bildirim yok</p>
+                </div>
+              ) : (
+                notifications.filter(n => n.type !== 'break_request').map((notification) => {
+                  const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
+                  const colorClass = NOTIFICATION_COLORS[notification.type] || "text-slate-600 bg-slate-100";
+                  
+                  return (
+                    <div 
+                      key={notification.id}
+                      className={`p-3 border-b hover:bg-slate-50 transition-colors ${
+                        !notification.is_read ? 'bg-blue-50/50' : ''
+                      }`}
+                    >
+                      <div className="flex gap-3">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className={`text-sm font-medium ${!notification.is_read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                              {notification.title}
+                            </p>
+                            <div className="flex gap-1 flex-shrink-0">
+                              {!notification.is_read && (
+                                <button
+                                  onClick={() => handleMarkAsRead(notification.id)}
+                                  className="p-1 rounded hover:bg-green-100 text-green-600"
+                                  title="Okundu işaretle"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDelete(notification.id)}
+                                className="p-1 rounded hover:bg-red-100 text-red-600"
+                                title="Sil"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 break-words">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">
+                            {formatTime(notification.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </TabsContent>
+          </div>
+        </Tabs>
       </PopoverContent>
 
       <ConfirmModal
