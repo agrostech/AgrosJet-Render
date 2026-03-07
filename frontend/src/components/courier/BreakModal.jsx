@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Coffee, Clock, Users, AlertCircle, Loader2, Maximize2 } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -146,8 +147,7 @@ export function BreakModal({
 
         {loading ? (
           <div className="py-8 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-            <p className="mt-2 text-sm text-muted-foreground">Yükleniyor...</p>
+            <LoadingSpinner size="default" />
           </div>
         ) : error ? (
           <div className="py-8 text-center">
