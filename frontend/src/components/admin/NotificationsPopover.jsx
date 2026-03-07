@@ -394,13 +394,13 @@ export default function NotificationsPopover({ companyId }) {
                   className="w-8 h-8 animate-spin"
                 />
               </div>
-            ) : notifications.length === 0 ? (
+            ) : notifications.filter(n => n.type !== 'break_request').length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Bell className="w-10 h-10 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Bildirim yok</p>
               </div>
             ) : (
-              notifications.map((notification) => {
+              notifications.filter(n => n.type !== 'break_request').map((notification) => {
                 const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
                 const colorClass = NOTIFICATION_COLORS[notification.type] || "text-slate-600 bg-slate-100";
                 

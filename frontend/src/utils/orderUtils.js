@@ -97,20 +97,26 @@ export const getRemainingBreakTime = (courier) => {
   const dailyLimit = courier.daily_break_limit || 30;
   let usedTime = courier.used_break_time || 0;
   let currentBreakMinutes = 0;
+  let activeBreakRemaining = 0; // Aktif molanın kalan süresi
   
   if (courier.availability_status === 'on_break' && courier.break_start_time) {
     const startTime = new Date(courier.break_start_time);
     const now = new Date();
     currentBreakMinutes = Math.floor((now - startTime) / 60000);
     usedTime += currentBreakMinutes;
+    
+    // Aktif molanın kalan süresi
+    const requestedDuration = courier.requested_break_duration || 30;
+    activeBreakRemaining = Math.max(0, requestedDuration - currentBreakMinutes);
   }
   
   const remaining = Math.max(0, dailyLimit - usedTime);
   return { 
-    remaining,          // Kalan günlük mola süresi
-    dailyLimit,         // Günlük toplam mola hakkı
-    usedTime,           // Bugün kullanılan toplam mola
-    currentBreak: currentBreakMinutes  // Şu anki molanın süresi
+    remaining,              // Kalan günlük mola süresi
+    dailyLimit,             // Günlük toplam mola hakkı
+    usedTime,               // Bugün kullanılan toplam mola
+    currentBreak: currentBreakMinutes,  // Şu anki molanın geçen süresi
+    activeBreakRemaining    // Aktif molanın kalan süresi (talep edilen süre - geçen süre)
   };
 };
 
