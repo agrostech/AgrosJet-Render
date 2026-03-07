@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Coffee, Clock, Users, Settings } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -103,8 +104,7 @@ export function BreakSettingsModal({ open, onOpenChange, companyId, shifts }) {
         
         {loading ? (
           <div className="py-8 text-center">
-            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-            <p className="mt-2 text-sm text-muted-foreground">Yükleniyor...</p>
+            <LoadingSpinner size="default" />
           </div>
         ) : (
           <div className="space-y-6 py-4">
