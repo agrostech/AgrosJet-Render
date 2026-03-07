@@ -189,10 +189,13 @@ async def get_company_break_status(company_id: str):
                 active_shift = shift
                 break
     
-    # Moladaki kuryeler
+    # Moladaki kuryeler (company_ids veya company_id kontrolü)
     on_break_couriers = await db.couriers.find(
         {
-            "company_ids": company_id,
+            "$or": [
+                {"company_ids": company_id},
+                {"company_id": company_id}
+            ],
             "availability_status": "on_break"
         },
         {"_id": 0, "id": 1, "name": 1, "break_start_time": 1, "requested_break_duration": 1}
@@ -268,7 +271,11 @@ async def join_break_queue(courier_id: str, data: BreakRequest):
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    company_ids = courier.get("company_ids", [])
+    # company_ids veya company_id kontrolü
+    company_ids = courier.get("company_ids") or []
+    if not company_ids and courier.get("company_id"):
+        company_ids = [courier.get("company_id")]
+    
     if not company_ids:
         raise HTTPException(status_code=400, detail="Kurye bir şirkete bağlı değil")
     
@@ -389,7 +396,11 @@ async def create_break_request(courier_id: str, data: BreakRequest):
     if not courier:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    company_ids = courier.get("company_ids", [])
+    # company_ids veya company_id kontrolü
+    company_ids = courier.get("company_ids") or []
+    if not company_ids and courier.get("company_id"):
+        company_ids = [courier.get("company_id")]
+    
     if not company_ids:
         raise HTTPException(status_code=400, detail="Kurye bir şirkete bağlı değil")
     
@@ -786,13 +797,16 @@ async def check_courier_break_queue_status(courier_id: str):
     # Kurye bilgisini al
     courier = await db.couriers.find_one(
         {"id": courier_id},
-        {"_id": 0, "id": 1, "name": 1, "company_ids": 1}
+        {"_id": 0, "id": 1, "name": 1, "company_ids": 1, "company_id": 1}
     )
     
     if not courier:
         return {"in_queue": False, "warning": None}
     
-    company_ids = courier.get("company_ids", [])
+    # company_ids veya company_id kontrolü
+    company_ids = courier.get("company_ids") or []
+    if not company_ids and courier.get("company_id"):
+        company_ids = [courier.get("company_id")]
     company_id = company_ids[0] if company_ids else None
     
     if not company_id:

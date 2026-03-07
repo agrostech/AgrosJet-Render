@@ -69,9 +69,12 @@ async def process_company_break_queue(company_id: str, break_settings: dict):
         
         break_limit = active_shift.get("break_limit", 2)
         
-        # Şu an moladaki kurye sayısı
+        # Şu an moladaki kurye sayısı (company_ids veya company_id kontrolü)
         on_break_count = await db.couriers.count_documents({
-            "company_ids": company_id,
+            "$or": [
+                {"company_ids": company_id},
+                {"company_id": company_id}
+            ],
             "availability_status": "on_break"
         })
         
@@ -167,9 +170,15 @@ async def update_queue_estimates(company_id: str, break_settings: dict):
     assignment_restriction = break_settings.get("break_assignment_restriction", 10)
     
     try:
-        # Moladaki kuryeler ve kalan süreleri
+        # Moladaki kuryeler ve kalan süreleri (company_ids veya company_id kontrolü)
         on_break = await db.couriers.find(
-            {"company_ids": company_id, "availability_status": "on_break"},
+            {
+                "$or": [
+                    {"company_ids": company_id},
+                    {"company_id": company_id}
+                ],
+                "availability_status": "on_break"
+            },
             {"_id": 0, "id": 1, "break_start_time": 1, "requested_break_duration": 1}
         ).to_list(50)
         
@@ -263,7 +272,9 @@ async def check_break_completions():
                 if elapsed >= duration:
                     # Mola süresi doldu - kuryeyi aktif yap
                     courier_id = courier.get("id")
-                    company_ids = courier.get("company_ids", [])
+                    company_ids = courier.get("company_ids") or []
+                    if not company_ids and courier.get("company_id"):
+                        company_ids = [courier.get("company_id")]
                     company_id = company_ids[0] if company_ids else None
                     
                     # Kullanılan mola süresini güncelle
@@ -300,7 +311,9 @@ async def check_break_completions():
                         
                 elif duration - elapsed <= 5 and duration - elapsed > 4:
                     # 5 dakika kaldı bildirimi (sadece bir kez)
-                    company_ids = courier.get("company_ids", [])
+                    company_ids = courier.get("company_ids") or []
+                    if not company_ids and courier.get("company_id"):
+                        company_ids = [courier.get("company_id")]
                     company_id = company_ids[0] if company_ids else None
                     if company_id:
                         await send_break_notification_internal(
@@ -345,7 +358,9 @@ async def check_delivery_completion_for_break():
             if on_way_orders == 0:
                 # Paket teslim edilmiş - mola süresini başlat
                 duration = courier.get("requested_break_duration", 30)
-                company_ids = courier.get("company_ids", [])
+                company_ids = courier.get("company_ids") or []
+                if not company_ids and courier.get("company_id"):
+                    company_ids = [courier.get("company_id")]
                 company_id = company_ids[0] if company_ids else None
                 
                 await db.couriers.update_one(
