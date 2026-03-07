@@ -183,22 +183,22 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
           <thead className="sticky top-0 z-10">
             {/* Grup Başlıkları */}
             <tr className="bg-slate-100">
-              <th className="sticky left-0 z-20 bg-slate-100 p-2 text-left font-semibold border-r-2 border-slate-300 min-w-[160px]">
+              <th className="sticky left-0 z-20 bg-slate-100 p-2 text-left font-semibold border-r-2 border-black min-w-[160px]">
                 Restoran
               </th>
-              <th className="p-2 text-center font-semibold bg-amber-100 border-r border-amber-200">
+              <th className="p-2 text-center font-semibold bg-amber-100 border-r-2 border-black">
                 <div className="flex items-center justify-center gap-1">
                   <Package className="w-3 h-3" />
                   Ücret
                 </div>
               </th>
-              <th colSpan={3} className="p-2 text-center font-semibold bg-green-100 border-r-2 border-green-300">
+              <th colSpan={3} className="p-2 text-center font-semibold bg-green-100 border-r-2 border-black">
                 <div className="flex items-center justify-center gap-1">
                   <Banknote className="w-3 h-3" />
                   Tahsilat
                 </div>
               </th>
-              <th colSpan={5} className="p-2 text-center font-semibold bg-blue-100 border-r-2 border-blue-300">
+              <th colSpan={5} className="p-2 text-center font-semibold bg-blue-100 border-r-2 border-black">
                 <div className="flex items-center justify-center gap-1">
                   <FileText className="w-3 h-3" />
                   Fatura
@@ -215,17 +215,17 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
             </tr>
             
             {/* Alt Başlıklar */}
-            <tr className="bg-white border-b-2 border-slate-300">
-              <th className="sticky left-0 z-20 bg-white p-2 text-left text-[10px] text-muted-foreground border-r-2 border-slate-300">
+            <tr className="bg-white border-b-2 border-black">
+              <th className="sticky left-0 z-20 bg-white p-2 text-left text-[10px] text-muted-foreground border-r-2 border-black">
                 İsim
               </th>
-              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-amber-50 border-r border-amber-200">
+              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-amber-50 border-r-2 border-black">
                 Tür
               </th>
               {collectionCols.map((col, i) => (
                 <th 
                   key={`col-${col.key}`} 
-                  className={`p-1.5 text-center text-[10px] text-muted-foreground bg-green-50 ${i === collectionCols.length - 1 ? 'border-r-2 border-green-300' : 'border-r border-green-200'}`}
+                  className={`p-1.5 text-center text-[10px] text-muted-foreground bg-green-50 ${i === collectionCols.length - 1 ? 'border-r-2 border-black' : 'border-r border-black'}`}
                 >
                   {col.label}
                 </th>
@@ -233,7 +233,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
               {invoiceCols.map((col, i) => (
                 <th 
                   key={`inv-${col.key}`} 
-                  className={`p-1.5 text-center text-[10px] text-muted-foreground bg-blue-50 ${i === invoiceCols.length - 1 ? 'border-r-2 border-blue-300' : 'border-r border-blue-200'}`}
+                  className={`p-1.5 text-center text-[10px] text-muted-foreground bg-blue-50 ${i === invoiceCols.length - 1 ? 'border-r-2 border-black' : 'border-r border-black'}`}
                 >
                   {col.label}
                 </th>
@@ -241,7 +241,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
               {permissionColumns.map((col, i) => (
                 <th 
                   key={`perm-${col.key}`} 
-                  className={`p-1.5 text-center text-[10px] text-muted-foreground bg-purple-50 ${i < permissionColumns.length - 1 ? 'border-r border-purple-200' : ''}`}
+                  className={`p-1.5 text-center text-[10px] text-muted-foreground bg-purple-50 ${i < permissionColumns.length - 1 ? 'border-r border-black' : ''}`}
                   title={col.label}
                 >
                   {col.short_label || col.label}
@@ -255,10 +255,10 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
               const isUpdatingAny = Object.keys(updating).some(k => k.startsWith(restaurant.id) && updating[k]);
               
               return (
-                <tr key={restaurant.id} className="border-b hover:bg-slate-50/50">
+                <tr key={restaurant.id} className="border-b border-black hover:bg-slate-50/50">
                   {/* Restoran İsmi */}
                   <td 
-                    className="sticky left-0 z-10 bg-white p-2 font-medium border-r-2 border-slate-300 cursor-pointer hover:text-primary"
+                    className="sticky left-0 z-10 bg-white p-2 font-medium border-r-2 border-black cursor-pointer hover:text-primary"
                     onClick={() => onRestaurantClick?.(restaurant)}
                   >
                     <div className="flex items-center gap-1.5">
@@ -270,7 +270,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                   </td>
                   
                   {/* Ücretlendirme */}
-                  <td className="p-1 text-center border-r border-amber-200">
+                  <td className="p-1 text-center border-r-2 border-black">
                     <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-medium ${
                       restaurant.pricing_type === "per_km" 
                         ? "bg-purple-100 text-purple-700" 
@@ -290,7 +290,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                     return (
                       <td 
                         key={`col-${col.key}`}
-                        className={`p-1 text-center cursor-pointer transition-colors ${i === collectionCols.length - 1 ? 'border-r-2 border-green-300' : 'border-r border-green-100'}`}
+                        className={`p-1 text-center cursor-pointer transition-colors ${i === collectionCols.length - 1 ? 'border-r-2 border-black' : 'border-r border-black'}`}
                         onClick={() => !isUpdatingCell && handleCellUpdate(restaurant.id, "collection", col.key, value)}
                       >
                         {isUpdatingCell ? (
@@ -315,7 +315,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                     return (
                       <td 
                         key={`inv-${col.key}`}
-                        className={`p-1 text-center cursor-pointer transition-colors ${i === invoiceCols.length - 1 ? 'border-r-2 border-blue-300' : 'border-r border-blue-100'}`}
+                        className={`p-1 text-center cursor-pointer transition-colors ${i === invoiceCols.length - 1 ? 'border-r-2 border-black' : 'border-r border-black'}`}
                         onClick={() => !isUpdatingCell && handleCellUpdate(restaurant.id, "invoice", col.key, value)}
                       >
                         {isUpdatingCell ? (
@@ -338,7 +338,7 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
                     return (
                       <td 
                         key={`perm-${col.key}`}
-                        className={`p-1 text-center cursor-pointer transition-colors ${i < permissionColumns.length - 1 ? 'border-r border-purple-100' : ''}`}
+                        className={`p-1 text-center cursor-pointer transition-colors ${i < permissionColumns.length - 1 ? 'border-r border-black' : ''}`}
                         onClick={() => !isUpdatingCell && handleCellUpdate(restaurant.id, "permission", col.key, value)}
                       >
                         {isUpdatingCell ? (
