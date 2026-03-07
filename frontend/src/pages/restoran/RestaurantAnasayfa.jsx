@@ -965,7 +965,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                             className="h-7 w-7 p-0 hover:bg-slate-100"
                                             onClick={() => setUnmarkDeliveryConfirm(order)}
                                           >
-                                            <Send className="w-4 h-4 text-slate-400" />
+                                            <Send className="w-4 h-4 text-slate-500" />
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>Kurye Şirketine Aktar</TooltipContent>
@@ -974,7 +974,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                   ) : (
                                     // Teslim edilmiş veya izin yoksa sadece görsel
                                     <div className="h-7 w-7 flex items-center justify-center opacity-50">
-                                      <Send className="w-4 h-4 text-slate-400" />
+                                      <Send className="w-4 h-4 text-slate-500" />
                                     </div>
                                   )
                                 ) : !order.manual_transfer_mode && canMarkRestaurantDelivery && (() => {
