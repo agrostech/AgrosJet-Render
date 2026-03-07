@@ -417,7 +417,7 @@ export default function SistemPage({ companyId }) {
           className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
         >
           <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
+            <Zap className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
             <h3 className="font-semibold text-sm md:text-base">Otomatik Atama</h3>
             {autoDispatchSettings.enabled && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
@@ -798,7 +798,7 @@ export default function SistemPage({ companyId }) {
           className="w-full p-3 md:p-4 border-b-2 border-border bg-slate-50 flex items-center justify-between"
         >
           <div className="flex items-center gap-2">
-            <Mail className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+            <Mail className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
             <h3 className="font-semibold text-sm md:text-base">E-posta Bildirimleri</h3>
             {emailStatus.exists && emailSettings.enabled && (
               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full hidden sm:inline">
