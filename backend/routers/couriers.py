@@ -713,6 +713,11 @@ async def get_courier_break_status(courier_id: str):
 class CourierLocationUpdate(BaseModel):
     latitude: float
     longitude: float
+    accuracy: Optional[float] = None
+    speed: Optional[float] = None
+    timestamp: Optional[int] = None
+    batteryLevel: Optional[float] = None  # 0.0 - 1.0 arası
+    batteryState: Optional[str] = None    # "charging", "unplugged", "full", "unknown"
 
 
 @router.put("/couriers/{courier_id}/location")
@@ -720,15 +725,31 @@ async def update_courier_location(courier_id: str, data: CourierLocationUpdate):
     """Update courier's current location"""
     from datetime import datetime, timezone
     
+    update_data = {
+        "current_location": {
+            "latitude": data.latitude,
+            "longitude": data.longitude,
+            "updated_at": get_turkey_now()
+        }
+    }
+    
+    # Accuracy ve speed varsa ekle
+    if data.accuracy is not None:
+        update_data["current_location"]["accuracy"] = data.accuracy
+    if data.speed is not None:
+        update_data["current_location"]["speed"] = data.speed
+    
+    # Batarya bilgisi varsa ekle
+    if data.batteryLevel is not None:
+        update_data["battery"] = {
+            "level": data.batteryLevel,
+            "state": data.batteryState or "unknown",
+            "updated_at": get_turkey_now()
+        }
+    
     result = await db.couriers.update_one(
         {"id": courier_id},
-        {"$set": {
-            "current_location": {
-                "latitude": data.latitude,
-                "longitude": data.longitude,
-                "updated_at": get_turkey_now()
-            }
-        }}
+        {"$set": update_data}
     )
     
     if result.matched_count == 0:

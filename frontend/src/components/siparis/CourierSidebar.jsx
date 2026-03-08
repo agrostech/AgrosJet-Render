@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronRight, ChevronDown, Bike, Users, MapPin, Clock, CalendarOff, UserCog } from "lucide-react";
+import { ChevronRight, ChevronDown, Bike, Users, MapPin, Clock, CalendarOff, UserCog, BatteryLow } from "lucide-react";
 import { getRemainingBreakTime } from "@/utils/orderUtils";
 
 // Kurye listesi bileşeni - Desktop versiyonu
@@ -199,6 +199,14 @@ const isLocationStale = (courier) => {
   return diffMinutes > 2;
 };
 
+// Kuryenin bataryası düşük mü kontrol et (%20 ve altı)
+const isBatteryLow = (courier) => {
+  if (!courier.battery || courier.battery.level === null || courier.battery.level === undefined) {
+    return false;
+  }
+  return courier.battery.level <= 0.20;
+};
+
 // Kuryenin şu an aktif vardiyası var mı kontrol et
 const hasActiveShiftNow = (courier, shifts, shiftAssignments, leaves) => {
   if (!shifts || !shiftAssignments) return false;
@@ -381,6 +389,7 @@ function CourierItem({
   const packageCounts = counts || { assigned: 0, confirmed: 0, onTheWay: 0 };
   const breakInfo = showBreakTime ? getRemainingBreakTime(courier) : null;
   const locationStale = !isOffline && isLocationStale(courier);
+  const batteryLow = !isOffline && isBatteryLow(courier);
   
   // Admin-kurye mi kontrol et
   const isAdminLinked = courier.is_admin_linked;
@@ -408,6 +417,9 @@ function CourierItem({
         )}
         {locationStale && (
           <MapPin className="w-3 h-3 text-red-500" title="Konum güncel değil" />
+        )}
+        {batteryLow && (
+          <BatteryLow className="w-3 h-3 text-red-500" title="Batarya düşük" />
         )}
         {missedShift && (
           <Clock className="w-3 h-3 text-red-500" title="Vardiyası var ama çevrimdışı" />
