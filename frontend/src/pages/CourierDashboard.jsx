@@ -185,14 +185,15 @@ export default function CourierDashboard() {
   }, []);
 
   // Fetch courier availability status
-  const fetchAvailabilityStatus = useCallback(async (courierId) => {
+  const fetchAvailabilityStatus = useCallback(async (courierId, isInitialLoad = false) => {
     try {
       const res = await axios.get(`${API}/couriers/${courierId}`);
       const newStatus = res.data.availability_status || "offline";
       
-      // Durum değiştiyse native'e bildir
+      // Durum değiştiyse VEYA ilk yükleme ise native'e bildir
       setAvailabilityStatus(prevStatus => {
-        if (prevStatus !== newStatus && window.AgrosJetNative) {
+        const shouldNotify = isInitialLoad || prevStatus !== newStatus;
+        if (shouldNotify && window.AgrosJetNative) {
           try {
             const statusMap = {
               'active': 'aktif',
@@ -200,7 +201,7 @@ export default function CourierDashboard() {
               'offline': 'çevrimdışı'
             };
             window.AgrosJetNative.statusChange(statusMap[newStatus] || 'çevrimdışı');
-            console.log('Native app bilgilendirildi (polling):', statusMap[newStatus]);
+            console.log('Native app bilgilendirildi:', statusMap[newStatus], isInitialLoad ? '(ilk yükleme)' : '(polling)');
           } catch (e) {
             console.error('Native statusChange hatası:', e);
           }
@@ -358,7 +359,7 @@ export default function CourierDashboard() {
           }
           checkDocumentStatus(courierData.id);
           checkMaintenanceNotifications(courierData.id);
-          fetchAvailabilityStatus(courierData.id);
+          fetchAvailabilityStatus(courierData.id, true); // İlk yükleme - native'e bildir
           fetchBreakStatus(courierData.id);
           fetchCourierBreakInfo(courierData.id);
           checkCourierStatus(courierData.id, courierData.company_id);
@@ -366,7 +367,7 @@ export default function CourierDashboard() {
           // Her 10 saniyede bir durumu kontrol et (mola onayı için hızlı güncelleme)
           const intervalId = setInterval(() => {
             checkCourierStatus(courierData.id, courierData.company_id);
-            fetchAvailabilityStatus(courierData.id);
+            fetchAvailabilityStatus(courierData.id, false); // Polling - sadece değişiklikte bildir
             fetchBreakStatus(courierData.id);
             fetchCourierBreakInfo(courierData.id);
           }, 10000);
@@ -401,7 +402,7 @@ export default function CourierDashboard() {
     if (parsed.id) {
       checkDocumentStatus(parsed.id);
       checkMaintenanceNotifications(parsed.id);
-      fetchAvailabilityStatus(parsed.id);
+      fetchAvailabilityStatus(parsed.id, true); // İlk yükleme - native'e bildir
       fetchBreakStatus(parsed.id);
       fetchCourierBreakInfo(parsed.id);
       
@@ -411,7 +412,7 @@ export default function CourierDashboard() {
       // Her 10 saniyede bir durumu kontrol et (mola onayı için hızlı güncelleme)
       const intervalId = setInterval(() => {
         checkCourierStatus(parsed.id, parsed.company_id);
-        fetchAvailabilityStatus(parsed.id);
+        fetchAvailabilityStatus(parsed.id, false); // Polling - sadece değişiklikte bildir
         fetchBreakStatus(parsed.id);
         fetchCourierBreakInfo(parsed.id);
       }, 10000);
