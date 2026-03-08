@@ -746,8 +746,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
 
   return (
     <div data-testid="siparis-yonetimi-page" className="space-y-4">
-      {/* Header with tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Header with tabs - MASAÜSTÜ */}
+      <div className="hidden sm:flex sm:items-center justify-between gap-3">
         <div className="flex items-center gap-4 flex-wrap">
           <h2 className="font-heading text-xl font-bold tracking-tight">Sipariş Yönetimi</h2>
           <div className="flex border-2 rounded-lg overflow-hidden">
@@ -791,6 +791,83 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         )}
       </div>
 
+      {/* Header with tabs - MOBİL */}
+      <div className="sm:hidden space-y-3">
+        {/* Başlık Satırı */}
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-lg font-bold tracking-tight">Sipariş Yönetimi</h2>
+          {mainTab === "active" && (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={fetchAll} className="h-8 px-2">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+              <NotificationsPopover companyId={companyId} />
+            </div>
+          )}
+        </div>
+        
+        {/* Sekmeler - Tam Genişlik */}
+        <div className="flex border-2 rounded-lg overflow-hidden">
+          <button
+            onClick={() => setMainTab("active")}
+            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
+              mainTab === "active" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+            }`}
+          >
+            <ListChecks className="w-3.5 h-3.5" />
+            Aktif
+          </button>
+          <button
+            onClick={() => setMainTab("delivered")}
+            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors border-l flex items-center justify-center gap-1 ${
+              mainTab === "delivered" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+            }`}
+          >
+            <CheckCircle className="w-3.5 h-3.5" />
+            Teslim
+          </button>
+          <button
+            onClick={() => setMainTab("cancelled")}
+            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors border-l flex items-center justify-center gap-1 ${
+              mainTab === "cancelled" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+            }`}
+          >
+            <ClipboardX className="w-3.5 h-3.5" />
+            İptal
+          </button>
+        </div>
+        
+        {/* İstatistikler - Sadece Aktif Sekmede */}
+        {mainTab === "active" && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-full text-xs whitespace-nowrap">
+              <Package className="w-3 h-3 text-slate-500" />
+              <span className="font-semibold text-slate-600">{stats.total}</span>
+            </span>
+            {stats.unassigned > 0 && (
+              <span className="flex items-center gap-1 px-2 py-1 bg-orange-100 rounded-full text-xs text-orange-600 whitespace-nowrap">
+                <AlertCircle className="w-3 h-3" />
+                <span className="font-semibold">{stats.unassigned}</span>
+                <span>bekliyor</span>
+              </span>
+            )}
+            {stats.onTheWay > 0 && (
+              <span className="flex items-center gap-1 px-2 py-1 bg-cyan-100 rounded-full text-xs text-cyan-600 whitespace-nowrap">
+                <Bike className="w-3 h-3" />
+                <span className="font-semibold">{stats.onTheWay}</span>
+                <span>yolda</span>
+              </span>
+            )}
+            {stats.delivered > 0 && (
+              <span className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full text-xs text-green-600 whitespace-nowrap">
+                <CheckCircle2 className="w-3 h-3" />
+                <span className="font-semibold">{stats.delivered}</span>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Sub-pages */}
       {mainTab === "delivered" && (
         <GecmisSiparislerPage 
@@ -812,8 +889,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
       
       {/* Active tab content */}
       <div style={{ display: mainTab === "active" ? "block" : "none" }}>
-        {/* Stats */}
-        <div className="flex items-center gap-3 text-sm">
+        {/* Stats - Sadece Masaüstü */}
+        <div className="hidden sm:flex items-center gap-3 text-sm">
           <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50/70 rounded-full">
             <Package className="w-3.5 h-3.5 text-slate-500" />
             <span className="font-semibold text-slate-600">{stats.total}</span>
