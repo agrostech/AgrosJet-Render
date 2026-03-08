@@ -1,183 +1,151 @@
 <analysis>**original_problem_statement:**
-The initial goal was to build a sophisticated Automatic Dispatch System. The previous session focused on fixing critical integration issues with Migros and Sepettakip.
+The initial session aimed to finalize a Smart Break System and fix various bugs. The scope expanded significantly to include a major UI/UX overhaul with the creation of two Matrix Views (one for Restaurants, one for Couriers) for at-a-glance settings management.
 
-This session pivoted to a major new feature request: a Smart Break System for couriers. The user provided a detailed specification for a system that includes:
-- Two modes: **Automatic** (couriers enter a queue) and **Manual** (admins approve requests).
-- Per-shift limits on the number of couriers who can be on break simultaneously.
-- Intelligent queueing logic that accounts for changing shift limits.
-- Restrictions on assigning packages to couriers who are about to start their break.
-- Delayed break start time for couriers who have an active delivery.
-- A full notification system for couriers (break starting, ending, etc.) and admins (manual requests).
-
-Additionally, the user requested several UI improvements on the  page and a fix for a UI flicker on the .
+Further requests included:
+- A new Paket Aktarım Modu (Order Transfer Mode) feature, allowing restaurants to choose between automatic and manual order transfer to the courier company.
+- A critical bug fix for the mobile app's courier dashboard, which was showing a white screen.
+- A new feature to display courier battery levels in the admin panel.
+- A content update for the public-facing KVKK (Privacy Policy) page.
+- A fix for a logical flaw in the courier ETA (Estimated Time of Arrival) calculation.
+- A large feature for a Restaurant Courier System was designed but explicitly postponed by the user.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A full-stack dispatch application (FastAPI backend, React frontend, MongoDB). In this session, a substantial part of the new Smart Break System has been implemented.
+A full-stack dispatch application. The core features now include two comprehensive Matrix Views for administrators to manage restaurant and courier settings efficiently. These views support inline editing, interactive controls ( buttons, toggles), and real-time saving.
 
--   **Backend:** New data models (, ), API endpoints (), and background scheduler jobs () have been created to manage the entire break logic, including queuing, status updates, and notifications. The auto-dispatch system () has been modified to respect the new break rules.
--   **Frontend:**
-    -   An admin modal () has been created for configuring the mola system on the .
-    -   The courier dashboard () has been updated with a new modal () for couriers to request breaks and view the queue.
-    -   The manual order assignment flow () now warns the admin if they try to assign a package to a courier whose break is about to start.
-    -   The UI for admins to approve manual break requests in the notifications popover () has been partially implemented.
+A new Paket Aktarım Modu (Order Transfer Mode) is fully integrated, allowing restaurants to be configured for manual order handling. This leverages the existing  logic, minimizing new code paths.
+
+The courier dashboard's mobile webview stability has been improved by adding error handling for native function calls. The system can now receive and display courier battery levels in the admin UI. The KVKK page has been updated and made publicly accessible.
 
 **Last working item**:
--   Last item agent was working: The user specified that mola (break) notifications should be sent to the courier's mobile app using the existing push notification system (FCM). The agent was in the process of integrating the existing  service into the new break notification logic within .
+-   Last item agent was working: The agent was implementing a fix for a logic error in the courier ETA calculation. The user pointed out that the algorithm incorrectly prioritized all deliveries over all pickups, leading to inaccurate ETAs for restaurants waiting for a pickup. The agent proposed and received approval to implement a Collect-Then-Distribute logic.
 -   Status: **IN PROGRESS**
 -   Agent Testing Done: N
--   Which testing method agent to use? backend testing agent to verify that triggering a break event (e.g., ) correctly calls the  function by checking application logs.
+-   Which testing method agent to use? backend testing agent or  to test the  endpoint. The test should simulate a courier having both active deliveries () and pending pickups () to verify the new prioritization logic.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Complete Push Notification Integration for Breaks (P0)**
-    -   Description: The backend logic for creating break notifications exists, but it needs to be wired up to the  service to deliver them to the mobile app.
+-   **Issue 1: Fix ETA Calculation Logic (P0)**
+    -   Description: The ETA calculation needs to be changed to prioritize all pending pickups *before* starting deliveries. The current logic does the opposite, creating incorrect ETAs for restaurants that are next on the pickup route.
     -   Status: **IN PROGRESS**
     -   Next debug checklist:
-        -   Modify  in  to fetch the courier's FCM token and call  with the correct message payload.
-        -   Ensure different notification types (, , etc.) generate appropriate user-facing messages.
+        -   Modify the  function in .
+        -   Re-order the logic to process the  list before the  list within the route simulation.
+    -   Why fix this issue and what will be achieved with the fix?: This will provide accurate ETA information to restaurants, improving operational planning and trust in the system.
 
--   **Issue 2: Admin UI for Manual Break Requests is Incomplete (P1)**
-    -   Description: The user pointed out that the UI for admins to approve/reject manual break requests was not finished. The agent started working on it in  but it is not complete.
-    -   Status: **IN PROGRESS**
-    -   Next debug checklist:
-        -   Finalize the Mola Talepleri tab in .
-        -   Implement the logic to fetch pending break requests.
-        -   Wire up the Onayla (Approve) and Reddet (Reject) buttons to the backend API ().
-
--   **Issue 3: Kurye bir şirkete bağlı değil Error (P1)**
-    -   Description: The user reported this error (Courier is not assigned to a company). The agent identified a data model mismatch ( vs. ) and implemented a fix using  in MongoDB queries across  and .
+-   **Issue 2: Verify Migros Webhook Parsing Fix (P1)**
+    -   Description: A previous fix to handle nested options in Migros orders has been implemented but awaits verification with a live test order.
     -   Status: **USER VERIFICATION PENDING**
-    -   Is recurring issue?: Y
-    -   Next debug checklist: The fix appears to have worked in the agent's tests, but this type of issue has occurred before. The user needs to confirm it's resolved.
+    -   Next debug checklist: Ask the user to trigger a new test order from Migros, then check backend logs and the created order in the database.
 
--   **Issue 4: Migros Webhooks Fail in Production (P0 - from previous fork)**
-    -   Description: A critical configuration error where Migros sends webhooks to the frontend URL instead of the backend URL. The application code is fixed, but the integration is broken in production.
-    -   Status: **BLOCKED** (Requires user to contact Migros and update the webhook URL to ).
+-   **Issue 3: Migros Webhooks Fail in Production (P2 - from previous fork)**
+    -   Description: Critical configuration error where Migros sends webhooks to the wrong URL.
+    -   Status: **BLOCKED** (Requires user to contact Migros and update the webhook URL to the backend API endpoint).
 
--   **Issue 5: Adisyo Webhook Fails to Find Restaurant (P1 - from previous fork)**
-    -   Description: Recurring critical integration failure where Adisyo webhooks fail with .
+-   **Issue 4: Adisyo Webhook Fails to Find Restaurant (P2 - from previous fork)**
+    -   Description: Recurring integration failure where Adisyo webhooks fail with .
     -   Status: **NOT STARTED**
 
 **In progress Task List**:
--   **Task 1: Finalize the Smart Break System (P0)**
-    -   Where to resume:
-        1.  Complete **Issue 1** (Push Notifications).
-        2.  Complete **Issue 2** (Admin Approval UI).
-        3.  Conduct a full test of both Automatic and Manual mola modes.
-    -   What will be achieved with this?: A fully functional, advanced courier break management system that meets the user's detailed specifications.
+-   **Task 1: Finalize ETA Calculation Logic Fix (P0)**
+    -   Where to resume: Continue implementing the Collect-Then-Distribute logic in the  function in .
+    -   What will be achieved with this?: Accurate courier ETA calculations for restaurants.
     -   Status: **IN PROGRESS**
-    -   Blocked on something: No.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **(P1) Implement Stop Count Based Capacity Logic:** Change courier capacity to be based on unique drop-off locations, not total package count.
-    -   **(P2) Investigate Caller ID integration:** Discuss feasibility with the user.
--   **Future Tasks:**
-    -   (P1) Implement  calculation on order creation.
-    -   (P1) Refactor  and  scheduled jobs.
-    -   (P2) Investigate and potentially remove the  function.
-    -   (P2) Implement an API request monitor in the admin panel.
-    -   (P2) Develop a Native Courier App.
+    -   **(P1)** Implement Stop Count Based Capacity Logic.
+    -   **(P2)** Investigate Caller ID integration.
+-   **Future Tasks (Backlog):**
+    -   **(P0) Restaurant Courier System:** A large, designed feature allowing restaurants in manual mode to manage their own private couriers. This was explicitly postponed by the user.
+    -   **(P1)** Implement  calculation on order creation.
+    -   **(P1)** Refactor  and  scheduled jobs.
+    -   **(P2)** Investigate and potentially remove the  function.
+    -   **(P2)** Implement an API request monitor in the admin panel.
+    -   **(P2)** Develop a Native Courier App.
 
 **Completed work in this session**
--   **Migros Auto-Approval:** Implemented logic in  to automatically approve incoming Migros orders and set their status to preparing with a calculated preparation time.
--   **VardiyaPage UI Flicker Fix:** Refactored  to use a single data source (), eliminating a loading flicker on the Vardiya Takibi card.
--   **Courier Management UI Enhancements:**
-    -   Added text labels to buttons and an icon to the Details button on the  table.
-    -   Moved Mola Ayarı (Break Limit) to a dedicated button and modal.
-    -   Added IBAN and E-posta fields to the courier edit modal.
-    -   Made Edit and Delete buttons icon-only and moved them to the end of the row.
--   **Smart Break System (Core Implementation):**
-    -   **Backend:** Built the core services, API endpoints, data models, and scheduler jobs for the entire break system. Modified the auto-dispatch logic to respect break schedules.
-    -   **Frontend:** Built the admin configuration modal () and the courier-facing break request/status modal (). Integrated a warning for manual assignments when a courier's break is approaching.
-
-**Earlier issues found/mentioned but not fixed**
--   **Adisyo Webhook Failure**: Mentioned in the initial handoff, this issue () persists and was not addressed. See All Pending/In progress Issue list.
-
-**Known issue recurrence from previous fork**
--   Issue recurrence in previous fork: Adisyo webhook failures.
--   Recurrence count: 4
--   Status: **NOT STARTED**
+-   **Courier & Restaurant Matrix Views:**
+    -   Created and refined two new matrix views for at-a-glance management of all courier and restaurant settings.
+    -   Implemented interactive controls:  buttons, numeric inputs, toggles, and right-aligned save buttons.
+    -   Added UI/UX improvements: zebra-striped rows for readability and centered text in inputs.
+-   **Paket Aktarım Modu (Order Transfer Mode) Feature:**
+    -   **Backend:** Added  field to the restaurant model and logic in  to automatically mark orders as  for manual-mode restaurants.
+    -   **Frontend:** Added a toggle for this mode in the Restaurant Matrix View. Implemented conditional button logic in the restaurant panel to show Transfer to Company ( icon) vs. Restaurant Delivery ( icon).
+-   **Mobile App Stability Fix:**
+    -   Resolved a white screen bug on the courier dashboard webview by wrapping all  calls in  blocks within .
+-   **Courier Battery Level Feature:**
+    -   **Backend:** The  endpoint now accepts and stores  and .
+    -   **Frontend:** The courier detail modal now displays the battery percentage with color-coding. A low-battery icon appears on courier cards if the battery is below 20%.
+-   **KVKK Page Update:**
+    -   The content of the KVKK (Privacy Policy) page was updated with user-provided text.
+    -   The page was confirmed to be publicly accessible at  without requiring a login.
+-   **UI/UX Enhancements:**
+    -   Added live order counters to the status tabs in the restaurant panel.
+    -   Updated various icons ( -> , ) for better contextual meaning.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Stateful Background Jobs (APScheduler):** The break system's reliability hinges on background jobs that run every 30 seconds to process the queue, update timers, start/end breaks, and send notifications.
--   **Complex Inter-Service Logic:** The feature required deep integration across multiple backend services, including auto-dispatch, manual order assignment, and notifications.
--   **Conditional UI and State Management:** The frontend now handles complex conditional logic for both admins (settings) and couriers (queue status, dynamic buttons), managed with React hooks.
--   **Push Notifications (FCM):** The system uses Firebase Cloud Messaging to send real-time alerts to the courier's mobile application.
+-   **Interactive Data Grids:** The matrix views serve as complex, interactive data grids with features like inline editing, conditional UI rendering (save buttons), and cell-level API updates.
+-   **Graceful Native Integration:** Preventing webview crashes by wrapping calls to native code () in  blocks, ensuring the web application remains stable even if the native side fails.
+-   **Leveraging Existing Logic for New Features:** The Order Transfer Mode was implemented by adding a new restaurant setting () that controls an existing order flag (), avoiding the need to build a parallel system.
+-   **Complex UI State Management:** Managing per-cell dirty states (), loading states for individual saves, and view-level state (list vs. matrix) across the new components.
 
 **key DB schema**
--   **companies**:  to store a  object containing the mode (auto/manual), time restrictions, and per-shift courier limits.
--   **break_queue**:  Stores active break requests and queued couriers, with their status and estimated start times.
--   **break_logs**:  A log of all completed courier breaks.
--   **notifications**:  to store new break-related notification types for both couriers and admins.
-
-**changes in tech stack**
--   No new technologies were added, but the application's reliance on the existing  for core business logic has significantly increased.
+-   **restaurants**: (MODIFIED) Added  (String: auto | manual, default: auto).
+-   **couriers**: (MODIFIED) Added a  object ().
+-   **orders**: (MODIFIED) Added  (Boolean) to track if an order was set to  due to the new restaurant setting.
 
 **All files of reference**
--   **/app/backend/services/break_system.py**: Core logic for the entire feature.
--   **/app/backend/services/scheduler_jobs.py**: Background tasks that make the system run.
--   **/app/frontend/src/pages/courier/CourierDashboard.jsx**: Entry point for couriers to interact with the break system.
--   **/app/frontend/src/pages/VardiyaPage.jsx**: Entry point for admins to configure the system.
--   **/app/frontend/src/components/courier/BreakInfoModal.jsx**: The main UI for couriers.
-
-**Areas that need refactoring**:
--    is becoming a monolith for handling various notification types. The new mola requests logic adds more complexity and should ideally be broken into a separate, dedicated component.
-
-**key api endpoints**
--   : Create/Update break settings.
--   : Get current break status for a courier.
--   : A courier requests or queues for a break.
--   : An admin approves/rejects a manual break request.
--   : (New) Checks if assigning a package to a courier will conflict with an upcoming break.
+-   **/app/backend/routers/orders.py**: Contains the ETA calculation logic currently being fixed.
+-   **/app/frontend/src/components/admin/CourierMatrixView.jsx**: The new, interactive matrix for managing couriers.
+-   **/app/frontend/src/components/admin/RestaurantSettingsMatrix.jsx**: The matrix for managing restaurants, which now includes the Order Transfer Mode toggle.
+-   **/app/frontend/src/pages/courier/CourierDashboard.jsx**: Contains the fix for the mobile webview white screen bug.
+-   **/app/backend/routers/couriers.py**: Contains the updated endpoint for receiving courier location and battery status.
+-   **/app/backend/services/credit_service.py**: Contains the logic that applies the Order Transfer Mode setting during order creation.
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   The Smart Break System is a large, complex feature that is only partially complete. You must review the user's detailed requirements (starting from ) before writing any code.
--   The user has explicitly stated they will perform testing (testleri ben yaparım). Your goal is to complete the implementation of the remaining pieces and hand them over.
--   Pay close attention to the **Migros configuration issue**. It is a high-priority, long-standing blocker that prevents a major integration from working in production. Remind the user they need to contact Migros to change the webhook URL.
+-   The immediate priority is to fix the ETA calculation logic in  by ensuring pickups are prioritized over deliveries in the route simulation.
+-   A major feature, Restaurant Courier System, was designed but explicitly postponed by the user. Do not work on this unless the user brings it up again.
+-   The Paket Aktarım Modu feature was cleverly implemented by reusing the existing  flag, a pattern that should be followed if possible.
 
 **documents and test reports created in this job**
 -   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks if the system should re-calculate wait times if a courier on break comes back early. **Status: Addressed.** The agent confirmed the scheduler already handles this automatically.
-2.  **User:** Asks how break notifications currently work for the courier. **Status: Addressed.** Agent investigated and found they were only saved to the DB.
-3.  **User:** Clarifies that break notifications should be sent to the mobile app via the existing push notification system. **Status: In Progress.** This is the last working item.
-4.  **User:** Provided clarification on the manual break mode logic. **Status: Addressed.**
-5.  **User:** Provided clarification on the automatic break mode logic. **Status: Addressed.**
-6.  **User:** Asked for a company-wide setting to prevent couriers from taking a break for 'X' minutes after a shift starts. **Status: Addressed and Implemented.**
-7.  **User:** Confirmed the agent understood the full requirements for the manual break system. **Status: Addressed.**
-8.  **User:** Asks what the agent thinks about the scenario where a courier's break is scheduled to start while they have an active delivery. **Status: Addressed.** The agent and user collaborated on the final logic.
-9.  **User:** Provided detailed answers to the agent's clarifying questions about the break system. **Status: Addressed.**
-10. **User:** Provided the full, detailed specification for the new Smart Break System. **Status: Addressed.**
+1.  **User:** Requests to show courier battery level in the courier modal. **Status: Completed.**
+2.  **User:** Provides the technical specification for how the mobile app will send battery data and asks for UI design suggestions. **Status: Completed.**
+3.  **User:** Approves the UI suggestion and adds a requirement to show a low-battery icon on courier cards. **Status: Completed.**
+4.  **User:** Asks to update the KVKK (Privacy Policy) page and requests to see the current text first. **Status: Completed.**
+5.  **User:** Provides the complete new text for the KVKK page. **Status: Completed.**
+6.  **User:** Asks for the direct link to the updated KVKK page. **Status: Completed.**
+7.  **User:** Requests that the KVKK page be accessible without a login. **Status: Completed (Agent confirmed it was already public).**
+8.  **User:** Asks for an analysis of how the current ETA calculation works. **Status: Completed.**
+9.  **User:** Identifies a critical logic flaw in the ETA calculation (deliveries are prioritized over pickups). **Status: Acknowledged.**
+10. **User:** Approves the agent's proposed solution (Akıllı Önceliklendirme / Toplama-Dağıtma) and instructs the agent to implement the fix carefully. **Status: In Progress.**
 
 **Project Health Check:**
 -   **Broken:**
     -   **Adisyo Integration:** Fails with .
     -   **Migros Integration (Configuration):** Functionally broken in production due to an incorrect webhook URL.
 -   **In-Progress:**
-    -   **Smart Break System:** The core backend and frontend components are built, but push notifications and the admin approval UI are incomplete.
--   **Needs Verification:**
-    -   **Trendyol orders visibility:** Awaiting user feedback from a previous session.
-    -   ** vs  fix:** The agent's fix for the courier not assigned error needs user confirmation.
+    -   **ETA Calculation Logic:** Backend logic is currently being refactored.
 
 **3rd Party Integrations**
 -   Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
 -   Railway (Hosting)
 -   Google Places API, Google Geocoding API
--   **Firebase Cloud Messaging (FCM):** Used for push notifications to the courier mobile app.
+-   Firebase Cloud Messaging (FCM)
 
 **Testing status**
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None.
+-   Known regressions: A temporary regression where restaurant/courier lists failed to load was introduced and immediately fixed during the creation of the Courier Matrix View.
 
 **Credentials to test flow:**
 -   **System Admin Panel:**
@@ -188,7 +156,4 @@ A full-stack dispatch application (FastAPI backend, React frontend, MongoDB). In
     -   Password: 
 -   **Courier Login:** 
     -   Phone: 
-    -   Password: 
-
-**What agent forgot to execute**
--   The agent was interrupted while finishing the UI for admin approval of manual break requests in . The user pointed this out, and while work resumed, it is still incomplete. This is a key part of the Manual Mode for the new break system.</analysis>
+    -   Password: </analysis>

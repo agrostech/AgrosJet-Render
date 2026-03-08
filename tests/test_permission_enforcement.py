@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://admin-dashboard-999.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://eta-fix.preview.emergentagent.com')
 
 # Test credentials from review request
 SUPERADMIN_ID = "0211f951-210a-465a-9937-672ebb16950b"

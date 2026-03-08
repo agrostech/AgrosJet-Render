@@ -50,6 +50,20 @@ Turkish
   - Günlük mola hakkı takibi
   - Paket teslimi sonrası mola başlatma
 
+## Completed Work (March 8, 2026)
+- [x] **Kurye & Restoran Matrix Views**: Admin panelinde toplu ayar yönetimi için iki yeni matris görünümü
+- [x] **Paket Aktarım Modu**: Restoranlar otomatik/manuel sipariş aktarımı seçebilir
+- [x] **Mobil Webview Stabilitesi**: CourierDashboard.jsx'te native çağrılar try-catch ile sarmalandı
+- [x] **Kurye Batarya Seviyesi**: Admin panelinde kurye batarya durumu görüntüleme
+- [x] **KVKK Sayfası Güncelleme**: İçerik güncellendi ve herkese açık hale getirildi
+- [x] **ETA Hesaplama Mantığı Düzeltmesi (Toplama-Dağıtma)**: 
+  - Kurye ETA hesaplamasında öncelik sırası düzeltildi
+  - ESKİ: Önce teslimatlar (on_the_way), sonra teslim alımlar (assigned/confirmed)
+  - YENİ: Önce TÜM teslim alımlar, sonra TÜM teslimatlar
+  - Gerçek dünya operasyonunu yansıtır: kurye önce toplar, sonra dağıtır
+  - Restoranlar doğru ETA görür
+  - Dosya: `/app/backend/routers/orders.py` - `calculate_courier_eta_for_restaurant` fonksiyonu
+
 ## In Progress Tasks
 - None currently
 

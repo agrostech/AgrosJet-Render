@@ -597,17 +597,21 @@ async def calculate_courier_eta_for_restaurant(
     """
     Kuryenin belirli bir restorana tahmini varış süresini hesapla.
     
-    Mantık:
+    TOPLAMA-DAĞITMA MANTİĞİ (Collect-Then-Distribute):
     1. Kuryenin mevcut konumunu al
     2. Kuryenin aktif siparişlerini al
-    3. Her sipariş için duruma göre (pickup veya delivery) işlem sırası belirle
-    4. Tüm ara noktaları hesaba katarak toplam ETA hesapla
+    3. ÖNCE tüm teslim alımları (pickups) yap - restoranlardan paket topla
+    4. SONRA tüm teslimatları (deliveries) yap - toplananları dağıt
+    
+    Bu mantık gerçek dünya operasyonunu yansıtır:
+    - Kurye önce tüm restoranlardan siparişleri toplar
+    - Sonra toplanan siparişleri müşterilere dağıtır
+    - Bu sayede restoranlar doğru ETA görür
     
     Senaryolar:
     - Kurye boşta: Doğrudan restorana mesafe
-    - Kurye assigned/confirmed: Önce o restoranlardan teslim alması gerekir
-    - Kurye on_the_way: Önce teslimat yapması gerekir
-    - Karışık: Tüm ara noktaları sırayla gezer
+    - Kurye assigned/confirmed: Bu restoranlardan teslim alması gerekir (öncelikli)
+    - Kurye on_the_way: Elindeki paketleri dağıttıktan sonra yeni alımlara geçer
     
     Returns:
         {
@@ -615,7 +619,7 @@ async def calculate_courier_eta_for_restaurant(
             "eta_text": str,             # "~15 dk" formatında
             "distance_km": float,        # Toplam mesafe
             "current_orders_count": int, # Mevcut sipariş sayısı
-            "route_summary": str,        # "2 teslimat, 1 teslim alım" gibi
+            "route_summary": str,        # "2 teslim alım, 1 teslimat sonra" gibi
             "breakdown": list            # Detaylı rota bilgisi
         }
     """
@@ -703,9 +707,9 @@ async def calculate_courier_eta_for_restaurant(
             }]
         }
     
-    # Siparişleri öncelik sırasına koy:
-    # 1. on_the_way olanlar (teslimat yapılacak) - en önce
-    # 2. assigned/confirmed (teslim alınacak) - sonra
+    # Siparişleri TOPLAMA-DAĞITMA sırasına koy:
+    # 1. assigned/confirmed (teslim alınacak) - ÖNCE tüm restoranlardan topla
+    # 2. on_the_way olanlar (teslimat yapılacak) - SONRA dağıt
     
     on_the_way_orders = [o for o in active_orders if o["status"] == "on_the_way"]
     pickup_orders = [o for o in active_orders if o["status"] in ["assigned", "confirmed"]]
@@ -721,49 +725,13 @@ async def calculate_courier_eta_for_restaurant(
     deliveries_before_target = 0
     pickups_before_target = 0
     
-    # 1. Önce teslimat yapılacakları işle (on_the_way)
-    # En yakın teslimat noktasına git, teslim et, sonraki en yakına...
-    remaining_deliveries = on_the_way_orders.copy()
-    while remaining_deliveries and not reached_target:
-        # En yakın teslimat noktasını bul
-        nearest = None
-        nearest_distance = float('inf')
-        
-        for order in remaining_deliveries:
-            del_lat, del_lng = get_location_coords(order.get("delivery_location"))
-            if del_lat and del_lng:
-                dist = calculate_distance_between_points(current_lat, current_lng, del_lat, del_lng)
-                if dist < nearest_distance:
-                    nearest_distance = dist
-                    nearest = order
-        
-        if nearest:
-            remaining_deliveries.remove(nearest)
-            del_lat, del_lng = get_location_coords(nearest.get("delivery_location"))
-            
-            total_distance += nearest_distance
-            travel_time = max(1, math.ceil((nearest_distance / AVG_SPEED_KMH) * 60))
-            total_time += travel_time + DELIVERY_WAIT_MINS
-            deliveries_before_target += 1
-            
-            breakdown.append({
-                "type": "delivery",
-                "description": f"Teslimat: {nearest.get('delivery_address', 'Adres')[:30]}...",
-                "distance_km": round(nearest_distance, 2),
-                "travel_mins": travel_time,
-                "wait_mins": DELIVERY_WAIT_MINS,
-                "time_mins": travel_time + DELIVERY_WAIT_MINS
-            })
-            
-            current_lat, current_lng = del_lat, del_lng
-        else:
-            break
-    
-    # 2. Sonra teslim alınacakları işle (assigned/confirmed)
+    # ============================================================
+    # ADIM 1: ÖNCE TÜM TESLİM ALIMLARI YAP (assigned/confirmed)
+    # Kurye önce tüm restoranlardan paketleri toplar
+    # HEDEF RESTORANA ULAŞINCA DUR!
+    # ============================================================
     remaining_pickups = pickup_orders.copy()
     
-    # Teslim alım noktalarını en yakın rotaya göre sırala
-    # HEDEF RESTORANA ULAŞINCA DUR!
     while remaining_pickups and not reached_target:
         nearest = None
         nearest_distance = float('inf')
@@ -818,7 +786,51 @@ async def calculate_courier_eta_for_restaurant(
         else:
             break
     
-    # 3. Eğer hedef restoran pickup listesinde değilse, son olarak oraya git
+    # ============================================================
+    # ADIM 2: SONRA TESLİMATLARI YAP (on_the_way)
+    # Tüm teslim alımlar bittikten sonra dağıtıma geç
+    # Not: Hedef restorana teslim alım aşamasında ulaşıldıysa burası atlanır
+    # ============================================================
+    if not reached_target:
+        remaining_deliveries = on_the_way_orders.copy()
+        while remaining_deliveries:
+            # En yakın teslimat noktasını bul
+            nearest = None
+            nearest_distance = float('inf')
+            
+            for order in remaining_deliveries:
+                del_lat, del_lng = get_location_coords(order.get("delivery_location"))
+                if del_lat and del_lng:
+                    dist = calculate_distance_between_points(current_lat, current_lng, del_lat, del_lng)
+                    if dist < nearest_distance:
+                        nearest_distance = dist
+                        nearest = order
+            
+            if nearest:
+                remaining_deliveries.remove(nearest)
+                del_lat, del_lng = get_location_coords(nearest.get("delivery_location"))
+                
+                total_distance += nearest_distance
+                travel_time = max(1, math.ceil((nearest_distance / AVG_SPEED_KMH) * 60))
+                total_time += travel_time + DELIVERY_WAIT_MINS
+                deliveries_before_target += 1
+                
+                breakdown.append({
+                    "type": "delivery",
+                    "description": f"Teslimat: {nearest.get('delivery_address', 'Adres')[:30]}...",
+                    "distance_km": round(nearest_distance, 2),
+                    "travel_mins": travel_time,
+                    "wait_mins": DELIVERY_WAIT_MINS,
+                    "time_mins": travel_time + DELIVERY_WAIT_MINS
+                })
+                
+                current_lat, current_lng = del_lat, del_lng
+            else:
+                break
+    
+    # ============================================================
+    # ADIM 3: Hedef restoran pickup listesinde değilse, son olarak git
+    # ============================================================
     if not reached_target:
         final_distance = calculate_distance_between_points(current_lat, current_lng, target_lat, target_lng)
         total_distance += final_distance
@@ -835,12 +847,13 @@ async def calculate_courier_eta_for_restaurant(
         })
     
     # Özet oluştur - hedef restorana ulaşana kadar yapılanlar
-    if deliveries_before_target > 0 and pickups_before_target > 0:
-        route_summary = f"{deliveries_before_target} teslimat, {pickups_before_target} teslim alım sonra"
-    elif deliveries_before_target > 0:
-        route_summary = f"{deliveries_before_target} teslimat sonra"
+    # TOPLAMA-DAĞITMA mantığına göre: önce teslim alımlar, sonra teslimatlar
+    if pickups_before_target > 0 and deliveries_before_target > 0:
+        route_summary = f"{pickups_before_target} teslim alım, {deliveries_before_target} teslimat sonra"
     elif pickups_before_target > 0:
         route_summary = f"{pickups_before_target} teslim alım sonra"
+    elif deliveries_before_target > 0:
+        route_summary = f"{deliveries_before_target} teslimat sonra"
     else:
         route_summary = "Doğrudan geliyor"
     
