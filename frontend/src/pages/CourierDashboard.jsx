@@ -644,8 +644,8 @@ export default function CourierDashboard() {
           </div>
           
           {/* Footer */}
-          <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
-            © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
+          <footer className="bg-white border-t py-2 text-center">
+            <span className="text-[10px] text-muted-foreground">© 2026 AgrosJet · Powered by AgrosTech</span>
           </footer>
         </main>
       </div>
