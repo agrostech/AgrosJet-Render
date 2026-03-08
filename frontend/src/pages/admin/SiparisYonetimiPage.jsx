@@ -1001,80 +1001,124 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-primary">
-                      <th className="text-left p-2 font-bold text-xs whitespace-nowrap">Zaman</th>
-                      <th className="text-left p-2 font-bold text-xs">Restoran</th>
-                      <th className="text-left p-2 font-bold text-xs">Müşteri</th>
-                      <th className="text-left p-2 font-bold text-xs">Adres</th>
-                      <th className="text-left p-2 font-bold text-xs">Mesafe</th>
-                      <th className="text-left p-2 font-bold text-xs">Ücret</th>
-                      <th className="text-left p-2 font-bold text-xs">Ödeme</th>
-                      <th className="text-left p-2 font-bold text-xs">Durum</th>
-                      <th className="text-left p-2 font-bold text-xs">Kurye</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedOrders.map((order) => {
-                      const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
-                      const orderAge = getOrderAge(order);
-                      
-                      return (
-                        <tr 
-                          key={order.id}
-                          className="border-b hover:bg-slate-50 cursor-pointer transition-colors align-top"
-                          onClick={(e) => {
-                            if (e.target.closest('[data-radix-select-trigger]') || e.target.closest('[data-radix-select-content]') || e.target.closest('[role="combobox"]') || e.target.closest('[role="option"]') || e.target.closest('button')) return;
-                            setSelectedOrder(order);
-                            setShowOrderDetailModal(true);
-                          }}
-                          data-testid={`order-row-${order.id}`}
-                        >
-                          <td className="p-2 text-xs whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-1">
-                                <span>{formatTime(order.created_at)}</span>
-                                {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
-                                  <span className={`text-[10px] px-1 py-0.5 rounded ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
-                                    {orderAge.text}
-                                  </span>
-                                )}
-                              </div>
-                              {/* İleri tarihli sipariş için teslimat saati */}
-                              {order.getir_raw?.isScheduled && order.getir_raw?.scheduledDate && (
-                                <span className="text-[10px] text-purple-600 font-medium">
-                                  {formatTime(order.getir_raw.scheduledDate)} İleri Tarih
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-2">
-                            <span className="px-2 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded border border-slate-200">
-                              {order.restaurant_name || "-"}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+                {paginatedOrders.map((order) => {
+                  const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
+                  const orderAge = getOrderAge(order);
+                  
+                  // Kurye listesi için yardımcı fonksiyonlar
+                  const restaurant = restaurants.find(r => r.id === order.restaurant_id);
+                  const blockedCourierIds = new Set(restaurant?.blocked_couriers || []);
+                  const orderPaymentMethod = order.payment_method || "cash";
+                  
+                  const filterCouriers = (courierList) => courierList.filter(c => {
+                    if (blockedCourierIds.has(c.id)) return false;
+                    const allowedMethods = c.allowed_payment_methods || ["cash", "card", "online", "meal_card", "online_meal_card"];
+                    const normalizedPayment = orderPaymentMethod?.includes("meal_card") ? "meal_card" : orderPaymentMethod;
+                    return allowedMethods.includes(orderPaymentMethod) || allowedMethods.includes(normalizedPayment);
+                  });
+                  
+                  const sortedActive = filterCouriers(sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders));
+                  const sortedOnBreak = filterCouriers(sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders));
+                  const sortedOffline = filterCouriers(couriersByStatus.offline || []);
+                  
+                  const renderCourierItem = (c, showDistance = true) => (
+                    <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white pr-10">
+                      <div className="flex items-center justify-between w-full gap-2">
+                        <span className="font-medium">{c.name}</span>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {showDistance && formatCourierDistance(c.distanceToRestaurant) && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">{formatCourierDistance(c.distanceToRestaurant)}</span>
+                          )}
+                          {c.assignedCount > 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">{c.assignedCount} Atanmış</span>
+                          )}
+                          {c.onTheWayCount > 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded font-medium">{c.onTheWayCount} Yolda</span>
+                          )}
+                        </div>
+                      </div>
+                    </SelectItem>
+                  );
+                  
+                  return (
+                    <div 
+                      key={order.id}
+                      className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
+                      onClick={(e) => {
+                        if (e.target.closest('[data-radix-select-trigger]') || e.target.closest('[data-radix-select-content]') || e.target.closest('[role="combobox"]') || e.target.closest('[role="option"]') || e.target.closest('button')) return;
+                        setSelectedOrder(order);
+                        setShowOrderDetailModal(true);
+                      }}
+                      data-testid={`order-card-${order.id}`}
+                    >
+                      {/* Üst Kısım: Restoran + Zaman */}
+                      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+                        <span className="px-2 py-1 bg-slate-700 text-white text-xs font-semibold rounded">
+                          {order.restaurant_name || "-"}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium">{formatTime(order.created_at)}</span>
+                          {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-600'}`}>
+                              {orderAge.text}
                             </span>
-                          </td>
-                          <td className="p-2 max-w-[140px]">
-                            <div>
-                              <span className="text-sm">{order.customer_name || "-"}</span>
-                              {order.customer_phone && (
-                                <div className="text-xs text-muted-foreground font-mono truncate" title={order.customer_phone}>
-                                  {order.customer_phone.includes(',,') 
-                                    ? order.customer_phone.split(',,')[0] + ' 📞'
-                                    : order.customer_phone
-                                  }
-                                </div>
-                              )}
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Orta Kısım: Müşteri Bilgileri */}
+                      <div className="px-3 py-2 space-y-2">
+                        {/* Müşteri Adı ve Telefon */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate-400" />
+                            <span className="font-medium text-sm text-slate-800">{order.customer_name || "-"}</span>
+                          </div>
+                          {order.customer_phone && (
+                            <a 
+                              href={`tel:${order.customer_phone.includes(',,') ? order.customer_phone.split(',,')[0] : order.customer_phone}`}
+                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Phone className="w-3 h-3" />
+                              <span className="font-mono">
+                                {order.customer_phone.includes(',,') 
+                                  ? order.customer_phone.split(',,')[0]
+                                  : order.customer_phone
+                                }
+                              </span>
+                            </a>
+                          )}
+                        </div>
+                        
+                        {/* Adres - 3 satıra kadar */}
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed" title={order.delivery_address}>
+                            {order.delivery_address || "-"}
+                          </p>
+                        </div>
+                        
+                        {/* İleri tarihli sipariş */}
+                        {order.getir_raw?.isScheduled && order.getir_raw?.scheduledDate && (
+                          <div className="flex items-center gap-1 text-[11px] text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded">
+                            <Clock className="w-3 h-3" />
+                            {formatTime(order.getir_raw.scheduledDate)} İleri Tarih
+                          </div>
+                        )}
+                        
+                        {/* Bilgi Satırı: Mesafe, Ücret, Ödeme */}
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                          <div className="flex items-center gap-3">
+                            {/* Mesafe */}
+                            <div className="flex items-center gap-1 text-xs text-slate-500">
+                              <Navigation className="w-3 h-3" />
+                              <span>{getOrderDistance(order) || "-"}</span>
                             </div>
-                          </td>
-                          <td className="p-2 text-xs max-w-[280px] align-top" title={order.delivery_address}>
-                            <div className="line-clamp-3 leading-relaxed">{order.delivery_address || "-"}</div>
-                          </td>
-                          <td className="p-2 text-xs whitespace-nowrap">{getOrderDistance(order) || "-"}</td>
-                          <td className="p-2 font-semibold whitespace-nowrap">{formatCurrency(order.total_amount)}</td>
-                          <td className="p-2">
-                            <span className={`px-2 py-0.5 text-xs rounded ${
+                            {/* Ödeme Yöntemi */}
+                            <span className={`px-2 py-0.5 text-[10px] font-medium rounded ${
                               order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
                               order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
                               (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
@@ -1084,245 +1128,203 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Yemek Kartı') : 
                                'Online'}
                             </span>
-                          </td>
-                          <td className="p-2" onClick={(e) => e.stopPropagation()}>
-                            {isAdminActive ? (
-                            <Select 
-                              value={order.status} 
-                              onValueChange={(newValue) => {
-                                if (newValue.startsWith('preparing_')) {
-                                  handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name, order.source);
-                                } else {
-                                  handleStatusChangeRequest(order.id, newValue, null, order.customer_name, order.source);
-                                }
-                              }}
-                            >
-                              <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-0.5 h-7 border border-slate-300/50 min-w-[90px] shadow-sm`}>
-                                <SelectValue>
-                                  {(order.status === 'preparing' || order.status === 'scheduled') && order.preparation_end_at
-                                    ? getCountdown(order.preparation_end_at)?.text || statusInfo.label
-                                    : statusInfo.label}
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
-                                {PREPARATION_TIMES.map(time => (
-                                  <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
-                                    {time.label}
-                                  </SelectItem>
-                                ))}
-                                <div className="border-t my-1" />
-                                {Object.entries(ORDER_STATUSES)
-                                  .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
-                                  .map(([key, value]) => (
-                                  <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            ) : (
-                              <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-2 py-1 rounded border border-slate-300/50`}>
-                                {statusInfo.label}
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-2" onClick={(e) => e.stopPropagation()}>
-                            {isAdminActive ? (
-                            <Select 
-                              value={order.courier_id || ""}
-                              onValueChange={(value) => {
-                                if (value === "__remove__") handleUnassignCourier(order.id);
-                                else if (value) handleReassignCourier(order.id, value);
-                              }}
-                            >
-                              <SelectTrigger className={`h-7 px-2 text-xs min-w-[100px] ${
-                                order.courier_name ? "bg-green-100 border-green-200 text-green-700 font-medium" : "bg-slate-50 border-slate-200"
-                              }`}>
-                                <Bike className="w-3 h-3 mr-1" />
-                                <span className="truncate">{order.courier_name || "Ata"}</span>
-                              </SelectTrigger>
-                              <SelectContent className="min-w-[280px]">
-                                {(() => {
-                                  // Get blocked couriers for this restaurant
-                                  const restaurant = restaurants.find(r => r.id === order.restaurant_id);
-                                  const blockedCourierIds = new Set(restaurant?.blocked_couriers || []);
-                                  
-                                  // Get order payment method
-                                  const orderPaymentMethod = order.payment_method || "cash";
-                                  
-                                  // Filter out blocked couriers and couriers who don't accept this payment method
-                                  const filterCouriers = (courierList) => courierList.filter(c => {
-                                    // Check if blocked
-                                    if (blockedCourierIds.has(c.id)) return false;
-                                    // Check if courier accepts this payment method
-                                    const allowedMethods = c.allowed_payment_methods || ["cash", "card", "online", "meal_card", "online_meal_card"];
-                                    // Normalize payment method for comparison
-                                    const normalizedPayment = orderPaymentMethod?.includes("meal_card") ? "meal_card" : orderPaymentMethod;
-                                    return allowedMethods.includes(orderPaymentMethod) || allowedMethods.includes(normalizedPayment);
-                                  });
-                                  
-                                  const sortedActive = filterCouriers(sortCouriersByDistanceAndLoad(couriersByStatus.active, order.restaurant_location, orders));
-                                  const sortedOnBreak = filterCouriers(sortCouriersByDistanceAndLoad(couriersByStatus.on_break, order.restaurant_location, orders));
-                                  const sortedOffline = filterCouriers(couriersByStatus.offline || []);
-                                  
-                                  const renderCourierItem = (c, showDistance = true) => (
-                                    <SelectItem key={c.id} value={c.id} className="text-slate-900 hover:!bg-orange-500 hover:!text-white focus:!bg-orange-500 focus:!text-white pr-10">
-                                      <div className="flex items-center justify-between w-full gap-2">
-                                        <span className="font-medium">{c.name}</span>
-                                        <div className="flex items-center gap-1 flex-shrink-0">
-                                          {showDistance && formatCourierDistance(c.distanceToRestaurant) && (
-                                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">{formatCourierDistance(c.distanceToRestaurant)}</span>
-                                          )}
-                                          {c.assignedCount > 0 && (
-                                            <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">{c.assignedCount} Atanmış</span>
-                                          )}
-                                          {c.onTheWayCount > 0 && (
-                                            <span className="text-[10px] px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded font-medium">{c.onTheWayCount} Yolda</span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </SelectItem>
-                                  );
-                                  
-                                  return (
-                                    <>
-                                      {sortedActive.length > 0 && (
-                                        <>
-                                          <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
-                                          {sortedActive.map(c => renderCourierItem(c, true))}
-                                        </>
-                                      )}
-                                      {sortedOnBreak.length > 0 && (
-                                        <>
-                                          <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
-                                          {sortedOnBreak.map(c => renderCourierItem(c, true))}
-                                        </>
-                                      )}
-                                      {sortedOffline.length > 0 && (
-                                        <>
-                                          <div 
-                                            className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1 cursor-pointer hover:bg-slate-200 flex items-center justify-between"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              setOfflineCouriersExpanded(prev => ({
-                                                ...prev,
-                                                [order.id]: !prev[order.id]
-                                              }));
-                                            }}
-                                          >
-                                            <span>Çevrimdışı ({sortedOffline.length})</span>
-                                            <ChevronDown className={`w-3 h-3 transition-transform ${offlineCouriersExpanded[order.id] ? 'rotate-180' : ''}`} />
-                                          </div>
-                                          {offlineCouriersExpanded[order.id] && sortedOffline.map(c => renderCourierItem(c, false))}
-                                        </>
-                                      )}
-                                    </>
-                                  );
-                                })()}
-                                {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
-                                  <>
-                                    <div className="border-t my-1" />
-                                    <SelectItem value="__remove__" className="text-red-600">Kaldır</SelectItem>
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
-                            ) : (
-                              <span className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${
-                                order.courier_name ? "bg-green-100 text-green-700 font-medium" : "bg-slate-100 text-slate-500"
-                              }`}>
-                                <Bike className="w-3 h-3" />
-                                {order.courier_name || "-"}
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t" data-testid="pagination-controls">
-                    <div className="text-xs text-muted-foreground">
-                      Toplam {filteredAndSortedOrders.length} sipariş, Sayfa {currentPage} / {totalPages}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                        className="h-8 px-2 text-xs"
-                        data-testid="pagination-first"
-                      >
-                        İlk
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                        className="h-8 px-2"
-                        data-testid="pagination-prev"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </Button>
-                      
-                      {/* Sayfa numaraları */}
-                      <div className="flex items-center gap-1">
-                        {(() => {
-                          const pages = [];
-                          const maxVisiblePages = 5;
-                          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                          
-                          if (endPage - startPage + 1 < maxVisiblePages) {
-                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                          }
-                          
-                          for (let i = startPage; i <= endPage; i++) {
-                            pages.push(
-                              <Button
-                                key={i}
-                                variant={i === currentPage ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setCurrentPage(i)}
-                                className={`h-8 w-8 text-xs ${i === currentPage ? "bg-primary text-white" : ""}`}
-                                data-testid={`pagination-page-${i}`}
-                              >
-                                {i}
-                              </Button>
-                            );
-                          }
-                          return pages;
-                        })()}
+                          </div>
+                          {/* Ücret */}
+                          <span className="text-sm font-bold text-slate-800">{formatCurrency(order.total_amount)}</span>
+                        </div>
                       </div>
                       
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                        className="h-8 px-2"
-                        data-testid="pagination-next"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className="h-8 px-2 text-xs"
-                        data-testid="pagination-last"
-                      >
-                        Son
-                      </Button>
+                      {/* Alt Kısım: Durum ve Kurye Seçimi */}
+                      <div className="flex items-center gap-2 px-3 py-2 border-t border-slate-100 bg-slate-50/30 rounded-b-lg" onClick={(e) => e.stopPropagation()}>
+                        {/* Durum Seçici */}
+                        {isAdminActive ? (
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(newValue) => {
+                              if (newValue.startsWith('preparing_')) {
+                                handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name, order.source);
+                              } else {
+                                handleStatusChangeRequest(order.id, newValue, null, order.customer_name, order.source);
+                              }
+                            }}
+                          >
+                            <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-3 py-1 h-8 border border-slate-300/50 flex-1 shadow-sm`}>
+                              <SelectValue>
+                                {(order.status === 'preparing' || order.status === 'scheduled') && order.preparation_end_at
+                                  ? getCountdown(order.preparation_end_at)?.text || statusInfo.label
+                                  : statusInfo.label}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50">Hazırlanıyor</div>
+                              {PREPARATION_TIMES.map(time => (
+                                <SelectItem key={`prep_${time.value}`} value={`preparing_${time.value}`} className="text-xs">
+                                  {time.label}
+                                </SelectItem>
+                              ))}
+                              <div className="border-t my-1" />
+                              {Object.entries(ORDER_STATUSES)
+                                .filter(([key]) => !COURIER_ONLY_STATUSES.includes(key) && key !== 'preparing')
+                                .map(([key, value]) => (
+                                <SelectItem key={key} value={key} className="text-xs">{value.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-3 py-1.5 rounded border border-slate-300/50 flex-1 text-center`}>
+                            {statusInfo.label}
+                          </span>
+                        )}
+                        
+                        {/* Kurye Seçici */}
+                        {isAdminActive ? (
+                          <Select 
+                            value={order.courier_id || ""}
+                            onValueChange={(value) => {
+                              if (value === "__remove__") handleUnassignCourier(order.id);
+                              else if (value) handleReassignCourier(order.id, value);
+                            }}
+                          >
+                            <SelectTrigger className={`h-8 px-3 text-xs flex-1 ${
+                              order.courier_name ? "bg-green-100 border-green-200 text-green-700 font-medium" : "bg-white border-slate-200"
+                            }`}>
+                              <Bike className="w-3.5 h-3.5 mr-1.5" />
+                              <span className="truncate">{order.courier_name || "Kurye Ata"}</span>
+                            </SelectTrigger>
+                            <SelectContent className="min-w-[280px]">
+                              {sortedActive.length > 0 && (
+                                <>
+                                  <div className="px-2 py-1 text-xs font-semibold text-green-700 bg-green-50">Aktif</div>
+                                  {sortedActive.map(c => renderCourierItem(c, true))}
+                                </>
+                              )}
+                              {sortedOnBreak.length > 0 && (
+                                <>
+                                  <div className="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-50 mt-1">Molada</div>
+                                  {sortedOnBreak.map(c => renderCourierItem(c, true))}
+                                </>
+                              )}
+                              {sortedOffline.length > 0 && (
+                                <>
+                                  <div 
+                                    className="px-2 py-1 text-xs font-semibold text-slate-600 bg-slate-100 mt-1 cursor-pointer hover:bg-slate-200 flex items-center justify-between"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setOfflineCouriersExpanded(prev => ({
+                                        ...prev,
+                                        [order.id]: !prev[order.id]
+                                      }));
+                                    }}
+                                  >
+                                    <span>Çevrimdışı ({sortedOffline.length})</span>
+                                    <ChevronDown className={`w-3 h-3 transition-transform ${offlineCouriersExpanded[order.id] ? 'rotate-180' : ''}`} />
+                                  </div>
+                                  {offlineCouriersExpanded[order.id] && sortedOffline.map(c => renderCourierItem(c, false))}
+                                </>
+                              )}
+                              {order.courier_id && order.status !== 'on_the_way' && order.status !== 'delivered' && (
+                                <>
+                                  <div className="border-t my-1" />
+                                  <SelectItem value="__remove__" className="text-red-600">Kurye Kaldır</SelectItem>
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className={`text-xs px-3 py-1.5 rounded flex items-center justify-center gap-1.5 flex-1 ${
+                            order.courier_name ? "bg-green-100 text-green-700 font-medium" : "bg-slate-100 text-slate-500"
+                          }`}>
+                            <Bike className="w-3.5 h-3.5" />
+                            {order.courier_name || "-"}
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+                
+            {/* Pagination */}
+            {paginatedOrders.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 pt-4 border-t" data-testid="pagination-controls">
+                <div className="text-xs text-muted-foreground">
+                  Toplam {filteredAndSortedOrders.length} sipariş, Sayfa {currentPage} / {totalPages}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="h-8 px-2 text-xs"
+                    data-testid="pagination-first"
+                  >
+                    İlk
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 px-2"
+                    data-testid="pagination-prev"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  
+                  {/* Sayfa numaraları */}
+                  <div className="flex items-center gap-1">
+                    {(() => {
+                      const pages = [];
+                      const maxVisiblePages = 5;
+                      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                      
+                      if (endPage - startPage + 1 < maxVisiblePages) {
+                        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                      }
+                      
+                      for (let i = startPage; i <= endPage; i++) {
+                        pages.push(
+                          <Button
+                            key={i}
+                            variant={i === currentPage ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(i)}
+                            className={`h-8 w-8 text-xs ${i === currentPage ? "bg-primary text-white" : ""}`}
+                            data-testid={`pagination-page-${i}`}
+                          >
+                            {i}
+                          </Button>
+                        );
+                      }
+                      return pages;
+                    })()}
                   </div>
-                )}
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="h-8 px-2"
+                    data-testid="pagination-next"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="h-8 px-2 text-xs"
+                    data-testid="pagination-last"
+                  >
+                    Son
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

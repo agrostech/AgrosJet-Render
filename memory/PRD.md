@@ -61,8 +61,14 @@ Turkish
   - ESKİ: Önce teslimatlar (on_the_way), sonra teslim alımlar (assigned/confirmed)
   - YENİ: Önce TÜM teslim alımlar, sonra TÜM teslimatlar
   - Gerçek dünya operasyonunu yansıtır: kurye önce toplar, sonra dağıtır
-  - Restoranlar doğru ETA görür
   - Dosya: `/app/backend/routers/orders.py` - `calculate_courier_eta_for_restaurant` fonksiyonu
+- [x] **Sipariş Kartları UI Yenileme**:
+  - Tablo yapısından Kart/Grid yapısına geçildi
+  - Responsive grid: 1 sütun (mobil) → 2 sütun (tablet) → 3-4 sütun (masaüstü)
+  - Yatay kaydırma kaldırıldı, tüm bilgiler tek bakışta görünür
+  - Adres 3 satıra kadar gösteriliyor (line-clamp-3)
+  - Durum ve Kurye seçicileri alt kısımda yan yana
+  - Dosya: `/app/frontend/src/pages/admin/SiparisYonetimiPage.jsx`
 
 ## In Progress Tasks
 - None currently
