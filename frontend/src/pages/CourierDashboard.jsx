@@ -151,7 +151,11 @@ export default function CourierDashboard() {
     
     // Token'ı iste
     if (window.AgrosJetNative?.getPushToken) {
-      window.AgrosJetNative.getPushToken();
+      try {
+        window.AgrosJetNative.getPushToken();
+      } catch (e) {
+        console.error('Native getPushToken hatası:', e);
+      }
     }
     
     return () => {
@@ -189,13 +193,17 @@ export default function CourierDashboard() {
       // Durum değiştiyse native'e bildir
       setAvailabilityStatus(prevStatus => {
         if (prevStatus !== newStatus && window.AgrosJetNative) {
-          const statusMap = {
-            'active': 'aktif',
-            'on_break': 'molada',
-            'offline': 'çevrimdışı'
-          };
-          window.AgrosJetNative.statusChange(statusMap[newStatus] || 'çevrimdışı');
-          console.log('Native app bilgilendirildi (polling):', statusMap[newStatus]);
+          try {
+            const statusMap = {
+              'active': 'aktif',
+              'on_break': 'molada',
+              'offline': 'çevrimdışı'
+            };
+            window.AgrosJetNative.statusChange(statusMap[newStatus] || 'çevrimdışı');
+            console.log('Native app bilgilendirildi (polling):', statusMap[newStatus]);
+          } catch (e) {
+            console.error('Native statusChange hatası:', e);
+          }
         }
         return newStatus;
       });
@@ -247,14 +255,18 @@ export default function CourierDashboard() {
   // Native app'e durum değişikliğini bildir
   const notifyNativeStatusChange = useCallback((status) => {
     if (window.AgrosJetNative) {
-      const statusMap = {
-        'active': 'aktif',
-        'on_break': 'molada',
-        'offline': 'çevrimdışı'
-      };
-      const nativeStatus = statusMap[status] || 'çevrimdışı';
-      window.AgrosJetNative.statusChange(nativeStatus);
-      console.log('Native app bilgilendirildi:', nativeStatus);
+      try {
+        const statusMap = {
+          'active': 'aktif',
+          'on_break': 'molada',
+          'offline': 'çevrimdışı'
+        };
+        const nativeStatus = statusMap[status] || 'çevrimdışı';
+        window.AgrosJetNative.statusChange(nativeStatus);
+        console.log('Native app bilgilendirildi:', nativeStatus);
+      } catch (e) {
+        console.error('Native statusChange hatası:', e);
+      }
     }
   }, []);
 
@@ -415,10 +427,18 @@ export default function CourierDashboard() {
     
     // Native app'e bildir (AgrosJet App)
     if (window.isAgrosJetApp && window.AgrosJetNative) {
-      window.AgrosJetNative.notifyLogout();
+      try {
+        window.AgrosJetNative.notifyLogout();
+      } catch (e) {
+        console.error('Native notifyLogout hatası:', e);
+      }
     }
     if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' }));
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOGOUT' }));
+      } catch (e) {
+        console.error('ReactNativeWebView postMessage hatası:', e);
+      }
     }
     navigate("/courier-login");
   };
