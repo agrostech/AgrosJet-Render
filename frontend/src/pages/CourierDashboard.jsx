@@ -190,28 +190,20 @@ export default function CourierDashboard() {
       const res = await axios.get(`${API}/couriers/${courierId}`);
       const newStatus = res.data.availability_status || "offline";
       
-      // Durum değiştiyse VEYA ilk yükleme ise native'e bildir
       setAvailabilityStatus(prevStatus => {
-        const shouldNotify = isInitialLoad || prevStatus !== newStatus;
-        if (shouldNotify && window.AgrosJetNative) {
-          try {
-            const statusMap = {
-              'active': 'aktif',
-              'on_break': 'molada',
-              'offline': 'çevrimdışı'
-            };
-            window.AgrosJetNative.statusChange(statusMap[newStatus] || 'çevrimdışı');
-            console.log('Native app bilgilendirildi:', statusMap[newStatus], isInitialLoad ? '(ilk yükleme)' : '(polling)');
-          } catch (e) {
-            console.error('Native statusChange hatası:', e);
-          }
+        // İlk yükleme veya durum değiştiyse native'e bildir
+        if (isInitialLoad || prevStatus !== newStatus) {
+          // Kısa bir gecikme ile bildir (state güncellemesi sonrası)
+          setTimeout(() => {
+            notifyNativeStatusChange(newStatus);
+          }, 100);
         }
         return newStatus;
       });
     } catch (err) {
       console.error("Kurye durumu alınamadı", err);
     }
-  }, []);
+  }, [notifyNativeStatusChange]);
 
   // Fetch break status
   const fetchBreakStatus = useCallback(async (courierId) => {
@@ -255,18 +247,39 @@ export default function CourierDashboard() {
 
   // Native app'e durum değişikliğini bildir
   const notifyNativeStatusChange = useCallback((status) => {
-    if (window.AgrosJetNative) {
+    const statusMap = {
+      'active': 'aktif',
+      'on_break': 'molada',
+      'offline': 'çevrimdışı'
+    };
+    const nativeStatus = statusMap[status] || 'çevrimdışı';
+    
+    console.log('[Native] Durum bildirimi gönderiliyor:', nativeStatus);
+    console.log('[Native] window.AgrosJetNative:', typeof window.AgrosJetNative);
+    console.log('[Native] window.isAgrosJetApp:', window.isAgrosJetApp);
+    
+    // AgrosJetNative - Android/iOS Native App
+    if (window.AgrosJetNative && typeof window.AgrosJetNative.statusChange === 'function') {
       try {
-        const statusMap = {
-          'active': 'aktif',
-          'on_break': 'molada',
-          'offline': 'çevrimdışı'
-        };
-        const nativeStatus = statusMap[status] || 'çevrimdışı';
         window.AgrosJetNative.statusChange(nativeStatus);
-        console.log('Native app bilgilendirildi:', nativeStatus);
+        console.log('[Native] AgrosJetNative.statusChange çağrıldı:', nativeStatus);
       } catch (e) {
-        console.error('Native statusChange hatası:', e);
+        console.error('[Native] AgrosJetNative.statusChange hatası:', e);
+      }
+    } else {
+      console.log('[Native] AgrosJetNative.statusChange bulunamadı');
+    }
+    
+    // ReactNativeWebView - Eski yöntem (fallback)
+    if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ 
+          type: 'STATUS_CHANGE', 
+          status: nativeStatus 
+        }));
+        console.log('[Native] ReactNativeWebView.postMessage çağrıldı:', nativeStatus);
+      } catch (e) {
+        console.error('[Native] ReactNativeWebView.postMessage hatası:', e);
       }
     }
   }, []);
