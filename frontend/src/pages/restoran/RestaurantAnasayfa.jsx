@@ -707,16 +707,6 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
             </div>
             <div className="h-5 sm:h-6 w-px bg-slate-200" />
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xl sm:text-2xl font-semibold text-amber-600">{stats.pending}</span>
-              <span className="text-[10px] sm:text-xs text-slate-500">Bekleyen</span>
-            </div>
-            <div className="h-5 sm:h-6 w-px bg-slate-200" />
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xl sm:text-2xl font-semibold text-blue-600">{stats.onTheWay}</span>
-              <span className="text-[10px] sm:text-xs text-slate-500">Yolda</span>
-            </div>
-            <div className="h-5 sm:h-6 w-px bg-slate-200" />
-            <div className="flex items-center gap-1.5 sm:gap-2">
               <span className="text-xl sm:text-2xl font-semibold text-green-600">{stats.delivered}</span>
               <span className="text-[10px] sm:text-xs text-slate-500">Teslim</span>
             </div>
@@ -744,7 +734,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 cursor-help">
-                    <Truck className="w-3.5 h-3.5" />
+                    <Bike className="w-3.5 h-3.5" />
                     <span className="text-sm">{stats.avgDeliveryTime} dk</span>
                   </div>
                 </TooltipTrigger>
@@ -772,10 +762,12 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                 <TabsTrigger value="pending" className="flex items-center justify-center gap-2 w-44" data-testid="tab-pending">
                   <ClipboardList className="w-4 h-4" />
                   <span>Bekleyen</span>
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">{stats.pending}</span>
                 </TabsTrigger>
                 <TabsTrigger value="on_the_way" className="flex items-center justify-center gap-2 w-44" data-testid="tab-on-the-way">
-                  <Truck className="w-4 h-4" />
+                  <Bike className="w-4 h-4" />
                   <span>Yolda</span>
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">{stats.onTheWay}</span>
                 </TabsTrigger>
               </TabsList>
             </div>
