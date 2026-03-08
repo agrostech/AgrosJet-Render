@@ -296,12 +296,13 @@ export default function AdminDashboard() {
               collapsed={false}
             />
           ) : (
-            // Single company - just show logo/name
-            company?.logo_url ? (
-              <img src={company.logo_url} alt={company.name} className="h-8 object-contain" />
-            ) : (
-              <span className="font-heading text-base font-bold truncate">{company?.name}</span>
-            )
+            // Single company - show logo and name together
+            <div className="flex items-center gap-2">
+              {company?.logo_url && (
+                <img src={company.logo_url} alt={company.name} className="h-10 object-contain" />
+              )}
+              <span className="font-heading text-sm font-bold truncate">{company?.name}</span>
+            </div>
           )}
         </div>
         {/* Kontör Gösterimi */}
@@ -351,18 +352,18 @@ export default function AdminDashboard() {
         >
           {/* Sidebar Header */}
           <div className="p-4 border-b border-white/20 flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {company?.logo_url && (
                 <img 
                   src={company.logo_url} 
                   alt={company.name} 
-                  className="w-10 h-10 rounded object-contain"
+                  className="w-12 h-12 rounded object-contain bg-white/10 p-1"
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               )}
               <div className="min-w-0">
-                <span className="font-heading text-sm font-bold block leading-tight truncate">{user?.name}</span>
-                <span className="text-[10px] text-white/70">{isSuperAdmin ? "Süper Admin" : "Admin"}</span>
+                <span className="font-heading text-sm font-bold block leading-tight truncate">{company?.name}</span>
+                <span className="text-[10px] text-white/70">{user?.name} • {isSuperAdmin ? "Süper Admin" : "Admin"}</span>
               </div>
             </div>
             <button 
