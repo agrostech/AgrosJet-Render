@@ -50,7 +50,7 @@ async def send_push_notification(fcm_token: str, title: str, body: str, data: di
                 notification=messaging.AndroidNotification(
                     sound=sound,
                     click_action='OPEN_ORDER',
-                    channel_id='orders'
+                    channel_id='orders_v2'
                 )
             ),
             apns=messaging.APNSConfig(
