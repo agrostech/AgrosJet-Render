@@ -135,31 +135,49 @@ export default function CourierDashboard() {
 
   // Native app'ten gelen mesajları dinle (FCM Token için)
   useEffect(() => {
-    if (!window.isAgrosJetApp) return;
-    
-    const handleNativeMessage = async (e) => {
-      console.log('Native mesaj:', e.detail);
-      
-      if (e.detail?.type === 'PUSH_TOKEN' && e.detail?.data && user?.id) {
-        const fcmToken = e.detail.data;
-        console.log('FCM Token alındı:', fcmToken);
+    const handleNativeMessage = async (data) => {
+      if (data?.type === 'PUSH_TOKEN' && data?.data && user?.id) {
+        const fcmToken = data.data;
+        console.log('FCM Token alındı:', fcmToken?.substring(0, 30) + '...');
         await saveFcmToken(user.id, fcmToken);
       }
     };
     
-    window.addEventListener('nativeMessage', handleNativeMessage);
+    // Yöntem 1: Custom event (nativeMessage)
+    const handleCustomEvent = (e) => {
+      console.log('Native custom event:', e.detail?.type);
+      handleNativeMessage(e.detail);
+    };
     
-    // Token'ı iste
-    if (window.AgrosJetNative?.getPushToken) {
+    // Yöntem 2: window.postMessage
+    const handlePostMessage = (e) => {
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (data?.type === 'PUSH_TOKEN') {
+          console.log('Native postMessage:', data.type);
+          handleNativeMessage(data);
+        }
+      } catch (err) {
+        // JSON parse hatası - normal mesaj olabilir, ignore
+      }
+    };
+    
+    window.addEventListener('nativeMessage', handleCustomEvent);
+    window.addEventListener('message', handlePostMessage);
+    
+    // Token'ı iste (native app varsa)
+    if (user?.id && window.AgrosJetNative?.getPushToken) {
       try {
         window.AgrosJetNative.getPushToken();
+        console.log('Native getPushToken çağrıldı');
       } catch (e) {
         console.error('Native getPushToken hatası:', e);
       }
     }
     
     return () => {
-      window.removeEventListener('nativeMessage', handleNativeMessage);
+      window.removeEventListener('nativeMessage', handleCustomEvent);
+      window.removeEventListener('message', handlePostMessage);
     };
   }, [user?.id, saveFcmToken]);
 
