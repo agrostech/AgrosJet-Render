@@ -319,8 +319,6 @@ export function CourierDetailModal({
               <Clock className="w-3 h-3" />
               <span>Mola: {breakInfo.remaining}/{breakInfo.dailyLimit} dk</span>
             </div>
-            {/* Batarya Durumu */}
-            {courier.battery && <BatteryDisplay battery={courier.battery} />}
             {/* Bugünkü Vardiya */}
             {todayShifts.length > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-600">
@@ -344,14 +342,17 @@ export function CourierDetailModal({
             <div ref={mapRef} className="h-[220px] sm:h-[280px] w-full bg-slate-100" />
           </div>
           
-          {/* Son Konum */}
+          {/* Son Konum ve Pil */}
           <div className="flex items-center justify-between px-2 py-1.5 sm:py-2 bg-slate-50 rounded text-xs sm:text-sm">
-            <span className="text-muted-foreground">Son Konum</span>
-            <span className="font-medium px-1.5 sm:px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600">
-              {courier.current_location?.updated_at 
-                ? getLocationTimeAgo(courier.current_location.updated_at)
-                : "Yok"}
-            </span>
+            <span className="text-muted-foreground">Son Konum ve Pil</span>
+            <div className="flex items-center gap-2">
+              {courier.battery && <BatteryDisplay battery={courier.battery} />}
+              <span className="font-medium px-1.5 sm:px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600">
+                {courier.current_location?.updated_at 
+                  ? getLocationTimeAgo(courier.current_location.updated_at)
+                  : "Yok"}
+              </span>
+            </div>
           </div>
           
           {/* Bugünkü Çalışma Özeti */}
