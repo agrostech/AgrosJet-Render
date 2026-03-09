@@ -79,7 +79,7 @@ const mergeConsecutiveShifts = (shifts) => {
 export function CourierDetailModal({
   open,
   onOpenChange,
-  courier,
+  courier: initialCourier,
   courierOrders,
   company,
   onUpdateStatus,
@@ -90,6 +90,43 @@ export function CourierDetailModal({
   const ordersRef = useRef(courierOrders);
   const [todayShifts, setTodayShifts] = useState([]);
   const [workLogs, setWorkLogs] = useState({ logs: [], total_active_hours: 0 });
+  const [courier, setCourier] = useState(initialCourier);
+  
+  // Initial courier değiştiğinde state'i güncelle
+  useEffect(() => {
+    setCourier(initialCourier);
+  }, [initialCourier]);
+  
+  // Kurye bilgisi polling - 10 saniyede bir güncelle
+  useEffect(() => {
+    if (!open || !initialCourier?.id) return;
+    
+    const fetchCourierData = async () => {
+      try {
+        const res = await axios.get(`${API}/couriers/${initialCourier.id}`);
+        if (res.data) {
+          setCourier(prev => ({
+            ...prev,
+            ...res.data,
+            // Önemli alanları güncelle
+            current_location: res.data.current_location || prev?.current_location,
+            battery: res.data.battery || prev?.battery,
+            availability_status: res.data.availability_status || prev?.availability_status
+          }));
+        }
+      } catch (err) {
+        console.error("Kurye bilgisi alınamadı:", err);
+      }
+    };
+    
+    // İlk yükleme
+    fetchCourierData();
+    
+    // Polling interval - 10 saniye
+    const intervalId = setInterval(fetchCourierData, 10000);
+    
+    return () => clearInterval(intervalId);
+  }, [open, initialCourier?.id]);
   
   useEffect(() => {
     ordersRef.current = courierOrders;
