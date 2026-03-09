@@ -971,21 +971,39 @@ async def update_courier_payment_methods(courier_id: str, data: PaymentMethodsUp
 
 
 class FCMTokenUpdate(BaseModel):
-    fcm_token: str
+    fcm_token: Optional[str] = None
+    fcmToken: Optional[str] = None  # Native app camelCase gönderiyor
+    platform: Optional[str] = None
+    updatedAt: Optional[int] = None
 
 
 @router.put("/couriers/{courier_id}/fcm-token")
 async def update_courier_fcm_token(courier_id: str, data: FCMTokenUpdate):
     """Kuryenin FCM token'ını güncelle (push notification için)"""
+    # Her iki format da kabul edilir: fcm_token veya fcmToken
+    token = data.fcm_token or data.fcmToken
+    
+    if not token:
+        raise HTTPException(status_code=400, detail="fcm_token veya fcmToken gerekli")
+    
+    update_data = {
+        "fcm_token": token,
+        "fcm_token_updated_at": get_turkey_now()
+    }
+    
+    # Platform bilgisi varsa kaydet
+    if data.platform:
+        update_data["fcm_platform"] = data.platform
+    
     result = await db.couriers.update_one(
         {"id": courier_id},
-        {"$set": {"fcm_token": data.fcm_token, "fcm_token_updated_at": get_turkey_now()}}
+        {"$set": update_data}
     )
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Kurye bulunamadı")
     
-    return {"message": "FCM token güncellendi"}
+    return {"success": True, "message": "FCM token güncellendi"}
 
 
 class FCMTokenRequest(BaseModel):
