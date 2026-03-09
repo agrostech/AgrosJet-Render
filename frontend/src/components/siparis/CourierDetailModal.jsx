@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bike, Clock, Calendar } from "lucide-react";
+import { Bike, Clock, Calendar, Battery, BatteryLow, BatteryMedium, BatteryFull, BatteryCharging, Zap } from "lucide-react";
 import { 
   ORDER_STATUSES, 
   getLocationTimeAgo, 
@@ -14,6 +14,40 @@ import {
 } from "@/utils/orderUtils";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Batarya gösterimi için yardımcı component
+const BatteryDisplay = ({ battery }) => {
+  if (!battery || battery.level === null || battery.level === undefined) {
+    return null;
+  }
+  
+  const percent = Math.round(battery.level * 100);
+  const isCharging = battery.state === 'charging';
+  
+  let colorClass = 'text-green-600 bg-green-50';
+  let BatteryIcon = BatteryFull;
+  
+  if (percent <= 20) {
+    colorClass = 'text-red-500 bg-red-50';
+    BatteryIcon = BatteryLow;
+  } else if (percent <= 50) {
+    colorClass = 'text-yellow-500 bg-yellow-50';
+    BatteryIcon = BatteryMedium;
+  }
+  
+  if (isCharging) {
+    BatteryIcon = BatteryCharging;
+    colorClass = 'text-blue-500 bg-blue-50';
+  }
+  
+  return (
+    <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${colorClass}`}>
+      <BatteryIcon className="w-3.5 h-3.5" />
+      <span>{percent}%</span>
+      {isCharging && <Zap className="w-3 h-3" />}
+    </div>
+  );
+};
 
 // Ardışık vardiyaları birleştir
 const mergeConsecutiveShifts = (shifts) => {
@@ -285,6 +319,8 @@ export function CourierDetailModal({
               <Clock className="w-3 h-3" />
               <span>Mola: {breakInfo.remaining}/{breakInfo.dailyLimit} dk</span>
             </div>
+            {/* Batarya Durumu */}
+            {courier.battery && <BatteryDisplay battery={courier.battery} />}
             {/* Bugünkü Vardiya */}
             {todayShifts.length > 0 && (
               <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-600">
