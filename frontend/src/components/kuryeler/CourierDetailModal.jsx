@@ -5,43 +5,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, FileText, Clock, Battery, BatteryLow, BatteryMedium, BatteryFull, BatteryCharging, Zap } from "lucide-react";
+import { User, FileText, Clock } from "lucide-react";
 import CourierDocumentsSection from "@/components/admin/CourierDocumentsSection";
 import CourierShiftsSection from "@/components/kuryeler/CourierShiftsSection";
-
-// Batarya gösterimi için yardımcı fonksiyon
-const BatteryDisplay = ({ battery }) => {
-  if (!battery || battery.level === null || battery.level === undefined) {
-    return null;
-  }
-  
-  const percent = Math.round(battery.level * 100);
-  const isCharging = battery.state === 'charging';
-  
-  let colorClass = 'text-green-600';
-  let BatteryIcon = BatteryFull;
-  
-  if (percent <= 20) {
-    colorClass = 'text-red-500';
-    BatteryIcon = BatteryLow;
-  } else if (percent <= 50) {
-    colorClass = 'text-yellow-500';
-    BatteryIcon = BatteryMedium;
-  }
-  
-  if (isCharging) {
-    BatteryIcon = BatteryCharging;
-    colorClass = 'text-blue-500';
-  }
-  
-  return (
-    <div className="flex items-center gap-1">
-      <BatteryIcon className={`w-4 h-4 ${colorClass}`} />
-      <span className={`text-sm font-medium ${colorClass}`}>{percent}%</span>
-      {isCharging && <Zap className="w-3 h-3 text-blue-500" />}
-    </div>
-  );
-};
 
 export function CourierDetailModal({ open, onOpenChange, courier, companyId, companyName }) {
   return (
@@ -85,12 +51,6 @@ export function CourierDetailModal({ open, onOpenChange, courier, companyId, com
                   <p className="text-xs text-muted-foreground">Kayıt Tarihi</p>
                   <p className="font-mono text-sm">{new Date(courier.created_at).toLocaleDateString('tr-TR')}</p>
                 </div>
-                {courier.battery && courier.battery.level !== null && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Batarya</p>
-                    <BatteryDisplay battery={courier.battery} />
-                  </div>
-                )}
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Adres</p>
