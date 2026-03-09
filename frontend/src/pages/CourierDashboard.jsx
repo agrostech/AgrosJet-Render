@@ -195,7 +195,21 @@ export default function CourierDashboard() {
         if (isInitialLoad || prevStatus !== newStatus) {
           // Kısa bir gecikme ile bildir (state güncellemesi sonrası)
           setTimeout(() => {
-            notifyNativeStatusChange(newStatus);
+            const statusMap = {
+              'active': 'aktif',
+              'on_break': 'molada',
+              'offline': 'çevrimdışı'
+            };
+            const nativeStatus = statusMap[newStatus] || 'çevrimdışı';
+            
+            if (window.AgrosJetNative && typeof window.AgrosJetNative.statusChange === 'function') {
+              try {
+                window.AgrosJetNative.statusChange(nativeStatus);
+                console.log('[Native] statusChange çağrıldı (fetch):', nativeStatus);
+              } catch (e) {
+                console.error('[Native] statusChange hatası:', e);
+              }
+            }
           }, 100);
         }
         return newStatus;
@@ -203,7 +217,7 @@ export default function CourierDashboard() {
     } catch (err) {
       console.error("Kurye durumu alınamadı", err);
     }
-  }, [notifyNativeStatusChange]);
+  }, []);
 
   // Fetch break status
   const fetchBreakStatus = useCallback(async (courierId) => {
