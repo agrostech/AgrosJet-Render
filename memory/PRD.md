@@ -1,105 +1,42 @@
-# AgrosJet - Automatic Dispatch System PRD
+# ShiftJet - Kurye Yonetim Sistemi PRD
 
-## Original Problem Statement
-Sophisticated **Automatic Dispatch System** for a multi-panel application (Admin, Restaurant, Courier). The core is to automatically assign "ready" orders to the most suitable couriers based on complex business rules.
+## Problem Statement
+Courier delivery management system with ETA calculation, order management, native app integration, and push notifications.
 
-## User Language
-Turkish
+## Completed Features
+- ETA Calculation: "Collect-Then-Distribute" logic implemented
+- Responsive Order Management UI (mobile card / desktop table)
+- Header logo and company name updates
+- Mobile tab and stats redesign
+- Native location tracking and FCM token communication
+- Courier detail modal: battery info + live polling (10s)
+- Push notification channel updates (latest: `orders_5`)
 
-## Core Features Implemented
+## Pending Verification
+- Push Notification System: Awaiting native app test
+- Migros Webhook Parsing: Awaiting live test order
 
-### Dispatch Logic
-- Detour calculation based on total optimal route distance (TSP heuristic)
-- Angle check with configurable skip distance for nearby packages
-- Detour check with negative values for minimum savings threshold
-- Proximity-based skips for both angle and detour checks
-- Courier state validation (availability_status, allowed_payment_methods)
-- Atomic order assignment to prevent race conditions
-- Auto-cancellation of unconfirmed assignments with shift violation logging
-- Excluded couriers list to prevent re-assignment after failed confirmation
-
-### UI/Settings
-- Flexible numeric inputs allowing 0 and negative values
-- "Optimize Ayarları Yükle" button for preset configuration
-- Disabled "Çalışma Saatleri" card (24-hour operation)
-- Email notification toggles for all notification types
-
-## Completed Work (March 2, 2026)
-- [x] E-posta Bildirimleri UI - removed separate "Otomatik Atama Bildirimleri" category
-- [x] All notification toggles now in same grid with consistent styling
-
-## Completed Work (March 3, 2026)
-- [x] Dashboard istatistik güncellemesi - "Bekleyen" ve "Yolda" sekmelerindeki count badge'leri kaldırıldı
-- [x] "İptal" sipariş sayısı istatistik satırında zaten mevcuttu (kırmızı renkte)
-
-## Completed Work (March 4, 2026)
-- [x] **Kontör Yönetimi (Credit Management)**: Firma bazlı kredi sistemi eklendi
-- [x] **SMTP Ayarları Merkezleştirildi**: Firma bazlı yerine sistem geneli tek SMTP yapılandırması
-- [x] **Kurye E-posta Doğrulama**: Kayıt sırasında zorunlu e-posta ve 6 haneli kod doğrulaması
-- [x] **Şifremi Unuttum Akışı**: Kurye şifre sıfırlama özelliği eklendi
-- [x] **Tek Sayfa Kimlik Doğrulama**: Login, Kayıt ve Şifremi Unuttum akışları `CourierLoginPage.jsx` içinde birleştirildi (sayfa yenilemesi yok)
-- [x] **Temizlik**: `CourierForgotPasswordPage.jsx` dosyası ve `/courier-forgot-password` route'u kaldırıldı
-
-## Completed Work (March 7, 2026)
-- [x] **Akıllı Mola Sistemi (Smart Break System)**: Tam fonksiyonel mola yönetim sistemi
-  - Otomatik mod: Kuryeler sıraya girer, sistem otomatik molaya alır
-  - Manuel mod: Kuryeler talep eder, admin onaylar/reddeder
-  - Push notification entegrasyonu (FCM + Web Push)
-  - Admin Mola Talep UI (`NotificationsPopover.jsx` içinde)
-  - Vardiya bazlı mola limitleri
-  - Günlük mola hakkı takibi
-  - Paket teslimi sonrası mola başlatma
-
-## Completed Work (March 8, 2026)
-- [x] **Kurye & Restoran Matrix Views**: Admin panelinde toplu ayar yönetimi için iki yeni matris görünümü
-- [x] **Paket Aktarım Modu**: Restoranlar otomatik/manuel sipariş aktarımı seçebilir
-- [x] **Mobil Webview Stabilitesi**: CourierDashboard.jsx'te native çağrılar try-catch ile sarmalandı
-- [x] **Kurye Batarya Seviyesi**: Admin panelinde kurye batarya durumu görüntüleme
-- [x] **KVKK Sayfası Güncelleme**: İçerik güncellendi ve herkese açık hale getirildi
-- [x] **ETA Hesaplama Mantığı Düzeltmesi (Toplama-Dağıtma)**: 
-  - Kurye ETA hesaplamasında öncelik sırası düzeltildi
-  - ESKİ: Önce teslimatlar (on_the_way), sonra teslim alımlar (assigned/confirmed)
-  - YENİ: Önce TÜM teslim alımlar, sonra TÜM teslimatlar
-  - Gerçek dünya operasyonunu yansıtır: kurye önce toplar, sonra dağıtır
-  - Dosya: `/app/backend/routers/orders.py` - `calculate_courier_eta_for_restaurant` fonksiyonu
-- [x] **Sipariş Kartları UI Yenileme**:
-  - Tablo yapısından Kart/Grid yapısına geçildi
-  - Responsive grid: 1 sütun (mobil) → 2 sütun (tablet) → 3-4 sütun (masaüstü)
-  - Yatay kaydırma kaldırıldı, tüm bilgiler tek bakışta görünür
-  - Adres 3 satıra kadar gösteriliyor (line-clamp-3)
-  - Durum ve Kurye seçicileri alt kısımda yan yana
-  - Dosya: `/app/frontend/src/pages/admin/SiparisYonetimiPage.jsx`
-
-## In Progress Tasks
-- None currently
-
-## Pending Issues
-1. **P1: Adisyo Webhook Hatası** - `Restoran bulunamadı` hatası, webhook'lar başarısız oluyor
-2. **P0: Migros Webhook URL** - Migros'un webhook URL'sini `https://api.agrosjet.app/api/webhooks/migros/order` olarak güncellemesi gerekiyor (BLOCKED - Migros ile iletişim gerekli)
+## Known Issues
+- Adisyo Webhook: `Restoran bulunamadi` error (P2)
+- Migros Webhook URL: Incorrect production URL (requires Migros contact)
+- Native Location Notification: Shows on every page change (native-side issue)
 
 ## Upcoming Tasks
-1. **P1: "Stop Count" Capacity Logic** - Count unique drop-off locations instead of raw package count
-2. **P1: Restaurant Fee Calculation** - Implement `restaurant_fee` on order creation for all webhooks
+- (P1) "Stop Count" based capacity logic
+- (P2) Caller ID integration research
 
-## Future/Backlog Tasks
-- Refactor scheduled jobs (Haftalık Hakediş, Restoran Mutabakat)
-- Investigate/remove unused `dispatch_decision` function
-- API request monitor in admin panel
-- Refactor `/app/backend/routers/orders.py`
-- Native Courier App development
-- Caller ID entegrasyonu araştırması
+## Backlog
+- (P0) Restaurant Courier System (postponed by user)
+- (P1) restaurant_fee calculation
+- (P1) Haftalik Hakedis / Restoran Mutabakat refactoring
+- (P2) dispatch_decision function investigation
+- (P2) Admin panel API request monitor
+- (P2) Native Courier App development
 
-## Key Files
-- `/app/backend/services/auto_dispatch/dispatcher.py` - Core dispatch loop
-- `/app/backend/services/auto_dispatch/courier_selection.py` - Eligibility logic
-- `/app/backend/services/auto_dispatch/detour.py` - Route optimization
-- `/app/frontend/src/pages/SistemPage.jsx` - Settings UI
-
-## Database Schema (Key Fields)
-- **companies.auto_dispatch_settings**: max_detour, auto_cancel_enabled, auto_cancel_timeout, send_violation_emails, send_cancellation_emails
-- **orders**: excluded_couriers, status_history
-- **couriers**: availability_status, allowed_payment_methods
-
-## Test Credentials
-- Admin: `superadmin` / `123456`
-- Courier: `5555555555` / `123456`
+## Architecture
+- Backend: FastAPI + MongoDB
+- Frontend: React + Tailwind CSS + Shadcn UI
+- Integrations: Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
+- Hosting: Railway
+- Push: Firebase Cloud Messaging (FCM) - Channel: orders_5
+- APIs: Google Places, Google Geocoding
