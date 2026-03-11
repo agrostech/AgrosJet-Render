@@ -219,6 +219,11 @@ body {
 .dark .bg-indigo-50 { background-color: hsl(230, 40%, 12%) !important; }
 .dark .bg-purple-50 { background-color: hsl(270, 40%, 12%) !important; }
 
+/* Dark mode map brightness */
+.dark .leaflet-tile-pane {
+    filter: brightness(1.3) contrast(0.95);
+}
+
 /* Scrollbar */
 .dark ::-webkit-scrollbar-track { background: hsl(222, 47%, 11%); }
 .dark ::-webkit-scrollbar-thumb { background: hsl(217, 33%, 25%); }

@@ -359,7 +359,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     }).setView([centerLat, centerLng], zoomLevel);
     
     const tileUrl = document.documentElement.classList.contains('dark')
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
       : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
     window.L.tileLayer(tileUrl, {
       subdomains: 'abcd',
@@ -866,33 +866,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
       
       {/* Active tab content */}
       <div style={{ display: mainTab === "active" ? "block" : "none" }}>
-        {/* Stats - Sadece Masaüstü */}
-        <div className="hidden sm:flex items-center gap-3 text-sm">
-          <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50/70 rounded-full">
-            <Package className="w-3.5 h-3.5 text-slate-500" />
-            <span className="font-semibold text-slate-600">{stats.total}</span>
-          </span>
-          {stats.unassigned > 0 && (
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-50/70 rounded-full text-orange-600">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span className="font-semibold">{stats.unassigned}</span>
-              <span className="text-xs">bekliyor</span>
-            </span>
-          )}
-          {stats.onTheWay > 0 && (
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-cyan-50/70 rounded-full text-cyan-600">
-              <Bike className="w-3.5 h-3.5" />
-              <span className="font-semibold">{stats.onTheWay}</span>
-              <span className="text-xs">yolda</span>
-            </span>
-          )}
-          {stats.delivered > 0 && (
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-green-50/70 rounded-full text-green-600">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span className="font-semibold">{stats.delivered}</span>
-            </span>
-          )}
-        </div>
 
         {/* Mobile Courier List */}
         <CourierSidebarMobile
@@ -989,14 +962,16 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                   { value: "confirmed", label: "Onaylandı" },
                   { value: "on_the_way", label: "Yolda" },
                 ].map((status) => {
+                  const count = orders.filter(o => o.status === status.value).length;
                   const isActive = statusFilters.includes(status.value);
                   return (
                     <button
                       key={status.value}
                       onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
-                      className={`px-2.5 py-1 text-xs rounded-md transition-all ${isActive ? "bg-primary text-primary-foreground font-medium shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
+                      className={`px-2.5 py-1 text-xs rounded-md transition-all flex items-center gap-1 ${isActive ? "bg-primary text-primary-foreground font-medium shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
                     >
                       {status.label}
+                      <span className="text-[10px] font-bold opacity-70">({count})</span>
                     </button>
                   );
                 })}
