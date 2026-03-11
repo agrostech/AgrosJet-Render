@@ -95,6 +95,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   const [activeTab, setActiveTab] = useState("assigned");
   const [showNotReadyModal, setShowNotReadyModal] = useState(false);
   const [pendingNotReadyOrder, setPendingNotReadyOrder] = useState(null);
+  const [permissions, setPermissions] = useState({ can_mark_not_ready: true });
   const wakeLockRef = useRef(null);
 
   // Wake Lock API - ekranın kapanmasını önle ve arka plan işlemlerini sürdür
@@ -334,6 +335,11 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   useEffect(() => {
     if (courierId) {
       fetchOrders(false);
+      
+      // Yetkileri çek
+      axios.get(`${API}/couriers/${courierId}/permissions`)
+        .then(res => setPermissions(res.data.permissions || { can_mark_not_ready: true }))
+        .catch(() => {});
       
       // Wake Lock al - ekranın kapanmasını önle
       requestWakeLock();
@@ -632,6 +638,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                       onPickup={() => handlePickupOrder(order.id)}
                       onDeliver={() => handleDeliverOrder(order.id)}
                       onNotReady={() => handleNotReady(order.id)}
+                      canMarkNotReady={permissions.can_mark_not_ready}
                       onViewDetails={() => {
                         setSelectedOrder(order);
                         setShowDetailModal(true);
@@ -703,6 +710,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
                   onPickup={() => handlePickupOrder(order.id)}
                   onDeliver={() => handleDeliverOrder(order.id)}
                   onNotReady={() => {}}
+                  canMarkNotReady={permissions.can_mark_not_ready}
                   onViewDetails={() => {
                     setSelectedOrder(order);
                     setShowDetailModal(true);
@@ -916,7 +924,7 @@ function NewOrderCard({ order, onConfirm, loading }) {
 }
 
 // Aktif Sipariş Kartı - Kompakt Tasarım
-function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading }) {
+function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading, canMarkNotReady = true }) {
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
   const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
   const PaymentIcon = paymentInfo.icon;
@@ -1021,17 +1029,19 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           </Button>
           {order.status === "confirmed" && (
             <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 h-8 text-[11px] px-2"
-                onClick={onNotReady}
-                disabled={loading}
-                data-testid={`not-ready-btn-${order.id}`}
-              >
-                <Clock className="w-3.5 h-3.5 mr-1" />
-                Hazır Değil
-              </Button>
+              {canMarkNotReady && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 h-8 text-[11px] px-2"
+                  onClick={onNotReady}
+                  disabled={loading}
+                  data-testid={`not-ready-btn-${order.id}`}
+                >
+                  <Clock className="w-3.5 h-3.5 mr-1" />
+                  Hazır Değil
+                </Button>
+              )}
               <Button
                 size="sm"
                 className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-8 text-[11px] px-2"

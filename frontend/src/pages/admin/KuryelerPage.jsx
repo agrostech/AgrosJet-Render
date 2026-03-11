@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Switch } from "@/components/ui/switch";
-import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee, LayoutGrid, List } from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Wallet, CreditCard, Banknote, Globe, UtensilsCrossed, Clock, Package, Coffee, LayoutGrid, List, Shield } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 import { useKuryeler } from "@/hooks/useKuryeler";
@@ -83,6 +83,10 @@ export default function KuryelerPage({ companyId }) {
   // Break Limit Modal State
   const [showBreakLimitModal, setShowBreakLimitModal] = useState(false);
   const [breakLimit, setBreakLimit] = useState("30");
+  
+  // Permissions Modal State
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [courierPermissions, setCourierPermissions] = useState({ can_mark_not_ready: true });
   
   // Confirm Modal State
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -361,6 +365,31 @@ export default function KuryelerPage({ companyId }) {
     }
   };
 
+  // Yetkiler modalını aç
+  const openPermissionsModal = async (courier) => {
+    setSelectedCourier(courier);
+    try {
+      const res = await axios.get(`${API}/couriers/${courier.id}/permissions`);
+      setCourierPermissions(res.data.permissions || { can_mark_not_ready: true });
+    } catch (err) {
+      setCourierPermissions({ can_mark_not_ready: true });
+    }
+    setShowPermissionsModal(true);
+  };
+
+  // Yetkiler kaydet
+  const handleSavePermissions = async () => {
+    try {
+      await axios.put(`${API}/couriers/${selectedCourier.id}/permissions`, {
+        permissions: courierPermissions
+      });
+      toast.success("Yetkiler kaydedildi");
+      setShowPermissionsModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Yetkiler kaydedilemedi");
+    }
+  };
+
   if (loading) return <PageLoading />;
 
   return (
@@ -466,6 +495,7 @@ export default function KuryelerPage({ companyId }) {
             onFinance={openFinanceModal}
             onMaxPackages={openMaxPackagesModal}
             onBreakLimit={openBreakLimitModal}
+            onPermissions={openPermissionsModal}
           />
 
           {/* Mobile Cards */}
@@ -486,6 +516,7 @@ export default function KuryelerPage({ companyId }) {
             onFinance={openFinanceModal}
         onMaxPackages={openMaxPackagesModal}
         onBreakLimit={openBreakLimitModal}
+        onPermissions={openPermissionsModal}
       />
         </>
       )}
@@ -839,6 +870,47 @@ export default function KuryelerPage({ companyId }) {
               İptal
             </Button>
             <Button onClick={handleSaveBreakLimit}>
+              Kaydet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Permissions Modal */}
+      <Dialog open={showPermissionsModal} onOpenChange={setShowPermissionsModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-indigo-600" />
+              Yetkiler - {selectedCourier?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Bu kuryenin kullanabileceği özellikleri yönetin.
+            </p>
+            
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">Paket Hazır Değil</p>
+                  <p className="text-xs text-muted-foreground">Kurye siparişi "hazır değil" olarak işaretleyebilir</p>
+                </div>
+              </div>
+              <Switch
+                checked={courierPermissions.can_mark_not_ready}
+                onCheckedChange={(checked) => setCourierPermissions(prev => ({ ...prev, can_mark_not_ready: checked }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPermissionsModal(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSavePermissions}>
               Kaydet
             </Button>
           </DialogFooter>

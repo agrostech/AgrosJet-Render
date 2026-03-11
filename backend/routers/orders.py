@@ -2339,6 +2339,15 @@ async def courier_bulk_pickup(courier_id: str, data: BulkPickupRequest):
 @router.post("/courier/{courier_id}/order/{order_id}/not-ready")
 async def courier_order_not_ready(courier_id: str, order_id: str):
     """Sipariş henüz hazır değil - 5dk hazırlık süresi ekle ve atamayı kaldır"""
+    # Yetki kontrolü
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1, "permissions": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    permissions = courier.get("permissions", {})
+    if not permissions.get("can_mark_not_ready", True):
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
+    
     order = await db.orders.find_one({"id": order_id, "courier_id": courier_id})
     if not order:
         raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
@@ -2346,9 +2355,7 @@ async def courier_order_not_ready(courier_id: str, order_id: str):
     if order["status"] not in ["assigned", "confirmed"]:
         raise HTTPException(status_code=400, detail="Bu işlem sadece atanmış veya onaylanmış siparişler için yapılabilir")
     
-    # Kurye bilgisini al
-    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "name": 1})
-    courier_name = courier.get("name", "Kurye") if courier else "Kurye"
+    courier_name = courier.get("name", "Kurye")
     
     result = await update_order_status_core(
         order_id=order_id,

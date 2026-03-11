@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package, Coffee, Eye } from "lucide-react";
+import { Trash2, Pencil, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package, Coffee, Eye, Shield } from "lucide-react";
 
 export function CourierTable({ 
   couriers, 
@@ -25,7 +25,8 @@ export function CourierTable({
   onFinance,
   onPaymentMethods,
   onMaxPackages,
-  onBreakLimit
+  onBreakLimit,
+  onPermissions
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
@@ -104,6 +105,12 @@ export function CourierTable({
                       <Button size="sm" variant="outline" onClick={() => onBreakLimit(c)} className="h-8 px-3 border-2" title="Mola Ayarları">
                         <Coffee className="w-4 h-4" />
                         <span className="ml-1 text-xs">Mola</span>
+                      </Button>
+                    )}
+                    {onPermissions && (
+                      <Button size="sm" variant="outline" onClick={() => onPermissions(c)} className="h-8 px-3 border-2" title="Yetkiler">
+                        <Shield className="w-4 h-4" />
+                        <span className="ml-1 text-xs">Yetkiler</span>
                       </Button>
                     )}
                     {c.is_ghost && onMerge && (

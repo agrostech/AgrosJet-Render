@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package, Coffee, Eye } from "lucide-react";
+import { Trash2, AlertTriangle, XCircle, Power, PowerOff, Ghost, Merge, CreditCard, Package, Coffee, Eye, Shield } from "lucide-react";
 
 export function CourierCards({ 
   couriers, 
@@ -17,7 +17,8 @@ export function CourierCards({
   onFinance,
   onPaymentMethods,
   onMaxPackages,
-  onBreakLimit
+  onBreakLimit,
+  onPermissions
 }) {
   const emptyMessage = filterQuery 
     ? "Arama sonucu bulunamadı" 
@@ -95,6 +96,12 @@ export function CourierCards({
               <Button size="sm" variant="outline" onClick={() => onBreakLimit(c)} className="flex-1 border-2">
                 <Coffee className="w-4 h-4 mr-1" />
                 <span className="text-xs">Mola</span>
+              </Button>
+            )}
+            {onPermissions && (
+              <Button size="sm" variant="outline" onClick={() => onPermissions(c)} className="flex-1 border-2">
+                <Shield className="w-4 h-4 mr-1" />
+                <span className="text-xs">Yetkiler</span>
               </Button>
             )}
           </div>

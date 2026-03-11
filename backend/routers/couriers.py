@@ -677,6 +677,42 @@ async def update_courier_break_limit(courier_id: str, data: BreakLimitUpdate):
     return {"message": f"Mola limiti güncellendi: {data.daily_break_limit} dakika"}
 
 
+# --- Kurye Yetkileri ---
+class CourierPermissionsUpdate(BaseModel):
+    permissions: dict
+
+
+@router.get("/couriers/{courier_id}/permissions")
+async def get_courier_permissions(courier_id: str):
+    """Kuryenin yetkilerini getir"""
+    courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "permissions": 1})
+    if not courier:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    default_permissions = {
+        "can_mark_not_ready": True
+    }
+    
+    saved = courier.get("permissions", {})
+    merged = {**default_permissions, **saved}
+    return {"permissions": merged}
+
+
+@router.put("/couriers/{courier_id}/permissions")
+async def update_courier_permissions(courier_id: str, data: CourierPermissionsUpdate):
+    """Kuryenin yetkilerini güncelle"""
+    result = await db.couriers.update_one(
+        {"id": courier_id},
+        {"$set": {"permissions": data.permissions}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Kurye bulunamadı")
+    
+    return {"message": "Yetkiler güncellendi"}
+
+
+
 @router.get("/couriers/{courier_id}/break-status")
 async def get_courier_break_status(courier_id: str):
     """Kuryenin mola durumunu ve kalan süresini al"""
