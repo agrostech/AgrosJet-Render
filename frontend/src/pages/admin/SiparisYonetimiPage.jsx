@@ -837,35 +837,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
           </button>
         </div>
         
-        {/* İstatistikler - Sadece Aktif Sekmede, Masaüstünde */}
-        {mainTab === "active" && (
-          <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1">
-            <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-full text-xs whitespace-nowrap">
-              <Package className="w-3 h-3 text-slate-500" />
-              <span className="font-semibold text-slate-600">{stats.total}</span>
-            </span>
-            {stats.unassigned > 0 && (
-              <span className="flex items-center gap-1 px-2 py-1 bg-orange-100 rounded-full text-xs text-orange-600 whitespace-nowrap">
-                <AlertCircle className="w-3 h-3" />
-                <span className="font-semibold">{stats.unassigned}</span>
-                <span>bekliyor</span>
-              </span>
-            )}
-            {stats.onTheWay > 0 && (
-              <span className="flex items-center gap-1 px-2 py-1 bg-cyan-100 rounded-full text-xs text-cyan-600 whitespace-nowrap">
-                <Bike className="w-3 h-3" />
-                <span className="font-semibold">{stats.onTheWay}</span>
-                <span>yolda</span>
-              </span>
-            )}
-            {stats.delivered > 0 && (
-              <span className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full text-xs text-green-600 whitespace-nowrap">
-                <CheckCircle2 className="w-3 h-3" />
-                <span className="font-semibold">{stats.delivered}</span>
-              </span>
-            )}
-          </div>
-        )}
+        {/* İstatistikler kaldırıldı - filtre butonlarında zaten mevcut */}
       </div>
 
       {/* Sub-pages */}

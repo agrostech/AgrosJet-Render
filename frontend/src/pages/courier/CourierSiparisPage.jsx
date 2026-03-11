@@ -521,7 +521,7 @@ export default function CourierSiparisPage({ courierId, companyId }) {
   return (
     <div className="space-y-3" data-testid="courier-siparis-page">
       {/* Sekmeler - Her zaman göster */}
-      <div className="flex bg-slate-100 rounded-lg p-1">
+      <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
         <button
           onClick={() => setActiveTab("assigned")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
@@ -946,7 +946,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
 
   return (
     <div
-      className="bg-white rounded-xl shadow-md border-l-4 border-slate-300"
+      className="bg-white dark:bg-slate-800 rounded-xl shadow-md border-l-4 border-slate-300 dark:border-slate-600"
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-2.5">

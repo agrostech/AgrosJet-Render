@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, User, Check, Coffee, XCircle, Shield } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, User, Check, Coffee, XCircle, Shield, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,7 @@ export default function CourierSidebar({
   statusLoading = false
 }) {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const currentStatus = AVAILABILITY_STATUSES[availabilityStatus] || AVAILABILITY_STATUSES.offline;
   const StatusIcon = currentStatus.icon;
   
@@ -37,7 +39,7 @@ export default function CourierSidebar({
   const basePath = navItems?.[0]?.path || '/courier';
 
   return (
-    <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
+    <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-slate-900 text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
       <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2' : ''}`}>
         {!sidebarCollapsed && (
           <>
@@ -187,6 +189,16 @@ export default function CourierSidebar({
           data-testid="courier-sidebar-toggle-btn"
         >
           {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </Button>
+        <Button 
+          variant="ghost" 
+          onClick={toggleTheme} 
+          className={`w-full text-white hover:bg-white/10 font-semibold text-sm py-2.5 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-4'}`}
+          data-testid="courier-dark-mode-toggle-desktop"
+          title={sidebarCollapsed ? (theme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod') : ''}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
+          {!sidebarCollapsed && <span className="ml-2">{theme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod'}</span>}
         </Button>
         <Link 
           to={`${basePath}/kvkk`}

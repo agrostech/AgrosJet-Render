@@ -3,9 +3,10 @@ import { useNavigate, Routes, Route, Link, useLocation, useSearchParams, usePara
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, FileText, ShoppingBag, GraduationCap, Bike, MoreHorizontal, ClipboardList, Check, Coffee, XCircle, BarChart3, ChevronDown, Shield, Moon, Sun } from "lucide-react";
 import CourierSidebar from "@/components/courier/CourierSidebar";
 import { BreakModal } from "@/components/courier/BreakModal";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,6 +64,7 @@ export default function CourierDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { courierId: urlCourierId } = useParams(); // URL'den courier ID al (/kurye/:courierId)
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -495,9 +497,9 @@ export default function CourierDashboard() {
   const StatusIcon = currentStatus.icon;
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="courier-dashboard">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900" data-testid="courier-dashboard">
       {/* Mobile Header */}
-      <header className="lg:hidden bg-primary text-white p-3 flex items-center justify-between">
+      <header className="lg:hidden bg-slate-900 text-white p-3 flex items-center justify-between">
         {/* Sol: Menü butonu */}
         <Button 
           variant="ghost" 
@@ -577,7 +579,7 @@ export default function CourierDashboard() {
         
         {/* Sidebar */}
         <nav 
-          className={`absolute left-0 top-0 h-full w-64 bg-primary text-white transform transition-transform duration-300 ${
+          className={`absolute left-0 top-0 h-full w-64 bg-slate-900 text-white transform transition-transform duration-300 ${
             mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -629,6 +631,14 @@ export default function CourierDashboard() {
           
           {/* Logout Button */}
           <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-white/20 space-y-2">
+            <button 
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+              data-testid="courier-dark-mode-toggle"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod'}
+            </button>
             <Link 
               to={`${basePath}/kvkk`}
               onClick={() => setMobileMenuOpen(false)}
@@ -690,7 +700,7 @@ export default function CourierDashboard() {
           </div>
           
           {/* Footer */}
-          <footer className="bg-white border-t py-2 text-center">
+          <footer className="bg-white dark:bg-slate-800 border-t dark:border-slate-700 py-2 text-center">
             <span className="text-[10px] text-muted-foreground">© 2026 AgrosJet · Powered by AgrosTech</span>
           </footer>
         </main>
