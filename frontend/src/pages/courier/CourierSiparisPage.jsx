@@ -915,13 +915,12 @@ function NewOrderCard({ order, onConfirm, loading }) {
   );
 }
 
-// Aktif Sipariş Kartı - Sade Tasarım
+// Aktif Sipariş Kartı - Kompakt Tasarım
 function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails, onOpenMaps, onOpenRestaurantMaps, onCall, loading }) {
   const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.confirmed;
   const paymentInfo = PAYMENT_METHODS[order.payment_method] || PAYMENT_METHODS.cash;
   const PaymentIcon = paymentInfo.icon;
 
-  // Restoran telefonu için
   const callRestaurant = () => {
     if (order.restaurant_phone) {
       window.location.href = `tel:${order.restaurant_phone}`;
@@ -930,173 +929,118 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
     }
   };
 
+  // Müşteri notu var mı kontrol et (kart üzerinde kısa uyarı göstermek için)
+  const hasCustomerNote = order.notes?.includes("CUSTOMER:");
+  const customerNotePreview = hasCustomerNote ? (() => {
+    const match = order.notes.match(/CUSTOMER:([^|]*)/);
+    return match ? match[1].split(";").filter(n => n.trim()).join(" • ").substring(0, 60) : null;
+  })() : null;
+
   return (
     <div
-      className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow border-l-4 border-slate-300"
+      className="bg-white rounded-xl shadow-md border-l-4 border-slate-300"
       data-testid={`active-order-card-${order.id}`}
     >
-      <div className="p-3">
-        {/* Header - Durum + Ödeme */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Badge className={`${statusConfig.color} text-white text-xs px-2 py-0.5`}>{statusConfig.label}</Badge>
+      <div className="p-2.5">
+        {/* Satır 1: Durum + Süre + Mesafe + Ödeme */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0`}>{statusConfig.label}</Badge>
             {getOrderAgeText(order) && (
-              <span className="text-xs text-slate-500 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+              <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
+                <Clock className="w-2.5 h-2.5" />
                 {getOrderAgeText(order)}
               </span>
             )}
             {getOrderDistance(order) && (
-              <span className="text-xs text-slate-500">
-                {getOrderDistance(order)}
-              </span>
+              <span className="text-[10px] text-slate-400">{getOrderDistance(order)}</span>
             )}
           </div>
-          <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
-            <PaymentIcon className="w-3 h-3" />
+          <div className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
+            <PaymentIcon className="w-2.5 h-2.5" />
             <span>{getPaymentLabel(order)}</span>
           </div>
         </div>
 
-        {/* RESTORAN BİLGİLERİ */}
-        <div className="border-b border-slate-100 pb-2 mb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-lg text-sm font-semibold text-slate-700">
-                <Store className="w-4 h-4 text-slate-500" />
-                {order.restaurant_name}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={callRestaurant}
-                className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
-                title="Restoranı Ara"
-              >
-                <Phone className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={onOpenRestaurantMaps}
-                className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
-                title="Restorana Git"
-              >
-                <Navigation className="w-3.5 h-3.5" />
-              </button>
-            </div>
+        {/* Satır 2: Restoran + Butonlar */}
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Store className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+            <span className="text-xs font-semibold text-slate-700 truncate">{order.restaurant_name}</span>
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={callRestaurant} className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" data-testid={`call-restaurant-btn-${order.id}`}>
+              <Phone className="w-3 h-3" />
+            </button>
+            <button onClick={onOpenRestaurantMaps} className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" data-testid={`navigate-restaurant-btn-${order.id}`}>
+              <Navigation className="w-3 h-3" />
+            </button>
           </div>
         </div>
 
-        {/* MÜŞTERİ BİLGİLERİ */}
-        <div className="border-b border-slate-100 pb-2 mb-2">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-slate-400" />
-              <span className="font-medium text-sm text-slate-700">{order.customer_name}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={onCall}
-                className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
-                title="Müşteriyi Ara"
-              >
-                <Phone className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={onOpenMaps}
-                className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
-                title="Müşteriye Git"
-              >
-                <Navigation className="w-3.5 h-3.5" />
-              </button>
-            </div>
+        {/* Satır 3: Müşteri + Adres (1 satır) + Butonlar */}
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <User className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+            <span className="text-xs font-medium text-slate-700 truncate">{order.customer_name}</span>
           </div>
-          <div className="flex items-start gap-1.5 text-xs text-slate-600">
-            <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-400" />
-            <span className="line-clamp-4">{order.delivery_address}</span>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={onCall} className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" data-testid={`call-customer-btn-${order.id}`}>
+              <Phone className="w-3 h-3" />
+            </button>
+            <button onClick={onOpenMaps} className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100" data-testid={`navigate-customer-btn-${order.id}`}>
+              <Navigation className="w-3 h-3" />
+            </button>
           </div>
         </div>
 
-        {/* SİPARİŞ BİLGİLERİ */}
-        <div className="mb-2">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-slate-500">Sipariş İçeriği</span>
-            <span className="font-bold text-sm">{formatCurrency(order.total_amount)}</span>
-          </div>
-          <div className="text-xs text-slate-500">
-            {order.items?.map((item, idx) => (
-              <span key={idx}>
-                {item.quantity}x {item.name}{idx < order.items.length - 1 ? ', ' : ''}
-              </span>
-            ))}
-          </div>
+        {/* Satır 4: Adres - tek satır */}
+        <div className="flex items-center gap-1 mb-2 text-[11px] text-slate-500">
+          <MapPin className="w-3 h-3 flex-shrink-0 text-slate-400" />
+          <span className="truncate">{order.delivery_address}</span>
         </div>
 
-        {/* Not - Renkli kalacak */}
-        {order.notes && !order.notes.match(/^ADDRESS:[^|]*$/i) && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2 text-xs space-y-1">
-            {/* Müşteri notları (kırmızı) */}
-            {order.notes.includes("CUSTOMER:") && (() => {
-              const customerMatch = order.notes.match(/CUSTOMER:([^|]*)/);
-              const customerNotes = customerMatch ? customerMatch[1].split(";").filter(n => n.trim()) : [];
-              return customerNotes.length > 0 && (
-                <div className="text-red-700 font-semibold">
-                  ⚠️ {customerNotes.join(" • ")}
-                </div>
-              );
-            })()}
-            {/* Mutfak notları (normal) */}
-            {order.notes.includes("KITCHEN:") && (() => {
-              const kitchenMatch = order.notes.match(/KITCHEN:([^|]*)/);
-              const kitchenNotes = kitchenMatch ? kitchenMatch[1].split(";").filter(n => n.trim()) : [];
-              return kitchenNotes.length > 0 && (
-                <div className="text-yellow-800">
-                  🍽️ {kitchenNotes.join(" • ")}
-                </div>
-              );
-            })()}
-            {/* Eski format notlar (CUSTOMER/KITCHEN/ADDRESS içermeyenler) */}
-            {(() => {
-              const cleanNotes = order.notes
-                .split('|')
-                .filter(n => !n.trim().startsWith('CUSTOMER:') && !n.trim().startsWith('KITCHEN:') && !n.trim().startsWith('ADDRESS:'))
-                .join(' • ')
-                .trim();
-              return cleanNotes && (
-                <div className="text-yellow-800">
-                  📝 {cleanNotes}
-                </div>
-              );
-            })()}
+        {/* Müşteri notu uyarısı - sadece varsa, kısa */}
+        {customerNotePreview && (
+          <div className="bg-red-50 border border-red-200 rounded px-2 py-1 mb-2 text-[10px] text-red-700 font-medium truncate">
+            ⚠️ {customerNotePreview}
           </div>
         )}
 
-        {/* Aksiyonlar */}
-        <div className="flex gap-2 mt-3">
+        {/* Satır 5: Tutar + Detay + Aksiyonlar */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-800 whitespace-nowrap">{formatCurrency(order.total_amount)}</span>
+          
+          <button
+            onClick={onViewDetails}
+            className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex-shrink-0"
+            data-testid={`view-detail-btn-${order.id}`}
+            title="Sipariş Detayı"
+          >
+            <Eye className="w-3.5 h-3.5" />
+          </button>
+
           {order.status === "confirmed" && (
             <>
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 h-9"
+                className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 h-8 text-[11px] px-2"
                 onClick={onNotReady}
                 disabled={loading}
                 data-testid={`not-ready-btn-${order.id}`}
               >
-                <Clock className="w-4 h-4 mr-1" />
+                <Clock className="w-3.5 h-3.5 mr-1" />
                 Hazır Değil
               </Button>
               <Button
                 size="sm"
-                className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-9"
+                className="flex-1 bg-cyan-600 hover:bg-cyan-700 h-8 text-[11px] px-2"
                 onClick={onPickup}
                 disabled={loading}
                 data-testid={`pickup-btn-${order.id}`}
               >
-                {loading ? (
-                  <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
-                ) : (
-                  <Truck className="w-4 h-4 mr-1.5" />
-                )}
+                {loading ? <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Truck className="w-3.5 h-3.5 mr-1" />}
                 Yola Çık
               </Button>
             </>
@@ -1104,16 +1048,12 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           {order.status === "on_the_way" && (
             <Button
               size="sm"
-              className="flex-1 bg-green-600 hover:bg-green-700 h-9"
+              className="flex-1 bg-green-600 hover:bg-green-700 h-8 text-[11px] px-2"
               onClick={onDeliver}
               disabled={loading}
               data-testid={`deliver-btn-${order.id}`}
             >
-              {loading ? (
-                <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
-              ) : (
-                <CheckCircle className="w-4 h-4 mr-1.5" />
-              )}
+              {loading ? <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5 mr-1" />}
               Teslim Et
             </Button>
           )}

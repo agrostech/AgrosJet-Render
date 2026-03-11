@@ -10,7 +10,8 @@ Courier delivery management system with ETA calculation, order management, nativ
 - Mobile tab and stats redesign
 - Native location tracking and FCM token communication
 - Courier detail modal: battery info + live polling (10s)
-- Push notification channel updates (latest: `orders_5`)
+- Push notification channel updates (latest: `orders_v6`)
+- Courier order card redesigned: compact layout with detail modal (Feb 2026)
 
 ## Pending Verification
 - Push Notification System: Awaiting native app test
