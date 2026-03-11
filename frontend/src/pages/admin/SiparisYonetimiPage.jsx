@@ -1061,7 +1061,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </div>
               </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             {loading ? (
               <div className="flex justify-center py-8">
                 <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -1315,7 +1315,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 </div>
                 
                 {/* MOBİL: Kart Görünümü (md altı) */}
-                <div className="md:hidden grid grid-cols-1 gap-3">
+                <div className="md:hidden grid grid-cols-1 gap-2">
                   {paginatedOrders.map((order) => {
                     const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
                     const orderAge = getOrderAge(order);
