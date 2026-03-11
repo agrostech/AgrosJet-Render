@@ -759,7 +759,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             <button
               onClick={() => setMainTab("active")}
               className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                mainTab === "active" ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900" : "bg-background hover:bg-muted"
+                mainTab === "active" ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100" : "bg-background hover:bg-muted text-muted-foreground"
               }`}
             >
               <ListChecks className="w-3.5 h-3.5" />
@@ -768,7 +768,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             <button
               onClick={() => setMainTab("delivered")}
               className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l border-border flex items-center justify-center gap-1.5 ${
-                mainTab === "delivered" ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900" : "bg-background hover:bg-muted"
+                mainTab === "delivered" ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100" : "bg-background hover:bg-muted text-muted-foreground"
               }`}
             >
               <CheckCircle className="w-3.5 h-3.5" />
@@ -777,7 +777,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             <button
               onClick={() => setMainTab("cancelled")}
               className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l border-border flex items-center justify-center gap-1.5 ${
-                mainTab === "cancelled" ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900" : "bg-background hover:bg-muted"
+                mainTab === "cancelled" ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100" : "bg-background hover:bg-muted text-muted-foreground"
               }`}
             >
               <ClipboardX className="w-3.5 h-3.5" />
@@ -968,7 +968,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     <button
                       key={status.value}
                       onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
-                      className={`px-2.5 py-1 text-xs rounded-md transition-all flex items-center gap-1 ${isActive ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-medium shadow-sm" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"}`}
+                      className={`px-2.5 py-1 text-xs rounded-md transition-all flex items-center gap-1 ${isActive ? "bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-200 font-medium" : "bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600"}`}
                     >
                       {status.label}
                       <span className="text-[10px] font-bold opacity-70">({count})</span>
