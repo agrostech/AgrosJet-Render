@@ -1366,16 +1366,29 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         }}
                         data-testid={`order-card-${order.id}`}
                       >
-                        {/* Üst Kısım: Restoran + Zaman */}
+                        {/* Üst Kısım: Restoran + Mesafe + Ödeme + Ücret + Zaman */}
                         <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
-                          <span className="px-2 py-1 bg-slate-700 text-white text-xs font-semibold rounded">
-                            {order.restaurant_name || "-"}
-                          </span>
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <Clock className="w-3 h-3" />
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="px-2 py-1 bg-slate-700 text-white text-[11px] font-semibold rounded truncate">
+                              {order.restaurant_name || "-"}
+                            </span>
+                            <span className="text-[10px] text-slate-500 flex-shrink-0">{getOrderDistance(order) || "-"}</span>
+                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex-shrink-0 ${
+                              order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
+                              order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
+                              (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
+                            }`}>
+                              {order.payment_method === 'cash' ? 'Nakit' : 
+                               order.payment_method === 'card' ? 'Kart' : 
+                               (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Y.Kartı') : 
+                               'Online'}
+                            </span>
+                            <span className="text-xs font-bold text-slate-800 flex-shrink-0">{formatCurrency(order.total_amount)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] text-slate-500 flex-shrink-0 ml-1">
                             <span className="font-medium">{formatTime(order.created_at)}</span>
                             {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-600'}`}>
+                              <span className={`px-1 py-0.5 rounded font-medium ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-600'}`}>
                                 {orderAge.text}
                               </span>
                             )}
@@ -1422,30 +1435,6 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               {formatTime(order.getir_raw.scheduledDate)} İleri Tarih
                             </div>
                           )}
-                          
-                          {/* Bilgi Satırı: Mesafe, Ücret, Ödeme */}
-                          <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                            <div className="flex items-center gap-3">
-                              {/* Mesafe */}
-                              <div className="flex items-center gap-1 text-xs text-slate-500">
-                                <Navigation className="w-3 h-3" />
-                                <span>{getOrderDistance(order) || "-"}</span>
-                              </div>
-                              {/* Ödeme Yöntemi */}
-                              <span className={`px-2 py-0.5 text-[10px] font-medium rounded ${
-                                order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
-                                order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
-                                (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
-                              }`}>
-                                {order.payment_method === 'cash' ? 'Nakit' : 
-                                 order.payment_method === 'card' ? 'Kart' : 
-                                 (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Yemek Kartı') : 
-                                 'Online'}
-                              </span>
-                            </div>
-                            {/* Ücret */}
-                            <span className="text-sm font-bold text-slate-800">{formatCurrency(order.total_amount)}</span>
-                          </div>
                         </div>
                         
                         {/* Alt Kısım: Durum ve Kurye Seçimi */}
