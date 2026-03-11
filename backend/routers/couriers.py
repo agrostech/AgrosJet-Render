@@ -291,6 +291,19 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
     
     update_data = {"availability_status": data.availability_status}
     
+    # Çevrimdışı veya molaya geçerken aktif paket kontrolü
+    if data.availability_status in ["offline", "on_break"] and not data.force:
+        active_orders = await db.orders.count_documents({
+            "courier_id": courier_id,
+            "status": {"$in": ["assigned", "confirmed", "on_the_way"]}
+        })
+        if active_orders > 0:
+            status_label = "çevrimdışı" if data.availability_status == "offline" else "molaya"
+            raise HTTPException(
+                status_code=400,
+                detail=f"Üzerinizde {active_orders} aktif paket var. Önce paketleri tamamlayın."
+            )
+    
     # Aktif olma zamanını kaydet (vardiya ihlal kontrolü için)
     if data.availability_status == "active" and current_status != "active":
         update_data["activated_at"] = now.isoformat()
