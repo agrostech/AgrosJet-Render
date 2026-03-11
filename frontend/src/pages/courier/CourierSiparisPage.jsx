@@ -1010,16 +1010,18 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
 
         <div className="border-t border-slate-100 mt-2" />
 
-        {/* Aksiyonlar + Detay */}
+        {/* Aksiyonlar - 3 eşit parça */}
         <div className="flex gap-2 pt-2">
-          <button
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 h-8 text-[11px] px-2"
             onClick={onViewDetails}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex-shrink-0"
             data-testid={`view-detail-btn-${order.id}`}
-            title="Sipariş Detayı"
           >
-            <Eye className="w-3.5 h-3.5" />
-          </button>
+            <Eye className="w-3.5 h-3.5 mr-1" />
+            Detay
+          </Button>
           {order.status === "confirmed" && (
             <>
               <Button
