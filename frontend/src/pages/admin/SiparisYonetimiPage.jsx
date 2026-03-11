@@ -955,13 +955,13 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
         {/* Orders Table */}
         <Card>
           <CardHeader className="pb-2 px-3 sm:px-6">
-            <div className="flex flex-col gap-3">
-              {/* Başlık ve Arama */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
-                <CardTitle className="text-sm sm:text-base whitespace-nowrap">
+            {/* Desktop Header */}
+            <div className="hidden sm:flex sm:flex-col gap-3">
+              <div className="flex items-center justify-between gap-4">
+                <CardTitle className="text-base whitespace-nowrap">
                   Siparişler ({filteredAndSortedOrders.length}{searchQuery && ` / ${orders.length}`})
                 </CardTitle>
-                <div className="relative flex-1 max-w-full sm:max-w-xs">
+                <div className="relative flex-1 max-w-xs">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="text"
@@ -971,23 +971,17 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     className="pl-8 h-8 text-sm"
                   />
                   {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
+                    <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                       <XCircle className="w-4 h-4" />
                     </button>
                   )}
                 </div>
               </div>
-              
-              {/* Sıralama ve Sayfa Boyutu */}
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                {/* Sıralama */}
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
+                  <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
                   <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="h-7 w-[110px] sm:w-[140px] text-[11px] sm:text-xs" data-testid="sort-order-select">
+                    <SelectTrigger className="h-7 w-[140px] text-xs" data-testid="sort-order-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -996,12 +990,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     </SelectContent>
                   </Select>
                 </div>
-                
-                {/* Sayfa Boyutu */}
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">Göster:</span>
+                  <span className="text-xs text-muted-foreground">Göster:</span>
                   <Select value={pageSize.toString()} onValueChange={(val) => setPageSize(parseInt(val))}>
-                    <SelectTrigger className="h-7 w-[60px] sm:w-[70px] text-[11px] sm:text-xs" data-testid="page-size-select">
+                    <SelectTrigger className="h-7 w-[70px] text-xs" data-testid="page-size-select">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1012,54 +1004,97 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                   </Select>
                 </div>
               </div>
-              
-              {/* Durum Filtreleri */}
               <div className="flex flex-wrap items-center gap-1">
                 {[
-                  { value: "preparing", label: "Hazırlanıyor", shortLabel: "Hazır.", color: "bg-yellow-500/30 text-yellow-700 border-yellow-400/50", activeColor: "bg-yellow-500/30 text-yellow-800 border-yellow-500/70" },
-                  { value: "ready", label: "Hazır", shortLabel: "Hazır", color: "bg-orange-500/30 text-orange-700 border-orange-400/50", activeColor: "bg-orange-500/30 text-orange-800 border-orange-500/70" },
-                  { value: "assigned", label: "Atandı", shortLabel: "Ata.", color: "bg-purple-500/30 text-purple-700 border-purple-400/50", activeColor: "bg-purple-500/30 text-purple-800 border-purple-500/70" },
-                  { value: "confirmed", label: "Onaylandı", shortLabel: "Onay", color: "bg-blue-500/30 text-blue-700 border-blue-400/50", activeColor: "bg-blue-500/30 text-blue-800 border-blue-500/70" },
-                  { value: "on_the_way", label: "Yolda", shortLabel: "Yolda", color: "bg-cyan-500/30 text-cyan-700 border-cyan-400/50", activeColor: "bg-cyan-500/30 text-cyan-800 border-cyan-500/70" },
+                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-500/30 text-yellow-700 border-yellow-400/50", activeColor: "bg-yellow-500/30 text-yellow-800 border-yellow-500/70" },
+                  { value: "ready", label: "Hazır", color: "bg-orange-500/30 text-orange-700 border-orange-400/50", activeColor: "bg-orange-500/30 text-orange-800 border-orange-500/70" },
+                  { value: "assigned", label: "Atandı", color: "bg-purple-500/30 text-purple-700 border-purple-400/50", activeColor: "bg-purple-500/30 text-purple-800 border-purple-500/70" },
+                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-500/30 text-blue-700 border-blue-400/50", activeColor: "bg-blue-500/30 text-blue-800 border-blue-500/70" },
+                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-500/30 text-cyan-700 border-cyan-400/50", activeColor: "bg-cyan-500/30 text-cyan-800 border-cyan-500/70" },
                 ].map((status) => {
                   const count = orders.filter(o => o.status === status.value).length;
                   const isActive = statusFilters.includes(status.value);
                   return (
                     <button
                       key={status.value}
-                      onClick={() => {
-                        setStatusFilters(prev => 
-                          prev.includes(status.value) 
-                            ? prev.filter(s => s !== status.value)
-                            : [...prev, status.value]
-                        );
-                      }}
-                      className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded border transition-all flex items-center gap-0.5 sm:gap-1 ${
-                        isActive ? status.activeColor + " font-medium shadow-sm ring-1 ring-inset ring-current/20" : status.color + " opacity-70 hover:opacity-100"
-                      }`}
+                      onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
+                      className={`px-2 py-0.5 text-xs rounded border transition-all flex items-center gap-1 ${isActive ? status.activeColor + " font-medium shadow-sm ring-1 ring-inset ring-current/20" : status.color + " opacity-70 hover:opacity-100"}`}
                     >
-                      <span className="sm:hidden">{status.shortLabel}</span>
-                      <span className="hidden sm:inline">{status.label}</span>
-                      <span className="text-[9px] sm:text-[10px] font-bold">({count})</span>
+                      {status.label}
+                      <span className="text-[10px] font-bold">({count})</span>
                     </button>
                   );
                 })}
                 <div className="border-l pl-1 ml-0.5 flex gap-0.5">
-                  <button
-                    onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
-                    className="px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] text-blue-600 hover:bg-blue-50 rounded"
-                  >
-                    Tümü
-                  </button>
-                  <button
-                    onClick={() => setStatusFilters([])}
-                    className="px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] text-gray-500 hover:bg-gray-100 rounded"
-                  >
-                    Temizle
-                  </button>
+                  <button onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])} className="px-1.5 py-0.5 text-[10px] text-blue-600 hover:bg-blue-50 rounded">Tümü</button>
+                  <button onClick={() => setStatusFilters([])} className="px-1.5 py-0.5 text-[10px] text-gray-500 hover:bg-gray-100 rounded">Temizle</button>
                 </div>
               </div>
+            </div>
+
+            {/* Mobile Header - Kompakt */}
+            <div className="sm:hidden space-y-2">
+              {/* Satır 1: Başlık + Arama + Sıralama + Sayfa */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">
+                  {filteredAndSortedOrders.length}
+                </span>
+                <div className="relative flex-1">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Ara..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-7 h-7 text-xs"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400">
+                      <XCircle className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger className="h-7 w-9 px-0 justify-center border-slate-200" data-testid="sort-order-mobile">
+                    <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Yeniden Eskiye</SelectItem>
+                    <SelectItem value="oldest">Eskiden Yeniye</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              {/* Satır 2: Durum Filtreleri - yatay scroll */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 -mx-1 px-1">
+                {[
+                  { value: "preparing", label: "Hazır.", color: "bg-yellow-100 text-yellow-700 border-yellow-300", activeColor: "bg-yellow-200 text-yellow-800 border-yellow-400" },
+                  { value: "ready", label: "Hazır", color: "bg-orange-100 text-orange-700 border-orange-300", activeColor: "bg-orange-200 text-orange-800 border-orange-400" },
+                  { value: "assigned", label: "Ata.", color: "bg-purple-100 text-purple-700 border-purple-300", activeColor: "bg-purple-200 text-purple-800 border-purple-400" },
+                  { value: "confirmed", label: "Onay", color: "bg-blue-100 text-blue-700 border-blue-300", activeColor: "bg-blue-200 text-blue-800 border-blue-400" },
+                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-100 text-cyan-700 border-cyan-300", activeColor: "bg-cyan-200 text-cyan-800 border-cyan-400" },
+                ].map((status) => {
+                  const count = orders.filter(o => o.status === status.value).length;
+                  const isActive = statusFilters.includes(status.value);
+                  return (
+                    <button
+                      key={status.value}
+                      onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
+                      className={`px-2 py-1 text-[11px] rounded-full border whitespace-nowrap transition-all flex items-center gap-1 ${isActive ? status.activeColor + " font-semibold shadow-sm" : status.color + " opacity-60"}`}
+                    >
+                      {status.label}
+                      <span className="text-[10px] font-bold">{count}</span>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => statusFilters.length === 5 ? setStatusFilters([]) : setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
+                  className="px-2 py-1 text-[11px] rounded-full border border-slate-200 text-slate-500 whitespace-nowrap hover:bg-slate-100"
+                >
+                  {statusFilters.length === 5 ? "Temizle" : "Tümü"}
+                </button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="px-2 sm:px-6">
             {loading ? (
