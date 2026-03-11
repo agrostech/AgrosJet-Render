@@ -943,7 +943,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
     >
       <div className="p-2.5">
         {/* Satır 1: Durum + Süre + Mesafe + Ödeme */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between pb-2">
           <div className="flex items-center gap-1.5">
             <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0`}>{statusConfig.label}</Badge>
             {getOrderAgeText(order) && (
@@ -962,30 +962,16 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           </div>
         </div>
 
-        {/* Satır 2: Restoran + Butonlar */}
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Store className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-            <span className="text-xs font-semibold text-slate-700 truncate">{order.restaurant_name}</span>
-          </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={callRestaurant} className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" data-testid={`call-restaurant-btn-${order.id}`}>
-              <Phone className="w-3 h-3" />
-            </button>
-            <button onClick={onOpenRestaurantMaps} className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" data-testid={`navigate-restaurant-btn-${order.id}`}>
-              <Navigation className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
+        <div className="border-t border-slate-100" />
 
-        {/* Satır 3: Müşteri + Adres (1 satır) + Butonlar */}
-        <div className="flex items-center justify-between mb-1.5">
+        {/* Satır 2: Müşteri + Butonlar */}
+        <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            <User className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+            <User className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
             <span className="text-xs font-medium text-slate-700 truncate">{order.customer_name}</span>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={onCall} className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" data-testid={`call-customer-btn-${order.id}`}>
+            <button onClick={onCall} className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100" data-testid={`call-customer-btn-${order.id}`}>
               <Phone className="w-3 h-3" />
             </button>
             <button onClick={onOpenMaps} className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100" data-testid={`navigate-customer-btn-${order.id}`}>
@@ -994,21 +980,44 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           </div>
         </div>
 
-        {/* Satır 4: Adres - tek satır */}
-        <div className="flex items-center gap-1 mb-2 text-[11px] text-slate-500">
+        {/* Adres - tek satır */}
+        <div className="flex items-center gap-1 -mt-1 pb-2 text-[11px] text-slate-500">
           <MapPin className="w-3 h-3 flex-shrink-0 text-slate-400" />
           <span className="truncate">{order.delivery_address}</span>
         </div>
 
-        {/* Müşteri notu uyarısı - sadece varsa, kısa */}
-        {customerNotePreview && (
-          <div className="bg-red-50 border border-red-200 rounded px-2 py-1 mb-2 text-[10px] text-red-700 font-medium truncate">
-            ⚠️ {customerNotePreview}
+        <div className="border-t border-slate-100" />
+
+        {/* Satır 3: Restoran + Butonlar */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Store className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+            <span className="text-xs font-semibold text-slate-700 truncate">{order.restaurant_name}</span>
           </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={callRestaurant} className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100" data-testid={`call-restaurant-btn-${order.id}`}>
+              <Phone className="w-3 h-3" />
+            </button>
+            <button onClick={onOpenRestaurantMaps} className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100" data-testid={`navigate-restaurant-btn-${order.id}`}>
+              <Navigation className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* Müşteri notu uyarısı - sadece varsa */}
+        {customerNotePreview && (
+          <>
+            <div className="border-t border-slate-100" />
+            <div className="bg-red-50 border border-red-200 rounded px-2 py-1 mt-2 text-[10px] text-red-700 font-medium truncate">
+              ⚠️ {customerNotePreview}
+            </div>
+          </>
         )}
 
-        {/* Satır 5: Tutar + Detay + Aksiyonlar */}
-        <div className="flex items-center gap-2">
+        <div className="border-t border-slate-100 mt-2" />
+
+        {/* Satır 4: Tutar + Detay + Aksiyonlar */}
+        <div className="flex items-center gap-2 pt-2">
           <span className="text-xs font-bold text-slate-800 whitespace-nowrap">{formatCurrency(order.total_amount)}</span>
           
           <button
