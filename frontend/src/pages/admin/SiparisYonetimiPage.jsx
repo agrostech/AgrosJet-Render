@@ -1032,31 +1032,29 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </div>
             </div>
 
-            {/* Mobile Header - Kompakt */}
-            <div className="sm:hidden space-y-2">
-              {/* Satır 1: Başlık + Arama + Sıralama + Sayfa */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">
-                  {filteredAndSortedOrders.length}
-                </span>
+            {/* Mobile Header - Dark Command Center */}
+            <div className="sm:hidden -mx-3 -mt-6 mb-3 px-3 py-3 bg-slate-800 rounded-t-lg space-y-3">
+              {/* Satır 1: Arama + Sıralama */}
+              <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <Input
                     type="text"
-                    placeholder="Ara..."
+                    placeholder="Sipariş ara..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-7 h-7 text-xs"
+                    className="pl-9 h-10 bg-slate-900/60 border-slate-700 text-slate-100 placeholder:text-slate-500 focus-visible:ring-slate-500 focus-visible:ring-offset-0 rounded-xl text-sm"
+                    data-testid="order-search-input"
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400">
-                      <XCircle className="w-3.5 h-3.5" />
+                    <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                      <XCircle className="w-4 h-4" />
                     </button>
                   )}
                 </div>
                 <Select value={sortOrder} onValueChange={setSortOrder}>
-                  <SelectTrigger className="h-7 w-9 px-0 justify-center border-slate-200" data-testid="sort-order-mobile">
-                    <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+                  <SelectTrigger className="h-10 w-10 px-0 justify-center rounded-xl bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" data-testid="order-sort-btn">
+                    <ArrowUpDown className="w-4 h-4" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">Yeniden Eskiye</SelectItem>
@@ -1065,34 +1063,50 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 </Select>
               </div>
 
-              {/* Satır 2: Durum Filtreleri - yatay scroll */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 -mx-1 px-1">
-                {[
-                  { value: "preparing", label: "Hazır.", color: "bg-yellow-100 text-yellow-700 border-yellow-300", activeColor: "bg-yellow-200 text-yellow-800 border-yellow-400" },
-                  { value: "ready", label: "Hazır", color: "bg-orange-100 text-orange-700 border-orange-300", activeColor: "bg-orange-200 text-orange-800 border-orange-400" },
-                  { value: "assigned", label: "Ata.", color: "bg-purple-100 text-purple-700 border-purple-300", activeColor: "bg-purple-200 text-purple-800 border-purple-400" },
-                  { value: "confirmed", label: "Onay", color: "bg-blue-100 text-blue-700 border-blue-300", activeColor: "bg-blue-200 text-blue-800 border-blue-400" },
-                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-100 text-cyan-700 border-cyan-300", activeColor: "bg-cyan-200 text-cyan-800 border-cyan-400" },
-                ].map((status) => {
-                  const count = orders.filter(o => o.status === status.value).length;
-                  const isActive = statusFilters.includes(status.value);
+              {/* Satır 2: Filtre Pilleri - yatay scroll */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {(() => {
+                  const allActive = statusFilters.length === 5;
                   return (
                     <button
-                      key={status.value}
-                      onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
-                      className={`px-2 py-1 text-[11px] rounded-full border whitespace-nowrap transition-all flex items-center gap-1 ${isActive ? status.activeColor + " font-semibold shadow-sm" : status.color + " opacity-60"}`}
+                      onClick={() => allActive ? setStatusFilters([]) : setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-all duration-200 active:scale-95 ${
+                        allActive
+                          ? "bg-white text-slate-900 border-white shadow-md"
+                          : "bg-slate-700/50 text-slate-300 border-slate-600 hover:bg-slate-700"
+                      }`}
+                      data-testid="filter-pill-all"
                     >
-                      {status.label}
-                      <span className="text-[10px] font-bold">{count}</span>
+                      Tümü
+                      <span className="text-[10px] font-bold opacity-80">{orders.length}</span>
+                    </button>
+                  );
+                })()}
+                {[
+                  { value: "preparing", label: "Hazır.", activeBg: "bg-yellow-500", activeText: "text-yellow-950", bg: "bg-yellow-500/10", text: "text-yellow-400", border: "border-yellow-500/20" },
+                  { value: "ready", label: "Hazır", activeBg: "bg-orange-500", activeText: "text-white", bg: "bg-orange-500/10", text: "text-orange-400", border: "border-orange-500/20" },
+                  { value: "assigned", label: "Atandı", activeBg: "bg-purple-500", activeText: "text-white", bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20" },
+                  { value: "confirmed", label: "Onay", activeBg: "bg-blue-500", activeText: "text-white", bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
+                  { value: "on_the_way", label: "Yolda", activeBg: "bg-cyan-500", activeText: "text-cyan-950", bg: "bg-cyan-500/10", text: "text-cyan-400", border: "border-cyan-500/20" },
+                ].map((s) => {
+                  const count = orders.filter(o => o.status === s.value).length;
+                  const isActive = statusFilters.includes(s.value);
+                  return (
+                    <button
+                      key={s.value}
+                      onClick={() => setStatusFilters(prev => prev.includes(s.value) ? prev.filter(x => x !== s.value) : [...prev, s.value])}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-all duration-200 active:scale-95 ${
+                        isActive
+                          ? `${s.activeBg} ${s.activeText} border-transparent shadow-md`
+                          : `${s.bg} ${s.text} ${s.border} hover:opacity-100 opacity-70`
+                      }`}
+                      data-testid={`filter-pill-${s.value}`}
+                    >
+                      {s.label}
+                      <span className="text-[10px] font-bold opacity-80">{count}</span>
                     </button>
                   );
                 })}
-                <button
-                  onClick={() => statusFilters.length === 5 ? setStatusFilters([]) : setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
-                  className="px-2 py-1 text-[11px] rounded-full border border-slate-200 text-slate-500 whitespace-nowrap hover:bg-slate-100"
-                >
-                  {statusFilters.length === 5 ? "Temizle" : "Tümü"}
-                </button>
               </div>
             </div>
           </CardHeader>
