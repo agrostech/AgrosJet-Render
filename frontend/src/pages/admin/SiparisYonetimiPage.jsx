@@ -759,7 +759,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             <button
               onClick={() => setMainTab("active")}
               className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                mainTab === "active" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+                mainTab === "active" ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900" : "bg-background hover:bg-muted"
               }`}
             >
               <ListChecks className="w-3.5 h-3.5" />
@@ -767,8 +767,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             </button>
             <button
               onClick={() => setMainTab("delivered")}
-              className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center justify-center gap-1.5 ${
-                mainTab === "delivered" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+              className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l border-border flex items-center justify-center gap-1.5 ${
+                mainTab === "delivered" ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900" : "bg-background hover:bg-muted"
               }`}
             >
               <CheckCircle className="w-3.5 h-3.5" />
@@ -776,8 +776,8 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             </button>
             <button
               onClick={() => setMainTab("cancelled")}
-              className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l flex items-center justify-center gap-1.5 ${
-                mainTab === "cancelled" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+              className={`flex-1 min-w-[100px] px-4 py-1.5 text-sm font-medium transition-colors border-l border-border flex items-center justify-center gap-1.5 ${
+                mainTab === "cancelled" ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900" : "bg-background hover:bg-muted"
               }`}
             >
               <ClipboardX className="w-3.5 h-3.5" />
@@ -968,7 +968,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     <button
                       key={status.value}
                       onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
-                      className={`px-2.5 py-1 text-xs rounded-md transition-all flex items-center gap-1 ${isActive ? "bg-primary text-primary-foreground font-medium shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
+                      className={`px-2.5 py-1 text-xs rounded-md transition-all flex items-center gap-1 ${isActive ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-medium shadow-sm" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"}`}
                     >
                       {status.label}
                       <span className="text-[10px] font-bold opacity-70">({count})</span>
