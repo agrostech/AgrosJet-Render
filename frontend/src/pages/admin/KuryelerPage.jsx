@@ -423,7 +423,7 @@ export default function KuryelerPage({ companyId }) {
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
               activeTab === "active" 
                 ? "bg-primary text-white" 
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-secondary dark:text-slate-300 dark:hover:bg-slate-700"
             }`}
           >
             <UserCheck className="w-4 h-4" />
@@ -434,7 +434,7 @@ export default function KuryelerPage({ companyId }) {
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
               activeTab === "inactive" 
                 ? "bg-slate-700 text-white" 
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-secondary dark:text-slate-300 dark:hover:bg-slate-700"
             }`}
           >
             <UserX className="w-4 h-4" />
@@ -443,7 +443,7 @@ export default function KuryelerPage({ companyId }) {
         </div>
         
         {/* View Mode Toggle */}
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+        <div className="flex gap-1 bg-slate-100 dark:bg-secondary p-1 rounded-lg">
           <button
             onClick={() => setViewMode("list")}
             className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${

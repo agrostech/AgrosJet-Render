@@ -1,58 +1,87 @@
 <analysis>**original_problem_statement:**
 The initial problem was to fix a logic error in the courier ETA calculation. The scope quickly expanded to include several significant UI/UX improvements and bug fixes requested by the user.
 
-**PRODUCT REQUIREMENTS:**
-1.  **Fix ETA Calculation:** Implement a Collect-Then-Distribute logic where all pending pickups are prioritized over all pending deliveries to provide accurate ETAs for restaurants.
-2.  **Redesign Order Management View:** The existing table view for orders requires horizontal scrolling on smaller screens. Redesign it to be more compact and usable. This was later clarified to be a responsive design: the new card layout should only apply to mobile screens, while the original table view should be preserved for desktops.
-3.  **Update Header UI:** Enlarge the company logo in the administration panel's header and display the company name next to it.
-4.  **Improve Mobile Order Tabs:** Redesign the tabs (Aktif, Teslim, İptal) and stats section on the order management page for a better, more aligned mobile experience.
-5.  **Fix Native Location Tracking:** Modify the webview's logic. The native location service should only start *after* the webview sends a  message upon loading, not automatically.
-6.  **Fix Missing Battery Info:** The courier's battery level was not showing up in the correct modal within the order management panel. This needed to be fixed.
-7.  **Add Polling to Courier Modal:** Implement a polling mechanism to automatically refresh the courier's data (location, battery) when their detail modal is open.
-8.  **Debug Push Notifications:** Investigate and resolve why push notifications are not being delivered to couriers. This involved diagnosing stale FCM tokens, updating backend endpoints to match the native app's payload, improving the webview's token listener, and updating the Firebase notification channel ID.
+In this session, the user's requests included:
+1.  **UI/UX Redesign:**
+    *   Completely redesign the courier panel's order card to be more compact and move details into a modal.
+    *   Iteratively refine the new courier order card design (reordering elements, adjusting spacing, adding icons).
+    *   Redesign the admin panel's mobile order filter header for a more modern and compact look.
+    *   Fix layout issues on the admin panel's mobile order card view.
+2.  **New Feature: Courier Permissions:**
+    *   Implement a new permission system for couriers, starting with the ability to mark an order as not ready.
+    *   Create a Permissions modal in the admin panel's couriers section to manage these settings.
+    *   Integrate this new permission into the main Settings Matrix for bulk editing.
+    *   Enforce the permission on the backend and conditionally hide the Not Ready button in the courier's UI.
+3.  **New Feature: Dark Mode:**
+    *   Implement a site-wide, persistent dark mode for both the admin and courier panels.
+    *   Add a toggle switch to the sidebars for both desktop and mobile views.
+    *   Ensure all components, including cards, buttons, badges, forms, and live maps, are correctly styled for dark mode.
+4.  **Backend Logic:**
+    *   Prevent couriers from setting their status to Offline or On Break if they have active orders, with an exception if their work shift has ended.
+5.  **Maintenance:**
+    *   Update the Firebase Cloud Messaging (FCM) notification channel ID multiple times as requested (, ).
+    *   Remove legacy statistics displays from the admin panel desktop view.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-The application's backend now has a corrected ETA calculation algorithm that accurately prioritizes pickups over deliveries. The frontend has seen significant UI/UX improvements: the main order management page is now responsive, showing a compact card view on mobile and the classic table view on desktop. The header logo and mobile tab layout have been improved per the user's request.
-
-Crucially, the integration with the native mobile app has been hardened. The webview now correctly signals the native app to start location tracking and reliably listens for and registers FCM push notification tokens. The backend has been updated to handle the native app's specific payload for FCM tokens. The courier detail modal now correctly displays battery information and polls for live updates every 10 seconds.
+A comprehensive dark mode has been implemented across the entire application (admin and courier panels), controlled by a toggle in the sidebars. The courier panel's order cards have been completely redesigned to be more compact, with many iterative UI improvements. A new courier permission system is in place, starting with the can mark order as not ready permission, which is manageable from both a dedicated modal and the main settings matrix in the admin panel. The backend now includes logic to prevent couriers with active packages from going offline unless their shift is over. The FCM notification channel has been updated to .
 
 **Last working item**:
--   Last item agent was working: The agent was analyzing a user query about the native application sending a location notification on every page change. The agent correctly concluded that this is a native-side issue and cannot be resolved from the web application. The last code change was updating the FCM notification channel to .
--   Status: **NONE** (The last item was an analysis. The preceding task is completed).
--   Agent Testing Done: Y (The channel ID change was a simple string replacement).
--   Which testing method agent to use? NA
+-   Last item agent was working: Fixing dark mode UI bugs on the courier and manager cards in the admin panel (). The user reported that when hovering over a card, the name becomes unreadable, and the order count badges are not displaying correctly.
+-   Status: **IN PROGRESS**
+-   Agent Testing Done: N
+-   Which testing method agent to use? screenshot tool
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Verify Push Notification System (P0)**
-    -   Description: The entire push notification flow was debugged, involving fixes on the frontend (token listener) and backend (payload format, channel ID). The user needs to test with the native app to confirm if notifications are now being received correctly.
+-   **Issue 1: Dark Mode UI Fixes on Courier/Manager Cards (P0)**
+    -   Description: On the  page, the hover state on courier cards in dark mode makes text unreadable, and associated badges are not styled correctly.
+    -   Attempted fixes: None yet. The agent was investigating the relevant files.
+    -   Next debug checklist:
+        -   Inspect .
+        -   Adjust the  and  classes on the card element to ensure proper contrast.
+        -   Fix the background and text color classes for the badge component within the card for dark mode.
+    -   Why fix this issue and what will be achieved with the fix?: This is a core usability bug in the new dark mode, preventing admins from viewing information correctly.
+    -   Status: IN PROGRESS
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix?: frontend
+    -   Blocked on other issue: None
+
+-   **Issue 2: Verify Push Notification System (P0)**
+    -   Description: The entire push notification flow was debugged, and the channel was updated multiple times, finally to . The user needs to test this with the native app to confirm if notifications are now being received correctly.
     -   Status: **USER VERIFICATION PENDING**
 
--   **Issue 2: Verify Migros Webhook Parsing Fix (P1)**
+-   **Issue 3: Verify Migros Webhook Parsing Fix (P1)**
     -   Description: A fix for parsing nested options in Migros orders has been implemented but awaits a live test order from the user.
     -   Status: **USER VERIFICATION PENDING**
     -   Is recurring issue? Y
 
--   **Issue 3: Migros Webhooks Fail in Production (P2)**
+-   **Issue 4: Migros Webhooks Fail in Production (P2)**
     -   Description: A critical configuration error where Migros sends webhooks to an incorrect URL.
     -   Status: **BLOCKED** (Requires user to contact Migros and update the webhook URL).
 
--   **Issue 4: Adisyo Webhook Fails to Find Restaurant (P2)**
+-   **Issue 5: Adisyo Webhook Fails to Find Restaurant (P2)**
     -   Description: Recurring integration failure where Adisyo webhooks fail with .
     -   Status: **NOT STARTED**
     -   Is recurring issue? Y
 
 **In progress Task List**:
--   None.
+-   **Task 1: Complete Dark Mode Polish (P0)**
+    -   Description: The agent is actively fixing several UI glitches in the new dark mode implementation based on user feedback. The last identified issue is with the courier cards.
+    -   Where to resume: .
+    -   What will be achieved with this?: A polished and visually consistent dark mode across the entire application, resolving all known UI bugs.
+    -   Status: IN PROGRESS
+    -   Should Test frontend/backend/both after fix?: frontend
+    -   Blocked on something: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
     -   **(P1)** Implement Stop Count Based Capacity Logic.
     -   **(P2)** Investigate Caller ID integration.
+    -   **(P2)** Add more permissions to the courier permission system (e.g., Can see customer phone number?).
 -   **Future Tasks (Backlog):**
-    -   **(P0) Restaurant Courier System:** A large, designed feature allowing restaurants in manual mode to manage their own private couriers. This was explicitly postponed by the user.
+    -   **(P0) Restaurant Courier System:** A large, designed feature allowing restaurants in manual mode to manage their own private couriers.
     -   **(P1)** Implement  calculation on order creation.
     -   **(P1)** Refactor  and  scheduled jobs.
     -   **(P2)** Investigate and potentially remove the  function.
@@ -60,27 +89,16 @@ Crucially, the integration with the native mobile app has been hardened. The web
     -   **(P2)** Develop a Native Courier App.
 
 **Completed work in this session**
--   **ETA Calculation Logic Fix:** Implemented Collect-Then-Distribute logic in  and verified with  tests.
--   **Responsive Order Management UI:** Refactored  to show a new card-based grid on mobile () and the original table on desktop ().
--   **Header & Mobile UI Enhancements:**
-    -   Increased logo size and added the company name in  and .
-    -   Redesigned the mobile layout for tabs and stats in  for better usability.
--   **Native Integration Fixes:**
-    -   **Location Tracking:** Updated  to send the courier's status to the native app on initial load, triggering location tracking correctly.
-    -   **Push Notifications:**
-        -   Updated  to accept the native app's  payload format.
-        -   Updated  to use the  notification channel.
-        -   Enhanced  to listen for FCM tokens sent via .
--   **Courier Battery Display & Polling:**
-    -   Added battery level display to the correct modal: .
-    -   Removed the battery display from the incorrect modal: .
-    -   Implemented a 10-second polling interval within  to fetch fresh courier data.
+-   **New Feature: Comprehensive Dark Mode:** Implemented a site-wide dark mode with a , global CSS variables, and a toggle switch in both admin and courier sidebars. This included making all components, pages, and live maps dark-theme compatible.
+-   **New Feature: Courier Permission System:** Created a backend and frontend system to manage courier permissions, starting with . This includes a new modal and integration with the settings matrix.
+-   **Courier Panel Order Card Redesign:** Completely overhauled  for a much more compact and usable design, based on extensive iterative feedback.
+-   **Backend Logic: Courier Status Control:** Updated  to prevent couriers with active orders from going offline, with an exception for when their shift has ended.
+-   **UI/UX Improvements:** Redesigned the admin panel's mobile filter header, fixed mobile layout spacing, and removed legacy statistic displays from the desktop dashboard.
+-   **Maintenance:** Updated Firebase notification channel ID to  in .
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: Native App Sends Location Notification on Every Page Change**
-    -   Description: The user reported that the native app shows a persistent location tracking active notification every time the user navigates within the webview.
-    -   Why it wasn't fixed: The agent correctly analyzed this as a purely native-side issue. The native code is likely re-initializing the foreground service on every page navigation instead of checking if it's already running. This cannot be fixed from the web/backend side.
-    -   Next debug checklist: The native app developer needs to add a check to see if the location service is already running before attempting to start it again.
+    -   Why it wasn't fixed: This is a purely native-side issue. The web application cannot control how the native wrapper handles foreground services. The native app developer needs to add a check to see if the location service is already running.
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -89,64 +107,66 @@ Crucially, the integration with the native mobile app has been hardened. The web
 
 
 **Key Technical Concepts**
--   **Complex Routing Algorithms:** Implemented a multi-stop ETA calculation prioritizing pickups over deliveries.
--   **Responsive UI with Tailwind CSS:** Used responsive prefixes (, ) to create different layouts for mobile and desktop screens.
--   **Debugging Web-to-Native Communication:** Utilized  and custom events to facilitate communication between the webview and the native app wrapper.
--   **Live Data Polling in React:** Used  with  and  to create a polling mechanism that is active only when a component is mounted.
--   **End-to-End Push Notification Debugging:** Traced an issue from the user report (no notifications) down to stale FCM tokens, incorrect backend payloads, and wrong channel IDs, fixing issues at each layer.
+-   **Comprehensive Theming (Dark Mode):** Used React Context (), CSS variables, and Tailwind's  variant () to implement a site-wide, persistent dark mode.
+-   **Dynamic Map Theming:** Utilized the  hook to dynamically change the Leaflet map tile URL based on the selected theme, providing a seamless user experience.
+-   **Feature Flag / Permission System:** Implemented a basic permission system by adding a  JSON field to the  model and checking flags in both the backend (for enforcement) and frontend (for UI rendering).
+-   **Iterative UI Refinement:** Engaged in a tight, rapid feedback loop with the user to incrementally build and refine complex UI components, demonstrating high responsiveness to design changes.
 
 **key DB schema**
--   **couriers**: The schema now accommodates a more detailed  object, which can include .
+-   **couriers**: A new JSON field  has been added. Example: .
 
 **All files of reference**
--   **/app/backend/routers/orders.py**: Contains the finalized ETA calculation logic.
--   **/app/frontend/src/pages/admin/SiparisYonetimiPage.jsx**: Contains the responsive order list (cards/table) and mobile header redesign.
--   **/app/frontend/src/pages/courier/CourierDashboard.jsx**: Key file for web-to-native communication logic (location and FCM).
--   **/app/frontend/src/components/siparis/CourierDetailModal.jsx**: The modal that now correctly displays battery info and polls for updates.
--   **/app/backend/routers/couriers.py**: Contains the endpoint for receiving the FCM token from the native app.
--   **/app/backend/services/push_notification_service.py**: Contains the Firebase push notification logic, now using the  channel.
+-   : **Currently being fixed.** This file has the dark mode hover/badge bugs.
+-   : The parent page for the component being fixed.
+-   : The core of the dark mode functionality.
+-   : Contains the global CSS variables and overrides for the dark theme.
+-   : Contains the heavily redesigned courier order card.
+-   : Contains the new permission endpoints and courier status logic.
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   The highest priority is verifying with the user if the extensive push notification fixes have resolved the issue. Ask the user to test this on the native app.
--   Be aware of the native-side issue where a location notification appears on every page change. This is not a bug you can fix. You can remind the user that this requires a change in the native application code.
--   The UI work in this session involved making responsive layouts. When the user requests a UI change, clarify if it should apply to mobile, desktop, or both.
+-   Your immediate priority is to fix the remaining dark mode UI bugs on the courier management page (). Specifically, the hover state on courier cards makes text unreadable, and badges are not styled correctly.
+-   The dark mode implementation is extensive and relies on a , global CSS in , and Tailwind's  prefixes. When debugging UI, be mindful of these interconnected layers.
+-   The user is highly detail-oriented regarding UI. Use screenshots frequently to confirm changes and get feedback.
+-   After resolving the current UI tasks, remember to ask the user to verify the push notification system and the Migros webhook parsing fix.
 
 **documents and test reports created in this job**
--   /app/memory/PRD.md (updated)
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User:** Requests to change the push notification channel to . **Status: Completed.**
-9.  **User:** Requests to change the push notification channel to . **Status: Completed.**
-8.  **User:** Requests to change the push notification channel to . **Status: Completed.**
-7.  **User:** Asks if a bug (location notification on every page change) can be fixed from the web side. **Status: Completed (Agent analyzed and explained it's a native issue).**
-6.  **User:** Reports that push notifications are not working. **Status: Completed (Agent began a deep-dive investigation).**
-5.  **User:** Provides details on how the native app sends the FCM token via . **Status: Completed (Agent implemented a listener for this).**
-4.  **User:** Confirms the backend analysis is correct and asks what to do next. **Status: Completed (Agent stated the issue is with stale tokens on the native side).**
-3.  **User:** Asks for confirmation on the push notification analysis. **Status: Completed (Agent confirmed the issue is stale FCM tokens).**
-2.  **User:** Provides the exact payload the native app now sends for the FCM token. **Status: Completed (Agent updated the backend to accept this new format).**
-1.  **User:** Provides the latest details on how the native app sends the FCM token and asks the web to listen for it. **Status: Completed (Agent updated the frontend listener).**
+10. **User:** Reports that on the Couriers/Managers card view, the hover state makes the name unreadable and badges look wrong in dark mode. **Status: In Progress.**
+9.  **User:** Reports that the selected Aktif/Teslim/İptal tab is too glaring in dark mode. **Status: Completed.**
+8.  **User:** Reports that the filter buttons (Hazırlanıyor, Hazır, etc.) are too glaring in dark mode. **Status: Completed.**
+7.  **User:** Reports multiple dark mode issues: filter buttons are invisible, map zoom buttons are white, and active tab text is unreadable. **Status: Completed.**
+6.  **User:** Clarifies which statistics to remove, reports the map is too dark, and notes that courier panel tabs have no background in dark mode. **Status: Completed.**
+5.  **User:** States that the initial dark mode is insufficient, citing issues with badges, sidebar color, and mobile implementation. **Status: Completed (prompted a major revision).**
+4.  **User:** Asks to start implementing dark mode via a toggle in the sidebar. **Status: Completed.**
+3.  **User:** Dislikes the initial redesign of the mobile admin filter header and asks for a better version. **Status: Completed.**
+2.  **User:** Reports that mobile order cards in the admin panel have incorrect spacing. **Status: Completed.**
+1.  **User:** Requests a check to prevent couriers with active packages from going offline. **Status: Completed.**
 
 **Project Health Check:**
 -   **Broken:**
-    -   **Adisyo Integration:** Fails with .
-    -   **Migros Integration (Configuration):** Functionally broken in production due to an incorrect webhook URL.
-    -   **Native Location Notification:** A notification is shown on every page change (Native-side issue).
+    -   Adisyo Integration ().
+    -   Migros Integration (Incorrect production webhook URL).
+    -   Native Location Notification (Native-side issue, not fixable from web app).
+-   **Mocked:** None
+-   **In Progress:**
+    -   Dark Mode UI Polishing.
 -   **User Verification Pending:**
-    -   **Push Notification System:** Awaiting user confirmation after extensive debugging.
-    -   **Migros Webhook Parsing:** Awaiting a test order from the user.
+    -   Push Notification System ( channel).
+    -   Migros Webhook Parsing Fix.
 
 **3rd Party Integrations**
 -   Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
--   Railway (Hosting)
--   Google Places API, Google Geocoding API
 -   Firebase Cloud Messaging (FCM)
+-   Leaflet with CartoDB/Stadia Maps for map tiles (now with dark mode variants).
 
 **Testing status**
 -   Testing agent used after significant changes: NO
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None.
+-   Known regressions: None
 
 **Credentials to test flow:**
 -   **System Admin Panel:**
@@ -160,4 +180,5 @@ Crucially, the integration with the native mobile app has been hardened. The web
     -   Password: 
 
 **What agent forgot to execute**
-The agent initially misunderstood a UI requirement, applying a mobile-only design to all screen sizes. However, this was immediately caught by the user and corrected in the next step. No outstanding tasks were forgotten.</analysis>
+-   The agent has not updated  with the major features completed in this session (Dark Mode, Permissions System).
+-   The agent initially misunderstood which statistics block the user wanted to be removed from the admin dashboard, but this was corrected.</analysis>

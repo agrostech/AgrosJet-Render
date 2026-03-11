@@ -28,7 +28,7 @@ export function CourierCards({
 
   if (couriers.length === 0) {
     return (
-      <div className="md:hidden border-2 border-border p-6 bg-white text-center text-muted-foreground">
+      <div className="md:hidden border-2 border-border p-6 bg-white dark:bg-card text-center text-muted-foreground">
         {emptyMessage}
       </div>
     );
@@ -39,7 +39,7 @@ export function CourierCards({
       {couriers.map((c) => (
         <div 
           key={c.id} 
-          className={`border-2 border-border p-4 bg-white ${c.termination_start_date ? 'border-orange-300 bg-orange-50' : ''} ${c.is_ghost ? 'border-purple-300 bg-purple-50/50' : ''}`}
+          className={`border-2 border-border p-4 bg-white dark:bg-card ${c.termination_start_date ? 'border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-950/30' : ''} ${c.is_ghost ? 'border-purple-300 bg-purple-50/50 dark:border-purple-700 dark:bg-purple-950/30' : ''}`}
         >
           <div className="flex justify-between items-start mb-3">
             <div>
