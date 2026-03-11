@@ -1,139 +1,143 @@
 {
-  "design_system": {
-    "identity": {
-      "name": "KuryeFlow Swiss",
-      "archetype": "Swiss & High-Contrast",
-      "tone": "Industrial, Precise, Authoritative, Text-First",
-      "principles": [
-        "Content is King: Data over decoration.",
-        "Grid is God: Strict alignment, no floating elements.",
-        "Type is Voice: Bold headings, monospace data.",
-        "No Noise: No gradients, no shadows, no emojis."
-      ]
+  "project_name": "Mobile Order Management Header",
+  "version": "1.0",
+  "design_philosophy": {
+    "identity": "E1 - The Anti-AI Designer",
+    "core_principles": [
+      "Fusion over Imitation: Mix admin utility with consumer app fluidity",
+      "Emotion First: The header should feel like a 'Command Center' - dark, sleek, precise",
+      "Content is King: Filters are the primary navigation",
+      "Negative Space: Even in a dense header, use padding to prevent clutter",
+      "Contrast: High contrast for active states against the dark navy background"
+    ]
+  },
+  "color_palette": {
+    "backgrounds": {
+      "header_bg": "bg-[#1e293b]",
+      "page_bg": "bg-slate-50/50",
+      "card_bg": "bg-white"
     },
-    "typography": {
-      "font_family": {
-        "headings": "Oswald, sans-serif",
-        "body": "Inter, sans-serif",
-        "data": "JetBrains Mono, monospace"
-      },
-      "scale": {
-        "h1": "text-4xl md:text-5xl font-bold tracking-tight uppercase",
-        "h2": "text-2xl md:text-3xl font-semibold tracking-tight uppercase",
-        "h3": "text-xl font-medium uppercase tracking-wide",
-        "body": "text-sm md:text-base leading-relaxed",
-        "caption": "text-xs font-mono text-muted-foreground uppercase tracking-widest"
-      },
-      "imports": [
-        "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;700&display=swap"
-      ]
+    "text": {
+      "primary": "text-slate-50",
+      "secondary": "text-slate-400",
+      "inverse": "text-slate-900"
     },
-    "colors": {
-      "palette": {
-        "primary": "#0F172A",
-        "secondary": "#F1F5F9",
-        "accent": "#F97316",
-        "background": "#FFFFFF",
-        "surface": "#F8FAFC",
-        "border": "#E2E8F0",
-        "text_primary": "#020617",
-        "text_secondary": "#64748B",
-        "success": "#16A34A",
-        "error": "#DC2626",
-        "warning": "#D97706"
+    "status_colors": {
+      "hazirlaniyor": {
+        "bg": "bg-yellow-500/10",
+        "text": "text-yellow-400",
+        "border": "border-yellow-500/20",
+        "active_bg": "bg-yellow-500",
+        "active_text": "text-yellow-950"
       },
-      "usage": {
-        "primary_action": "bg-primary text-white hover:bg-primary/90 rounded-none",
-        "secondary_action": "bg-white border border-input hover:bg-accent hover:text-white rounded-none transition-colors",
-        "destructive": "bg-error text-white hover:bg-error/90 rounded-none",
-        "dashboard_bg": "bg-surface"
+      "hazir": {
+        "bg": "bg-orange-500/10",
+        "text": "text-orange-400",
+        "border": "border-orange-500/20",
+        "active_bg": "bg-orange-500",
+        "active_text": "text-white"
+      },
+      "atandi": {
+        "bg": "bg-purple-500/10",
+        "text": "text-purple-400",
+        "border": "border-purple-500/20",
+        "active_bg": "bg-purple-500",
+        "active_text": "text-white"
+      },
+      "onaylandi": {
+        "bg": "bg-blue-500/10",
+        "text": "text-blue-400",
+        "border": "border-blue-500/20",
+        "active_bg": "bg-blue-500",
+        "active_text": "text-white"
+      },
+      "yolda": {
+        "bg": "bg-cyan-500/10",
+        "text": "text-cyan-400",
+        "border": "border-cyan-500/20",
+        "active_bg": "bg-cyan-500",
+        "active_text": "text-cyan-950"
+      },
+      "tumu": {
+        "bg": "bg-slate-700",
+        "text": "text-slate-300",
+        "border": "border-slate-600",
+        "active_bg": "bg-white",
+        "active_text": "text-slate-900"
       }
-    },
-    "layout": {
-      "spacing": {
-        "container_padding": "p-4 md:p-8 lg:p-12",
-        "section_gap": "gap-8",
-        "item_gap": "gap-4"
-      },
-      "grid_system": {
-        "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6",
-        "card_metric": "col-span-1 md:col-span-4 lg:col-span-3",
-        "card_main": "col-span-1 md:col-span-8 lg:col-span-9",
-        "card_full": "col-span-full"
-      },
-      "radius": {
-        "default": "rounded-none",
-        "input": "rounded-none",
-        "button": "rounded-none",
-        "card": "rounded-none"
-      }
-    },
-    "components": {
-      "buttons": {
-        "style": "uppercase font-bold tracking-wider text-xs h-10 px-6 rounded-none",
-        "variants": {
-          "default": "bg-primary text-white hover:bg-slate-800",
-          "outline": "border-2 border-primary text-primary hover:bg-primary hover:text-white"
-        }
-      },
-      "cards": {
-        "style": "bg-white border border-border shadow-none rounded-none p-6"
-      },
-      "inputs": {
-        "style": "rounded-none border-2 border-input focus:border-primary focus:ring-0 bg-transparent h-12"
-      },
-      "tables": {
-        "style": "w-full text-sm text-left",
-        "header": "uppercase tracking-wider font-bold text-xs text-muted-foreground border-b-2 border-primary",
-        "row": "border-b border-border hover:bg-slate-50"
-      }
-    },
-    "assets": {
-      "images": {
-        "login_bg": "https://images.unsplash.com/photo-1586626277605-7720525d251a?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "logo_placeholder": "https://via.placeholder.com/150x50?text=KURYE+FLOW"
-      },
-      "icons": {
-        "library": "lucide-react",
-        "style": "stroke-[1.5px] w-5 h-5"
-      }
-    },
-    "accessibility": {
-      "contrast": "WCAG AA Compliant",
-      "focus_states": "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
-      "aria": "All interactive elements must have aria-labels if text is not descriptive."
-    },
-    "motion": {
-      "reduced_motion": "respect-media-query",
-      "hover": "transition-all duration-200 ease-out",
-      "page_transition": "animate-in fade-in slide-in-from-bottom-4 duration-500"
     }
   },
-  "instructions_to_main_agent": {
-    "general": [
-      "STRICTLY NO EMOJIS. Use text labels or Lucide icons.",
-      "Use 'Oswald' for all headings (h1-h3). Use 'Inter' for body text.",
-      "Use 'JetBrains Mono' for any ID, Phone Number, or Currency data.",
-      "All borders and corners must be SHARP (rounded-none). This is an industrial design.",
-      "Mobile First: Ensure all grids collapse to 1 column on mobile.",
-      "Language: Turkish (TR) only.",
-      "Login Page: Split screen. Left 50% form, Right 50% image (hidden on mobile)."
-    ],
-    "pages": {
-      "login": {
-        "layout": "Split Screen",
-        "elements": ["Phone Input (Courier)", "Username/Pass (Admin)", "Toggle Tabs"]
-      },
-      "dashboard": {
-        "layout": "Sidebar Layout (Desktop) / Bottom Nav or Hamburger (Mobile)",
-        "content": "Bento Grid of Metrics + Data Tables"
-      }
+  "typography": {
+    "font_family": "Inter, sans-serif",
+    "sizes": {
+      "filter_text": "text-xs font-medium",
+      "input_text": "text-sm",
+      "count_text": "text-[10px] font-bold"
+    }
+  },
+  "layout_structure": {
+    "header_container": {
+      "classes": "sticky top-0 z-50 w-full flex flex-col gap-3 p-4 bg-[#1e293b] shadow-lg border-b border-slate-700/50 backdrop-blur-md supports-[backdrop-filter]:bg-[#1e293b]/90",
+      "description": "Sticky container with blur effect for depth. Two main rows: Search/Actions and Filter Scroll."
     },
-    "universal_guidelines": [
-      "Do not use gradients.",
-      "Do not use shadows (use borders instead).",
-      "Always add data-testid to interactive elements.",
-      "Use 'sonner' for notifications."
+    "row_1_search_actions": {
+      "classes": "flex items-center gap-3 w-full",
+      "components": [
+        {
+          "name": "SearchInput",
+          "type": "Input",
+          "classes": "h-10 bg-slate-900/50 border-slate-700 text-slate-100 placeholder:text-slate-500 focus-visible:ring-slate-500 focus-visible:ring-offset-0 rounded-xl transition-all duration-200"
+        },
+        {
+          "name": "SortButton",
+          "type": "Button (Icon)",
+          "classes": "h-10 w-10 shrink-0 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 transition-colors"
+        }
+      ]
+    },
+    "row_2_filters": {
+      "classes": "w-full -mx-4 px-4 overflow-x-auto scrollbar-hide flex items-center gap-2 pb-1",
+      "interaction": "Horizontal scroll with momentum (use 'no-scrollbar' utility)",
+      "component_style": "Pill / Badge",
+      "items": [
+        { "label": "Tümü", "id": "all" },
+        { "label": "Onaylandı", "id": "approved", "color": "blue" },
+        { "label": "Hazırlanıyor", "id": "preparing", "color": "yellow" },
+        { "label": "Hazır", "id": "ready", "color": "orange" },
+        { "label": "Atandı", "id": "assigned", "color": "purple" },
+        { "label": "Yolda", "id": "on_way", "color": "cyan" }
+      ]
+    }
+  },
+  "components": [
+    {
+      "name": "FilterPill",
+      "props": ["label", "count", "isActive", "color"],
+      "style_logic": "Dynamic class assignment based on 'color' and 'isActive' props using the status_colors palette. Must include smooth transition for background and text color.",
+      "structure": "<button className='flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ...'><span>{label}</span><span className='opacity-80 text-[10px]'>({count})</span></button>"
+    }
+  ],
+  "assets": {
+    "icons": [
+      { "name": "Search", "library": "lucide-react" },
+      { "name": "ListFilter", "library": "lucide-react", "usage": "Sort/Filter menu trigger" },
+      { "name": "ArrowUpDown", "library": "lucide-react", "usage": "Sort toggle" },
+      { "name": "X", "library": "lucide-react", "usage": "Clear search" }
     ]
-  }
+  },
+  "universal_guidelines": [
+    "Use 'transition-all duration-300 ease-out' for all interactive state changes.",
+    "Ensure touch targets are at least 44px where possible, or use padding to extend hit area.",
+    "Dark mode header requires careful border handling: use 'border-slate-700/50' for subtle separation.",
+    "Scrollbar hiding: Add '.scrollbar-hide::-webkit-scrollbar { display: none; }' to global CSS if not present.",
+    "Micro-animations: Add scale-95 on click (active:scale-95) for buttons to give tactile feedback."
+  ],
+  "instructions_to_main_agent": [
+    "1. Create/Update the 'OrderHeader' component (or equivalent) in the appropriate path.",
+    "2. Implement the 'status_colors' logic as a helper function or constant map.",
+    "3. Use the layout_structure provided: Row 1 (Search+Sort), Row 2 (Horizontal Scroll).",
+    "4. Ensure the 'Tümü' (All) filter works as a reset/clear.",
+    "5. Mock the 'counts' for now if real data isn't linked, or accept them as props.",
+    "6. Add 'data-testid' to: Search Input ('order-search-input'), Sort Button ('order-sort-btn'), and each Filter Pill ('filter-pill-{status}')."
+  ]
 }
