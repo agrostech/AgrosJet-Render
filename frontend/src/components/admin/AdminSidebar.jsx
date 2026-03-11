@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronLeft, ChevronRight, Settings, Power, Coins } from "lucide-react";
+import { LogOut, ChevronLeft, ChevronRight, Settings, Power, Coins, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AdminSidebar({ 
   user, 
@@ -18,6 +19,7 @@ export default function AdminSidebar({
   creditInfo = { credits: null, unlimited: false }
 }) {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const isSuperAdmin = user?.role === "superadmin";
   const isActive = adminStatus === "active";
 
@@ -127,6 +129,16 @@ export default function AdminSidebar({
           data-testid="sidebar-toggle-btn"
         >
           {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </Button>
+        <Button 
+          variant="ghost" 
+          onClick={toggleTheme} 
+          className={`w-full text-white hover:bg-white/10 font-semibold text-sm py-2.5 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-4'}`} 
+          data-testid="dark-mode-toggle"
+          title={sidebarCollapsed ? (theme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod') : ''}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
+          {!sidebarCollapsed && <span className="ml-2">{theme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod'}</span>}
         </Button>
         <Button 
           variant="ghost" 

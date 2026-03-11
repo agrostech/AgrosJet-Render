@@ -11,10 +11,14 @@ Courier delivery management system with ETA calculation, order management, nativ
 - Native location tracking and FCM token communication
 - Courier detail modal: battery info + live polling (10s)
 - Push notification channel updates (latest: `orders_v6`)
-- Courier order card redesigned: compact layout with detail modal (Feb 2026)
+- Courier order card: compact design with detail modal, separator lines, large action buttons
+- Courier permissions system: can_mark_not_ready toggle in admin panel + matrix view
+- Active package check on status change (offline/break blocked if active orders, bypass if shift ended)
+- Admin mobile order header redesign: compact search + colored filter pills
+- Dark Mode: ThemeProvider with localStorage, CSS variables, sidebar toggle (Feb 2026)
 
 ## Pending Verification
-- Push Notification System: Awaiting native app test
+- Push Notification System: Awaiting native app test (orders_v6 channel)
 - Migros Webhook Parsing: Awaiting live test order
 
 ## Known Issues
@@ -24,6 +28,7 @@ Courier delivery management system with ETA calculation, order management, nativ
 
 ## Upcoming Tasks
 - (P1) "Stop Count" based capacity logic
+- (P1) Dark mode fine-tuning for sub-pages (couriers, accounting, shifts)
 - (P2) Caller ID integration research
 
 ## Backlog
@@ -37,7 +42,16 @@ Courier delivery management system with ETA calculation, order management, nativ
 ## Architecture
 - Backend: FastAPI + MongoDB
 - Frontend: React + Tailwind CSS + Shadcn UI
+- Dark Mode: Tailwind class strategy + CSS variables + ThemeProvider context
 - Integrations: Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
 - Hosting: Railway
-- Push: Firebase Cloud Messaging (FCM) - Channel: orders_5
+- Push: Firebase Cloud Messaging (FCM) - Channel: orders_v6
 - APIs: Google Places, Google Geocoding
+
+## Key Files
+- /app/frontend/src/contexts/ThemeContext.jsx - Dark mode provider
+- /app/frontend/src/index.css - CSS variables (light + dark)
+- /app/frontend/src/pages/admin/SiparisYonetimiPage.jsx - Order management
+- /app/frontend/src/pages/courier/CourierSiparisPage.jsx - Courier order cards
+- /app/backend/routers/couriers.py - Permissions API + availability check
+- /app/backend/services/firebase_service.py - FCM push (orders_v6)

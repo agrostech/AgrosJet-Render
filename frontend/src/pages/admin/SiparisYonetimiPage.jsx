@@ -1033,7 +1033,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
             </div>
 
             {/* Mobile Header */}
-            <div className="sm:hidden -mx-3 -mt-6 mb-2 px-3 pt-3 pb-2 bg-slate-50 rounded-t-lg space-y-2">
+            <div className="sm:hidden -mx-3 -mt-6 mb-2 px-3 pt-3 pb-2 bg-slate-50 dark:bg-slate-800/50 rounded-t-lg space-y-2">
               {/* Satır 1: Arama + Sıralama */}
               <div className="flex items-center gap-1.5">
                 <div className="relative flex-1">
@@ -1071,7 +1071,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     <button
                       onClick={() => allActive ? setStatusFilters([]) : setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
                       className={`px-2 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-all ${
-                        allActive ? "bg-slate-700 text-white" : "bg-slate-200 text-slate-500"
+                        allActive ? "bg-slate-700 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300"
                       }`}
                       data-testid="filter-pill-all"
                     >
@@ -1170,7 +1170,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               </div>
                             </td>
                             <td className="p-2">
-                              <span className="px-2 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded border border-slate-200">
+                              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded border border-slate-200 dark:border-slate-600">
                                 {order.restaurant_name || "-"}
                               </span>
                             </td>
@@ -1399,7 +1399,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     return (
                       <div 
                         key={order.id}
-                        className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
+                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer"
                         onClick={(e) => {
                           if (e.target.closest('[data-radix-select-trigger]') || e.target.closest('[data-radix-select-content]') || e.target.closest('[role="combobox"]') || e.target.closest('[role="option"]') || e.target.closest('button')) return;
                           setSelectedOrder(order);
@@ -1408,7 +1408,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         data-testid={`order-card-${order.id}`}
                       >
                         {/* Üst Kısım: Restoran + Mesafe + Ödeme + Ücret + Zaman */}
-                        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+                        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30 rounded-t-lg">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <span className="px-2 py-1 bg-slate-700 text-white text-[11px] font-semibold rounded truncate">
                               {order.restaurant_name || "-"}
@@ -1424,7 +1424,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Y.Kartı') : 
                                'Online'}
                             </span>
-                            <span className="text-xs font-bold text-slate-800 flex-shrink-0">{formatCurrency(order.total_amount)}</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex-shrink-0">{formatCurrency(order.total_amount)}</span>
                           </div>
                           <div className="flex items-center gap-1 text-[10px] text-slate-500 flex-shrink-0 ml-1">
                             <span className="font-medium">{formatTime(order.created_at)}</span>
@@ -1442,7 +1442,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <User className="w-4 h-4 text-slate-400" />
-                              <span className="font-medium text-sm text-slate-800">{order.customer_name || "-"}</span>
+                              <span className="font-medium text-sm text-slate-800 dark:text-slate-200">{order.customer_name || "-"}</span>
                             </div>
                             {order.customer_phone && (
                               <a 
@@ -1464,7 +1464,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                           {/* Adres - 3 satıra kadar */}
                           <div className="flex items-start gap-2">
                             <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                            <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed" title={order.delivery_address}>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed" title={order.delivery_address}>
                               {order.delivery_address || "-"}
                             </p>
                           </div>
@@ -1479,7 +1479,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         </div>
                         
                         {/* Alt Kısım: Durum ve Kurye Seçimi */}
-                        <div className="flex items-center gap-2 px-3 py-2 border-t border-slate-100 bg-slate-50/30 rounded-b-lg" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2 px-3 py-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-700/20 rounded-b-lg" onClick={(e) => e.stopPropagation()}>
                           {/* Durum Seçici */}
                           {isAdminActive ? (
                             <Select 

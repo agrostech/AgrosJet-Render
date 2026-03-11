@@ -3,7 +3,8 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Page components
 import VardiyaPage from "./VardiyaPage";
@@ -29,6 +30,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -274,7 +276,7 @@ export default function AdminDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="admin-dashboard">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900" data-testid="admin-dashboard">
       {/* Mobile Header */}
       <header className="lg:hidden bg-primary text-white p-3 flex items-center justify-between">
         <Button 
@@ -399,6 +401,14 @@ export default function AdminDashboard() {
           {/* Bottom section */}
           <div className="p-3 border-t border-white/20 space-y-2">
             <button 
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+              data-testid="mobile-dark-mode-toggle"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? 'Aydınlık Mod' : 'Karanlık Mod'}
+            </button>
+            <button 
               onClick={() => {
                 setMobileMenuOpen(false);
                 setShowProfileModal(true);
@@ -486,7 +496,7 @@ export default function AdminDashboard() {
           </div>
           
           {/* Footer */}
-          <footer className="bg-white border-t py-3 text-center text-xs text-muted-foreground">
+          <footer className="bg-white dark:bg-slate-800 border-t dark:border-slate-700 py-3 text-center text-xs text-muted-foreground">
             © 2026 AgrosJet. Tüm hakları saklıdır. Powered by AgrosTech.
           </footer>
         </main>

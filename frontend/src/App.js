@@ -11,6 +11,7 @@ import RestaurantDashboard from "@/pages/restoran/RestaurantDashboard";
 import CourierKVKKPage from "@/pages/courier/CourierKVKKPage";
 import CourierDeleteAccountPage from "@/pages/courier/CourierDeleteAccountPage";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 // Initialize axios interceptors for permission headers
 import "@/utils/axiosConfig";
 
@@ -48,6 +49,7 @@ function App() {
   }, []);
 
   return (
+    <ThemeProvider>
     <div className="app-container">
       <BrowserRouter>
         <Routes>
@@ -67,6 +69,7 @@ function App() {
       <Toaster position="top-right" />
       <PWAInstallPrompt />
     </div>
+    </ThemeProvider>
   );
 }
 

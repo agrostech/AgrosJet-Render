@@ -448,8 +448,8 @@ export default function KuryelerPage({ companyId }) {
             onClick={() => setViewMode("list")}
             className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
               viewMode === "list" 
-                ? "bg-white shadow text-primary" 
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-700 shadow text-primary dark:text-white" 
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <List className="w-4 h-4" />
@@ -459,8 +459,8 @@ export default function KuryelerPage({ companyId }) {
             onClick={() => setViewMode("matrix")}
             className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
               viewMode === "matrix" 
-                ? "bg-white shadow text-primary" 
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-700 shadow text-primary dark:text-white" 
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <LayoutGrid className="w-4 h-4" />
