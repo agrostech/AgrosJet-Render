@@ -942,31 +942,10 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-2.5">
-        {/* Satır 1: Durum + Süre + Mesafe + Ödeme */}
-        <div className="flex items-center justify-between pb-2">
-          <div className="flex items-center gap-1.5">
-            <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0`}>{statusConfig.label}</Badge>
-            {getOrderAgeText(order) && (
-              <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
-                <Clock className="w-2.5 h-2.5" />
-                {getOrderAgeText(order)}
-              </span>
-            )}
-            {getOrderDistance(order) && (
-              <span className="text-[10px] text-slate-400">{getOrderDistance(order)}</span>
-            )}
-          </div>
-          <div className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
-            <PaymentIcon className="w-2.5 h-2.5" />
-            <span>{getPaymentLabel(order)}</span>
-          </div>
-        </div>
-
-        <div className="border-t border-slate-100" />
-
-        {/* Satır 2: Restoran + Butonlar */}
-        <div className="flex items-center justify-between py-2">
+        {/* Restoran + Durum badge + Butonlar */}
+        <div className="flex items-center justify-between py-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
+            <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0 flex-shrink-0`}>{statusConfig.label}</Badge>
             <Store className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
             <span className="text-xs font-semibold text-slate-700 truncate">{order.restaurant_name}</span>
           </div>
@@ -982,11 +961,20 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
 
         <div className="border-t border-slate-100" />
 
-        {/* Satır 3: Müşteri + Butonlar */}
-        <div className="flex items-center justify-between py-2">
+        {/* Müşteri + Süre + Mesafe + Butonlar */}
+        <div className="flex items-center justify-between py-1.5">
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <User className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
             <span className="text-xs font-medium text-slate-700 truncate">{order.customer_name}</span>
+            {getOrderAgeText(order) && (
+              <span className="text-[10px] text-slate-400 flex items-center gap-0.5 flex-shrink-0">
+                <Clock className="w-2.5 h-2.5" />
+                {getOrderAgeText(order)}
+              </span>
+            )}
+            {getOrderDistance(order) && (
+              <span className="text-[10px] text-slate-400 flex-shrink-0">{getOrderDistance(order)}</span>
+            )}
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button onClick={onCall} className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 active:bg-blue-200" data-testid={`call-customer-btn-${order.id}`}>
@@ -999,7 +987,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         </div>
 
         {/* Adres - 2 satır */}
-        <div className="flex items-start gap-1 -mt-1 pb-2 text-[11px] text-slate-500">
+        <div className="flex items-start gap-1 -mt-0.5 pb-1.5 text-[11px] text-slate-500">
           <MapPin className="w-3 h-3 flex-shrink-0 text-slate-400 mt-0.5" />
           <span className="line-clamp-2">{order.delivery_address}</span>
         </div>
@@ -1016,9 +1004,13 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
 
         <div className="border-t border-slate-100 mt-2" />
 
-        {/* Satır 4: Tutar + Detay + Aksiyonlar */}
+        {/* Tutar + Ödeme + Detay + Aksiyonlar */}
         <div className="flex items-center gap-2 pt-2">
           <span className="text-xs font-bold text-slate-800 whitespace-nowrap">{formatCurrency(order.total_amount)}</span>
+          <div className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
+            <PaymentIcon className="w-2.5 h-2.5" />
+            <span>{getPaymentLabel(order)}</span>
+          </div>
           
           <button
             onClick={onViewDetails}
