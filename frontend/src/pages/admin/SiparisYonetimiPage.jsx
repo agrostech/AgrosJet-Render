@@ -1032,29 +1032,29 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </div>
             </div>
 
-            {/* Mobile Header - Dark Command Center */}
-            <div className="sm:hidden -mx-3 -mt-6 mb-3 px-3 py-3 bg-slate-800 rounded-t-lg space-y-3">
+            {/* Mobile Header */}
+            <div className="sm:hidden -mx-3 -mt-6 mb-2 px-3 pt-3 pb-2 bg-slate-50 rounded-t-lg space-y-2">
               {/* Satır 1: Arama + Sıralama */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                   <Input
                     type="text"
-                    placeholder="Sipariş ara..."
+                    placeholder="Ara..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-10 bg-slate-900/60 border-slate-700 text-slate-100 placeholder:text-slate-500 focus-visible:ring-slate-500 focus-visible:ring-offset-0 rounded-xl text-sm"
+                    className="pl-8 h-8 text-xs rounded-lg"
                     data-testid="order-search-input"
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
-                      <XCircle className="w-4 h-4" />
+                    <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
+                      <XCircle className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
                 <Select value={sortOrder} onValueChange={setSortOrder}>
-                  <SelectTrigger className="h-10 w-10 px-0 justify-center rounded-xl bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" data-testid="order-sort-btn">
-                    <ArrowUpDown className="w-4 h-4" />
+                  <SelectTrigger className="h-8 w-8 px-0 justify-center rounded-lg border-slate-200" data-testid="order-sort-btn">
+                    <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="newest">Yeniden Eskiye</SelectItem>
@@ -1063,31 +1063,28 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 </Select>
               </div>
 
-              {/* Satır 2: Filtre Pilleri - yatay scroll */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {/* Satır 2: Filtre Pilleri */}
+              <div className="flex items-center gap-1">
                 {(() => {
                   const allActive = statusFilters.length === 5;
                   return (
                     <button
                       onClick={() => allActive ? setStatusFilters([]) : setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-all duration-200 active:scale-95 ${
-                        allActive
-                          ? "bg-white text-slate-900 border-white shadow-md"
-                          : "bg-slate-700/50 text-slate-300 border-slate-600 hover:bg-slate-700"
+                      className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-all ${
+                        allActive ? "bg-slate-700 text-white" : "bg-slate-200 text-slate-500"
                       }`}
                       data-testid="filter-pill-all"
                     >
-                      Tümü
-                      <span className="text-[10px] font-bold opacity-80">{orders.length}</span>
+                      {orders.length}
                     </button>
                   );
                 })()}
                 {[
-                  { value: "preparing", label: "Hazır.", activeBg: "bg-yellow-500", activeText: "text-yellow-950", bg: "bg-yellow-500/10", text: "text-yellow-400", border: "border-yellow-500/20" },
-                  { value: "ready", label: "Hazır", activeBg: "bg-orange-500", activeText: "text-white", bg: "bg-orange-500/10", text: "text-orange-400", border: "border-orange-500/20" },
-                  { value: "assigned", label: "Atandı", activeBg: "bg-purple-500", activeText: "text-white", bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20" },
-                  { value: "confirmed", label: "Onay", activeBg: "bg-blue-500", activeText: "text-white", bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/20" },
-                  { value: "on_the_way", label: "Yolda", activeBg: "bg-cyan-500", activeText: "text-cyan-950", bg: "bg-cyan-500/10", text: "text-cyan-400", border: "border-cyan-500/20" },
+                  { value: "preparing", label: "Haz", activeBg: "bg-yellow-500 text-yellow-950", inactiveBg: "bg-yellow-100 text-yellow-600" },
+                  { value: "ready", label: "Hzr", activeBg: "bg-orange-500 text-white", inactiveBg: "bg-orange-100 text-orange-600" },
+                  { value: "assigned", label: "Ata", activeBg: "bg-purple-500 text-white", inactiveBg: "bg-purple-100 text-purple-600" },
+                  { value: "confirmed", label: "Ony", activeBg: "bg-blue-500 text-white", inactiveBg: "bg-blue-100 text-blue-600" },
+                  { value: "on_the_way", label: "Yol", activeBg: "bg-cyan-500 text-cyan-950", inactiveBg: "bg-cyan-100 text-cyan-600" },
                 ].map((s) => {
                   const count = orders.filter(o => o.status === s.value).length;
                   const isActive = statusFilters.includes(s.value);
@@ -1095,15 +1092,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     <button
                       key={s.value}
                       onClick={() => setStatusFilters(prev => prev.includes(s.value) ? prev.filter(x => x !== s.value) : [...prev, s.value])}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium whitespace-nowrap transition-all duration-200 active:scale-95 ${
-                        isActive
-                          ? `${s.activeBg} ${s.activeText} border-transparent shadow-md`
-                          : `${s.bg} ${s.text} ${s.border} hover:opacity-100 opacity-70`
-                      }`}
+                      className={`flex-1 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-all text-center ${isActive ? s.activeBg : s.inactiveBg}`}
                       data-testid={`filter-pill-${s.value}`}
                     >
-                      {s.label}
-                      <span className="text-[10px] font-bold opacity-80">{count}</span>
+                      {s.label} {count}
                     </button>
                   );
                 })}
