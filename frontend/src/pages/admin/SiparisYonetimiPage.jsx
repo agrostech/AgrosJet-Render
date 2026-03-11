@@ -1070,12 +1070,12 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                   return (
                     <button
                       onClick={() => allActive ? setStatusFilters([]) : setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])}
-                      className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-all ${
+                      className={`px-2 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-all ${
                         allActive ? "bg-slate-700 text-white" : "bg-slate-200 text-slate-500"
                       }`}
                       data-testid="filter-pill-all"
                     >
-                      {orders.length}
+                      Tümü
                     </button>
                   );
                 })()}
@@ -1092,7 +1092,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     <button
                       key={s.value}
                       onClick={() => setStatusFilters(prev => prev.includes(s.value) ? prev.filter(x => x !== s.value) : [...prev, s.value])}
-                      className={`flex-1 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-all text-center ${isActive ? s.activeBg : s.inactiveBg}`}
+                      className={`flex-1 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-all text-center ${isActive ? s.activeBg : s.inactiveBg}`}
                       data-testid={`filter-pill-${s.value}`}
                     >
                       {s.label} {count}
