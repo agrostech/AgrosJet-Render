@@ -970,12 +970,12 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
             <User className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
             <span className="text-xs font-medium text-slate-700 truncate">{order.customer_name}</span>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={onCall} className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100" data-testid={`call-customer-btn-${order.id}`}>
-              <Phone className="w-3 h-3" />
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button onClick={onCall} className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 active:bg-blue-200" data-testid={`call-customer-btn-${order.id}`}>
+              <Phone className="w-4 h-4" />
             </button>
-            <button onClick={onOpenMaps} className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100" data-testid={`navigate-customer-btn-${order.id}`}>
-              <Navigation className="w-3 h-3" />
+            <button onClick={onOpenMaps} className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 active:bg-blue-200" data-testid={`navigate-customer-btn-${order.id}`}>
+              <Navigation className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -994,12 +994,12 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
             <Store className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
             <span className="text-xs font-semibold text-slate-700 truncate">{order.restaurant_name}</span>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={callRestaurant} className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100" data-testid={`call-restaurant-btn-${order.id}`}>
-              <Phone className="w-3 h-3" />
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button onClick={callRestaurant} className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100 active:bg-orange-200" data-testid={`call-restaurant-btn-${order.id}`}>
+              <Phone className="w-4 h-4" />
             </button>
-            <button onClick={onOpenRestaurantMaps} className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100" data-testid={`navigate-restaurant-btn-${order.id}`}>
-              <Navigation className="w-3 h-3" />
+            <button onClick={onOpenRestaurantMaps} className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100 active:bg-orange-200" data-testid={`navigate-restaurant-btn-${order.id}`}>
+              <Navigation className="w-4 h-4" />
             </button>
           </div>
         </div>
