@@ -44,7 +44,10 @@ function HeatMap({ points, center, totalOrders }) {
     const map = L.map(mapRef.current).setView([center.lat, center.lng], 13);
     mapInstanceRef.current = map;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    const tileUrl = document.documentElement.classList.contains('dark')
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    L.tileLayer(tileUrl, {
       attribution: '&copy; OpenStreetMap',
       maxZoom: 18,
     }).addTo(map);

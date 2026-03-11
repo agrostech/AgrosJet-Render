@@ -377,7 +377,10 @@ export default function RestoranlarPage({ companyId }) {
       scrollWheelZoom: false
     }).setView([defaultLat, defaultLng], initialLat ? 15 : 11);
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const tileUrl = document.documentElement.classList.contains('dark')
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    L.tileLayer(tileUrl, {
       attribution: '© OpenStreetMap'
     }).addTo(map);
     

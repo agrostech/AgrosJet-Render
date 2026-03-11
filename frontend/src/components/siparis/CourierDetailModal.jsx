@@ -217,7 +217,10 @@ export function CourierDetailModal({
         attributionControl: false
       }).setView([centerLat, centerLng], 12);
       
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      const tileUrl = document.documentElement.classList.contains('dark')
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+      L.tileLayer(tileUrl, {
         subdomains: 'abcd',
         maxZoom: 19
       }).addTo(map);

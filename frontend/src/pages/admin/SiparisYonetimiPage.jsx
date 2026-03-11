@@ -37,10 +37,12 @@ import NotificationsPopover from "@/components/admin/NotificationsPopover";
 import GecmisSiparislerPage from "./GecmisSiparislerPage";
 import IptalSiparislerPage from "./IptalSiparislerPage";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin = false, adminStatus = "offline", linkedCourierStatus = "offline" }) {
+  const { theme } = useTheme();
   const [orders, setOrders] = useState([]);
   const [couriers, setCouriers] = useState([]);
   const [couriersByStatus, setCouriersByStatus] = useState({ active: [], on_break: [], offline: [] });
@@ -356,7 +358,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
       attributionControl: false
     }).setView([centerLat, centerLng], zoomLevel);
     
-    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    const tileUrl = document.documentElement.classList.contains('dark')
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    window.L.tileLayer(tileUrl, {
       subdomains: 'abcd',
       maxZoom: 19
     }).addTo(map);
@@ -978,28 +983,26 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </div>
               <div className="flex flex-wrap items-center gap-1">
                 {[
-                  { value: "preparing", label: "Hazırlanıyor", color: "bg-yellow-500/30 text-yellow-700 border-yellow-400/50", activeColor: "bg-yellow-500/30 text-yellow-800 border-yellow-500/70" },
-                  { value: "ready", label: "Hazır", color: "bg-orange-500/30 text-orange-700 border-orange-400/50", activeColor: "bg-orange-500/30 text-orange-800 border-orange-500/70" },
-                  { value: "assigned", label: "Atandı", color: "bg-purple-500/30 text-purple-700 border-purple-400/50", activeColor: "bg-purple-500/30 text-purple-800 border-purple-500/70" },
-                  { value: "confirmed", label: "Onaylandı", color: "bg-blue-500/30 text-blue-700 border-blue-400/50", activeColor: "bg-blue-500/30 text-blue-800 border-blue-500/70" },
-                  { value: "on_the_way", label: "Yolda", color: "bg-cyan-500/30 text-cyan-700 border-cyan-400/50", activeColor: "bg-cyan-500/30 text-cyan-800 border-cyan-500/70" },
+                  { value: "preparing", label: "Hazırlanıyor" },
+                  { value: "ready", label: "Hazır" },
+                  { value: "assigned", label: "Atandı" },
+                  { value: "confirmed", label: "Onaylandı" },
+                  { value: "on_the_way", label: "Yolda" },
                 ].map((status) => {
-                  const count = orders.filter(o => o.status === status.value).length;
                   const isActive = statusFilters.includes(status.value);
                   return (
                     <button
                       key={status.value}
                       onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
-                      className={`px-2 py-0.5 text-xs rounded border transition-all flex items-center gap-1 ${isActive ? status.activeColor + " font-medium shadow-sm ring-1 ring-inset ring-current/20" : status.color + " opacity-70 hover:opacity-100"}`}
+                      className={`px-2.5 py-1 text-xs rounded-md transition-all ${isActive ? "bg-primary text-primary-foreground font-medium shadow-sm" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
                     >
                       {status.label}
-                      <span className="text-[10px] font-bold">({count})</span>
                     </button>
                   );
                 })}
-                <div className="border-l pl-1 ml-0.5 flex gap-0.5">
-                  <button onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])} className="px-1.5 py-0.5 text-[10px] text-blue-600 hover:bg-blue-50 rounded">Tümü</button>
-                  <button onClick={() => setStatusFilters([])} className="px-1.5 py-0.5 text-[10px] text-gray-500 hover:bg-gray-100 rounded">Temizle</button>
+                <div className="border-l border-border pl-1 ml-0.5 flex gap-0.5">
+                  <button onClick={() => setStatusFilters(["preparing", "ready", "assigned", "confirmed", "on_the_way"])} className="px-1.5 py-1 text-[10px] text-primary hover:bg-secondary rounded-md">Tümü</button>
+                  <button onClick={() => setStatusFilters([])} className="px-1.5 py-1 text-[10px] text-muted-foreground hover:bg-secondary rounded-md">Temizle</button>
                 </div>
               </div>
             </div>

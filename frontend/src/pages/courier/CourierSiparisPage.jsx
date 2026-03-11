@@ -526,15 +526,15 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           onClick={() => setActiveTab("assigned")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
             activeTab === "assigned"
-              ? "bg-white text-purple-700 shadow-md border border-purple-200"
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-md border border-purple-200 dark:border-purple-700"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
           }`}
         >
           <ClipboardList className="w-4 h-4" />
           Atanmış
           {assignedOrders.length > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-              activeTab === "assigned" ? "bg-purple-100 text-purple-700" : "bg-slate-200 text-slate-600"
+              activeTab === "assigned" ? "bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
             }`}>
               {assignedOrders.length}
             </span>
@@ -544,15 +544,15 @@ export default function CourierSiparisPage({ courierId, companyId }) {
           onClick={() => setActiveTab("ontheway")}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
             activeTab === "ontheway"
-              ? "bg-white text-blue-700 shadow-md border border-blue-200"
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-md border border-blue-200 dark:border-blue-700"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
           }`}
         >
           <Bike className="w-4 h-4" />
           Yolda
           {onTheWayOrders.length > 0 && (
             <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-              activeTab === "ontheway" ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-600"
+              activeTab === "ontheway" ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
             }`}>
               {onTheWayOrders.length}
             </span>
@@ -896,7 +896,7 @@ function NewOrderCard({ order, onConfirm, loading }) {
         )}
 
         {/* Sipariş özeti (gizli) */}
-        <div className="bg-white/50 rounded p-2 mb-2 border border-purple-200">
+        <div className="bg-white/50 dark:bg-slate-700/50 rounded p-2 mb-2 border border-purple-200 dark:border-purple-800">
           <div className="flex items-center gap-1.5 text-purple-700">
             <Eye className="w-3.5 h-3.5" />
             <span className="text-xs font-medium">Detayları görmek için onaylayın</span>
@@ -953,10 +953,10 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         {/* Restoran + Tutar/Ödeme + Butonlar */}
         <div className="flex items-center justify-between py-1.5">
           <div className="flex flex-col min-w-0">
-            <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1"><Store className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />{order.restaurant_name}</span>
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate flex items-center gap-1"><Store className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 flex-shrink-0" />{order.restaurant_name}</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0`}>{statusConfig.label}</Badge>
-              <span className="text-[11px] font-bold text-slate-800">{formatCurrency(order.total_amount)}</span>
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">{formatCurrency(order.total_amount)}</span>
               <div className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
                 <PaymentIcon className="w-2.5 h-2.5" />
                 <span>{getPaymentLabel(order)}</span>
@@ -973,13 +973,13 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           </div>
         </div>
 
-        <div className="border-t border-slate-100" />
+        <div className="border-t border-slate-100 dark:border-slate-700" />
 
         {/* Müşteri + Süre + Mesafe + Butonlar */}
         <div className="flex items-center justify-between py-1.5">
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <User className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-            <span className="text-xs font-medium text-slate-700 truncate">{order.customer_name}</span>
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">{order.customer_name}</span>
             {getOrderAgeText(order) && (
               <span className="text-[10px] text-slate-400 flex items-center gap-0.5 flex-shrink-0">
                 <Clock className="w-2.5 h-2.5" />
@@ -1001,7 +1001,7 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
         </div>
 
         {/* Adres - 2 satır + Not */}
-        <div className="-mt-0.5 pb-1.5 text-[11px] text-slate-500 space-y-0.5">
+        <div className="-mt-0.5 pb-1.5 text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
           <div className="flex items-start gap-1">
             <MapPin className="w-3 h-3 flex-shrink-0 text-slate-400 mt-0.5" />
             <span className="line-clamp-2">{order.delivery_address}</span>
