@@ -298,11 +298,53 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
             "status": {"$in": ["assigned", "confirmed", "on_the_way"]}
         })
         if active_orders > 0:
-            status_label = "çevrimdışı" if data.availability_status == "offline" else "molaya"
-            raise HTTPException(
-                status_code=400,
-                detail=f"Üzerinizde {active_orders} aktif paket var. Önce paketleri tamamlayın."
-            )
+            # Vardiyası bitmişse (şu an aktif vardiyası yoksa) kontrolü atla
+            skip_check = False
+            company_id_check = courier.get("company_id")
+            if company_id_check:
+                turkey_tz = timezone(timedelta(hours=3))
+                now_turkey = datetime.now(turkey_tz)
+                days_map = ["pazartesi", "sali", "carsamba", "persembe", "cuma", "cumartesi", "pazar"]
+                today_key = days_map[now_turkey.weekday()]
+                current_minutes = now_turkey.hour * 60 + now_turkey.minute
+                
+                assignments = await db.shift_assignments.find({
+                    "company_id": company_id_check,
+                    "courier_id": courier_id,
+                    "day": today_key
+                }, {"_id": 0, "shift_id": 1}).to_list(10)
+                
+                has_active_shift = False
+                if assignments:
+                    shift_ids = [a["shift_id"] for a in assignments]
+                    shifts = await db.shifts.find(
+                        {"id": {"$in": shift_ids}},
+                        {"_id": 0, "start_time": 1, "end_time": 1}
+                    ).to_list(10)
+                    
+                    for shift in shifts:
+                        start_h, start_m = map(int, shift["start_time"].split(":"))
+                        end_h, end_m = map(int, shift["end_time"].split(":"))
+                        start_minutes = start_h * 60 + start_m
+                        end_minutes = end_h * 60 + end_m
+                        
+                        if end_minutes <= start_minutes:
+                            if current_minutes >= start_minutes or current_minutes < end_minutes:
+                                has_active_shift = True
+                                break
+                        else:
+                            if start_minutes <= current_minutes < end_minutes:
+                                has_active_shift = True
+                                break
+                
+                if not has_active_shift:
+                    skip_check = True
+            
+            if not skip_check:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Üzerinizde {active_orders} aktif paket var. Önce paketleri tamamlayın."
+                )
     
     # Aktif olma zamanını kaydet (vardiya ihlal kontrolü için)
     if data.availability_status == "active" and current_status != "active":
