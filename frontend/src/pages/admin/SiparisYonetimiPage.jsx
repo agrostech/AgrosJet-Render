@@ -1080,11 +1080,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                   );
                 })()}
                 {[
-                  { value: "preparing", label: "Haz", activeBg: "bg-yellow-500 text-yellow-950", inactiveBg: "bg-yellow-100 text-yellow-600" },
-                  { value: "ready", label: "Hzr", activeBg: "bg-orange-500 text-white", inactiveBg: "bg-orange-100 text-orange-600" },
-                  { value: "assigned", label: "Ata", activeBg: "bg-purple-500 text-white", inactiveBg: "bg-purple-100 text-purple-600" },
-                  { value: "confirmed", label: "Ony", activeBg: "bg-blue-500 text-white", inactiveBg: "bg-blue-100 text-blue-600" },
-                  { value: "on_the_way", label: "Yol", activeBg: "bg-cyan-500 text-cyan-950", inactiveBg: "bg-cyan-100 text-cyan-600" },
+                  { value: "preparing", label: "Hazır.", activeBg: "bg-yellow-500 text-yellow-950", inactiveBg: "bg-yellow-100 text-yellow-600" },
+                  { value: "ready", label: "Hazır", activeBg: "bg-orange-500 text-white", inactiveBg: "bg-orange-100 text-orange-600" },
+                  { value: "assigned", label: "Atandı", activeBg: "bg-purple-500 text-white", inactiveBg: "bg-purple-100 text-purple-600" },
+                  { value: "confirmed", label: "Onay", activeBg: "bg-blue-500 text-white", inactiveBg: "bg-blue-100 text-blue-600" },
+                  { value: "on_the_way", label: "Yolda", activeBg: "bg-cyan-500 text-cyan-950", inactiveBg: "bg-cyan-100 text-cyan-600" },
                 ].map((s) => {
                   const count = orders.filter(o => o.status === s.value).length;
                   const isActive = statusFilters.includes(s.value);
