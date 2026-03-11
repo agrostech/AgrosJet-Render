@@ -942,12 +942,11 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-2.5">
-        {/* Restoran + Durum badge + Butonlar */}
+        {/* Restoran + Butonlar */}
         <div className="flex items-center justify-between py-1.5">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0 flex-shrink-0`}>{statusConfig.label}</Badge>
-            <Store className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+          <div className="flex flex-col min-w-0">
             <span className="text-xs font-semibold text-slate-700 truncate">{order.restaurant_name}</span>
+            <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0 w-fit mt-0.5`}>{statusConfig.label}</Badge>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button onClick={callRestaurant} className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100 active:bg-orange-200" data-testid={`call-restaurant-btn-${order.id}`}>
