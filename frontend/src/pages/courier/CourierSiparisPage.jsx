@@ -992,21 +992,18 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           </div>
         </div>
 
-        {/* Adres - 2 satır */}
-        <div className="flex items-start gap-1 -mt-0.5 pb-1.5 text-[11px] text-slate-500">
-          <MapPin className="w-3 h-3 flex-shrink-0 text-slate-400 mt-0.5" />
-          <span className="line-clamp-2">{order.delivery_address}</span>
-        </div>
-
-        {/* Müşteri notu uyarısı - sadece varsa */}
-        {customerNotePreview && (
-          <>
-            <div className="border-t border-slate-100" />
-            <div className="bg-red-50 border border-red-200 rounded px-2 py-1 mt-2 text-[10px] text-red-700 font-medium truncate">
+        {/* Adres - 2 satır + Not */}
+        <div className="-mt-0.5 pb-1.5 text-[11px] text-slate-500 space-y-0.5">
+          <div className="flex items-start gap-1">
+            <MapPin className="w-3 h-3 flex-shrink-0 text-slate-400 mt-0.5" />
+            <span className="line-clamp-2">{order.delivery_address}</span>
+          </div>
+          {customerNotePreview && (
+            <div className="text-[10px] text-red-700 font-medium truncate pl-4">
               ⚠️ {customerNotePreview}
             </div>
-          </>
-        )}
+          )}
+        </div>
 
         <div className="border-t border-slate-100 mt-2" />
 
