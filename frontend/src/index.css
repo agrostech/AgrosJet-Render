@@ -76,6 +76,154 @@ body {
     }
 }
 
+/* Dark mode global overrides */
+.dark {
+    color-scheme: dark;
+}
+
+.dark .bg-white {
+    background-color: hsl(223, 47%, 13%) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+    background-color: hsl(217, 33%, 17%) !important;
+}
+
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/30 {
+    background-color: hsla(217, 33%, 17%, 0.5) !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-gray-100,
+.dark .border-gray-200 {
+    border-color: hsl(217, 33%, 22%) !important;
+}
+
+.dark .border-slate-300 {
+    border-color: hsl(217, 33%, 28%) !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+    color: hsl(210, 40%, 92%) !important;
+}
+
+.dark .text-slate-700,
+.dark .text-gray-700 {
+    color: hsl(210, 40%, 80%) !important;
+}
+
+.dark .text-slate-600,
+.dark .text-gray-600 {
+    color: hsl(215, 20%, 70%) !important;
+}
+
+.dark .text-slate-500,
+.dark .text-gray-500 {
+    color: hsl(215, 20%, 60%) !important;
+}
+
+.dark .bg-slate-200 {
+    background-color: hsl(217, 33%, 22%) !important;
+}
+
+.dark .bg-slate-700 {
+    background-color: hsl(217, 33%, 28%) !important;
+}
+
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-gray-100:hover {
+    background-color: hsl(217, 33%, 20%) !important;
+}
+
+.dark .hover\:bg-slate-200:hover {
+    background-color: hsl(217, 33%, 24%) !important;
+}
+
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg {
+    --tw-shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode table overrides */
+.dark table thead {
+    background-color: hsl(217, 33%, 17%) !important;
+}
+
+.dark table tbody tr {
+    border-color: hsl(217, 33%, 22%) !important;
+}
+
+.dark table tbody tr:hover {
+    background-color: hsl(217, 33%, 17%) !important;
+}
+
+/* Sidebar stays dark primary in both modes */
+.dark .bg-primary {
+    background-color: hsl(222, 47%, 8%) !important;
+}
+
+/* Dark mode for specific badge colors */
+.dark .bg-green-100 { background-color: hsl(142, 40%, 15%) !important; }
+.dark .bg-red-100 { background-color: hsl(0, 40%, 15%) !important; }
+.dark .bg-yellow-100 { background-color: hsl(45, 40%, 15%) !important; }
+.dark .bg-blue-100 { background-color: hsl(217, 40%, 15%) !important; }
+.dark .bg-orange-100 { background-color: hsl(25, 40%, 15%) !important; }
+.dark .bg-purple-100 { background-color: hsl(270, 40%, 15%) !important; }
+.dark .bg-cyan-100 { background-color: hsl(185, 40%, 15%) !important; }
+.dark .bg-emerald-100 { background-color: hsl(160, 40%, 15%) !important; }
+.dark .bg-indigo-100 { background-color: hsl(230, 40%, 15%) !important; }
+.dark .bg-amber-100 { background-color: hsl(38, 40%, 15%) !important; }
+
+.dark .bg-green-50 { background-color: hsl(142, 40%, 12%) !important; }
+.dark .bg-red-50 { background-color: hsl(0, 40%, 12%) !important; }
+.dark .bg-yellow-50 { background-color: hsl(45, 40%, 12%) !important; }
+.dark .bg-blue-50 { background-color: hsl(217, 40%, 12%) !important; }
+.dark .bg-orange-50 { background-color: hsl(25, 40%, 12%) !important; }
+.dark .bg-purple-50 { background-color: hsl(270, 40%, 12%) !important; }
+.dark .bg-cyan-50 { background-color: hsl(185, 40%, 12%) !important; }
+
+.dark .text-green-700 { color: hsl(142, 60%, 65%) !important; }
+.dark .text-red-700 { color: hsl(0, 60%, 65%) !important; }
+.dark .text-yellow-700 { color: hsl(45, 60%, 65%) !important; }
+.dark .text-blue-700 { color: hsl(217, 60%, 65%) !important; }
+.dark .text-orange-700 { color: hsl(25, 60%, 65%) !important; }
+.dark .text-purple-700 { color: hsl(270, 60%, 65%) !important; }
+.dark .text-cyan-700 { color: hsl(185, 60%, 65%) !important; }
+
+.dark .text-green-600 { color: hsl(142, 55%, 58%) !important; }
+.dark .text-red-600 { color: hsl(0, 55%, 58%) !important; }
+.dark .text-yellow-600 { color: hsl(45, 55%, 58%) !important; }
+.dark .text-blue-600 { color: hsl(217, 55%, 58%) !important; }
+.dark .text-orange-600 { color: hsl(25, 55%, 58%) !important; }
+.dark .text-purple-600 { color: hsl(270, 55%, 58%) !important; }
+
+.dark .border-green-200 { border-color: hsl(142, 30%, 25%) !important; }
+.dark .border-red-200 { border-color: hsl(0, 30%, 25%) !important; }
+.dark .border-yellow-200 { border-color: hsl(45, 30%, 25%) !important; }
+.dark .border-blue-200 { border-color: hsl(217, 30%, 25%) !important; }
+.dark .border-orange-200 { border-color: hsl(25, 30%, 25%) !important; }
+.dark .border-purple-200 { border-color: hsl(270, 30%, 25%) !important; }
+
+/* Matrix view */
+.dark .bg-green-100\/80 { background-color: hsl(142, 40%, 15%) !important; }
+.dark .bg-purple-100 { background-color: hsl(270, 40%, 15%) !important; }
+.dark .bg-indigo-50 { background-color: hsl(230, 40%, 12%) !important; }
+.dark .bg-purple-50 { background-color: hsl(270, 40%, 12%) !important; }
+
+/* Scrollbar */
+.dark ::-webkit-scrollbar-track { background: hsl(222, 47%, 11%); }
+.dark ::-webkit-scrollbar-thumb { background: hsl(217, 33%, 25%); }
+.dark ::-webkit-scrollbar-thumb:hover { background: hsl(217, 33%, 30%); }
+
 @layer base {
     [data-debug-wrapper="true"] {
         display: contents !important;

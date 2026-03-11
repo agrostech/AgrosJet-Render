@@ -220,8 +220,8 @@ export default function AdminDashboard() {
   // Kontör erişim kontrolü
   if (!creditInfo.allowed && !creditInfo.unlimited) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
             Yetersiz bakiye sebebiyle yönetim paneli erişiminiz kısıtlandı. 
             Bu süreçte operasyon sistem tarafından otomatik yürütülecektir.
           </p>
-          <div className="bg-slate-50 rounded-lg p-4 mb-6">
+          <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 mb-6">
             <p className="text-sm text-slate-600 mb-2">Bakiye yüklemek için lütfen AgrosJet ile iletişime geçin:</p>
             <a href="tel:05393236232" className="text-lg font-bold text-primary hover:underline">
               0539 323 62 32
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900" data-testid="admin-dashboard">
       {/* Mobile Header */}
-      <header className="lg:hidden bg-primary text-white p-3 flex items-center justify-between">
+      <header className="lg:hidden bg-slate-900 text-white p-3 flex items-center justify-between">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -348,7 +348,7 @@ export default function AdminDashboard() {
         
         {/* Sidebar */}
         <nav 
-          className={`absolute left-0 top-0 h-full w-64 bg-primary text-white transform transition-transform duration-300 flex flex-col ${
+          className={`absolute left-0 top-0 h-full w-64 bg-slate-900 text-white transform transition-transform duration-300 flex flex-col ${
             mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >

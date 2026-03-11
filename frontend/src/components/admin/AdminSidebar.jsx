@@ -31,7 +31,7 @@ export default function AdminSidebar({
   };
 
   return (
-    <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
+    <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-slate-900 text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
       <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2 flex flex-col items-center' : ''}`}>
         {sidebarCollapsed ? (
           // Kapalı halde sadece logo ve kontör
