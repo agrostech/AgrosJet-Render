@@ -942,11 +942,18 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
       data-testid={`active-order-card-${order.id}`}
     >
       <div className="p-2.5">
-        {/* Restoran + Butonlar */}
+        {/* Restoran + Tutar/Ödeme + Butonlar */}
         <div className="flex items-center justify-between py-1.5">
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-semibold text-slate-700 truncate">{order.restaurant_name}</span>
-            <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0 w-fit mt-0.5`}>{statusConfig.label}</Badge>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <Badge className={`${statusConfig.color} text-white text-[10px] px-1.5 py-0`}>{statusConfig.label}</Badge>
+              <span className="text-[11px] font-bold text-slate-800">{formatCurrency(order.total_amount)}</span>
+              <div className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
+                <PaymentIcon className="w-2.5 h-2.5" />
+                <span>{getPaymentLabel(order)}</span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <button onClick={callRestaurant} className="flex items-center justify-center w-9 h-9 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-100 active:bg-orange-200" data-testid={`call-restaurant-btn-${order.id}`}>
@@ -1003,26 +1010,16 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
 
         <div className="border-t border-slate-100 mt-2" />
 
-        {/* Tutar + Ödeme + Detay */}
-        <div className="flex items-center gap-2 pt-2 pb-2">
-          <span className="text-xs font-bold text-slate-800 whitespace-nowrap">{formatCurrency(order.total_amount)}</span>
-          <div className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
-            <PaymentIcon className="w-2.5 h-2.5" />
-            <span>{getPaymentLabel(order)}</span>
-          </div>
-          <div className="flex-1" />
+        {/* Aksiyonlar + Detay */}
+        <div className="flex gap-2 pt-2">
           <button
             onClick={onViewDetails}
-            className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex-shrink-0"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex-shrink-0"
             data-testid={`view-detail-btn-${order.id}`}
             title="Sipariş Detayı"
           >
             <Eye className="w-3.5 h-3.5" />
           </button>
-        </div>
-
-        {/* Aksiyonlar */}
-        <div className="flex gap-2">
           {order.status === "confirmed" && (
             <>
               <Button
