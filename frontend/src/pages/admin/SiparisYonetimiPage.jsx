@@ -837,9 +837,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
           </button>
         </div>
         
-        {/* İstatistikler - Sadece Aktif Sekmede */}
+        {/* İstatistikler - Sadece Aktif Sekmede, Masaüstünde */}
         {mainTab === "active" && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1">
             <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-full text-xs whitespace-nowrap">
               <Package className="w-3 h-3 text-slate-500" />
               <span className="font-semibold text-slate-600">{stats.total}</span>
