@@ -1004,14 +1004,14 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
 
         <div className="border-t border-slate-100 mt-2" />
 
-        {/* Tutar + Ödeme + Detay + Aksiyonlar */}
-        <div className="flex items-center gap-2 pt-2">
+        {/* Tutar + Ödeme + Detay */}
+        <div className="flex items-center gap-2 pt-2 pb-2">
           <span className="text-xs font-bold text-slate-800 whitespace-nowrap">{formatCurrency(order.total_amount)}</span>
           <div className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${paymentInfo.bg} ${paymentInfo.color} font-medium`}>
             <PaymentIcon className="w-2.5 h-2.5" />
             <span>{getPaymentLabel(order)}</span>
           </div>
-          
+          <div className="flex-1" />
           <button
             onClick={onViewDetails}
             className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex-shrink-0"
@@ -1020,7 +1020,10 @@ function ActiveOrderCard({ order, onPickup, onDeliver, onNotReady, onViewDetails
           >
             <Eye className="w-3.5 h-3.5" />
           </button>
+        </div>
 
+        {/* Aksiyonlar */}
+        <div className="flex gap-2">
           {order.status === "confirmed" && (
             <>
               <Button
