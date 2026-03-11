@@ -1157,7 +1157,11 @@ async def get_couriers_matrix(company_id: str, include_inactive: bool = False):
             },
             # Diğer ayarlar
             "max_packages": c.get("max_packages", 5),
-            "daily_break_limit": c.get("daily_break_limit", 30)
+            "daily_break_limit": c.get("daily_break_limit", 30),
+            # Yetkiler
+            "permissions": {
+                "can_mark_not_ready": c.get("permissions", {}).get("can_mark_not_ready", True)
+            }
         })
     
     # İsme göre sırala
@@ -1225,5 +1229,17 @@ async def bulk_update_courier_settings(company_id: str, updates: List[dict]):
                     {"id": courier_id},
                     {"$set": {"hourly_rate": float(value) if value else None}}
                 )
+        
+        elif setting_type == "permission":
+            # Yetki toggle
+            courier = await db.couriers.find_one({"id": courier_id}, {"_id": 0, "permissions": 1})
+            if not courier:
+                continue
+            permissions = courier.get("permissions", {})
+            permissions[setting_key] = bool(value)
+            await db.couriers.update_one(
+                {"id": courier_id},
+                {"$set": {"permissions": permissions}}
+            )
     
     return {"message": "Ayarlar güncellendi"}

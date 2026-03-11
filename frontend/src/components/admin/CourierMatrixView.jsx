@@ -19,7 +19,8 @@ import {
   User,
   Save,
   Plus,
-  Minus
+  Minus,
+  Shield
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -104,6 +105,45 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
       setUpdating(prev => ({ ...prev, [cellKey]: false }));
     }
   };
+
+  // Yetki toggle
+  const handlePermissionToggle = async (courierId, permKey, currentValue) => {
+    const cellKey = `${courierId}-perm-${permKey}`;
+    setUpdating(prev => ({ ...prev, [cellKey]: true }));
+    
+    const newValue = !currentValue;
+    
+    // Optimistic update
+    setData(prev => ({
+      ...prev,
+      couriers: prev.couriers.map(c => {
+        if (c.id !== courierId) return c;
+        return { ...c, permissions: { ...c.permissions, [permKey]: newValue } };
+      })
+    }));
+    
+    try {
+      await axios.put(`${API}/companies/${companyId}/couriers/matrix/bulk-update`, [{
+        courier_id: courierId,
+        setting_type: "permission",
+        setting_key: permKey,
+        value: newValue
+      }]);
+    } catch (err) {
+      // Revert
+      setData(prev => ({
+        ...prev,
+        couriers: prev.couriers.map(c => {
+          if (c.id !== courierId) return c;
+          return { ...c, permissions: { ...c.permissions, [permKey]: currentValue } };
+        })
+      }));
+      toast.error("Güncelleme başarısız");
+    } finally {
+      setUpdating(prev => ({ ...prev, [cellKey]: false }));
+    }
+  };
+
 
   // Sayısal değer değişikliğini local state'e kaydet
   const handleNumericChange = (courierId, field, value) => {
@@ -249,10 +289,16 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                   Max
                 </div>
               </th>
-              <th className="p-2 text-center font-semibold bg-purple-100">
+              <th className="p-2 text-center font-semibold bg-purple-100 border-r-2 border-slate-300">
                 <div className="flex items-center justify-center gap-1">
                   <Coffee className="w-3 h-3" />
                   Mola
+                </div>
+              </th>
+              <th className="p-2 text-center font-semibold bg-indigo-100">
+                <div className="flex items-center justify-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  Yetkiler
                 </div>
               </th>
             </tr>
@@ -279,8 +325,11 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
               <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-blue-50 border-r-2 border-slate-300">
                 Paket
               </th>
-              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-purple-50">
+              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-purple-50 border-r-2 border-slate-300">
                 Dk
+              </th>
+              <th className="p-1.5 text-center text-[10px] text-muted-foreground bg-indigo-50">
+                H.Değil
               </th>
             </tr>
           </thead>
@@ -410,7 +459,7 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                   </td>
                   
                   {/* Mola Limiti */}
-                  <td className="p-1 text-center">
+                  <td className="p-1 text-center border-r-2 border-slate-300">
                     {(() => {
                       const editKey = `${courier.id}-daily_break_limit`;
                       const originalValue = courier.daily_break_limit || 30;
@@ -463,6 +512,30 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
                                 </button>
                               )}
                             </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </td>
+                  
+                  {/* Yetkiler - Hazır Değil */}
+                  <td className="p-1 text-center">
+                    {(() => {
+                      const value = courier.permissions?.can_mark_not_ready ?? true;
+                      const cellKey = `${courier.id}-perm-can_mark_not_ready`;
+                      const isUpdatingCell = updating[cellKey];
+                      
+                      return (
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => !isUpdatingCell && handlePermissionToggle(courier.id, "can_mark_not_ready", value)}
+                        >
+                          {isUpdatingCell ? (
+                            <RefreshCw className="w-3 h-3 animate-spin mx-auto text-slate-400" />
+                          ) : value ? (
+                            <Check className="w-4 h-4 mx-auto text-green-600" />
+                          ) : (
+                            <X className="w-4 h-4 mx-auto text-red-400" />
                           )}
                         </div>
                       );
