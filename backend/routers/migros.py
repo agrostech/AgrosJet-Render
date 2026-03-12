@@ -229,8 +229,11 @@ async def poll_orders(restaurant_id: str):
         if not restaurant:
             raise HTTPException(status_code=404, detail="Restoran bulunamadı")
         
-        # Önce migros_credentials, sonra migros_config, sonra integration_stores'a bak
-        migros_config = restaurant.get("migros_credentials", {})
+        # Önce platform_integrations.migros, sonra integration_stores, sonra migros_credentials
+        migros_config = restaurant.get("platform_integrations", {}).get("migros", {})
+        
+        if not migros_config.get("api_key"):
+            migros_config = restaurant.get("migros_credentials", {})
         
         if not migros_config.get("api_key"):
             migros_config = restaurant.get("migros_config", {})
@@ -253,10 +256,15 @@ async def poll_orders(restaurant_id: str):
         if not migros_config.get("api_key"):
             return {"success": False, "error": "Migros entegrasyonu aktif değil"}
         
+        # is_test boolean olarak handle et
+        is_test = migros_config.get("is_test", False)
+        if isinstance(is_test, str):
+            is_test = is_test.lower() in ("true", "1", "yes")
+        
         service = MigrosYemekService(
             api_key=migros_config.get("api_key"),
             secret_key=migros_config.get("secret_key"),
-            is_test=migros_config.get("is_test", True)
+            is_test=bool(is_test)
         )
         
         # Bekleyen siparişleri al
@@ -359,51 +367,94 @@ async def sync_order_status_to_migros(order_id: str):
         if not restaurant:
             raise HTTPException(status_code=404, detail="Restoran bulunamadı")
         
-        migros_config = restaurant.get("migros_credentials", {})
-        if not migros_config.get("enabled"):
-            return {"success": False, "error": "Migros entegrasyonu aktif değil"}
+        # Config'i doğru yerden al: platform_integrations.migros → integration_stores → migros_credentials
+        migros_config = restaurant.get("platform_integrations", {}).get("migros", {})
+        
+        if not migros_config.get("api_key"):
+            for store in restaurant.get("integration_stores", []):
+                if store.get("platform") == "migros" and store.get("enabled"):
+                    creds = store.get("credentials", {})
+                    migros_config = {
+                        "enabled": True,
+                        "api_key": creds.get("api_key"),
+                        "secret_key": creds.get("secret_key"),
+                        "store_id": creds.get("store_id"),
+                        "is_test": creds.get("is_test", False)
+                    }
+                    break
+        
+        if not migros_config.get("api_key"):
+            migros_config = restaurant.get("migros_credentials", {})
+        
+        if not migros_config.get("api_key") or not migros_config.get("secret_key"):
+            return {"success": False, "error": "Migros API credentials bulunamadı"}
+        
+        # is_test boolean olarak handle et
+        is_test = migros_config.get("is_test", False)
+        if isinstance(is_test, str):
+            is_test = is_test.lower() in ("true", "1", "yes")
         
         service = MigrosYemekService(
-            api_key=migros_config.get("api_key"),
-            secret_key=migros_config.get("secret_key"),
-            is_test=migros_config.get("is_test", True)
+            api_key=migros_config["api_key"],
+            secret_key=migros_config["secret_key"],
+            is_test=bool(is_test)
         )
         
-        # ShiftJet durumunu Migros durumuna çevir
+        # Sıralı durum geçişi: Approved → Prepared → Delivery → Completed
         shiftjet_status = order.get("status", "")
-        migros_status = None
+        current_migros_status = order.get("migros_status", "Approved")
         
-        status_map = {
-            "preparing": "Prepared",
-            "ready": "Prepared", 
-            "on_the_way": "Delivery",
-            "delivering": "Delivery",
-            "delivered": "Completed",
-            "cancelled": "Rejected"
-        }
+        statuses_to_send = []
         
-        migros_status = status_map.get(shiftjet_status)
+        if shiftjet_status in ("preparing", "ready"):
+            if current_migros_status != "Prepared":
+                statuses_to_send = ["Prepared"]
         
-        if not migros_status:
-            return {"success": False, "error": f"Bu durum için Migros güncellemesi gerekmiyor: {shiftjet_status}"}
+        elif shiftjet_status in ("on_the_way", "delivering"):
+            if current_migros_status not in ("Prepared", "Delivery"):
+                statuses_to_send = ["Prepared", "Delivery"]
+            elif current_migros_status == "Prepared":
+                statuses_to_send = ["Delivery"]
         
-        # Migros'a gönder
-        result = await service.update_order_status(
-            order_id=migros_order_id,
-            store_id=migros_store_id,
-            status=migros_status
-        )
+        elif shiftjet_status == "delivered":
+            if current_migros_status == "Approved":
+                statuses_to_send = ["Prepared", "Delivery", "Completed"]
+            elif current_migros_status == "Prepared":
+                statuses_to_send = ["Delivery", "Completed"]
+            elif current_migros_status == "Delivery":
+                statuses_to_send = ["Completed"]
         
-        if result.get("success", True):
-            # Veritabanında migros_status güncelle
+        elif shiftjet_status == "cancelled":
+            statuses_to_send = ["Rejected"]
+        
+        if not statuses_to_send:
+            return {"success": False, "error": f"Bu durum için Migros güncellemesi gerekmiyor: {shiftjet_status} (mevcut: {current_migros_status})"}
+        
+        # Durumları sırayla gönder
+        last_success_status = None
+        for migros_status in statuses_to_send:
+            result = await service.update_order_status(
+                order_id=migros_order_id,
+                store_id=migros_store_id,
+                status=migros_status
+            )
+            
+            if result.get("success", True):
+                last_success_status = migros_status
+                logger.info(f"Migros durum güncellendi: {order_id} -> {migros_status}")
+            else:
+                logger.warning(f"Migros durum hatası: {order_id}, {migros_status}, error={result.get('error')}")
+                break
+        
+        # Son başarılı durumu veritabanına kaydet
+        if last_success_status:
             await db.orders.update_one(
                 {"id": order_id},
-                {"$set": {"migros_status": migros_status}}
+                {"$set": {"migros_status": last_success_status}}
             )
-            logger.info(f"Migros durum güncellendi: {order_id} -> {migros_status}")
-            return {"success": True, "migros_status": migros_status}
+            return {"success": True, "migros_status": last_success_status, "statuses_sent": statuses_to_send}
         else:
-            return {"success": False, "error": result.get("error", "Bilinmeyen hata")}
+            return {"success": False, "error": "Migros durum güncellemesi başarısız"}
         
     except Exception as e:
         logger.error(f"Migros durum senkronizasyonu hatası: {e}")
