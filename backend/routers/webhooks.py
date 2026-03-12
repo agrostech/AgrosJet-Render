@@ -579,18 +579,51 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
             "options": []
         }
         
-        # Opsiyonları ekle
-        item_options = item.get("options") or []
-        for opt in item_options:
-            opt_price = opt.get("primaryPrice", 0) / 100
-            item_data["options"].append({
-                "name": f"{opt.get('headerName', '')}: {opt.get('itemNames', '')}",
-                "header": opt.get("headerName", ""),
-                "value": opt.get("itemNames", ""),
-                "price": opt_price,
-                "quantity": opt.get("quantity", 1),
-                "excluded": opt.get("excluded", False)
-            })
+        # Opsiyonları recursive olarak ekle (subOptions desteği)
+        def parse_options_recursive(options_list, parent_header=None):
+            """Migros opsiyonlarını recursive olarak parse et"""
+            parsed = []
+            for opt in (options_list or []):
+                opt_price = opt.get("primaryPrice", 0) / 100
+                header_name = opt.get("headerName", "")
+                item_names = opt.get("itemNames", "")
+                quantity = opt.get("quantity", 1)
+                excluded = opt.get("excluded", False)
+                
+                if item_names:
+                    # Virgülle ayrılmış çoklu öğeleri ayrı ayrı ekle
+                    items_split = [x.strip() for x in item_names.split(",") if x.strip()]
+                    if len(items_split) > 1:
+                        for single_item in items_split:
+                            parsed.append({
+                                "name": f"{header_name}: {single_item}" if header_name else single_item,
+                                "header": header_name,
+                                "value": single_item,
+                                "price": 0,
+                                "quantity": 1,
+                                "excluded": excluded,
+                                "parent_header": parent_header
+                            })
+                    else:
+                        parsed.append({
+                            "name": f"{header_name}: {item_names}" if header_name else item_names,
+                            "header": header_name,
+                            "value": item_names,
+                            "price": opt_price,
+                            "quantity": quantity,
+                            "excluded": excluded,
+                            "parent_header": parent_header
+                        })
+                
+                # Alt seçenekleri (subOptions) recursive olarak parse et
+                sub_options = opt.get("subOptions") or opt.get("options") or opt.get("childOptions") or []
+                if sub_options:
+                    child_parent = header_name or item_names or parent_header
+                    parsed.extend(parse_options_recursive(sub_options, child_parent))
+            
+            return parsed
+        
+        item_data["options"] = parse_options_recursive(item.get("options") or [])
         
         items.append(item_data)
     
