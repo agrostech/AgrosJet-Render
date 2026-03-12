@@ -30,6 +30,7 @@ import {
   Route,
   ClipboardList,
   Bike,
+  BellOff,
 } from "lucide-react";
 
 // Ortak utility fonksiyonları import et
@@ -1105,8 +1106,14 @@ function OrderDetailModal({ order, open, onClose, onPickup, onDeliver, onOpenMap
           </div>
 
           {/* Özel Teslimat Uyarıları */}
-          {(order.contactless_delivery || order.save_green) && (
+          {(order.contactless_delivery || order.save_green || order.ring_doorbell === false) && (
             <div className="space-y-1.5">
+              {order.ring_doorbell === false && (
+                <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded text-orange-700 text-xs">
+                  <BellOff className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="font-medium">Zili çalmayın!</span>
+                </div>
+              )}
               {order.contactless_delivery && (
                 <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-xs">
                   <span>⚠️</span>
