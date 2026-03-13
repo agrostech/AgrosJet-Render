@@ -319,7 +319,26 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                                 statuses_to_send = ["Completed"]
                         
                         elif new_status == "cancelled":
-                            statuses_to_send = ["Rejected"]
+                            # İptal için /Order/v2/CancelOrder endpoint'ini kullan
+                            migros_user_id = migros_data.get("user_id")
+                            # cancelReasonId: Migros iptal sebep kodu (varsayılan: 1 = Restoran tarafından iptal)
+                            migros_cancel_reason = 1
+                            
+                            cancel_result = await service.cancel_order(
+                                order_id=migros_order_id,
+                                user_id=migros_user_id or 0,
+                                cancel_reason_id=migros_cancel_reason,
+                                notify_user=True
+                            )
+                            
+                            if cancel_result.get("success", True):
+                                last_success_status = "Rejected"
+                                logger.info(f"Migros iptal başarılı: order={order_id}")
+                            else:
+                                logger.warning(f"Migros iptal hatası: order={order_id}, error={cancel_result.get('error')}")
+                            
+                            # statuses_to_send döngüsüne girmesin
+                            statuses_to_send = []
                         
                         # Durumları sırayla gönder
                         last_success_status = None

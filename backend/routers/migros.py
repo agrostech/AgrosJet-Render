@@ -425,7 +425,26 @@ async def sync_order_status_to_migros(order_id: str):
                 statuses_to_send = ["Completed"]
         
         elif shiftjet_status == "cancelled":
-            statuses_to_send = ["Rejected"]
+            # İptal için /Order/v2/CancelOrder endpoint'ini kullan
+            migros_data = order.get("migros_data", {})
+            migros_user_id = migros_data.get("user_id")
+            
+            cancel_result = await service.cancel_order(
+                order_id=migros_order_id,
+                user_id=migros_user_id or 0,
+                cancel_reason_id=1,
+                notify_user=True
+            )
+            
+            if cancel_result.get("success", True):
+                await db.orders.update_one(
+                    {"id": order_id},
+                    {"$set": {"migros_status": "Rejected"}}
+                )
+                logger.info(f"Migros iptal başarılı: {order_id}")
+                return {"success": True, "migros_status": "Rejected", "statuses_sent": ["CancelOrder"]}
+            else:
+                return {"success": False, "error": cancel_result.get("error", "Migros iptal hatası")}
         
         if not statuses_to_send:
             return {"success": False, "error": f"Bu durum için Migros güncellemesi gerekmiyor: {shiftjet_status} (mevcut: {current_migros_status})"}
