@@ -40,8 +40,8 @@ export default function IptalSiparislerPage({ companyId, onOrderSelect, isSuperA
     const closingTime = companyData?.closing_time || "23:00";
     
     // Format: YYYY-MM-DDTHH:MM
-    const startDateTime = `${today.toISOString().split('T')[0]}T${openingTime}`;
-    const endDateTime = `${tomorrow.toISOString().split('T')[0]}T${closingTime}`;
+    const startDateTime = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}T${openingTime}`;
+    const endDateTime = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}T${closingTime}`;
     
     return { startDateTime, endDateTime };
   }, []);

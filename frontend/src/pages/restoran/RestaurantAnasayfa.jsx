@@ -484,8 +484,12 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
 
   // Calculate stats
   const stats = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayOrders = orders.filter(o => o.created_at?.startsWith(today));
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+    const todayOrders = orders.filter(o => o.created_at?.startsWith(todayStr));
     
     // Ortalama Hazırlık Süresi: Sipariş sisteme düştükten sonra YOLA ÇIKARILANA kadar
     // picked_up_at veya on_the_way status zamanı kullanılır

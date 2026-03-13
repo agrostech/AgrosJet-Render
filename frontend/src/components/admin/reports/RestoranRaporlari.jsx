@@ -20,7 +20,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const openingTime = companyData?.opening_time || "09:00";
     const closingTime = companyData?.closing_time || "23:00";
-    const formatDate = (d) => d.toISOString().split('T')[0];
+    const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     return {
       start: `${formatDate(today)}T${openingTime}`,
       end: `${formatDate(tomorrow)}T${closingTime}`

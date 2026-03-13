@@ -56,25 +56,24 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
   const [entities, setEntities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState("");
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const fmtLocal = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  const [selectedDate, setSelectedDate] = useState(() => fmtLocal(new Date()));
 
   const goToPreviousDay = () => {
-    const current = new Date(selectedDate);
+    const current = new Date(selectedDate + 'T12:00:00');
     current.setDate(current.getDate() - 1);
-    setSelectedDate(current.toISOString().split('T')[0]);
+    setSelectedDate(fmtLocal(current));
   };
 
   const goToNextDay = () => {
-    const current = new Date(selectedDate);
+    const current = new Date(selectedDate + 'T12:00:00');
     current.setDate(current.getDate() + 1);
-    setSelectedDate(current.toISOString().split('T')[0]);
+    setSelectedDate(fmtLocal(current));
   };
 
   const goToToday = () => {
-    setSelectedDate(new Date().toISOString().split('T')[0]);
+    setSelectedDate(fmtLocal(new Date()));
   };
 
   const fetchEntities = useCallback(async () => {
@@ -132,7 +131,7 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
     }
   }, [open, fetchEntities, fetchLogs]);
 
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const isToday = selectedDate === fmtLocal(new Date());
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

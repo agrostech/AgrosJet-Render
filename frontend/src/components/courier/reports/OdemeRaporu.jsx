@@ -106,7 +106,7 @@ export default function OdemeRaporu({ courierId, companyId }) {
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
       
-      const formatDate = (d) => d.toISOString().split('T')[0];
+      const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       
       setStartDateTime(`${formatDate(today)}T${openingTime}`);
       setEndDateTime(`${formatDate(tomorrow)}T${closingTime}`);

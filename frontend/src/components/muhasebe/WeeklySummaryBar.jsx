@@ -17,7 +17,8 @@ export default function WeeklySummaryBar({ companyId, selectedDate, onDateSelect
     const today = new Date();
     const monday = new Date(today);
     monday.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
-    setWeekStart(monday.toISOString().split('T')[0]);
+    const fmtLocal = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    setWeekStart(fmtLocal(monday));
   }, []);
 
   useEffect(() => {
@@ -42,7 +43,8 @@ export default function WeeklySummaryBar({ companyId, selectedDate, onDateSelect
   const navigateWeek = (direction) => {
     const current = new Date(weekStart);
     current.setDate(current.getDate() + (direction * 7));
-    setWeekStart(current.toISOString().split('T')[0]);
+    const fmtLocal = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    setWeekStart(fmtLocal(current));
   };
 
   const formatWeekRange = () => {

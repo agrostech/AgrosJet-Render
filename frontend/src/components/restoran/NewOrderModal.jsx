@@ -460,13 +460,14 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
   // Date/time helpers
   const getMinDate = () => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+    return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   };
 
   const getMinTime = () => {
     if (!scheduledDate) return "";
-    const today = new Date().toISOString().split("T")[0];
-    if (scheduledDate === today) {
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    if (scheduledDate === todayStr) {
       const now = new Date();
       now.setMinutes(now.getMinutes() + 45);
       return now.toTimeString().slice(0, 5);
@@ -816,7 +817,7 @@ export default function NewOrderModal({ open, onOpenChange, restaurantId, onOrde
               setIsScheduled(checked);
               if (checked) {
                 const now = new Date();
-                setScheduledDate(now.toISOString().split("T")[0]);
+                setScheduledDate(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`);
                 now.setHours(now.getHours() + 1);
                 now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
                 setScheduledTime(now.toTimeString().slice(0, 5));

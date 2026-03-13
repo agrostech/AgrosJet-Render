@@ -67,8 +67,8 @@ export default function IhlalRaporu({ courierId, companyId }) {
       const res = await axios.get(`${API}/shift-violations/${companyId}`, {
         params: {
           courier_id: courierId,
-          start_date: monday.toISOString().split("T")[0],
-          end_date: nextMonday.toISOString().split("T")[0],
+          start_date: `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`,
+          end_date: `${nextMonday.getFullYear()}-${String(nextMonday.getMonth()+1).padStart(2,'0')}-${String(nextMonday.getDate()).padStart(2,'0')}`,
           limit: 100
         }
       });
