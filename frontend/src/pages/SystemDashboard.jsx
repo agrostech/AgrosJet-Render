@@ -231,10 +231,13 @@ function SirketlerPage() {
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
   const [impersonateUrl, setImpersonateUrl] = useState("");
   const [impersonateCompanyName, setImpersonateCompanyName] = useState("");
+  const savedSystemSession = useRef(null);
 
   const handleImpersonateCompany = async (company) => {
     try {
-      const systemUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const currentUser = localStorage.getItem("user");
+      savedSystemSession.current = currentUser;
+      const systemUser = JSON.parse(currentUser || "{}");
       const res = await axios.post(`${API}/restaurant-users/company-impersonate/${company.id}`, {
         admin_id: systemUser.id,
       });
@@ -245,6 +248,16 @@ function SirketlerPage() {
     } catch {
       toast.error("Panele bağlanılamadı");
     }
+  };
+
+  const closeImpersonateModal = () => {
+    // Sistem admin oturumunu geri yükle
+    if (savedSystemSession.current) {
+      localStorage.setItem("user", savedSystemSession.current);
+    }
+    setShowImpersonateModal(false);
+    setImpersonateUrl("");
+    savedSystemSession.current = null;
   };
 
   if (loading) return <PageLoading />;
@@ -520,7 +533,7 @@ function SirketlerPage() {
                 <ExternalLink className="w-4 h-4 text-primary" />
                 <span className="font-semibold text-sm">{impersonateCompanyName} - Admin Paneli</span>
               </div>
-              <Button size="sm" variant="ghost" onClick={() => { setShowImpersonateModal(false); setImpersonateUrl(""); }} className="h-8 w-8 p-0">
+              <Button size="sm" variant="ghost" onClick={closeImpersonateModal} className="h-8 w-8 p-0">
                 <X className="w-4 h-4" />
               </Button>
             </div>
