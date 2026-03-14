@@ -142,11 +142,6 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       </div>
 
       ${order.notes ? `<div class="notes"><strong>NOT:</strong> ${order.notes}</div>` : ""}
-
-      <div class="footer">
-        --------------------------------<br>
-        AgrosJet Siparis Sistemi
-      </div>
     </body>
     </html>
   `;
@@ -319,12 +314,6 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       </div>
 
       ${order.notes ? `<div class="notes"><strong>Siparis Notu:</strong><br>${order.notes}</div>` : ""}
-
-      <div class="footer">
-        --------------------------------<br>
-        AgrosJet Siparis Yonetim Sistemi<br>
-        --------------------------------
-      </div>
     </body>
     </html>
   `;
