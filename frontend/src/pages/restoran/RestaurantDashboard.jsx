@@ -50,6 +50,8 @@ export default function RestaurantDashboard() {
   const [warningCount, setWarningCount] = useState(0); // Kalan uyarı hakkı (10'dan geriye sayar)
   const [penaltyApplying, setPenaltyApplying] = useState(false);
   const invoiceWarningRef = useRef(null);
+  const [isImpersonate, setIsImpersonate] = useState(false);
+  const [impersonateError, setImpersonateError] = useState(false);
 
   // Derive currentPage from location
   const getCurrentPage = () => {
@@ -66,7 +68,8 @@ export default function RestaurantDashboard() {
     const impersonateToken = params.get("token");
     
     if (impersonateToken) {
-      // Admin impersonate mode
+      // Admin impersonate mode - localStorage'a dokunma
+      setIsImpersonate(true);
       axios.get(`${API}/restaurant-users/impersonate-verify/${impersonateToken}`)
         .then(res => {
           const userData = res.data;
@@ -83,8 +86,7 @@ export default function RestaurantDashboard() {
           }
         })
         .catch(() => {
-          // Token geçersiz - ana sayfaya yönlendir
-          navigate("/");
+          setImpersonateError(true);
         });
       return;
     }
@@ -271,6 +273,7 @@ export default function RestaurantDashboard() {
   }, [user?.restaurant_id, fetchOrders, fetchPermissions, checkPermissionsUpdate]);
 
   const handleLogout = () => {
+    if (isImpersonate) return; // Impersonate modda çıkış yapma
     localStorage.removeItem("user");
     navigate("/");
   };
@@ -304,6 +307,14 @@ export default function RestaurantDashboard() {
       toast.error(err.response?.data?.detail || "Kurye atanamadı");
     }
   };
+
+  if (impersonateError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <p className="text-muted-foreground">Bağlantı süresi dolmuş veya geçersiz.</p>
+      </div>
+    );
+  }
 
   if (!user) {
     return null;

@@ -129,18 +129,24 @@ async def admin_impersonate_restaurant(restaurant_id: str, request: Request):
 async def verify_impersonate_token(token: str):
     """Impersonate tokenini doğrula ve kullanıcı bilgisi döndür"""
     record = await db.impersonate_tokens.find_one(
-        {"token": token, "used": False},
+        {"token": token},
         {"_id": 0}
     )
     
     if not record:
-        raise HTTPException(status_code=401, detail="Geçersiz veya kullanılmış token")
+        raise HTTPException(status_code=401, detail="Geçersiz token")
     
-    # Token'ı kullanıldı işaretle
-    await db.impersonate_tokens.update_one(
-        {"token": token},
-        {"$set": {"used": True}}
-    )
+    # 30 dakika süre kontrolü
+    created = record.get("created_at")
+    if created:
+        from datetime import timedelta
+        if isinstance(created, str):
+            created = datetime.fromisoformat(created.replace('Z', '+00:00'))
+        now = datetime.now(timezone.utc)
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        if (now - created).total_seconds() > 1800:
+            raise HTTPException(status_code=401, detail="Token süresi dolmuş")
     
     return {
         "id": f"impersonate-{record['admin_id']}",
