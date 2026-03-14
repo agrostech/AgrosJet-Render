@@ -184,7 +184,7 @@ export default function KarZararRaporu({ companyId }) {
             <div className="p-3 border rounded-lg" data-testid="avg-hourly-rate">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                 <Clock className="w-3.5 h-3.5" />
-                Ort. Saatlik Ücret
+                Ort. Saatlik Kazanç
               </div>
               <p className="text-lg font-bold text-slate-800">
                 {data.total_hours > 0 ? `${fmt(data.avg_hourly_rate)} TL` : "—"}
