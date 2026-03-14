@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -2069,20 +2069,13 @@ export default function SystemDashboard() {
       )}
 
       <div className="flex">
-        <aside className={`hidden lg:flex flex-col min-h-screen bg-primary text-white transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
-          <div className={`border-b border-white/20 ${sidebarCollapsed ? 'p-3 flex items-center justify-center' : 'p-6'}`}>
+        <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen bg-primary text-white transition-all duration-300 z-40 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
+          <div className={`p-4 border-b border-white/20 ${sidebarCollapsed ? 'px-2 flex flex-col items-center' : ''}`}>
             {sidebarCollapsed ? (
-              <button onClick={() => setSidebarCollapsed(false)} className="p-1 hover:bg-white/10 rounded" title="Menüyü Aç">
-                <PanelLeft className="w-5 h-5" />
-              </button>
+              <Building2 className="w-6 h-6" />
             ) : (
               <>
-                <div className="flex items-center justify-between">
-                  <h1 className="font-heading text-xl font-bold">Sistem Yönetimi</h1>
-                  <button onClick={() => setSidebarCollapsed(true)} className="p-1 hover:bg-white/10 rounded" title="Menüyü Kapat">
-                    <PanelLeftClose className="w-4 h-4" />
-                  </button>
-                </div>
+                <h1 className="font-heading text-lg font-bold truncate">Sistem Yönetimi</h1>
                 <p className="text-white/60 text-sm mt-1">Ana Kontrol Paneli</p>
                 <p className="text-white/80 text-sm font-mono mt-2">{user.name}</p>
               </>
@@ -2090,27 +2083,40 @@ export default function SystemDashboard() {
           </div>
           <nav className="flex-1 py-4">
             {NAV_ITEMS.map((item) => (
-              <Link key={item.path} to={item.path} title={item.label} className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-6 py-3'} text-sm font-semibold transition-colors ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`}>
+              <Link
+                key={item.path}
+                to={item.path}
+                title={sidebarCollapsed ? item.label : ''}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"} ${sidebarCollapsed ? 'justify-center px-2' : ''}`}
+              >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                {!sidebarCollapsed && item.label}
+                {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             ))}
           </nav>
-          <div className={`border-t border-white/20 ${sidebarCollapsed ? 'p-2 flex justify-center' : 'p-4'}`}>
-            {sidebarCollapsed ? (
-              <button onClick={handleLogout} className="p-2 hover:bg-white/10 rounded" title="Çıkış Yap">
-                <LogOut className="w-4 h-4" />
-              </button>
-            ) : (
-              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-white hover:bg-white/10 font-semibold text-sm">
-                <LogOut className="w-4 h-4 mr-2" />
-                Çıkış Yap
-              </Button>
-            )}
+          <div className="border-t border-white/20">
+            <Button 
+              variant="ghost" 
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)} 
+              className={`w-full justify-center text-white hover:bg-white/10 py-2 ${sidebarCollapsed ? '' : 'justify-end pr-4'}`}
+              data-testid="system-sidebar-toggle-btn"
+            >
+              {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={handleLogout} 
+              className={`w-full text-white hover:bg-white/10 font-semibold text-sm py-2.5 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-start px-4'}`}
+              data-testid="system-logout-btn"
+              title={sidebarCollapsed ? 'Çıkış Yap' : ''}
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="ml-2">Çıkış Yap</span>}
+            </Button>
           </div>
         </aside>
 
-        <main className="flex-1 overflow-x-auto">
+        <main className={`flex-1 overflow-x-auto transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'}`}>
           <div className="p-4 md:p-8 min-h-[calc(100vh-80px)]">
             <Routes>
               <Route index element={<SirketlerPage />} />
