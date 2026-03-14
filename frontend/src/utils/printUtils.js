@@ -71,7 +71,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:36px;max-width:80%;object-fit:contain;margin-bottom:6px;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:56px;max-width:90%;object-fit:contain;margin-bottom:4px;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -94,8 +94,8 @@ const generate58mmReceipt = (order, logoUrl = "") => {
           color: #000;
         }
         .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-        .order-number { font-size: 16px; font-weight: bold; }
-        .platform { font-size: 10px; background: #000; color: #fff; padding: 2px 6px; display: inline-block; margin-top: 4px; }
+        .header-info { font-size: 10px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .platform { font-size: 10px; background: #000; color: #fff; padding: 2px 6px; display: inline-block; }
         .section { margin: 8px 0; padding: 8px 0; border-bottom: 1px dashed #000; }
         .label { font-size: 9px; font-weight: bold; }
         .value { font-size: 11px; font-weight: bold; }
@@ -109,9 +109,10 @@ const generate58mmReceipt = (order, logoUrl = "") => {
     <body>
       <div class="header">
         ${logoHtml}
-        <div class="order-number">#${order.order_number}</div>
-        <div class="platform">${platform}</div>
-        <div style="font-size:10px;margin-top:4px;">${formatDate(order.created_at)}</div>
+        <div class="header-info">
+          <span class="platform">${platform}</span>
+          <span>${formatDate(order.created_at)}</span>
+        </div>
       </div>
 
       <div class="section">
@@ -172,7 +173,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:48px;max-width:80%;object-fit:contain;margin-bottom:8px;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:64px;max-width:90%;object-fit:contain;margin-bottom:6px;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -200,10 +201,12 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           padding-bottom: 10px; 
           margin-bottom: 10px; 
         }
-        .order-number { 
-          font-size: 22px; 
-          font-weight: bold; 
-          letter-spacing: 1px;
+        .header-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 6px;
+          font-size: 11px;
         }
         .platform { 
           font-size: 11px; 
@@ -211,7 +214,6 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           color: #fff; 
           padding: 3px 10px; 
           display: inline-block; 
-          margin-top: 6px;
         }
         .section { 
           margin: 10px 0; 
@@ -283,9 +285,10 @@ const generate80mmReceipt = (order, logoUrl = "") => {
     <body>
       <div class="header">
         ${logoHtml}
-        <div class="order-number">#${order.order_number}</div>
-        <div class="platform">${platform}</div>
-        <div style="font-size:11px;margin-top:6px;">${formatDate(order.created_at)}</div>
+        <div class="header-info">
+          <span class="platform">${platform}</span>
+          <span>${formatDate(order.created_at)}</span>
+        </div>
       </div>
 
       <div class="section">
