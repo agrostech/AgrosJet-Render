@@ -164,9 +164,8 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       ${order.note && order.note !== order.notes ? `<div class="notes"><strong>NOT:</strong> ${order.note}</div>` : ""}
       ${order.description ? `<div class="notes"><strong>AÇIKLAMA:</strong> ${order.description}</div>` : ""}
 
-      ${(order.verification_code || order.contactless_delivery || order.ring_doorbell === false) ? `
+      ${(order.contactless_delivery || order.ring_doorbell === false) ? `
       <div style="padding:3px 0;border-top:1px dashed #000;font-size:9px;line-height:1.5;">
-        ${order.verification_code ? `<div><strong>Doğrulama:</strong> ${order.verification_code}</div>` : ""}
         ${order.contactless_delivery ? `<div><strong>Temassız Teslimat</strong></div>` : ""}
         ${order.ring_doorbell === false ? `<div><strong>Zile Basma</strong></div>` : ""}
       </div>` : ""}
@@ -346,9 +345,8 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       ${order.note && order.note !== order.notes ? `<div class="notes"><strong>Sipariş Notu:</strong><br>${order.note}</div>` : ""}
       ${order.description ? `<div class="notes"><strong>Açıklama:</strong><br>${order.description}</div>` : ""}
 
-      ${(order.verification_code || order.contactless_delivery || order.ring_doorbell === false) ? `
+      ${(order.contactless_delivery || order.ring_doorbell === false) ? `
       <div style="padding:4px 0;border-top:1px dashed #000;font-size:12px;line-height:1.6;">
-        ${order.verification_code ? `<div><strong>Doğrulama Kodu:</strong> ${order.verification_code}</div>` : ""}
         ${order.contactless_delivery ? `<div><strong>Temassız Teslimat</strong></div>` : ""}
         ${order.ring_doorbell === false ? `<div><strong>Zile Basma</strong></div>` : ""}
       </div>` : ""}
