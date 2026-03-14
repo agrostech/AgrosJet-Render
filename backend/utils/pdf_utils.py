@@ -128,7 +128,7 @@ def add_page_numbers(writer: PdfWriter) -> PdfWriter:
         c = rl_canvas.Canvas(overlay_buf, pagesize=(pw, ph))
         c.setFont("TRSans", 9)
         c.setFillColorRGB(0.45, 0.45, 0.45)
-        c.drawCentredString(pw / 2, 15, f"Sayfa {i + 1} / {total}")
+        c.drawRightString(pw - 20, 15, f"Sayfa {i + 1} / {total}")
         c.save()
         overlay_buf.seek(0)
 
