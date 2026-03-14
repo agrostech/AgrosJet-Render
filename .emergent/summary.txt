@@ -1,166 +1,161 @@
 <analysis>**original_problem_statement:**
-The initial problem was to fix a logic error in the courier ETA calculation. The scope quickly expanded to include several significant UI/UX improvements and bug fixes requested by the user.
+The user initially requested fixes for dark mode UI bugs. The scope then expanded significantly to include a series of features and fixes based on user requests throughout the session.
 
-In this session, the user's requests included:
-1.  **UI/UX Redesign:**
-    *   Completely redesign the courier panel's order card to be more compact and move details into a modal.
-    *   Iteratively refine the new courier order card design (reordering elements, adjusting spacing, adding icons).
-    *   Redesign the admin panel's mobile order filter header for a more modern and compact look.
-    *   Fix layout issues on the admin panel's mobile order card view.
-2.  **New Feature: Courier Permissions:**
-    *   Implement a new permission system for couriers, starting with the ability to mark an order as not ready.
-    *   Create a Permissions modal in the admin panel's couriers section to manage these settings.
-    *   Integrate this new permission into the main Settings Matrix for bulk editing.
-    *   Enforce the permission on the backend and conditionally hide the Not Ready button in the courier's UI.
-3.  **New Feature: Dark Mode:**
-    *   Implement a site-wide, persistent dark mode for both the admin and courier panels.
-    *   Add a toggle switch to the sidebars for both desktop and mobile views.
-    *   Ensure all components, including cards, buttons, badges, forms, and live maps, are correctly styled for dark mode.
-4.  **Backend Logic:**
-    *   Prevent couriers from setting their status to Offline or On Break if they have active orders, with an exception if their work shift has ended.
-5.  **Maintenance:**
-    *   Update the Firebase Cloud Messaging (FCM) notification channel ID multiple times as requested (, ).
-    *   Remove legacy statistics displays from the admin panel desktop view.
+The main tasks addressed were:
+1.  **Migros Integration:** A comprehensive overhaul including UI notices, parsing nested data, fixing status updates, and using the correct API endpoints.
+2.  **System-Wide Bug Fixes:** A critical timezone bug affecting all date filters was found during a system audit and resolved. An issue with the Adisyo integration was identified as a configuration problem.
+3.  **UI/UX Enhancements:** The modals on the shift management page () were visually simplified. Filters and sorting were added to the Violations modal, and usability bugs were fixed in other modals on the page.
+4.  **New Feature - Penalty System:** A new system was built allowing companies to configure and automatically apply financial penalties for courier violations. This included backend APIs and a new settings UI within the Violations modal.
+5.  **New Feature - Accounting Reports:** Two new major reports were added to a new Reports tab in the accounting section:
+    *   **Profit/Loss Report:** Calculates profit based on delivery fees minus courier and admin earnings (from both per-package and hourly rates).
+    *   **Performance Report:** Displays detailed performance metrics for couriers and admins, along with a chart showing hourly order distribution.
+6.  **New Feature Request - Turnover Report:** The user requested a new Turnover Report to show collections (Cash, Credit Card, Meal Card) per restaurant.
 
 **User's preferred language**: Turkish
 
 **what currently exists?**
-A comprehensive dark mode has been implemented across the entire application (admin and courier panels), controlled by a toggle in the sidebars. The courier panel's order cards have been completely redesigned to be more compact, with many iterative UI improvements. A new courier permission system is in place, starting with the can mark order as not ready permission, which is manageable from both a dedicated modal and the main settings matrix in the admin panel. The backend now includes logic to prevent couriers with active packages from going offline unless their shift is over. The FCM notification channel has been updated to .
+The application now includes a new Penalty System for violations, complete with a configuration UI for admins. The accounting section has been enhanced with a Reports tab containing two new, detailed reports: a Profit/Loss Report and a Performance Report. The shift management page () has received significant UI/UX improvements, including visual simplification and enhanced filtering/sorting capabilities in its modals. Several long-standing bugs related to the Migros integration and system-wide date handling have been fixed.
 
 **Last working item**:
--   Last item agent was working: Fixing dark mode UI bugs on the courier and manager cards in the admin panel (). The user reported that when hovering over a card, the name becomes unreadable, and the order count badges are not displaying correctly.
+-   Last item agent was working: The user requested a new Ciro Raporu (Turnover Report). The report should list all restaurants and their collected revenue, broken down by payment type (Cash, Credit Card, Meal Card). Restaurants where the courier company handles collections should be highlighted. The agent analyzed the data model and was preparing to implement the backend API and frontend component.
 -   Status: **IN PROGRESS**
 -   Agent Testing Done: N
--   Which testing method agent to use? screenshot tool
+-   Which testing method agent to use? backend testing agent & screenshot tool
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Dark Mode UI Fixes on Courier/Manager Cards (P0)**
-    -   Description: On the  page, the hover state on courier cards in dark mode makes text unreadable, and associated badges are not styled correctly.
-    -   Attempted fixes: None yet. The agent was investigating the relevant files.
-    -   Next debug checklist:
-        -   Inspect .
-        -   Adjust the  and  classes on the card element to ensure proper contrast.
-        -   Fix the background and text color classes for the badge component within the card for dark mode.
-    -   Why fix this issue and what will be achieved with the fix?: This is a core usability bug in the new dark mode, preventing admins from viewing information correctly.
-    -   Status: IN PROGRESS
-    -   Is recurring issue? N
-    -   Should Test frontend/backend/both after fix?: frontend
-    -   Blocked on other issue: None
-
--   **Issue 2: Verify Push Notification System (P0)**
-    -   Description: The entire push notification flow was debugged, and the channel was updated multiple times, finally to . The user needs to test this with the native app to confirm if notifications are now being received correctly.
-    -   Status: **USER VERIFICATION PENDING**
-
--   **Issue 3: Verify Migros Webhook Parsing Fix (P1)**
-    -   Description: A fix for parsing nested options in Migros orders has been implemented but awaits a live test order from the user.
-    -   Status: **USER VERIFICATION PENDING**
-    -   Is recurring issue? Y
-
--   **Issue 4: Migros Webhooks Fail in Production (P2)**
-    -   Description: A critical configuration error where Migros sends webhooks to an incorrect URL.
-    -   Status: **BLOCKED** (Requires user to contact Migros and update the webhook URL).
-
--   **Issue 5: Adisyo Webhook Fails to Find Restaurant (P2)**
-    -   Description: Recurring integration failure where Adisyo webhooks fail with .
+-   **Issue 1: Critical Migros Logic Bugs (P0)**
+    -   Description: A system audit in a previous session found three critical backend bugs in the Migros integration that were never fixed. 1. The  query parameter from webhooks is not correctly converted to a boolean, flagging all live orders as test orders. 2. The order status is not updated to  in the database after auto-approval. 3. Existing Migros orders in the database have incorrect string values for the  field instead of a boolean.
     -   Status: **NOT STARTED**
-    -   Is recurring issue? Y
+
+-   **Issue 2: Verify Push Notification System (P1)**
+    -   Description: The FCM notification channel update to  requires user testing with the native app to confirm functionality.
+    -   Status: **USER VERIFICATION PENDING**
+
+-   **Issue 3: Verify Migros Integration Fixes (P1)**
+    -   Description: The recently implemented Migros fixes (status sync, sub-option parsing) require a live test order from the user for full verification.
+    -   Status: **USER VERIFICATION PENDING**
+
+-   **Issue 4: Migros Production Webhook URL (P2)**
+    -   Description: A known configuration issue where Migros sends production webhooks to an incorrect URL.
+    -   Status: **BLOCKED** (Requires user to contact Migros).
 
 **In progress Task List**:
--   **Task 1: Complete Dark Mode Polish (P0)**
-    -   Description: The agent is actively fixing several UI glitches in the new dark mode implementation based on user feedback. The last identified issue is with the courier cards.
-    -   Where to resume: .
-    -   What will be achieved with this?: A polished and visually consistent dark mode across the entire application, resolving all known UI bugs.
+-   **Task 1: Implement Ciro Raporu (Turnover Report) (P0)**
+    -   Where to resume: The agent has analyzed the data model ( and  collections). The next step is to create the backend endpoint in  and the corresponding frontend component.
+    -   What will be achieved with this?: A new report for admins to track revenue collected per restaurant, broken down by payment type.
     -   Status: IN PROGRESS
-    -   Should Test frontend/backend/both after fix?: frontend
+    -   Should Test frontend/backend/both after fix?: both
     -   Blocked on something: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
+    -   **(P0)** Fix the three critical Migros logic bugs identified in **Issue 1**.
     -   **(P1)** Implement Stop Count Based Capacity Logic.
     -   **(P2)** Investigate Caller ID integration.
-    -   **(P2)** Add more permissions to the courier permission system (e.g., Can see customer phone number?).
+    -   **(P2)** Add more permissions to the courier permission system.
 -   **Future Tasks (Backlog):**
-    -   **(P0) Restaurant Courier System:** A large, designed feature allowing restaurants in manual mode to manage their own private couriers.
+    -   **(P0) Restaurant Courier System:** A large feature for restaurants to manage their own couriers.
     -   **(P1)** Implement  calculation on order creation.
     -   **(P1)** Refactor  and  scheduled jobs.
+    -   **(P1)** Add a Restaurant-Based Revenue Report.
+    -   **(P1)** Add a Cancellation Analysis Report.
     -   **(P2)** Investigate and potentially remove the  function.
     -   **(P2)** Implement an API request monitor in the admin panel.
     -   **(P2)** Develop a Native Courier App.
 
 **Completed work in this session**
--   **New Feature: Comprehensive Dark Mode:** Implemented a site-wide dark mode with a , global CSS variables, and a toggle switch in both admin and courier sidebars. This included making all components, pages, and live maps dark-theme compatible.
--   **New Feature: Courier Permission System:** Created a backend and frontend system to manage courier permissions, starting with . This includes a new modal and integration with the settings matrix.
--   **Courier Panel Order Card Redesign:** Completely overhauled  for a much more compact and usable design, based on extensive iterative feedback.
--   **Backend Logic: Courier Status Control:** Updated  to prevent couriers with active orders from going offline, with an exception for when their shift has ended.
--   **UI/UX Improvements:** Redesigned the admin panel's mobile filter header, fixed mobile layout spacing, and removed legacy statistic displays from the desktop dashboard.
--   **Maintenance:** Updated Firebase notification channel ID to  in .
+-   **New Feature: Penalty System:**
+    -   Implemented a new settings UI in  for managing violation penalties.
+    -   Created backend endpoints () and logic to automatically apply penalties as transactions when violations are logged.
+-   **New Feature: Accounting Reports:**
+    -   **Profit/Loss Report:** Created  and a backend endpoint to calculate profit/loss, correctly accounting for per-package and hourly earnings for both couriers and admins.
+    -   **Performance Report:** Created  and a backend endpoint to display detailed courier/admin performance metrics and an hourly order distribution chart.
+-   **UI/UX & Bug Fixes on VardiyaPage:**
+    -   Visually simplified modals for a cleaner UI.
+    -   Added alphabetical sorting and a new violation type filter to .
+    -   Fixed a bug where the Add Shift modal would not close on success.
+    -   Improved clarity of the Return to Today link in .
+-   **Logic Investigation:**
+    -   Confirmed that the accounting logic correctly syncs balances between courier and admin reconciliations when a transaction is reverted.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Native App Sends Location Notification on Every Page Change**
-    -   Why it wasn't fixed: This is a purely native-side issue. The web application cannot control how the native wrapper handles foreground services. The native app developer needs to add a check to see if the location service is already running.
+-   **Issue 1: Critical Migros Logic Bugs**
+    -   Debug checklist:
+        -   In , in , parse the  query parameter string into a boolean.
+        -   In the same function, after the  block, add a database update to set  on the order object.
+        -   Write and execute a one-off script to update existing Migros orders where  is a string to be a boolean .
+    -   Why to solve this issue and what will be achieved with this?: This is a critical data integrity issue. All live Migros orders are being incorrectly treated as test orders, and their approval status is not being tracked, which breaks downstream logic.
+    -   Should Test frontend/backend/both after fix: backend
+    -   Is recurring issue? Y (discovered in a past audit but never fixed).
 
 **Known issue recurrence from previous fork**
--   None.
+-   None. The Adisyo issue from the previous fork was confirmed to be a configuration problem, not a recurring code bug.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Comprehensive Theming (Dark Mode):** Used React Context (), CSS variables, and Tailwind's  variant () to implement a site-wide, persistent dark mode.
--   **Dynamic Map Theming:** Utilized the  hook to dynamically change the Leaflet map tile URL based on the selected theme, providing a seamless user experience.
--   **Feature Flag / Permission System:** Implemented a basic permission system by adding a  JSON field to the  model and checking flags in both the backend (for enforcement) and frontend (for UI rendering).
--   **Iterative UI Refinement:** Engaged in a tight, rapid feedback loop with the user to incrementally build and refine complex UI components, demonstrating high responsiveness to design changes.
+-   **Complex Backend Aggregations:** Extensive use of MongoDB aggregation pipelines to generate financial and performance reports by combining data from , , , and  collections.
+-   **Composite Expense Calculation:** The Profit/Loss report logic correctly calculates total courier/admin earnings by combining per-package fees (from ) and hourly wages (from  and ).
+-   **Role-Based Dynamic UI:** Differentiating between admins and superadmins () to conditionally render UI elements like the Reports tab and penalty settings.
+-   **Data-Driven Charting:** Using Recharts to render a bar chart whose time axis is dynamically generated based on the company's opening and closing hours fetched from the backend.
+-   **Separation of Concerns in Reporting:** Creating distinct backend endpoints and frontend components for each new report, all managed under a new .
 
 **key DB schema**
--   **couriers**: A new JSON field  has been added. Example: .
+-   **companies**:
+    -   : 
+-   **restaurants**:
+    -   : 
+-   **orders**:
+    -   : number (The calculated earning for the courier for a specific order).
+    -   : ObjectId (Used to link orders to couriers/admins).
+-   **users**:
+    -   : ObjectId (Identifies an admin who is also a courier, linking to their  document).
 
 **All files of reference**
--   : **Currently being fixed.** This file has the dark mode hover/badge bugs.
--   : The parent page for the component being fixed.
--   : The core of the dark mode functionality.
--   : Contains the global CSS variables and overrides for the dark theme.
--   : Contains the heavily redesigned courier order card.
--   : Contains the new permission endpoints and courier status logic.
+-   : Contains the API logic for all new reports. The logic for the Ciro Raporu will be added here.
+-   : The entry point for the new reports section.
+-   : The container component for the report tabs.
+-   : Contains the critical, unfixed bug related to the  parameter for Migros orders.
 
 **Critical Info for New Agent**
 -   **You MUST communicate in Turkish.**
--   Your immediate priority is to fix the remaining dark mode UI bugs on the courier management page (). Specifically, the hover state on courier cards makes text unreadable, and badges are not styled correctly.
--   The dark mode implementation is extensive and relies on a , global CSS in , and Tailwind's  prefixes. When debugging UI, be mindful of these interconnected layers.
--   The user is highly detail-oriented regarding UI. Use screenshots frequently to confirm changes and get feedback.
--   After resolving the current UI tasks, remember to ask the user to verify the push notification system and the Migros webhook parsing fix.
+-   Your first task is to complete the **Ciro Raporu (Turnover Report)**, which is currently in progress. The user wants to see collections (Cash, Credit Card, Meal Card) per restaurant.
+-   **CRITICAL P0 BUG**: Immediately after finishing the report, you MUST fix the three long-standing Migros integration bugs related to  and . These are causing data corruption for all live Migros orders. Details are in the Earlier issues found/mentioned but not fixed section. This is the highest priority after the current task.
+-   The reporting logic is complex and has been iterated on multiple times. Refer to the existing code in  and the corresponding frontend components to understand how to correctly calculate earnings (per-package + hourly) and handle admin-as-courier scenarios.
 
 **documents and test reports created in this job**
 -   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User:** Reports that on the Couriers/Managers card view, the hover state makes the name unreadable and badges look wrong in dark mode. **Status: In Progress.**
-9.  **User:** Reports that the selected Aktif/Teslim/İptal tab is too glaring in dark mode. **Status: Completed.**
-8.  **User:** Reports that the filter buttons (Hazırlanıyor, Hazır, etc.) are too glaring in dark mode. **Status: Completed.**
-7.  **User:** Reports multiple dark mode issues: filter buttons are invisible, map zoom buttons are white, and active tab text is unreadable. **Status: Completed.**
-6.  **User:** Clarifies which statistics to remove, reports the map is too dark, and notes that courier panel tabs have no background in dark mode. **Status: Completed.**
-5.  **User:** States that the initial dark mode is insufficient, citing issues with badges, sidebar color, and mobile implementation. **Status: Completed (prompted a major revision).**
-4.  **User:** Asks to start implementing dark mode via a toggle in the sidebar. **Status: Completed.**
-3.  **User:** Dislikes the initial redesign of the mobile admin filter header and asks for a better version. **Status: Completed.**
-2.  **User:** Reports that mobile order cards in the admin panel have incorrect spacing. **Status: Completed.**
-1.  **User:** Requests a check to prevent couriers with active packages from going offline. **Status: Completed.**
+10. **(User)** Requests that the performance report tables and graph be shown even if they are empty.
+9.  **(Agent)** Confirms the fix to always show the report components.
+8.  **(User)** Asks for ideas for other possible reports.
+7.  **(Agent)** Suggests four new report types: Restaurant Revenue, Cancellation Analysis, Detailed Cost, and Period-over-Period Comparison.
+6.  **(User)** Ignores the suggestions and requests a Ciro Raporu (Turnover Report) with specific requirements (list restaurants, show collection types, color-code by collector).
+5.  **(Agent)** Starts work on the Turnover Report by analyzing the data model.
+4.  **(User)** Confirms that admins who are also couriers should have their earnings calculated the same way as kuryeler, but shown separately, being careful to avoid double counting.
+3.  **(User)** Asks for clarification on how an Admin's earnings are calculated.
+2.  **(User)** Specifies the exact logic for the average calculation cards in the Profit/Loss report.
+1.  **(User)** Asks why the Ortalama Saatlik Kazanç (Avg. Hourly Earnings) is calculated based on courier working hours and suggests removing it.
 
 **Project Health Check:**
 -   **Broken:**
-    -   Adisyo Integration ().
-    -   Migros Integration (Incorrect production webhook URL).
-    -   Native Location Notification (Native-side issue, not fixable from web app).
+    -   **Migros Webhook  logic:** All live orders via webhook are incorrectly flagged as test orders due to a critical backend bug.
+    -   **Migros  Status:** The  field is not being saved correctly after auto-approval.
 -   **Mocked:** None
 -   **In Progress:**
-    -   Dark Mode UI Polishing.
+    -   Turnover Report () implementation.
 -   **User Verification Pending:**
     -   Push Notification System ( channel).
-    -   Migros Webhook Parsing Fix.
+    -   All recent Migros integration fixes (status sync, sub-option parsing).
 
 **3rd Party Integrations**
 -   Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
 -   Firebase Cloud Messaging (FCM)
--   Leaflet with CartoDB/Stadia Maps for map tiles (now with dark mode variants).
+-   Leaflet with CartoDB/Stadia Maps
+-   Recharts (for charts/graphs)
 
 **Testing status**
 -   Testing agent used after significant changes: NO
@@ -175,10 +170,6 @@ A comprehensive dark mode has been implemented across the entire application (ad
 -   **Company Admin Panel:**
     -   User: 
     -   Password: 
--   **Courier Login:** 
-    -   Phone: 
-    -   Password: 
 
 **What agent forgot to execute**
--   The agent has not updated  with the major features completed in this session (Dark Mode, Permissions System).
--   The agent initially misunderstood which statistics block the user wanted to be removed from the admin dashboard, but this was corrected.</analysis>
+-   The agent did not fix the three critical backend bugs related to the Migros integration that were discovered during an audit in a previous session and carried over in the handoff summary. This remains the most critical pending item.</analysis>
