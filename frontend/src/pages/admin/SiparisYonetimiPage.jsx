@@ -99,6 +99,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+  const tileLayerRef = useRef(null);
 
   // Fetch functions
   const fetchCompany = useCallback(async () => {
@@ -345,6 +346,19 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     };
   }, []);
 
+  // Theme change - update map tile layer
+  useEffect(() => {
+    if (!mapInstanceRef.current || !window.L || !tileLayerRef.current) return;
+    const newTileUrl = theme === 'dark'
+      ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    mapInstanceRef.current.removeLayer(tileLayerRef.current);
+    tileLayerRef.current = window.L.tileLayer(newTileUrl, {
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(mapInstanceRef.current);
+  }, [theme]);
+
   const initMap = () => {
     if (!mapRef.current || !window.L || mapInstanceRef.current) return;
     
@@ -361,7 +375,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
     const tileUrl = document.documentElement.classList.contains('dark')
       ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png'
       : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-    window.L.tileLayer(tileUrl, {
+    tileLayerRef.current = window.L.tileLayer(tileUrl, {
       subdomains: 'abcd',
       maxZoom: 19
     }).addTo(map);
