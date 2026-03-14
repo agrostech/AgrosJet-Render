@@ -164,7 +164,7 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
                 className="text-xs text-primary hover:underline ml-2"
                 data-testid="go-today-btn"
               >
-                Bugün
+                Bugüne Dön
               </button>
             )}
           </div>
