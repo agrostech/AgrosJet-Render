@@ -1123,7 +1123,40 @@ async def get_profit_loss_report(
 
     total_revenue = round(orders_results[0]["total_revenue"], 2) if orders_results else 0
     order_count = orders_results[0]["order_count"] if orders_results else 0
-    courier_expense = round(orders_results[0]["total_courier_fee"], 2) if orders_results else 0
+    per_package_expense = round(orders_results[0]["total_courier_fee"], 2) if orders_results else 0
+
+    # --- Saatlik ücretli kurye maliyeti ---
+    hourly_couriers = await db.couriers.find(
+        {"company_id": company_id, "pricing_type": "hourly"},
+        {"_id": 0, "id": 1, "hourly_rate": 1}
+    ).to_list(500)
+
+    hourly_expense = 0
+    for courier in hourly_couriers:
+        h_pipeline = [
+            {
+                "$match": {
+                    "courier_id": courier["id"],
+                    "company_id": company_id,
+                    "old_status": "active",
+                    "timestamp": {"$gte": start_str, "$lte": end_str},
+                    "duration_minutes": {"$gt": 0}
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "total_minutes": {"$sum": "$duration_minutes"}
+                }
+            }
+        ]
+        h_result = await db.courier_status_logs.aggregate(h_pipeline).to_list(1)
+        if h_result:
+            hours = h_result[0]["total_minutes"] / 60
+            hourly_expense += hours * courier.get("hourly_rate", 0)
+
+    hourly_expense = round(hourly_expense, 2)
+    courier_expense = round(per_package_expense + hourly_expense, 2)
 
     admin_expense = round(admin_expense_results[0]["total"], 2) if admin_expense_results else 0
     admin_hakedis_count = admin_expense_results[0]["count"] if admin_expense_results else 0
