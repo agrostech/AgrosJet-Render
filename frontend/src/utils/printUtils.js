@@ -215,7 +215,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           line-height: 1.5;
         }
         .section-title { 
-          font-size: 11px; 
+          font-size: 11.5px; 
           text-transform: uppercase;
           letter-spacing: 1px;
           margin-bottom: 2px;
