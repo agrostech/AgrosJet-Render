@@ -71,6 +71,7 @@ class InvoiceSettings(BaseModel):
     online_meal_card: bool = False  # Online Yemek Kartı
     percentage: int = 10          # Yüzdelik dilim: 1, 10, 20
     percentage_name: str = "Yeme-İçme"  # Yüzdelik isim
+    invoice_penalty_enabled: bool = False  # Eksik fatura cezası otomatik uygulansın mı
 
 
 class InvoiceVerify(BaseModel):
@@ -173,6 +174,8 @@ async def get_invoice_settings(restaurant_id: str):
         settings["percentage"] = 10
     if "percentage_name" not in settings:
         settings["percentage_name"] = "Yeme-İçme"
+    if "invoice_penalty_enabled" not in settings:
+        settings["invoice_penalty_enabled"] = False
     
     return {
         "restaurant_name": restaurant.get("name"),

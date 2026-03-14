@@ -465,10 +465,19 @@ async def apply_invoice_penalty(restaurant_id: str):
     # Restoran bilgisini al
     restaurant = await db.restaurants.find_one(
         {"id": restaurant_id},
-        {"_id": 0, "company_id": 1, "name": 1}
+        {"_id": 0, "company_id": 1, "name": 1, "invoice_settings": 1}
     )
     if not restaurant:
         raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # Ceza ayarı kapalıysa atla
+    invoice_settings = restaurant.get("invoice_settings", {})
+    if not invoice_settings.get("invoice_penalty_enabled", False):
+        return {
+            "success": False,
+            "message": "Bu restoran için eksik fatura cezası kapalı",
+            "penalty_amount": 0
+        }
     
     company_id = restaurant.get("company_id")
     restaurant_name = restaurant.get("name", "Bilinmeyen Restoran")

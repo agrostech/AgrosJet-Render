@@ -72,8 +72,9 @@ export default function RestoranlarPage({ companyId }) {
     online: false,
     meal_card: false,
     online_meal_card: false,
-    percentage: 10,        // Yüzdelik dilim: 1, 10, 20
-    percentage_name: "Yeme-İçme"  // Yüzdelik isim
+    percentage: 10,
+    percentage_name: "Yeme-İçme",
+    invoice_penalty_enabled: false
   });
   const [loadingInvoiceSettings, setLoadingInvoiceSettings] = useState(false);
   
@@ -219,7 +220,8 @@ export default function RestoranlarPage({ companyId }) {
         meal_card: false,
         online_meal_card: false,
         percentage: 10,
-        percentage_name: "Yeme-İçme"
+        percentage_name: "Yeme-İçme",
+        invoice_penalty_enabled: false
       });
     } finally {
       setLoadingInvoiceSettings(false);
@@ -1584,6 +1586,23 @@ export default function RestoranlarPage({ companyId }) {
                   <p className="text-xs text-muted-foreground">
                     Örn: "Yeme-İçme", "Tatlı", "Kedi Maması"
                   </p>
+                </div>
+              </div>
+              
+              {/* Eksik Fatura Cezası */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <span className="font-medium text-sm">Eksik Fatura Cezası</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      10 uyarı sonrası otomatik %40 vergi yükümlülüğü cezası uygula
+                    </p>
+                  </div>
+                  <Switch
+                    checked={invoiceSettings.invoice_penalty_enabled}
+                    onCheckedChange={(checked) => setInvoiceSettings(prev => ({ ...prev, invoice_penalty_enabled: checked }))}
+                    data-testid="invoice-penalty-toggle"
+                  />
                 </div>
               </div>
             </div>
