@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { 
-  TrendingUp, TrendingDown, Truck, Minus,
+  TrendingUp, TrendingDown, Truck, Minus, Loader2,
   Users, Briefcase, Package
 } from "lucide-react";
 import ReportDateFilter from "./ReportDateFilter";
@@ -39,7 +39,7 @@ export default function KarZararRaporu({ companyId }) {
       {/* Result */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-6 h-6 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : data ? (
         <div className="space-y-4">

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Store, Banknote, CreditCard, Wallet, Globe, ShoppingBag } from "lucide-react";
+import { Loader2, Store, Banknote, CreditCard, Wallet, Globe, ShoppingBag } from "lucide-react";
 import ReportDateFilter from "./ReportDateFilter";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -41,7 +41,7 @@ export default function CiroRaporu({ companyId }) {
       {/* Result */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-6 h-6 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : data ? (
         <div className="space-y-4">
