@@ -75,6 +75,7 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
   const [entities, setEntities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState("");
+  const [selectedViolationType, setSelectedViolationType] = useState("");
   const [violationTypes, setViolationTypes] = useState({});
   
   // Hafta seçici
@@ -106,7 +107,10 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
       const res = await axios.get(`${API}/shift-violations/${companyId}/entities`, {
         params: { entity_type: activeTab }
       });
-      setEntities(res.data);
+      const sorted = [...res.data].sort((a, b) => 
+        (a.entity_name || "").localeCompare(b.entity_name || "", 'tr')
+      );
+      setEntities(sorted);
     } catch (err) {
       console.error("Entityler yüklenemedi:", err);
     }
@@ -240,7 +244,7 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
           {/* Tabs */}
           <div className="flex gap-2 border-b border-slate-200 pb-2">
             <button
-              onClick={() => { setActiveTab("courier"); setSelectedEntity(""); }}
+              onClick={() => { setActiveTab("courier"); setSelectedEntity(""); setSelectedViolationType(""); }}
               className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
                 activeTab === "courier"
                   ? "bg-primary text-white"
@@ -251,7 +255,7 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
               Kuryeler
             </button>
             <button
-              onClick={() => { setActiveTab("admin"); setSelectedEntity(""); }}
+              onClick={() => { setActiveTab("admin"); setSelectedEntity(""); setSelectedViolationType(""); }}
               className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-semibold text-sm transition-colors ${
                 activeTab === "admin"
                   ? "bg-primary text-white"
@@ -278,6 +282,16 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
                 <option key={e.entity_id} value={e.entity_id}>
                   {e.entity_name} ({e.violation_count} ihlal)
                 </option>
+              ))}
+            </select>
+            <select
+              value={selectedViolationType}
+              onChange={(e) => setSelectedViolationType(e.target.value)}
+              className="flex-1 h-9 text-sm border border-slate-200 rounded px-2 bg-white"
+            >
+              <option value="">Tüm İhlal Türleri</option>
+              {Object.entries(violationTypes).map(([type, label]) => (
+                <option key={type} value={type}>{label}</option>
               ))}
             </select>
             <Button
@@ -307,19 +321,19 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
               <div className="flex items-center justify-center py-12">
                 <RefreshCw className="w-6 h-6 animate-spin text-slate-400" />
               </div>
-            ) : violations.length === 0 ? (
+            ) : violations.filter(v => !selectedViolationType || v.violation_type === selectedViolationType).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                 <AlertTriangle className="w-12 h-12 mb-2 opacity-30" />
                 <p className="text-sm">
-                  {selectedEntity 
-                    ? "Bu kişi için ihlal kaydı yok" 
+                  {selectedEntity || selectedViolationType
+                    ? "Bu filtre için ihlal kaydı yok" 
                     : `${activeTab === "courier" ? "Kurye" : "Yönetici"} ihlal kaydı yok`
                   }
                 </p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {violations.map((v) => {
+                {violations.filter(v => !selectedViolationType || v.violation_type === selectedViolationType).map((v) => {
                   const Icon = getViolationIcon(v.violation_type);
                   const colorClass = getViolationColor(v.violation_type);
                   
@@ -378,21 +392,6 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
             )}
           </div>
 
-          {/* Legend */}
-          <div className="pt-3 border-t border-slate-200">
-            <p className="text-xs text-muted-foreground mb-2">İhlal Türleri:</p>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(VIOLATION_ICONS).map(([type, Icon]) => (
-                <div 
-                  key={type} 
-                  className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-slate-100 text-slate-600"
-                >
-                  <Icon className="w-3 h-3" />
-                  <span>{violationTypes[type] || type}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
 
