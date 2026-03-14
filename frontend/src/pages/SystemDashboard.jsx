@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -227,6 +227,26 @@ function SirketlerPage() {
     setConfirmOpen(true);
   };
 
+  // Company impersonation
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+  const [impersonateUrl, setImpersonateUrl] = useState("");
+  const [impersonateCompanyName, setImpersonateCompanyName] = useState("");
+
+  const handleImpersonateCompany = async (company) => {
+    try {
+      const systemUser = JSON.parse(localStorage.getItem("systemUser") || "{}");
+      const res = await axios.post(`${API}/restaurant-users/company-impersonate/${company.id}`, {
+        admin_id: systemUser.id,
+      });
+      const baseUrl = window.location.origin;
+      setImpersonateUrl(`${baseUrl}/admin?impersonate_token=${res.data.token}`);
+      setImpersonateCompanyName(company.name);
+      setShowImpersonateModal(true);
+    } catch {
+      toast.error("Panele bağlanılamadı");
+    }
+  };
+
   if (loading) return <PageLoading />;
 
   return (
@@ -267,6 +287,9 @@ function SirketlerPage() {
                 </div>
               </div>
               <div className="flex gap-1 flex-shrink-0">
+                <Button size="sm" variant="outline" onClick={() => handleImpersonateCompany(company)} className="h-8 w-8 p-0" title="Panele Bağlan" data-testid={`impersonate-company-mobile-${company.id}`}>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => { setSelectedCompany(company); setShowEditModal(true); }} className="h-8 w-8 p-0">
                   <Edit className="w-3.5 h-3.5" />
                 </Button>
@@ -324,6 +347,16 @@ function SirketlerPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleImpersonateCompany(company)}
+                        className="h-8 px-2 border-2"
+                        title="Panele Bağlan"
+                        data-testid={`impersonate-company-${company.id}`}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
                       <Button 
                         size="sm" 
                         variant="outline" 
@@ -477,6 +510,28 @@ function SirketlerPage() {
         onConfirm={confirmConfig.onConfirm}
         variant="destructive"
       />
+
+      {/* Company Impersonate Modal */}
+      {showImpersonateModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" data-testid="impersonate-company-modal">
+          <div className="bg-white rounded-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-slate-50">
+              <div className="flex items-center gap-2">
+                <ExternalLink className="w-4 h-4 text-primary" />
+                <span className="font-semibold text-sm">{impersonateCompanyName} - Admin Paneli</span>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => { setShowImpersonateModal(false); setImpersonateUrl(""); }} className="h-8 w-8 p-0">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <iframe
+              src={impersonateUrl}
+              className="flex-1 w-full border-0"
+              title={`${impersonateCompanyName} Admin Panel`}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

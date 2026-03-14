@@ -133,6 +133,29 @@ export default function AdminDashboard() {
   }, [accessibleCompanies, fetchBadges, fetchCreditInfo]);
 
   useEffect(() => {
+    // Check for company impersonate token
+    const urlParams = new URLSearchParams(window.location.search);
+    const impersonateToken = urlParams.get("impersonate_token");
+    
+    if (impersonateToken) {
+      // Verify impersonate token
+      axios.get(`${API}/restaurant-users/company-impersonate-verify/${impersonateToken}`)
+        .then(res => {
+          const userData = res.data;
+          localStorage.setItem("user", JSON.stringify(userData));
+          setUser(userData);
+          const companies = userData.accessible_companies || [];
+          if (companies.length > 0) setAccessibleCompanies(companies);
+          setActiveCompanyId(userData.company_id);
+          // Clean URL
+          window.history.replaceState({}, "", window.location.pathname);
+        })
+        .catch(() => {
+          navigate("/login");
+        });
+      return;
+    }
+
     const stored = localStorage.getItem("user");
     if (!stored) {
       navigate("/login");

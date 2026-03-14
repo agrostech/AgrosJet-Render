@@ -162,6 +162,88 @@ async def verify_impersonate_token(token: str):
 
 
 
+# --- Company Impersonation (System Admin → Company Admin Panel) ---
+@router.post("/company-impersonate/{company_id}")
+async def company_impersonate(company_id: str, request: Request):
+    """System admin olarak şirket admin paneline geçici erişim tokeni oluştur"""
+    body = await request.json()
+    admin_id = body.get("admin_id")
+    
+    if not admin_id:
+        raise HTTPException(status_code=400, detail="admin_id gerekli")
+    
+    # System admin doğrula
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0, "id": 1, "role": 1, "name": 1, "username": 1, "is_system_admin": 1})
+    if not admin or (admin.get("role") != "superadmin" and not admin.get("is_system_admin")):
+        raise HTTPException(status_code=403, detail="Yetkisiz erişim - sadece sistem adminleri")
+    
+    # Şirket doğrula
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "id": 1, "name": 1})
+    if not company:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    
+    # Geçici token oluştur
+    token = str(uuid.uuid4())
+    await db.impersonate_tokens.insert_one({
+        "token": token,
+        "admin_id": admin_id,
+        "admin_name": admin.get("name") or admin.get("username"),
+        "company_id": company_id,
+        "company_name": company["name"],
+        "type": "company",
+        "created_at": get_turkey_now(),
+        "used": False,
+    })
+    
+    return {"token": token}
+
+
+@router.get("/company-impersonate-verify/{token}")
+async def verify_company_impersonate_token(token: str):
+    """Company impersonate tokenini doğrula ve admin bilgisi döndür"""
+    record = await db.impersonate_tokens.find_one(
+        {"token": token, "type": "company"},
+        {"_id": 0}
+    )
+    
+    if not record:
+        raise HTTPException(status_code=401, detail="Geçersiz token")
+    
+    # 30 dakika süre kontrolü
+    created = record.get("created_at")
+    if created:
+        from datetime import timedelta
+        if isinstance(created, str):
+            created = datetime.fromisoformat(created.replace('Z', '+00:00'))
+        now = datetime.now(timezone.utc)
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        if (now - created).total_seconds() > 1800:
+            raise HTTPException(status_code=401, detail="Token süresi dolmuş")
+    
+    company_id = record["company_id"]
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0})
+    
+    return {
+        "id": f"impersonate-{record['admin_id']}",
+        "name": f"{record['admin_name']} (Sistem)",
+        "username": "system-impersonate",
+        "role": "superadmin",
+        "is_super_admin": True,
+        "is_system_admin": False,
+        "permissions": {
+            "vardiya": True, "muhasebe": True, "zimmet": True,
+            "kuryeler": True, "market": True, "akademi": True, "sistem": False
+        },
+        "company_id": company_id,
+        "company_ids": [company_id],
+        "company": company,
+        "accessible_companies": [{"id": company["id"], "name": company["name"], "logo_url": company.get("logo_url")}] if company else [],
+        "is_impersonate": True,
+    }
+
+
+
 # --- CRUD ---
 @router.get("/restaurant/{restaurant_id}")
 async def get_restaurant_users(restaurant_id: str):
