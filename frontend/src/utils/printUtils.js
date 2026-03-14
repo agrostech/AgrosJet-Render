@@ -71,7 +71,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:56px;max-width:90%;object-fit:contain;margin-bottom:4px;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:112px;max-width:95%;object-fit:contain;margin-bottom:4px;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -173,7 +173,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:64px;max-width:90%;object-fit:contain;margin-bottom:6px;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:128px;max-width:95%;object-fit:contain;margin-bottom:6px;" />` : "";
 
   return `
     <!DOCTYPE html>
