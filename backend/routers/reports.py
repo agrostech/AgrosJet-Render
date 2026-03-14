@@ -1055,14 +1055,13 @@ async def get_profit_loss_report(
 ):
     """
     Kar/Zarar raporu
-    Gelir: Teslim edilmiş siparişlerin restaurant_fee toplamı
-    Gider: Kurye hakedişleri (is_hakedis=True, type=payment_in)
+    Gelir: Tüm teslim edilmiş siparişlerin restaurant_fee toplamı
+    Gider: Kurye hakedişleri + Yönetici hakedişleri
     """
-    # String comparison (ISO format)
     start_str = start_datetime.replace("T", "T") + ":00"
     end_str = end_datetime.replace("T", "T") + ":59"
 
-    # --- Gelir: restaurant_fee from delivered orders ---
+    # --- Gelir: Tüm delivered siparişlerin restaurant_fee toplamı ---
     revenue_pipeline = [
         {
             "$match": {
@@ -1081,8 +1080,8 @@ async def get_profit_loss_report(
     ]
     revenue_results = await db.orders.aggregate(revenue_pipeline).to_list(1)
 
-    # --- Gider: Kurye hakedişleri ---
-    expense_pipeline = [
+    # --- Gider 1: Kurye hakedişleri ---
+    courier_expense_pipeline = [
         {
             "$match": {
                 "company_id": company_id,
@@ -1095,21 +1094,84 @@ async def get_profit_loss_report(
         {
             "$group": {
                 "_id": None,
-                "total_expense": {"$sum": "$amount"},
-                "hakedis_count": {"$sum": 1}
+                "total": {"$sum": "$amount"},
+                "count": {"$sum": 1}
             }
         }
     ]
-    expense_results = await db.transactions.aggregate(expense_pipeline).to_list(1)
+    courier_expense_results = await db.transactions.aggregate(courier_expense_pipeline).to_list(1)
+
+    # --- Gider 2: Yönetici hakedişleri ---
+    admin_expense_pipeline = [
+        {
+            "$match": {
+                "company_id": company_id,
+                "entity_type": "admin",
+                "is_hakedis": True,
+                "type": "payment_in",
+                "created_at": {"$gte": start_str, "$lte": end_str}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total": {"$sum": "$amount"},
+                "count": {"$sum": 1}
+            }
+        }
+    ]
+    admin_expense_results = await db.transactions.aggregate(admin_expense_pipeline).to_list(1)
+
+    # --- Toplam çalışılan saat (kuryeler - aktif süre) ---
+    hours_pipeline = [
+        {
+            "$match": {
+                "company_id": company_id,
+                "old_status": "active",
+                "timestamp": {"$gte": start_str, "$lte": end_str},
+                "duration_minutes": {"$gt": 0}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_minutes": {"$sum": "$duration_minutes"}
+            }
+        }
+    ]
+    hours_results = await db.courier_status_logs.aggregate(hours_pipeline).to_list(1)
 
     total_revenue = round(revenue_results[0]["total_revenue"], 2) if revenue_results else 0
     order_count = revenue_results[0]["order_count"] if revenue_results else 0
-    total_expense = round(expense_results[0]["total_expense"], 2) if expense_results else 0
-    hakedis_count = expense_results[0]["hakedis_count"] if expense_results else 0
+
+    courier_expense = round(courier_expense_results[0]["total"], 2) if courier_expense_results else 0
+    courier_hakedis_count = courier_expense_results[0]["count"] if courier_expense_results else 0
+
+    admin_expense = round(admin_expense_results[0]["total"], 2) if admin_expense_results else 0
+    admin_hakedis_count = admin_expense_results[0]["count"] if admin_expense_results else 0
+
+    total_expense = round(courier_expense + admin_expense, 2)
+    profit = round(total_revenue - total_expense, 2)
+
+    total_minutes = hours_results[0]["total_minutes"] if hours_results else 0
+    total_hours = round(total_minutes / 60, 1)
+
+    # Ortalamalar
+    avg_profit_per_order = round(profit / order_count, 2) if order_count > 0 else 0
+    avg_hakedis_per_order = round(courier_expense / order_count, 2) if order_count > 0 else 0
+    avg_hourly_rate = round(total_revenue / total_hours, 2) if total_hours > 0 else 0
 
     return {
         "total_revenue": total_revenue,
-        "total_expense": total_expense,
         "order_count": order_count,
-        "hakedis_count": hakedis_count
+        "courier_expense": courier_expense,
+        "courier_hakedis_count": courier_hakedis_count,
+        "admin_expense": admin_expense,
+        "admin_hakedis_count": admin_hakedis_count,
+        "total_expense": total_expense,
+        "profit": profit,
+        "total_hours": total_hours,
+        "avg_profit_per_order": avg_profit_per_order,
+        "avg_hakedis_per_order": avg_hakedis_per_order,
+        "avg_hourly_rate": avg_hourly_rate
     }
