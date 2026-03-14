@@ -141,6 +141,7 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
         reset_by_id: currentUser.id,
         reset_by_name: currentUser.name,
         note: resetNote || null,
+        is_super_admin: isSuperAdmin,
         received_cash: parseFloat(receivedAmounts.cash) || 0,
         received_card_1: parseFloat(receivedAmounts.card_1) || 0,
         received_card_10: parseFloat(receivedAmounts.card_10) || 0,
@@ -354,14 +355,10 @@ export default function YoneticiMutabakatTab({ companyId, currentUser }) {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              if (!admin.has_linked_courier) {
-                                toast.error("Bu yöneticinin bağlı kurye hesabı yok. Önce Yöneticiler sayfasından kurye hesabı bağlayın.");
-                                return;
-                              }
                               openResetModal(admin);
                             }}
                             className="h-7 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                            title={!admin.has_linked_courier ? "Kurye hesabı bağlı değil" : "Sıfırla"}
+                            title="Sıfırla"
                           >
                             <RotateCcw className="w-4 h-4" />
                           </Button>

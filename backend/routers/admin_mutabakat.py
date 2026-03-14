@@ -20,6 +20,7 @@ class ResetRequest(BaseModel):
     reset_by_id: str
     reset_by_name: str
     note: Optional[str] = None
+    is_super_admin: bool = False
     # Alınan tutarlar
     received_cash: float = 0
     received_card_1: float = 0
@@ -258,21 +259,23 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
     
     linked_courier_id = admin.get("linked_courier_id")
     
-    # Bağlı kurye yoksa uyarı ver
-    if not linked_courier_id:
+    # Bağlı kurye yoksa ve superadmin değilse uyarı ver
+    if not linked_courier_id and not data.is_super_admin:
         raise HTTPException(
             status_code=400, 
             detail="Bu yöneticinin bağlı kurye hesabı yok. Önce Yöneticiler sayfasından kurye hesabı bağlayın."
         )
     
-    # Bağlı kurye bilgilerini al
-    linked_courier = await db.couriers.find_one(
-        {"id": linked_courier_id},
-        {"_id": 0, "id": 1, "name": 1}
-    )
-    
-    if not linked_courier:
-        raise HTTPException(status_code=404, detail="Bağlı kurye hesabı bulunamadı")
+    # Bağlı kurye bilgilerini al (varsa)
+    linked_courier = None
+    if linked_courier_id:
+        linked_courier = await db.couriers.find_one(
+            {"id": linked_courier_id},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        
+        if not linked_courier and not data.is_super_admin:
+            raise HTTPException(status_code=404, detail="Bağlı kurye hesabı bulunamadı")
     
     # Mevcut bakiyeyi hesapla
     last_reset = await db.admin_mutabakat_resets.find_one(
@@ -337,11 +340,11 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
     missing_card_20 = round(card_20_at_reset - received_card_20, 2)
     missing_meal_card = round(meal_card_at_reset - received_meal_card, 2)
     
-    # Eksik tutarlar için bağlı kurye hesabına işlem ekle
+    # Eksik tutarlar için bağlı kurye hesabına işlem ekle (sadece bağlı kurye varsa)
     transactions_added = []
     total_missing = 0
     
-    if missing_cash > 0:
+    if missing_cash > 0 and linked_courier:
         tx = {
             "id": str(uuid.uuid4()),
             "entity_id": linked_courier_id,
@@ -367,7 +370,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             {"$inc": {"balance": missing_cash}}
         )
     
-    if missing_card_1 > 0:
+    if missing_card_1 > 0 and linked_courier:
         tx = {
             "id": str(uuid.uuid4()),
             "entity_id": linked_courier_id,
@@ -392,7 +395,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             {"$inc": {"balance": missing_card_1}}
         )
     
-    if missing_card_10 > 0:
+    if missing_card_10 > 0 and linked_courier:
         tx = {
             "id": str(uuid.uuid4()),
             "entity_id": linked_courier_id,
@@ -417,7 +420,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             {"$inc": {"balance": missing_card_10}}
         )
     
-    if missing_card_20 > 0:
+    if missing_card_20 > 0 and linked_courier:
         tx = {
             "id": str(uuid.uuid4()),
             "entity_id": linked_courier_id,
@@ -442,7 +445,7 @@ async def reset_admin_balance(company_id: str, admin_id: str, data: ResetRequest
             {"$inc": {"balance": missing_card_20}}
         )
     
-    if missing_meal_card > 0:
+    if missing_meal_card > 0 and linked_courier:
         tx = {
             "id": str(uuid.uuid4()),
             "entity_id": linked_courier_id,
