@@ -60,8 +60,35 @@ export default function RestaurantDashboard() {
   
   const currentPage = getCurrentPage();
 
-  // Get user from localStorage
+  // Get user from localStorage or impersonate token
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const impersonateToken = params.get("token");
+    
+    if (impersonateToken) {
+      // Admin impersonate mode
+      axios.get(`${API}/restaurant-users/impersonate-verify/${impersonateToken}`)
+        .then(res => {
+          const userData = res.data;
+          setUser(userData);
+          setRestaurant({
+            id: userData.restaurant_id,
+            name: userData.restaurant_name,
+            company_id: userData.company_id
+          });
+          if (userData.company_id) {
+            axios.get(`${API}/companies/${userData.company_id}`)
+              .then(r => setCompanyLogo(r.data.logo_url))
+              .catch(() => {});
+          }
+        })
+        .catch(() => {
+          // Token geçersiz - ana sayfaya yönlendir
+          navigate("/");
+        });
+      return;
+    }
+    
     const storedUser = JSON.parse(localStorage.getItem("user") || "null");
     if (!storedUser || storedUser.role !== "restaurant") {
       navigate("/");
@@ -80,7 +107,7 @@ export default function RestaurantDashboard() {
         .then(res => setCompanyLogo(res.data.logo_url))
         .catch(() => {});
     }
-  }, [navigate]);
+  }, [navigate, location.search]);
 
   // Eksik fatura kontrolü
   const checkMissingInvoices = useCallback(async () => {

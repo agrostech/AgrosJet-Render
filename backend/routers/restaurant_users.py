@@ -79,6 +79,83 @@ async def login_restaurant_user(request: Request, data: RestaurantUserLogin):
     }
 
 
+# --- Admin Impersonate ---
+@router.post("/admin-impersonate/{restaurant_id}")
+async def admin_impersonate_restaurant(restaurant_id: str, request: Request):
+    """Admin olarak restoran paneline geçici erişim tokeni oluştur"""
+    body = await request.json()
+    admin_id = body.get("admin_id")
+    
+    if not admin_id:
+        raise HTTPException(status_code=400, detail="admin_id gerekli")
+    
+    # Admin doğrula
+    admin = await db.admins.find_one({"id": admin_id}, {"_id": 0, "id": 1, "role": 1, "name": 1, "username": 1})
+    if not admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz erişim")
+    
+    # Restoran doğrula
+    restaurant = await db.restaurants.find_one(
+        {"id": restaurant_id},
+        {"_id": 0, "id": 1, "name": 1, "company_id": 1}
+    )
+    if not restaurant:
+        raise HTTPException(status_code=404, detail="Restoran bulunamadı")
+    
+    # Şirket bilgisi
+    company = await db.companies.find_one(
+        {"id": restaurant["company_id"]},
+        {"_id": 0, "id": 1, "name": 1}
+    )
+    
+    # Geçici token oluştur (5 dk geçerli)
+    token = str(uuid.uuid4())
+    await db.impersonate_tokens.insert_one({
+        "token": token,
+        "admin_id": admin_id,
+        "admin_name": admin.get("name") or admin.get("username"),
+        "restaurant_id": restaurant_id,
+        "restaurant_name": restaurant["name"],
+        "company_id": restaurant["company_id"],
+        "company_name": company["name"] if company else None,
+        "created_at": get_turkey_now(),
+        "used": False,
+    })
+    
+    return {"token": token}
+
+
+@router.get("/impersonate-verify/{token}")
+async def verify_impersonate_token(token: str):
+    """Impersonate tokenini doğrula ve kullanıcı bilgisi döndür"""
+    record = await db.impersonate_tokens.find_one(
+        {"token": token, "used": False},
+        {"_id": 0}
+    )
+    
+    if not record:
+        raise HTTPException(status_code=401, detail="Geçersiz veya kullanılmış token")
+    
+    # Token'ı kullanıldı işaretle
+    await db.impersonate_tokens.update_one(
+        {"token": token},
+        {"$set": {"used": True}}
+    )
+    
+    return {
+        "id": f"impersonate-{record['admin_id']}",
+        "name": f"{record['admin_name']} (Admin)",
+        "username": "admin-impersonate",
+        "role": "restaurant",
+        "restaurant_id": record["restaurant_id"],
+        "restaurant_name": record["restaurant_name"],
+        "company_id": record["company_id"],
+        "company_name": record["company_name"],
+        "is_impersonate": True,
+    }
+
+
+
 # --- CRUD ---
 @router.get("/restaurant/{restaurant_id}")
 async def get_restaurant_users(restaurant_id: str):

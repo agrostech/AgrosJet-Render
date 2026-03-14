@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { 
   Plus, Search, Edit2, Trash2, Archive, ArchiveRestore, 
   MapPin, Eye, EyeOff, Store, RefreshCw, Navigation, CheckCircle2, XCircle, Wallet, UserX, UserPlus, Users, Clock, Shield, Banknote, Receipt, FileText,
-  LayoutGrid, List
+  LayoutGrid, List, ExternalLink, Loader2, X
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 import RestaurantPermissionsModal from "@/components/admin/RestaurantPermissionsModal";
@@ -58,6 +58,12 @@ export default function RestoranlarPage({ companyId }) {
   const [showIntegrationLogs, setShowIntegrationLogs] = useState(false);
   const [showGroupsModal, setShowGroupsModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  
+  // Impersonate modal
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+  const [impersonateUrl, setImpersonateUrl] = useState("");
+  const [impersonateLoading, setImpersonateLoading] = useState(false);
+  const [impersonateRestaurantName, setImpersonateRestaurantName] = useState("");
   
   // Invoice settings state
   const [invoiceSettings, setInvoiceSettings] = useState({
@@ -480,6 +486,25 @@ export default function RestoranlarPage({ companyId }) {
     }
   };
 
+  // Admin impersonate - restoran paneline bağlan
+  const handleImpersonate = async (restaurant) => {
+    setImpersonateLoading(true);
+    setImpersonateRestaurantName(restaurant.name);
+    try {
+      const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
+      const res = await axios.post(`${API}/restaurant-users/admin-impersonate/${restaurant.id}`, {
+        admin_id: adminUser.id,
+      });
+      const baseUrl = window.location.origin;
+      setImpersonateUrl(`${baseUrl}/restoran?token=${res.data.token}`);
+      setShowImpersonateModal(true);
+    } catch {
+      toast.error("Panele bağlanılamadı");
+    } finally {
+      setImpersonateLoading(false);
+    }
+  };
+
   const handleArchive = async (restaurant) => {
     try {
       if (restaurant.is_archived) {
@@ -750,6 +775,16 @@ export default function RestoranlarPage({ companyId }) {
                       <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="h-8 px-3 border-2" data-testid={`edit-restaurant-${restaurant.id}`}>
                         <Edit2 className="w-4 h-4" />
                       </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleImpersonate(restaurant)} 
+                        className="h-8 px-3 border-2 text-blue-600 border-blue-200 hover:bg-blue-50" 
+                        data-testid={`impersonate-restaurant-${restaurant.id}`}
+                        title="Panele Bağlan"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleArchive(restaurant)} className="h-8 px-3 border-2">
                         {restaurant.is_archived ? (
                           <ArchiveRestore className="w-4 h-4" />
@@ -847,8 +882,18 @@ export default function RestoranlarPage({ companyId }) {
                 </Button>
               </div>
               
-              {/* Row 5: Arşiv */}
+              {/* Row 5: Panele Bağlan, Arşiv */}
               <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleImpersonate(restaurant)} 
+                  className="flex-1 border-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                  data-testid={`impersonate-restaurant-mobile-${restaurant.id}`}
+                >
+                  <ExternalLink className="w-4 h-4 mr-1" />
+                  <span className="text-xs">Panele Bağlan</span>
+                </Button>
                 <Button 
                   size="sm" 
                   variant="outline" 
@@ -1563,6 +1608,43 @@ export default function RestoranlarPage({ companyId }) {
         companyId={companyId}
         restaurants={restaurants}
       />
+
+      {/* Impersonate Modal - Restoran Paneline Bağlan */}
+      {showImpersonateModal && (
+        <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4" data-testid="impersonate-modal">
+          <div className="bg-white rounded-lg w-full h-full max-w-[95vw] max-h-[95vh] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-2.5 border-b bg-slate-50 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <Store className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-sm text-slate-800">{impersonateRestaurantName}</span>
+                <span className="text-xs text-muted-foreground bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Admin Görünümü</span>
+              </div>
+              <button
+                onClick={() => { setShowImpersonateModal(false); setImpersonateUrl(""); }}
+                className="p-1.5 hover:bg-slate-200 rounded-md transition-colors"
+                data-testid="impersonate-close-btn"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            {/* iframe */}
+            <div className="flex-1 relative">
+              {impersonateLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              <iframe
+                src={impersonateUrl}
+                className="w-full h-full border-0"
+                title={`${impersonateRestaurantName} Paneli`}
+                data-testid="impersonate-iframe"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
