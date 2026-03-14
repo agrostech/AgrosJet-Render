@@ -1459,20 +1459,21 @@ async def get_turnover_report(
             "payment_method": 1,
             "payment_details": 1,
             "delivered_at": 1,
+            "created_at": 1,
         }
     ).to_list(10000)
 
-    # Python'da tarih filtrelemesi
+    # Python'da tarih filtrelemesi (delivered_at yoksa created_at kullan)
     orders = []
     for order in all_orders:
-        delivered_at = order.get("delivered_at")
-        if not delivered_at:
+        date_str = order.get("delivered_at") or order.get("created_at")
+        if not date_str:
             continue
         try:
-            if isinstance(delivered_at, str):
-                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            if isinstance(date_str, str):
+                order_dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
             else:
-                order_dt = delivered_at
+                order_dt = date_str
             if order_dt.tzinfo is None:
                 order_dt = order_dt.replace(tzinfo=turkey_tz)
             if start_dt <= order_dt <= end_dt:
