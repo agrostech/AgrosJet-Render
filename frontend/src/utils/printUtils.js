@@ -114,7 +114,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       </div>
 
       <div class="section">
-        <div class="label">MUSTERI</div>
+        <div class="label">MÜŞTERİ</div>
         <div class="value">${order.customer_name || "-"}</div>
         <div style="font-size:11px;">${order.customer_phone || ""}</div>
       </div>
@@ -125,7 +125,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       </div>
 
       <div class="section">
-        <div class="label">URUNLER</div>
+        <div class="label">ÜRÜNLER</div>
         <table class="items-table">
           ${itemsHtml}
         </table>
@@ -255,7 +255,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         .notes { 
           border: 1px dashed #000;
           padding: 4px 8px; 
-          font-size: 12px; 
+          font-size: 13px; 
           margin-top: 4px;
           line-height: 1.4;
         }
@@ -271,7 +271,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       </div>
 
       <div class="section">
-        <div class="section-title">Musteri Bilgileri</div>
+        <div class="section-title">Müşteri Bilgileri</div>
         <div class="section-value">${order.customer_name || "-"}</div>
         ${order.customer_phone ? `<div class="customer-phone">${order.customer_phone}</div>` : ""}
       </div>
@@ -282,7 +282,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       </div>
 
       <div class="section">
-        <div class="section-title">Siparis Detayi</div>
+        <div class="section-title">Sipariş Detayı</div>
         <table class="items-table">
           ${itemsHtml}
         </table>
@@ -297,7 +297,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         ${paymentMethod}
       </div>
 
-      ${order.notes ? `<div class="notes"><strong>Siparis Notu:</strong><br>${order.notes}</div>` : ""}
+      ${order.notes ? `<div class="notes"><strong>Sipariş Notu:</strong><br>${order.notes}</div>` : ""}
     </body>
     </html>
   `;
