@@ -75,7 +75,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
 
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="tr">
     <head>
       <meta charset="UTF-8">
       <title>Sipariş Fişi - ${order.order_number}</title>
@@ -175,7 +175,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
 
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="tr">
     <head>
       <meta charset="UTF-8">
       <title>Sipariş Fişi - ${order.order_number}</title>
