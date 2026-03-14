@@ -43,6 +43,7 @@ import {
   formatCurrency
 } from "@/utils/orderUtils";
 import { printOrderLocal, getLocalPrintSettings, checkLocalPrintServer } from "@/utils/localPrintService";
+import { previewOrder, getPrintSettings } from "@/utils/printUtils";
 import { playNotificationSound, getNotificationSettings } from "@/utils/notificationSounds";
 import { playCourierAssignmentSound, getCourierAssignmentSettings } from "@/utils/courierAssignmentSounds";
 
@@ -265,31 +266,12 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
     return () => clearInterval(interval);
   }, [orders, onUpdateStatus]);
 
-  // Manuel yazdırma fonksiyonu
-  const handlePrintOrder = async (order) => {
+  // Manuel yazdırma fonksiyonu - PDF önizleme olarak aç
+  const handlePrintOrder = (order) => {
     const localSettings = getLocalPrintSettings(restaurantId);
-    
-    // Siparişe restoran adını ekle
+    const paperSize = localSettings.paperSize || getPrintSettings(restaurantId).paperSize || "80mm";
     const orderWithRestaurant = { ...order, restaurant_name: restaurantName };
-    
-    // Yerel sunucu ile yazdırma
-    if (localSettings.enabled && localSettings.printerName) {
-      const result = await printOrderLocal(
-        orderWithRestaurant,
-        localSettings.printerName,
-        localSettings.paperSize
-      );
-      
-      if (result.success) {
-        markAsPrinted(order.id);
-        toast.success("Fiş yazıcıya gönderildi");
-        return;
-      } else {
-        toast.error(`Yazdırma hatası: ${result.error}`);
-      }
-    } else {
-      toast.error("Yazdırma sunucusu bağlı değil. Ayarlar'dan yapılandırın.");
-    }
+    previewOrder(orderWithRestaurant, paperSize);
   };
 
   // Restoran teslimatı işaretleme
@@ -1021,7 +1003,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
                                         <Printer className={`w-4 h-4 ${printedOrders.has(order.id) ? 'text-green-500' : 'text-slate-700'}`} />
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>{printedOrders.has(order.id) ? 'Yazdırıldı - Tekrar Yazdır' : 'Fiş Yazdır'}</TooltipContent>
+                                    <TooltipContent>{printedOrders.has(order.id) ? 'Yazdırıldı - Önizle' : 'Fiş Önizle'}</TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
                               </div>

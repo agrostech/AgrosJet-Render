@@ -366,6 +366,32 @@ export const printOrder = (order, paperSize = "80mm") => {
 };
 
 /**
+ * Sipariş fişini önizleme olarak aç (yazdırma komutu göndermeden)
+ * @param {Object} order - Sipariş objesi
+ * @param {string} paperSize - "58mm" veya "80mm"
+ */
+export const previewOrder = (order, paperSize = "80mm") => {
+  if (!order) {
+    console.error("Önizlenecek sipariş yok");
+    return;
+  }
+
+  const html = paperSize === "58mm" 
+    ? generate58mmReceipt(order) 
+    : generate80mmReceipt(order);
+
+  const previewWindow = window.open("", "_blank", "width=400,height=600");
+  
+  if (!previewWindow) {
+    console.error("Popup engellenmiş olabilir");
+    return;
+  }
+
+  previewWindow.document.write(html);
+  previewWindow.document.close();
+};
+
+/**
  * Yazdırma ayarlarını localStorage'dan al
  */
 export const getPrintSettings = (restaurantId) => {
@@ -394,6 +420,7 @@ export const shouldAutoPrint = (restaurantId) => {
 
 export default {
   printOrder,
+  previewOrder,
   getPrintSettings,
   shouldAutoPrint,
 };
