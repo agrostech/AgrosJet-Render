@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Users, Building2, Wallet, History, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, Receipt, BarChart3, Store, UserCog, Bike } from "lucide-react";
+import { Users, Building2, Wallet, History, FileSpreadsheet, ChevronLeft, ChevronRight, Receipt, Store, UserCog, Bike } from "lucide-react";
 import KuryelerTab from "./muhasebe/KuryelerTab";
 import IsletmelerTab from "./muhasebe/IsletmelerTab";
 import CarilerTab from "./muhasebe/CarilerTab";
@@ -11,7 +11,6 @@ import HaftalikHakedisTab from "./muhasebe/HaftalikHakedisTab";
 import GunlukMutabakatTab from "./muhasebe/GunlukMutabakatTab";
 import YoneticiMutabakatTab from "./muhasebe/YoneticiMutabakatTab";
 import RestoranMutabakatTab from "./muhasebe/RestoranMutabakatTab";
-import RaporlarTab from "./muhasebe/RaporlarTab";
 
 const TABS = [
   { key: "kuryeler", label: "Kuryeler", icon: Users },
@@ -23,7 +22,6 @@ const TABS = [
   { key: "haftalik-hakedis", label: "Haftalık Hakediş", icon: FileSpreadsheet },
   { key: "kurye-faturalari", label: "Kurye Faturaları", icon: Receipt },
   { key: "isletme-faturalari", label: "Restoran Faturaları", icon: Receipt },
-  { key: "raporlar", label: "Raporlar", icon: BarChart3, superAdminOnly: true },
   { key: "hareketler", label: "Hareketler", icon: History },
 ];
 
@@ -146,7 +144,6 @@ export default function MuhasebePage({ companyId, adminId, adminName, companyLog
         {activeTab === "yonetici-mutabakat" && <YoneticiMutabakatTab companyId={companyId} currentUser={{ id: adminId, name: adminName, role: isSuperAdmin ? 'superadmin' : 'admin' }} />}
         {activeTab === "restoran-mutabakat" && <RestoranMutabakatTab companyId={companyId} />}
         {activeTab === "hareketler" && <HareketlerTab companyId={companyId} />}
-        {activeTab === "raporlar" && isSuperAdmin && <RaporlarTab companyId={companyId} isSuperAdmin={isSuperAdmin} />}
       </div>
     </div>
   );

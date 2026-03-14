@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 // Page components
@@ -19,6 +19,7 @@ import RestoranlarPage from "./admin/RestoranlarPage";
 import SiparisYonetimiPage from "./admin/SiparisYonetimiPage";
 import GecmisSiparislerPage from "./admin/GecmisSiparislerPage";
 import IptalSiparislerPage from "./admin/IptalSiparislerPage";
+import RaporlarPage from "./admin/RaporlarPage";
 
 // UI components
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -256,6 +257,7 @@ export default function AdminDashboard() {
     { path: "/admin", label: "Sipariş Yönetimi", icon: ClipboardList, key: "siparisler", permKey: null },
     { path: "/admin/vardiyalar", label: "Vardiya Yönetimi", icon: Clock, key: "vardiya", permKey: "vardiya" },
     { path: "/admin/muhasebe", label: "Muhasebe", icon: Calculator, key: "muhasebe", permKey: "muhasebe" },
+    { path: "/admin/raporlar", label: "Raporlar", icon: BarChart3, key: "raporlar", permKey: "raporlar" },
     { path: "/admin/zimmet", label: "Zimmet", icon: Package, key: "zimmet", permKey: "zimmet" },
     { path: "/admin/jetpuan", label: "Market", icon: ShoppingBag, key: "jetpuan", permKey: "market" },
     { path: "/admin/akademi", label: "Akademi", icon: GraduationCap, key: "akademi", permKey: "akademi" },
@@ -473,6 +475,9 @@ export default function AdminDashboard() {
               )}
               {(isSuperAdmin || permissions.muhasebe) && (
                 <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
+              )}
+              {(isSuperAdmin || permissions.raporlar) && (
+                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
               )}
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />
