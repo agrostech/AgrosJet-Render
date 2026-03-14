@@ -1198,3 +1198,158 @@ async def get_profit_loss_report(
         "avg_cost_per_order": avg_cost_per_order,
         "avg_profit_per_order": avg_profit_per_order
     }
+
+
+# ============ PERFORMANS RAPORU ============
+
+@router.get("/performance")
+async def get_performance_report(
+    company_id: str = Query(...),
+    start_datetime: str = Query(...),
+    end_datetime: str = Query(...),
+):
+    """
+    Performans raporu - Kurye ve Yönetici bazlı
+    """
+    start_str = start_datetime + ":00"
+    end_str = end_datetime + ":59"
+
+    # Admin-kurye ayrımı
+    admin_docs = await db.admins.find(
+        {"company_id": company_id, "linked_courier_id": {"$exists": True, "$ne": None}},
+        {"_id": 0, "linked_courier_id": 1}
+    ).to_list(500)
+    admin_courier_ids = set(a["linked_courier_id"] for a in admin_docs)
+
+    # Tüm kuryeler
+    all_couriers = await db.couriers.find(
+        {"company_id": company_id},
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(500)
+
+    results = []
+
+    for courier in all_couriers:
+        cid = courier["id"]
+        is_admin = cid in admin_courier_ids
+
+        # 1. Teslimat sayısı
+        delivery_count = await db.orders.count_documents({
+            "company_id": company_id,
+            "status": "delivered",
+            "courier_id": cid,
+            "created_at": {"$gte": start_str, "$lte": end_str}
+        })
+
+        # 2. Ortalama teslimat süresi (status_history: assigned -> delivered)
+        delivery_time_pipeline = [
+            {
+                "$match": {
+                    "company_id": company_id,
+                    "status": "delivered",
+                    "courier_id": cid,
+                    "created_at": {"$gte": start_str, "$lte": end_str}
+                }
+            },
+            {"$unwind": "$status_history"},
+            {
+                "$group": {
+                    "_id": "$id",
+                    "first_ts": {"$min": "$status_history.timestamp"},
+                    "last_ts": {"$max": "$status_history.timestamp"}
+                }
+            }
+        ]
+        time_results = await db.orders.aggregate(delivery_time_pipeline).to_list(1000)
+        total_delivery_minutes = 0
+        valid_delivery_count = 0
+        for tr in time_results:
+            try:
+                first = datetime.fromisoformat(tr["first_ts"])
+                last = datetime.fromisoformat(tr["last_ts"])
+                diff = (last - first).total_seconds() / 60
+                if 0 < diff < 600:  # 10 saatten kısa
+                    total_delivery_minutes += diff
+                    valid_delivery_count += 1
+            except Exception:
+                pass
+        avg_delivery_minutes = round(total_delivery_minutes / valid_delivery_count, 1) if valid_delivery_count > 0 else 0
+
+        # 3. Aktif çalışma saati
+        active_pipeline = [
+            {
+                "$match": {
+                    "courier_id": cid,
+                    "company_id": company_id,
+                    "old_status": "active",
+                    "timestamp": {"$gte": start_str, "$lte": end_str},
+                    "duration_minutes": {"$gt": 0}
+                }
+            },
+            {"$group": {"_id": None, "total": {"$sum": "$duration_minutes"}}}
+        ]
+        active_result = await db.courier_status_logs.aggregate(active_pipeline).to_list(1)
+        active_minutes = active_result[0]["total"] if active_result else 0
+        active_hours = round(active_minutes / 60, 1)
+
+        # 4. Saatlik teslimat ortalaması
+        hourly_delivery_avg = round(delivery_count / active_hours, 1) if active_hours > 0 else 0
+
+        # 5. İhlal sayısı
+        violation_count = await db.shift_violations.count_documents({
+            "company_id": company_id,
+            "entity_id": cid,
+            "created_at": {"$gte": start_str, "$lte": end_str}
+        })
+
+        # 6. Mola süresi
+        break_pipeline = [
+            {
+                "$match": {
+                    "courier_id": cid,
+                    "company_id": company_id,
+                    "old_status": "on_break",
+                    "timestamp": {"$gte": start_str, "$lte": end_str},
+                    "duration_minutes": {"$gt": 0}
+                }
+            },
+            {"$group": {"_id": None, "total": {"$sum": "$duration_minutes"}}}
+        ]
+        break_result = await db.courier_status_logs.aggregate(break_pipeline).to_list(1)
+        break_minutes = round(break_result[0]["total"], 0) if break_result else 0
+
+        results.append({
+            "courier_id": cid,
+            "name": courier["name"],
+            "is_admin": is_admin,
+            "delivery_count": delivery_count,
+            "avg_delivery_minutes": avg_delivery_minutes,
+            "active_hours": active_hours,
+            "hourly_delivery_avg": hourly_delivery_avg,
+            "violation_count": violation_count,
+            "break_minutes": int(break_minutes)
+        })
+
+    # Kurye ve yönetici ayrımı
+    courier_results = [r for r in results if not r["is_admin"]]
+    admin_results = [r for r in results if r["is_admin"]]
+
+    # Kurye ortalaması (yöneticiler hariç)
+    active_couriers = [c for c in courier_results if c["delivery_count"] > 0 or c["active_hours"] > 0]
+    if active_couriers:
+        avg = {
+            "delivery_count": round(sum(c["delivery_count"] for c in active_couriers) / len(active_couriers), 1),
+            "avg_delivery_minutes": round(sum(c["avg_delivery_minutes"] for c in active_couriers if c["avg_delivery_minutes"] > 0) / max(len([c for c in active_couriers if c["avg_delivery_minutes"] > 0]), 1), 1),
+            "active_hours": round(sum(c["active_hours"] for c in active_couriers) / len(active_couriers), 1),
+            "hourly_delivery_avg": round(sum(c["hourly_delivery_avg"] for c in active_couriers if c["hourly_delivery_avg"] > 0) / max(len([c for c in active_couriers if c["hourly_delivery_avg"] > 0]), 1), 1),
+            "violation_count": round(sum(c["violation_count"] for c in active_couriers) / len(active_couriers), 1),
+            "break_minutes": round(sum(c["break_minutes"] for c in active_couriers) / len(active_couriers))
+        }
+    else:
+        avg = None
+
+    return {
+        "couriers": courier_results,
+        "admins": admin_results,
+        "courier_average": avg
+    }
