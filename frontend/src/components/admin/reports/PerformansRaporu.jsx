@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Loader2, Calendar, Users, Briefcase } from "lucide-react";
+import { Loader2, Users, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -159,6 +160,27 @@ export default function PerformansRaporu({ companyId }) {
         </div>
       ) : data ? (
         <div className="space-y-6">
+          {/* Saatlik Sipariş Grafiği */}
+          {data.hourly_distribution && data.hourly_distribution.some(h => h.count > 0) && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm text-slate-700">Saatlik Sipariş Dağılımı</h3>
+              <div className="border rounded-lg p-4" style={{ height: 220 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.hourly_distribution}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="hour" tick={{ fontSize: 11 }} tickFormatter={(h) => `${String(h).padStart(2, '0')}:00`} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={30} />
+                    <Tooltip
+                      formatter={(val) => [`${val} sipariş`, ""]}
+                      labelFormatter={(h) => `${String(h).padStart(2, '0')}:00 - ${String(h).padStart(2, '0')}:59`}
+                    />
+                    <Bar dataKey="count" fill="#334155" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
           <PerformanceTable
             data={data.couriers}
             average={data.courier_average}

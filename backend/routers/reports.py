@@ -1348,8 +1348,36 @@ async def get_performance_report(
     else:
         avg = None
 
+    # Saatlik sipariş dağılımı
+    hourly_pipeline = [
+        {
+            "$match": {
+                "company_id": company_id,
+                "status": "delivered",
+                "created_at": {"$gte": start_str, "$lte": end_str}
+            }
+        },
+        {
+            "$addFields": {
+                "_parsed": {"$dateFromString": {"dateString": "$created_at", "onError": None}}
+            }
+        },
+        {"$match": {"_parsed": {"$ne": None}}},
+        {
+            "$group": {
+                "_id": {"$hour": "$_parsed"},
+                "count": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id": 1}}
+    ]
+    hourly_results = await db.orders.aggregate(hourly_pipeline).to_list(24)
+    hourly_map = {r["_id"]: r["count"] for r in hourly_results}
+    hourly_distribution = [{"hour": h, "count": hourly_map.get(h, 0)} for h in range(24)]
+
     return {
         "couriers": courier_results,
         "admins": admin_results,
-        "courier_average": avg
+        "courier_average": avg,
+        "hourly_distribution": hourly_distribution
     }
