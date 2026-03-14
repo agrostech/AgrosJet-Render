@@ -779,7 +779,7 @@ export default function RestoranlarPage({ companyId }) {
                         size="sm" 
                         variant="outline" 
                         onClick={() => handleImpersonate(restaurant)} 
-                        className="h-8 px-3 border-2 text-blue-600 border-blue-200 hover:bg-blue-50" 
+                        className="h-8 px-3 border-2" 
                         data-testid={`impersonate-restaurant-${restaurant.id}`}
                         title="Panele Bağlan"
                       >
@@ -888,7 +888,7 @@ export default function RestoranlarPage({ companyId }) {
                   size="sm" 
                   variant="outline" 
                   onClick={() => handleImpersonate(restaurant)} 
-                  className="flex-1 border-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                  className="flex-1 border-2"
                   data-testid={`impersonate-restaurant-mobile-${restaurant.id}`}
                 >
                   <ExternalLink className="w-4 h-4 mr-1" />
