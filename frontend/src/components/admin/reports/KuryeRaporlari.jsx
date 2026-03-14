@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Search, Info, Clock, Package, Wallet, Banknote, CreditCard, UtensilsCrossed } from "lucide-react";
+import { Search, Info, Clock, Package, Wallet, Banknote, CreditCard, UtensilsCrossed } from "lucide-react";
+import ReportDateFilter from "./ReportDateFilter";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -12,56 +12,21 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [startDateTime, setStartDateTime] = useState("");
-  const [endDateTime, setEndDateTime] = useState("");
 
-  const getDefaultDateTimes = useCallback((companyData) => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const openingTime = companyData?.opening_time || "09:00";
-    const closingTime = companyData?.closing_time || "23:00";
-    const formatDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    return {
-      start: `${formatDate(today)}T${openingTime}`,
-      end: `${formatDate(tomorrow)}T${closingTime}`
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!companyId) return;
-      try {
-        const companyRes = await axios.get(`${API}/companies/${companyId}`);
-        const defaults = getDefaultDateTimes(companyRes.data);
-        setStartDateTime(defaults.start);
-        setEndDateTime(defaults.end);
-      } catch (err) {
-        const defaults = getDefaultDateTimes(null);
-        setStartDateTime(defaults.start);
-        setEndDateTime(defaults.end);
-      }
-    };
-    fetchData();
-  }, [companyId, getDefaultDateTimes]);
-
-  const handleGenerateReport = async () => {
+  const handleGenerate = useCallback(async (start, end) => {
+    if (!companyId) return;
     setLoading(true);
     setSearchTerm("");
     try {
-      const params = new URLSearchParams({
-        company_id: companyId,
-        start_datetime: startDateTime,
-        end_datetime: endDateTime,
-      });
+      const params = new URLSearchParams({ company_id: companyId, start_datetime: start, end_datetime: end });
       const res = await axios.get(`${API}/reports/courier?${params.toString()}`);
       setReportData(res.data);
-    } catch (err) {
+    } catch {
       setReportData(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId]);
 
   const filteredCouriers = useMemo(() => {
     if (!reportData?.couriers) return [];
@@ -71,25 +36,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
 
   return (
     <div className="space-y-3">
-      {/* Compact Filters */}
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <Input
-          type="datetime-local"
-          value={startDateTime}
-          onChange={(e) => setStartDateTime(e.target.value)}
-          className="h-8 w-auto text-xs"
-        />
-        <span className="text-muted-foreground">-</span>
-        <Input
-          type="datetime-local"
-          value={endDateTime}
-          onChange={(e) => setEndDateTime(e.target.value)}
-          className="h-8 w-auto text-xs"
-        />
-        <Button onClick={handleGenerateReport} disabled={loading} size="sm" className="h-8">
-          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Rapor Oluştur"}
-        </Button>
-      </div>
+      <ReportDateFilter companyId={companyId} onGenerate={handleGenerate} loading={loading} />
 
       {/* Report Results */}
       {reportData && (

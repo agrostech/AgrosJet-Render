@@ -18,28 +18,29 @@ Courier delivery management system with ETA calculation, order management, nativ
 - Dark Mode: ThemeProvider with localStorage, CSS variables, sidebar toggle (Feb 2026)
 - Critical Timezone Bug Fix: dateUtils.js utility, 15 components refactored (Mar 2026)
 - Migros Integration Overhaul: subOptions parsing, sequential status updates, CancelOrder endpoint, credential reading fix (Mar 2026)
-- Vardiya Sayfası Modal UI Sadeleştirme: İhlaller, Hareketler, Mola Ayarları modalları ve butonlarından renkler kaldırılıp tutarlı nötr tasarıma geçildi (Mar 2026)
-- Kar/Zarar Raporu: Muhasebe > Raporlar > Kar/Zarar sekmesi, datetime filtreleme ile taşıma ücreti vs kurye hakediş karşılaştırması (Mar 2026)
-- Ceza Sistemi: İhlal türlerine göre otomatik ceza uygulama, şirket bazlı ayarlar, bakiyeye yeşil işlem olarak ekleme (Mar 2026)
-- **Ciro Raporu: Muhasebe > Raporlar > Ciro sekmesi, restoran bazlı tahsilat dağılımı (Nakit/Kredi Kartı/Yemek Kartı/Online), kurye tahsilatı renk kodlaması (Mar 2026)**
+- Vardiya Sayfası Modal UI Sadeleştirme (Mar 2026)
+- Kar/Zarar Raporu: Muhasebe > Raporlar > Kar/Zarar (Mar 2026)
+- Ceza Sistemi: İhlal türlerine göre otomatik ceza (Mar 2026)
+- **Ciro Raporu: Muhasebe > Raporlar > Ciro sekmesi, restoran bazlı tahsilat dağılımı (Mar 2026)**
+- **Ortak Rapor Tarih Filtresi: ReportDateFilter componenti - Dün/Bugün/Bu Hafta/Geçen Hafta/Tarih Aralığı presetleri, şirket açılış/kapanış saatlerine göre hesaplama, default "Bugün" ile otomatik rapor (Mar 2026)**
 
 ## Pending Verification
 - Push Notification System: Awaiting native app test (orders_v6 channel)
 - Migros Webhook Parsing: Awaiting live test order
-- **Ciro Raporu: Awaiting user test with production data**
+- Ciro Raporu: Awaiting user test with production data
+- Rapor Tarih Filtresi: Awaiting user test
 
 ## Known Issues
 - Adisyo Webhook: `Restoran bulunamadi` error (P2 - config issue, not code bug)
 - Migros Webhook URL: Incorrect production URL (requires Migros contact)
 - Native Location Notification: Shows on every page change (native-side issue)
-- **CRITICAL** Migros is_test boolean: Webhook handler does not convert is_test string to boolean - all live orders flagged as test
+- **CRITICAL** Migros is_test boolean: Webhook handler does not convert is_test string to boolean
 - **CRITICAL** Migros migros_status: Not saved as "Approved" after auto-approval
 - Migros DB Cleanup: Existing orders have incorrect is_test string values
 
 ## Upcoming Tasks
 - **(P0) Fix Migros is_test + migros_status bugs + DB migration**
 - (P1) "Stop Count" based capacity logic
-- (P1) Dark mode fine-tuning for sub-pages (couriers, accounting, shifts)
 - (P2) Caller ID integration research
 
 ## Backlog
@@ -55,24 +56,17 @@ Courier delivery management system with ETA calculation, order management, nativ
 ## Architecture
 - Backend: FastAPI + MongoDB
 - Frontend: React + Tailwind CSS + Shadcn UI
-- Dark Mode: Tailwind class strategy + CSS variables + ThemeProvider context
 - Integrations: Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
 - Hosting: Railway
 - Push: Firebase Cloud Messaging (FCM) - Channel: orders_v6
-- APIs: Google Places, Google Geocoding
 
 ## Key Files
-- /app/frontend/src/contexts/ThemeContext.jsx - Dark mode provider
-- /app/frontend/src/index.css - CSS variables (light + dark)
-- /app/frontend/src/pages/admin/SiparisYonetimiPage.jsx - Order management
-- /app/frontend/src/pages/courier/CourierSiparisPage.jsx - Courier order cards
-- /app/backend/routers/couriers.py - Permissions API + availability check
-- /app/backend/services/firebase_service.py - FCM push (orders_v6)
-- /app/frontend/src/utils/dateUtils.js - Timezone-safe date formatting utility
-- /app/frontend/src/pages/VardiyaPage.jsx - Shift management page
-- /app/frontend/src/components/vardiya/ - Shift modals
-- /app/backend/routers/webhooks.py - Migros webhook handler (NEEDS is_test fix)
-- /app/backend/routers/orders.py - Order status updates
-- /app/backend/routers/reports.py - All report endpoints (courier, restaurant, profit-loss, performance, turnover)
-- /app/frontend/src/components/admin/reports/CiroRaporu.jsx - Turnover report component
+- /app/frontend/src/components/admin/reports/ReportDateFilter.jsx - Shared date filter with presets
+- /app/frontend/src/components/admin/reports/CiroRaporu.jsx - Turnover report
+- /app/frontend/src/components/admin/reports/KarZararRaporu.jsx - Profit/Loss report
+- /app/frontend/src/components/admin/reports/PerformansRaporu.jsx - Performance report
+- /app/frontend/src/components/admin/reports/KuryeRaporlari.jsx - Courier reports
+- /app/frontend/src/components/admin/reports/RestoranRaporlari.jsx - Restaurant reports
 - /app/frontend/src/pages/muhasebe/RaporlarTab.jsx - Reports tab container (5 sub-tabs)
+- /app/backend/routers/reports.py - All report API endpoints
+- /app/backend/routers/webhooks.py - Migros webhook handler (NEEDS is_test fix)
