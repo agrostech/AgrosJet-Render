@@ -102,8 +102,8 @@ const generate58mmReceipt = (order, logoUrl = "") => {
           color: #000;
         }
         .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; }
-        .header-info { font-size: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .platform { font-size: 10px; background: #000; color: #fff; padding: 1px 6px; display: inline-block; }
+        .header-info { font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+        .platform { font-size: 11px; color: #000; font-weight: bold; display: inline-block; }
         .section { padding: 6px 0; border-bottom: 1px dashed #000; line-height: 1.5; }
         .label { font-size: 9px; font-weight: bold; }
         .value { font-size: 11px; font-weight: bold; }
@@ -210,13 +210,12 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 12px;
+          font-size: 13px;
         }
         .platform { 
-          font-size: 12px; 
-          background: #000; 
-          color: #fff; 
-          padding: 1px 8px; 
+          font-size: 13px; 
+          color: #000; 
+          font-weight: bold;
           display: inline-block; 
         }
         .section { 
