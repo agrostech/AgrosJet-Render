@@ -69,17 +69,28 @@ const generate58mmReceipt = (order, logoUrl = "") => {
   const platform = getPlatformLabel(order);
   const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
 
-  let itemsHtml = items.map(item => `
+  let itemsHtml = items.map(item => {
+    const itemNote = item.note || item.notes || "";
+    let optionsHtml = "";
+    if (item.options && item.options.length > 0) {
+      optionsHtml = item.options.map(opt => {
+        const prefix = opt.excluded ? "✕ " : "+ ";
+        const priceStr = opt.price ? ` (${formatCurrency(opt.price)})` : "";
+        return `<br><small style="font-size:9px;padding-left:8px;">${prefix}${opt.name || opt.value}${priceStr}</small>`;
+      }).join("");
+    }
+    return `
     <tr>
       <td style="text-align:left;font-size:11px;padding:2px 0;">
         ${item.quantity}x ${item.name}
-        ${item.notes ? `<br><small style="font-size:9px;">Not: ${item.notes}</small>` : ""}
+        ${itemNote ? `<br><small style="font-size:9px;font-style:italic;">Not: ${itemNote}</small>` : ""}
+        ${optionsHtml}
       </td>
-      <td style="text-align:right;font-size:11px;padding:2px 0;white-space:nowrap;">
+      <td style="text-align:right;font-size:11px;padding:2px 0;white-space:nowrap;vertical-align:top;">
         ${formatCurrency(item.price * item.quantity)}
       </td>
-    </tr>
-  `).join("");
+    </tr>`;
+  }).join("");
 
   const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-width:48%;object-fit:contain;display:block;margin:14px auto;" />` : "";
 
@@ -150,6 +161,16 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       </div>
 
       ${order.notes ? `<div class="notes"><strong>NOT:</strong> ${order.notes}</div>` : ""}
+      ${order.note && order.note !== order.notes ? `<div class="notes"><strong>NOT:</strong> ${order.note}</div>` : ""}
+      ${order.description ? `<div class="notes"><strong>AÇIKLAMA:</strong> ${order.description}</div>` : ""}
+
+      ${(order.verification_code || order.preparation_time || order.contactless_delivery || order.ring_doorbell === false) ? `
+      <div style="padding:3px 0;border-top:1px dashed #000;font-size:9px;line-height:1.5;">
+        ${order.verification_code ? `<div><strong>Doğrulama:</strong> ${order.verification_code}</div>` : ""}
+        ${order.preparation_time ? `<div><strong>Hazırlık:</strong> ${order.preparation_time} dk</div>` : ""}
+        ${order.contactless_delivery ? `<div><strong>Temassız Teslimat</strong></div>` : ""}
+        ${order.ring_doorbell === false ? `<div><strong>Zile Basma</strong></div>` : ""}
+      </div>` : ""}
 
       <div style="text-align:center;margin-top:6px;padding-top:4px;border-top:1px dashed #000;font-size:9px;line-height:1.5;">
         www.AgrosJet.com.tr<br>
@@ -169,17 +190,28 @@ const generate80mmReceipt = (order, logoUrl = "") => {
   const platform = getPlatformLabel(order);
   const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
 
-  let itemsHtml = items.map(item => `
+  let itemsHtml = items.map(item => {
+    const itemNote = item.note || item.notes || "";
+    let optionsHtml = "";
+    if (item.options && item.options.length > 0) {
+      optionsHtml = item.options.map(opt => {
+        const prefix = opt.excluded ? "✕ " : "+ ";
+        const priceStr = opt.price ? ` (${formatCurrency(opt.price)})` : "";
+        return `<br><small style="font-size:11px;padding-left:12px;color:#333;">${prefix}${opt.name || opt.value}${priceStr}</small>`;
+      }).join("");
+    }
+    return `
     <tr>
       <td style="text-align:left;padding:4px 0;">
         <strong>${item.quantity}x</strong> ${item.name}
-        ${item.notes ? `<br><small>Not: ${item.notes}</small>` : ""}
+        ${itemNote ? `<br><small style="font-size:11px;font-style:italic;">Not: ${itemNote}</small>` : ""}
+        ${optionsHtml}
       </td>
-      <td style="text-align:right;padding:4px 0;white-space:nowrap;font-weight:bold;">
+      <td style="text-align:right;padding:4px 0;white-space:nowrap;font-weight:bold;vertical-align:top;">
         ${formatCurrency(item.price * item.quantity)}
       </td>
-    </tr>
-  `).join("");
+    </tr>`;
+  }).join("");
 
   const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-width:48%;object-fit:contain;display:block;margin:14px auto;" />` : "";
 
@@ -312,6 +344,16 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       </div>
 
       ${order.notes ? `<div class="notes"><strong>Sipariş Notu:</strong><br>${order.notes}</div>` : ""}
+      ${order.note && order.note !== order.notes ? `<div class="notes"><strong>Sipariş Notu:</strong><br>${order.note}</div>` : ""}
+      ${order.description ? `<div class="notes"><strong>Açıklama:</strong><br>${order.description}</div>` : ""}
+
+      ${(order.verification_code || order.preparation_time || order.contactless_delivery || order.ring_doorbell === false) ? `
+      <div style="padding:4px 0;border-top:1px dashed #000;font-size:12px;line-height:1.6;">
+        ${order.verification_code ? `<div><strong>Doğrulama Kodu:</strong> ${order.verification_code}</div>` : ""}
+        ${order.preparation_time ? `<div><strong>Hazırlık Süresi:</strong> ${order.preparation_time} dk</div>` : ""}
+        ${order.contactless_delivery ? `<div><strong>Temassız Teslimat</strong></div>` : ""}
+        ${order.ring_doorbell === false ? `<div><strong>Zile Basma</strong></div>` : ""}
+      </div>` : ""}
 
       <div style="text-align:center;margin-top:8px;padding-top:6px;border-top:1px dashed #000;font-size:11px;line-height:1.6;">
         www.AgrosJet.com.tr<br>
