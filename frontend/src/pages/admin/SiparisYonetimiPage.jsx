@@ -1306,7 +1306,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                 </div>
                 
                 {/* MOBİL: Kart Görünümü (md altı) */}
-                <div className="md:hidden grid grid-cols-1 gap-2">
+                <div className="md:hidden grid grid-cols-1 gap-1.5">
                   {paginatedOrders.map((order) => {
                     const statusInfo = ORDER_STATUSES[order.status] || ORDER_STATUSES.preparing;
                     const orderAge = getOrderAge(order);
@@ -1358,13 +1358,13 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         data-testid={`order-card-${order.id}`}
                       >
                         {/* Üst Kısım: Restoran + Mesafe + Ödeme + Ücret + Zaman */}
-                        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30 rounded-t-lg">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="px-2 py-1 bg-slate-700 text-white text-[11px] font-semibold rounded truncate">
+                        <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30 rounded-t-lg">
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <span className="px-1.5 py-0.5 bg-slate-700 text-white text-[10px] font-semibold rounded min-w-0" title={order.restaurant_name}>
                               {order.restaurant_name || "-"}
                             </span>
-                            <span className="text-[10px] text-slate-500 flex-shrink-0">{getOrderDistance(order) || "-"}</span>
-                            <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded flex-shrink-0 ${
+                            <span className="text-[9px] text-slate-500 flex-shrink-0">{getOrderDistance(order) || "-"}</span>
+                            <span className={`px-1 py-0.5 text-[9px] font-medium rounded flex-shrink-0 ${
                               order.payment_method === 'cash' ? 'bg-emerald-100 text-emerald-700' : 
                               order.payment_method === 'card' ? 'bg-blue-100 text-blue-700' : 
                               (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
@@ -1374,9 +1374,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                (order.payment_method === 'meal_card' || order.payment_method === 'online_meal_card') ? (order.payment_method_detail || 'Y.Kartı') : 
                                'Online'}
                             </span>
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex-shrink-0">{formatCurrency(order.total_amount)}</span>
+                            <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 flex-shrink-0">{formatCurrency(order.total_amount)}</span>
                           </div>
-                          <div className="flex items-center gap-1 text-[10px] text-slate-500 flex-shrink-0 ml-1">
+                          <div className="flex items-center gap-1 text-[9px] text-slate-500 flex-shrink-0 ml-1">
                             <span className="font-medium">{formatTime(order.created_at)}</span>
                             {!['delivered', 'cancelled'].includes(order.status) && orderAge && (
                               <span className={`px-1 py-0.5 rounded font-medium ${orderAge.mins > 35 ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-600'}`}>
@@ -1387,17 +1387,17 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         </div>
                         
                         {/* Orta Kısım: Müşteri Bilgileri */}
-                        <div className="px-3 py-2 space-y-2">
+                        <div className="px-2.5 py-1.5 space-y-1">
                           {/* Müşteri Adı ve Telefon */}
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <User className="w-4 h-4 text-slate-400" />
-                              <span className="font-medium text-sm text-slate-800 dark:text-slate-200">{order.customer_name || "-"}</span>
+                            <div className="flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5 text-slate-400" />
+                              <span className="font-medium text-xs text-slate-800 dark:text-slate-200">{order.customer_name || "-"}</span>
                             </div>
                             {order.customer_phone && (
                               <a 
                                 href={`tel:${order.customer_phone.includes(',,') ? order.customer_phone.split(',,')[0] : order.customer_phone}`}
-                                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                                className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <Phone className="w-3 h-3" />
@@ -1411,10 +1411,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                             )}
                           </div>
                           
-                          {/* Adres - 3 satıra kadar */}
-                          <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed" title={order.delivery_address}>
+                          {/* Adres */}
+                          <div className="flex items-start gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 leading-snug" title={order.delivery_address}>
                               {order.delivery_address || "-"}
                             </p>
                           </div>
@@ -1429,7 +1429,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                         </div>
                         
                         {/* Alt Kısım: Durum ve Kurye Seçimi */}
-                        <div className="flex items-center gap-2 px-3 py-2 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-700/20 rounded-b-lg" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-700/20 rounded-b-lg" onClick={(e) => e.stopPropagation()}>
                           {/* Durum Seçici */}
                           {isAdminActive ? (
                             <Select 
@@ -1442,7 +1442,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 }
                               }}
                             >
-                              <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-xs px-3 py-1 h-8 border border-slate-300/50 flex-1 shadow-sm`}>
+                              <SelectTrigger className={`${statusInfo.color} text-slate-700 font-medium text-[11px] px-2 py-0.5 h-7 border border-slate-300/50 flex-1 shadow-sm`}>
                                 <SelectValue>
                                   {(order.status === 'preparing' || order.status === 'scheduled') && order.preparation_end_at
                                     ? getCountdown(order.preparation_end_at)?.text || statusInfo.label
@@ -1465,7 +1465,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               </SelectContent>
                             </Select>
                           ) : (
-                            <span className={`${statusInfo.color} text-slate-700 font-medium text-xs px-3 py-1.5 rounded border border-slate-300/50 flex-1 text-center`}>
+                            <span className={`${statusInfo.color} text-slate-700 font-medium text-[11px] px-2 py-1 rounded border border-slate-300/50 flex-1 text-center`}>
                               {statusInfo.label}
                             </span>
                           )}
@@ -1479,10 +1479,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 else if (value) handleReassignCourier(order.id, value);
                               }}
                             >
-                              <SelectTrigger className={`h-8 px-3 text-xs flex-1 ${
+                              <SelectTrigger className={`h-7 px-2 text-[11px] flex-1 ${
                                 order.courier_name ? "bg-green-100 border-green-200 text-green-700 font-medium" : "bg-white border-slate-200"
                               }`}>
-                                <Bike className="w-3.5 h-3.5 mr-1.5" />
+                                <Bike className="w-3 h-3 mr-1" />
                                 <span className="truncate">{order.courier_name || "Kurye Ata"}</span>
                               </SelectTrigger>
                               <SelectContent className="min-w-[280px]">
