@@ -90,22 +90,28 @@ export function useFaturalar(companyId, year, month) {
   };
 
   const downloadBulk = async (invoiceIds, filename) => {
-    const res = await axios.post(
-      `${API}/invoices/download-bulk`,
-      invoiceIds,
-      { responseType: 'blob' }
-    );
-    
-    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', filename.replace('.zip', '.pdf'));
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-    
-    toast.success(`${invoiceIds.length} fatura birleştirildi ve indirildi`);
+    toast.loading("PDF birleştiriliyor...", { id: "bulk-pdf" });
+    try {
+      const res = await axios.post(
+        `${API}/invoices/download-bulk`,
+        { invoice_ids: invoiceIds, company_id: companyId },
+        { responseType: 'blob' }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename.replace('.zip', '.pdf'));
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${invoiceIds.length} fatura birleştirildi`, { id: "bulk-pdf" });
+    } catch (err) {
+      toast.error("PDF birleştirme başarısız", { id: "bulk-pdf" });
+      throw err;
+    }
   };
 
   const verifyInvoice = async (invoiceId, currentStatus) => {

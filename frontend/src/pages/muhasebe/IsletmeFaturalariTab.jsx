@@ -1060,7 +1060,7 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
     }
     
     try {
-      toast.loading("PDF hazırlanıyor...", { id: "pdf-download" });
+      toast.loading("PDF birleştiriliyor...", { id: "pdf-download" });
       
       const res = await axios.post(`${API}/restaurant-invoices/${companyId}/download-zip`, {
         invoice_ids: selectedInvoices
@@ -1082,11 +1082,11 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
       link.click();
       URL.revokeObjectURL(link.href);
       
-      toast.success(`${selectedInvoices.length} fatura birleştirildi ve indirildi`, { id: "pdf-download" });
+      toast.success(`${selectedInvoices.length} fatura birleştirildi`, { id: "pdf-download" });
       setSelectedInvoices([]);
     } catch (err) {
       console.error("PDF download error:", err);
-      toast.error("İndirme başarısız", { id: "pdf-download" });
+      toast.error("PDF birleştirme başarısız", { id: "pdf-download" });
     }
   };
 

@@ -1008,7 +1008,9 @@ class BulkDownloadRequest(BaseModel):
 
 @router.post("/restaurant-invoices/{company_id}/download-zip")
 async def download_invoices_merged_pdf(company_id: str, data: BulkDownloadRequest):
-    """Seçili faturaları tek bir birleştirilmiş PDF olarak indir"""
+    """Seçili faturaları tek bir birleştirilmiş PDF olarak indir (kapak + sayfa numarası)"""
+    from utils.pdf_utils import create_cover_page, add_page_numbers, get_logo_bytes
+
     if not data.invoice_ids:
         raise HTTPException(status_code=400, detail="En az bir fatura seçin")
     
@@ -1018,6 +1020,14 @@ async def download_invoices_merged_pdf(company_id: str, data: BulkDownloadReques
         {"_id": 0}
     ).to_list(1000)
     
+    # Get company info for cover page
+    logo_bytes = None
+    company_name = ""
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1, "logo_light": 1})
+    if company:
+        company_name = company.get("name", "")
+        logo_bytes = get_logo_bytes(company.get("logo_light", ""))
+
     writer = PdfWriter()
     
     for record in records:
@@ -1026,7 +1036,6 @@ async def download_invoices_merged_pdf(company_id: str, data: BulkDownloadReques
             if inv_id not in data.invoice_ids:
                 continue
             
-            # Dosya içeriğini al
             file_content = None
             storage_type = inv.get("storage_type", "base64")
             
@@ -1045,7 +1054,6 @@ async def download_invoices_merged_pdf(company_id: str, data: BulkDownloadReques
                     for page in reader.pages:
                         writer.add_page(page)
                 else:
-                    # Image file (jpg, png, etc.) - convert to PDF page
                     img = Image.open(io.BytesIO(file_content))
                     if img.mode in ("RGBA", "P"):
                         img = img.convert("RGB")
@@ -1062,17 +1070,37 @@ async def download_invoices_merged_pdf(company_id: str, data: BulkDownloadReques
     if len(writer.pages) == 0:
         raise HTTPException(status_code=404, detail="Birleştirilebilecek fatura bulunamadı")
     
-    pdf_buffer = io.BytesIO()
-    writer.write(pdf_buffer)
-    pdf_buffer.seek(0)
-    pdf_content = pdf_buffer.getvalue()
-    
     turkey_tz = timezone(timedelta(hours=3))
     now = datetime.now(turkey_tz)
     month_name = TURKISH_MONTHS[now.month]
+
+    # Create cover page
+    cover_buf = create_cover_page(
+        title="Restoran Faturaları",
+        subtitle=f"{company_name} - {month_name} {now.year}",
+        logo_bytes=logo_bytes,
+        invoice_count=len(data.invoice_ids),
+        generated_date=now.strftime("%d.%m.%Y %H:%M"),
+    )
+    cover_reader = PdfReader(cover_buf)
+
+    # Build final: cover + content pages
+    final_writer = PdfWriter()
+    for page in cover_reader.pages:
+        final_writer.add_page(page)
+    for page in writer.pages:
+        final_writer.add_page(page)
+
+    # Add page numbers
+    add_page_numbers(final_writer)
+
+    pdf_buffer = io.BytesIO()
+    final_writer.write(pdf_buffer)
+    pdf_buffer.seek(0)
+    pdf_content = pdf_buffer.getvalue()
+    
     pdf_filename = f"Restoran{month_name}Faturalar.pdf"
     
-    # Base64 olarak döndür (frontend'de decode edilecek)
     return {
         "pdf_data": base64.b64encode(pdf_content).decode("utf-8"),
         "filename": pdf_filename

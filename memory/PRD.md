@@ -14,6 +14,8 @@ Full-stack delivery management application with mobile responsiveness, admin pan
 - **Bulk Invoice Download: ZIP to Merged PDF:** Changed both courier and restaurant invoice bulk download from ZIP to single multi-page PDF.
   - Backend: `invoices.py` `/download-bulk` and `restaurant_invoices.py` `/download-zip` now use `pypdf` + `Pillow` to merge PDFs and convert images to PDF pages.
   - Frontend: `useFaturalar.js` `downloadBulk()` and `IsletmeFaturalariTab.jsx` `handleDownloadBulk()` updated to handle PDF responses.
+- **PDF Cover Page & Page Numbers:** Added professional cover page (company logo, title, month, invoice count, date) and page numbers ("Sayfa X / Y") to merged PDFs using `reportlab`. New utility: `backend/utils/pdf_utils.py`.
+- **Loading Toast:** Both download flows now show "PDF birleştiriliyor..." spinner toast during processing.
 - **Receipt/Ticket Redesign:** Complete 58mm/80mm receipt overhaul with Turkish encoding fix.
 - **Logo Image Cropping:** Pillow-based whitespace cropping for logo files.
 - **Map Theme Bug Fix:** Leaflet tile layer now updates on dark/light theme switch.

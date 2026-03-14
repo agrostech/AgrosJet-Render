@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, StreamingResponse, Response
 from datetime import datetime, timezone, timedelta
+from pydantic import BaseModel
+from typing import Optional, List
 import uuid
 import os
 import io
@@ -924,29 +926,44 @@ async def view_invoice(invoice_id: str):
         )
 
 
+class BulkPdfRequest(BaseModel):
+    invoice_ids: List[str]
+    company_id: Optional[str] = None
+
+
 @router.post("/download-bulk")
-async def download_bulk_invoices(invoice_ids: list[str]):
-    """Download multiple invoices as a single merged PDF"""
-    if not invoice_ids:
+async def download_bulk_invoices(data: BulkPdfRequest):
+    """Download multiple invoices as a single merged PDF with cover page and page numbers"""
+    from utils.pdf_utils import create_cover_page, add_page_numbers, get_logo_bytes
+
+    if not data.invoice_ids:
         raise HTTPException(status_code=400, detail="En az bir fatura seçilmeli")
     
     invoices = await db.invoices.find(
-        {"id": {"$in": invoice_ids}},
+        {"id": {"$in": data.invoice_ids}},
         {"_id": 0}
     ).to_list(100)
     
     if not invoices:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
+    # Get company info for cover page
+    logo_bytes = None
+    company_name = ""
+    company_id = data.company_id or (invoices[0].get("company_id") if invoices else None)
+    if company_id:
+        company = await db.companies.find_one({"id": company_id}, {"_id": 0, "name": 1, "logo_light": 1})
+        if company:
+            company_name = company.get("name", "")
+            logo_bytes = get_logo_bytes(company.get("logo_light", ""))
+
     writer = PdfWriter()
     
     for invoice in invoices:
         file_content = None
-        # Check if stored in R2
         if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
             file_content = await download_file_from_r2(invoice["r2_key"])
         else:
-            # Legacy local file storage
             if invoice.get("file_path") and os.path.exists(invoice["file_path"]):
                 with open(invoice["file_path"], "rb") as f:
                     file_content = f.read()
@@ -961,7 +978,6 @@ async def download_bulk_invoices(invoice_ids: list[str]):
                 for page in reader.pages:
                     writer.add_page(page)
             else:
-                # Image file (jpg, png, etc.) - convert to PDF page
                 img = Image.open(io.BytesIO(file_content))
                 if img.mode in ("RGBA", "P"):
                     img = img.convert("RGB")
@@ -978,12 +994,33 @@ async def download_bulk_invoices(invoice_ids: list[str]):
     if len(writer.pages) == 0:
         raise HTTPException(status_code=404, detail="Birleştirilebilecek fatura bulunamadı")
     
-    pdf_buffer = io.BytesIO()
-    writer.write(pdf_buffer)
-    pdf_buffer.seek(0)
-    
     now = datetime.now(TURKEY_TZ)
     month_name = TURKISH_MONTHS[now.month]
+
+    # Create cover page
+    cover_buf = create_cover_page(
+        title="Kurye Faturaları",
+        subtitle=f"{company_name} - {month_name} {now.year}",
+        logo_bytes=logo_bytes,
+        invoice_count=len(data.invoice_ids),
+        generated_date=now.strftime("%d.%m.%Y %H:%M"),
+    )
+    cover_reader = PdfReader(cover_buf)
+
+    # Build final: cover + content pages
+    final_writer = PdfWriter()
+    for page in cover_reader.pages:
+        final_writer.add_page(page)
+    for page in writer.pages:
+        final_writer.add_page(page)
+
+    # Add page numbers
+    add_page_numbers(final_writer)
+    
+    pdf_buffer = io.BytesIO()
+    final_writer.write(pdf_buffer)
+    pdf_buffer.seek(0)
+    
     pdf_filename = f"Kurye{month_name}Faturalar.pdf"
     
     return StreamingResponse(
