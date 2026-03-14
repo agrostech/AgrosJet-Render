@@ -1415,7 +1415,20 @@ async def get_performance_report(
         {"$sort": {"_id": 1}}
     ]
     daily_results = await db.orders.aggregate(daily_pipeline).to_list(100)
-    daily_distribution = [{"date": r["_id"], "count": r["count"]} for r in daily_results]
+    daily_map = {r["_id"]: r["count"] for r in daily_results}
+
+    # Tarih aralığındaki tüm günleri doldur (0 sipariş olanlar dahil)
+    try:
+        s_date = datetime.fromisoformat(start_str[:10])
+        e_date = datetime.fromisoformat(end_str[:10])
+        daily_distribution = []
+        current = s_date
+        while current <= e_date:
+            d_str = current.strftime("%Y-%m-%d")
+            daily_distribution.append({"date": d_str, "count": daily_map.get(d_str, 0)})
+            current += timedelta(days=1)
+    except:
+        daily_distribution = [{"date": r["_id"], "count": r["count"]} for r in daily_results]
 
     return {
         "couriers": courier_results,

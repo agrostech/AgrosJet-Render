@@ -130,7 +130,7 @@ export default function PerformansRaporu({ companyId }) {
             <SectionHeader icon={Building2} title="Şirket Performansı" />
 
             {/* Gunluk siparis grafigi (sadece coklu gun secimlerinde) */}
-            {showDailyChart && data.daily_distribution && data.daily_distribution.length > 0 && (
+            {showDailyChart && data.daily_distribution && (
               <div className="space-y-1.5">
                 <h4 className="text-xs font-medium text-slate-500 pl-1">Günlük Sipariş Sayısı</h4>
                 <div className="border rounded-lg p-4" style={{ height: 200 }}>
