@@ -91,16 +91,17 @@ const generate58mmReceipt = (order, logoUrl = "") => {
           box-sizing: border-box;
           color: #000;
         }
-        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 2px; }
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; }
         .header-info { font-size: 10px; display: flex; justify-content: space-between; align-items: center; }
         .platform { font-size: 10px; background: #000; color: #fff; padding: 1px 6px; display: inline-block; }
-        .section { padding: 2px 0; border-bottom: 1px dashed #000; }
+        .section { padding: 6px 0; border-bottom: 1px dashed #000; line-height: 1.5; }
         .label { font-size: 9px; font-weight: bold; }
         .value { font-size: 11px; font-weight: bold; }
         .items-table { width: 100%; border-collapse: collapse; }
-        .total { font-size: 14px; font-weight: bold; text-align: right; }
-        .payment { text-align: center; padding: 2px; font-weight: bold; border: 1px solid #000; }
-        .notes { padding: 3px; font-size: 10px; border: 1px dashed #000; }
+        .items-table td { padding: 3px 0; }
+        .total { font-size: 14px; font-weight: bold; text-align: right; padding-top: 4px; }
+        .payment { text-align: center; padding: 4px; font-weight: bold; border: 1px solid #000; margin-top: 4px; }
+        .notes { padding: 5px; font-size: 10px; border: 1px dashed #000; margin-top: 4px; line-height: 1.4; }
       </style>
     </head>
     <body>
@@ -188,7 +189,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         .header { 
           text-align: center; 
           border-bottom: 2px solid #000; 
-          padding-bottom: 2px; 
+          padding-bottom: 4px; 
         }
         .header-info {
           display: flex;
@@ -204,14 +205,15 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           display: inline-block; 
         }
         .section { 
-          padding: 2px 0; 
+          padding: 6px 0; 
           border-bottom: 1px dashed #000; 
+          line-height: 1.5;
         }
         .section-title { 
           font-size: 10px; 
           text-transform: uppercase;
           letter-spacing: 1px;
-          margin-bottom: 1px;
+          margin-bottom: 2px;
           font-weight: bold;
         }
         .section-value { 
@@ -228,10 +230,10 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         }
         .items-table td {
           font-size: 12px;
-          padding: 2px 0;
+          padding: 4px 0;
         }
         .total-section {
-          padding: 2px 0;
+          padding: 4px 0;
           text-align: right;
           border-top: 1px dashed #000;
         }
@@ -244,15 +246,18 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         }
         .payment { 
           text-align: center; 
-          padding: 2px; 
+          padding: 4px; 
           font-weight: bold;
           font-size: 14px;
           border: 2px solid #000;
+          margin-top: 4px;
         }
         .notes { 
           border: 1px dashed #000;
-          padding: 2px 8px; 
+          padding: 4px 8px; 
           font-size: 11px; 
+          margin-top: 4px;
+          line-height: 1.4;
         }
       </style>
     </head>
