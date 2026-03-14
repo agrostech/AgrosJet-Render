@@ -6,11 +6,18 @@ import io
 import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas as rl_canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
 from pypdf import PdfWriter, PdfReader
 from PIL import Image as PILImage
 
 LOGO_DIR = "/app/uploads/logos"
+
+# Register Turkish-compatible fonts
+_FONT_DIR = "/usr/share/fonts/truetype/liberation"
+pdfmetrics.registerFont(TTFont("TRSans", os.path.join(_FONT_DIR, "LiberationSans-Regular.ttf")))
+pdfmetrics.registerFont(TTFont("TRSansBold", os.path.join(_FONT_DIR, "LiberationSans-Bold.ttf")))
 
 TURKISH_MONTHS = {
     1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan",
@@ -75,12 +82,12 @@ def create_cover_page(
             print(f"Logo eklenemedi: {e}")
 
     # Title
-    c.setFont("Helvetica-Bold", 26)
+    c.setFont("TRSansBold", 26)
     c.setFillColorRGB(0.15, 0.15, 0.15)
     c.drawCentredString(width / 2, height - 280, title)
 
     # Subtitle (month/year)
-    c.setFont("Helvetica", 18)
+    c.setFont("TRSans", 18)
     c.setFillColorRGB(0.35, 0.35, 0.35)
     c.drawCentredString(width / 2, height - 315, subtitle)
 
@@ -90,17 +97,17 @@ def create_cover_page(
     c.line(width * 0.25, height - 345, width * 0.75, height - 345)
 
     # Invoice count
-    c.setFont("Helvetica", 14)
+    c.setFont("TRSans", 14)
     c.setFillColorRGB(0.25, 0.25, 0.25)
     c.drawCentredString(width / 2, height - 380, f"{invoice_count} Fatura")
 
     # Generated date
-    c.setFont("Helvetica", 11)
+    c.setFont("TRSans", 11)
     c.setFillColorRGB(0.5, 0.5, 0.5)
     c.drawCentredString(width / 2, height - 410, f"Oluşturulma: {generated_date}")
 
     # Footer
-    c.setFont("Helvetica", 8)
+    c.setFont("TRSans", 8)
     c.setFillColorRGB(0.6, 0.6, 0.6)
     c.drawCentredString(width / 2, 30, "AgrosJet - Powered by AgrosTech")
 
@@ -119,7 +126,7 @@ def add_page_numbers(writer: PdfWriter) -> PdfWriter:
 
         overlay_buf = io.BytesIO()
         c = rl_canvas.Canvas(overlay_buf, pagesize=(pw, ph))
-        c.setFont("Helvetica", 9)
+        c.setFont("TRSans", 9)
         c.setFillColorRGB(0.45, 0.45, 0.45)
         c.drawCentredString(pw / 2, 15, f"Sayfa {i + 1} / {total}")
         c.save()
