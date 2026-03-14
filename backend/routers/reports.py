@@ -1390,11 +1390,39 @@ async def get_performance_report(
     
     hourly_distribution = [{"hour": h, "count": hourly_map.get(h, 0)} for h in hour_range]
 
+    # Günlük sipariş dağılımı
+    daily_pipeline = [
+        {
+            "$match": {
+                "company_id": company_id,
+                "status": "delivered",
+                "created_at": {"$gte": start_str, "$lte": end_str}
+            }
+        },
+        {
+            "$addFields": {
+                "_date_str": {
+                    "$substr": ["$created_at", 0, 10]
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_date_str",
+                "count": {"$sum": 1}
+            }
+        },
+        {"$sort": {"_id": 1}}
+    ]
+    daily_results = await db.orders.aggregate(daily_pipeline).to_list(100)
+    daily_distribution = [{"date": r["_id"], "count": r["count"]} for r in daily_results]
+
     return {
         "couriers": courier_results,
         "admins": admin_results,
         "courier_average": avg,
-        "hourly_distribution": hourly_distribution
+        "hourly_distribution": hourly_distribution,
+        "daily_distribution": daily_distribution
     }
 
 

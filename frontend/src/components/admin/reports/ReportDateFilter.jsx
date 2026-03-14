@@ -17,7 +17,7 @@ function getMonday(d) {
   return date;
 }
 
-export default function ReportDateFilter({ companyId, onGenerate, loading }) {
+export default function ReportDateFilter({ companyId, onGenerate, loading, onPresetChange }) {
   const [preset, setPreset] = useState("bugun");
   const [openingTime, setOpeningTime] = useState("09:00");
   const [closingTime, setClosingTime] = useState("23:00");
@@ -99,6 +99,7 @@ export default function ReportDateFilter({ companyId, onGenerate, loading }) {
       if (dates && onGenerate) {
         setManualStart(dates.start);
         setManualEnd(dates.end);
+        onPresetChange?.("bugun");
         onGenerate(dates.start, dates.end);
       }
     }
@@ -106,6 +107,7 @@ export default function ReportDateFilter({ companyId, onGenerate, loading }) {
 
   const handlePreset = (p) => {
     setPreset(p);
+    onPresetChange?.(p);
     if (p === "ozel") return;
     const dates = calcDates(p);
     if (dates && onGenerate) {
