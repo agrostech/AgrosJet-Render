@@ -51,12 +51,22 @@ const formatCurrency = (amount) => {
 };
 
 /**
+ * Sipariş kaynağını belirle
+ */
+const getPlatformLabel = (order) => {
+  if (order.platform && PLATFORM_LABELS[order.platform]) return PLATFORM_LABELS[order.platform];
+  if (order.order_number && order.order_number.startsWith("TEL-")) return "Telefon";
+  if (order.source && PLATFORM_LABELS[order.source]) return PLATFORM_LABELS[order.source];
+  return order.platform || order.source || "Sipariş";
+};
+
+/**
  * 58mm termal fiş HTML'i oluştur
  * Genişlik: ~32 karakter
  */
 const generate58mmReceipt = (order, logoUrl = "") => {
   const items = order.items || [];
-  const platform = PLATFORM_LABELS[order.platform] || PLATFORM_LABELS[order.source] || order.platform || order.source || "Sipariş";
+  const platform = getPlatformLabel(order);
   const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
 
   let itemsHtml = items.map(item => `
@@ -156,7 +166,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
  */
 const generate80mmReceipt = (order, logoUrl = "") => {
   const items = order.items || [];
-  const platform = PLATFORM_LABELS[order.platform] || PLATFORM_LABELS[order.source] || order.platform || order.source || "Sipariş";
+  const platform = getPlatformLabel(order);
   const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
 
   let itemsHtml = items.map(item => `
