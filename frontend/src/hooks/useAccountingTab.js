@@ -493,8 +493,14 @@ export function useAccountingTab({
     // Logo
     if (companyLogo && companyLogo.trim() !== '') {
       try {
-        const proxyUrl = `${API}/proxy-image?url=${encodeURIComponent(companyLogo)}`;
-        const response = await fetch(proxyUrl);
+        // Relative path ise backend URL'yi başına ekle, tam URL ise proxy kullan
+        let logoUrl;
+        if (companyLogo.startsWith('/')) {
+          logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
+        } else {
+          logoUrl = `${API}/proxy-image?url=${encodeURIComponent(companyLogo)}`;
+        }
+        const response = await fetch(logoUrl);
         if (response.ok) {
           const blob = await response.blob();
           const dataUrl = await new Promise((resolve) => {
