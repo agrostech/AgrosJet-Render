@@ -24,7 +24,9 @@ function PerformanceTable({ data, average, title, icon: Icon }) {
     );
   }
 
-  const sorted = [...data].sort((a, b) => b.delivery_count - a.delivery_count);
+  const sorted = [...data]
+    .filter(r => r.delivery_count > 0 || r.active_hours > 0 || r.violation_count > 0 || r.break_minutes > 0)
+    .sort((a, b) => (a.name || "").localeCompare(b.name || "", 'tr'));
 
   return (
     <div className="space-y-2">
