@@ -409,7 +409,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
       <AddShiftModal
         open={showAddShiftModal}
         onOpenChange={setShowAddShiftModal}
-        onSubmit={(data) => { handleAddShift(data); }}
+        onSubmit={(data, cb) => { handleAddShift(data, cb); }}
       />
 
       <AssignCourierModal
