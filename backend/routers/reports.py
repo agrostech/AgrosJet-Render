@@ -1043,3 +1043,73 @@ async def get_restaurant_performance(
             "city": company.get("city") if company else None
         }
     }
+
+
+# ============ KAR / ZARAR RAPORU ============
+
+@router.get("/profit-loss")
+async def get_profit_loss_report(
+    company_id: str = Query(...),
+    start_datetime: str = Query(...),  # YYYY-MM-DDTHH:mm
+    end_datetime: str = Query(...),    # YYYY-MM-DDTHH:mm
+):
+    """
+    Kar/Zarar raporu
+    Gelir: Teslim edilmiş siparişlerin restaurant_fee toplamı
+    Gider: Kurye hakedişleri (is_hakedis=True, type=payment_in)
+    """
+    # String comparison (ISO format)
+    start_str = start_datetime.replace("T", "T") + ":00"
+    end_str = end_datetime.replace("T", "T") + ":59"
+
+    # --- Gelir: restaurant_fee from delivered orders ---
+    revenue_pipeline = [
+        {
+            "$match": {
+                "company_id": company_id,
+                "status": "delivered",
+                "created_at": {"$gte": start_str, "$lte": end_str}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_revenue": {"$sum": {"$ifNull": ["$restaurant_fee", 0]}},
+                "order_count": {"$sum": 1}
+            }
+        }
+    ]
+    revenue_results = await db.orders.aggregate(revenue_pipeline).to_list(1)
+
+    # --- Gider: Kurye hakedişleri ---
+    expense_pipeline = [
+        {
+            "$match": {
+                "company_id": company_id,
+                "entity_type": "courier",
+                "is_hakedis": True,
+                "type": "payment_in",
+                "created_at": {"$gte": start_str, "$lte": end_str}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_expense": {"$sum": "$amount"},
+                "hakedis_count": {"$sum": 1}
+            }
+        }
+    ]
+    expense_results = await db.transactions.aggregate(expense_pipeline).to_list(1)
+
+    total_revenue = round(revenue_results[0]["total_revenue"], 2) if revenue_results else 0
+    order_count = revenue_results[0]["order_count"] if revenue_results else 0
+    total_expense = round(expense_results[0]["total_expense"], 2) if expense_results else 0
+    hakedis_count = expense_results[0]["hakedis_count"] if expense_results else 0
+
+    return {
+        "total_revenue": total_revenue,
+        "total_expense": total_expense,
+        "order_count": order_count,
+        "hakedis_count": hakedis_count
+    }

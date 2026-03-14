@@ -19,6 +19,7 @@ Courier delivery management system with ETA calculation, order management, nativ
 - Critical Timezone Bug Fix: dateUtils.js utility, 15 components refactored (Mar 2026)
 - Migros Integration Overhaul: subOptions parsing, sequential status updates, CancelOrder endpoint, credential reading fix (Mar 2026)
 - Vardiya Sayfası Modal UI Sadeleştirme: İhlaller, Hareketler, Mola Ayarları modalları ve butonlarından renkler kaldırılıp tutarlı nötr tasarıma geçildi (Mar 2026)
+- Kar/Zarar Raporu: Muhasebe > Raporlar > Kar/Zarar sekmesi, datetime filtreleme ile taşıma ücreti vs kurye hakediş karşılaştırması (Mar 2026)
 - Ceza Sistemi: İhlal türlerine göre otomatik ceza uygulama, şirket bazlı ayarlar, bakiyeye yeşil işlem olarak ekleme (Mar 2026)
 
 ## Pending Verification

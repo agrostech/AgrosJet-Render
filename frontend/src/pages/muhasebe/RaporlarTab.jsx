@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Store } from "lucide-react";
+import { Users, Store, TrendingUp } from "lucide-react";
 import KuryeRaporlari from "@/components/admin/reports/KuryeRaporlari";
 import RestoranRaporlari from "@/components/admin/reports/RestoranRaporlari";
+import KarZararRaporu from "@/components/admin/reports/KarZararRaporu";
 
 export default function RaporlarTab({ companyId, isSuperAdmin }) {
   const [activeSubTab, setActiveSubTab] = useState("kurye");
@@ -10,14 +11,18 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
   return (
     <div className="space-y-4">
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
-        <TabsList className="grid w-full max-w-md grid-cols-2 mb-4">
+        <TabsList className="grid w-full max-w-lg grid-cols-3 mb-4">
           <TabsTrigger value="kurye" className="flex items-center gap-2" data-testid="sub-tab-kurye">
             <Users className="w-4 h-4" />
-            Kurye Raporları
+            Kurye
           </TabsTrigger>
           <TabsTrigger value="restoran" className="flex items-center gap-2" data-testid="sub-tab-restoran">
             <Store className="w-4 h-4" />
-            Restoran Raporları
+            Restoran
+          </TabsTrigger>
+          <TabsTrigger value="kar-zarar" className="flex items-center gap-2" data-testid="sub-tab-kar-zarar">
+            <TrendingUp className="w-4 h-4" />
+            Kar / Zarar
           </TabsTrigger>
         </TabsList>
 
@@ -27,6 +32,10 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
 
         <TabsContent value="restoran">
           <RestoranRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />
+        </TabsContent>
+
+        <TabsContent value="kar-zarar">
+          <KarZararRaporu companyId={companyId} />
         </TabsContent>
       </Tabs>
     </div>
