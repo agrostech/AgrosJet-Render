@@ -14,7 +14,7 @@ const SUB_TABS = [
   { key: "performans", label: "Performans", icon: BarChart3 },
 ];
 
-export default function RaporlarTab({ companyId, isSuperAdmin }) {
+export default function RaporlarTab({ companyId, isSuperAdmin, companyLogo, companyName }) {
   const [activeSubTab, setActiveSubTab] = useState("kurye");
 
   return (
@@ -40,11 +40,11 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
         </div>
       </div>
 
-      {activeSubTab === "kurye" && <KuryeRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />}
-      {activeSubTab === "restoran" && <RestoranRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />}
-      {activeSubTab === "ciro" && <CiroRaporu companyId={companyId} />}
-      {activeSubTab === "kar-zarar" && <KarZararRaporu companyId={companyId} />}
-      {activeSubTab === "performans" && <PerformansRaporu companyId={companyId} />}
+      {activeSubTab === "kurye" && <KuryeRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} companyLogo={companyLogo} companyName={companyName} />}
+      {activeSubTab === "restoran" && <RestoranRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} companyLogo={companyLogo} companyName={companyName} />}
+      {activeSubTab === "ciro" && <CiroRaporu companyId={companyId} companyLogo={companyLogo} companyName={companyName} />}
+      {activeSubTab === "kar-zarar" && <KarZararRaporu companyId={companyId} companyLogo={companyLogo} companyName={companyName} />}
+      {activeSubTab === "performans" && <PerformansRaporu companyId={companyId} companyLogo={companyLogo} companyName={companyName} />}
     </div>
   );
 }

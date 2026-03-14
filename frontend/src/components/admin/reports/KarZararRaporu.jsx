@@ -3,19 +3,23 @@ import axios from "axios";
 import { toast } from "sonner";
 import { 
   TrendingUp, TrendingDown, Truck, Minus, Loader2,
-  Users, Briefcase, Package
+  Users, Briefcase, Package, FileDown
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ReportDateFilter from "./ReportDateFilter";
+import { exportKarZararRaporuPDF } from "@/utils/reportPdfExport";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function KarZararRaporu({ companyId }) {
+export default function KarZararRaporu({ companyId, companyLogo, companyName }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   const handleGenerate = useCallback(async (start, end) => {
     if (!companyId) return;
     setLoading(true);
+    setDateRange({ start, end });
     try {
       const res = await axios.get(`${API}/reports/profit-loss`, {
         params: { company_id: companyId, start_datetime: start, end_datetime: end }
@@ -42,6 +46,19 @@ export default function KarZararRaporu({ companyId }) {
         </div>
       ) : data ? (
         <div className="space-y-3 sm:space-y-4">
+          {/* PDF butonu */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => exportKarZararRaporuPDF({ data, companyLogo, companyName, dateRange })}
+              data-testid="btn-export-karzarar-pdf"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              PDF
+            </Button>
+          </div>
           {/* Mobil: Kart görünümü */}
           <div className="sm:hidden space-y-2">
             {/* Gelir */}

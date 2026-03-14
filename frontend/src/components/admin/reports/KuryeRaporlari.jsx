@@ -2,9 +2,11 @@ import { useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, Info, Clock, Package, Wallet, Banknote, CreditCard, UtensilsCrossed, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Info, Clock, Package, Wallet, Banknote, CreditCard, UtensilsCrossed, ChevronDown, ChevronUp, FileDown } from "lucide-react";
 import ReportDateFilter from "./ReportDateFilter";
+import { exportKuryeRaporuPDF } from "@/utils/reportPdfExport";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -60,16 +62,18 @@ function CourierCard({ c, hasMealCard }) {
   );
 }
 
-export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
+export default function KuryeRaporlari({ companyId, isSuperAdmin, companyLogo, companyName }) {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   const handleGenerate = useCallback(async (start, end) => {
     if (!companyId) return;
     setLoading(true);
     setSearchTerm("");
+    setDateRange({ start, end });
     try {
       const params = new URLSearchParams({ company_id: companyId, start_datetime: start, end_datetime: end });
       const res = await axios.get(`${API}/reports/courier?${params.toString()}`);
@@ -96,6 +100,20 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin }) {
       {reportData && (
         <Card>
           <CardContent className="p-2.5 sm:p-3">
+            {/* Başlık + PDF butonu */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-muted-foreground">{reportData.couriers?.length || 0} kurye</span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1.5"
+                onClick={() => exportKuryeRaporuPDF({ reportData, companyLogo, companyName, dateRange })}
+                data-testid="btn-export-kurye-pdf"
+              >
+                <FileDown className="w-3.5 h-3.5" />
+                PDF
+              </Button>
+            </div>
             {/* Özet - Mobilde açılır/kapanır kompakt görünüm */}
             {s && (
               <div className="mb-3" data-testid="courier-report-summary">

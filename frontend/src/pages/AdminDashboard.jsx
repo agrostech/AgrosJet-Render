@@ -500,7 +500,7 @@ export default function AdminDashboard() {
                 <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_light || company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
               )}
               {(isSuperAdmin || permissions.raporlar) && (
-                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
+                <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} companyLogo={company?.logo_light || company?.logo_url} companyName={company?.name} />} />
               )}
               {(isSuperAdmin || permissions.zimmet) && (
                 <Route path="zimmet" element={<ZimmetPage />} />

@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Loader2, Users, Briefcase, Building2 } from "lucide-react";
+import { Loader2, Users, Briefcase, Building2, FileDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import ReportDateFilter from "./ReportDateFilter";
+import { exportPerformansRaporuPDF } from "@/utils/reportPdfExport";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -130,14 +132,16 @@ function fmtDayLabel(dateStr) {
   }
 }
 
-export default function PerformansRaporu({ companyId }) {
+export default function PerformansRaporu({ companyId, companyLogo, companyName }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [activePreset, setActivePreset] = useState("bugun");
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   const handleGenerate = useCallback(async (start, end) => {
     if (!companyId) return;
     setLoading(true);
+    setDateRange({ start, end });
     try {
       const res = await axios.get(`${API}/reports/performance`, {
         params: { company_id: companyId, start_datetime: start, end_datetime: end }
@@ -163,6 +167,19 @@ export default function PerformansRaporu({ companyId }) {
         </div>
       ) : data ? (
         <div className="space-y-6 sm:space-y-8">
+          {/* PDF butonu */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => exportPerformansRaporuPDF({ data, companyLogo, companyName, dateRange })}
+              data-testid="btn-export-performans-pdf"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              PDF
+            </Button>
+          </div>
           {/* 1. Şirket Performansı */}
           <div className="space-y-3 sm:space-y-4">
             <SectionHeader icon={Building2} title="Şirket Performansı" />

@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Loader2, Store, Banknote, CreditCard, Wallet, Globe, ShoppingBag } from "lucide-react";
+import { Loader2, Store, Banknote, CreditCard, Wallet, Globe, ShoppingBag, FileDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ReportDateFilter from "./ReportDateFilter";
+import { exportCiroRaporuPDF } from "@/utils/reportPdfExport";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -64,13 +66,15 @@ function TurnoverCard({ r }) {
   );
 }
 
-export default function CiroRaporu({ companyId }) {
+export default function CiroRaporu({ companyId, companyLogo, companyName }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   const handleGenerate = useCallback(async (start, end) => {
     if (!companyId) return;
     setLoading(true);
+    setDateRange({ start, end });
     try {
       const res = await axios.get(`${API}/reports/turnover`, {
         params: { company_id: companyId, start_datetime: start, end_datetime: end },
@@ -94,6 +98,19 @@ export default function CiroRaporu({ companyId }) {
         </div>
       ) : data ? (
         <div className="space-y-3 sm:space-y-4">
+          {/* PDF butonu */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => exportCiroRaporuPDF({ data, companyLogo, companyName, dateRange })}
+              data-testid="btn-export-ciro-pdf"
+            >
+              <FileDown className="w-3.5 h-3.5" />
+              PDF
+            </Button>
+          </div>
           {/* Özet kartlar */}
           <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2">
             <SummaryCard icon={ShoppingBag} label="Sipariş" value={data.summary.total_orders} isCurrency={false} />
