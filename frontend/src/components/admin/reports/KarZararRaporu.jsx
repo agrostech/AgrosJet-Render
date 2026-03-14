@@ -36,14 +36,63 @@ export default function KarZararRaporu({ companyId }) {
     <div className="space-y-3" data-testid="kar-zarar-raporu">
       <ReportDateFilter companyId={companyId} onGenerate={handleGenerate} loading={loading} />
 
-      {/* Result */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : data ? (
-        <div className="space-y-4">
-          <div className="border rounded-lg overflow-hidden">
+        <div className="space-y-3 sm:space-y-4">
+          {/* Mobil: Kart görünümü */}
+          <div className="sm:hidden space-y-2">
+            {/* Gelir */}
+            <div className="border rounded-lg p-3" data-testid="mobile-row-revenue">
+              <div className="flex items-center gap-2 mb-1">
+                <Truck className="w-4 h-4 text-slate-500" />
+                <span className="font-medium text-sm">Taşıma Ücreti (Gelir)</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">{data.order_count} sipariş</span>
+                <span className="font-semibold text-slate-800">{fmt(data.total_revenue)} TL</span>
+              </div>
+            </div>
+            {/* Kurye Gider */}
+            <div className="border rounded-lg p-3" data-testid="mobile-row-courier">
+              <div className="flex items-center gap-2 mb-1">
+                <Users className="w-4 h-4 text-slate-500" />
+                <span className="font-medium text-sm">Kurye Hakediş (Gider)</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">{data.courier_order_count} sipariş</span>
+                <span className="font-semibold text-slate-800">{fmt(data.courier_expense)} TL</span>
+              </div>
+            </div>
+            {/* Yönetici Gider */}
+            <div className="border rounded-lg p-3" data-testid="mobile-row-admin">
+              <div className="flex items-center gap-2 mb-1">
+                <Briefcase className="w-4 h-4 text-slate-500" />
+                <span className="font-medium text-sm">Yönetici Hakediş (Gider)</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">{data.admin_order_count} sipariş</span>
+                <span className="font-semibold text-slate-800">{fmt(data.admin_expense)} TL</span>
+              </div>
+            </div>
+            {/* Kar/Zarar */}
+            <div className={`border-2 rounded-lg p-3 ${data.profit >= 0 ? "border-emerald-300 bg-emerald-50/50" : "border-red-300 bg-red-50/50"}`} data-testid="mobile-row-profit">
+              <div className="flex items-center gap-2 mb-1">
+                {data.profit > 0 ? <TrendingUp className="w-4 h-4 text-emerald-600" /> :
+                 data.profit < 0 ? <TrendingDown className="w-4 h-4 text-red-600" /> :
+                 <Minus className="w-4 h-4 text-slate-500" />}
+                <span className="font-bold text-sm">Kar / Zarar</span>
+              </div>
+              <p className={`text-right font-bold text-lg ${data.profit >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+                {data.profit >= 0 ? "+" : ""}{fmt(data.profit)} TL
+              </p>
+            </div>
+          </div>
+
+          {/* Masaüstü: Tablo */}
+          <div className="hidden sm:block border rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b">
@@ -53,7 +102,6 @@ export default function KarZararRaporu({ companyId }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {/* Gelir */}
                 <tr className="hover:bg-slate-50" data-testid="row-revenue">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -64,8 +112,6 @@ export default function KarZararRaporu({ companyId }) {
                   <td className="py-3 px-4 text-right text-muted-foreground">{data.order_count} sipariş</td>
                   <td className="py-3 px-4 text-right font-semibold text-slate-800">{fmt(data.total_revenue)} TL</td>
                 </tr>
-
-                {/* Kurye Hakediş */}
                 <tr className="hover:bg-slate-50" data-testid="row-courier-expense">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -76,8 +122,6 @@ export default function KarZararRaporu({ companyId }) {
                   <td className="py-3 px-4 text-right text-muted-foreground">{data.courier_order_count} sipariş</td>
                   <td className="py-3 px-4 text-right font-semibold text-slate-800">{fmt(data.courier_expense)} TL</td>
                 </tr>
-
-                {/* Yönetici Hakediş */}
                 <tr className="hover:bg-slate-50" data-testid="row-admin-expense">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -88,8 +132,6 @@ export default function KarZararRaporu({ companyId }) {
                   <td className="py-3 px-4 text-right text-muted-foreground">{data.admin_order_count} sipariş</td>
                   <td className="py-3 px-4 text-right font-semibold text-slate-800">{fmt(data.admin_expense)} TL</td>
                 </tr>
-
-                {/* Kar / Zarar */}
                 <tr className={`${data.profit >= 0 ? "bg-emerald-50/50" : "bg-red-50/50"}`} data-testid="row-profit">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -109,31 +151,31 @@ export default function KarZararRaporu({ companyId }) {
           </div>
 
           {/* Ortalamalar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3 border rounded-lg" data-testid="avg-revenue-per-order">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <Package className="w-3.5 h-3.5" />
-                Ort. Paket Başı Kazanç
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="p-2 sm:p-3 border rounded-lg" data-testid="avg-revenue-per-order">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
+                <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="truncate">Ort. Kazanç</span>
               </div>
-              <p className="text-lg font-bold text-slate-800">
+              <p className="text-sm sm:text-lg font-bold text-slate-800">
                 {fmt(data.avg_revenue_per_order)} TL
               </p>
             </div>
-            <div className="p-3 border rounded-lg" data-testid="avg-cost-per-order">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <Users className="w-3.5 h-3.5" />
-                Ort. Paket Başı Maliyet
+            <div className="p-2 sm:p-3 border rounded-lg" data-testid="avg-cost-per-order">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
+                <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="truncate">Ort. Maliyet</span>
               </div>
-              <p className="text-lg font-bold text-slate-800">
+              <p className="text-sm sm:text-lg font-bold text-slate-800">
                 {fmt(data.avg_cost_per_order)} TL
               </p>
             </div>
-            <div className="p-3 border rounded-lg" data-testid="avg-profit-per-order">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <TrendingUp className="w-3.5 h-3.5" />
-                Ort. Paket Başı Kar
+            <div className="p-2 sm:p-3 border rounded-lg" data-testid="avg-profit-per-order">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
+                <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="truncate">Ort. Kar</span>
               </div>
-              <p className={`text-lg font-bold ${data.avg_profit_per_order >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+              <p className={`text-sm sm:text-lg font-bold ${data.avg_profit_per_order >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                 {data.avg_profit_per_order >= 0 ? "+" : ""}{fmt(data.avg_profit_per_order)} TL
               </p>
             </div>

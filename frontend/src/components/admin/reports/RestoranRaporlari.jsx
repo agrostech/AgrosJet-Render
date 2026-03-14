@@ -2,15 +2,63 @@ import { useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ShoppingBag, Truck, CreditCard, Banknote, Globe, Wallet } from "lucide-react";
 import ReportDateFilter from "./ReportDateFilter";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+function MiniStat({ label, value, color = "text-foreground" }) {
+  return (
+    <div className="flex items-center justify-between min-w-0">
+      <span className="text-[11px] text-muted-foreground truncate">{label}</span>
+      <strong className={`text-[11px] ${color} ml-2 flex-shrink-0`}>{value}</strong>
+    </div>
+  );
+}
+
+/* Mobil kart görünümü */
+function RestaurantCard({ r }) {
+  const toplamTasima = r.transportFee + r.transportKdv;
+  const cashForCalc = r.cash_included !== false ? r.cash : 0;
+  const cardForCalc = r.card_included !== false ? r.card : 0;
+  const mealCardForCalc = r.meal_card_included !== false ? (r.mealCard || 0) : 0;
+  const posForCalc = r.card_included !== false ? r.posCommission : 0;
+  const sonuc = (toplamTasima + posForCalc) - (cashForCalc + cardForCalc + mealCardForCalc);
+
+  return (
+    <div className="border rounded-lg p-2.5 space-y-1.5" data-testid={`restaurant-card-${r.name}`}>
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-sm truncate mr-2">{r.name}</span>
+        <span className={`text-xs font-bold flex-shrink-0 ${sonuc >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          {sonuc >= 0 ? '+' : ''}{sonuc.toFixed(2)}₺
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
+        <span className="text-muted-foreground">Sipariş: <strong className="text-foreground">{r.orderCount}</strong></span>
+        <span className="text-muted-foreground">Top. Taşıma: <strong className="text-green-600">{toplamTasima.toFixed(2)}₺</strong></span>
+        <span className="text-muted-foreground">Taşıma Ü: <strong className="text-foreground">{r.transportFee.toFixed(2)}₺</strong></span>
+        <span className="text-muted-foreground">Taşıma KDV: <strong className="text-foreground">{r.transportKdv.toFixed(2)}₺</strong></span>
+        <span className="text-muted-foreground">POS Kom: <strong className="text-green-600">{r.posCommission.toFixed(2)}₺</strong></span>
+        <span className={`text-muted-foreground`}>
+          Nakit: <strong className={r.cash_included !== false ? 'text-red-600' : 'text-slate-800'}>{r.cash.toFixed(2)}₺{r.cash_included === false && '*'}</strong>
+        </span>
+        <span className={`text-muted-foreground`}>
+          Kart: <strong className={r.card_included !== false ? 'text-red-600' : 'text-slate-800'}>{r.card.toFixed(2)}₺{r.card_included === false && '*'}</strong>
+        </span>
+        <span className={`text-muted-foreground`}>
+          Y.Kartı: <strong className={r.meal_card_included !== false ? 'text-red-600' : 'text-slate-800'}>{(r.mealCard || 0).toFixed(2)}₺{r.meal_card_included === false && '*'}</strong>
+        </span>
+        <span className="text-muted-foreground">Online: <strong className="text-foreground">{(r.online || 0).toFixed(2)}₺</strong></span>
+      </div>
+    </div>
+  );
+}
 
 export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const handleGenerate = useCallback(async (start, end) => {
     if (!companyId) return;
@@ -33,29 +81,66 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
     return reportData.restaurants.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [reportData?.restaurants, searchTerm]);
 
+  const s = reportData?.summary;
+
   return (
     <div className="space-y-3">
       <ReportDateFilter companyId={companyId} onGenerate={handleGenerate} loading={loading} />
 
-      {/* Report Results */}
       {reportData && (
         <Card>
-          <CardContent className="p-3">
-            {/* Summary - Compact */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-3 text-muted-foreground">
-              <span>Sipariş: <strong className="text-foreground">{reportData.summary?.totalOrders || 0}</strong></span>
-              <span>Taşıma Ü.: <strong className="text-foreground">{(reportData.summary?.totalTransportFee || 0).toFixed(2)}₺</strong></span>
-              <span>Taşıma KDV: <strong className="text-foreground">{(reportData.summary?.totalTransportKdv || 0).toFixed(2)}₺</strong></span>
-              <span>Top. Taşıma: <strong className="text-green-600">{(reportData.summary?.totalTransport || 0).toFixed(2)}₺</strong></span>
-              <span>POS Kom.: <strong className="text-green-600">{(reportData.summary?.totalPosCommission || 0).toFixed(2)}₺</strong></span>
-              <span>Nakit: <strong className="text-red-600">{(reportData.summary?.totalCash || 0).toFixed(2)}₺</strong></span>
-              <span>Kart: <strong className="text-red-600">{(reportData.summary?.totalCard || 0).toFixed(2)}₺</strong></span>
-              <span>Y.Kartı: <strong className="text-foreground">{(reportData.summary?.totalMealCardAll || 0).toFixed(2)}₺</strong>{(reportData.summary?.totalMealCard || 0) > 0 && <strong className="text-red-600 ml-1">({(reportData.summary?.totalMealCard || 0).toFixed(2)}₺)</strong>}</span>
-              <span>Online: <strong>{(reportData.summary?.totalOnline || 0).toFixed(2)}₺</strong></span>
-              <span className="border-l pl-3 ml-1">Sonuç: <strong className={(reportData.summary?.result || 0) >= 0 ? 'text-green-600' : 'text-red-600'}>{(reportData.summary?.result || 0) >= 0 ? '+' : ''}{(reportData.summary?.result || 0).toFixed(2)}₺</strong></span>
-            </div>
+          <CardContent className="p-2.5 sm:p-3">
+            {/* Özet */}
+            {s && (
+              <div className="mb-3" data-testid="restaurant-report-summary">
+                {/* Mobil: Kompakt özet + toggle */}
+                <div className="sm:hidden">
+                  <button
+                    onClick={() => setSummaryOpen(!summaryOpen)}
+                    className="w-full flex items-center justify-between py-1.5 px-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs"
+                    data-testid="restaurant-summary-toggle"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-muted-foreground">
+                        <ShoppingBag className="w-3 h-3 inline mr-1" />{s.totalOrders || 0} sipariş
+                      </span>
+                      <span className={`font-semibold ${(s.result || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <Wallet className="w-3 h-3 inline mr-1" />{(s.result || 0) >= 0 ? '+' : ''}{(s.result || 0).toFixed(2)}₺
+                      </span>
+                    </div>
+                    {summaryOpen ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+                  </button>
+                  {summaryOpen && (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 px-1">
+                      <MiniStat label="Taşıma Ü." value={`${(s.totalTransportFee || 0).toFixed(2)}₺`} />
+                      <MiniStat label="Taşıma KDV" value={`${(s.totalTransportKdv || 0).toFixed(2)}₺`} />
+                      <MiniStat label="Top. Taşıma" value={`${(s.totalTransport || 0).toFixed(2)}₺`} color="text-green-600" />
+                      <MiniStat label="POS Kom." value={`${(s.totalPosCommission || 0).toFixed(2)}₺`} color="text-green-600" />
+                      <MiniStat label="Nakit" value={`${(s.totalCash || 0).toFixed(2)}₺`} color="text-red-600" />
+                      <MiniStat label="Kart" value={`${(s.totalCard || 0).toFixed(2)}₺`} color="text-red-600" />
+                      <MiniStat label="Y.Kartı" value={`${(s.totalMealCardAll || 0).toFixed(2)}₺`} />
+                      <MiniStat label="Online" value={`${(s.totalOnline || 0).toFixed(2)}₺`} />
+                    </div>
+                  )}
+                </div>
 
-            {/* Search */}
+                {/* Masaüstü: Mevcut inline özet */}
+                <div className="hidden sm:flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span>Sipariş: <strong className="text-foreground">{s.totalOrders || 0}</strong></span>
+                  <span>Taşıma Ü.: <strong className="text-foreground">{(s.totalTransportFee || 0).toFixed(2)}₺</strong></span>
+                  <span>Taşıma KDV: <strong className="text-foreground">{(s.totalTransportKdv || 0).toFixed(2)}₺</strong></span>
+                  <span>Top. Taşıma: <strong className="text-green-600">{(s.totalTransport || 0).toFixed(2)}₺</strong></span>
+                  <span>POS Kom.: <strong className="text-green-600">{(s.totalPosCommission || 0).toFixed(2)}₺</strong></span>
+                  <span>Nakit: <strong className="text-red-600">{(s.totalCash || 0).toFixed(2)}₺</strong></span>
+                  <span>Kart: <strong className="text-red-600">{(s.totalCard || 0).toFixed(2)}₺</strong></span>
+                  <span>Y.Kartı: <strong className="text-foreground">{(s.totalMealCardAll || 0).toFixed(2)}₺</strong>{(s.totalMealCard || 0) > 0 && <strong className="text-red-600 ml-1">({(s.totalMealCard || 0).toFixed(2)}₺)</strong>}</span>
+                  <span>Online: <strong>{(s.totalOnline || 0).toFixed(2)}₺</strong></span>
+                  <span className="border-l pl-3 ml-1">Sonuç: <strong className={(s.result || 0) >= 0 ? 'text-green-600' : 'text-red-600'}>{(s.result || 0) >= 0 ? '+' : ''}{(s.result || 0).toFixed(2)}₺</strong></span>
+                </div>
+              </div>
+            )}
+
+            {/* Arama */}
             {reportData.restaurants?.length > 0 && (
               <div className="relative mb-3">
                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
@@ -70,14 +155,22 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
               </div>
             )}
 
-            {/* Empty */}
             {!reportData.restaurants?.length && (
               <p className="text-center py-4 text-xs text-muted-foreground">Veri bulunamadı.</p>
             )}
 
-            {/* Table */}
+            {/* Mobil: Kart görünümü */}
             {filteredRestaurants.length > 0 && (
-              <div className="border rounded overflow-x-auto">
+              <div className="sm:hidden space-y-2" data-testid="restaurant-cards-mobile">
+                {filteredRestaurants.map((r, i) => (
+                  <RestaurantCard key={i} r={r} />
+                ))}
+              </div>
+            )}
+
+            {/* Masaüstü: Tablo */}
+            {filteredRestaurants.length > 0 && (
+              <div className="hidden sm:block border rounded overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/50">
                     <tr>
@@ -97,7 +190,6 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin }) {
                   <tbody>
                     {filteredRestaurants.map((r, i) => {
                       const toplamTasima = r.transportFee + r.transportKdv;
-                      // Tahsilat ayarlarına göre hesaplama
                       const cashForCalc = r.cash_included !== false ? r.cash : 0;
                       const cardForCalc = r.card_included !== false ? r.card : 0;
                       const mealCardForCalc = r.meal_card_included !== false ? (r.mealCard || 0) : 0;
