@@ -71,7 +71,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:112px;max-width:95%;object-fit:contain;margin:0;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:168px;max-width:95%;object-fit:contain;display:block;margin:0 auto;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -80,30 +80,26 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       <meta charset="UTF-8">
       <title>Sipariş Fişi - ${order.order_number}</title>
       <style>
-        @page { 
-          size: 58mm auto; 
-          margin: 0; 
-        }
+        * { margin: 0; padding: 0; }
+        @page { size: 58mm auto; margin: 0; }
         body { 
           font-family: 'Courier New', monospace; 
           font-size: 11px; 
           width: 58mm; 
-          margin: 0; 
-          padding: 2mm 4mm;
+          padding: 1mm 3mm;
           box-sizing: border-box;
           color: #000;
         }
-        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px; }
-        .header-info { font-size: 10px; margin-top: 2px; display: flex; justify-content: space-between; align-items: center; }
-        .platform { font-size: 10px; background: #000; color: #fff; padding: 2px 6px; display: inline-block; }
-        .section { margin: 4px 0; padding: 4px 0; border-bottom: 1px dashed #000; }
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 2px; margin-bottom: 2px; }
+        .header-info { font-size: 10px; margin-top: 1px; display: flex; justify-content: space-between; align-items: center; }
+        .platform { font-size: 10px; background: #000; color: #fff; padding: 1px 6px; display: inline-block; }
+        .section { margin: 2px 0; padding: 2px 0; border-bottom: 1px dashed #000; }
         .label { font-size: 9px; font-weight: bold; }
         .value { font-size: 11px; font-weight: bold; }
         .items-table { width: 100%; border-collapse: collapse; }
-        .total { font-size: 14px; font-weight: bold; text-align: right; margin-top: 8px; }
-        .payment { text-align: center; padding: 4px; margin-top: 8px; font-weight: bold; border: 1px solid #000; }
-        .notes { padding: 6px; margin-top: 8px; font-size: 10px; border: 1px dashed #000; }
-        .footer { text-align: center; font-size: 9px; margin-top: 12px; }
+        .total { font-size: 14px; font-weight: bold; text-align: right; margin-top: 2px; }
+        .payment { text-align: center; padding: 2px; margin-top: 2px; font-weight: bold; border: 1px solid #000; }
+        .notes { padding: 3px; margin-top: 2px; font-size: 10px; border: 1px dashed #000; }
       </style>
     </head>
     <body>
@@ -168,7 +164,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:128px;max-width:95%;object-fit:contain;margin:0;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:192px;max-width:95%;object-fit:contain;display:block;margin:0 auto;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -177,49 +173,46 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       <meta charset="UTF-8">
       <title>Sipariş Fişi - ${order.order_number}</title>
       <style>
-        @page { 
-          size: 80mm auto; 
-          margin: 0; 
-        }
+        * { margin: 0; padding: 0; }
+        @page { size: 80mm auto; margin: 0; }
         body { 
           font-family: 'Arial', sans-serif; 
           font-size: 12px; 
           width: 80mm; 
-          margin: 0; 
-          padding: 2mm 5mm;
+          padding: 1mm 4mm;
           box-sizing: border-box;
           color: #000;
         }
         .header { 
           text-align: center; 
           border-bottom: 2px solid #000; 
-          padding-bottom: 4px; 
-          margin-bottom: 4px; 
+          padding-bottom: 2px; 
+          margin-bottom: 2px; 
         }
         .header-info {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-top: 2px;
+          margin-top: 1px;
           font-size: 11px;
         }
         .platform { 
           font-size: 11px; 
           background: #000; 
           color: #fff; 
-          padding: 3px 10px; 
+          padding: 1px 8px; 
           display: inline-block; 
         }
         .section { 
-          margin: 4px 0; 
-          padding: 4px 0; 
+          margin: 2px 0; 
+          padding: 2px 0; 
           border-bottom: 1px dashed #000; 
         }
         .section-title { 
           font-size: 10px; 
           text-transform: uppercase;
           letter-spacing: 1px;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
           font-weight: bold;
         }
         .section-value { 
@@ -229,9 +222,6 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         .customer-phone {
           font-size: 14px;
           font-family: monospace;
-          padding: 4px 0;
-          display: inline-block;
-          margin-top: 4px;
         }
         .items-table { 
           width: 100%; 
@@ -239,10 +229,11 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         }
         .items-table td {
           font-size: 12px;
+          padding: 2px 0;
         }
         .total-section {
-          padding: 6px 0;
-          margin-top: 4px;
+          padding: 3px 0;
+          margin-top: 2px;
           text-align: right;
           border-top: 1px dashed #000;
         }
@@ -255,24 +246,17 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         }
         .payment { 
           text-align: center; 
-          padding: 6px; 
-          margin-top: 4px; 
+          padding: 3px; 
+          margin-top: 2px; 
           font-weight: bold;
           font-size: 14px;
           border: 2px solid #000;
         }
         .notes { 
           border: 1px dashed #000;
-          padding: 6px 10px; 
-          margin-top: 4px; 
+          padding: 3px 8px; 
+          margin-top: 2px; 
           font-size: 11px; 
-        }
-        .footer { 
-          text-align: center; 
-          font-size: 10px; 
-          margin-top: 15px;
-          padding-top: 10px;
-          border-top: 1px dashed #000;
         }
       </style>
     </head>
