@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { 
   TrendingUp, TrendingDown, Truck, CreditCard, Minus, Loader2,
-  Users, Briefcase, Clock, Package
+  Users, Briefcase, Package
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -162,23 +162,32 @@ export default function KarZararRaporu({ companyId }) {
           </div>
 
           {/* Ortalamalar */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-3 border rounded-lg" data-testid="avg-profit-per-order">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3 border rounded-lg" data-testid="avg-revenue-per-order">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                 <Package className="w-3.5 h-3.5" />
                 Ort. Paket Başı Kazanç
               </div>
-              <p className={`text-lg font-bold ${data.avg_profit_per_order >= 0 ? "text-emerald-700" : "text-red-700"}`}>
-                {data.avg_profit_per_order >= 0 ? "+" : ""}{fmt(data.avg_profit_per_order)} TL
+              <p className="text-lg font-bold text-slate-800">
+                {fmt(data.avg_revenue_per_order)} TL
               </p>
             </div>
-            <div className="p-3 border rounded-lg" data-testid="avg-hakedis-per-order">
+            <div className="p-3 border rounded-lg" data-testid="avg-cost-per-order">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                 <Users className="w-3.5 h-3.5" />
-                Ort. Paket Başı Hakediş
+                Ort. Paket Başı Maliyet
               </div>
               <p className="text-lg font-bold text-slate-800">
-                {fmt(data.avg_hakedis_per_order)} TL
+                {fmt(data.avg_cost_per_order)} TL
+              </p>
+            </div>
+            <div className="p-3 border rounded-lg" data-testid="avg-profit-per-order">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                <TrendingUp className="w-3.5 h-3.5" />
+                Ort. Paket Başı Kar
+              </div>
+              <p className={`text-lg font-bold ${data.avg_profit_per_order >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+                {data.avg_profit_per_order >= 0 ? "+" : ""}{fmt(data.avg_profit_per_order)} TL
               </p>
             </div>
           </div>

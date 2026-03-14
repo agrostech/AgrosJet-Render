@@ -1171,9 +1171,9 @@ async def get_profit_loss_report(
     total_hours = round(total_minutes / 60, 1)
 
     # Ortalamalar
-    avg_profit_per_order = round(profit / order_count, 2) if order_count > 0 else 0
-    avg_hakedis_per_order = round(courier_expense / order_count, 2) if order_count > 0 else 0
-    avg_hourly_rate = round(total_revenue / total_hours, 2) if total_hours > 0 else 0
+    avg_revenue_per_order = round(total_revenue / order_count, 2) if order_count > 0 else 0
+    avg_cost_per_order = round(courier_expense / order_count, 2) if order_count > 0 else 0
+    avg_profit_per_order = round(avg_revenue_per_order - avg_cost_per_order, 2)
 
     return {
         "total_revenue": total_revenue,
@@ -1183,8 +1183,7 @@ async def get_profit_loss_report(
         "admin_hakedis_count": admin_hakedis_count,
         "total_expense": total_expense,
         "profit": profit,
-        "total_hours": total_hours,
-        "avg_profit_per_order": avg_profit_per_order,
-        "avg_hakedis_per_order": avg_hakedis_per_order,
-        "avg_hourly_rate": avg_hourly_rate
+        "avg_revenue_per_order": avg_revenue_per_order,
+        "avg_cost_per_order": avg_cost_per_order,
+        "avg_profit_per_order": avg_profit_per_order
     }
