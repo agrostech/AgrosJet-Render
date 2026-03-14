@@ -1398,50 +1398,39 @@ function KuryelerPage() {
       </div>
 
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-1.5">
         {filteredCouriers.length === 0 ? (
-          <div className="bg-white border-2 rounded-lg p-6 text-center text-muted-foreground">
+          <div className="bg-white border rounded-lg p-6 text-center text-muted-foreground text-sm">
             {searchQuery || filterCompany !== "all" ? "Arama kriterlerine uygun kurye bulunamadı" : "Henüz kurye kaydı yok"}
           </div>
         ) : (
           filteredCouriers.map((courier) => (
-            <div key={courier.id} className="bg-white border-2 rounded-lg p-4">
-              <div className="flex items-start justify-between gap-3">
+            <div key={courier.id} className="bg-white border rounded-lg px-2.5 py-2">
+              <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold truncate">{courier.name}</span>
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded flex-shrink-0 ${
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-sm truncate">{courier.name}</span>
+                    <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded flex-shrink-0 ${
                       courier.is_active !== false ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                     }`}>
                       {courier.is_active !== false ? "Aktif" : "Pasif"}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground font-mono">{courier.phone}</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {(courier.company_names || []).map((name, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-slate-100 text-xs rounded">
-                        {name}
-                      </span>
-                    ))}
-                    {(!courier.company_names || courier.company_names.length === 0) && (
-                      <span className="text-muted-foreground text-xs">Şirket atanmamış</span>
-                    )}
-                  </div>
-                  {courier.created_at && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Kayıt: {new Date(courier.created_at).toLocaleDateString('tr-TR')}
-                    </p>
-                  )}
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    {courier.phone}
+                    {courier.created_at && <span className="ml-1.5">· {new Date(courier.created_at).toLocaleDateString('tr-TR')}</span>}
+                  </p>
                 </div>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleDeleteCourier(courier)}
-                  className="h-8 px-2 border-2 hover:bg-red-50 hover:text-red-600 flex-shrink-0"
-                  title="Hesabı Sil"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex flex-wrap gap-0.5 max-w-[120px]">
+                    {(courier.company_names || []).map((name, idx) => (
+                      <span key={idx} className="px-1 py-0.5 bg-slate-100 text-[9px] rounded truncate max-w-[60px]">{name}</span>
+                    ))}
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => handleDeleteCourier(courier)} className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" title="Sil">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))
