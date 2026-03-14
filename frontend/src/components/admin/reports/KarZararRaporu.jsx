@@ -52,7 +52,7 @@ export default function KarZararRaporu({ companyId, companyLogo, companyName }) 
               variant="outline"
               size="sm"
               className="h-7 text-xs gap-1.5"
-              onClick={() => exportKarZararRaporuPDF({ data, companyLogo, companyName, dateRange })}
+              onClick={() => exportKarZararRaporuPDF({ data, companyLogo, companyName, dateRange, companyId })}
               data-testid="btn-export-karzarar-pdf"
             >
               <FileDown className="w-3.5 h-3.5" />

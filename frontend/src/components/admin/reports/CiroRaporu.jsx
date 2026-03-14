@@ -104,7 +104,7 @@ export default function CiroRaporu({ companyId, companyLogo, companyName }) {
               variant="outline"
               size="sm"
               className="h-7 text-xs gap-1.5"
-              onClick={() => exportCiroRaporuPDF({ data, companyLogo, companyName, dateRange })}
+              onClick={() => exportCiroRaporuPDF({ data, companyLogo, companyName, dateRange, companyId })}
               data-testid="btn-export-ciro-pdf"
             >
               <FileDown className="w-3.5 h-3.5" />

@@ -107,7 +107,7 @@ export default function KuryeRaporlari({ companyId, isSuperAdmin, companyLogo, c
                 variant="outline"
                 size="sm"
                 className="h-7 text-xs gap-1.5"
-                onClick={() => exportKuryeRaporuPDF({ reportData, companyLogo, companyName, dateRange })}
+                onClick={() => exportKuryeRaporuPDF({ reportData, companyLogo, companyName, dateRange, companyId })}
                 data-testid="btn-export-kurye-pdf"
               >
                 <FileDown className="w-3.5 h-3.5" />

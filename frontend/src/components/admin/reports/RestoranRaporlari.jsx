@@ -101,7 +101,7 @@ export default function RestoranRaporlari({ companyId, isSuperAdmin, companyLogo
                 variant="outline"
                 size="sm"
                 className="h-7 text-xs gap-1.5"
-                onClick={() => exportRestoranRaporuPDF({ reportData, companyLogo, companyName, dateRange })}
+                onClick={() => exportRestoranRaporuPDF({ reportData, companyLogo, companyName, dateRange, companyId })}
                 data-testid="btn-export-restoran-pdf"
               >
                 <FileDown className="w-3.5 h-3.5" />

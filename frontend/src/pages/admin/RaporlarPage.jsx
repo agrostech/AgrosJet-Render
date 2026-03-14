@@ -8,15 +8,23 @@ export default function RaporlarPage({ companyId, isSuperAdmin, companyLogo, com
   const [logo, setLogo] = useState(companyLogo || "");
   const [name, setName] = useState(companyName || "");
 
+  // Always fetch company to get logo_light - props from AdminDashboard may be empty
   useEffect(() => {
     if (!companyId) return;
-    // Always fetch fresh company data to get logo
     axios.get(`${API}/companies/${companyId}`).then(res => {
       const data = res.data || {};
-      setLogo(data.logo_light || data.logo_url || "");
-      setName(data.name || companyName || "");
+      const l = data.logo_light || data.logo_url || "";
+      const n = data.name || "";
+      if (l) setLogo(l);
+      if (n) setName(n);
     }).catch(() => {});
-  }, [companyId, companyName]);
+  }, [companyId]);
+
+  // Also update if props change (e.g. after login refresh)
+  useEffect(() => {
+    if (companyLogo) setLogo(companyLogo);
+    if (companyName) setName(companyName);
+  }, [companyLogo, companyName]);
 
   return (
     <div data-testid="raporlar-page">

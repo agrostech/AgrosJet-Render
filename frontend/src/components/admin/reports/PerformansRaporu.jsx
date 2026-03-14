@@ -173,7 +173,7 @@ export default function PerformansRaporu({ companyId, companyLogo, companyName }
               variant="outline"
               size="sm"
               className="h-7 text-xs gap-1.5"
-              onClick={() => exportPerformansRaporuPDF({ data, companyLogo, companyName, dateRange })}
+              onClick={() => exportPerformansRaporuPDF({ data, companyLogo, companyName, dateRange, companyId })}
               data-testid="btn-export-performans-pdf"
             >
               <FileDown className="w-3.5 h-3.5" />

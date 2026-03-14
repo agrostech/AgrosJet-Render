@@ -9,6 +9,21 @@ import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+async function resolveCompanyLogo(companyLogo, companyId) {
+  // If logo is already provided, use it
+  if (companyLogo && companyLogo.trim()) return companyLogo;
+  // Fallback: fetch from API
+  if (!companyId) return "";
+  try {
+    const res = await fetch(`${API}/companies/${companyId}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data.logo_light || data.logo_url || "";
+    }
+  } catch {}
+  return "";
+}
+
 function formatDateTR(dateStr) {
   if (!dateStr) return "";
   try {
@@ -24,34 +39,22 @@ async function loadLogo(doc, companyLogo, pageWidth) {
   if (!companyLogo || !companyLogo.trim()) return;
   try {
     let logoUrl;
-    if (companyLogo.startsWith("/")) {
+    if (companyLogo.startsWith('/')) {
       logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
-    } else if (companyLogo.startsWith("http")) {
-      logoUrl = `${API}/proxy-image?url=${encodeURIComponent(companyLogo)}`;
     } else {
-      logoUrl = `${process.env.REACT_APP_BACKEND_URL}/api/companies/logo/${companyLogo}`;
+      logoUrl = `${API}/proxy-image?url=${encodeURIComponent(companyLogo)}`;
     }
-
-    // Use Image element for more reliable cross-origin loading
-    const dataUrl = await new Promise((resolve, reject) => {
-      const img = new window.Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext("2d");
-        // White background for transparent PNGs
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/png"));
-      };
-      img.onerror = reject;
-      img.src = logoUrl;
-    });
-
-    doc.addImage(dataUrl, "PNG", pageWidth - 39, 4, 25, 25);
+    const response = await fetch(logoUrl);
+    if (response.ok) {
+      const blob = await response.blob();
+      const dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      const logoSize = 25;
+      doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 4, logoSize, logoSize);
+    }
   } catch (e) {
     console.log("Logo yüklenemedi:", e);
   }
@@ -130,7 +133,7 @@ const fmt = (val) =>
 /**
  * Export Kurye Raporu as PDF
  */
-export async function exportKuryeRaporuPDF({ reportData, companyLogo, companyName, dateRange }) {
+export async function exportKuryeRaporuPDF({ reportData, companyLogo, companyName, dateRange, companyId }) {
   if (!reportData?.couriers?.length) {
     toast.error("İndirilecek veri bulunamadı");
     return;
@@ -139,7 +142,8 @@ export async function exportKuryeRaporuPDF({ reportData, companyLogo, companyNam
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = reportData.summary;
 
-  await loadLogo(doc, companyLogo, pageWidth);
+  const logo = await resolveCompanyLogo(companyLogo, companyId);
+  await loadLogo(doc, logo, pageWidth);
   drawHeader(doc, "Kurye Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -191,7 +195,7 @@ export async function exportKuryeRaporuPDF({ reportData, companyLogo, companyNam
 /**
  * Export Restoran Raporu as PDF
  */
-export async function exportRestoranRaporuPDF({ reportData, companyLogo, companyName, dateRange }) {
+export async function exportRestoranRaporuPDF({ reportData, companyLogo, companyName, dateRange, companyId }) {
   if (!reportData?.restaurants?.length) {
     toast.error("İndirilecek veri bulunamadı");
     return;
@@ -200,7 +204,8 @@ export async function exportRestoranRaporuPDF({ reportData, companyLogo, company
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = reportData.summary;
 
-  await loadLogo(doc, companyLogo, pageWidth);
+  const logo = await resolveCompanyLogo(companyLogo, companyId);
+  await loadLogo(doc, logo, pageWidth);
   drawHeader(doc, "Restoran Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -263,7 +268,7 @@ export async function exportRestoranRaporuPDF({ reportData, companyLogo, company
 /**
  * Export Ciro Raporu as PDF
  */
-export async function exportCiroRaporuPDF({ data, companyLogo, companyName, dateRange }) {
+export async function exportCiroRaporuPDF({ data, companyLogo, companyName, dateRange, companyId }) {
   if (!data?.restaurants?.length) {
     toast.error("İndirilecek veri bulunamadı");
     return;
@@ -272,7 +277,8 @@ export async function exportCiroRaporuPDF({ data, companyLogo, companyName, date
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = data.summary;
 
-  await loadLogo(doc, companyLogo, pageWidth);
+  const logo = await resolveCompanyLogo(companyLogo, companyId);
+  await loadLogo(doc, logo, pageWidth);
   drawHeader(doc, "Ciro Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -328,7 +334,7 @@ export async function exportCiroRaporuPDF({ data, companyLogo, companyName, date
 /**
  * Export Kar/Zarar Raporu as PDF
  */
-export async function exportKarZararRaporuPDF({ data, companyLogo, companyName, dateRange }) {
+export async function exportKarZararRaporuPDF({ data, companyLogo, companyName, dateRange, companyId }) {
   if (!data) {
     toast.error("İndirilecek veri bulunamadı");
     return;
@@ -336,7 +342,8 @@ export async function exportKarZararRaporuPDF({ data, companyLogo, companyName, 
   const doc = initDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  await loadLogo(doc, companyLogo, pageWidth);
+  const logo = await resolveCompanyLogo(companyLogo, companyId);
+  await loadLogo(doc, logo, pageWidth);
   drawHeader(doc, "Kar / Zarar Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -411,7 +418,7 @@ export async function exportKarZararRaporuPDF({ data, companyLogo, companyName, 
 /**
  * Export Performans Raporu as PDF
  */
-export async function exportPerformansRaporuPDF({ data, companyLogo, companyName, dateRange }) {
+export async function exportPerformansRaporuPDF({ data, companyLogo, companyName, dateRange, companyId }) {
   if (!data) {
     toast.error("İndirilecek veri bulunamadı");
     return;
@@ -419,7 +426,8 @@ export async function exportPerformansRaporuPDF({ data, companyLogo, companyName
   const doc = initDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  await loadLogo(doc, companyLogo, pageWidth);
+  const logo = await resolveCompanyLogo(companyLogo, companyId);
+  await loadLogo(doc, logo, pageWidth);
   drawHeader(doc, "Performans Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
