@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle, ExternalLink, PanelLeftClose, PanelLeft } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -526,8 +526,8 @@ function SirketlerPage() {
 
       {/* Company Impersonate Modal */}
       {showImpersonateModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" data-testid="impersonate-company-modal">
-          <div className="bg-white rounded-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4" data-testid="impersonate-company-modal">
+          <div className="bg-white rounded-xl w-full max-w-7xl h-[92vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-slate-50">
               <div className="flex items-center gap-2">
                 <ExternalLink className="w-4 h-4 text-primary" />
@@ -2013,6 +2013,7 @@ export default function SystemDashboard() {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -2068,25 +2069,44 @@ export default function SystemDashboard() {
       )}
 
       <div className="flex">
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-primary text-white">
-          <div className="p-6 border-b border-white/20">
-            <h1 className="font-heading text-xl font-bold">Sistem Yönetimi</h1>
-            <p className="text-white/60 text-sm mt-1">Ana Kontrol Paneli</p>
-            <p className="text-white/80 text-sm font-mono mt-2">{user.name}</p>
+        <aside className={`hidden lg:flex flex-col min-h-screen bg-primary text-white transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+          <div className={`border-b border-white/20 ${sidebarCollapsed ? 'p-3 flex items-center justify-center' : 'p-6'}`}>
+            {sidebarCollapsed ? (
+              <button onClick={() => setSidebarCollapsed(false)} className="p-1 hover:bg-white/10 rounded" title="Menüyü Aç">
+                <PanelLeft className="w-5 h-5" />
+              </button>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <h1 className="font-heading text-xl font-bold">Sistem Yönetimi</h1>
+                  <button onClick={() => setSidebarCollapsed(true)} className="p-1 hover:bg-white/10 rounded" title="Menüyü Kapat">
+                    <PanelLeftClose className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-white/60 text-sm mt-1">Ana Kontrol Paneli</p>
+                <p className="text-white/80 text-sm font-mono mt-2">{user.name}</p>
+              </>
+            )}
           </div>
           <nav className="flex-1 py-4">
             {NAV_ITEMS.map((item) => (
-              <Link key={item.path} to={item.path} className={`flex items-center gap-3 px-6 py-3 text-sm font-semibold transition-colors ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`}>
-                <item.icon className="w-5 h-5" />
-                {item.label}
+              <Link key={item.path} to={item.path} title={item.label} className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center px-0 py-3' : 'px-6 py-3'} text-sm font-semibold transition-colors ${location.pathname === item.path ? "bg-white/20 border-l-4 border-orange-500" : "hover:bg-white/10"}`}>
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                {!sidebarCollapsed && item.label}
               </Link>
             ))}
           </nav>
-          <div className="p-4 border-t border-white/20">
-            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-white hover:bg-white/10 font-semibold text-sm">
-              <LogOut className="w-4 h-4 mr-2" />
-              Çıkış Yap
-            </Button>
+          <div className={`border-t border-white/20 ${sidebarCollapsed ? 'p-2 flex justify-center' : 'p-4'}`}>
+            {sidebarCollapsed ? (
+              <button onClick={handleLogout} className="p-2 hover:bg-white/10 rounded" title="Çıkış Yap">
+                <LogOut className="w-4 h-4" />
+              </button>
+            ) : (
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-white hover:bg-white/10 font-semibold text-sm">
+                <LogOut className="w-4 h-4 mr-2" />
+                Çıkış Yap
+              </Button>
+            )}
           </div>
         </aside>
 
