@@ -443,7 +443,7 @@ async def login_admin(request: Request, data: AdminLogin):
     # Fetch all accessible companies
     accessible_companies = []
     if company_ids:
-        companies_cursor = db.companies.find({"id": {"$in": company_ids}}, {"_id": 0, "id": 1, "name": 1, "logo_url": 1})
+        companies_cursor = db.companies.find({"id": {"$in": company_ids}}, {"_id": 0, "id": 1, "name": 1, "logo_url": 1, "logo_light": 1, "logo_dark": 1})
         accessible_companies = await companies_cursor.to_list(100)
     
     # Simple permission keys
