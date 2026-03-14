@@ -86,7 +86,7 @@ export default function RestaurantDashboard() {
           });
           if (userData.company_id) {
             axios.get(`${API}/companies/${userData.company_id}`)
-              .then(r => setCompanyLogo(r.data.logo_url))
+              .then(r => setCompanyLogo(r.data.logo_dark || r.data.logo_url))
               .catch(() => {});
           }
         })
@@ -111,7 +111,7 @@ export default function RestaurantDashboard() {
     // Şirket logosunu çek
     if (storedUser.company_id) {
       axios.get(`${API}/companies/${storedUser.company_id}`)
-        .then(res => setCompanyLogo(res.data.logo_url))
+        .then(res => setCompanyLogo(res.data.logo_dark || res.data.logo_url))
         .catch(() => {});
     }
   }, [navigate, location.search]);

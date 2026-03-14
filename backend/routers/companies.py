@@ -149,7 +149,7 @@ async def update_company(company_id: str, data: CompanyUpdate):
         raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
     
     result = await db.companies.update_one({"id": company_id}, {"$set": update_data})
-    if result.modified_count == 0:
+    if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
     return {"message": "Şirket güncellendi"}
 

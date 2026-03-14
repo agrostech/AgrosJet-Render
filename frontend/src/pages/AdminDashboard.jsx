@@ -302,8 +302,8 @@ export default function AdminDashboard() {
           ) : (
             // Single company - show logo and name together
             <div className="flex items-center gap-2">
-              {company?.logo_url && (
-                <img src={company.logo_url} alt={company.name} className="h-12 object-contain" />
+              {(company?.logo_dark || company?.logo_url) && (
+                <img src={company.logo_dark || company.logo_url} alt={company.name} className="h-12 object-contain" />
               )}
               <span className="font-heading text-sm font-bold truncate">{company?.name}</span>
             </div>
@@ -357,9 +357,9 @@ export default function AdminDashboard() {
           {/* Sidebar Header */}
           <div className="p-4 border-b border-white/20 flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              {company?.logo_url && (
+              {(company?.logo_dark || company?.logo_url) && (
                 <img 
-                  src={company.logo_url} 
+                  src={company.logo_dark || company.logo_url} 
                   alt={company.name} 
                   className="w-14 h-14 rounded object-contain bg-white/10 p-1"
                   onError={(e) => { e.target.style.display = 'none'; }}
@@ -474,7 +474,7 @@ export default function AdminDashboard() {
                 <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />
               )}
               {(isSuperAdmin || permissions.muhasebe) && (
-                <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
+                <Route path="muhasebe" element={<MuhasebePage companyId={activeCompanyId} adminId={user.id} adminName={user.name || user.username} companyLogo={company?.logo_dark || company?.logo_url} companyName={company?.name} isSuperAdmin={isSuperAdmin} />} />
               )}
               {(isSuperAdmin || permissions.raporlar) && (
                 <Route path="raporlar" element={<RaporlarPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
