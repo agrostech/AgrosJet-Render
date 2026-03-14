@@ -24,6 +24,103 @@ VIOLATION_TYPES = {
 }
 
 
+# ========== Ceza Ayarları Endpoints ==========
+
+@router.get("/penalty-settings/{company_id}")
+async def get_penalty_settings(company_id: str):
+    """Şirketin ceza ayarlarını getir"""
+    settings = await db.penalty_settings.find_one(
+        {"company_id": company_id}, {"_id": 0}
+    )
+    if not settings:
+        # Varsayılan ayarlar oluştur
+        settings = {
+            "company_id": company_id,
+            "enabled": False,
+            "penalties": {}
+        }
+    return settings
+
+
+@router.put("/penalty-settings/{company_id}")
+async def update_penalty_settings(company_id: str, data: dict):
+    """Şirketin ceza ayarlarını güncelle"""
+    update_doc = {
+        "company_id": company_id,
+        "enabled": data.get("enabled", False),
+        "penalties": data.get("penalties", {}),
+        "updated_at": get_turkey_now()
+    }
+    await db.penalty_settings.update_one(
+        {"company_id": company_id},
+        {"$set": update_doc},
+        upsert=True
+    )
+    return {"message": "Ceza ayarları güncellendi"}
+
+
+async def apply_penalty_if_needed(company_id: str, entity_type: str, entity_id: str, entity_name: str, violation_type: str, violation_id: str):
+    """İhlal için ceza uygula (eğer aktifse)"""
+    settings = await db.penalty_settings.find_one(
+        {"company_id": company_id}, {"_id": 0}
+    )
+    if not settings or not settings.get("enabled"):
+        return None
+
+    penalty_config = settings.get("penalties", {}).get(violation_type)
+    if not penalty_config or not penalty_config.get("enabled"):
+        return None
+
+    amount = penalty_config.get("amount", 0)
+    if amount <= 0:
+        return None
+
+    # Yönetici ise bağlı courier_id'yi bul
+    actual_entity_type = entity_type
+    actual_entity_id = entity_id
+    if entity_type == "admin":
+        admin = await db.admins.find_one(
+            {"id": entity_id}, {"_id": 0, "linked_courier_id": 1, "role": 1}
+        )
+        # Superadmin'e ceza uygulanmaz
+        if admin and admin.get("role") == "super_admin":
+            return None
+        if admin and admin.get("linked_courier_id"):
+            actual_entity_type = "courier"
+            actual_entity_id = admin["linked_courier_id"]
+        else:
+            # Bağlı kurye yoksa ceza uygulanamaz
+            return None
+
+    # Transaction oluştur (payment_out = verilen/yeşil bakiye)
+    violation_label = VIOLATION_TYPES.get(violation_type, violation_type)
+    transaction = {
+        "id": str(uuid.uuid4()),
+        "entity_type": actual_entity_type,
+        "entity_id": actual_entity_id,
+        "company_id": company_id,
+        "type": "payment_out",
+        "amount": amount,
+        "description": f"Ceza: {violation_label}",
+        "is_hakedis": False,
+        "created_at": get_turkey_now(),
+        "penalty_violation_id": violation_id
+    }
+    await db.transactions.insert_one(transaction)
+    transaction.pop("_id", None)
+
+    # İhlal kaydına ceza bilgisini ekle
+    await db.shift_violations.update_one(
+        {"id": violation_id},
+        {"$set": {
+            "penalty_amount": amount,
+            "penalty_transaction_id": transaction["id"]
+        }}
+    )
+
+    return {"amount": amount, "transaction_id": transaction["id"]}
+
+
 # ========== Models ==========
 
 # ========== Helpers ==========
@@ -271,6 +368,15 @@ async def log_violation(
     await db.shift_violations.insert_one(violation)
     # MongoDB adds _id, remove it before returning
     violation.pop("_id", None)
+    
+    # Ceza uygula (eğer aktifse)
+    penalty_result = await apply_penalty_if_needed(
+        company_id, entity_type, entity_id, entity_name, violation_type, violation["id"]
+    )
+    if penalty_result:
+        violation["penalty_amount"] = penalty_result["amount"]
+        violation["penalty_transaction_id"] = penalty_result["transaction_id"]
+    
     return violation
 
 
