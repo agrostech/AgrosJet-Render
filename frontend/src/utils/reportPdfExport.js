@@ -31,16 +31,27 @@ async function loadLogo(doc, companyLogo, pageWidth) {
     } else {
       logoUrl = `${process.env.REACT_APP_BACKEND_URL}/api/companies/logo/${companyLogo}`;
     }
-    const response = await fetch(logoUrl);
-    if (response.ok) {
-      const blob = await response.blob();
-      const dataUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
-      doc.addImage(dataUrl, "PNG", pageWidth - 39, 4, 25, 25);
-    }
+
+    // Use Image element for more reliable cross-origin loading
+    const dataUrl = await new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        // White background for transparent PNGs
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = logoUrl;
+    });
+
+    doc.addImage(dataUrl, "PNG", pageWidth - 39, 4, 25, 25);
   } catch (e) {
     console.log("Logo yüklenemedi:", e);
   }
