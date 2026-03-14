@@ -19,8 +19,28 @@ const fmtMin = (m) => {
 function PerformanceTable({ data, average, title, icon: Icon }) {
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-6 text-muted-foreground text-sm">
-        {title} için veri bulunamadı
+      <div className="space-y-2">
+        <h3 className="flex items-center gap-2 font-semibold text-sm text-slate-700">
+          <Icon className="w-4 h-4" /> {title}
+        </h3>
+        <div className="border rounded-lg overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b">
+                <th className="text-left py-2 px-3 font-semibold text-slate-600 whitespace-nowrap">İsim</th>
+                <th className="text-right py-2 px-3 font-semibold text-slate-600 whitespace-nowrap">Teslimat</th>
+                <th className="text-right py-2 px-3 font-semibold text-slate-600 whitespace-nowrap">Ort. Süre</th>
+                <th className="text-right py-2 px-3 font-semibold text-slate-600 whitespace-nowrap">Aktif Saat</th>
+                <th className="text-right py-2 px-3 font-semibold text-slate-600 whitespace-nowrap">Teslimat/Saat</th>
+                <th className="text-right py-2 px-3 font-semibold text-slate-600 whitespace-nowrap">İhlal</th>
+                <th className="text-right py-2 px-3 font-semibold text-slate-600 whitespace-nowrap">Mola</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colSpan={7} className="text-center py-4 text-muted-foreground text-sm">Veri bulunamadı</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
@@ -161,7 +181,7 @@ export default function PerformansRaporu({ companyId }) {
       ) : data ? (
         <div className="space-y-6">
           {/* Saatlik Sipariş Grafiği */}
-          {data.hourly_distribution && data.hourly_distribution.some(h => h.count > 0) && (
+          {data.hourly_distribution && (
             <div className="space-y-2">
               <h3 className="font-semibold text-sm text-slate-700">Saatlik Sipariş Dağılımı</h3>
               <div className="border rounded-lg p-4" style={{ height: 220 }}>
