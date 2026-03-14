@@ -7,20 +7,7 @@ import autoTable from "jspdf-autotable";
 import { RobotoRegular } from "@/utils/robotoFont";
 import { toast } from "sonner";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-async function resolveCompanyLogo(companyLogo, companyId) {
-  if (companyLogo && companyLogo.trim()) return companyLogo;
-  if (!companyId) return "";
-  try {
-    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/companies/${companyId}`);
-    if (res.ok) {
-      const data = await res.json();
-      return data.logo_light || data.logo_url || "";
-    }
-  } catch {}
-  return "";
-}
+const BACKEND = process.env.REACT_APP_BACKEND_URL;
 
 function formatDateTR(dateStr) {
   if (!dateStr) return "";
@@ -33,39 +20,46 @@ function formatDateTR(dateStr) {
   }
 }
 
-async function loadLogo(doc, companyLogo, pageWidth) {
-  if (!companyLogo || !companyLogo.trim()) return;
+async function addCompanyLogo(doc, companyId, pageWidth) {
+  if (!companyId) return;
   try {
-    let logoUrl;
-    if (companyLogo.startsWith('/')) {
-      logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
-    } else {
-      logoUrl = `${process.env.REACT_APP_BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(companyLogo)}`;
-    }
-    const response = await fetch(logoUrl);
-    if (response.ok) {
-      const blob = await response.blob();
-      const dataUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
-      // Get actual image dimensions to preserve aspect ratio
-      const img = await new Promise((resolve) => {
-        const i = new window.Image();
-        i.onload = () => resolve(i);
-        i.src = dataUrl;
-      });
-      const maxH = 22;
-      const maxW = 50;
-      const aspect = img.naturalWidth / img.naturalHeight;
-      let w = maxH * aspect;
-      let h = maxH;
-      if (w > maxW) { w = maxW; h = w / aspect; }
-      doc.addImage(dataUrl, 'PNG', pageWidth - w - 14, 5, w, h);
-    }
+    // Step 1: Get company data to find logo path
+    const compRes = await fetch(`${BACKEND}/api/companies/${companyId}`);
+    if (!compRes.ok) return;
+    const company = await compRes.json();
+    const logoPath = company.logo_light || company.logo_url;
+    if (!logoPath) return;
+
+    // Step 2: Fetch logo image
+    const logoUrl = logoPath.startsWith('/')
+      ? `${BACKEND}${logoPath}`
+      : `${BACKEND}/api/proxy-image?url=${encodeURIComponent(logoPath)}`;
+    const logoRes = await fetch(logoUrl);
+    if (!logoRes.ok) return;
+
+    // Step 3: Convert to dataURL
+    const blob = await logoRes.blob();
+    const dataUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+
+    // Step 4: Get image dimensions for aspect ratio
+    const img = await new Promise((resolve, reject) => {
+      const i = new window.Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = dataUrl;
+    });
+    const maxH = 22, maxW = 50;
+    const aspect = img.naturalWidth / img.naturalHeight;
+    let w = maxH * aspect, h = maxH;
+    if (w > maxW) { w = maxW; h = w / aspect; }
+
+    doc.addImage(dataUrl, 'PNG', pageWidth - w - 14, 5, w, h);
   } catch (e) {
-    console.log("Logo yüklenemedi:", e);
+    console.log("Logo eklenemedi:", e);
   }
 }
 
@@ -151,8 +145,7 @@ export async function exportKuryeRaporuPDF({ reportData, companyLogo, companyNam
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = reportData.summary;
 
-  const logo = await resolveCompanyLogo(companyLogo, companyId);
-  await loadLogo(doc, logo, pageWidth);
+  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Kurye Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -213,8 +206,7 @@ export async function exportRestoranRaporuPDF({ reportData, companyLogo, company
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = reportData.summary;
 
-  const logo = await resolveCompanyLogo(companyLogo, companyId);
-  await loadLogo(doc, logo, pageWidth);
+  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Restoran Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -286,8 +278,7 @@ export async function exportCiroRaporuPDF({ data, companyLogo, companyName, date
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = data.summary;
 
-  const logo = await resolveCompanyLogo(companyLogo, companyId);
-  await loadLogo(doc, logo, pageWidth);
+  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Ciro Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -351,8 +342,7 @@ export async function exportKarZararRaporuPDF({ data, companyLogo, companyName, 
   const doc = initDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  const logo = await resolveCompanyLogo(companyLogo, companyId);
-  await loadLogo(doc, logo, pageWidth);
+  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Kar / Zarar Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
@@ -435,8 +425,7 @@ export async function exportPerformansRaporuPDF({ data, companyLogo, companyName
   const doc = initDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  const logo = await resolveCompanyLogo(companyLogo, companyId);
-  await loadLogo(doc, logo, pageWidth);
+  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Performans Raporu", companyName || "");
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
