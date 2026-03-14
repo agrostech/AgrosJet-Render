@@ -166,8 +166,8 @@ const generate58mmReceipt = (order, logoUrl = "") => {
 
       ${(order.contactless_delivery || order.ring_doorbell === false) ? `
       <div style="padding:3px 0;border-top:1px dashed #000;font-size:9px;line-height:1.5;">
-        ${order.contactless_delivery ? `<div><strong>Temassız Teslimat</strong></div>` : ""}
-        ${order.ring_doorbell === false ? `<div><strong>Zile Basma</strong></div>` : ""}
+        ${order.contactless_delivery ? `<div><strong>Temassız Teslimat,</strong> Siparişi Müşterinin Kapısına Bıraktıktan Sonra Arayınız</div>` : ""}
+        ${order.ring_doorbell === false ? `<div><strong>Zile Basmayınız,</strong> Gidince Arayınız</div>` : ""}
       </div>` : ""}
 
       <div style="text-align:center;margin-top:6px;padding-top:4px;border-top:1px dashed #000;font-size:9px;line-height:1.5;">
@@ -347,8 +347,8 @@ const generate80mmReceipt = (order, logoUrl = "") => {
 
       ${(order.contactless_delivery || order.ring_doorbell === false) ? `
       <div style="padding:4px 0;border-top:1px dashed #000;font-size:12px;line-height:1.6;">
-        ${order.contactless_delivery ? `<div><strong>Temassız Teslimat</strong></div>` : ""}
-        ${order.ring_doorbell === false ? `<div><strong>Zile Basma</strong></div>` : ""}
+        ${order.contactless_delivery ? `<div><strong>Temassız Teslimat,</strong> Siparişi Müşterinin Kapısına Bıraktıktan Sonra Arayınız</div>` : ""}
+        ${order.ring_doorbell === false ? `<div><strong>Zile Basmayınız,</strong> Gidince Arayınız</div>` : ""}
       </div>` : ""}
 
       <div style="text-align:center;margin-top:8px;padding-top:6px;border-top:1px dashed #000;font-size:11px;line-height:1.6;">
