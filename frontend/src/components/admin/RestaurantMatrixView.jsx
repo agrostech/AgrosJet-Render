@@ -147,45 +147,61 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Restoran ara..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9"
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{filteredRestaurants.length} restoran</span>
-          <Button variant="outline" size="sm" onClick={fetchMatrix}>
+          <span className="hidden sm:inline">{filteredRestaurants.length} restoran</span>
+          <Button variant="outline" size="sm" onClick={fetchMatrix} className="h-9 w-9 p-0 sm:h-auto sm:w-auto sm:px-3">
             <RefreshCw className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-xs bg-slate-50 p-2 rounded border">
-        <span className="font-medium text-slate-600">Renk Kodları:</span>
+      <div className="flex flex-wrap gap-3 text-xs bg-slate-50 p-2 rounded border">
+        <span className="font-medium text-slate-600">Renk:</span>
         <div className="flex items-center gap-1">
-          <span className="w-4 h-4 rounded bg-green-500"></span>
-          <span>Aktif / Kurye</span>
+          <span className="w-3.5 h-3.5 rounded bg-green-500"></span>
+          <span>Aktif/Kurye</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-4 h-4 rounded bg-amber-500"></span>
+          <span className="w-3.5 h-3.5 rounded bg-amber-500"></span>
           <span>Restoran</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-4 h-4 rounded bg-red-400"></span>
+          <span className="w-3.5 h-3.5 rounded bg-red-400"></span>
           <span>Pasif</span>
         </div>
       </div>
 
-      {/* Matrix Table */}
-      <div className="border rounded-lg overflow-auto max-h-[600px]">
+      {/* Mobil: Kart görünümü */}
+      <div className="sm:hidden space-y-2">
+        {filteredRestaurants.map((restaurant) => (
+          <MatrixCard 
+            key={restaurant.id} 
+            restaurant={restaurant} 
+            collectionCols={collectionCols}
+            invoiceCols={invoiceCols}
+            permissionColumns={permissionColumns}
+            updating={updating}
+            onCellUpdate={handleCellUpdate}
+            onRestaurantClick={onRestaurantClick}
+          />
+        ))}
+      </div>
+
+      {/* Masaüstü: Tablo */}
+      <div className="hidden sm:block border rounded-lg overflow-auto max-h-[600px]">
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 z-10">
             {/* Grup Başlıkları */}
@@ -403,6 +419,124 @@ export default function RestaurantMatrixView({ companyId, onRestaurantClick }) {
             })}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+/* Mobil Matris Kartı */
+function MatrixCard({ restaurant, collectionCols, invoiceCols, permissionColumns, updating, onCellUpdate, onRestaurantClick }) {
+  const mode = restaurant.order_transfer_mode || "auto";
+  
+  return (
+    <div className="border rounded-lg p-2.5 bg-white" data-testid={`matrix-card-${restaurant.id}`}>
+      {/* Başlık */}
+      <div className="flex items-center justify-between mb-2">
+        <button 
+          className="font-medium text-sm text-primary truncate mr-2" 
+          onClick={() => onRestaurantClick?.(restaurant)}
+        >
+          {restaurant.name}
+          {restaurant.is_archived && (
+            <span className="text-[9px] px-1 bg-slate-200 text-slate-500 rounded ml-1">Arşiv</span>
+          )}
+        </button>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+            restaurant.pricing_type === "per_km" ? "bg-purple-100 text-purple-700" : "bg-amber-100 text-amber-700"
+          }`}>
+            {restaurant.pricing_type === "per_km" ? "KM" : "Pkt"}
+          </span>
+          <button
+            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+              mode === "auto" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+            }`}
+            onClick={() => {
+              const newMode = mode === "auto" ? "manual" : "auto";
+              onCellUpdate(restaurant.id, "transfer_mode", "order_transfer_mode", newMode);
+            }}
+          >
+            {mode === "auto" ? "Oto" : "Man"}
+          </button>
+        </div>
+      </div>
+      
+      {/* Ayar satırları */}
+      <div className="space-y-1.5">
+        {/* Tahsilat */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">Tahsilat</span>
+          <div className="flex gap-1 flex-1">
+            {collectionCols.map(col => {
+              const value = restaurant.collection?.[col.key] || "courier";
+              const isCourier = value === "courier";
+              const cellKey = `${restaurant.id}-collection-${col.key}`;
+              const isUp = updating[cellKey];
+              return (
+                <button
+                  key={col.key}
+                  className={`flex-1 py-1 rounded text-[10px] font-medium text-center ${
+                    isCourier ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                  }`}
+                  onClick={() => !isUp && onCellUpdate(restaurant.id, "collection", col.key, value)}
+                  disabled={isUp}
+                >
+                  {isUp ? <RefreshCw className="w-3 h-3 animate-spin mx-auto" /> : `${col.label}: ${isCourier ? "K" : "R"}`}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Fatura */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">Fatura</span>
+          <div className="flex gap-1 flex-1">
+            {invoiceCols.map(col => {
+              const value = restaurant.invoice?.[col.key] || false;
+              const cellKey = `${restaurant.id}-invoice-${col.key}`;
+              const isUp = updating[cellKey];
+              return (
+                <button
+                  key={col.key}
+                  className={`flex-1 py-1 rounded text-[10px] font-medium text-center ${
+                    value ? "bg-green-100 text-green-700" : "bg-red-50 text-red-400"
+                  }`}
+                  onClick={() => !isUp && onCellUpdate(restaurant.id, "invoice", col.key, value)}
+                  disabled={isUp}
+                >
+                  {isUp ? <RefreshCw className="w-3 h-3 animate-spin mx-auto" /> : col.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* İzinler */}
+        {permissionColumns.length > 0 && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">İzinler</span>
+            <div className="flex gap-1 flex-1 flex-wrap">
+              {permissionColumns.map(col => {
+                const value = restaurant.permissions?.[col.key] || false;
+                const cellKey = `${restaurant.id}-permission-${col.key}`;
+                const isUp = updating[cellKey];
+                return (
+                  <button
+                    key={col.key}
+                    className={`py-1 px-1.5 rounded text-[10px] font-medium ${
+                      value ? "bg-green-100 text-green-700" : "bg-red-50 text-red-400"
+                    }`}
+                    onClick={() => !isUp && onCellUpdate(restaurant.id, "permission", col.key, value)}
+                    disabled={isUp}
+                  >
+                    {isUp ? <RefreshCw className="w-3 h-3 animate-spin" /> : (col.short_label || col.label)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

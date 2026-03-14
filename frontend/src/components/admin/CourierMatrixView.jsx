@@ -229,41 +229,60 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Kurye ara..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9"
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{filteredCouriers.length} kurye</span>
-          <Button variant="outline" size="sm" onClick={fetchMatrix}>
+          <span className="hidden sm:inline">{filteredCouriers.length} kurye</span>
+          <Button variant="outline" size="sm" onClick={fetchMatrix} className="h-9 w-9 p-0 sm:h-auto sm:w-auto sm:px-3">
             <RefreshCw className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-xs bg-slate-50 p-2 rounded border">
-        <span className="font-medium text-slate-600">Renk Kodları:</span>
+      <div className="flex flex-wrap gap-3 text-xs bg-slate-50 p-2 rounded border">
+        <span className="font-medium text-slate-600">Renk:</span>
         <div className="flex items-center gap-1">
-          <Check className="w-4 h-4 text-green-600" />
+          <Check className="w-3.5 h-3.5 text-green-600" />
           <span>Aktif</span>
         </div>
         <div className="flex items-center gap-1">
-          <X className="w-4 h-4 text-red-400" />
+          <X className="w-3.5 h-3.5 text-red-400" />
           <span>Pasif</span>
         </div>
       </div>
 
-      {/* Matrix Table */}
-      <div className="border rounded-lg overflow-auto max-h-[600px]">
+      {/* Mobil: Kart görünümü */}
+      <div className="sm:hidden space-y-2">
+        {filteredCouriers.map((courier) => (
+          <CourierMatrixCard 
+            key={courier.id} 
+            courier={courier}
+            paymentCols={paymentCols}
+            updating={updating}
+            editedValues={editedValues}
+            onPaymentMethodToggle={handlePaymentMethodToggle}
+            onPermissionToggle={handlePermissionToggle}
+            onNumericChange={handleNumericChange}
+            onNumericSave={handleNumericSave}
+            onCourierClick={onCourierClick}
+            getPricingLabel={getPricingLabel}
+          />
+        ))}
+      </div>
+
+      {/* Masaüstü: Tablo */}
+      <div className="hidden sm:block border rounded-lg overflow-auto max-h-[600px]">
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 z-10">
             {/* Grup Başlıkları */}
@@ -546,6 +565,121 @@ export default function CourierMatrixView({ companyId, onCourierClick }) {
             })}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+/* Mobil Kurye Matris Kartı */
+function CourierMatrixCard({ 
+  courier, paymentCols, updating, editedValues,
+  onPaymentMethodToggle, onPermissionToggle, onNumericChange, onNumericSave,
+  onCourierClick, getPricingLabel 
+}) {
+  const maxPkgKey = `${courier.id}-max_packages`;
+  const breakKey = `${courier.id}-daily_break_limit`;
+  const maxVal = editedValues[maxPkgKey] !== undefined ? parseInt(editedValues[maxPkgKey]) : (courier.max_packages || 5);
+  const breakVal = editedValues[breakKey] !== undefined ? parseInt(editedValues[breakKey]) : (courier.daily_break_limit || 30);
+  const maxChanged = editedValues[maxPkgKey] !== undefined && parseInt(editedValues[maxPkgKey]) !== (courier.max_packages || 5);
+  const breakChanged = editedValues[breakKey] !== undefined && parseInt(editedValues[breakKey]) !== (courier.daily_break_limit || 30);
+
+  return (
+    <div className="border rounded-lg p-2.5 bg-white" data-testid={`courier-matrix-card-${courier.id}`}>
+      {/* Başlık */}
+      <div className="flex items-center justify-between mb-2">
+        <button className="font-medium text-sm text-primary truncate mr-2" onClick={() => onCourierClick?.(courier)}>
+          {courier.name}
+          {courier.plate && <span className="text-[9px] px-1 bg-slate-200 text-slate-500 rounded ml-1">{courier.plate}</span>}
+        </button>
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+          courier.pricing_type === "per_km" ? "bg-purple-100 text-purple-700" :
+          courier.pricing_type === "hourly" ? "bg-blue-100 text-blue-700" :
+          courier.pricing_type === "tiered" ? "bg-orange-100 text-orange-700" :
+          "bg-amber-100 text-amber-700"
+        }`}>
+          {getPricingLabel(courier.pricing_type)}
+          {courier.hourly_rate ? ` ${courier.hourly_rate}₺/s` : ''}
+        </span>
+      </div>
+
+      {/* Ödeme Yöntemleri */}
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <span className="text-[10px] text-muted-foreground w-10 flex-shrink-0">Ödeme</span>
+        <div className="flex gap-1 flex-1">
+          {paymentCols.map(col => {
+            const value = courier.payment_methods?.[col.key] ?? true;
+            const cellKey = `${courier.id}-payment-${col.key}`;
+            const isUp = updating[cellKey];
+            return (
+              <button
+                key={col.key}
+                className={`flex-1 py-1 rounded text-[10px] font-medium text-center ${
+                  value ? "bg-green-100 text-green-700" : "bg-red-50 text-red-400"
+                }`}
+                onClick={() => !isUp && onPaymentMethodToggle(courier.id, col.key, value)}
+                disabled={isUp}
+              >
+                {isUp ? <RefreshCw className="w-3 h-3 animate-spin mx-auto" /> : col.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Max Paket + Mola + Yetki */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 text-[10px]">
+          <Package className="w-3 h-3 text-slate-400" />
+          <div className="flex items-center gap-0.5">
+            <button onClick={() => onNumericChange(courier.id, "max_packages", Math.max(1, maxVal - 1))} className="w-5 h-5 flex items-center justify-center bg-slate-200 rounded text-slate-600">
+              <Minus className="w-2.5 h-2.5" />
+            </button>
+            <span className="w-5 text-center font-medium">{maxVal}</span>
+            <button onClick={() => onNumericChange(courier.id, "max_packages", Math.min(20, maxVal + 1))} className="w-5 h-5 flex items-center justify-center bg-slate-200 rounded text-slate-600">
+              <Plus className="w-2.5 h-2.5" />
+            </button>
+            {maxChanged && (
+              <button onClick={() => onNumericSave(courier.id, "max_packages", courier.max_packages || 5)} className="w-5 h-5 flex items-center justify-center bg-green-500 text-white rounded ml-0.5">
+                <Save className="w-2.5 h-2.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 text-[10px]">
+          <Coffee className="w-3 h-3 text-slate-400" />
+          <div className="flex items-center gap-0.5">
+            <button onClick={() => onNumericChange(courier.id, "daily_break_limit", Math.max(0, breakVal - 5))} className="w-5 h-5 flex items-center justify-center bg-slate-200 rounded text-slate-600">
+              <Minus className="w-2.5 h-2.5" />
+            </button>
+            <span className="w-6 text-center font-medium">{breakVal}</span>
+            <button onClick={() => onNumericChange(courier.id, "daily_break_limit", Math.min(480, breakVal + 5))} className="w-5 h-5 flex items-center justify-center bg-slate-200 rounded text-slate-600">
+              <Plus className="w-2.5 h-2.5" />
+            </button>
+            {breakChanged && (
+              <button onClick={() => onNumericSave(courier.id, "break_limit", courier.daily_break_limit || 30)} className="w-5 h-5 flex items-center justify-center bg-green-500 text-white rounded ml-0.5">
+                <Save className="w-2.5 h-2.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="ml-auto flex items-center gap-1 text-[10px]">
+          <Shield className="w-3 h-3 text-slate-400" />
+          {(() => {
+            const val = courier.permissions?.can_mark_not_ready ?? true;
+            const cellKey = `${courier.id}-perm-can_mark_not_ready`;
+            const isUp = updating[cellKey];
+            return (
+              <button
+                className={`px-1.5 py-0.5 rounded font-medium ${val ? "bg-green-100 text-green-700" : "bg-red-50 text-red-400"}`}
+                onClick={() => !isUp && onPermissionToggle(courier.id, "can_mark_not_ready", val)}
+              >
+                {isUp ? <RefreshCw className="w-3 h-3 animate-spin" /> : (val ? "Aktif" : "Pasif")}
+              </button>
+            );
+          })()}
+        </div>
       </div>
     </div>
   );

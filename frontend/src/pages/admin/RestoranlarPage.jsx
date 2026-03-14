@@ -613,20 +613,11 @@ export default function RestoranlarPage({ companyId }) {
   return (
     <div data-testid="restoranlar-page">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-        <h2 className="font-heading text-2xl font-bold tracking-tight">Restoranlar</h2>
-        <div className="flex gap-2">
-          <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Restoran ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-10 border-2"
-              data-testid="restaurant-search-input"
-            />
-          </div>
-          <div className="flex gap-2">
+      <div className="flex flex-col gap-3 mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight">Restoranlar</h2>
+          {/* Masaüstü butonlar */}
+          <div className="hidden sm:flex gap-2">
             <Button variant="outline" onClick={() => setShowGroupsModal(true)} className="font-semibold" data-testid="restaurant-groups-btn">
               <Users className="w-4 h-4 mr-2" />
               Gruplar
@@ -641,58 +632,82 @@ export default function RestoranlarPage({ companyId }) {
             </Button>
           </div>
         </div>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Restoran ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-9 sm:h-10 border-2"
+              data-testid="restaurant-search-input"
+            />
+          </div>
+          {/* Mobil butonlar - kompakt */}
+          <div className="flex sm:hidden gap-1.5">
+            <Button variant="outline" size="sm" onClick={() => setShowGroupsModal(true)} className="h-9 px-2.5" data-testid="restaurant-groups-btn-mobile">
+              <Users className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowIntegrationLogs(true)} className="h-9 px-2.5" data-testid="integration-logs-btn-mobile">
+              <FileText className="w-4 h-4" />
+            </Button>
+            <Button size="sm" onClick={() => setShowAddModal(true)} className="h-9 px-2.5" data-testid="add-restaurant-btn-mobile">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Tabs + View Mode Toggle */}
-      <div className="flex justify-between items-center gap-2 mb-4">
-        <div className="flex gap-2">
+      <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+        <div className="flex gap-1.5 sm:gap-2">
           <button
             onClick={() => setActiveTab("active")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-colors ${
               activeTab === "active" 
                 ? "bg-primary text-white" 
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            <Store className="w-4 h-4" />
+            <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Aktif ({activeRestaurants.length})
           </button>
           <button
             onClick={() => setActiveTab("archived")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-colors ${
               activeTab === "archived" 
                 ? "bg-slate-700 text-white" 
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            <Archive className="w-4 h-4" />
+            <Archive className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Arşiv ({archivedRestaurants.length})
           </button>
         </div>
         
         {/* View Mode Toggle */}
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+        <div className="flex gap-0.5 sm:gap-1 bg-slate-100 p-0.5 sm:p-1 rounded-lg">
           <button
             onClick={() => setViewMode("list")}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors ${
               viewMode === "list" 
                 ? "bg-white shadow text-primary" 
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <List className="w-4 h-4" />
-            Liste
+            <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Liste</span>
           </button>
           <button
             onClick={() => setViewMode("matrix")}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-colors ${
               viewMode === "matrix" 
                 ? "bg-white shadow text-primary" 
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <LayoutGrid className="w-4 h-4" />
-            Ayar Matrisi
+            <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Matris</span>
           </button>
         </div>
       </div>
@@ -816,113 +831,80 @@ export default function RestoranlarPage({ companyId }) {
         </div>
         
         {/* Mobile Cards */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-2.5">
           {filteredRestaurants.map((restaurant) => (
             <div 
               key={restaurant.id}
-              className="border-2 border-border p-4 bg-white"
+              className="border rounded-lg p-3 bg-white"
               data-testid={`restaurant-card-${restaurant.id}`}
             >
-              <div className="mb-3">
-                <p className="font-bold">{restaurant.name}</p>
-              </div>
-              
-              <div className="text-sm mb-3 space-y-1">
-                <p>
-                  <span className="text-muted-foreground">Hazırlık:</span> <span>{restaurant.preparation_time || 15} dk</span>
-                </p>
-              </div>
-              
-              {/* Row 1: Düzenle, Hazırlık */}
-              <div className="flex gap-2 mb-2">
-                <Button size="sm" variant="outline" onClick={() => openEditModal(restaurant)} className="flex-1 border-2">
-                  Düzenle
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => openPreparationModal(restaurant)} className="flex-1 border-2" title="Hazırlık Süreleri">
-                  <Clock className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Hazırlık</span>
-                </Button>
-              </div>
-              
-              {/* Row 2: Ücretlendirme, Kullanıcılar */}
-              <div className="flex gap-2 mb-2">
-                <Button size="sm" variant="outline" onClick={() => openPricingModal(restaurant)} className="flex-1 border-2" title="Ücretlendirme">
-                  <span className="font-bold">₺</span>
-                  <span className="text-xs ml-1">Ücretlendirme</span>
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => openUsersModal(restaurant)} className="flex-1 border-2">
-                  <Users className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Kullanıcılar</span>
-                </Button>
-              </div>
-              
-              {/* Row 3: Engellenenler, Entegrasyon Logları */}
-              <div className="flex gap-2 mb-2">
-                <Button size="sm" variant="outline" onClick={() => openBlockedModal(restaurant)} className="flex-1 border-2">
-                  <UserX className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Engellenenler</span>
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setShowIntegrationLogs(true)} className="flex-1 border-2">
-                  <FileText className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Ent. Logları</span>
-                </Button>
-              </div>
-              
-              {/* Row 4: İzinler, Tahsilat, Fatura */}
-              <div className="flex gap-2 mb-2">
-                <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowPermissionsModal(true); }} className="flex-1 border-2">
-                  <Shield className="w-4 h-4 mr-1" />
-                  <span className="text-xs">İzinler</span>
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => { setSelectedRestaurant(restaurant); setShowCollectionModal(true); }} className="flex-1 border-2">
-                  <Banknote className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Tahsilat</span>
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => openInvoiceSettingsModal(restaurant)} className="flex-1 border-2">
-                  <Receipt className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Fatura</span>
-                </Button>
-              </div>
-              
-              {/* Row 5: Panele Bağlan, Arşiv */}
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleImpersonate(restaurant)} 
-                  className="flex-1 border-2"
-                  data-testid={`impersonate-restaurant-mobile-${restaurant.id}`}
-                >
-                  <ExternalLink className="w-4 h-4 mr-1" />
-                  <span className="text-xs">Panele Bağlan</span>
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleArchive(restaurant)} 
-                  className="flex-1 border-2"
-                >
-                  <Archive className="w-4 h-4 mr-1" />
-                  <span className="text-xs">{restaurant.is_archived ? 'Arşivden Çıkar' : 'Arşivle'}</span>
-                </Button>
-              </div>
-              
-              {/* Row 6: Sil (only for archived) */}
-              {restaurant.is_archived && (
-                <div className="flex gap-2 mt-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => {
-                      setSelectedRestaurant(restaurant);
-                      setShowDeleteModal(true);
-                    }}
-                    className="flex-1 border-2"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    <span className="text-xs">Sil</span>
+              {/* Başlık + hızlı aksiyonlar */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Store className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <p className="font-semibold text-sm truncate">{restaurant.name}</p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                  <span className="text-xs text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">{restaurant.preparation_time || 15}dk</span>
+                  <Button size="sm" variant="ghost" onClick={() => openEditModal(restaurant)} className="h-7 w-7 p-0" data-testid={`edit-restaurant-mobile-${restaurant.id}`}>
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleImpersonate(restaurant)} className="h-7 w-7 p-0" data-testid={`impersonate-restaurant-mobile-${restaurant.id}`}>
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </Button>
                 </div>
+              </div>
+              
+              {/* Ayar butonları - 4'lü grid */}
+              <div className="grid grid-cols-4 gap-1.5 mb-2">
+                <button onClick={() => openPricingModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
+                  <span className="font-bold text-xs text-slate-700">₺</span>
+                  Ücret
+                </button>
+                <button onClick={() => openPreparationModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />
+                  Hazırlık
+                </button>
+                <button onClick={() => openUsersModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
+                  <Users className="w-3.5 h-3.5 text-slate-500" />
+                  Kullanıcı
+                </button>
+                <button onClick={() => openBlockedModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
+                  <UserX className="w-3.5 h-3.5 text-slate-500" />
+                  Engelli
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                <button onClick={() => { setSelectedRestaurant(restaurant); setShowPermissionsModal(true); }} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
+                  <Shield className="w-3.5 h-3.5 text-slate-500" />
+                  İzinler
+                </button>
+                <button onClick={() => { setSelectedRestaurant(restaurant); setShowCollectionModal(true); }} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
+                  <Banknote className="w-3.5 h-3.5 text-slate-500" />
+                  Tahsilat
+                </button>
+                <button onClick={() => openInvoiceSettingsModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
+                  <Receipt className="w-3.5 h-3.5 text-slate-500" />
+                  Fatura
+                </button>
+                <button 
+                  onClick={() => handleArchive(restaurant)} 
+                  className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50"
+                >
+                  {restaurant.is_archived ? <ArchiveRestore className="w-3.5 h-3.5 text-slate-500" /> : <Archive className="w-3.5 h-3.5 text-slate-500" />}
+                  {restaurant.is_archived ? 'Çıkar' : 'Arşiv'}
+                </button>
+              </div>
+              
+              {restaurant.is_archived && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => { setSelectedRestaurant(restaurant); setShowDeleteModal(true); }}
+                  className="w-full mt-2 h-7 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <Trash2 className="w-3 h-3 mr-1" /> Sil
+                </Button>
               )}
             </div>
           ))}

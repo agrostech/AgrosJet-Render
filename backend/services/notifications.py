@@ -8,6 +8,7 @@ import os
 import logging
 from typing import Optional
 from utils.database import db
+from services.integration_log_service import save_integration_log
 
 logger = logging.getLogger(__name__)
 
@@ -93,13 +94,16 @@ async def send_push_notification(
         
         response = messaging.send(message)
         logger.info(f"Bildirim gönderildi: {response}")
+        await save_integration_log("firebase", "INFO", f"Push bildirim gönderildi: {title}", {"message_id": response, "title": title, "body": body})
         return {"success": True, "message_id": response}
         
     except messaging.UnregisteredError:
         logger.warning(f"Geçersiz FCM token: {fcm_token[:20]}...")
+        await save_integration_log("firebase", "WARNING", f"Geçersiz FCM token: {fcm_token[:20]}...", {"title": title})
         return {"success": False, "error": "Token geçersiz veya kullanıcı uygulamayı silmiş"}
     except Exception as e:
         logger.error(f"Bildirim hatası: {e}")
+        await save_integration_log("firebase", "ERROR", f"Push bildirim hatası: {str(e)}", {"title": title, "body": body})
         return {"success": False, "error": str(e)}
 
 
@@ -148,6 +152,7 @@ async def send_push_to_multiple(
         
         response = messaging.send_multicast(message)
         logger.info(f"Toplu bildirim: {response.success_count} başarılı, {response.failure_count} başarısız")
+        await save_integration_log("firebase", "INFO", f"Toplu bildirim: {response.success_count} başarılı, {response.failure_count} başarısız", {"title": title, "token_count": len(fcm_tokens)})
         
         return {
             "success_count": response.success_count,
@@ -156,6 +161,7 @@ async def send_push_to_multiple(
         
     except Exception as e:
         logger.error(f"Toplu bildirim hatası: {e}")
+        await save_integration_log("firebase", "ERROR", f"Toplu bildirim hatası: {str(e)}", {"title": title, "token_count": len(fcm_tokens)})
         return {"success_count": 0, "failure_count": len(fcm_tokens), "error": str(e)}
 
 

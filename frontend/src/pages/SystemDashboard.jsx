@@ -230,19 +230,57 @@ function SirketlerPage() {
   if (loading) return <PageLoading />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-bold">Şirketler</h1>
-          <p className="text-muted-foreground text-sm">Sistemdeki tüm şirketleri yönetin</p>
+          <h1 className="font-heading text-xl sm:text-2xl font-bold">Şirketler</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm">Sistemdeki tüm şirketleri yönetin</p>
         </div>
-        <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-company-btn">
-          <Plus className="w-4 h-4 mr-2" />
-          Şirket Ekle
+        <Button onClick={() => setShowAddModal(true)} className="font-semibold text-xs sm:text-sm" data-testid="add-company-btn">
+          <Plus className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Şirket Ekle</span>
         </Button>
       </div>
 
-      <div className="bg-white border-2 border-border overflow-hidden">
+      {/* Mobil: Kart görünümü */}
+      <div className="md:hidden space-y-2.5">
+        {companies.length === 0 ? (
+          <div className="border rounded-lg p-6 bg-white text-center text-muted-foreground text-sm">Henüz şirket eklenmemiş</div>
+        ) : companies.map((company) => (
+          <div key={company.id} className="border rounded-lg p-3 bg-white">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {company.logo_url ? (
+                  <img src={company.logo_url} alt={company.name} className="h-9 w-auto object-contain flex-shrink-0" />
+                ) : (
+                  <div className="w-9 h-9 bg-slate-100 flex items-center justify-center rounded flex-shrink-0">
+                    <Building2 className="w-4 h-4 text-slate-400" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm truncate">{company.name}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    {company.city ? <><MapPin className="w-3 h-3" />{company.city}</> : "-"}
+                    <span className="mx-1">·</span>
+                    {new Date(company.created_at).toLocaleDateString('tr-TR')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1 flex-shrink-0">
+                <Button size="sm" variant="outline" onClick={() => { setSelectedCompany(company); setShowEditModal(true); }} className="h-8 w-8 p-0">
+                  <Edit className="w-3.5 h-3.5" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => handleDeleteCompany(company)} className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Masaüstü: Tablo */}
+      <div className="hidden md:block bg-white border-2 border-border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
@@ -594,15 +632,68 @@ function KontorYonetimiPage() {
 
   return (
     <div data-testid="kontor-yonetimi-page">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h2 className="font-heading text-2xl font-bold tracking-tight">Kontör Yönetimi</h2>
-          <p className="text-muted-foreground text-sm mt-1">Şirket bazlı kontör bakiyeleri ve işlemler</p>
+          <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight">Kontör Yönetimi</h2>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Şirket bazlı kontör bakiyeleri ve işlemler</p>
         </div>
       </div>
 
-      {/* Şirket Listesi */}
-      <div className="bg-white border rounded-lg overflow-hidden">
+      {/* Mobil: Kart görünümü */}
+      <div className="md:hidden space-y-2.5">
+        {companies.length === 0 ? (
+          <div className="border rounded-lg p-6 bg-white text-center text-muted-foreground text-sm">Henüz şirket bulunmuyor</div>
+        ) : companies.map((company) => (
+          <div key={company.id} className="border rounded-lg p-3 bg-white">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 min-w-0">
+                {company.logo_url ? (
+                  <img src={company.logo_url} alt="" className="w-7 h-7 rounded object-contain flex-shrink-0" />
+                ) : (
+                  <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <span className="font-medium text-sm truncate block">{company.name}</span>
+                  {company.is_shared_pool && <span className="text-[10px] text-blue-600">Ortak Havuz</span>}
+                </div>
+              </div>
+              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded ${getCreditBgColor(company.credits, company.unlimited)}`}>
+                <Coins className={`w-3.5 h-3.5 ${getCreditColor(company.credits, company.unlimited)}`} />
+                <span className={`font-bold text-sm ${getCreditColor(company.credits, company.unlimited)}`}>
+                  {company.unlimited ? "Sınırsız" : company.credits.toLocaleString("tr-TR")}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Sınırsız:</span>
+                <button
+                  onClick={() => handleToggleUnlimited(company)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${company.unlimited ? 'bg-blue-600' : 'bg-gray-200'}`}
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${company.unlimited ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={() => openModal(company, "add")} className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50" disabled={company.unlimited} title="Kontör Ekle">
+                  <Plus className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => openModal(company, "deduct")} className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50" disabled={company.unlimited} title="Kontör Düş">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => openModal(company, "history")} className="h-7 w-7 p-0" title="İşlem Geçmişi">
+                  <Eye className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Masaüstü: Tablo */}
+      <div className="hidden md:block bg-white border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -937,19 +1028,58 @@ function YoneticilerPage() {
   if (loading) return <PageLoading />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-bold">Yöneticiler</h1>
-          <p className="text-muted-foreground text-sm">Tüm yöneticileri ve şirket erişimlerini yönetin</p>
+          <h1 className="font-heading text-xl sm:text-2xl font-bold">Yöneticiler</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm">Tüm yöneticileri ve şirket erişimlerini yönetin</p>
         </div>
-        <Button onClick={() => setShowAddModal(true)} className="font-semibold" data-testid="add-admin-btn">
-          <Plus className="w-4 h-4 mr-2" />
-          Yönetici Ekle
+        <Button onClick={() => setShowAddModal(true)} className="font-semibold text-xs sm:text-sm" data-testid="add-admin-btn">
+          <Plus className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Yönetici Ekle</span>
         </Button>
       </div>
 
-      <div className="bg-white border-2 border-border overflow-hidden">
+      {/* Mobil: Kart görünümü */}
+      <div className="md:hidden space-y-2.5">
+        {admins.length === 0 ? (
+          <div className="border rounded-lg p-6 bg-white text-center text-muted-foreground text-sm">Henüz yönetici eklenmemiş</div>
+        ) : admins.map((admin) => (
+          <div key={admin.id} className="border rounded-lg p-3 bg-white">
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <div className="min-w-0">
+                <p className="font-semibold text-sm truncate">{admin.name}</p>
+                <p className="text-xs text-muted-foreground font-mono">{admin.username}</p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${
+                  admin.role === "superadmin" ? "bg-primary text-white" : "bg-slate-200 text-slate-800"
+                }`}>
+                  {admin.role === "superadmin" ? "S.Admin" : "Admin"}
+                </span>
+                <Button size="sm" variant="ghost" onClick={() => openEditModal(admin)} className="h-7 w-7 p-0">
+                  <Edit className="w-3.5 h-3.5" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => handleDeleteAdmin(admin)} className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {(admin.company_ids || (admin.company_id ? [admin.company_id] : [])).map(cid => {
+                const comp = companies.find(c => c.id === cid);
+                return comp ? <span key={cid} className="px-1.5 py-0.5 bg-slate-100 text-[10px] rounded">{comp.name}</span> : null;
+              })}
+              {(!admin.company_ids || admin.company_ids.length === 0) && !admin.company_id && (
+                <span className="text-muted-foreground text-xs">-</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Masaüstü: Tablo */}
+      <div className="hidden md:block bg-white border-2 border-border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
@@ -1559,14 +1689,14 @@ function SistemAyarlariPage() {
   if (loading) return <PageLoading />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-bold">Sistem Ayarları</h1>
-        <p className="text-muted-foreground text-sm">Depolama ve e-posta yapılandırması</p>
+        <h1 className="font-heading text-xl sm:text-2xl font-bold">Sistem Ayarları</h1>
+        <p className="text-muted-foreground text-xs sm:text-sm">Depolama ve e-posta yapılandırması</p>
       </div>
 
       <div className="bg-white border-2 border-border overflow-hidden">
-        <div className="p-6 border-b-2 border-border flex items-center gap-3">
+        <div className="p-3 sm:p-6 border-b-2 border-border flex items-center gap-3">
           <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
             <Cloud className="w-5 h-5 text-orange-600" />
           </div>
@@ -1581,7 +1711,7 @@ function SistemAyarlariPage() {
           )}
         </div>
         
-        <form onSubmit={handleSave} className="p-6 space-y-4">
+        <form onSubmit={handleSave} className="p-3 sm:p-6 space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label className="text-sm font-semibold">Account ID</Label>
@@ -1667,28 +1797,28 @@ function SistemAyarlariPage() {
 
       {/* SMTP E-posta Ayarları Kartı */}
       <div className="bg-white border-2 border-border overflow-hidden">
-        <div className="p-6 border-b-2 border-border flex items-center gap-3">
+        <div className="p-3 sm:p-6 border-b-2 border-border flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
             <Mail className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="font-heading font-bold">E-posta (SMTP)</h2>
-            <p className="text-sm text-muted-foreground">Merkezi e-posta gönderim ayarları</p>
+            <h2 className="font-heading font-bold text-sm sm:text-base">E-posta (SMTP)</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Merkezi e-posta gönderim ayarları</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             {smtpConfigured ? (
-              <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full flex items-center gap-1">
-                <CheckCircle className="w-4 h-4" /> Yapılandırıldı
+              <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Yapılandırıldı</span>
               </span>
             ) : (
-              <span className="px-3 py-1 bg-orange-100 text-orange-700 text-sm font-semibold rounded-full flex items-center gap-1">
-                <XCircle className="w-4 h-4" /> Yapılandırılmadı
+              <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-700 text-xs sm:text-sm font-semibold rounded-full flex items-center gap-1">
+                <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Yapılandırılmadı</span>
               </span>
             )}
           </div>
         </div>
         
-        <div className="p-6 space-y-4">
+        <div className="p-3 sm:p-6 space-y-4">
           {/* Enable Toggle */}
           <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
             <div>

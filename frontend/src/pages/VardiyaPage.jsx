@@ -14,10 +14,10 @@ import {
   AddLeaveModal,
   BulkAssignModal,
   VardiyaTakibiCard,
-  VardiyaIhlalleriModal,
-  BreakSettingsModal,
 } from "@/components/vardiya";
-import { StatusMovementsModal } from "@/components/vardiya/StatusMovementsModal";
+import VardiyaIhlalleriSection from "@/components/vardiya/VardiyaIhlalleriSection";
+import StatusMovementsSection from "@/components/vardiya/StatusMovementsSection";
+import BreakSettingsSection from "@/components/vardiya/BreakSettingsSection";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -26,9 +26,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
-  const [showIhlallerModal, setShowIhlallerModal] = useState(false);
-  const [showMovementsModal, setShowMovementsModal] = useState(false);
-  const [showBreakSettingsModal, setShowBreakSettingsModal] = useState(false);
+  const [subTab, setSubTab] = useState("shifts"); // shifts | violations | movements | break_settings
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [bulkAssigning, setBulkAssigning] = useState(false);
@@ -174,102 +172,62 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
   if (loading) return <PageLoading />;
 
   return (
-    <div data-testid="admin-vardiya-page" className="space-y-6">
+    <div data-testid="admin-vardiya-page" className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <h2 className="font-heading text-xl font-bold tracking-tight">Vardiya Yönetimi</h2>
-        <div className="flex gap-2 flex-wrap items-center">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-heading text-xl sm:text-2xl font-bold tracking-tight">Vardiya Yönetimi</h2>
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Tolerans Ayarı - Sadece Süper Admin */}
           {isSuperAdmin && (
             <div className="flex items-center gap-1 text-xs">
               {showToleranceInput ? (
                 <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded">
-                  <span className="text-slate-500">Tolerans:</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="30"
-                    value={tempTolerance}
-                    onChange={(e) => setTempTolerance(parseInt(e.target.value) || 0)}
-                    className="w-14 h-6 text-xs px-1 border"
-                    data-testid="tolerance-input"
-                  />
-                  <span className="text-slate-500">dk</span>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-6 px-1"
-                    onClick={handleUpdateTolerance}
-                  >
-                    <Check className="w-3 h-3 text-green-600" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-6 px-1"
-                    onClick={() => { setShowToleranceInput(false); setTempTolerance(toleranceMinutes); }}
-                  >
-                    <X className="w-3 h-3 text-red-500" />
-                  </Button>
+                  <Input type="number" min="0" max="30" value={tempTolerance} onChange={(e) => setTempTolerance(parseInt(e.target.value) || 0)} className="w-12 h-6 text-xs px-1 border" data-testid="tolerance-input" />
+                  <span className="text-[10px] text-slate-500">dk</span>
+                  <Button size="sm" variant="ghost" className="h-6 px-1" onClick={handleUpdateTolerance}><Check className="w-3 h-3 text-green-600" /></Button>
+                  <Button size="sm" variant="ghost" className="h-6 px-1" onClick={() => { setShowToleranceInput(false); setTempTolerance(toleranceMinutes); }}><X className="w-3 h-3 text-red-500" /></Button>
                 </div>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-xs bg-slate-100 hover:bg-slate-200"
-                  onClick={() => setShowToleranceInput(true)}
-                  title="Vardiya giriş/çıkış toleransı"
-                  data-testid="tolerance-btn"
-                >
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] sm:text-xs bg-slate-100 hover:bg-slate-200" onClick={() => setShowToleranceInput(true)} data-testid="tolerance-btn">
                   <Settings className="w-3 h-3 mr-1" />
-                  Tolerans: ±{toleranceMinutes} dk
+                  <span className="hidden sm:inline">Tolerans: </span>±{toleranceMinutes}dk
                 </Button>
               )}
             </div>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowIhlallerModal(true)}
-            className="font-semibold border"
-            data-testid="show-violations-btn"
-          >
-            <AlertTriangle className="w-4 h-4 mr-1" />
-            İhlaller
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowMovementsModal(true)}
-            className="font-semibold border"
-            data-testid="show-movements-btn"
-          >
-            <Clock className="w-4 h-4 mr-1" />
-            Hareketler
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowBreakSettingsModal(true)}
-            className="font-semibold border"
-            data-testid="break-settings-btn"
-          >
-            <Coffee className="w-4 h-4 mr-1" />
-            Mola Ayarları
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={refreshAll}
-            className="border-2 font-semibold"
-          >
-            <RefreshCw className="w-4 h-4 mr-1" />
-            Yenile
+          <Button variant="outline" size="sm" onClick={refreshAll} className="h-7 sm:h-8 px-2 sm:px-3">
+            <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Vardiya Takibi Kartı - Hook'tan gelen verilerle */}
+      {/* Alt Sekmeler */}
+      <div className="flex gap-1.5 border-b border-slate-200 pb-0 overflow-x-auto">
+        {[
+          { id: "shifts", label: "Vardiyalar", icon: Clock },
+          { id: "violations", label: "İhlaller", icon: AlertTriangle },
+          { id: "movements", label: "Hareketler", icon: Clock },
+          { id: "break_settings", label: "Mola Ayarları", icon: Coffee },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setSubTab(tab.id)}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-2 sm:py-2.5 font-semibold text-xs sm:text-sm whitespace-nowrap border-b-2 -mb-px transition-colors ${
+              subTab === tab.id 
+                ? "border-primary text-primary" 
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+            data-testid={`subtab-${tab.id}`}
+          >
+            <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Alt Sekme İçerikleri */}
+      {subTab === "shifts" && (
+        <>
       <VardiyaTakibiCard
         shifts={shifts}
         assignments={assignments}
@@ -405,7 +363,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         )}
       </div>
 
-      {/* Modals */}
+      {/* Modals (sadece vardiya işlemleri için) */}
       <AddShiftModal
         open={showAddShiftModal}
         onOpenChange={setShowAddShiftModal}
@@ -439,28 +397,6 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         onBulkAssign={onBulkAssign}
       />
 
-      <VardiyaIhlalleriModal
-        open={showIhlallerModal}
-        onOpenChange={setShowIhlallerModal}
-        companyId={companyId}
-        isSuperAdmin={isSuperAdmin}
-      />
-
-      <StatusMovementsModal
-        open={showMovementsModal}
-        onOpenChange={setShowMovementsModal}
-        companyId={companyId}
-      />
-
-      {/* Mola Ayarları Modalı */}
-      <BreakSettingsModal
-        open={showBreakSettingsModal}
-        onOpenChange={setShowBreakSettingsModal}
-        companyId={companyId}
-        shifts={shifts}
-      />
-
-      {/* Vardiya Silme Onay Modalı */}
       <ConfirmModal
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
@@ -469,6 +405,20 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
         onConfirm={onConfirmDeleteShift}
         variant="danger"
       />
+        </>
+      )}
+
+      {subTab === "violations" && (
+        <VardiyaIhlalleriSection companyId={companyId} isSuperAdmin={isSuperAdmin} />
+      )}
+
+      {subTab === "movements" && (
+        <StatusMovementsSection companyId={companyId} />
+      )}
+
+      {subTab === "break_settings" && (
+        <BreakSettingsSection companyId={companyId} shifts={shifts} />
+      )}
     </div>
   );
 }
