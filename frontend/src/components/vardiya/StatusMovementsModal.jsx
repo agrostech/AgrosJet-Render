@@ -23,9 +23,9 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-  "active": "text-green-600 bg-green-50",
-  "offline": "text-slate-600 bg-slate-100",
-  "on_break": "text-amber-600 bg-amber-50"
+  "active": "text-slate-700 bg-slate-100",
+  "offline": "text-slate-500 bg-slate-100",
+  "on_break": "text-slate-600 bg-slate-100"
 };
 
 const STATUS_ICONS = {
@@ -138,7 +138,7 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-blue-500" />
+            <Clock className="w-5 h-5 text-slate-500" />
             Durum Hareketleri
           </DialogTitle>
         </DialogHeader>
@@ -255,18 +255,17 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
             <div className="divide-y divide-slate-100">
               {logs.map((log, index) => {
                 const Icon = STATUS_ICONS[log.status] || Clock;
-                const colorClass = STATUS_COLORS[log.status] || "text-slate-600 bg-slate-50";
                 
                 return (
                   <div key={log.id || index} className="p-3 hover:bg-slate-50">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 text-slate-600">
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm truncate">{log.entity_name}</p>
-                          <p className={`text-xs font-medium ${colorClass.split(' ')[0]}`}>
+                          <p className="text-xs font-medium text-slate-600">
                             {STATUS_LABELS[log.status] || log.status}
                           </p>
                         </div>
@@ -295,11 +294,10 @@ export function StatusMovementsModal({ open, onOpenChange, companyId }) {
           <div className="flex flex-wrap gap-2">
             {Object.entries(STATUS_LABELS).map(([status, label]) => {
               const Icon = STATUS_ICONS[status] || Clock;
-              const colorClass = STATUS_COLORS[status];
               return (
                 <div 
                   key={status} 
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${colorClass}`}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-slate-100 text-slate-600"
                 >
                   <Icon className="w-3 h-3" />
                   <span>{label}</span>

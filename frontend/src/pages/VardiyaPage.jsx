@@ -231,7 +231,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
             variant="outline"
             size="sm"
             onClick={() => setShowIhlallerModal(true)}
-            className="font-semibold border-2 border-amber-300 text-amber-700 hover:bg-amber-50"
+            className="font-semibold border"
             data-testid="show-violations-btn"
           >
             <AlertTriangle className="w-4 h-4 mr-1" />
@@ -241,7 +241,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
             variant="outline"
             size="sm"
             onClick={() => setShowMovementsModal(true)}
-            className="font-semibold border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+            className="font-semibold border"
             data-testid="show-movements-btn"
           >
             <Clock className="w-4 h-4 mr-1" />
@@ -251,7 +251,7 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
             variant="outline"
             size="sm"
             onClick={() => setShowBreakSettingsModal(true)}
-            className="font-semibold border-2 border-amber-500 text-amber-700 hover:bg-amber-50"
+            className="font-semibold border"
             data-testid="break-settings-btn"
           >
             <Coffee className="w-4 h-4 mr-1" />

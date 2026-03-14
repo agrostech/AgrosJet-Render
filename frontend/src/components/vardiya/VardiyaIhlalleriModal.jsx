@@ -26,11 +26,11 @@ const VIOLATION_ICONS = {
 };
 
 const VIOLATION_COLORS = {
-  "shift_started_not_active": "text-red-600 bg-red-50",
-  "active_without_shift": "text-amber-600 bg-amber-50",
-  "offline_before_shift_end": "text-orange-600 bg-orange-50",
-  "still_active_after_shift_end": "text-blue-600 bg-blue-50",
-  "break_limit_exceeded": "text-purple-600 bg-purple-50"
+  "shift_started_not_active": "text-slate-700 bg-slate-100",
+  "active_without_shift": "text-slate-700 bg-slate-100",
+  "offline_before_shift_end": "text-slate-700 bg-slate-100",
+  "still_active_after_shift_end": "text-slate-700 bg-slate-100",
+  "break_limit_exceeded": "text-slate-700 bg-slate-100"
 };
 
 const DAY_NAMES = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
@@ -196,7 +196,7 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              <AlertTriangle className="w-5 h-5 text-slate-500" />
               Vardiya İhlalleri Geçmişi
             </DialogTitle>
           </DialogHeader>
@@ -324,15 +324,15 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
                   const colorClass = getViolationColor(v.violation_type);
                   
                   return (
-                    <div key={v.id} className={`p-3 hover:bg-slate-50 ${colorClass.split(' ')[1]}`}>
+                    <div key={v.id} className="p-3 hover:bg-slate-50">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 text-slate-600">
                             <Icon className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm">{v.entity_name}</p>
-                            <p className={`text-xs font-medium ${colorClass.split(' ')[0]}`}>
+                            <p className="text-xs font-medium text-slate-600">
                               {v.violation_label || violationTypes[v.violation_type] || v.violation_type}
                               {v.details?.late_minutes > 0 && (
                                 <span className="ml-1 text-slate-500">
@@ -385,7 +385,7 @@ export default function VardiyaIhlalleriModal({ open, onOpenChange, companyId, i
               {Object.entries(VIOLATION_ICONS).map(([type, Icon]) => (
                 <div 
                   key={type} 
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${getViolationColor(type)}`}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-slate-100 text-slate-600"
                 >
                   <Icon className="w-3 h-3" />
                   <span>{violationTypes[type] || type}</span>

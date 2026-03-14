@@ -97,7 +97,7 @@ export function BreakSettingsModal({ open, onOpenChange, companyId, shifts }) {
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Coffee className="w-5 h-5 text-amber-600" />
+            <Coffee className="w-5 h-5 text-slate-500" />
             Mola Sistemi Ayarları
           </DialogTitle>
         </DialogHeader>

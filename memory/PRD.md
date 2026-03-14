@@ -16,15 +16,21 @@ Courier delivery management system with ETA calculation, order management, nativ
 - Active package check on status change (offline/break blocked if active orders, bypass if shift ended)
 - Admin mobile order header redesign: compact search + colored filter pills
 - Dark Mode: ThemeProvider with localStorage, CSS variables, sidebar toggle (Feb 2026)
+- Critical Timezone Bug Fix: dateUtils.js utility, 15 components refactored (Mar 2026)
+- Migros Integration Overhaul: subOptions parsing, sequential status updates, CancelOrder endpoint, credential reading fix (Mar 2026)
+- Vardiya Sayfası Modal UI Sadeleştirme: İhlaller, Hareketler, Mola Ayarları modalları ve butonlarından renkler kaldırılıp tutarlı nötr tasarıma geçildi (Mar 2026)
 
 ## Pending Verification
 - Push Notification System: Awaiting native app test (orders_v6 channel)
 - Migros Webhook Parsing: Awaiting live test order
 
 ## Known Issues
-- Adisyo Webhook: `Restoran bulunamadi` error (P2)
+- Adisyo Webhook: `Restoran bulunamadi` error (P2 - config issue, not code bug)
 - Migros Webhook URL: Incorrect production URL (requires Migros contact)
 - Native Location Notification: Shows on every page change (native-side issue)
+- **CRITICAL** Migros is_test boolean: Webhook handler does not convert is_test string to boolean - all live orders flagged as test
+- **CRITICAL** Migros migros_status: Not saved as "Approved" after auto-approval
+- Migros DB Cleanup: Existing orders have incorrect is_test string values
 
 ## Upcoming Tasks
 - (P1) "Stop Count" based capacity logic
@@ -55,3 +61,8 @@ Courier delivery management system with ETA calculation, order management, nativ
 - /app/frontend/src/pages/courier/CourierSiparisPage.jsx - Courier order cards
 - /app/backend/routers/couriers.py - Permissions API + availability check
 - /app/backend/services/firebase_service.py - FCM push (orders_v6)
+- /app/frontend/src/utils/dateUtils.js - Timezone-safe date formatting utility
+- /app/frontend/src/pages/VardiyaPage.jsx - Shift management page
+- /app/frontend/src/components/vardiya/ - Shift modals (IhlalModal, StatusMovements, BreakSettings)
+- /app/backend/routers/webhooks.py - Migros webhook handler (NEEDS is_test fix)
+- /app/backend/routers/orders.py - Order status updates (NEEDS migros_status fix)
