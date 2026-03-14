@@ -10,12 +10,10 @@ import { toast } from "sonner";
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 async function resolveCompanyLogo(companyLogo, companyId) {
-  // If logo is already provided, use it
   if (companyLogo && companyLogo.trim()) return companyLogo;
-  // Fallback: fetch from API
   if (!companyId) return "";
   try {
-    const res = await fetch(`${API}/companies/${companyId}`);
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/companies/${companyId}`);
     if (res.ok) {
       const data = await res.json();
       return data.logo_light || data.logo_url || "";
@@ -42,7 +40,7 @@ async function loadLogo(doc, companyLogo, pageWidth) {
     if (companyLogo.startsWith('/')) {
       logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
     } else {
-      logoUrl = `${API}/proxy-image?url=${encodeURIComponent(companyLogo)}`;
+      logoUrl = `${process.env.REACT_APP_BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(companyLogo)}`;
     }
     const response = await fetch(logoUrl);
     if (response.ok) {
@@ -52,8 +50,19 @@ async function loadLogo(doc, companyLogo, pageWidth) {
         reader.onloadend = () => resolve(reader.result);
         reader.readAsDataURL(blob);
       });
-      const logoSize = 25;
-      doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 4, logoSize, logoSize);
+      // Get actual image dimensions to preserve aspect ratio
+      const img = await new Promise((resolve) => {
+        const i = new window.Image();
+        i.onload = () => resolve(i);
+        i.src = dataUrl;
+      });
+      const maxH = 22;
+      const maxW = 50;
+      const aspect = img.naturalWidth / img.naturalHeight;
+      let w = maxH * aspect;
+      let h = maxH;
+      if (w > maxW) { w = maxW; h = w / aspect; }
+      doc.addImage(dataUrl, 'PNG', pageWidth - w - 14, 5, w, h);
     }
   } catch (e) {
     console.log("Logo yüklenemedi:", e);

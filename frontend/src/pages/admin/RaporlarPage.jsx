@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import RaporlarTab from "@/pages/muhasebe/RaporlarTab";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function RaporlarPage({ companyId, isSuperAdmin, companyLogo, companyName }) {
   const [logo, setLogo] = useState(companyLogo || "");
@@ -11,7 +11,7 @@ export default function RaporlarPage({ companyId, isSuperAdmin, companyLogo, com
   // Always fetch company to get logo_light - props from AdminDashboard may be empty
   useEffect(() => {
     if (!companyId) return;
-    axios.get(`${API}/companies/${companyId}`).then(res => {
+    axios.get(`${BASE_URL}/api/companies/${companyId}`).then(res => {
       const data = res.data || {};
       const l = data.logo_light || data.logo_url || "";
       const n = data.name || "";

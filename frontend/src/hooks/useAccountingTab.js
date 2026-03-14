@@ -493,7 +493,6 @@ export function useAccountingTab({
     // Logo
     if (companyLogo && companyLogo.trim() !== '') {
       try {
-        // Relative path ise backend URL'yi başına ekle, tam URL ise proxy kullan
         let logoUrl;
         if (companyLogo.startsWith('/')) {
           logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
@@ -508,8 +507,19 @@ export function useAccountingTab({
             reader.onloadend = () => resolve(reader.result);
             reader.readAsDataURL(blob);
           });
-          const logoSize = 25;
-          doc.addImage(dataUrl, 'PNG', pageWidth - logoSize - 14, 4, logoSize, logoSize);
+          // Preserve aspect ratio
+          const img = await new Promise((resolve) => {
+            const i = new window.Image();
+            i.onload = () => resolve(i);
+            i.src = dataUrl;
+          });
+          const maxH = 22;
+          const maxW = 50;
+          const aspect = img.naturalWidth / img.naturalHeight;
+          let w = maxH * aspect;
+          let h = maxH;
+          if (w > maxW) { w = maxW; h = w / aspect; }
+          doc.addImage(dataUrl, 'PNG', pageWidth - w - 14, 5, w, h);
         }
       } catch (e) {
         console.log("Logo yüklenemedi:", e);
