@@ -180,7 +180,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         @page { size: 80mm auto; margin: 0; }
         body { 
           font-family: 'Arial', sans-serif; 
-          font-size: 12px; 
+          font-size: 13px; 
           width: 80mm; 
           padding: 0 4mm !important;
           box-sizing: border-box;
@@ -195,10 +195,10 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 11px;
+          font-size: 12px;
         }
         .platform { 
-          font-size: 11px; 
+          font-size: 12px; 
           background: #000; 
           color: #fff; 
           padding: 1px 8px; 
@@ -210,18 +210,18 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           line-height: 1.5;
         }
         .section-title { 
-          font-size: 10px; 
+          font-size: 11px; 
           text-transform: uppercase;
           letter-spacing: 1px;
           margin-bottom: 2px;
           font-weight: bold;
         }
         .section-value { 
-          font-size: 13px; 
+          font-size: 14px; 
           font-weight: bold; 
         }
         .customer-phone {
-          font-size: 14px;
+          font-size: 15px;
           font-family: monospace;
         }
         .items-table { 
@@ -229,7 +229,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           border-collapse: collapse; 
         }
         .items-table td {
-          font-size: 12px;
+          font-size: 13px;
           padding: 4px 0;
         }
         .total-section {
@@ -238,24 +238,24 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           border-top: 1px dashed #000;
         }
         .total-label {
-          font-size: 12px;
+          font-size: 13px;
         }
         .total-amount { 
-          font-size: 20px; 
+          font-size: 22px; 
           font-weight: bold; 
         }
         .payment { 
           text-align: center; 
           padding: 4px; 
           font-weight: bold;
-          font-size: 14px;
+          font-size: 15px;
           border: 2px solid #000;
           margin-top: 4px;
         }
         .notes { 
           border: 1px dashed #000;
           padding: 4px 8px; 
-          font-size: 11px; 
+          font-size: 12px; 
           margin-top: 4px;
           line-height: 1.4;
         }
