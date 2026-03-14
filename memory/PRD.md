@@ -10,8 +10,16 @@ Full-stack delivery management application with mobile responsiveness, admin pan
 
 ## What's Been Implemented
 
-### Session - March 14, 2026
-- **PDF Logo Fix:** Changed `companyLogo` prop in `AdminDashboard.jsx` to use `company?.logo_light` instead of `company?.logo_dark` for PDF exports from `/admin/muhasebe` page. PDFs have white backgrounds so light-background logo is correct.
+### Session - March 14, 2026 (continued)
+- **Bulk Invoice Download: ZIP to Merged PDF:** Changed both courier and restaurant invoice bulk download from ZIP to single multi-page PDF.
+  - Backend: `invoices.py` `/download-bulk` and `restaurant_invoices.py` `/download-zip` now use `pypdf` + `Pillow` to merge PDFs and convert images to PDF pages.
+  - Frontend: `useFaturalar.js` `downloadBulk()` and `IsletmeFaturalariTab.jsx` `handleDownloadBulk()` updated to handle PDF responses.
+- **Receipt/Ticket Redesign:** Complete 58mm/80mm receipt overhaul with Turkish encoding fix.
+- **Logo Image Cropping:** Pillow-based whitespace cropping for logo files.
+- **Map Theme Bug Fix:** Leaflet tile layer now updates on dark/light theme switch.
+- **Shift Tabs Redesign:** Modern card-based UI for VardiyaPage.
+- **Print Preview:** Restaurant order cards now open preview instead of printing directly.
+- **PDF Logo Fix:** Changed `companyLogo` prop to use `logo_light` for PDF exports.
 
 ### Previous Sessions (Completed)
 - Mobile responsiveness: Reports, Restaurants, Couriers, System pages

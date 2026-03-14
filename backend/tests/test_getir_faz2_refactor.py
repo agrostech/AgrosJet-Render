@@ -11,7 +11,7 @@ import os
 from datetime import datetime, timezone, timedelta
 
 # Backend URL
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL') or 'https://transaction-export-1.preview.emergentagent.com'
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL') or 'https://receipt-accounting.preview.emergentagent.com'
 BASE_URL = BASE_URL.rstrip('/')
 
 # Test credentials

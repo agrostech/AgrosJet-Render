@@ -53,11 +53,21 @@ export default function BreakSettingsSection({ companyId, shifts }) {
   if (loading) return <div className="flex items-center justify-center py-12"><RefreshCw className="w-6 h-6 animate-spin text-slate-400" /></div>;
 
   return (
-    <div className="space-y-4 sm:space-y-6" data-testid="break-settings-section">
-      <h3 className="font-semibold text-sm sm:text-base flex items-center gap-2">
-        <Coffee className="w-4 h-4 text-slate-500" />
-        Mola Sistemi Ayarları
-      </h3>
+    <div className="border-2 border-border bg-white dark:bg-slate-900 rounded-lg overflow-hidden" data-testid="break-settings-section">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-700">
+            <Coffee className="w-4.5 h-4.5 text-slate-800 dark:text-slate-200" />
+          </div>
+          <div>
+            <h3 className="font-heading font-bold text-base">Mola Sistemi Ayarları</h3>
+            <p className="text-xs text-muted-foreground">Mola modu, kısıtlamalar ve vardiya limitleri</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-4 sm:space-y-6">
 
       {/* Mola Modu */}
       <div className="space-y-2">
@@ -129,6 +139,7 @@ export default function BreakSettingsSection({ companyId, shifts }) {
       <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
         {saving ? "Kaydediliyor..." : "Kaydet"}
       </Button>
+      </div>
     </div>
   );
 }

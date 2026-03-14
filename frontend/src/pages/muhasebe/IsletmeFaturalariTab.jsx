@@ -1052,7 +1052,7 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
     }
   };
 
-  // Download bulk as ZIP
+  // Download bulk as merged PDF
   const handleDownloadBulk = async () => {
     if (selectedInvoices.length === 0) {
       toast.error("En az bir fatura seçin");
@@ -1060,20 +1060,20 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
     }
     
     try {
-      toast.loading("ZIP hazırlanıyor...", { id: "zip-download" });
+      toast.loading("PDF hazırlanıyor...", { id: "pdf-download" });
       
       const res = await axios.post(`${API}/restaurant-invoices/${companyId}/download-zip`, {
         invoice_ids: selectedInvoices
       });
       
       // Base64'ten blob oluştur
-      const byteCharacters = atob(res.data.zip_data);
+      const byteCharacters = atob(res.data.pdf_data);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/zip' });
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
       
       // İndir
       const link = document.createElement("a");
@@ -1082,11 +1082,11 @@ function AlinanFaturalarContent({ companyId, adminId, adminName, isSuperAdmin })
       link.click();
       URL.revokeObjectURL(link.href);
       
-      toast.success(`${selectedInvoices.length} fatura indirildi`, { id: "zip-download" });
+      toast.success(`${selectedInvoices.length} fatura birleştirildi ve indirildi`, { id: "pdf-download" });
       setSelectedInvoices([]);
     } catch (err) {
-      console.error("ZIP download error:", err);
-      toast.error("İndirme başarısız", { id: "zip-download" });
+      console.error("PDF download error:", err);
+      toast.error("İndirme başarısız", { id: "pdf-download" });
     }
   };
 

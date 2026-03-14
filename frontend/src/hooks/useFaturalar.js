@@ -96,16 +96,16 @@ export function useFaturalar(companyId, year, month) {
       { responseType: 'blob' }
     );
     
-    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', filename);
+    link.setAttribute('download', filename.replace('.zip', '.pdf'));
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
     
-    toast.success(`${invoiceIds.length} fatura indirildi`);
+    toast.success(`${invoiceIds.length} fatura birleştirildi ve indirildi`);
   };
 
   const verifyInvoice = async (invoiceId, currentStatus) => {

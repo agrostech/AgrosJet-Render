@@ -4,7 +4,7 @@ Restoran fatura yönetimi - Haftalık bazda eksik fatura oluşturma, aylık gör
 Cloudflare R2 entegrasyonu ile dosya depolama
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -13,6 +13,8 @@ import base64
 import re
 import io
 import zipfile
+from pypdf import PdfWriter, PdfReader
+from PIL import Image
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
@@ -1005,8 +1007,8 @@ class BulkDownloadRequest(BaseModel):
 
 
 @router.post("/restaurant-invoices/{company_id}/download-zip")
-async def download_invoices_zip(company_id: str, data: BulkDownloadRequest):
-    """Seçili faturaları ZIP olarak indir"""
+async def download_invoices_merged_pdf(company_id: str, data: BulkDownloadRequest):
+    """Seçili faturaları tek bir birleştirilmiş PDF olarak indir"""
     if not data.invoice_ids:
         raise HTTPException(status_code=400, detail="En az bir fatura seçin")
     
@@ -1016,50 +1018,64 @@ async def download_invoices_zip(company_id: str, data: BulkDownloadRequest):
         {"_id": 0}
     ).to_list(1000)
     
-    # ZIP oluştur
-    zip_buffer = io.BytesIO()
+    writer = PdfWriter()
     
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for record in records:
-            for inv in record.get("invoices", []):
-                inv_id = inv.get("invoice_id") or inv.get("id")
-                if inv_id not in data.invoice_ids:
-                    continue
-                
-                # Dosya içeriğini al
-                file_content = None
-                storage_type = inv.get("storage_type", "base64")
-                
-                if storage_type == "r2" and inv.get("r2_key"):
-                    file_content = await download_file_from_r2(inv["r2_key"])
-                elif inv.get("file_data"):
-                    file_content = base64.b64decode(inv["file_data"])
-                
-                if file_content:
-                    # Dosya adı: RestoranAdı_Hafta_DosyaAdı
-                    restaurant_name = record.get("restaurant_name", "Restoran")
-                    week_label = record.get("week_label", "").replace(" ", "").replace(".", "").replace("-", "_")
-                    filename = inv.get("filename", f"{inv_id}.pdf")
-                    
-                    # Türkçe karakterleri temizle
-                    safe_restaurant = format_name_for_folder(restaurant_name)
-                    zip_filename = f"{safe_restaurant}_{week_label}_{filename}"
-                    
-                    zip_file.writestr(zip_filename, file_content)
+    for record in records:
+        for inv in record.get("invoices", []):
+            inv_id = inv.get("invoice_id") or inv.get("id")
+            if inv_id not in data.invoice_ids:
+                continue
+            
+            # Dosya içeriğini al
+            file_content = None
+            storage_type = inv.get("storage_type", "base64")
+            
+            if storage_type == "r2" and inv.get("r2_key"):
+                file_content = await download_file_from_r2(inv["r2_key"])
+            elif inv.get("file_data"):
+                file_content = base64.b64decode(inv["file_data"])
+            
+            if not file_content:
+                continue
+            
+            filename = inv.get("filename", "").lower()
+            try:
+                if filename.endswith(".pdf"):
+                    reader = PdfReader(io.BytesIO(file_content))
+                    for page in reader.pages:
+                        writer.add_page(page)
+                else:
+                    # Image file (jpg, png, etc.) - convert to PDF page
+                    img = Image.open(io.BytesIO(file_content))
+                    if img.mode in ("RGBA", "P"):
+                        img = img.convert("RGB")
+                    img_pdf_buffer = io.BytesIO()
+                    img.save(img_pdf_buffer, format="PDF")
+                    img_pdf_buffer.seek(0)
+                    reader = PdfReader(img_pdf_buffer)
+                    for page in reader.pages:
+                        writer.add_page(page)
+            except Exception as e:
+                print(f"Fatura birleştirme hatası ({filename}): {e}")
+                continue
     
-    zip_buffer.seek(0)
-    zip_content = zip_buffer.getvalue()
+    if len(writer.pages) == 0:
+        raise HTTPException(status_code=404, detail="Birleştirilebilecek fatura bulunamadı")
     
-    # Türkçe ay ismiyle dosya adı
+    pdf_buffer = io.BytesIO()
+    writer.write(pdf_buffer)
+    pdf_buffer.seek(0)
+    pdf_content = pdf_buffer.getvalue()
+    
     turkey_tz = timezone(timedelta(hours=3))
     now = datetime.now(turkey_tz)
     month_name = TURKISH_MONTHS[now.month]
-    zip_filename = f"Restoran{month_name}Faturalar.zip"
+    pdf_filename = f"Restoran{month_name}Faturalar.pdf"
     
     # Base64 olarak döndür (frontend'de decode edilecek)
     return {
-        "zip_data": base64.b64encode(zip_content).decode("utf-8"),
-        "filename": zip_filename
+        "pdf_data": base64.b64encode(pdf_content).decode("utf-8"),
+        "filename": pdf_filename
     }
 
 

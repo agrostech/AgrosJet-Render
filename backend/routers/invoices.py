@@ -6,6 +6,8 @@ import os
 import io
 import zipfile
 import re
+from pypdf import PdfWriter, PdfReader
+from PIL import Image
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
@@ -924,7 +926,7 @@ async def view_invoice(invoice_id: str):
 
 @router.post("/download-bulk")
 async def download_bulk_invoices(invoice_ids: list[str]):
-    """Download multiple invoices as ZIP - supports both R2 and local storage"""
+    """Download multiple invoices as a single merged PDF"""
     if not invoice_ids:
         raise HTTPException(status_code=400, detail="En az bir fatura seçilmeli")
     
@@ -936,34 +938,56 @@ async def download_bulk_invoices(invoice_ids: list[str]):
     if not invoices:
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     
-    # Create ZIP in memory
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for invoice in invoices:
-            # Check if stored in R2
-            if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
-                file_content = await download_file_from_r2(invoice["r2_key"])
-                if file_content:
-                    zip_file.writestr(invoice["file_name"], file_content)
+    writer = PdfWriter()
+    
+    for invoice in invoices:
+        file_content = None
+        # Check if stored in R2
+        if invoice.get("storage_type") == "r2" and invoice.get("r2_key"):
+            file_content = await download_file_from_r2(invoice["r2_key"])
+        else:
+            # Legacy local file storage
+            if invoice.get("file_path") and os.path.exists(invoice["file_path"]):
+                with open(invoice["file_path"], "rb") as f:
+                    file_content = f.read()
+        
+        if not file_content:
+            continue
+        
+        file_name = invoice.get("file_name", "").lower()
+        try:
+            if file_name.endswith(".pdf"):
+                reader = PdfReader(io.BytesIO(file_content))
+                for page in reader.pages:
+                    writer.add_page(page)
             else:
-                # Legacy local file storage
-                if invoice.get("file_path") and os.path.exists(invoice["file_path"]):
-                    zip_file.write(invoice["file_path"], invoice["file_name"])
+                # Image file (jpg, png, etc.) - convert to PDF page
+                img = Image.open(io.BytesIO(file_content))
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                img_pdf_buffer = io.BytesIO()
+                img.save(img_pdf_buffer, format="PDF")
+                img_pdf_buffer.seek(0)
+                reader = PdfReader(img_pdf_buffer)
+                for page in reader.pages:
+                    writer.add_page(page)
+        except Exception as e:
+            print(f"Fatura birleştirme hatası ({file_name}): {e}")
+            continue
     
-    zip_buffer.seek(0)
+    if len(writer.pages) == 0:
+        raise HTTPException(status_code=404, detail="Birleştirilebilecek fatura bulunamadı")
     
-    # Generate filename with Turkish month name
-    turkish_months = {
-        1: "Ocak", 2: "Subat", 3: "Mart", 4: "Nisan",
-        5: "Mayis", 6: "Haziran", 7: "Temmuz", 8: "Agustos",
-        9: "Eylul", 10: "Ekim", 11: "Kasim", 12: "Aralik"
-    }
+    pdf_buffer = io.BytesIO()
+    writer.write(pdf_buffer)
+    pdf_buffer.seek(0)
+    
     now = datetime.now(TURKEY_TZ)
-    month_name = turkish_months[now.month]
-    zip_filename = f"Kurye{month_name}Faturalar.zip"
+    month_name = TURKISH_MONTHS[now.month]
+    pdf_filename = f"Kurye{month_name}Faturalar.pdf"
     
     return StreamingResponse(
-        zip_buffer,
-        media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={zip_filename}"}
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={pdf_filename}"}
     )

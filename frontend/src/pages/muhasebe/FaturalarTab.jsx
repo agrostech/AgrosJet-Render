@@ -104,7 +104,7 @@ export default function FaturalarTab({ companyId, adminId, adminName, isSuperAdm
       return;
     }
     try {
-      await downloadBulk(selectedInvoices, `Faturalar_${selectedMonth}.${selectedYear}.zip`);
+      await downloadBulk(selectedInvoices, `Faturalar_${selectedMonth}.${selectedYear}.pdf`);
       setSelectedInvoices([]);
     } catch (err) {
       if (!err.handled) {
