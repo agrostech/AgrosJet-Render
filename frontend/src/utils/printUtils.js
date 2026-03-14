@@ -81,25 +81,26 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       <title>Sipariş Fişi - ${order.order_number}</title>
       <style>
         * { margin: 0; padding: 0; }
+        html, body { margin: 0 !important; padding: 0 !important; }
         @page { size: 58mm auto; margin: 0; }
         body { 
           font-family: 'Courier New', monospace; 
           font-size: 11px; 
           width: 58mm; 
-          padding: 1mm 3mm;
+          padding: 0 3mm !important;
           box-sizing: border-box;
           color: #000;
         }
-        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 2px; margin-bottom: 2px; }
-        .header-info { font-size: 10px; margin-top: 1px; display: flex; justify-content: space-between; align-items: center; }
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 2px; }
+        .header-info { font-size: 10px; display: flex; justify-content: space-between; align-items: center; }
         .platform { font-size: 10px; background: #000; color: #fff; padding: 1px 6px; display: inline-block; }
-        .section { margin: 2px 0; padding: 2px 0; border-bottom: 1px dashed #000; }
+        .section { padding: 2px 0; border-bottom: 1px dashed #000; }
         .label { font-size: 9px; font-weight: bold; }
         .value { font-size: 11px; font-weight: bold; }
         .items-table { width: 100%; border-collapse: collapse; }
-        .total { font-size: 14px; font-weight: bold; text-align: right; margin-top: 2px; }
-        .payment { text-align: center; padding: 2px; margin-top: 2px; font-weight: bold; border: 1px solid #000; }
-        .notes { padding: 3px; margin-top: 2px; font-size: 10px; border: 1px dashed #000; }
+        .total { font-size: 14px; font-weight: bold; text-align: right; }
+        .payment { text-align: center; padding: 2px; font-weight: bold; border: 1px solid #000; }
+        .notes { padding: 3px; font-size: 10px; border: 1px dashed #000; }
       </style>
     </head>
     <body>
@@ -174,12 +175,13 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       <title>Sipariş Fişi - ${order.order_number}</title>
       <style>
         * { margin: 0; padding: 0; }
+        html, body { margin: 0 !important; padding: 0 !important; }
         @page { size: 80mm auto; margin: 0; }
         body { 
           font-family: 'Arial', sans-serif; 
           font-size: 12px; 
           width: 80mm; 
-          padding: 1mm 4mm;
+          padding: 0 4mm !important;
           box-sizing: border-box;
           color: #000;
         }
@@ -187,13 +189,11 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           text-align: center; 
           border-bottom: 2px solid #000; 
           padding-bottom: 2px; 
-          margin-bottom: 2px; 
         }
         .header-info {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-top: 1px;
           font-size: 11px;
         }
         .platform { 
@@ -204,7 +204,6 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           display: inline-block; 
         }
         .section { 
-          margin: 2px 0; 
           padding: 2px 0; 
           border-bottom: 1px dashed #000; 
         }
@@ -232,8 +231,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           padding: 2px 0;
         }
         .total-section {
-          padding: 3px 0;
-          margin-top: 2px;
+          padding: 2px 0;
           text-align: right;
           border-top: 1px dashed #000;
         }
@@ -246,16 +244,14 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         }
         .payment { 
           text-align: center; 
-          padding: 3px; 
-          margin-top: 2px; 
+          padding: 2px; 
           font-weight: bold;
           font-size: 14px;
           border: 2px solid #000;
         }
         .notes { 
           border: 1px dashed #000;
-          padding: 3px 8px; 
-          margin-top: 2px; 
+          padding: 2px 8px; 
           font-size: 11px; 
         }
       </style>
