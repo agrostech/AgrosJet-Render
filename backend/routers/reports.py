@@ -1380,7 +1380,10 @@ async def get_performance_report(
     hourly_map = {r["_id"]: r["count"] for r in hourly_results}
     
     # Açılıştan kapanışa saat listesi (gece geçişini destekler)
-    if opening_hour <= closing_hour:
+    if opening_hour == closing_hour:
+        # Aynı saat = 24 saat çalışıyor
+        hour_range = list(range(opening_hour, 24)) + list(range(0, opening_hour))
+    elif opening_hour < closing_hour:
         hour_range = list(range(opening_hour, closing_hour + 1))
     else:
         hour_range = list(range(opening_hour, 24)) + list(range(0, closing_hour + 1))
