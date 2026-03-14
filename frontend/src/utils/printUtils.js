@@ -241,11 +241,10 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           font-size: 12px;
         }
         .total-section {
-          background: #000;
-          color: #fff;
-          padding: 10px;
+          padding: 10px 0;
           margin-top: 10px;
           text-align: right;
+          border-top: 1px dashed #000;
         }
         .total-label {
           font-size: 12px;
