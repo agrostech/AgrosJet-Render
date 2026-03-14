@@ -52,6 +52,7 @@ export default function RestaurantDashboard() {
   const invoiceWarningRef = useRef(null);
   const [isImpersonate, setIsImpersonate] = useState(false);
   const [impersonateError, setImpersonateError] = useState(false);
+  const impersonateRef = useRef(false);
 
   // Derive currentPage from location
   const getCurrentPage = () => {
@@ -64,11 +65,15 @@ export default function RestaurantDashboard() {
 
   // Get user from localStorage or impersonate token
   useEffect(() => {
+    // Zaten impersonate modda ise tekrar init yapma
+    if (impersonateRef.current) return;
+
     const params = new URLSearchParams(location.search);
     const impersonateToken = params.get("token");
     
     if (impersonateToken) {
       // Admin impersonate mode - localStorage'a dokunma
+      impersonateRef.current = true;
       setIsImpersonate(true);
       axios.get(`${API}/restaurant-users/impersonate-verify/${impersonateToken}`)
         .then(res => {
