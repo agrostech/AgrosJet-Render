@@ -20,7 +20,8 @@ import {
   FileText,
   AlertTriangle,
   X,
-  Coffee
+  Coffee,
+  Loader2
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -430,11 +431,7 @@ export default function NotificationsPopover({ companyId }) {
               {/* Bildirimler Tab */}
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <img 
-                    src="https://customer-assets.emergentagent.com/job_kurye-yonetim-2/artifacts/27ukt5rk_shiftjetlogo.png" 
-                    alt="Yükleniyor" 
-                    className="w-8 h-8 animate-spin"
-                  />
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : notifications.filter(n => n.type !== 'break_request').length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">

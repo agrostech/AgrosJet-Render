@@ -956,11 +956,11 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               </div>
               <div className="flex flex-wrap items-center gap-1">
                 {[
-                  { value: "preparing", label: "Hazırlanıyor" },
-                  { value: "ready", label: "Hazır" },
-                  { value: "assigned", label: "Atandı" },
-                  { value: "confirmed", label: "Onaylandı" },
-                  { value: "on_the_way", label: "Yolda" },
+                  { value: "preparing", label: "Hazırlanıyor", activeBg: "bg-yellow-500 text-yellow-950", inactiveBg: "bg-yellow-100 text-yellow-600" },
+                  { value: "ready", label: "Hazır", activeBg: "bg-orange-500 text-white", inactiveBg: "bg-orange-100 text-orange-600" },
+                  { value: "assigned", label: "Atandı", activeBg: "bg-purple-500 text-white", inactiveBg: "bg-purple-100 text-purple-600" },
+                  { value: "confirmed", label: "Onaylandı", activeBg: "bg-blue-500 text-white", inactiveBg: "bg-blue-100 text-blue-600" },
+                  { value: "on_the_way", label: "Yolda", activeBg: "bg-cyan-500 text-cyan-950", inactiveBg: "bg-cyan-100 text-cyan-600" },
                 ].map((status) => {
                   const count = orders.filter(o => o.status === status.value).length;
                   const isActive = statusFilters.includes(status.value);
@@ -968,7 +968,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                     <button
                       key={status.value}
                       onClick={() => setStatusFilters(prev => prev.includes(status.value) ? prev.filter(s => s !== status.value) : [...prev, status.value])}
-                      className={`px-2.5 py-1 text-xs rounded-md transition-all flex items-center gap-1 ${isActive ? "bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-200 font-medium" : "bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600"}`}
+                      className={`px-2.5 py-1 text-xs rounded-md transition-all flex items-center gap-1 font-medium ${isActive ? status.activeBg : status.inactiveBg}`}
                     >
                       {status.label}
                       <span className="text-[10px] font-bold opacity-70">({count})</span>
