@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -123,6 +123,11 @@ function SirketlerPage() {
   
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: "", description: "", onConfirm: () => {} });
+  const [logoUploading, setLogoUploading] = useState({ dark: false, light: false });
+  const darkFileRef = useRef(null);
+  const lightFileRef = useRef(null);
+  const newDarkFileRef = useRef(null);
+  const newLightFileRef = useRef(null);
 
   const fetchCompanies = async () => {
     try {
@@ -138,6 +143,29 @@ function SirketlerPage() {
   useEffect(() => {
     fetchCompanies();
   }, []);
+
+  const handleLogoUpload = async (companyId, type, file) => {
+    if (!file || !companyId) return;
+    setLogoUploading(prev => ({ ...prev, [type]: true }));
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("logo_type", type);
+      const res = await axios.post(`${API}/companies/${companyId}/logo`, formData);
+      toast.success(`${type === "dark" ? "Koyu" : "Beyaz"} arkaplan logosu yüklendi`);
+      // Update selectedCompany state
+      if (selectedCompany && selectedCompany.id === companyId) {
+        setSelectedCompany(prev => ({ ...prev, [`logo_${type}`]: res.data.path }));
+      }
+      fetchCompanies();
+      return res.data.path;
+    } catch {
+      toast.error("Logo yüklenemedi");
+      return null;
+    } finally {
+      setLogoUploading(prev => ({ ...prev, [type]: false }));
+    }
+  };
 
   const handleAddCompany = async (e) => {
     e.preventDefault();
@@ -167,6 +195,8 @@ function SirketlerPage() {
       await axios.put(`${API}/companies/${selectedCompany.id}`, {
         name: selectedCompany.name,
         logo_url: selectedCompany.logo_url,
+        logo_dark: selectedCompany.logo_dark,
+        logo_light: selectedCompany.logo_light,
         city: selectedCompany.city,
         city_lat: cityData?.lat,
         city_lng: cityData?.lng
@@ -313,13 +343,8 @@ function SirketlerPage() {
               <p className="text-xs text-muted-foreground mt-1">Harita bu ile otomatik ortalanacak</p>
             </div>
             <div>
-              <Label className="text-sm font-semibold">Logo URL (opsiyonel)</Label>
-              <Input 
-                value={newCompany.logo_url} 
-                onChange={(e) => setNewCompany({ ...newCompany, logo_url: e.target.value })} 
-                className="mt-1 h-12 border-2" 
-                placeholder="https://..."
-              />
+              <Label className="text-sm font-semibold">Logolar</Label>
+              <p className="text-xs text-muted-foreground mt-1">Şirketi oluşturduktan sonra düzenleme ekranından logo yükleyebilirsiniz.</p>
             </div>
             <Button type="submit" className="w-full h-12 font-semibold">Oluştur</Button>
           </form>
@@ -357,20 +382,49 @@ function SirketlerPage() {
                 </Select>
               </div>
               <div>
-                <Label className="text-sm font-semibold">Logo URL</Label>
-                <Input 
-                  value={selectedCompany.logo_url || ""} 
-                  onChange={(e) => setSelectedCompany({ ...selectedCompany, logo_url: e.target.value })} 
-                  className="mt-1 h-12 border-2" 
-                  placeholder="https://..."
-                />
-              </div>
-              {selectedCompany.logo_url && (
-                <div className="p-3 bg-slate-50 border-2">
-                  <p className="text-xs text-muted-foreground mb-2">Önizleme:</p>
-                  <img src={selectedCompany.logo_url} alt="Logo" className="h-16 object-contain" />
+                <Label className="text-sm font-semibold">Logo (Koyu Arkaplan)</Label>
+                <p className="text-xs text-muted-foreground">Sidebar gibi koyu alanlarda kullanılır</p>
+                <input type="file" ref={darkFileRef} accept="image/*" className="hidden" onChange={(e) => { if (e.target.files[0]) handleLogoUpload(selectedCompany.id, "dark", e.target.files[0]); }} />
+                <div className="flex items-center gap-2 mt-1.5">
+                  {selectedCompany.logo_dark ? (
+                    <>
+                      <div className="w-24 h-12 bg-slate-800 rounded flex items-center justify-center p-1.5">
+                        <img src={`${process.env.REACT_APP_BACKEND_URL}${selectedCompany.logo_dark}`} alt="Dark logo" className="max-w-full max-h-full object-contain" />
+                      </div>
+                      <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={() => darkFileRef.current?.click()} disabled={logoUploading.dark}>
+                        {logoUploading.dark ? <Loader2 className="w-3 h-3 animate-spin" /> : "Değiştir"}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button type="button" size="sm" variant="outline" className="h-10 border-dashed w-full" onClick={() => darkFileRef.current?.click()} disabled={logoUploading.dark}>
+                      {logoUploading.dark ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
+                      Logo Yükle
+                    </Button>
+                  )}
                 </div>
-              )}
+              </div>
+              <div>
+                <Label className="text-sm font-semibold">Logo (Beyaz Arkaplan)</Label>
+                <p className="text-xs text-muted-foreground">Beyaz/açık renkli alanlarda kullanılır</p>
+                <input type="file" ref={lightFileRef} accept="image/*" className="hidden" onChange={(e) => { if (e.target.files[0]) handleLogoUpload(selectedCompany.id, "light", e.target.files[0]); }} />
+                <div className="flex items-center gap-2 mt-1.5">
+                  {selectedCompany.logo_light ? (
+                    <>
+                      <div className="w-24 h-12 bg-white border rounded flex items-center justify-center p-1.5">
+                        <img src={`${process.env.REACT_APP_BACKEND_URL}${selectedCompany.logo_light}`} alt="Light logo" className="max-w-full max-h-full object-contain" />
+                      </div>
+                      <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={() => lightFileRef.current?.click()} disabled={logoUploading.light}>
+                        {logoUploading.light ? <Loader2 className="w-3 h-3 animate-spin" /> : "Değiştir"}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button type="button" size="sm" variant="outline" className="h-10 border-dashed w-full" onClick={() => lightFileRef.current?.click()} disabled={logoUploading.light}>
+                      {logoUploading.light ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Upload className="w-4 h-4 mr-1" />}
+                      Logo Yükle
+                    </Button>
+                  )}
+                </div>
+              </div>
               <Button type="submit" className="w-full h-12 font-semibold">Kaydet</Button>
             </form>
           )}
