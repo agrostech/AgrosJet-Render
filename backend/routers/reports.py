@@ -1125,14 +1125,17 @@ async def get_profit_loss_report(
     order_count = orders_results[0]["order_count"] if orders_results else 0
     per_package_expense = round(orders_results[0]["total_courier_fee"], 2) if orders_results else 0
 
-    # --- Saatlik ücretli kurye maliyeti ---
-    hourly_couriers = await db.couriers.find(
-        {"company_id": company_id, "pricing_type": "hourly"},
+    # --- Saatlik ücret: TÜM kuryeler için hesapla (hourly_rate 0 ise sonuç 0 olur) ---
+    all_couriers = await db.couriers.find(
+        {"company_id": company_id},
         {"_id": 0, "id": 1, "hourly_rate": 1}
     ).to_list(500)
 
     hourly_expense = 0
-    for courier in hourly_couriers:
+    for courier in all_couriers:
+        rate = courier.get("hourly_rate", 0) or 0
+        if rate <= 0:
+            continue
         h_pipeline = [
             {
                 "$match": {
@@ -1153,7 +1156,7 @@ async def get_profit_loss_report(
         h_result = await db.courier_status_logs.aggregate(h_pipeline).to_list(1)
         if h_result:
             hours = h_result[0]["total_minutes"] / 60
-            hourly_expense += hours * courier.get("hourly_rate", 0)
+            hourly_expense += hours * rate
 
     hourly_expense = round(hourly_expense, 2)
     courier_expense = round(per_package_expense + hourly_expense, 2)
