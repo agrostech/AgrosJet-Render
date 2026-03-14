@@ -174,7 +174,7 @@ async def company_impersonate(company_id: str, request: Request):
     
     # System admin doğrula
     admin = await db.admins.find_one({"id": admin_id}, {"_id": 0, "id": 1, "role": 1, "name": 1, "username": 1, "is_system_admin": 1})
-    if not admin or (admin.get("role") != "superadmin" and not admin.get("is_system_admin")):
+    if not admin or (admin.get("role") not in ("superadmin", "systemadmin") and not admin.get("is_system_admin")):
         raise HTTPException(status_code=403, detail="Yetkisiz erişim - sadece sistem adminleri")
     
     # Şirket doğrula

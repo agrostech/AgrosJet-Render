@@ -234,7 +234,7 @@ function SirketlerPage() {
 
   const handleImpersonateCompany = async (company) => {
     try {
-      const systemUser = JSON.parse(localStorage.getItem("systemUser") || "{}");
+      const systemUser = JSON.parse(localStorage.getItem("user") || "{}");
       const res = await axios.post(`${API}/restaurant-users/company-impersonate/${company.id}`, {
         admin_id: systemUser.id,
       });
