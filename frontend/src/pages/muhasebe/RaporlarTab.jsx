@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Store, TrendingUp, BarChart3, Receipt } from "lucide-react";
 import KuryeRaporlari from "@/components/admin/reports/KuryeRaporlari";
 import RestoranRaporlari from "@/components/admin/reports/RestoranRaporlari";
@@ -7,55 +6,42 @@ import KarZararRaporu from "@/components/admin/reports/KarZararRaporu";
 import PerformansRaporu from "@/components/admin/reports/PerformansRaporu";
 import CiroRaporu from "@/components/admin/reports/CiroRaporu";
 
+const SUB_TABS = [
+  { key: "kurye", label: "Kurye", icon: Users },
+  { key: "restoran", label: "Restoran", icon: Store },
+  { key: "ciro", label: "Ciro", icon: Receipt },
+  { key: "kar-zarar", label: "Kar / Zarar", icon: TrendingUp },
+  { key: "performans", label: "Performans", icon: BarChart3 },
+];
+
 export default function RaporlarTab({ companyId, isSuperAdmin }) {
   const [activeSubTab, setActiveSubTab] = useState("kurye");
 
   return (
-    <div className="space-y-4">
-      <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
-        <TabsList className="grid w-full max-w-3xl grid-cols-5 mb-4">
-          <TabsTrigger value="kurye" className="flex items-center gap-2" data-testid="sub-tab-kurye">
-            <Users className="w-4 h-4" />
-            Kurye
-          </TabsTrigger>
-          <TabsTrigger value="restoran" className="flex items-center gap-2" data-testid="sub-tab-restoran">
-            <Store className="w-4 h-4" />
-            Restoran
-          </TabsTrigger>
-          <TabsTrigger value="ciro" className="flex items-center gap-2" data-testid="sub-tab-ciro">
-            <Receipt className="w-4 h-4" />
-            Ciro
-          </TabsTrigger>
-          <TabsTrigger value="kar-zarar" className="flex items-center gap-2" data-testid="sub-tab-kar-zarar">
-            <TrendingUp className="w-4 h-4" />
-            Kar / Zarar
-          </TabsTrigger>
-          <TabsTrigger value="performans" className="flex items-center gap-2" data-testid="sub-tab-performans">
-            <BarChart3 className="w-4 h-4" />
-            Performans
-          </TabsTrigger>
-        </TabsList>
+    <div>
+      <div className="flex gap-1 border-b-2 border-slate-200 mb-4 overflow-x-auto scrollbar-hide">
+        {SUB_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveSubTab(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
+              activeSubTab === tab.key
+                ? "border-primary text-primary bg-primary/5"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
+            }`}
+            data-testid={`sub-tab-${tab.key}`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="kurye">
-          <KuryeRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />
-        </TabsContent>
-
-        <TabsContent value="restoran">
-          <RestoranRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />
-        </TabsContent>
-
-        <TabsContent value="ciro">
-          <CiroRaporu companyId={companyId} />
-        </TabsContent>
-
-        <TabsContent value="kar-zarar">
-          <KarZararRaporu companyId={companyId} />
-        </TabsContent>
-
-        <TabsContent value="performans">
-          <PerformansRaporu companyId={companyId} />
-        </TabsContent>
-      </Tabs>
+      {activeSubTab === "kurye" && <KuryeRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />}
+      {activeSubTab === "restoran" && <RestoranRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />}
+      {activeSubTab === "ciro" && <CiroRaporu companyId={companyId} />}
+      {activeSubTab === "kar-zarar" && <KarZararRaporu companyId={companyId} />}
+      {activeSubTab === "performans" && <PerformansRaporu companyId={companyId} />}
     </div>
   );
 }
