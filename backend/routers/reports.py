@@ -1061,8 +1061,15 @@ async def get_profit_loss_report(
     start_str = start_datetime.replace("T", "T") + ":00"
     end_str = end_datetime.replace("T", "T") + ":59"
 
-    # --- Gelir + Kurye Hakediş: Tüm delivered siparişlerden ---
-    orders_pipeline = [
+    # --- Admin-kurye ayrımı: linked_courier_id'leri al ---
+    admin_couriers = await db.admins.find(
+        {"company_id": company_id, "linked_courier_id": {"$exists": True, "$ne": None}},
+        {"_id": 0, "linked_courier_id": 1}
+    ).to_list(500)
+    admin_courier_ids = [a["linked_courier_id"] for a in admin_couriers]
+
+    # --- Toplam gelir (tüm delivered siparişler) ---
+    total_pipeline = [
         {
             "$match": {
                 "company_id": company_id,
@@ -1074,64 +1081,60 @@ async def get_profit_loss_report(
             "$group": {
                 "_id": None,
                 "total_revenue": {"$sum": {"$ifNull": ["$restaurant_fee", 0]}},
-                "total_courier_fee": {"$sum": {"$ifNull": ["$courier_fee", 0]}},
                 "order_count": {"$sum": 1}
             }
         }
     ]
-    orders_results = await db.orders.aggregate(orders_pipeline).to_list(1)
+    total_results = await db.orders.aggregate(total_pipeline).to_list(1)
 
-    # --- Gider 2: Yönetici hakedişleri (transactions'dan) ---
-    admin_expense_pipeline = [
+    # --- Kurye siparişleri (admin olmayan) ---
+    courier_orders_pipeline = [
         {
             "$match": {
                 "company_id": company_id,
-                "entity_type": "admin",
-                "is_hakedis": True,
-                "type": "payment_in",
-                "created_at": {"$gte": start_str, "$lte": end_str}
+                "status": "delivered",
+                "created_at": {"$gte": start_str, "$lte": end_str},
+                "courier_id": {"$nin": admin_courier_ids}
             }
         },
         {
             "$group": {
                 "_id": None,
-                "total": {"$sum": "$amount"},
+                "total_fee": {"$sum": {"$ifNull": ["$courier_fee", 0]}},
                 "count": {"$sum": 1}
             }
         }
     ]
-    admin_expense_results = await db.transactions.aggregate(admin_expense_pipeline).to_list(1)
+    courier_orders_result = await db.orders.aggregate(courier_orders_pipeline).to_list(1)
 
-    # --- Toplam çalışılan saat (kuryeler - aktif süre) ---
-    hours_pipeline = [
+    # --- Yönetici siparişleri (admin-kurye) ---
+    admin_orders_pipeline = [
         {
             "$match": {
                 "company_id": company_id,
-                "old_status": "active",
-                "timestamp": {"$gte": start_str, "$lte": end_str},
-                "duration_minutes": {"$gt": 0}
+                "status": "delivered",
+                "created_at": {"$gte": start_str, "$lte": end_str},
+                "courier_id": {"$in": admin_courier_ids}
             }
         },
         {
             "$group": {
                 "_id": None,
-                "total_minutes": {"$sum": "$duration_minutes"}
+                "total_fee": {"$sum": {"$ifNull": ["$courier_fee", 0]}},
+                "count": {"$sum": 1}
             }
         }
     ]
-    hours_results = await db.courier_status_logs.aggregate(hours_pipeline).to_list(1)
+    admin_orders_result = await db.orders.aggregate(admin_orders_pipeline).to_list(1)
 
-    total_revenue = round(orders_results[0]["total_revenue"], 2) if orders_results else 0
-    order_count = orders_results[0]["order_count"] if orders_results else 0
-    per_package_expense = round(orders_results[0]["total_courier_fee"], 2) if orders_results else 0
-
-    # --- Saatlik ücret: TÜM kuryeler için hesapla (hourly_rate 0 ise sonuç 0 olur) ---
+    # --- Saatlik ücret: Tüm kuryeler, admin/kurye ayrımıyla ---
     all_couriers = await db.couriers.find(
         {"company_id": company_id},
         {"_id": 0, "id": 1, "hourly_rate": 1}
     ).to_list(500)
 
-    hourly_expense = 0
+    courier_hourly_expense = 0
+    admin_hourly_expense = 0
     for courier in all_couriers:
         rate = courier.get("hourly_rate", 0) or 0
         if rate <= 0:
@@ -1156,31 +1159,39 @@ async def get_profit_loss_report(
         h_result = await db.courier_status_logs.aggregate(h_pipeline).to_list(1)
         if h_result:
             hours = h_result[0]["total_minutes"] / 60
-            hourly_expense += hours * rate
+            cost = hours * rate
+            if courier["id"] in admin_courier_ids:
+                admin_hourly_expense += cost
+            else:
+                courier_hourly_expense += cost
 
-    hourly_expense = round(hourly_expense, 2)
-    courier_expense = round(per_package_expense + hourly_expense, 2)
+    # Hesapla
+    total_revenue = round(total_results[0]["total_revenue"], 2) if total_results else 0
+    order_count = total_results[0]["order_count"] if total_results else 0
 
-    admin_expense = round(admin_expense_results[0]["total"], 2) if admin_expense_results else 0
-    admin_hakedis_count = admin_expense_results[0]["count"] if admin_expense_results else 0
+    courier_pkg_fee = round(courier_orders_result[0]["total_fee"], 2) if courier_orders_result else 0
+    courier_order_count = courier_orders_result[0]["count"] if courier_orders_result else 0
+    courier_expense = round(courier_pkg_fee + courier_hourly_expense, 2)
+
+    admin_pkg_fee = round(admin_orders_result[0]["total_fee"], 2) if admin_orders_result else 0
+    admin_order_count = admin_orders_result[0]["count"] if admin_orders_result else 0
+    admin_expense = round(admin_pkg_fee + admin_hourly_expense, 2)
 
     total_expense = round(courier_expense + admin_expense, 2)
     profit = round(total_revenue - total_expense, 2)
 
-    total_minutes = hours_results[0]["total_minutes"] if hours_results else 0
-    total_hours = round(total_minutes / 60, 1)
-
     # Ortalamalar
     avg_revenue_per_order = round(total_revenue / order_count, 2) if order_count > 0 else 0
-    avg_cost_per_order = round(courier_expense / order_count, 2) if order_count > 0 else 0
+    avg_cost_per_order = round(total_expense / order_count, 2) if order_count > 0 else 0
     avg_profit_per_order = round(avg_revenue_per_order - avg_cost_per_order, 2)
 
     return {
         "total_revenue": total_revenue,
         "order_count": order_count,
         "courier_expense": courier_expense,
+        "courier_order_count": courier_order_count,
         "admin_expense": admin_expense,
-        "admin_hakedis_count": admin_hakedis_count,
+        "admin_order_count": admin_order_count,
         "total_expense": total_expense,
         "profit": profit,
         "avg_revenue_per_order": avg_revenue_per_order,
