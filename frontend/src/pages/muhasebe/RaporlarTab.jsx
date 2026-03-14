@@ -19,7 +19,8 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
 
   return (
     <div>
-      <div className="flex gap-1 border-b-2 border-slate-200 mb-4 overflow-x-auto scrollbar-hide">
+      <div className="overflow-x-auto scrollbar-hide mb-4">
+        <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
         {SUB_TABS.map((tab) => (
           <button
             key={tab.key}
@@ -35,6 +36,7 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
             {tab.label}
           </button>
         ))}
+        </div>
       </div>
 
       {activeSubTab === "kurye" && <KuryeRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />}
