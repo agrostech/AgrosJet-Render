@@ -21,10 +21,12 @@ Courier delivery management system with ETA calculation, order management, nativ
 - Vardiya Sayfası Modal UI Sadeleştirme: İhlaller, Hareketler, Mola Ayarları modalları ve butonlarından renkler kaldırılıp tutarlı nötr tasarıma geçildi (Mar 2026)
 - Kar/Zarar Raporu: Muhasebe > Raporlar > Kar/Zarar sekmesi, datetime filtreleme ile taşıma ücreti vs kurye hakediş karşılaştırması (Mar 2026)
 - Ceza Sistemi: İhlal türlerine göre otomatik ceza uygulama, şirket bazlı ayarlar, bakiyeye yeşil işlem olarak ekleme (Mar 2026)
+- **Ciro Raporu: Muhasebe > Raporlar > Ciro sekmesi, restoran bazlı tahsilat dağılımı (Nakit/Kredi Kartı/Yemek Kartı/Online), kurye tahsilatı renk kodlaması (Mar 2026)**
 
 ## Pending Verification
 - Push Notification System: Awaiting native app test (orders_v6 channel)
 - Migros Webhook Parsing: Awaiting live test order
+- **Ciro Raporu: Awaiting user test with production data**
 
 ## Known Issues
 - Adisyo Webhook: `Restoran bulunamadi` error (P2 - config issue, not code bug)
@@ -35,6 +37,7 @@ Courier delivery management system with ETA calculation, order management, nativ
 - Migros DB Cleanup: Existing orders have incorrect is_test string values
 
 ## Upcoming Tasks
+- **(P0) Fix Migros is_test + migros_status bugs + DB migration**
 - (P1) "Stop Count" based capacity logic
 - (P1) Dark mode fine-tuning for sub-pages (couriers, accounting, shifts)
 - (P2) Caller ID integration research
@@ -43,6 +46,8 @@ Courier delivery management system with ETA calculation, order management, nativ
 - (P0) Restaurant Courier System (postponed by user)
 - (P1) restaurant_fee calculation
 - (P1) Haftalik Hakedis / Restoran Mutabakat refactoring
+- (P1) Restaurant-Based Revenue Report
+- (P1) Cancellation Analysis Report
 - (P2) dispatch_decision function investigation
 - (P2) Admin panel API request monitor
 - (P2) Native Courier App development
@@ -65,6 +70,9 @@ Courier delivery management system with ETA calculation, order management, nativ
 - /app/backend/services/firebase_service.py - FCM push (orders_v6)
 - /app/frontend/src/utils/dateUtils.js - Timezone-safe date formatting utility
 - /app/frontend/src/pages/VardiyaPage.jsx - Shift management page
-- /app/frontend/src/components/vardiya/ - Shift modals (IhlalModal, StatusMovements, BreakSettings)
+- /app/frontend/src/components/vardiya/ - Shift modals
 - /app/backend/routers/webhooks.py - Migros webhook handler (NEEDS is_test fix)
-- /app/backend/routers/orders.py - Order status updates (NEEDS migros_status fix)
+- /app/backend/routers/orders.py - Order status updates
+- /app/backend/routers/reports.py - All report endpoints (courier, restaurant, profit-loss, performance, turnover)
+- /app/frontend/src/components/admin/reports/CiroRaporu.jsx - Turnover report component
+- /app/frontend/src/pages/muhasebe/RaporlarTab.jsx - Reports tab container (5 sub-tabs)

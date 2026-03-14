@@ -1396,3 +1396,191 @@ async def get_performance_report(
         "courier_average": avg,
         "hourly_distribution": hourly_distribution
     }
+
+
+
+# ============ CİRO RAPORU (TURNOVER) ============
+
+@router.get("/turnover")
+async def get_turnover_report(
+    company_id: str = Query(...),
+    start_datetime: str = Query(...),
+    end_datetime: str = Query(...),
+):
+    """
+    Ciro Raporu - Restoran bazlı tahsilat dağılımı
+    Nakit / Kredi Kartı / Yemek Kartı / Online kırılımı
+    Kurye tahsilatı yapılan kalemler işaretlenir
+    """
+    turkey_tz = timezone(timedelta(hours=3))
+
+    if len(start_datetime) == 16:
+        start_datetime = start_datetime + ":00"
+    if len(end_datetime) == 16:
+        end_datetime = end_datetime + ":59"
+
+    try:
+        start_dt = datetime.fromisoformat(start_datetime.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(end_datetime.replace('Z', '+00:00'))
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=turkey_tz)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=turkey_tz)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Tarih formatı hatalı: {str(e)}")
+
+    # Restoran ayarlarını çek
+    restaurants_cursor = db.restaurants.find(
+        {"company_id": company_id, "is_archived": {"$ne": True}},
+        {"_id": 0, "id": 1, "name": 1, "collection_settings": 1}
+    )
+    restaurant_settings = {}
+    async for r in restaurants_cursor:
+        cs = r.get("collection_settings", {})
+        restaurant_settings[r["id"]] = {
+            "name": r.get("name", "Bilinmiyor"),
+            "cash_by_courier": cs.get("cash_collection", "courier") == "courier",
+            "card_by_courier": cs.get("card_collection", "courier") == "courier",
+            "meal_card_by_courier": cs.get("meal_card_collection", "courier") == "courier",
+        }
+
+    # Teslim edilmiş siparişleri çek
+    all_orders = await db.orders.find(
+        {
+            "company_id": company_id,
+            "status": "delivered",
+            "is_restaurant_delivery": {"$ne": True}
+        },
+        {
+            "_id": 0,
+            "restaurant_id": 1,
+            "restaurant_name": 1,
+            "total_amount": 1,
+            "payment_method": 1,
+            "payment_details": 1,
+            "delivered_at": 1,
+        }
+    ).to_list(10000)
+
+    # Python'da tarih filtrelemesi
+    orders = []
+    for order in all_orders:
+        delivered_at = order.get("delivered_at")
+        if not delivered_at:
+            continue
+        try:
+            if isinstance(delivered_at, str):
+                order_dt = datetime.fromisoformat(delivered_at.replace('Z', '+00:00'))
+            else:
+                order_dt = delivered_at
+            if order_dt.tzinfo is None:
+                order_dt = order_dt.replace(tzinfo=turkey_tz)
+            if start_dt <= order_dt <= end_dt:
+                orders.append(order)
+        except:
+            continue
+
+    # Restoran bazlı tahsilat hesaplama
+    restaurant_data = {}
+
+    for order in orders:
+        rid = order.get("restaurant_id")
+        settings = restaurant_settings.get(rid, {
+            "name": order.get("restaurant_name") or "Bilinmiyor",
+            "cash_by_courier": True,
+            "card_by_courier": True,
+            "meal_card_by_courier": True,
+        })
+
+        if rid not in restaurant_data:
+            restaurant_data[rid] = {
+                "id": rid,
+                "name": settings["name"],
+                "order_count": 0,
+                "cash": 0,
+                "card": 0,
+                "meal_card": 0,
+                "online": 0,
+                "total": 0,
+                "cash_by_courier": settings["cash_by_courier"],
+                "card_by_courier": settings["card_by_courier"],
+                "meal_card_by_courier": settings["meal_card_by_courier"],
+            }
+
+        r = restaurant_data[rid]
+        r["order_count"] += 1
+        total_amount = order.get("total_amount", 0) or 0
+        r["total"] += total_amount
+
+        payment_method = (order.get("payment_method") or "").lower()
+        payment_details = order.get("payment_details") or {}
+
+        cash_amt = payment_details.get("cash_amount", 0) or 0
+        card_amt = payment_details.get("card_amount", 0) or 0
+
+        if payment_method == "mixed" or (cash_amt > 0 and card_amt > 0):
+            r["cash"] += cash_amt
+            r["card"] += card_amt
+            meal_amt = payment_details.get("meal_card_amount", 0) or 0
+            r["meal_card"] += meal_amt
+        elif "meal_card" in payment_method or "yemek" in payment_method:
+            r["meal_card"] += total_amount
+        elif "cash" in payment_method or "nakit" in payment_method:
+            r["cash"] += total_amount
+        elif payment_method == "online":
+            r["online"] += total_amount
+        elif "card" in payment_method or "kart" in payment_method:
+            r["card"] += total_amount
+
+    # Restoran ayarları olan ama sipariş olmayan restoranları da ekle
+    for rid, settings in restaurant_settings.items():
+        if rid not in restaurant_data:
+            restaurant_data[rid] = {
+                "id": rid,
+                "name": settings["name"],
+                "order_count": 0,
+                "cash": 0,
+                "card": 0,
+                "meal_card": 0,
+                "online": 0,
+                "total": 0,
+                "cash_by_courier": settings["cash_by_courier"],
+                "card_by_courier": settings["card_by_courier"],
+                "meal_card_by_courier": settings["meal_card_by_courier"],
+            }
+
+    # Sırala (sipariş sayısına göre azalan, sonra isme göre)
+    restaurants = sorted(
+        restaurant_data.values(),
+        key=lambda x: (-x["order_count"], x["name"].lower())
+    )
+
+    # Toplamlar
+    total_orders = sum(r["order_count"] for r in restaurants)
+    total_cash = sum(r["cash"] for r in restaurants)
+    total_card = sum(r["card"] for r in restaurants)
+    total_meal_card = sum(r["meal_card"] for r in restaurants)
+    total_online = sum(r["online"] for r in restaurants)
+    total_revenue = sum(r["total"] for r in restaurants)
+
+    # Kurye tahsilatı toplamları
+    courier_cash = sum(r["cash"] for r in restaurants if r["cash_by_courier"])
+    courier_card = sum(r["card"] for r in restaurants if r["card_by_courier"])
+    courier_meal_card = sum(r["meal_card"] for r in restaurants if r["meal_card_by_courier"])
+    courier_total = courier_cash + courier_card + courier_meal_card
+
+    return {
+        "restaurants": restaurants,
+        "summary": {
+            "total_orders": total_orders,
+            "total_cash": round(total_cash, 2),
+            "total_card": round(total_card, 2),
+            "total_meal_card": round(total_meal_card, 2),
+            "total_online": round(total_online, 2),
+            "total_revenue": round(total_revenue, 2),
+            "courier_cash": round(courier_cash, 2),
+            "courier_card": round(courier_card, 2),
+            "courier_meal_card": round(courier_meal_card, 2),
+            "courier_total": round(courier_total, 2),
+        }
+    }

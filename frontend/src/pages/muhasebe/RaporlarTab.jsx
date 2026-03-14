@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Store, TrendingUp, BarChart3 } from "lucide-react";
+import { Users, Store, TrendingUp, BarChart3, Receipt } from "lucide-react";
 import KuryeRaporlari from "@/components/admin/reports/KuryeRaporlari";
 import RestoranRaporlari from "@/components/admin/reports/RestoranRaporlari";
 import KarZararRaporu from "@/components/admin/reports/KarZararRaporu";
 import PerformansRaporu from "@/components/admin/reports/PerformansRaporu";
+import CiroRaporu from "@/components/admin/reports/CiroRaporu";
 
 export default function RaporlarTab({ companyId, isSuperAdmin }) {
   const [activeSubTab, setActiveSubTab] = useState("kurye");
@@ -12,7 +13,7 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
   return (
     <div className="space-y-4">
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
-        <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-4">
+        <TabsList className="grid w-full max-w-3xl grid-cols-5 mb-4">
           <TabsTrigger value="kurye" className="flex items-center gap-2" data-testid="sub-tab-kurye">
             <Users className="w-4 h-4" />
             Kurye
@@ -20,6 +21,10 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
           <TabsTrigger value="restoran" className="flex items-center gap-2" data-testid="sub-tab-restoran">
             <Store className="w-4 h-4" />
             Restoran
+          </TabsTrigger>
+          <TabsTrigger value="ciro" className="flex items-center gap-2" data-testid="sub-tab-ciro">
+            <Receipt className="w-4 h-4" />
+            Ciro
           </TabsTrigger>
           <TabsTrigger value="kar-zarar" className="flex items-center gap-2" data-testid="sub-tab-kar-zarar">
             <TrendingUp className="w-4 h-4" />
@@ -37,6 +42,10 @@ export default function RaporlarTab({ companyId, isSuperAdmin }) {
 
         <TabsContent value="restoran">
           <RestoranRaporlari companyId={companyId} isSuperAdmin={isSuperAdmin} />
+        </TabsContent>
+
+        <TabsContent value="ciro">
+          <CiroRaporu companyId={companyId} />
         </TabsContent>
 
         <TabsContent value="kar-zarar">
