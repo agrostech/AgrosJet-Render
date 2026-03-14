@@ -40,6 +40,7 @@ export default function RestaurantDashboard() {
   const [user, setUser] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
   const [companyLogo, setCompanyLogo] = useState(null);
+  const [companyLogoLight, setCompanyLogoLight] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [badges, setBadges] = useState({});
@@ -86,7 +87,10 @@ export default function RestaurantDashboard() {
           });
           if (userData.company_id) {
             axios.get(`${API}/companies/${userData.company_id}`)
-              .then(r => setCompanyLogo(r.data.logo_dark || r.data.logo_url))
+              .then(r => {
+                setCompanyLogo(r.data.logo_dark || r.data.logo_url);
+                setCompanyLogoLight(r.data.logo_light || r.data.logo_url);
+              })
               .catch(() => {});
           }
         })
@@ -111,7 +115,10 @@ export default function RestaurantDashboard() {
     // Şirket logosunu çek
     if (storedUser.company_id) {
       axios.get(`${API}/companies/${storedUser.company_id}`)
-        .then(res => setCompanyLogo(res.data.logo_dark || res.data.logo_url))
+        .then(res => {
+          setCompanyLogo(res.data.logo_dark || res.data.logo_url);
+          setCompanyLogoLight(res.data.logo_light || res.data.logo_url);
+        })
         .catch(() => {});
     }
   }, [navigate, location.search]);
@@ -338,6 +345,7 @@ export default function RestaurantDashboard() {
             restaurantId={user?.restaurant_id}
             restaurantName={restaurant?.name}
             permissions={permissions}
+            companyLogoLight={companyLogoLight}
           />
         );
       case "gecmis":

@@ -54,22 +54,24 @@ const formatCurrency = (amount) => {
  * 58mm termal fiş HTML'i oluştur
  * Genişlik: ~32 karakter
  */
-const generate58mmReceipt = (order) => {
+const generate58mmReceipt = (order, logoUrl = "") => {
   const items = order.items || [];
-  const platform = PLATFORM_LABELS[order.platform] || order.platform || "Sipariş";
+  const platform = PLATFORM_LABELS[order.platform] || PLATFORM_LABELS[order.source] || order.platform || order.source || "Sipariş";
   const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
 
   let itemsHtml = items.map(item => `
     <tr>
       <td style="text-align:left;font-size:11px;padding:2px 0;">
         ${item.quantity}x ${item.name}
-        ${item.notes ? `<br><small style="color:#666;font-size:9px;">Not: ${item.notes}</small>` : ""}
+        ${item.notes ? `<br><small style="font-size:9px;">Not: ${item.notes}</small>` : ""}
       </td>
       <td style="text-align:right;font-size:11px;padding:2px 0;white-space:nowrap;">
         ${formatCurrency(item.price * item.quantity)}
       </td>
     </tr>
   `).join("");
+
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:36px;max-width:80%;object-fit:contain;margin-bottom:6px;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -89,29 +91,31 @@ const generate58mmReceipt = (order) => {
           margin: 0; 
           padding: 4mm;
           box-sizing: border-box;
+          color: #000;
         }
         .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
         .order-number { font-size: 16px; font-weight: bold; }
         .platform { font-size: 10px; background: #000; color: #fff; padding: 2px 6px; display: inline-block; margin-top: 4px; }
         .section { margin: 8px 0; padding: 8px 0; border-bottom: 1px dashed #000; }
-        .label { font-size: 9px; color: #666; }
+        .label { font-size: 9px; font-weight: bold; }
         .value { font-size: 11px; font-weight: bold; }
         .items-table { width: 100%; border-collapse: collapse; }
         .total { font-size: 14px; font-weight: bold; text-align: right; margin-top: 8px; }
-        .payment { text-align: center; background: #f0f0f0; padding: 4px; margin-top: 8px; font-weight: bold; }
-        .notes { background: #fff3cd; padding: 6px; margin-top: 8px; font-size: 10px; }
-        .footer { text-align: center; font-size: 9px; color: #666; margin-top: 12px; }
+        .payment { text-align: center; padding: 4px; margin-top: 8px; font-weight: bold; border: 1px solid #000; }
+        .notes { padding: 6px; margin-top: 8px; font-size: 10px; border: 1px dashed #000; }
+        .footer { text-align: center; font-size: 9px; margin-top: 12px; }
       </style>
     </head>
     <body>
       <div class="header">
+        ${logoHtml}
         <div class="order-number">#${order.order_number}</div>
         <div class="platform">${platform}</div>
         <div style="font-size:10px;margin-top:4px;">${formatDate(order.created_at)}</div>
       </div>
 
       <div class="section">
-        <div class="label">MÜŞTERİ</div>
+        <div class="label">MUSTERI</div>
         <div class="value">${order.customer_name || "-"}</div>
         <div style="font-size:11px;">${order.customer_phone || ""}</div>
       </div>
@@ -122,7 +126,7 @@ const generate58mmReceipt = (order) => {
       </div>
 
       <div class="section">
-        <div class="label">ÜRÜNLER</div>
+        <div class="label">URUNLER</div>
         <table class="items-table">
           ${itemsHtml}
         </table>
@@ -140,7 +144,7 @@ const generate58mmReceipt = (order) => {
 
       <div class="footer">
         --------------------------------<br>
-        AgrosJet Sipariş Sistemi
+        AgrosJet Siparis Sistemi
       </div>
     </body>
     </html>
@@ -151,22 +155,24 @@ const generate58mmReceipt = (order) => {
  * 80mm termal fiş HTML'i oluştur
  * Genişlik: ~48 karakter
  */
-const generate80mmReceipt = (order) => {
+const generate80mmReceipt = (order, logoUrl = "") => {
   const items = order.items || [];
-  const platform = PLATFORM_LABELS[order.platform] || order.platform || "Sipariş";
+  const platform = PLATFORM_LABELS[order.platform] || PLATFORM_LABELS[order.source] || order.platform || order.source || "Sipariş";
   const paymentMethod = order.payment_method_detail || PAYMENT_LABELS[order.payment_method] || order.payment_method;
 
   let itemsHtml = items.map(item => `
     <tr>
       <td style="text-align:left;padding:4px 0;">
         <strong>${item.quantity}x</strong> ${item.name}
-        ${item.notes ? `<br><small style="color:#666;">📝 ${item.notes}</small>` : ""}
+        ${item.notes ? `<br><small>Not: ${item.notes}</small>` : ""}
       </td>
       <td style="text-align:right;padding:4px 0;white-space:nowrap;font-weight:bold;">
         ${formatCurrency(item.price * item.quantity)}
       </td>
     </tr>
   `).join("");
+
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:48px;max-width:80%;object-fit:contain;margin-bottom:8px;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -186,6 +192,7 @@ const generate80mmReceipt = (order) => {
           margin: 0; 
           padding: 5mm;
           box-sizing: border-box;
+          color: #000;
         }
         .header { 
           text-align: center; 
@@ -205,19 +212,18 @@ const generate80mmReceipt = (order) => {
           padding: 3px 10px; 
           display: inline-block; 
           margin-top: 6px;
-          border-radius: 3px;
         }
         .section { 
           margin: 10px 0; 
           padding: 10px 0; 
-          border-bottom: 1px dashed #ccc; 
+          border-bottom: 1px dashed #000; 
         }
         .section-title { 
           font-size: 10px; 
-          color: #666; 
           text-transform: uppercase;
           letter-spacing: 1px;
           margin-bottom: 4px;
+          font-weight: bold;
         }
         .section-value { 
           font-size: 13px; 
@@ -226,8 +232,7 @@ const generate80mmReceipt = (order) => {
         .customer-phone {
           font-size: 14px;
           font-family: monospace;
-          background: #f5f5f5;
-          padding: 4px 8px;
+          padding: 4px 0;
           display: inline-block;
           margin-top: 4px;
         }
@@ -254,20 +259,14 @@ const generate80mmReceipt = (order) => {
         }
         .payment { 
           text-align: center; 
-          background: #e8f5e9; 
           padding: 8px; 
           margin-top: 10px; 
           font-weight: bold;
           font-size: 14px;
-          border: 2px solid #4caf50;
+          border: 2px solid #000;
         }
-        .payment.cash { background: #e8f5e9; border-color: #4caf50; }
-        .payment.card { background: #e3f2fd; border-color: #2196f3; }
-        .payment.online { background: #f3e5f5; border-color: #9c27b0; }
-        .payment.meal_card { background: #fff3e0; border-color: #ff9800; }
         .notes { 
-          background: #fff8e1; 
-          border-left: 4px solid #ffc107;
+          border: 1px dashed #000;
           padding: 8px 12px; 
           margin-top: 10px; 
           font-size: 11px; 
@@ -275,24 +274,24 @@ const generate80mmReceipt = (order) => {
         .footer { 
           text-align: center; 
           font-size: 10px; 
-          color: #999; 
           margin-top: 15px;
           padding-top: 10px;
-          border-top: 1px dashed #ccc;
+          border-top: 1px dashed #000;
         }
       </style>
     </head>
     <body>
       <div class="header">
+        ${logoHtml}
         <div class="order-number">#${order.order_number}</div>
         <div class="platform">${platform}</div>
-        <div style="font-size:11px;margin-top:6px;color:#666;">${formatDate(order.created_at)}</div>
+        <div style="font-size:11px;margin-top:6px;">${formatDate(order.created_at)}</div>
       </div>
 
       <div class="section">
-        <div class="section-title">Müşteri Bilgileri</div>
+        <div class="section-title">Musteri Bilgileri</div>
         <div class="section-value">${order.customer_name || "-"}</div>
-        ${order.customer_phone ? `<div class="customer-phone">📞 ${order.customer_phone}</div>` : ""}
+        ${order.customer_phone ? `<div class="customer-phone">${order.customer_phone}</div>` : ""}
       </div>
 
       <div class="section">
@@ -301,7 +300,7 @@ const generate80mmReceipt = (order) => {
       </div>
 
       <div class="section">
-        <div class="section-title">Sipariş Detayı</div>
+        <div class="section-title">Siparis Detayi</div>
         <table class="items-table">
           ${itemsHtml}
         </table>
@@ -312,16 +311,16 @@ const generate80mmReceipt = (order) => {
         <div class="total-amount">${formatCurrency(order.total_amount)}</div>
       </div>
 
-      <div class="payment ${order.payment_method}">
-        💳 ${paymentMethod}
+      <div class="payment">
+        ${paymentMethod}
       </div>
 
-      ${order.notes ? `<div class="notes"><strong>📝 Sipariş Notu:</strong><br>${order.notes}</div>` : ""}
+      ${order.notes ? `<div class="notes"><strong>Siparis Notu:</strong><br>${order.notes}</div>` : ""}
 
       <div class="footer">
-        ════════════════════════════════════<br>
-        AgrosJet Sipariş Yönetim Sistemi<br>
-        ════════════════════════════════════
+        --------------------------------<br>
+        AgrosJet Siparis Yonetim Sistemi<br>
+        --------------------------------
       </div>
     </body>
     </html>
@@ -333,16 +332,15 @@ const generate80mmReceipt = (order) => {
  * @param {Object} order - Sipariş objesi
  * @param {string} paperSize - "58mm" veya "80mm"
  */
-export const printOrder = (order, paperSize = "80mm") => {
+export const printOrder = (order, paperSize = "80mm", logoUrl = "") => {
   if (!order) {
     console.error("Yazdırılacak sipariş yok");
     return;
   }
 
-  // HTML oluştur
   const html = paperSize === "58mm" 
-    ? generate58mmReceipt(order) 
-    : generate80mmReceipt(order);
+    ? generate58mmReceipt(order, logoUrl) 
+    : generate80mmReceipt(order, logoUrl);
 
   // Yeni pencere aç ve yazdır
   const printWindow = window.open("", "_blank", "width=400,height=600");
@@ -370,15 +368,15 @@ export const printOrder = (order, paperSize = "80mm") => {
  * @param {Object} order - Sipariş objesi
  * @param {string} paperSize - "58mm" veya "80mm"
  */
-export const previewOrder = (order, paperSize = "80mm") => {
+export const previewOrder = (order, paperSize = "80mm", logoUrl = "") => {
   if (!order) {
     console.error("Önizlenecek sipariş yok");
     return;
   }
 
   const html = paperSize === "58mm" 
-    ? generate58mmReceipt(order) 
-    : generate80mmReceipt(order);
+    ? generate58mmReceipt(order, logoUrl) 
+    : generate80mmReceipt(order, logoUrl);
 
   const previewWindow = window.open("", "_blank", "width=400,height=600");
   
