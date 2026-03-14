@@ -76,6 +76,14 @@ export default function ReportDateFilter({ companyId, onGenerate, loading }) {
             end: `${fmtDate(thisMon)}T${openingTime}`,
           };
         }
+        case "bu-ay": {
+          const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+          const nextFirstDay = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+          return {
+            start: `${fmtDate(firstDay)}T${openingTime}`,
+            end: `${fmtDate(nextFirstDay)}T${closingTime}`,
+          };
+        }
         default:
           return null;
       }
@@ -118,6 +126,7 @@ export default function ReportDateFilter({ companyId, onGenerate, loading }) {
     { key: "bugun", label: "Bugün" },
     { key: "bu-hafta", label: "Bu Hafta" },
     { key: "gecen-hafta", label: "Geçen Hafta" },
+    { key: "bu-ay", label: "Bu Ay" },
     { key: "ozel", label: "Tarih Aralığı" },
   ];
 
