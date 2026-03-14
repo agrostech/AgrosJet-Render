@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle } from "lucide-react";
+import { Menu, X, LogOut, Building2, Trash2, Plus, Edit, Users, Settings, Cloud, CheckCircle, XCircle, Loader2, Eye, EyeOff, UserCog, MapPin, Coins, Mail, Upload, MinusCircle, PlusCircle } from "lucide-react";
 import { PageLoading, LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -678,7 +678,7 @@ function KontorYonetimiPage() {
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={() => openModal(company, "add")} className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50" disabled={company.unlimited} title="Kontör Ekle">
-                  <Plus className="w-3.5 h-3.5" />
+                  <PlusCircle className="w-3.5 h-3.5" />
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => openModal(company, "deduct")} className="h-7 w-7 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50" disabled={company.unlimited} title="Kontör Düş">
                   <MinusCircle className="w-3.5 h-3.5" />
@@ -764,7 +764,7 @@ function KontorYonetimiPage() {
                       disabled={company.unlimited}
                       title="Kontör Ekle"
                     >
-                      <Plus className="w-4 h-4" />
+                      <PlusCircle className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
