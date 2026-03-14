@@ -1348,7 +1348,12 @@ async def get_performance_report(
     else:
         avg = None
 
-    # Saatlik sipariş dağılımı
+    # Şirket açılış/kapanış saatleri
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "opening_time": 1, "closing_time": 1})
+    opening_hour = int((company or {}).get("opening_time", "09:00").split(":")[0])
+    closing_hour = int((company or {}).get("closing_time", "23:00").split(":")[0])
+
+    # Saatlik sipariş dağılımı (açılıştan kapanışa)
     hourly_pipeline = [
         {
             "$match": {
@@ -1373,7 +1378,14 @@ async def get_performance_report(
     ]
     hourly_results = await db.orders.aggregate(hourly_pipeline).to_list(24)
     hourly_map = {r["_id"]: r["count"] for r in hourly_results}
-    hourly_distribution = [{"hour": h, "count": hourly_map.get(h, 0)} for h in range(24)]
+    
+    # Açılıştan kapanışa saat listesi (gece geçişini destekler)
+    if opening_hour <= closing_hour:
+        hour_range = list(range(opening_hour, closing_hour + 1))
+    else:
+        hour_range = list(range(opening_hour, 24)) + list(range(0, closing_hour + 1))
+    
+    hourly_distribution = [{"hour": h, "count": hourly_map.get(h, 0)} for h in hour_range]
 
     return {
         "couriers": courier_results,
