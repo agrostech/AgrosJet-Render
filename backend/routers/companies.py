@@ -1,19 +1,26 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
+import os
 
 from utils.database import db
 from utils.helpers import get_turkey_now, ensure_turkey_timezone, TURKEY_TZ
 
 router = APIRouter(prefix="/api", tags=["Companies"])
 
+LOGO_DIR = "/app/uploads/logos"
+os.makedirs(LOGO_DIR, exist_ok=True)
+
 
 # --- Pydantic Models ---
 class CompanyCreate(BaseModel):
     name: str
     logo_url: Optional[str] = ""
+    logo_dark: Optional[str] = ""
+    logo_light: Optional[str] = ""
     tckn_vkn: Optional[str] = ""
     address: Optional[str] = ""
     tax_office: Optional[str] = ""
@@ -26,6 +33,8 @@ class CompanyCreate(BaseModel):
 class CompanyUpdate(BaseModel):
     name: Optional[str] = None
     logo_url: Optional[str] = None
+    logo_dark: Optional[str] = None
+    logo_light: Optional[str] = None
     tckn_vkn: Optional[str] = None
     address: Optional[str] = None
     tax_office: Optional[str] = None
@@ -40,6 +49,8 @@ class CompanyResponse(BaseModel):
     id: str
     name: str
     logo_url: Optional[str] = None
+    logo_dark: Optional[str] = None
+    logo_light: Optional[str] = None
     tckn_vkn: Optional[str] = ""
     address: Optional[str] = ""
     tax_office: Optional[str] = ""
@@ -115,6 +126,10 @@ async def update_company(company_id: str, data: CompanyUpdate):
         update_data["name"] = data.name
     if data.logo_url is not None:
         update_data["logo_url"] = data.logo_url
+    if data.logo_dark is not None:
+        update_data["logo_dark"] = data.logo_dark
+    if data.logo_light is not None:
+        update_data["logo_light"] = data.logo_light
     if data.tckn_vkn is not None:
         update_data["tckn_vkn"] = data.tckn_vkn
     if data.address is not None:
@@ -137,6 +152,45 @@ async def update_company(company_id: str, data: CompanyUpdate):
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Şirket bulunamadı")
     return {"message": "Şirket güncellendi"}
+
+
+
+@router.post("/companies/{company_id}/logo")
+async def upload_company_logo(
+    company_id: str,
+    logo_type: str = Form(...),
+    file: UploadFile = File(...)
+):
+    """Logo yükle. logo_type: 'dark' veya 'light'"""
+    if logo_type not in ("dark", "light"):
+        raise HTTPException(status_code=400, detail="logo_type 'dark' veya 'light' olmalı")
+    
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0, "id": 1})
+    if not company:
+        raise HTTPException(status_code=404, detail="Şirket bulunamadı")
+    
+    ext = os.path.splitext(file.filename or "logo.png")[1] or ".png"
+    filename = f"{company_id}_{logo_type}{ext}"
+    filepath = os.path.join(LOGO_DIR, filename)
+    
+    content = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(content)
+    
+    logo_path = f"/api/companies/logo/{filename}"
+    field = f"logo_{logo_type}"
+    await db.companies.update_one({"id": company_id}, {"$set": {field: logo_path}})
+    
+    return {"message": "Logo yüklendi", "path": logo_path, "type": logo_type}
+
+
+@router.get("/companies/logo/{filename}")
+async def get_company_logo(filename: str):
+    """Logo dosyasını serve et"""
+    filepath = os.path.join(LOGO_DIR, filename)
+    if not os.path.exists(filepath):
+        raise HTTPException(status_code=404, detail="Logo bulunamadı")
+    return FileResponse(filepath)
 
 
 @router.delete("/companies/{company_id}")
