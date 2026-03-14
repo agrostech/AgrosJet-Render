@@ -162,7 +162,7 @@ export default function KarZararRaporu({ companyId }) {
           </div>
 
           {/* Ortalamalar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="p-3 border rounded-lg" data-testid="avg-profit-per-order">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                 <Package className="w-3.5 h-3.5" />
@@ -180,18 +180,6 @@ export default function KarZararRaporu({ companyId }) {
               <p className="text-lg font-bold text-slate-800">
                 {fmt(data.avg_hakedis_per_order)} TL
               </p>
-            </div>
-            <div className="p-3 border rounded-lg" data-testid="avg-hourly-rate">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <Clock className="w-3.5 h-3.5" />
-                Ort. Saatlik Kazanç
-              </div>
-              <p className="text-lg font-bold text-slate-800">
-                {data.total_hours > 0 ? `${fmt(data.avg_hourly_rate)} TL` : "—"}
-              </p>
-              {data.total_hours > 0 && (
-                <p className="text-xs text-muted-foreground">{data.total_hours} saat</p>
-              )}
             </div>
           </div>
         </div>
