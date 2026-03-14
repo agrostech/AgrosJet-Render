@@ -71,7 +71,7 @@ const generate58mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:112px;max-width:95%;object-fit:contain;margin-bottom:4px;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:112px;max-width:95%;object-fit:contain;margin:0;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -89,14 +89,14 @@ const generate58mmReceipt = (order, logoUrl = "") => {
           font-size: 11px; 
           width: 58mm; 
           margin: 0; 
-          padding: 4mm;
+          padding: 2mm 4mm;
           box-sizing: border-box;
           color: #000;
         }
-        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-        .header-info { font-size: 10px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px; }
+        .header-info { font-size: 10px; margin-top: 2px; display: flex; justify-content: space-between; align-items: center; }
         .platform { font-size: 10px; background: #000; color: #fff; padding: 2px 6px; display: inline-block; }
-        .section { margin: 8px 0; padding: 8px 0; border-bottom: 1px dashed #000; }
+        .section { margin: 4px 0; padding: 4px 0; border-bottom: 1px dashed #000; }
         .label { font-size: 9px; font-weight: bold; }
         .value { font-size: 11px; font-weight: bold; }
         .items-table { width: 100%; border-collapse: collapse; }
@@ -168,7 +168,7 @@ const generate80mmReceipt = (order, logoUrl = "") => {
     </tr>
   `).join("");
 
-  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:128px;max-width:95%;object-fit:contain;margin-bottom:6px;" />` : "";
+  const logoHtml = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="max-height:128px;max-width:95%;object-fit:contain;margin:0;" />` : "";
 
   return `
     <!DOCTYPE html>
@@ -186,21 +186,21 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           font-size: 12px; 
           width: 80mm; 
           margin: 0; 
-          padding: 5mm;
+          padding: 2mm 5mm;
           box-sizing: border-box;
           color: #000;
         }
         .header { 
           text-align: center; 
           border-bottom: 2px solid #000; 
-          padding-bottom: 10px; 
-          margin-bottom: 10px; 
+          padding-bottom: 4px; 
+          margin-bottom: 4px; 
         }
         .header-info {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-top: 6px;
+          margin-top: 2px;
           font-size: 11px;
         }
         .platform { 
@@ -211,15 +211,15 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           display: inline-block; 
         }
         .section { 
-          margin: 10px 0; 
-          padding: 10px 0; 
+          margin: 4px 0; 
+          padding: 4px 0; 
           border-bottom: 1px dashed #000; 
         }
         .section-title { 
           font-size: 10px; 
           text-transform: uppercase;
           letter-spacing: 1px;
-          margin-bottom: 4px;
+          margin-bottom: 2px;
           font-weight: bold;
         }
         .section-value { 
@@ -241,8 +241,8 @@ const generate80mmReceipt = (order, logoUrl = "") => {
           font-size: 12px;
         }
         .total-section {
-          padding: 10px 0;
-          margin-top: 10px;
+          padding: 6px 0;
+          margin-top: 4px;
           text-align: right;
           border-top: 1px dashed #000;
         }
@@ -255,16 +255,16 @@ const generate80mmReceipt = (order, logoUrl = "") => {
         }
         .payment { 
           text-align: center; 
-          padding: 8px; 
-          margin-top: 10px; 
+          padding: 6px; 
+          margin-top: 4px; 
           font-weight: bold;
           font-size: 14px;
           border: 2px solid #000;
         }
         .notes { 
           border: 1px dashed #000;
-          padding: 8px 12px; 
-          margin-top: 10px; 
+          padding: 6px 10px; 
+          margin-top: 4px; 
           font-size: 11px; 
         }
         .footer { 
