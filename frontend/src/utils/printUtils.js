@@ -140,6 +140,11 @@ const generate58mmReceipt = (order, logoUrl = "") => {
       </div>
 
       ${order.notes ? `<div class="notes"><strong>NOT:</strong> ${order.notes}</div>` : ""}
+
+      <div style="text-align:center;margin-top:6px;padding-top:4px;border-top:1px dashed #000;font-size:9px;line-height:1.5;">
+        www.AgrosJet.com.tr<br>
+        Afiyet olsun
+      </div>
     </body>
     </html>
   `;
@@ -298,6 +303,11 @@ const generate80mmReceipt = (order, logoUrl = "") => {
       </div>
 
       ${order.notes ? `<div class="notes"><strong>Sipariş Notu:</strong><br>${order.notes}</div>` : ""}
+
+      <div style="text-align:center;margin-top:8px;padding-top:6px;border-top:1px dashed #000;font-size:11px;line-height:1.6;">
+        www.AgrosJet.com.tr<br>
+        Afiyet olsun
+      </div>
     </body>
     </html>
   `;
@@ -318,31 +328,25 @@ export const printOrder = (order, paperSize = "80mm", logoUrl = "") => {
     ? generate58mmReceipt(order, logoUrl) 
     : generate80mmReceipt(order, logoUrl);
 
-  // Yeni pencere aç ve yazdır
-  const printWindow = window.open("", "_blank", "width=400,height=600");
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const printWindow = window.open(url, "_blank", "width=400,height=600");
   
   if (!printWindow) {
     console.error("Popup engellenmiş olabilir");
+    URL.revokeObjectURL(url);
     return;
   }
 
-  printWindow.document.write(html);
-  printWindow.document.close();
-
-  // Yazdırma dialogunu aç
   printWindow.onload = () => {
     setTimeout(() => {
       printWindow.print();
-      // Yazdırma sonrası pencereyi kapat (opsiyonel)
-      // printWindow.close();
     }, 250);
   };
 };
 
 /**
  * Sipariş fişini önizleme olarak aç (yazdırma komutu göndermeden)
- * @param {Object} order - Sipariş objesi
- * @param {string} paperSize - "58mm" veya "80mm"
  */
 export const previewOrder = (order, paperSize = "80mm", logoUrl = "") => {
   if (!order) {
@@ -354,15 +358,14 @@ export const previewOrder = (order, paperSize = "80mm", logoUrl = "") => {
     ? generate58mmReceipt(order, logoUrl) 
     : generate80mmReceipt(order, logoUrl);
 
-  const previewWindow = window.open("", "_blank", "width=400,height=600");
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const previewWindow = window.open(url, "_blank", "width=400,height=600");
   
   if (!previewWindow) {
     console.error("Popup engellenmiş olabilir");
-    return;
+    URL.revokeObjectURL(url);
   }
-
-  previewWindow.document.write(html);
-  previewWindow.document.close();
 };
 
 /**
