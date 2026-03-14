@@ -673,7 +673,7 @@ function KontorYonetimiPage() {
                   onClick={() => handleToggleUnlimited(company)}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${company.unlimited ? 'bg-blue-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${company.unlimited ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${company.unlimited ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
                 </button>
               </div>
               <div className="flex items-center gap-1">
