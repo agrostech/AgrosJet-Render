@@ -49,40 +49,25 @@ export default function ReportDateFilter({ companyId, onGenerate, loading, onPre
 
       switch (p) {
         case "dun":
-          return {
-            start: `${fmtDate(yesterday)}T${openingTime}`,
-            end: `${fmtDate(today)}T${closingTime}`,
-          };
+          return { start: `${fmtDate(yesterday)}T${openingTime}`, end: `${fmtDate(today)}T${closingTime}` };
         case "bugun":
-          return {
-            start: `${fmtDate(today)}T${openingTime}`,
-            end: `${fmtDate(tomorrow)}T${closingTime}`,
-          };
+          return { start: `${fmtDate(today)}T${openingTime}`, end: `${fmtDate(tomorrow)}T${closingTime}` };
         case "bu-hafta": {
           const mon = getMonday(today);
           const nextMon = new Date(mon);
           nextMon.setDate(mon.getDate() + 7);
-          return {
-            start: `${fmtDate(mon)}T${openingTime}`,
-            end: `${fmtDate(nextMon)}T${openingTime}`,
-          };
+          return { start: `${fmtDate(mon)}T${openingTime}`, end: `${fmtDate(nextMon)}T${openingTime}` };
         }
         case "gecen-hafta": {
           const thisMon = getMonday(today);
           const prevMon = new Date(thisMon);
           prevMon.setDate(thisMon.getDate() - 7);
-          return {
-            start: `${fmtDate(prevMon)}T${openingTime}`,
-            end: `${fmtDate(thisMon)}T${openingTime}`,
-          };
+          return { start: `${fmtDate(prevMon)}T${openingTime}`, end: `${fmtDate(thisMon)}T${openingTime}` };
         }
         case "bu-ay": {
           const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
           const nextFirstDay = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-          return {
-            start: `${fmtDate(firstDay)}T${openingTime}`,
-            end: `${fmtDate(nextFirstDay)}T${closingTime}`,
-          };
+          return { start: `${fmtDate(firstDay)}T${openingTime}`, end: `${fmtDate(nextFirstDay)}T${closingTime}` };
         }
         default:
           return null;
@@ -91,7 +76,6 @@ export default function ReportDateFilter({ companyId, onGenerate, loading, onPre
     [openingTime, closingTime]
   );
 
-  // Auto-generate on first ready with "bugun"
   useEffect(() => {
     if (ready && !autoFired.current) {
       autoFired.current = true;
@@ -133,53 +117,58 @@ export default function ReportDateFilter({ companyId, onGenerate, loading, onPre
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5" data-testid="report-date-filter">
-      {presets.map((p) => (
-        <Button
-          key={p.key}
-          size="sm"
-          variant={preset === p.key ? "default" : "outline"}
-          onClick={() => handlePreset(p.key)}
-          disabled={loading}
-          className="h-7 text-xs px-3 rounded-full"
-          data-testid={`filter-${p.key}`}
-        >
-          {p.key === "ozel" && <Calendar className="w-3 h-3 mr-1" />}
-          {p.label}
-        </Button>
-      ))}
+    <div className="space-y-2" data-testid="report-date-filter">
+      {/* Preset butonları - mobilde grid, masaüstünde flex */}
+      <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-1.5">
+        {presets.map((p) => (
+          <Button
+            key={p.key}
+            size="sm"
+            variant={preset === p.key ? "default" : "outline"}
+            onClick={() => handlePreset(p.key)}
+            disabled={loading}
+            className="h-8 sm:h-7 text-xs px-2 sm:px-3 rounded-full"
+            data-testid={`filter-${p.key}`}
+          >
+            {p.key === "ozel" && <Calendar className="w-3 h-3 mr-1" />}
+            {p.label}
+          </Button>
+        ))}
+        {loading && preset !== "ozel" && (
+          <div className="flex items-center justify-center sm:ml-1">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+          </div>
+        )}
+      </div>
 
+      {/* Manuel tarih aralığı - mobilde dikey, masaüstünde yatay */}
       {preset === "ozel" && (
-        <>
+        <div className="flex flex-col sm:flex-row gap-1.5 sm:items-center">
           <Input
             type="datetime-local"
             value={manualStart}
             onChange={(e) => setManualStart(e.target.value)}
-            className="h-7 w-auto text-xs ml-1"
+            className="h-8 text-xs w-full sm:w-auto"
             data-testid="filter-manual-start"
           />
-          <span className="text-muted-foreground text-xs">-</span>
+          <span className="text-muted-foreground text-xs text-center hidden sm:block">-</span>
           <Input
             type="datetime-local"
             value={manualEnd}
             onChange={(e) => setManualEnd(e.target.value)}
-            className="h-7 w-auto text-xs"
+            className="h-8 text-xs w-full sm:w-auto"
             data-testid="filter-manual-end"
           />
           <Button
             size="sm"
             onClick={handleManualGenerate}
             disabled={loading || !manualStart || !manualEnd}
-            className="h-7 text-xs px-3"
+            className="h-8 text-xs px-4 w-full sm:w-auto"
             data-testid="filter-manual-generate"
           >
             {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Uygula"}
           </Button>
-        </>
-      )}
-
-      {loading && preset !== "ozel" && (
-        <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground ml-1" />
+        </div>
       )}
     </div>
   );
