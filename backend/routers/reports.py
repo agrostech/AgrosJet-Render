@@ -1061,8 +1061,8 @@ async def get_profit_loss_report(
     start_str = start_datetime.replace("T", "T") + ":00"
     end_str = end_datetime.replace("T", "T") + ":59"
 
-    # --- Gelir: Tüm delivered siparişlerin restaurant_fee toplamı ---
-    revenue_pipeline = [
+    # --- Gelir + Kurye Hakediş: Tüm delivered siparişlerden ---
+    orders_pipeline = [
         {
             "$match": {
                 "company_id": company_id,
@@ -1074,34 +1074,14 @@ async def get_profit_loss_report(
             "$group": {
                 "_id": None,
                 "total_revenue": {"$sum": {"$ifNull": ["$restaurant_fee", 0]}},
+                "total_courier_fee": {"$sum": {"$ifNull": ["$courier_fee", 0]}},
                 "order_count": {"$sum": 1}
             }
         }
     ]
-    revenue_results = await db.orders.aggregate(revenue_pipeline).to_list(1)
+    orders_results = await db.orders.aggregate(orders_pipeline).to_list(1)
 
-    # --- Gider 1: Kurye hakedişleri ---
-    courier_expense_pipeline = [
-        {
-            "$match": {
-                "company_id": company_id,
-                "entity_type": "courier",
-                "is_hakedis": True,
-                "type": "payment_in",
-                "created_at": {"$gte": start_str, "$lte": end_str}
-            }
-        },
-        {
-            "$group": {
-                "_id": None,
-                "total": {"$sum": "$amount"},
-                "count": {"$sum": 1}
-            }
-        }
-    ]
-    courier_expense_results = await db.transactions.aggregate(courier_expense_pipeline).to_list(1)
-
-    # --- Gider 2: Yönetici hakedişleri ---
+    # --- Gider 2: Yönetici hakedişleri (transactions'dan) ---
     admin_expense_pipeline = [
         {
             "$match": {
@@ -1141,11 +1121,9 @@ async def get_profit_loss_report(
     ]
     hours_results = await db.courier_status_logs.aggregate(hours_pipeline).to_list(1)
 
-    total_revenue = round(revenue_results[0]["total_revenue"], 2) if revenue_results else 0
-    order_count = revenue_results[0]["order_count"] if revenue_results else 0
-
-    courier_expense = round(courier_expense_results[0]["total"], 2) if courier_expense_results else 0
-    courier_hakedis_count = courier_expense_results[0]["count"] if courier_expense_results else 0
+    total_revenue = round(orders_results[0]["total_revenue"], 2) if orders_results else 0
+    order_count = orders_results[0]["order_count"] if orders_results else 0
+    courier_expense = round(orders_results[0]["total_courier_fee"], 2) if orders_results else 0
 
     admin_expense = round(admin_expense_results[0]["total"], 2) if admin_expense_results else 0
     admin_hakedis_count = admin_expense_results[0]["count"] if admin_expense_results else 0
@@ -1165,7 +1143,6 @@ async def get_profit_loss_report(
         "total_revenue": total_revenue,
         "order_count": order_count,
         "courier_expense": courier_expense,
-        "courier_hakedis_count": courier_hakedis_count,
         "admin_expense": admin_expense,
         "admin_hakedis_count": admin_hakedis_count,
         "total_expense": total_expense,

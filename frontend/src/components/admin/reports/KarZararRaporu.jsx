@@ -126,7 +126,7 @@ export default function KarZararRaporu({ companyId }) {
                       <span className="font-medium">Kurye Hakediş (Gider)</span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-right text-muted-foreground">{data.courier_hakedis_count} işlem</td>
+                  <td className="py-3 px-4 text-right text-muted-foreground">{data.order_count} sipariş</td>
                   <td className="py-3 px-4 text-right font-semibold text-slate-800">{fmt(data.courier_expense)} TL</td>
                 </tr>
 
