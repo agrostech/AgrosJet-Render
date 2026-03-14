@@ -1419,18 +1419,14 @@ function KuryelerPage() {
                   <p className="text-[10px] text-muted-foreground leading-tight">
                     {courier.phone}
                     {courier.created_at && <span className="ml-1.5">· {new Date(courier.created_at).toLocaleDateString('tr-TR')}</span>}
+                    {(courier.company_names || []).length > 0 && (
+                      <span className="ml-1.5">· {courier.company_names.join(', ')}</span>
+                    )}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <div className="flex flex-wrap gap-0.5 max-w-[120px]">
-                    {(courier.company_names || []).map((name, idx) => (
-                      <span key={idx} className="px-1 py-0.5 bg-slate-100 text-[9px] rounded truncate max-w-[60px]">{name}</span>
-                    ))}
-                  </div>
-                  <Button size="sm" variant="ghost" onClick={() => handleDeleteCourier(courier)} className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" title="Sil">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
+                <Button size="sm" variant="ghost" onClick={() => handleDeleteCourier(courier)} className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0" title="Sil">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
               </div>
             </div>
           ))
