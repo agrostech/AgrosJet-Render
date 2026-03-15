@@ -67,7 +67,7 @@ async function addCompanyLogo(doc, companyId, pageWidth) {
     if (w > maxW) { w = maxW; h = w / aspect; }
     console.log("[LOGO] Step 5 - Adding to PDF at:", pageWidth - w - 14, 5, "size:", w, "x", h);
 
-    doc.addImage(dataUrl, 'PNG', pageWidth - w - 14, 5, w, h);
+    doc.addImage(dataUrl, 'PNG', pageWidth - w - 20, 8, w, h);
     console.log("[LOGO] SUCCESS - Logo added to PDF");
   } catch (e) {
     console.error("[LOGO] EXCEPTION:", e);

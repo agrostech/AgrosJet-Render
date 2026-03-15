@@ -519,7 +519,7 @@ export function useAccountingTab({
           let w = maxH * aspect;
           let h = maxH;
           if (w > maxW) { w = maxW; h = w / aspect; }
-          doc.addImage(dataUrl, 'PNG', pageWidth - w - 14, 5, w, h);
+          doc.addImage(dataUrl, 'PNG', pageWidth - w - 20, 8, w, h);
         }
       } catch (e) {
         console.log("Logo yüklenemedi:", e);
