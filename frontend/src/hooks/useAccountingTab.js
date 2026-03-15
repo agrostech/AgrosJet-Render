@@ -513,8 +513,8 @@ export function useAccountingTab({
             i.onload = () => resolve(i);
             i.src = dataUrl;
           });
-          const maxH = 22;
-          const maxW = 50;
+          const maxH = 15;
+          const maxW = 35;
           const aspect = img.naturalWidth / img.naturalHeight;
           let w = maxH * aspect;
           let h = maxH;

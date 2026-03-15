@@ -61,7 +61,7 @@ async function addCompanyLogo(doc, companyId, pageWidth) {
       i.src = dataUrl;
     });
     console.log("[LOGO] Step 4 - Image dimensions:", img.naturalWidth, "x", img.naturalHeight);
-    const maxH = 22, maxW = 50;
+    const maxH = 15, maxW = 35;
     const aspect = img.naturalWidth / img.naturalHeight;
     let w = maxH * aspect, h = maxH;
     if (w > maxW) { w = maxW; h = w / aspect; }
