@@ -21,45 +21,56 @@ function formatDateTR(dateStr) {
 }
 
 async function addCompanyLogo(doc, companyId, pageWidth) {
-  if (!companyId) return;
+  if (!companyId) { console.error("[LOGO] companyId yok!"); return; }
   try {
     // Step 1: Get company data to find logo path
-    const compRes = await fetch(`${BACKEND}/api/companies/${companyId}`);
-    if (!compRes.ok) return;
+    const compUrl = `${BACKEND}/api/companies/${companyId}`;
+    console.log("[LOGO] Step 1 - Fetching company:", compUrl);
+    const compRes = await fetch(compUrl);
+    console.log("[LOGO] Step 1 - Response status:", compRes.status);
+    if (!compRes.ok) { console.error("[LOGO] Step 1 FAILED - status:", compRes.status); return; }
     const company = await compRes.json();
     const logoPath = company.logo_light || company.logo_url;
-    if (!logoPath) return;
+    console.log("[LOGO] Step 1 - logo_light:", company.logo_light, "logo_url:", company.logo_url, "chosen:", logoPath);
+    if (!logoPath) { console.error("[LOGO] Step 1 FAILED - no logo path found"); return; }
 
     // Step 2: Fetch logo image
     const logoUrl = logoPath.startsWith('/')
       ? `${BACKEND}${logoPath}`
       : `${BACKEND}/api/proxy-image?url=${encodeURIComponent(logoPath)}`;
+    console.log("[LOGO] Step 2 - Fetching image:", logoUrl);
     const logoRes = await fetch(logoUrl);
-    if (!logoRes.ok) return;
+    console.log("[LOGO] Step 2 - Response status:", logoRes.status, "content-type:", logoRes.headers.get('content-type'));
+    if (!logoRes.ok) { console.error("[LOGO] Step 2 FAILED - status:", logoRes.status); return; }
 
     // Step 3: Convert to dataURL
     const blob = await logoRes.blob();
+    console.log("[LOGO] Step 3 - Blob size:", blob.size, "type:", blob.type);
     const dataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
       reader.readAsDataURL(blob);
     });
+    console.log("[LOGO] Step 3 - DataURL length:", dataUrl.length, "starts with:", dataUrl.substring(0, 30));
 
     // Step 4: Get image dimensions for aspect ratio
     const img = await new Promise((resolve, reject) => {
       const i = new window.Image();
       i.onload = () => resolve(i);
-      i.onerror = reject;
+      i.onerror = (e) => { console.error("[LOGO] Step 4 FAILED - Image load error:", e); reject(e); };
       i.src = dataUrl;
     });
+    console.log("[LOGO] Step 4 - Image dimensions:", img.naturalWidth, "x", img.naturalHeight);
     const maxH = 22, maxW = 50;
     const aspect = img.naturalWidth / img.naturalHeight;
     let w = maxH * aspect, h = maxH;
     if (w > maxW) { w = maxW; h = w / aspect; }
+    console.log("[LOGO] Step 5 - Adding to PDF at:", pageWidth - w - 14, 5, "size:", w, "x", h);
 
     doc.addImage(dataUrl, 'PNG', pageWidth - w - 14, 5, w, h);
+    console.log("[LOGO] SUCCESS - Logo added to PDF");
   } catch (e) {
-    console.log("Logo eklenemedi:", e);
+    console.error("[LOGO] EXCEPTION:", e);
   }
 }
 
