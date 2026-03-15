@@ -379,6 +379,12 @@ async def update_courier_availability(courier_id: str, data: AvailabilityStatusU
                 update_data["break_start_time"] = None
             except:
                 pass
+        
+        # break_queue kaydını completed olarak güncelle
+        await db.break_queue.update_many(
+            {"courier_id": courier_id, "status": {"$in": ["waiting", "ready", "active"]}},
+            {"$set": {"status": "completed", "completed_at": now.isoformat(), "updated_at": now.isoformat()}}
+        )
     
     result = await db.couriers.update_one(
         {"id": courier_id},
