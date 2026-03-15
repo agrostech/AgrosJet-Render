@@ -20,20 +20,20 @@ export default function RaporlarTab({ companyId, isSuperAdmin, companyLogo, comp
   return (
     <div>
       {/* Mobilde yatay kaydırılabilir, masaüstünde normal */}
-      <div className="overflow-x-auto scrollbar-hide mb-4 -mx-1 px-1">
-        <div className="flex gap-0.5 sm:gap-1 border-b-2 border-slate-200 min-w-max">
+      <div className="overflow-x-auto scrollbar-hide scroll-smooth mb-4">
+        <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
           {SUB_TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveSubTab(tab.key)}
-              className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
                 activeSubTab === tab.key
                   ? "border-primary text-primary bg-primary/5"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
               }`}
               data-testid={`sub-tab-${tab.key}`}
             >
-              <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <tab.icon className="w-4 h-4" />
               {tab.label}
             </button>
           ))}

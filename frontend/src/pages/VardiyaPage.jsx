@@ -202,7 +202,8 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
       </div>
 
       {/* Alt Sekmeler */}
-      <div className="flex gap-1.5 border-b border-slate-200 pb-0 overflow-x-auto">
+      <div className="overflow-x-auto scrollbar-hide scroll-smooth">
+        <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
         {[
           { id: "shifts", label: "Vardiyalar", icon: Clock },
           { id: "violations", label: "İhlaller", icon: AlertTriangle },
@@ -212,17 +213,18 @@ export default function VardiyaPage({ companyId, isSuperAdmin }) {
           <button
             key={tab.id}
             onClick={() => setSubTab(tab.id)}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-2 sm:py-2.5 font-semibold text-xs sm:text-sm whitespace-nowrap border-b-2 -mb-px transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-[2px] transition-colors ${
               subTab === tab.id 
-                ? "border-primary text-primary" 
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                ? "border-primary text-primary bg-primary/5" 
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
             }`}
             data-testid={`subtab-${tab.id}`}
           >
-            <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <tab.icon className="w-4 h-4" />
             {tab.label}
           </button>
         ))}
+        </div>
       </div>
 
       {/* Alt Sekme İçerikleri */}
