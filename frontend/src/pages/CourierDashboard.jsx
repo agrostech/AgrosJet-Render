@@ -701,7 +701,7 @@ export default function CourierDashboard() {
           
           {/* Footer */}
           <footer className="bg-white dark:bg-slate-800 border-t dark:border-slate-700 py-2 text-center">
-            <span className="text-[10px] text-muted-foreground">© 2026 AgrosJet · Powered by AgrosTech</span>
+            <span className="text-[10px] text-muted-foreground">© 2026 AgrosJet · Powered by AgrosTech.</span>
           </footer>
         </main>
       </div>
