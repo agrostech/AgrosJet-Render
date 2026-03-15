@@ -156,8 +156,8 @@ export async function exportKuryeRaporuPDF({ reportData, companyLogo, companyNam
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = reportData.summary;
 
-  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Kurye Raporu", companyName || "");
+  await addCompanyLogo(doc, companyId, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -217,8 +217,8 @@ export async function exportRestoranRaporuPDF({ reportData, companyLogo, company
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = reportData.summary;
 
-  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Restoran Raporu", companyName || "");
+  await addCompanyLogo(doc, companyId, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -289,8 +289,8 @@ export async function exportCiroRaporuPDF({ data, companyLogo, companyName, date
   const pageWidth = doc.internal.pageSize.getWidth();
   const s = data.summary;
 
-  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Ciro Raporu", companyName || "");
+  await addCompanyLogo(doc, companyId, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -353,8 +353,8 @@ export async function exportKarZararRaporuPDF({ data, companyLogo, companyName, 
   const doc = initDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Kar / Zarar Raporu", companyName || "");
+  await addCompanyLogo(doc, companyId, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
@@ -436,8 +436,8 @@ export async function exportPerformansRaporuPDF({ data, companyLogo, companyName
   const doc = initDoc();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  await addCompanyLogo(doc, companyId, pageWidth);
   drawHeader(doc, "Performans Raporu", companyName || "");
+  await addCompanyLogo(doc, companyId, pageWidth);
 
   let currentY = drawDateRange(doc, dateRange?.start, dateRange?.end, 38);
 
