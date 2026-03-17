@@ -260,6 +260,34 @@ class MigrosYemekService:
         }
         return await self._make_request("POST", "/Order/v2/CancelOrder", data)
     
+    async def add_store_off_date(
+        self,
+        store_id: int,
+        store_group_id: int,
+        off_date_option: str = "NEXT_WORK_HOUR"
+    ) -> Dict[str, Any]:
+        """Restoranı geçici olarak kapat (AddStoreOffDate)
+        off_date_option: ONE_HOUR, FOUR_HOUR, NEXT_WORK_HOUR
+        """
+        data = {
+            "storeId": store_id,
+            "storeGroupId": store_group_id,
+            "storeOffDateOption": off_date_option
+        }
+        return await self._make_request("POST", "/Store/AddStoreOffDate", data)
+    
+    async def remove_store_off_date(
+        self,
+        store_id: int,
+        store_group_id: int
+    ) -> Dict[str, Any]:
+        """Restorandaki geçici kapatmayı kaldır (RemoveStoreOffDate)"""
+        data = {
+            "storeId": store_id,
+            "storeGroupId": store_group_id
+        }
+        return await self._make_request("POST", "/Store/RemoveStoreOffDate", data)
+    
     async def test_connection(self) -> Dict[str, Any]:
         """Bağlantı testi - sipariş durum listesini çek"""
         try:

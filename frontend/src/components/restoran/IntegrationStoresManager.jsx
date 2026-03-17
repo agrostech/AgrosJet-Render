@@ -153,7 +153,8 @@ export default function IntegrationStoresManager({ restaurantId }) {
   const [testing, setTesting] = useState({});
   const [syncing, setSyncing] = useState({});
   const [updatingStatus, setUpdatingStatus] = useState({});
-  const [statusCooldown, setStatusCooldown] = useState({}); // Rate limit için cooldown
+  const [statusCooldown, setStatusCooldown] = useState({});
+  const [migrosCloseDialog, setMigrosCloseDialog] = useState({ show: false, storeId: null }); // Rate limit için cooldown
 
   useEffect(() => {
     if (restaurantId) {
@@ -305,7 +306,7 @@ export default function IntegrationStoresManager({ restaurantId }) {
   };
 
   // Update status (open/close) with rate limit
-  const handleStatusUpdate = async (storeId, isOpen) => {
+  const handleStatusUpdate = async (storeId, isOpen, storeOffOption = null) => {
     // Rate limit kontrolü - 60 saniye içinde 1 kez
     const store = stores.find(s => s.id === storeId);
     const isGetir = store?.platform === "getir";
@@ -320,9 +321,10 @@ export default function IntegrationStoresManager({ restaurantId }) {
     
     setUpdatingStatus(prev => ({ ...prev, [storeId]: true }));
     try {
-      await axios.put(`${API}/integration-stores/${restaurantId}/${storeId}/status`, {
-        is_open: isOpen
-      });
+      const body = { is_open: isOpen };
+      if (storeOffOption) body.store_off_option = storeOffOption;
+      
+      await axios.put(`${API}/integration-stores/${restaurantId}/${storeId}/status`, body);
       toast.success(`Mağaza ${isOpen ? "açıldı" : "kapatıldı"}`);
       
       // Getir için 60 saniyelik cooldown başlat
@@ -335,6 +337,7 @@ export default function IntegrationStoresManager({ restaurantId }) {
       toast.error(err.response?.data?.detail || err.response?.data?.error || "Durum güncellenemedi");
     } finally {
       setUpdatingStatus(prev => ({ ...prev, [storeId]: false }));
+      setMigrosCloseDialog({ show: false, storeId: null });
     }
   };
 
@@ -624,7 +627,13 @@ export default function IntegrationStoresManager({ restaurantId }) {
                                     <Button
                                       size="sm"
                                       variant={!store.is_open ? "outline" : "destructive"}
-                                      onClick={() => handleStatusUpdate(store.id, false)}
+                                      onClick={() => {
+                                        if (store.platform === "migros") {
+                                          setMigrosCloseDialog({ show: true, storeId: store.id });
+                                        } else {
+                                          handleStatusUpdate(store.id, false);
+                                        }
+                                      }}
                                       disabled={updatingStatus[store.id] || !store.is_open || (store.platform === "getir" && statusCooldown[store.id] > Date.now())}
                                       className="h-8 px-2"
                                     >
@@ -774,6 +783,50 @@ export default function IntegrationStoresManager({ restaurantId }) {
             >
               Sil
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Migros Geçici Kapatma Dialog */}
+      <AlertDialog open={migrosCloseDialog.show} onOpenChange={(open) => !open && setMigrosCloseDialog({ show: false, storeId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Migros Geçici Kapatma</AlertDialogTitle>
+            <AlertDialogDescription>
+              Restoranı ne kadar süreliğine kapatmak istiyorsunuz?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2 py-2" data-testid="migros-close-options">
+            <Button
+              variant="outline"
+              className="justify-start"
+              disabled={updatingStatus[migrosCloseDialog.storeId]}
+              onClick={() => handleStatusUpdate(migrosCloseDialog.storeId, false, "ONE_HOUR")}
+              data-testid="migros-close-1h"
+            >
+              1 Saat
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start"
+              disabled={updatingStatus[migrosCloseDialog.storeId]}
+              onClick={() => handleStatusUpdate(migrosCloseDialog.storeId, false, "FOUR_HOUR")}
+              data-testid="migros-close-4h"
+            >
+              4 Saat
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start"
+              disabled={updatingStatus[migrosCloseDialog.storeId]}
+              onClick={() => handleStatusUpdate(migrosCloseDialog.storeId, false, "NEXT_WORK_HOUR")}
+              data-testid="migros-close-next-work"
+            >
+              Sonraki Mesai Başlangıcına Kadar
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

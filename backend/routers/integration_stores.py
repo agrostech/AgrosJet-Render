@@ -61,6 +61,46 @@ async def test_migros_connection(credentials: dict) -> dict:
         return {"success": False, "error": str(e)}
 
 
+async def update_migros_store_status(store: dict, is_open: bool, store_off_option: str = None) -> dict:
+    """Migros mağaza açık/kapalı durumunu güncelle (AddStoreOffDate / RemoveStoreOffDate)"""
+    try:
+        creds = store.get("credentials", {})
+        api_key = creds.get("api_key")
+        secret_key = creds.get("secret_key")
+        store_id = creds.get("store_id")
+        store_group_id = creds.get("store_group_id")
+        
+        is_test = creds.get("is_test", True)
+        if isinstance(is_test, str):
+            is_test = is_test.lower() not in ("false", "0", "no", "")
+        
+        if not all([api_key, secret_key, store_id, store_group_id]):
+            return {"success": False, "error": "Migros credentials eksik (api_key, secret_key, store_id, store_group_id)"}
+        
+        service = MigrosYemekService(
+            api_key=api_key,
+            secret_key=secret_key,
+            is_test=bool(is_test)
+        )
+        
+        if is_open:
+            result = await service.remove_store_off_date(
+                store_id=int(store_id),
+                store_group_id=int(store_group_id)
+            )
+        else:
+            off_option = store_off_option or "NEXT_WORK_HOUR"
+            result = await service.add_store_off_date(
+                store_id=int(store_id),
+                store_group_id=int(store_group_id),
+                off_date_option=off_option
+            )
+        
+        return result
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 # --- Pydantic Models ---
 
 class TrendyolCredentials(BaseModel):
@@ -98,6 +138,7 @@ class StoreUpdateRequest(BaseModel):
 class StoreStatusRequest(BaseModel):
     is_open: bool
     time_off_amount: Optional[int] = None  # Getir için: 15, 30, 45
+    store_off_option: Optional[str] = None  # Migros için: ONE_HOUR, FOUR_HOUR, NEXT_WORK_HOUR
 
 
 # --- Helper Functions ---
@@ -455,6 +496,8 @@ async def update_store_status(restaurant_id: str, store_id: str, data: StoreStat
         result = await trendyol_update_status(restaurant_id, data.is_open)
     elif platform == "getir":
         result = await update_getir_restaurant_status(restaurant_id, data.is_open, data.time_off_amount)
+    elif platform == "migros":
+        result = await update_migros_store_status(store, data.is_open, data.store_off_option)
     # TODO: yemeksepeti status
     
     if result.get("success"):
