@@ -1104,6 +1104,7 @@ export default function RestaurantAnasayfa({ orders, loading, onUpdateStatus, on
         order={actionModal.order}
         actionType={actionModal.actionType}
         onConfirm={handleActionConfirm}
+        restaurantId={restaurantId}
       />
     </div>
   );

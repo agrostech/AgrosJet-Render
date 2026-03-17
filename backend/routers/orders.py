@@ -322,8 +322,8 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                         elif new_status == "cancelled":
                             # İptal için /Order/v2/CancelOrder endpoint'ini kullan
                             migros_user_id = migros_data.get("user_id")
-                            # cancelReasonId: Migros iptal sebep kodu (varsayılan: 1 = Restoran tarafından iptal)
-                            migros_cancel_reason = 1
+                            # Frontend'den gelen cancel_reason_id'yi kullan
+                            migros_cancel_reason = int(cancel_reason_id) if cancel_reason_id else 1
                             
                             cancel_result = await service.cancel_order(
                                 order_id=migros_order_id,
@@ -1497,12 +1497,57 @@ async def generate_mock_orders(company_id: str, count: int = 5, restaurant_id: s
 
 # Platform İptal Sebepleri (Bu endpoint'ler dinamik olanlardan ÖNCE gelmeli!)
 @router.get("/platform-cancel-reasons/{source}")
-async def get_cancel_reasons_by_platform(source: str):
+async def get_cancel_reasons_by_platform(source: str, restaurant_id: Optional[str] = None):
     """
     Platform bazlı iptal sebeplerini döndür
     
-    source: getir, trendyol, yemeksepeti, adisyo, manual, vb.
+    source: getir, trendyol, yemeksepeti, migros, adisyo, manual, vb.
+    restaurant_id: Migros için gerekli (API'den çekmek için)
     """
+    # Migros için API'den çek
+    if source == "migros" and restaurant_id:
+        try:
+            restaurant = await db.restaurants.find_one(
+                {"id": restaurant_id},
+                {"_id": 0, "platform_integrations.migros": 1, "integration_stores": 1}
+            )
+            if restaurant:
+                migros_config = restaurant.get("platform_integrations", {}).get("migros", {})
+                if not migros_config.get("api_key"):
+                    for store in restaurant.get("integration_stores", []):
+                        if store.get("platform") == "migros" and store.get("enabled"):
+                            creds = store.get("credentials", {})
+                            migros_config = {
+                                "api_key": creds.get("api_key"),
+                                "secret_key": creds.get("secret_key"),
+                                "is_test": creds.get("is_test", True)
+                            }
+                            break
+                
+                if migros_config.get("api_key"):
+                    is_test = migros_config.get("is_test", True)
+                    if isinstance(is_test, str):
+                        is_test = is_test.lower() not in ("false", "0", "no", "")
+                    
+                    from services.migros_service import MigrosYemekService
+                    service = MigrosYemekService(
+                        api_key=migros_config["api_key"],
+                        secret_key=migros_config["secret_key"],
+                        is_test=bool(is_test)
+                    )
+                    result = await service.get_cancel_reasons()
+                    if result.get("success") is not False and result.get("data"):
+                        data = result["data"]
+                        reasons_list = data if isinstance(data, list) else []
+                        if reasons_list:
+                            reasons = [
+                                {"id": str(r.get("reasonId", r.get("id", ""))), "label": r.get("name", r.get("label", ""))}
+                                for r in reasons_list
+                            ]
+                            return {"success": True, "source": source, "reasons": reasons}
+        except Exception as e:
+            logger.warning(f"Migros iptal sebepleri alınamadı: {e}")
+    
     reasons = PLATFORM_CANCEL_REASONS.get(source, PLATFORM_CANCEL_REASONS["default"])
     return {
         "success": True,

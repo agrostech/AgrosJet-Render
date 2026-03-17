@@ -29,6 +29,7 @@ export default function CancelModal({
   order,
   actionType, // "cancelled" veya "delivered"
   onConfirm,
+  restaurantId,
 }) {
   const [cancelReasons, setCancelReasons] = useState([]);
   const [selectedReason, setSelectedReason] = useState("");
@@ -38,6 +39,8 @@ export default function CancelModal({
   const isCancel = actionType === "cancelled";
   const source = order?.source || "manual";
   const isGetir = source === "getir";
+  const isMigros = source === "migros";
+  const isReasonRequired = (isGetir || isMigros) && isCancel;
 
   // Modal açıldığında iptal sebeplerini çek
   useEffect(() => {
@@ -49,7 +52,8 @@ export default function CancelModal({
   const fetchCancelReasons = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/orders/platform-cancel-reasons/${source}`);
+      const params = source === "migros" && restaurantId ? `?restaurant_id=${restaurantId}` : "";
+      const res = await axios.get(`${API}/orders/platform-cancel-reasons/${source}${params}`);
       setCancelReasons(res.data.reasons || []);
     } catch (err) {
       console.error("İptal sebepleri yüklenemedi:", err);
@@ -75,8 +79,7 @@ export default function CancelModal({
     onOpenChange?.(false);
   };
 
-  // Getir için sebep zorunlu mu?
-  const isReasonRequired = isGetir && isCancel;
+  // Getir/Migros için sebep zorunlu mu?
   const canConfirm = !isReasonRequired || selectedReason;
 
   return (
@@ -109,7 +112,7 @@ export default function CancelModal({
                 <div className="space-y-3 pt-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
-                      İptal Sebebi {isGetir && <span className="text-red-500">*</span>}
+                      İptal Sebebi {isReasonRequired && <span className="text-red-500">*</span>}
                     </label>
                     <Select value={selectedReason} onValueChange={setSelectedReason}>
                       <SelectTrigger className="w-full" data-testid="cancel-reason-select">
@@ -137,9 +140,9 @@ export default function CancelModal({
                     />
                   </div>
 
-                  {isGetir && !selectedReason && (
+                  {isReasonRequired && !selectedReason && (
                     <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                      Getir siparişleri için iptal sebebi seçmeniz zorunludur.
+                      {isMigros ? "Migros" : "Getir"} siparişleri için iptal sebebi seçmeniz zorunludur.
                     </p>
                   )}
                 </div>

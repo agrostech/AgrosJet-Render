@@ -685,13 +685,13 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   }, [focusMapOnCourier]);
 
   // Onay gerektiren durum değişikliği kontrolü
-  const handleStatusChangeRequest = (orderId, newStatus, preparationTime = null, customerName = null, orderSource = null) => {
+  const handleStatusChangeRequest = (orderId, newStatus, preparationTime = null, customerName = null, orderSource = null, restaurantId = null) => {
     // Teslim edildi veya iptal edildi için onay iste
     if (newStatus === 'delivered' || newStatus === 'cancelled') {
-      setConfirmStatusModal({ open: true, orderId, newStatus, customerName, preparationTime, orderSource });
+      setConfirmStatusModal({ open: true, orderId, newStatus, customerName, preparationTime, orderSource, restaurantId });
       // İptal durumunda sebepleri yükle
       if (newStatus === 'cancelled' && orderSource) {
-        fetchCancelReasons(orderSource);
+        fetchCancelReasons(orderSource, restaurantId);
       }
     } else {
       handleUpdateStatus(orderId, newStatus, preparationTime);
@@ -699,9 +699,10 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
   };
 
   // İptal sebeplerini yükle
-  const fetchCancelReasons = async (source) => {
+  const fetchCancelReasons = async (source, restaurantId = null) => {
     try {
-      const res = await axios.get(`${API}/orders/platform-cancel-reasons/${source}`);
+      const params = source === "migros" && restaurantId ? `?restaurant_id=${restaurantId}` : "";
+      const res = await axios.get(`${API}/orders/platform-cancel-reasons/${source}${params}`);
       setCancelReasons(res.data.reasons || []);
     } catch (err) {
       console.error("İptal sebepleri yüklenemedi:", err);
@@ -1174,9 +1175,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                                 value={order.status} 
                                 onValueChange={(newValue) => {
                                   if (newValue.startsWith('preparing_')) {
-                                    handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name, order.source);
+                                    handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name, order.source, order.restaurant_id);
                                   } else {
-                                    handleStatusChangeRequest(order.id, newValue, null, order.customer_name, order.source);
+                                    handleStatusChangeRequest(order.id, newValue, null, order.customer_name, order.source, order.restaurant_id);
                                   }
                                 }}
                               >
@@ -1450,9 +1451,9 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
                               value={order.status} 
                               onValueChange={(newValue) => {
                                 if (newValue.startsWith('preparing_')) {
-                                  handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name, order.source);
+                                  handleStatusChangeRequest(order.id, 'preparing', parseInt(newValue.split('_')[1]), order.customer_name, order.source, order.restaurant_id);
                                 } else {
-                                  handleStatusChangeRequest(order.id, newValue, null, order.customer_name, order.source);
+                                  handleStatusChangeRequest(order.id, newValue, null, order.customer_name, order.source, order.restaurant_id);
                                 }
                               }}
                             >
@@ -1869,7 +1870,7 @@ export default function SiparisYonetimiPage({ companyId, adminName, isSuperAdmin
               <Button 
                 onClick={handleConfirmStatusChange}
                 className={confirmStatusModal.newStatus === 'delivered' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-                disabled={confirmStatusModal.newStatus === 'cancelled' && confirmStatusModal.orderSource === 'getir' && !selectedCancelReason}
+                disabled={confirmStatusModal.newStatus === 'cancelled' && (confirmStatusModal.orderSource === 'getir' || confirmStatusModal.orderSource === 'migros') && !selectedCancelReason}
               >
                 {confirmStatusModal.newStatus === 'delivered' ? 'Teslim Edildi' : 'İptal Et'}
               </Button>
