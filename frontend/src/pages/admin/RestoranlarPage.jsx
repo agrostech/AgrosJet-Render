@@ -831,81 +831,55 @@ export default function RestoranlarPage({ companyId }) {
         </div>
         
         {/* Mobile Cards */}
-        <div className="md:hidden space-y-2.5">
+        <div className="md:hidden space-y-1.5">
           {filteredRestaurants.map((restaurant) => (
             <div 
               key={restaurant.id}
-              className="border rounded-lg p-3 bg-white"
+              className={`border rounded-lg px-2.5 py-2 bg-white dark:bg-card ${restaurant.is_archived ? 'border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-950/30' : ''}`}
               data-testid={`restaurant-card-${restaurant.id}`}
             >
-              {/* Başlık + hızlı aksiyonlar */}
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Store className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                  <p className="font-semibold text-sm truncate">{restaurant.name}</p>
+              {/* Tek satir: bilgi + tum butonlar */}
+              <div className="flex items-center gap-2">
+                <Store className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-sm truncate leading-tight">{restaurant.name}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    {restaurant.preparation_time || 15}dk
+                    {restaurant.address && <span className="ml-1">· {restaurant.address.substring(0, 30)}</span>}
+                    {restaurant.is_archived && <span className="ml-1 text-orange-600 font-semibold">Arsivli</span>}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                  <span className="text-xs text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded">{restaurant.preparation_time || 15}dk</span>
-                  <Button size="sm" variant="ghost" onClick={() => openEditModal(restaurant)} className="h-7 w-7 p-0" data-testid={`edit-restaurant-mobile-${restaurant.id}`}>
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleImpersonate(restaurant)} className="h-7 w-7 p-0" data-testid={`impersonate-restaurant-mobile-${restaurant.id}`}>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </Button>
+                {/* Ayar + aksiyon ikonlari tek sirada */}
+                <div className="flex items-center gap-0.5 flex-shrink-0">
+                  <button onClick={() => openPricingModal(restaurant)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Ucretlendirme"><span className="font-bold text-xs text-slate-400">&#8378;</span></button>
+                  <button onClick={() => openPreparationModal(restaurant)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Hazirlama Suresi"><Clock className="w-3.5 h-3.5 text-slate-400" /></button>
+                  <button onClick={() => openUsersModal(restaurant)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Kullanicilar"><Users className="w-3.5 h-3.5 text-slate-400" /></button>
+                  <button onClick={() => openBlockedModal(restaurant)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Engelli Kuryeler"><UserX className="w-3.5 h-3.5 text-slate-400" /></button>
+                  <div className="w-px h-4 bg-slate-200 mx-0.5" />
+                  <button onClick={() => openEditModal(restaurant)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Duzenle" data-testid={`edit-restaurant-mobile-${restaurant.id}`}><Edit2 className="w-3.5 h-3.5 text-slate-500" /></button>
+                  <button onClick={() => handleImpersonate(restaurant)} className="h-7 w-7 flex items-center justify-center rounded hover:bg-slate-100" title="Restoran Paneli" data-testid={`impersonate-restaurant-mobile-${restaurant.id}`}><ExternalLink className="w-3.5 h-3.5 text-slate-500" /></button>
                 </div>
               </div>
-              
-              {/* Ayar butonları - 4'lü grid */}
-              <div className="grid grid-cols-4 gap-1.5 mb-2">
-                <button onClick={() => openPricingModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
-                  <span className="font-bold text-xs text-slate-700">₺</span>
-                  Ücret
+              {/* Alt aksiyon satiri */}
+              <div className="flex gap-1 mt-1.5 pt-1.5 border-t border-slate-100">
+                <button onClick={() => { setSelectedRestaurant(restaurant); setShowPermissionsModal(true); }} className="flex-1 h-6 flex items-center justify-center gap-0.5 rounded text-[10px] text-slate-600 hover:bg-slate-100">
+                  <Shield className="w-3 h-3" /> Izinler
                 </button>
-                <button onClick={() => openPreparationModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
-                  Hazırlık
+                <button onClick={() => { setSelectedRestaurant(restaurant); setShowCollectionModal(true); }} className="flex-1 h-6 flex items-center justify-center gap-0.5 rounded text-[10px] text-slate-600 hover:bg-slate-100">
+                  <Banknote className="w-3 h-3" /> Tahsilat
                 </button>
-                <button onClick={() => openUsersModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
-                  <Users className="w-3.5 h-3.5 text-slate-500" />
-                  Kullanıcı
+                <button onClick={() => openInvoiceSettingsModal(restaurant)} className="flex-1 h-6 flex items-center justify-center gap-0.5 rounded text-[10px] text-slate-600 hover:bg-slate-100">
+                  <Receipt className="w-3 h-3" /> Fatura
                 </button>
-                <button onClick={() => openBlockedModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
-                  <UserX className="w-3.5 h-3.5 text-slate-500" />
-                  Engelli
+                <button onClick={() => handleArchive(restaurant)} className={`flex-1 h-6 flex items-center justify-center gap-0.5 rounded text-[10px] ${restaurant.is_archived ? 'text-green-600 hover:bg-green-50' : 'text-orange-600 hover:bg-orange-50'}`}>
+                  {restaurant.is_archived ? <><ArchiveRestore className="w-3 h-3" /> Cikar</> : <><Archive className="w-3 h-3" /> Arsiv</>}
                 </button>
+                {restaurant.is_archived && (
+                  <button onClick={() => { setSelectedRestaurant(restaurant); setShowDeleteModal(true); }} className="flex-1 h-6 flex items-center justify-center gap-0.5 rounded text-[10px] text-red-500 hover:bg-red-50">
+                    <Trash2 className="w-3 h-3" /> Sil
+                  </button>
+                )}
               </div>
-              <div className="grid grid-cols-4 gap-1.5">
-                <button onClick={() => { setSelectedRestaurant(restaurant); setShowPermissionsModal(true); }} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
-                  <Shield className="w-3.5 h-3.5 text-slate-500" />
-                  İzinler
-                </button>
-                <button onClick={() => { setSelectedRestaurant(restaurant); setShowCollectionModal(true); }} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
-                  <Banknote className="w-3.5 h-3.5 text-slate-500" />
-                  Tahsilat
-                </button>
-                <button onClick={() => openInvoiceSettingsModal(restaurant)} className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50">
-                  <Receipt className="w-3.5 h-3.5 text-slate-500" />
-                  Fatura
-                </button>
-                <button 
-                  onClick={() => handleArchive(restaurant)} 
-                  className="flex flex-col items-center gap-0.5 py-1.5 px-1 border rounded text-[10px] text-muted-foreground hover:bg-slate-50"
-                >
-                  {restaurant.is_archived ? <ArchiveRestore className="w-3.5 h-3.5 text-slate-500" /> : <Archive className="w-3.5 h-3.5 text-slate-500" />}
-                  {restaurant.is_archived ? 'Çıkar' : 'Arşiv'}
-                </button>
-              </div>
-              
-              {restaurant.is_archived && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => { setSelectedRestaurant(restaurant); setShowDeleteModal(true); }}
-                  className="w-full mt-2 h-7 text-xs text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  <Trash2 className="w-3 h-3 mr-1" /> Sil
-                </Button>
-              )}
             </div>
           ))}
         </div>
