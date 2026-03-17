@@ -204,69 +204,82 @@ export default function PerformansRaporu({ courierId, companyId }) {
 
   return (
     <div className="space-y-4">
-      {/* Kartlar */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Toplam Teslimat */}
-        <Card className="border-2 border-purple-400">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Package className="w-4 h-4 text-purple-600" />
-              <span className="text-xs text-slate-600">Toplam Teslimat</span>
+      <Card className="border">
+        <CardContent className="p-0">
+          {/* Toplam Teslimat */}
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                <Package className="w-4 h-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Toplam Teslimat</p>
+                <p className="text-lg font-bold">{stats.totalDeliveries}</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-slate-800">{stats.totalDeliveries}</p>
             {stats.deliveryChampion && stats.deliveryChampion.totalDeliveries > 0 && (
-              <p className="text-xs text-slate-500 mt-1">
-                Haftanın şampiyonu şuan; {stats.deliveryChampion.name} - {stats.deliveryChampion.totalDeliveries} Paket
+              <p className="text-[10px] text-muted-foreground text-right max-w-[140px]">
+                Hafta lideri: {stats.deliveryChampion.name} ({stats.deliveryChampion.totalDeliveries})
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Toplam Çalışma Süresi */}
-        <Card className="border-2 border-blue-400">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-slate-600">Toplam Çalışma Süresi</span>
+          <div className="border-t border-slate-100" />
+
+          {/* Toplam Çalışma Süresi */}
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Toplam Çalışma Süresi</p>
+                <p className="text-lg font-bold">{formatDuration(stats.totalWorkMinutes)}</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-slate-800">{formatDuration(stats.totalWorkMinutes)}</p>
             {stats.workHoursChampion && stats.workHoursChampion.totalWorkMinutes > 0 && (
-              <p className="text-xs text-slate-500 mt-1">
-                Haftanın şampiyonu şuan; {stats.workHoursChampion.name} - {formatDuration(stats.workHoursChampion.totalWorkMinutes)}
+              <p className="text-[10px] text-muted-foreground text-right max-w-[140px]">
+                Hafta lideri: {stats.workHoursChampion.name} ({formatDuration(stats.workHoursChampion.totalWorkMinutes)})
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Ortalama Teslimat Süresi */}
-        <Card className="border-2 border-orange-400">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Timer className="w-4 h-4 text-orange-600" />
-              <span className="text-xs text-slate-600">Ort. Teslimat Süresi</span>
+          <div className="border-t border-slate-100" />
+
+          {/* Ortalama Teslimat Süresi */}
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                <Timer className="w-4 h-4 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Ort. Teslimat Süresi</p>
+                <p className="text-lg font-bold">
+                  {stats.avgDeliveryTime > 0 ? `${Math.round(stats.avgDeliveryTime)} dk` : "-"}
+                </p>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-slate-800">
-              {stats.avgDeliveryTime > 0 ? `${Math.round(stats.avgDeliveryTime)} dk` : "-"}
-            </p>
             {stats.deliveryTimeChampion && stats.deliveryTimeChampion.avgDeliveryTime > 0 && (
-              <p className="text-xs text-slate-500 mt-1">
-                Haftanın şampiyonu şuan; {stats.deliveryTimeChampion.name} - {Math.round(stats.deliveryTimeChampion.avgDeliveryTime)} dk
+              <p className="text-[10px] text-muted-foreground text-right max-w-[140px]">
+                Hafta lideri: {stats.deliveryTimeChampion.name} ({Math.round(stats.deliveryTimeChampion.avgDeliveryTime)} dk)
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Haftalık Toplam Kazanç */}
-        <Card className="border-2 border-green-400">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="border-t border-slate-100" />
+
+          {/* Haftalık Kazanç */}
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
               <Banknote className="w-4 h-4 text-green-600" />
-              <span className="text-xs text-slate-600">Haftalık Kazanç</span>
             </div>
-            <p className="text-2xl font-bold text-slate-800">{formatMoney(stats.totalEarnings)}</p>
-          </CardContent>
-        </Card>
-      </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Haftalık Kazanç</p>
+              <p className="text-lg font-bold">{formatMoney(stats.totalEarnings)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
