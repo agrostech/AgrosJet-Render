@@ -21,6 +21,19 @@ TURKEY_TZ = timezone(timedelta(hours=3))
 
 logger = logging.getLogger(__name__)
 
+
+def _extract_migros_error(result: dict) -> str:
+    """Migros API hata response'undan okunabilir hata mesajı çıkar"""
+    err_msg = result.get("errorMessage", {})
+    if isinstance(err_msg, dict):
+        code = err_msg.get("errorCode", "")
+        detail = err_msg.get("errorDetail", "")
+        title = err_msg.get("errorTitle", "")
+        return f"[{code}] {title}: {detail}".strip(": ")
+    if isinstance(err_msg, str) and err_msg:
+        return err_msg
+    return result.get("error") or str(result)
+
 # Migros Yemek API Base URLs
 MIGROS_TEST_URL = "https://test.gourmet.migrosonline.com"
 MIGROS_PROD_URL = "https://gourmet.migrosonline.com"
@@ -141,6 +154,9 @@ class MigrosYemekService:
                             if isinstance(result, dict) and "data" in result:
                                 if isinstance(result["data"], str):
                                     result["data"] = self.decrypt(result["data"])
+                            # success: false ise error bilgisini normalize et
+                            if isinstance(result, dict) and result.get("success") is False:
+                                result["error"] = _extract_migros_error(result)
                             return result
                         except json.JSONDecodeError:
                             # Direkt encrypted olabilir
@@ -148,8 +164,15 @@ class MigrosYemekService:
                     else:
                         return json.loads(response_text) if response_text else {}
                 else:
-                    logger.error(f"Migros API hatası: {response.status_code} - {response.text}")
-                    return {"success": False, "error": response.text, "status_code": response.status_code}
+                    error_text = response.text
+                    # JSON error response'u parse etmeye çalış
+                    try:
+                        err_json = json.loads(error_text)
+                        error_detail = _extract_migros_error(err_json)
+                    except Exception:
+                        error_detail = error_text
+                    logger.error(f"Migros API hatası: {response.status_code} - {error_detail}")
+                    return {"success": False, "error": error_detail, "status_code": response.status_code}
                     
         except Exception as e:
             logger.error(f"Migros API isteği hatası: {e}")

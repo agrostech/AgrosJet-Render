@@ -336,7 +336,7 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                                 last_success_status = "Rejected"
                                 logger.info(f"Migros iptal başarılı: order={order_id}")
                             else:
-                                logger.warning(f"Migros iptal hatası: order={order_id}, error={cancel_result.get('error')}")
+                                logger.warning(f"Migros iptal hatası: order={order_id}, error={cancel_result.get('error') or cancel_result}")
                             
                             # statuses_to_send döngüsüne girmesin
                             statuses_to_send = []
@@ -354,7 +354,7 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                                 last_success_status = migros_status
                                 logger.info(f"Migros bildirim başarılı: order={order_id}, {new_status} -> {migros_status}")
                             else:
-                                logger.warning(f"Migros bildirim hatası: order={order_id}, {migros_status}, error={result.get('error')}")
+                                logger.warning(f"Migros bildirim hatası: order={order_id}, {migros_status}, error={result.get('error') or result}")
                                 break  # Hata alınca sonraki adımlara geçme
                         
                         # Son başarılı durumu veritabanına kaydet
