@@ -126,7 +126,7 @@ class MigrosYemekService:
         headers = self._get_headers()
         
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
                 if method == "GET":
                     response = await client.get(url, headers=headers)
                 else:
