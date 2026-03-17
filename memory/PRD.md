@@ -1,64 +1,62 @@
 # AgrosJet Delivery Management System - PRD
 
 ## Original Problem Statement
-Full-stack delivery management application with mobile responsiveness, admin panel features, and various integrations (Adisyo, Getir, Trendyol, Yemeksepeti, Migros, etc.).
+Full-stack delivery management application for managing couriers, restaurants, and orders across multiple food delivery platforms (Adisyo, Getir, Trendyol, Yemeksepeti, Migros, Sepettakip).
 
 ## Core Architecture
-- **Frontend:** React (Vite) + Tailwind CSS + Shadcn UI
-- **Backend:** FastAPI + MongoDB
-- **Integrations:** Firebase FCM, Leaflet Maps, Recharts, jsPDF
+- **Frontend**: React (CRA) + Shadcn/UI + Tailwind CSS
+- **Backend**: FastAPI + MongoDB (Motor async driver)
+- **Platforms**: Adisyo, Getir Yemek, Trendyol Yemek, Yemeksepeti, Sepettakip, Migros Yemek
+
+## Credentials
+- System Admin: `AgrosJetSystem` or `onurertas` / `Delivery32..`
+- Company Admin: `admin` / `123456`
+- Test Restaurant: "Lezzet Duragi"
+- Company with Logo: `AgrosJet Isparta`
 
 ## What's Been Implemented
 
-### Session - March 14, 2026 (continued)
-- **Bulk Invoice Download: ZIP to Merged PDF:** Changed both courier and restaurant invoice bulk download from ZIP to single multi-page PDF.
-  - Backend: `invoices.py` `/download-bulk` and `restaurant_invoices.py` `/download-zip` now use `pypdf` + `Pillow` to merge PDFs and convert images to PDF pages.
-  - Frontend: `useFaturalar.js` `downloadBulk()` and `IsletmeFaturalariTab.jsx` `handleDownloadBulk()` updated to handle PDF responses.
-- **PDF Cover Page & Page Numbers:** Added professional cover page (company logo, title, month, invoice count, date) and page numbers ("Sayfa X / Y" at bottom-right) to merged PDFs using `reportlab`. New utility: `backend/utils/pdf_utils.py`. Fixed Turkish character issue with Liberation Sans TTF fonts.
-- **Loading Toast:** Both download flows now show "PDF birleştiriliyor..." spinner toast during processing.
-- **Superadmin Mütabakat Reset:** Superadmin can now reset admin balances even without a linked courier account. Backend skips the linked courier check when `is_super_admin=True`.
-- **Report PDF Export (All 5 Tabs):** Added PDF download button to all report sub-tabs:
-  - Kurye Raporu, Restoran Raporu, Ciro Raporu, Kar/Zarar Raporu, Performans Raporu
-  - Shared utility: `frontend/src/utils/reportPdfExport.js` using jsPDF + autoTable + Roboto font
-  - Same design as accounting transaction PDF: logo, header, summary box, styled table, page numbers, footer
-- **Receipt/Ticket Redesign:** Complete 58mm/80mm receipt overhaul with Turkish encoding fix.
-- **Logo Image Cropping:** Pillow-based whitespace cropping for logo files.
-- **Map Theme Bug Fix:** Leaflet tile layer now updates on dark/light theme switch.
-- **Shift Tabs Redesign:** Modern card-based UI for VardiyaPage.
-- **Print Preview:** Restaurant order cards now open preview instead of printing directly.
-- **PDF Logo Fix:** Changed `companyLogo` prop to use `logo_light` for PDF exports.
+### Migros Fixes (March 17, 2026)
+- **is_test Bug Fix**: Fixed inconsistent `is_test` parsing across `orders.py`, `webhooks.py`, `integration_stores.py`. String values now handled consistently (non-false-like strings treated as True). DB data corrected from garbage string to boolean `true`.
+- **Price Double-Counting Fix**: Migros `price` field is line total (already multiplied by quantity). Code now uses `unitPrice` for unit price. Fixed in `webhooks.py` and `migros_service.py`. Existing 4 orders' prices corrected in DB.
+- **migros_status Tracking**: Auto-approve now sets `migros_status = "Approved"` in DB. All existing orders' migros_status corrected.
+- **301 Redirect Fix**: Added `follow_redirects=True` to httpx client in `migros_service.py`.
+- **Error Logging Improvement**: Migros API errors now extract `errorMessage.errorDetail` field instead of showing `None`. Applied in both `migros_service.py` and `orders.py`.
+- **Restaurant Open/Close**: Implemented `Store/AddStoreOffDate` and `Store/RemoveStoreOffDate` API calls. Backend handler added for Migros in `integration_stores.py`. Frontend dialog added for close duration selection (1h, 4h, next work hour). Dashboard toggle defaults to NEXT_WORK_HOUR.
 
-### Previous Sessions (Completed)
-- Mobile responsiveness: Reports, Restaurants, Couriers, System pages
-- Shift Management: Redesigned from modals to tab-based UI
-- Company Impersonation: Super-admin can log into company panels via iframe
-- Firebase Logs: Fixed missing notification logs
-- Order Cards: Compact redesign
-- System Dashboard: Collapsible sidebar, impersonation feature
-- Courier/Credit UI improvements
+### Previous Session Work
+- Bulk Invoice to Merged PDF (PyPDF2)
+- PDF Cover Pages, Page Numbers, Turkish char support (reportlab)
+- Report PDF Export for all 5 tabs (jspdf + jspdf-autotable)
+- PDF Logo Fix (rendering order) + Aspect Ratio Fix
+- Superadmin Reset Fix
+- Courier Break Bug Fix
+- Mobile UI Tab Standardization
+- Railway Deployment Fix
 
-## Known Issues
-- **Migros Webhook Logic (P0 - User deferred):** `is_test` parameter incorrectly parsed, `migros_status` not updated to "Approved", corrupt data in DB
-- **Push Notification System:** User verification pending (orders_v6 channel)
+## Pending Issues
+- **Migros `cancelReasonId`**: Hardcoded to 1, should be fetched from API
+- **Migros 30-second cancel rule**: Not implemented yet
+- **Push Notification** (`orders_v6` channel): User verification pending
+- **Migros Production Webhook URL**: Blocked (user must contact Migros)
 
-## Backlog (Prioritized)
-### P1
-- Stop Count based capacity logic
-- Restaurant-based revenue report
-- Cancellation analysis report
-- `restaurant_fee` calculation on order creation
-- Refactor scheduled jobs (Haftalik Hakedis, Restoran Mutabakat)
-
-### P2
+## Upcoming Tasks (P1)
+- Implement Migros Status Update Flow (draw.io analysis complete)
+- Chrome Extension for Yemeksepeti orders
+- "Stop Count" Based Capacity Logic
 - Caller ID integration
-- Additional courier permissions
-- `dispatch_decision` function review
+
+## Backlog (P2+)
+- Restaurant Courier System
+- Yemeksepeti security requirements (DLP, Data Lifecycle, Masking)
+- `restaurant_fee` calculation
+- Haftalik Hakedis / Restoran Mutabakat job refactoring
+- Restaurant-Based Revenue Report
+- Cancellation Analysis Report
 - API request monitor in admin panel
 - Native Courier App
 
-### P0 (Large Feature - Future)
-- Restaurant Courier System
-
-## Credentials
-- System Admin: `AgrosJetSystem` / `Delivery32..`
-- Company Admin: `admin` / `123456`
+## Key API Documentation Reference
+- Migros API: `/Order/v2/UpdateOrderStatus`, `/Order/v2/CancelOrder`, `/Store/AddStoreOffDate`, `/Store/RemoveStoreOffDate`, `/Store/GetStoreViewStatus`, `/Mapping/v2/GetCancelReasons`
+- Migros price field: `price` = line total (qty * unit), `unitPrice` = per unit (both in kurus)
+- Migros cancel: Only approved (not prepared) orders, 30s delay after creation
