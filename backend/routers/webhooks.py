@@ -564,9 +564,20 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
     # Ürünleri dönüştür
     items = []
     for item in webhook_data.get("items", []):
-        # Fiyat kuruş cinsinden geliyor
-        unit_price = item.get("price", 0) / 100
+        # Migros fiyat alanları (kuruş cinsinden):
+        # price = satır toplamı (zaten quantity ile çarpılmış)
+        # unitPrice = birim fiyat
+        total_price_penny = item.get("price", 0)
+        unit_price_penny = item.get("unitPrice", 0)
         quantity = item.get("amount", 1)
+        
+        total_price = total_price_penny / 100
+        if unit_price_penny:
+            unit_price = unit_price_penny / 100
+        elif quantity > 0:
+            unit_price = total_price / quantity
+        else:
+            unit_price = total_price
         
         item_data = {
             "id": str(item.get("productId", item.get("id", ""))),
@@ -574,7 +585,7 @@ def transform_migros_webhook_to_order(webhook_data: dict, restaurant: dict, prep
             "quantity": quantity,
             "price": unit_price,
             "unit_price": unit_price,
-            "total_price": unit_price * quantity,
+            "total_price": total_price,
             "note": item.get("note", ""),
             "options": []
         }
@@ -876,10 +887,15 @@ async def migros_order_webhook(
                         break
             
             if migros_config.get("api_key") and migros_config.get("secret_key"):
+                # is_test boolean olarak handle et (string/garbage data gelebilir)
+                is_test_val = migros_config.get("is_test", False)
+                if isinstance(is_test_val, str):
+                    is_test_val = is_test_val.lower() not in ("false", "0", "no", "")
+                
                 service = MigrosYemekService(
                     api_key=migros_config["api_key"],
                     secret_key=migros_config["secret_key"],
-                    is_test=migros_config.get("is_test", False)
+                    is_test=bool(is_test_val)
                 )
                 
                 # Migros'a "Approved" gönder
@@ -894,12 +910,13 @@ async def migros_order_webhook(
                     logger.info(f"Migros siparişi otomatik onaylandı: {migros_order_id}")
                     await save_integration_log("migros", "INFO", f"Sipariş otomatik onaylandı: {migros_order_id}")
                     
-                    # Siparişte onay bilgisini güncelle
+                    # Siparişte onay bilgisini ve migros_status'u güncelle
                     await db.orders.update_one(
                         {"id": order["id"]},
                         {"$set": {
                             "migros_data.auto_approved": True,
-                            "migros_data.approved_at": datetime.now(turkey_tz).isoformat()
+                            "migros_data.approved_at": datetime.now(turkey_tz).isoformat(),
+                            "migros_status": "Approved"
                         }}
                     )
                 else:

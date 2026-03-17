@@ -291,18 +291,20 @@ def transform_migros_order_to_shiftjet(migros_order: Dict[str, Any], restaurant_
     # Ürünleri dönüştür
     items = []
     for item in migros_order.get("items", []):
-        # Migros'ta price toplam fiyat olarak geliyor (kuruş cinsinden)
-        # price = quantity * birim fiyat
+        # Migros fiyat alanları (kuruş cinsinden):
+        # price = satır toplamı (zaten quantity ile çarpılmış)
+        # unitPrice = birim fiyat
         total_price_penny = item.get("price", 0)
+        unit_price_penny = item.get("unitPrice", 0)
         quantity = item.get("amount", 1)
         
-        # Birim fiyatı hesapla
-        if quantity > 0:
-            unit_price = (total_price_penny / 100) / quantity
-        else:
-            unit_price = total_price_penny / 100
-        
         total_price = total_price_penny / 100
+        if unit_price_penny:
+            unit_price = unit_price_penny / 100
+        elif quantity > 0:
+            unit_price = total_price / quantity
+        else:
+            unit_price = total_price
         
         item_data = {
             "id": str(item.get("productId", item.get("id", ""))),

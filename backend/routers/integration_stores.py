@@ -640,7 +640,11 @@ async def sync_to_old_format(restaurant_id: str, platform: str, store: dict):
         if credentials.get("store_group_id"):
             update_data[f"platform_integrations.{platform}.store_group_id"] = credentials["store_group_id"]
         if "is_test" in credentials:
-            update_data[f"platform_integrations.{platform}.is_test"] = credentials["is_test"]
+            # is_test her zaman boolean olarak kaydet
+            is_test_val = credentials["is_test"]
+            if isinstance(is_test_val, str):
+                is_test_val = is_test_val.lower() not in ("false", "0", "no", "")
+            update_data[f"platform_integrations.{platform}.is_test"] = bool(is_test_val)
     
     await db.restaurants.update_one(
         {"id": restaurant_id},

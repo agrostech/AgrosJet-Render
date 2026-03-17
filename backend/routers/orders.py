@@ -279,10 +279,11 @@ async def notify_platform_status_change(order: dict, new_status: str, preparatio
                         migros_config = restaurant.get("migros_credentials", {})
                     
                     if migros_config.get("api_key") and migros_config.get("secret_key"):
-                        # is_test boolean olarak handle et (string gelebilir)
+                        # is_test boolean olarak handle et (string/garbage data gelebilir)
                         is_test = migros_config.get("is_test", False)
                         if isinstance(is_test, str):
-                            is_test = is_test.lower() in ("true", "1", "yes")
+                            # Boş string ve bilinen false değerler → False, geri kalan her şey → True
+                            is_test = is_test.lower() not in ("false", "0", "no", "")
                         
                         service = MigrosYemekService(
                             api_key=migros_config["api_key"],
