@@ -126,19 +126,25 @@ class MigrosYemekService:
         headers = self._get_headers()
         
         try:
-            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
                 if method == "GET":
                     response = await client.get(url, headers=headers)
                 else:
                     # POST için veriyi şifrele
                     if data and encrypt_request:
                         encrypted = self.encrypt(data)
-                        # Şifrelenmiş veri {"value": "..."} formatında gönderilmeli
                         body = json.dumps({"value": encrypted})
                     else:
                         body = json.dumps(data) if data else None
                     
                     response = await client.post(url, content=body, headers=headers)
+                    
+                    # 301/302 redirect'te POST metodunu koruyarak yeniden istek at
+                    if response.status_code in (301, 302):
+                        redirect_url = response.headers.get("location", "")
+                        if redirect_url:
+                            logger.info(f"Migros API redirect {response.status_code}: {url} -> {redirect_url}")
+                            response = await client.post(redirect_url, content=body, headers=headers)
                 
                 logger.info(f"Migros API {method} {endpoint}: {response.status_code}")
                 
