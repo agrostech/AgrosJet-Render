@@ -36,7 +36,7 @@ def _extract_migros_error(result: dict) -> str:
 
 # Migros Yemek API Base URLs
 MIGROS_TEST_URL = "https://test-gourmet.migrosone.com"
-MIGROS_PROD_URL = "https://gourmet.migrosone.com"
+MIGROS_PROD_URL = "https://gourmet.migrosonline.com"
 
 
 class MigrosYemekService:
