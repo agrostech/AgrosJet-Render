@@ -143,6 +143,11 @@ class MigrosYemekService:
                     if response.status_code in (301, 302):
                         redirect_url = response.headers.get("location", "")
                         if redirect_url:
+                            # Relative URL'i absolute URL'e çevir
+                            if redirect_url.startswith("/"):
+                                redirect_url = f"{self.base_url}{redirect_url}"
+                            elif not redirect_url.startswith("http"):
+                                redirect_url = f"{self.base_url}/{redirect_url}"
                             logger.info(f"Migros API redirect {response.status_code}: {url} -> {redirect_url}")
                             response = await client.post(redirect_url, content=body, headers=headers)
                 
