@@ -13,19 +13,12 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Users, Store, Building2, Phone, MapPin, Clock, ChevronLeft, ChevronRight,
-  RefreshCw, Bike, FileText, Calendar, Package, Loader2, Search, AlertCircle, ChevronDown
+  Users, Store, Building2, ChevronLeft, ChevronRight,
+  RefreshCw, Loader2, Search, AlertCircle, ChevronDown, MapPin
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-const DEFAULT_STATUSES = [
-  { value: "new", label: "Yeni", color: "#3b82f6" },
-  { value: "pending", label: "Beklemede", color: "#f59e0b" },
-  { value: "positive", label: "Olumlu", color: "#10b981" },
-  { value: "negative", label: "Olumsuz", color: "#ef4444" }
-];
 
 const TAB_CONFIG = [
   { key: "courier", label: "Kurye", icon: Users },
@@ -33,15 +26,30 @@ const TAB_CONFIG = [
   { key: "company", label: "Şirket", icon: Building2 }
 ];
 
-function StatusBadge({ status, statuses }) {
-  const s = statuses.find(st => st.value === status) || { label: status, color: "#94a3b8" };
+// Durum rengi al - API'den gelen veya fallback
+function getStatusColor(status, statusMap) {
+  if (statusMap[status]) return statusMap[status].color;
+  // Fallback renkler
+  const fallbacks = {
+    new: "#3b82f6", pending: "#f59e0b", positive: "#10b981", negative: "#ef4444"
+  };
+  return fallbacks[status] || "#94a3b8";
+}
+
+function getStatusLabel(status, statusMap) {
+  if (statusMap[status]) return statusMap[status].label;
+  return status;
+}
+
+function StatusBadge({ status, statusMap }) {
+  const color = getStatusColor(status, statusMap);
+  const label = getStatusLabel(status, statusMap);
   return (
     <span
       className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap"
-      style={{ backgroundColor: s.color + "1a", color: s.color, border: `1.5px solid ${s.color}40` }}
-      data-testid={`status-badge-${status}`}
+      style={{ backgroundColor: color + "1a", color, border: `1.5px solid ${color}40` }}
     >
-      {s.label}
+      {label}
     </span>
   );
 }
@@ -63,8 +71,14 @@ function formatPhone(phone) {
   return phone;
 }
 
+function boolLabel(val) {
+  if (val === true) return "Evet";
+  if (val === false) return "Hayır";
+  return "-";
+}
+
 // --- Status Dropdown ---
-function StatusDropdown({ application, statuses, appType, adminName, onSuccess }) {
+function StatusDropdown({ application, statusMap, allStatuses, appType, adminName, onSuccess }) {
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
   const [note, setNote] = useState("");
@@ -95,7 +109,8 @@ function StatusDropdown({ application, statuses, appType, adminName, onSuccess }
     }
   };
 
-  const currentStatus = statuses.find(s => s.value === application.status) || { label: application.status, color: "#94a3b8" };
+  const color = getStatusColor(application.status, statusMap);
+  const label = getStatusLabel(application.status, statusMap);
 
   return (
     <>
@@ -103,15 +118,15 @@ function StatusDropdown({ application, statuses, appType, adminName, onSuccess }
         <DropdownMenuTrigger asChild>
           <button
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity"
-            style={{ backgroundColor: currentStatus.color + "1a", color: currentStatus.color, border: `1.5px solid ${currentStatus.color}40` }}
+            style={{ backgroundColor: color + "1a", color, border: `1.5px solid ${color}40` }}
             data-testid={`status-dropdown-${application.id}`}
           >
-            {currentStatus.label}
+            {label}
             <ChevronDown className="w-3 h-3" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[140px]">
-          {statuses.map(s => (
+          {allStatuses.map(s => (
             <DropdownMenuItem
               key={s.value}
               onClick={() => handleStatusSelect(s.value)}
@@ -137,7 +152,7 @@ function StatusDropdown({ application, statuses, appType, adminName, onSuccess }
             <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
               <span className="text-sm font-medium">{application.restaurant_name || application.full_name}</span>
               <span className="text-muted-foreground">→</span>
-              <StatusBadge status={pendingStatus} statuses={statuses} />
+              <StatusBadge status={pendingStatus} statusMap={statusMap} />
             </div>
             <div>
               <Label className="text-sm font-semibold">Not</Label>
@@ -164,107 +179,134 @@ function StatusDropdown({ application, statuses, appType, adminName, onSuccess }
   );
 }
 
-// --- Desktop Table ---
-function ApplicationTable({ applications, activeTab, statuses, adminName, onSuccess, searchTerm }) {
-  const emptyMessage = searchTerm
-    ? "Arama sonucu bulunamadı"
-    : "Başvuru bulunamadı";
-
+// --- Kurye Table ---
+function CourierTable({ applications, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
   return (
     <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
       <Table>
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            {activeTab === "courier" && (
-              <>
-                <TableHead className="font-bold text-xs">Ad Soyad</TableHead>
-                <TableHead className="font-bold text-xs">Telefon</TableHead>
-                <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
-                <TableHead className="font-bold text-xs">Motosiklet</TableHead>
-                <TableHead className="font-bold text-xs">Deneyim</TableHead>
-                <TableHead className="font-bold text-xs">Tarih</TableHead>
-                <TableHead className="font-bold text-xs text-right">Durum</TableHead>
-              </>
-            )}
-            {activeTab === "restaurant" && (
-              <>
-                <TableHead className="font-bold text-xs">Restoran Adı</TableHead>
-                <TableHead className="font-bold text-xs">Yetkili</TableHead>
-                <TableHead className="font-bold text-xs">Telefon</TableHead>
-                <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
-                <TableHead className="font-bold text-xs">Paket/Gün</TableHead>
-                <TableHead className="font-bold text-xs">Tarih</TableHead>
-                <TableHead className="font-bold text-xs text-right">Durum</TableHead>
-              </>
-            )}
-            {activeTab === "company" && (
-              <>
-                <TableHead className="font-bold text-xs">Yetkili Adı</TableHead>
-                <TableHead className="font-bold text-xs">Telefon</TableHead>
-                <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
-                <TableHead className="font-bold text-xs">Başvuru Tipi</TableHead>
-                <TableHead className="font-bold text-xs">Tarih</TableHead>
-                <TableHead className="font-bold text-xs text-right">Durum</TableHead>
-              </>
-            )}
+            <TableHead className="font-bold text-xs">Ad Soyad</TableHead>
+            <TableHead className="font-bold text-xs">Telefon</TableHead>
+            <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs">Ehliyet</TableHead>
+            <TableHead className="font-bold text-xs">Motosiklet</TableHead>
+            <TableHead className="font-bold text-xs">Günlük Saat</TableHead>
+            <TableHead className="font-bold text-xs">Deneyim</TableHead>
+            <TableHead className="font-bold text-xs">Açıklama</TableHead>
+            <TableHead className="font-bold text-xs">Tarih</TableHead>
+            <TableHead className="font-bold text-xs text-right">Durum</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {applications.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                {emptyMessage}
+            <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">{emptyMsg}</TableCell></TableRow>
+          ) : applications.map(app => (
+            <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
+              <TableCell className="font-medium text-sm">{app.full_name}</TableCell>
+              <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="text-sm">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
+              <TableCell className="text-sm">{(app.license_types || []).join(", ") || "-"}</TableCell>
+              <TableCell className="text-sm">
+                {app.has_motorcycle
+                  ? <span className="text-green-600">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
+                  : <span className="text-muted-foreground">Yok</span>}
+              </TableCell>
+              <TableCell className="text-sm">{app.daily_hours || "-"}</TableCell>
+              <TableCell className="text-sm">{app.experience || "-"}</TableCell>
+              <TableCell className="text-sm max-w-[200px] truncate" title={app.description}>{app.description || "-"}</TableCell>
+              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
+              <TableCell className="text-right">
+                <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType="courier" adminName={adminName} onSuccess={onSuccess} />
               </TableCell>
             </TableRow>
-          ) : (
-            applications.map((app) => (
-              <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
-                {activeTab === "courier" && (
-                  <>
-                    <TableCell className="font-medium">{app.full_name}</TableCell>
-                    <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
-                    <TableCell className="text-sm">{app.province}{app.district ? ` / ${app.district}` : ""}</TableCell>
-                    <TableCell className="text-sm">
-                      {app.has_motorcycle
-                        ? <span className="text-green-600">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
-                        : <span className="text-muted-foreground">Yok</span>
-                      }
-                    </TableCell>
-                    <TableCell className="text-sm">{app.experience || "-"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{formatDate(app.created_at)}</TableCell>
-                    <TableCell className="text-right">
-                      <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
-                    </TableCell>
-                  </>
-                )}
-                {activeTab === "restaurant" && (
-                  <>
-                    <TableCell className="font-medium">{app.restaurant_name || app.full_name}</TableCell>
-                    <TableCell className="text-sm">{app.contact_name || "-"}</TableCell>
-                    <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
-                    <TableCell className="text-sm">{app.province}{app.district ? ` / ${app.district}` : ""}</TableCell>
-                    <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{formatDate(app.created_at)}</TableCell>
-                    <TableCell className="text-right">
-                      <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
-                    </TableCell>
-                  </>
-                )}
-                {activeTab === "company" && (
-                  <>
-                    <TableCell className="font-medium">{app.full_name}</TableCell>
-                    <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
-                    <TableCell className="text-sm">{app.province}{app.district ? ` / ${app.district}` : ""}</TableCell>
-                    <TableCell className="text-sm">{app.application_type || "-"}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{formatDate(app.created_at)}</TableCell>
-                    <TableCell className="text-right">
-                      <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
-                    </TableCell>
-                  </>
-                )}
-              </TableRow>
-            ))
-          )}
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// --- Restoran Table ---
+function RestaurantTable({ applications, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
+  return (
+    <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-b-2 border-primary">
+            <TableHead className="font-bold text-xs">Restoran Adı</TableHead>
+            <TableHead className="font-bold text-xs">Yetkili</TableHead>
+            <TableHead className="font-bold text-xs">Telefon</TableHead>
+            <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs">Adres</TableHead>
+            <TableHead className="font-bold text-xs">Paket/Gün</TableHead>
+            <TableHead className="font-bold text-xs">Kuryesi</TableHead>
+            <TableHead className="font-bold text-xs">Başka Servis</TableHead>
+            <TableHead className="font-bold text-xs">Ziyaret</TableHead>
+            <TableHead className="font-bold text-xs">Tarih</TableHead>
+            <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {applications.length === 0 ? (
+            <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">{emptyMsg}</TableCell></TableRow>
+          ) : applications.map(app => (
+            <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
+              <TableCell className="font-medium text-sm">{app.restaurant_name || app.full_name}</TableCell>
+              <TableCell className="text-sm">{app.contact_name || "-"}</TableCell>
+              <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="text-sm">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
+              <TableCell className="text-sm max-w-[200px] truncate" title={app.address}>{app.address || "-"}</TableCell>
+              <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
+              <TableCell className="text-sm">{boolLabel(app.has_courier)}</TableCell>
+              <TableCell className="text-sm">{boolLabel(app.uses_other_service)}</TableCell>
+              <TableCell className="text-sm whitespace-nowrap">{app.visit_date ? `${app.visit_date}${app.visit_time_slot ? ` ${app.visit_time_slot}` : ""}` : "-"}</TableCell>
+              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
+              <TableCell className="text-right">
+                <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType="restaurant" adminName={adminName} onSuccess={onSuccess} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// --- Şirket Table ---
+function CompanyTable({ applications, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
+  return (
+    <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-b-2 border-primary">
+            <TableHead className="font-bold text-xs">Yetkili Adı</TableHead>
+            <TableHead className="font-bold text-xs">Telefon</TableHead>
+            <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs">Başvuru Tipi</TableHead>
+            <TableHead className="font-bold text-xs">Paket/Gün</TableHead>
+            <TableHead className="font-bold text-xs">Aktif Şirket</TableHead>
+            <TableHead className="font-bold text-xs">Tarih</TableHead>
+            <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {applications.length === 0 ? (
+            <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">{emptyMsg}</TableCell></TableRow>
+          ) : applications.map(app => (
+            <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
+              <TableCell className="font-medium text-sm">{app.full_name}</TableCell>
+              <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="text-sm">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
+              <TableCell className="text-sm">{app.application_type || "-"}</TableCell>
+              <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
+              <TableCell className="text-sm">{boolLabel(app.has_active_company)}</TableCell>
+              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
+              <TableCell className="text-right">
+                <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType="company" adminName={adminName} onSuccess={onSuccess} />
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>
@@ -272,15 +314,11 @@ function ApplicationTable({ applications, activeTab, statuses, adminName, onSucc
 }
 
 // --- Mobile Cards ---
-function ApplicationMobileCards({ applications, activeTab, statuses, adminName, onSuccess, searchTerm }) {
-  const emptyMessage = searchTerm
-    ? "Arama sonucu bulunamadı"
-    : "Başvuru bulunamadı";
-
+function ApplicationMobileCards({ applications, activeTab, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
   if (applications.length === 0) {
     return (
       <div className="md:hidden border rounded-lg p-6 bg-white dark:bg-card text-center text-muted-foreground">
-        {emptyMessage}
+        {emptyMsg}
       </div>
     );
   }
@@ -301,7 +339,7 @@ function ApplicationMobileCards({ applications, activeTab, statuses, adminName, 
                 {activeTab === "restaurant" && app.package_count ? ` · ${app.package_count} paket` : ""}
               </p>
             </div>
-            <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+            <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
           </div>
         </div>
       ))}
@@ -318,12 +356,11 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statuses, setStatuses] = useState({
-    courier: DEFAULT_STATUSES,
-    restaurant: DEFAULT_STATUSES,
-    company: DEFAULT_STATUSES
-  });
   const [connectionOk, setConnectionOk] = useState(null);
+
+  // Dinamik durum listesi - API'den veya veriden türetilir
+  const [statusMap, setStatusMap] = useState({});   // { value: { label, color } }
+  const [allStatuses, setAllStatuses] = useState([]); // [{ value, label, color }]
 
   // Tab scroll
   const tabsContainerRef = useRef(null);
@@ -354,15 +391,41 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
     }
   };
 
+  // Durumları API'den çek
   const fetchStatuses = useCallback(async (type) => {
     try {
       const res = await axios.get(`${API}/applications/statuses/${type}`);
-      if (res.data.statuses && res.data.statuses.length > 0) {
-        setStatuses(prev => ({ ...prev, [type]: res.data.statuses }));
+      const list = res.data.statuses || [];
+      if (list.length > 0) {
+        const map = {};
+        list.forEach(s => { map[s.value] = { label: s.label, color: s.color }; });
+        setStatusMap(map);
+        setAllStatuses(list);
       }
     } catch {
-      // Varsayılan durumlar kullanılır
+      // Hata durumunda veri bazlı durum çıkarımı kullanılır
     }
+  }, []);
+
+  // Veriden benzersiz durumları çıkar (API boş dönerse)
+  const deriveStatusesFromData = useCallback((data) => {
+    // Fallback renk paleti
+    const palette = ["#3b82f6", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316", "#ec4899", "#14b8a6", "#6366f1"];
+    const seen = new Map();
+    let colorIdx = 0;
+
+    data.forEach(app => {
+      if (app.status && !seen.has(app.status)) {
+        seen.set(app.status, {
+          value: app.status,
+          label: app.status.charAt(0).toUpperCase() + app.status.slice(1),
+          color: palette[colorIdx % palette.length]
+        });
+        colorIdx++;
+      }
+    });
+
+    return Array.from(seen.values());
   }, []);
 
   const fetchApplications = useCallback(async (showLoader = true) => {
@@ -386,6 +449,19 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
       setApplications(data);
       setTotal(data.length);
       setConnectionOk(true);
+
+      // Eğer API'den durum gelmemişse, veriden çıkar
+      if (allStatuses.length === 0 && !statusFilter) {
+        // Filtreli sorguda tüm veriye ulaşamayız, sadece filtresizde çıkar
+        const allData = res.data.data || [];
+        const derived = deriveStatusesFromData(allData);
+        if (derived.length > 0) {
+          const map = {};
+          derived.forEach(s => { map[s.value] = { label: s.label, color: s.color }; });
+          setStatusMap(map);
+          setAllStatuses(derived);
+        }
+      }
     } catch (err) {
       const detail = err.response?.data?.detail || "";
       if (detail.includes("yapılandırma") || detail.includes("yapilandirma")) {
@@ -397,12 +473,17 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [activeTab, statusFilter, companyCity]);
+  }, [activeTab, statusFilter, companyCity, allStatuses.length, deriveStatusesFromData]);
+
+  useEffect(() => {
+    setStatusMap({});
+    setAllStatuses([]);
+    fetchStatuses(activeTab);
+  }, [activeTab, fetchStatuses]);
 
   useEffect(() => {
     fetchApplications();
-    fetchStatuses(activeTab);
-  }, [activeTab, statusFilter, fetchApplications, fetchStatuses]);
+  }, [activeTab, statusFilter, fetchApplications]);
 
   // Client-side search
   const filtered = applications.filter(app => {
@@ -413,7 +494,7 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
     return name.includes(term) || phone.includes(term);
   });
 
-  const currentStatuses = statuses[activeTab] || DEFAULT_STATUSES;
+  const emptyMsg = searchTerm ? "Arama sonucu bulunamadı" : "Başvuru bulunamadı";
 
   if (connectionOk === false) {
     return (
@@ -499,7 +580,7 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
         )}
       </div>
 
-      {/* Search + Status filters */}
+      {/* Search + Dynamic Status filters */}
       <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -521,7 +602,7 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
           >
             Tümü ({total})
           </button>
-          {currentStatuses.map(s => (
+          {allStatuses.map(s => (
             <button
               key={s.value}
               onClick={() => setStatusFilter(s.value)}
@@ -546,21 +627,23 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
         <PageLoading />
       ) : (
         <>
-          <ApplicationTable
-            applications={filtered}
-            activeTab={activeTab}
-            statuses={currentStatuses}
-            adminName={adminName || "Admin"}
-            onSuccess={() => fetchApplications(false)}
-            searchTerm={searchTerm}
-          />
+          {activeTab === "courier" && (
+            <CourierTable applications={filtered} statusMap={statusMap} allStatuses={allStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+          )}
+          {activeTab === "restaurant" && (
+            <RestaurantTable applications={filtered} statusMap={statusMap} allStatuses={allStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+          )}
+          {activeTab === "company" && (
+            <CompanyTable applications={filtered} statusMap={statusMap} allStatuses={allStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+          )}
           <ApplicationMobileCards
             applications={filtered}
             activeTab={activeTab}
-            statuses={currentStatuses}
+            statusMap={statusMap}
+            allStatuses={allStatuses}
             adminName={adminName || "Admin"}
             onSuccess={() => fetchApplications(false)}
-            searchTerm={searchTerm}
+            emptyMsg={emptyMsg}
           />
         </>
       )}
