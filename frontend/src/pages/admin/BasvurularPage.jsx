@@ -50,10 +50,22 @@ function formatDate(dateStr) {
 
 function formatPhone(phone) {
   if (!phone) return "-";
-  const p = phone.replace(/\D/g, "");
-  if (p.length === 10) return `0${p.slice(0,3)} ${p.slice(3,6)} ${p.slice(6)}`;
-  if (p.length === 11) return `${p.slice(0,4)} ${p.slice(4,7)} ${p.slice(7)}`;
-  return phone;
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return phone;
+  return digits.startsWith("0") ? digits : "0" + digits;
+}
+
+function phoneHref(phone) {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  return digits ? `tel:+90${digits.replace(/^0+/, "")}` : null;
+}
+
+function PhoneCell({ phone, className }) {
+  const href = phoneHref(phone);
+  const display = formatPhone(phone);
+  if (!href || display === "-") return <span className={className}>{display}</span>;
+  return <a href={href} className={`${className} hover:underline`}>{display}</a>;
 }
 
 function boolLabel(val) {
@@ -302,7 +314,7 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
           ) : applications.map(app => (
             <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
               <TableCell className="font-medium text-sm">{app.full_name}</TableCell>
-              <TableCell className="font-mono text-sm whitespace-nowrap">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="font-mono text-sm whitespace-nowrap"><PhoneCell phone={app.phone} className="font-mono text-sm" /></TableCell>
               <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
               <TableCell className="text-sm">{(app.license_types || []).join(", ") || "-"}</TableCell>
               <TableCell className="text-sm">
@@ -355,7 +367,7 @@ function RestaurantTable({ applications, uniqueStatuses, adminName, onSuccess, e
             <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
               <TableCell className="font-medium text-sm truncate" title={app.restaurant_name || app.full_name}>{app.restaurant_name || app.full_name}</TableCell>
               <TableCell className="text-sm truncate" title={app.contact_name}>{app.contact_name || "-"}</TableCell>
-              <TableCell className="font-mono text-sm whitespace-nowrap">{formatPhone(app.phone)}</TableCell>
+              <TableCell className="font-mono text-sm whitespace-nowrap"><PhoneCell phone={app.phone} className="font-mono text-sm" /></TableCell>
               <TableCell className="text-sm whitespace-nowrap">{app.province || "-"}{app.district ? ` / ${app.district}` : ""}</TableCell>
               <TableCell className="text-sm truncate" title={app.address}>{app.address || "-"}</TableCell>
               <TableCell className="text-sm text-center">{app.package_count || "-"}</TableCell>
@@ -397,7 +409,7 @@ function ApplicationMobileCards({ applications, activeTab, uniqueStatuses, admin
                 {activeTab === "restaurant" ? (app.restaurant_name || app.full_name) : app.full_name}
               </p>
               <p className="text-[10px] text-muted-foreground leading-tight">
-                {formatPhone(app.phone)}
+                <PhoneCell phone={app.phone} className="text-[10px] text-muted-foreground" />
                 {app.province ? ` · ${app.province}` : ""}
                 {activeTab === "courier" && app.experience ? ` · ${app.experience}` : ""}
                 {activeTab === "restaurant" && app.package_count ? ` · ${app.package_count} paket` : ""}
