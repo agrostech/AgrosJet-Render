@@ -95,8 +95,10 @@ function StatusDropdown({ application, uniqueStatuses, appType, adminName, onSuc
     }
   };
 
-  const color = application.status_color || "#94a3b8";
-  const label = application.status_label || application.status;
+  // Durum etiket/renk: önce statuses listesinden bak, sonra veri objesinden
+  const fromList = uniqueStatuses.find(s => s.value === application.status);
+  const color = fromList?.color || application.status_color || "#94a3b8";
+  const label = fromList?.label || application.status_label || application.status;
 
   return (
     <>
