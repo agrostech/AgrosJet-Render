@@ -296,14 +296,14 @@ function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, empt
       <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"13%"}}>Ad Soyad</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"11%"}}>Ad Soyad</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Telefon</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>İl / İlçe</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"8%"}}>Ehliyet</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"11%"}}>Motosiklet</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"7%"}}>Günlük Saat</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Deneyim</TableHead>
-            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"12%"}}>Açıklama</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"14%"}}>Açıklama</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Tarih</TableHead>
             <TableHead className="font-bold text-xs whitespace-nowrap text-right" style={{width:"10%"}}>İşlemler</TableHead>
           </TableRow>
