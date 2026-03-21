@@ -366,7 +366,8 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [connectionOk, setConnectionOk] = useState(null);
-  const [uniqueStatuses, setUniqueStatuses] = useState([]);
+  const [uniqueStatuses, setUniqueStatuses] = useState([]); // Veriden - filtre sayıları için
+  const [apiStatuses, setApiStatuses] = useState([]);        // API'den - dropdown + filtre butonları için
 
   // Tab scroll
   const tabsContainerRef = useRef(null);
@@ -396,6 +397,19 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
       setTimeout(checkScrollArrows, 300);
     }
   };
+
+  // API'den tüm tanımlı durumları çek
+  const fetchStatuses = useCallback(async (type) => {
+    try {
+      const res = await axios.get(`${API}/applications/statuses/${type}`);
+      const list = res.data.statuses || [];
+      if (list.length > 0) {
+        setApiStatuses(list);
+      }
+    } catch {
+      // API boş dönerse veriden türetilir
+    }
+  }, []);
 
   const fetchApplications = useCallback(async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -441,8 +455,9 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
   }, [activeTab, statusFilter, companyCity]);
 
   useEffect(() => {
+    fetchStatuses(activeTab);
     fetchApplications();
-  }, [activeTab, statusFilter, fetchApplications]);
+  }, [activeTab, statusFilter, fetchApplications, fetchStatuses]);
 
   // Client-side search
   const filtered = applications.filter(app => {
@@ -453,6 +468,8 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
     return name.includes(term) || phone.includes(term);
   });
 
+  // Dropdown + filtre butonları için: API varsa API, yoksa veriden türetilen
+  const displayStatuses = apiStatuses.length > 0 ? apiStatuses : uniqueStatuses;
   const emptyMsg = searchTerm ? "Arama sonucu bulunamadı" : "Başvuru bulunamadı";
 
   if (connectionOk === false) {
@@ -559,7 +576,7 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
           >
             Tümü ({total})
           </button>
-          {uniqueStatuses.map(s => {
+          {displayStatuses.map(s => {
             const count = allRawData.filter(a => a.status === s.value).length;
             return (
               <button
@@ -588,18 +605,18 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
       ) : (
         <>
           {activeTab === "courier" && (
-            <CourierTable applications={filtered} uniqueStatuses={uniqueStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+            <CourierTable applications={filtered} uniqueStatuses={displayStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
           )}
           {activeTab === "restaurant" && (
-            <RestaurantTable applications={filtered} uniqueStatuses={uniqueStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+            <RestaurantTable applications={filtered} uniqueStatuses={displayStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
           )}
           {activeTab === "company" && (
-            <CompanyTable applications={filtered} uniqueStatuses={uniqueStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+            <CompanyTable applications={filtered} uniqueStatuses={displayStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
           )}
           <ApplicationMobileCards
             applications={filtered}
             activeTab={activeTab}
-            uniqueStatuses={uniqueStatuses}
+            uniqueStatuses={displayStatuses}
             adminName={adminName || "Admin"}
             onSuccess={() => fetchApplications(false)}
             emptyMsg={emptyMsg}
