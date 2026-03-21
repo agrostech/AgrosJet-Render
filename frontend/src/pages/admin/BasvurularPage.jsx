@@ -403,11 +403,24 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
   // API'den tüm tanımlı durumları çek (cache-bust ile her zaman taze)
   const fetchStatuses = useCallback(async (type) => {
     try {
+      // Önce mevcut tip için dene
       const res = await axios.get(`${API}/applications/statuses/${type}`, {
         params: { _t: Date.now() }
       });
       const list = res.data.statuses || [];
-      setApiStatuses(list);
+      if (list.length > 0) {
+        setApiStatuses(list);
+        return;
+      }
+      // Boş döndüyse courier'dan çek (durumlar tüm tipler için ortak)
+      if (type !== "courier") {
+        const fallback = await axios.get(`${API}/applications/statuses/courier`, {
+          params: { _t: Date.now() }
+        });
+        setApiStatuses(fallback.data.statuses || []);
+      } else {
+        setApiStatuses([]);
+      }
     } catch {
       setApiStatuses([]);
     }
