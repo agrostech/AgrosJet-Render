@@ -293,19 +293,19 @@ function StatusDropdown({ application, uniqueStatuses, appType, adminName, onSuc
 function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, emptyMsg }) {
   return (
     <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
-      <Table>
+      <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow className="border-b-2 border-primary">
-            <TableHead className="font-bold text-xs w-[140px]">Ad Soyad</TableHead>
-            <TableHead className="font-bold text-xs w-[120px]">Telefon</TableHead>
-            <TableHead className="font-bold text-xs w-[130px]">İl / İlçe</TableHead>
-            <TableHead className="font-bold text-xs w-[100px]">Ehliyet</TableHead>
-            <TableHead className="font-bold text-xs w-[130px]">Motosiklet</TableHead>
-            <TableHead className="font-bold text-xs w-[85px] whitespace-nowrap">Günlük Saat</TableHead>
-            <TableHead className="font-bold text-xs w-[120px]">Deneyim</TableHead>
-            <TableHead className="font-bold text-xs min-w-[120px]">Açıklama</TableHead>
-            <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
-            <TableHead className="font-bold text-xs w-[150px] text-right">İşlemler</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"13%"}}>Ad Soyad</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Telefon</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>İl / İlçe</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"8%"}}>Ehliyet</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"11%"}}>Motosiklet</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"7%"}}>Günlük Saat</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"10%"}}>Deneyim</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"12%"}}>Açıklama</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap" style={{width:"9%"}}>Tarih</TableHead>
+            <TableHead className="font-bold text-xs whitespace-nowrap text-right" style={{width:"10%"}}>İşlemler</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
