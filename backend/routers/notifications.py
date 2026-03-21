@@ -57,12 +57,19 @@ async def get_notifications(company_id: str, limit: int = 50, include_read: bool
 
 
 @router.get("/company/{company_id}/unread-count")
-async def get_unread_count(company_id: str, target: str = None):
+async def get_unread_count(company_id: str, target: str = None, type: str = None):
     """
     Get count of unread notifications
     Admin panelinde kurye bildirimlerini ve break_request'leri sayma
     (break_request ayrı sekmede gösteriliyor)
+    type: belirli bir bildirim tipi için sayı (ör: "basvuru")
     """
+    # Belirli tip için filtre
+    if type:
+        query = {"company_id": company_id, "is_read": False, "type": type}
+        count = await db.notifications.count_documents(query)
+        return {"count": count}
+
     query = {
         "company_id": company_id,
         "is_read": False,
@@ -99,6 +106,20 @@ async def mark_as_read(notification_id: str):
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Bildirim bulunamadı")
     return {"message": "Okundu olarak işaretlendi"}
+
+
+@router.post("/company/{company_id}/mark-read-by-type")
+async def mark_read_by_type(company_id: str, type: str = None):
+    """Belirli tipteki tüm bildirimleri okundu işaretle"""
+    query = {"company_id": company_id, "is_read": False}
+    if type:
+        query["type"] = type
+    result = await db.notifications.update_many(
+        query,
+        {"$set": {"is_read": True, "read_at": get_turkey_now()}}
+    )
+    return {"marked": result.modified_count}
+
 
 
 @router.put("/company/{company_id}/read-all")

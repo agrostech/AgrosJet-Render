@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 from typing import Optional
 import logging
+import uuid
 
 from utils.database import db
 from utils.helpers import get_turkey_now
@@ -100,10 +101,34 @@ async def update_status(app_type: str, app_id: str, data: StatusUpdateRequest):
 webhook_router = APIRouter(prefix="/api/webhook", tags=["Webhooks - Applications"])
 
 
+async def _create_basvuru_notification(app_type: str, application: dict, message: str):
+    """Başvuru bildirimi oluştur - ilgili şehirdeki tüm company'lere"""
+    province = application.get("province", "")
+    # İlgili şehirdeki company'leri bul
+    query = {}
+    if province:
+        query["city"] = {"$regex": f"^{province}$", "$options": "i"}
+    companies = await db.companies.find(query, {"_id": 0, "id": 1}).to_list(100)
+    if not companies:
+        # Hiç company bulunamazsa tüm company'lere gönder
+        companies = await db.companies.find({}, {"_id": 0, "id": 1}).to_list(100)
+    for comp in companies:
+        await db.notifications.insert_one({
+            "id": str(uuid.uuid4()),
+            "company_id": comp["id"],
+            "type": "basvuru",
+            "title": message,
+            "message": message,
+            "entity_type": "application",
+            "entity_id": application.get("id"),
+            "is_read": False,
+            "created_at": get_turkey_now()
+        })
+
+
 @webhook_router.post("/applications")
 async def receive_application_webhook(request: Request):
     """AgrosJet'ten gelen başvuru webhook'larını al"""
-    # API Key doğrulama
     api_key = request.headers.get("X-API-Key", "")
 
     config = await db.system_settings.find_one(
@@ -128,7 +153,6 @@ async def receive_application_webhook(request: Request):
         return {"status": "ok", "message": "Webhook bağlantısı başarılı"}
 
     if event == "new_application":
-        # Yeni başvuruyu kaydet
         await db.agrosjet_applications.update_one(
             {"id": application.get("id")},
             {"$set": {
@@ -139,10 +163,12 @@ async def receive_application_webhook(request: Request):
             }},
             upsert=True
         )
+        type_label = "kurye" if app_type == "courier" else "restoran"
+        name = application.get("full_name") or application.get("restaurant_name") or ""
+        await _create_basvuru_notification(app_type, application, f"Yeni {type_label} başvurusu: {name}")
         return {"status": "ok", "message": "Başvuru kaydedildi"}
 
     if event == "status_updated":
-        # Durum güncellemesini kaydet
         await db.agrosjet_applications.update_one(
             {"id": application.get("id")},
             {"$set": {
@@ -153,6 +179,10 @@ async def receive_application_webhook(request: Request):
             }},
             upsert=True
         )
+        type_label = "kurye" if app_type == "courier" else "restoran"
+        name = application.get("full_name") or application.get("restaurant_name") or ""
+        status_label = application.get("status_label") or application.get("status") or ""
+        await _create_basvuru_notification(app_type, application, f"{type_label.capitalize()} başvurusu güncellendi: {name} → {status_label}")
         return {"status": "ok", "message": "Durum güncellendi"}
 
     return {"status": "ok", "message": "Bilinmeyen event tipi"}

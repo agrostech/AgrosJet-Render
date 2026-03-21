@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from "react-router-dom"
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3, FileText } from "lucide-react";
+import { Menu, X, LogOut, Clock, Calculator, Package, Users, UserCog, SlidersHorizontal, ShoppingBag, GraduationCap, User, Building2, Store, ClipboardList, Coins, AlertTriangle, Moon, Sun, BarChart3, FileText, Bell } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 // Page components
@@ -78,15 +78,28 @@ export default function AdminDashboard() {
 
   // Fetch pending orders count for badge
   const fetchBadges = useCallback(async () => {
+    const companyId = activeCompanyId;
+    if (!companyId) return;
     try {
-      const companyId = activeCompanyId;
-      if (!companyId) return;
-      
       const params = `?company_id=${companyId}`;
       const res = await axios.get(`${API}/jetpuan/orders/pending-count${params}`);
       setBadges(prev => ({ ...prev, jetpuan: res.data.count }));
     } catch (err) {
-      console.error("Badge fetch error:", err);
+      // ignore
+    }
+    // Başvuru bildirimi badge (sadece izni varsa)
+    try {
+      const stored = localStorage.getItem("user");
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      const perms = parsed.permissions || {};
+      const isSA = parsed.role === "superadmin" || parsed.is_super_admin === true;
+      if (isSA || perms.basvurular) {
+        const res = await axios.get(`${API}/notifications/company/${companyId}/unread-count?type=basvuru`);
+        setBadges(prev => ({ ...prev, basvurular: res.data.count }));
+      }
+    } catch (err) {
+      // ignore
     }
   }, [activeCompanyId]);
 

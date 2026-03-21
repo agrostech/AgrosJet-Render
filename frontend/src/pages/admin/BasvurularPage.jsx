@@ -546,6 +546,12 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
     fetchApplications();
   }, [activeTab, statusFilter, fetchApplications, fetchStatuses]);
 
+  // Sayfa açıldığında basvuru bildirimlerini okundu işaretle
+  useEffect(() => {
+    if (!companyId) return;
+    axios.post(`${API}/notifications/company/${companyId}/mark-read-by-type?type=basvuru`).catch(() => {});
+  }, [companyId]);
+
   // Client-side search
   const filtered = applications.filter(app => {
     if (!searchTerm) return true;

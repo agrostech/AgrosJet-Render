@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   X,
   Coffee,
-  Loader2
+  Loader2,
+  UserPlus
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -73,6 +74,7 @@ const NOTIFICATION_ICONS = {
   break_rejected: Coffee,
   break_started: Coffee,
   break_ended: Coffee,
+  basvuru: UserPlus,
 };
 
 const NOTIFICATION_COLORS = {
@@ -89,6 +91,7 @@ const NOTIFICATION_COLORS = {
   break_rejected: "text-red-600 bg-red-100",
   break_started: "text-blue-600 bg-blue-100",
   break_ended: "text-gray-600 bg-gray-100",
+  basvuru: "text-teal-600 bg-teal-100",
 };
 
 export default function NotificationsPopover({ companyId }) {
