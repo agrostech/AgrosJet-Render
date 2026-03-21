@@ -26,35 +26,10 @@ const TAB_CONFIG = [
   { key: "company", label: "Şirket", icon: Building2 }
 ];
 
-// Bilinen durum kodları için Türkçe etiket ve renk
-const KNOWN_STATUS_MAP = {
-  new:        { label: "Yeni Başvuru",  color: "#3b82f6" },
-  pending:    { label: "Beklemede",     color: "#f59e0b" },
-  positive:   { label: "Olumlu",        color: "#10b981" },
-  negative:   { label: "Olumsuz",       color: "#ef4444" },
-  approved:   { label: "Onaylandı",     color: "#10b981" },
-  rejected:   { label: "Reddedildi",    color: "#ef4444" },
-  interview:  { label: "Mülakat",       color: "#8b5cf6" },
-  contacted:  { label: "İletişime Geçildi", color: "#06b6d4" },
-  cancelled:  { label: "İptal Edildi",  color: "#6b7280" },
-  completed:  { label: "Tamamlandı",    color: "#059669" },
-};
-
-function getStatusColor(status, statusMap) {
-  if (statusMap[status]) return statusMap[status].color;
-  if (KNOWN_STATUS_MAP[status]) return KNOWN_STATUS_MAP[status].color;
-  return "#94a3b8";
-}
-
-function getStatusLabel(status, statusMap) {
-  if (statusMap[status]) return statusMap[status].label;
-  if (KNOWN_STATUS_MAP[status]) return KNOWN_STATUS_MAP[status].label;
-  return status;
-}
-
-function StatusBadge({ status, statusMap }) {
-  const color = getStatusColor(status, statusMap);
-  const label = getStatusLabel(status, statusMap);
+// Doğrudan application objesinden label ve color oku
+function StatusBadge({ app }) {
+  const color = app.status_color || "#94a3b8";
+  const label = app.status_label || app.status;
   return (
     <span
       className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap"
@@ -89,14 +64,14 @@ function boolLabel(val) {
 }
 
 // --- Status Dropdown ---
-function StatusDropdown({ application, statusMap, allStatuses, appType, adminName, onSuccess }) {
+function StatusDropdown({ application, uniqueStatuses, appType, adminName, onSuccess }) {
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const handleStatusSelect = (statusValue) => {
-    setPendingStatus(statusValue);
+  const handleStatusSelect = (s) => {
+    setPendingStatus(s);
     setNote("");
     setShowNoteDialog(true);
   };
@@ -106,7 +81,7 @@ function StatusDropdown({ application, statusMap, allStatuses, appType, adminNam
     setSaving(true);
     try {
       await axios.patch(`${API}/applications/${appType}/${application.id}/status`, {
-        status: pendingStatus,
+        status: pendingStatus.value,
         note: note.trim(),
         admin_name: adminName
       });
@@ -120,8 +95,8 @@ function StatusDropdown({ application, statusMap, allStatuses, appType, adminNam
     }
   };
 
-  const color = getStatusColor(application.status, statusMap);
-  const label = getStatusLabel(application.status, statusMap);
+  const color = application.status_color || "#94a3b8";
+  const label = application.status_label || application.status;
 
   return (
     <>
@@ -136,11 +111,11 @@ function StatusDropdown({ application, statusMap, allStatuses, appType, adminNam
             <ChevronDown className="w-3 h-3" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[140px]">
-          {allStatuses.map(s => (
+        <DropdownMenuContent align="end" className="min-w-[160px]">
+          {uniqueStatuses.map(s => (
             <DropdownMenuItem
               key={s.value}
-              onClick={() => handleStatusSelect(s.value)}
+              onClick={() => handleStatusSelect(s)}
               className="flex items-center gap-2 cursor-pointer"
               data-testid={`status-option-${s.value}`}
             >
@@ -163,7 +138,14 @@ function StatusDropdown({ application, statusMap, allStatuses, appType, adminNam
             <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
               <span className="text-sm font-medium">{application.restaurant_name || application.full_name}</span>
               <span className="text-muted-foreground">→</span>
-              <StatusBadge status={pendingStatus} statusMap={statusMap} />
+              {pendingStatus && (
+                <span
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold"
+                  style={{ backgroundColor: pendingStatus.color + "1a", color: pendingStatus.color, border: `1.5px solid ${pendingStatus.color}40` }}
+                >
+                  {pendingStatus.label}
+                </span>
+              )}
             </div>
             <div>
               <Label className="text-sm font-semibold">Not</Label>
@@ -191,7 +173,7 @@ function StatusDropdown({ application, statusMap, allStatuses, appType, adminNam
 }
 
 // --- Kurye Table ---
-function CourierTable({ applications, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
+function CourierTable({ applications, uniqueStatuses, adminName, onSuccess, emptyMsg }) {
   return (
     <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
       <Table>
@@ -206,7 +188,7 @@ function CourierTable({ applications, statusMap, allStatuses, adminName, onSucce
             <TableHead className="font-bold text-xs w-[80px]">Deneyim</TableHead>
             <TableHead className="font-bold text-xs min-w-[120px]">Açıklama</TableHead>
             <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
-            <TableHead className="font-bold text-xs w-[110px] text-right">Durum</TableHead>
+            <TableHead className="font-bold text-xs w-[120px] text-right">Durum</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -228,7 +210,7 @@ function CourierTable({ applications, statusMap, allStatuses, adminName, onSucce
               <TableCell className="text-sm truncate max-w-[200px]" title={app.description}>{app.description || "-"}</TableCell>
               <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
               <TableCell className="text-right">
-                <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType="courier" adminName={adminName} onSuccess={onSuccess} />
+                <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="courier" adminName={adminName} onSuccess={onSuccess} />
               </TableCell>
             </TableRow>
           ))}
@@ -239,7 +221,7 @@ function CourierTable({ applications, statusMap, allStatuses, adminName, onSucce
 }
 
 // --- Restoran Table ---
-function RestaurantTable({ applications, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
+function RestaurantTable({ applications, uniqueStatuses, adminName, onSuccess, emptyMsg }) {
   return (
     <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
       <Table>
@@ -255,7 +237,7 @@ function RestaurantTable({ applications, statusMap, allStatuses, adminName, onSu
             <TableHead className="font-bold text-xs w-[70px]">Başka Servis</TableHead>
             <TableHead className="font-bold text-xs w-[100px]">Ziyaret</TableHead>
             <TableHead className="font-bold text-xs w-[120px]">Tarih</TableHead>
-            <TableHead className="font-bold text-xs w-[110px] text-right">Durum</TableHead>
+            <TableHead className="font-bold text-xs w-[120px] text-right">Durum</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -274,7 +256,7 @@ function RestaurantTable({ applications, statusMap, allStatuses, adminName, onSu
               <TableCell className="text-sm whitespace-nowrap">{app.visit_date ? `${app.visit_date}${app.visit_time_slot ? ` ${app.visit_time_slot}` : ""}` : "-"}</TableCell>
               <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
               <TableCell className="text-right">
-                <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType="restaurant" adminName={adminName} onSuccess={onSuccess} />
+                <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="restaurant" adminName={adminName} onSuccess={onSuccess} />
               </TableCell>
             </TableRow>
           ))}
@@ -285,7 +267,7 @@ function RestaurantTable({ applications, statusMap, allStatuses, adminName, onSu
 }
 
 // --- Şirket Table ---
-function CompanyTable({ applications, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
+function CompanyTable({ applications, uniqueStatuses, adminName, onSuccess, emptyMsg }) {
   return (
     <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
       <Table>
@@ -314,7 +296,7 @@ function CompanyTable({ applications, statusMap, allStatuses, adminName, onSucce
               <TableCell className="text-sm">{boolLabel(app.has_active_company)}</TableCell>
               <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(app.created_at)}</TableCell>
               <TableCell className="text-right">
-                <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType="company" adminName={adminName} onSuccess={onSuccess} />
+                <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType="company" adminName={adminName} onSuccess={onSuccess} />
               </TableCell>
             </TableRow>
           ))}
@@ -325,7 +307,7 @@ function CompanyTable({ applications, statusMap, allStatuses, adminName, onSucce
 }
 
 // --- Mobile Cards ---
-function ApplicationMobileCards({ applications, activeTab, statusMap, allStatuses, adminName, onSuccess, emptyMsg }) {
+function ApplicationMobileCards({ applications, activeTab, uniqueStatuses, adminName, onSuccess, emptyMsg }) {
   if (applications.length === 0) {
     return (
       <div className="md:hidden border rounded-lg p-6 bg-white dark:bg-card text-center text-muted-foreground">
@@ -350,7 +332,7 @@ function ApplicationMobileCards({ applications, activeTab, statusMap, allStatuse
                 {activeTab === "restaurant" && app.package_count ? ` · ${app.package_count} paket` : ""}
               </p>
             </div>
-            <StatusDropdown application={app} statusMap={statusMap} allStatuses={allStatuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+            <StatusDropdown application={app} uniqueStatuses={uniqueStatuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
           </div>
         </div>
       ))}
@@ -358,20 +340,33 @@ function ApplicationMobileCards({ applications, activeTab, statusMap, allStatuse
   );
 }
 
+// Veriden benzersiz durum listesi çıkar (dropdown + filtre için)
+function extractUniqueStatuses(data) {
+  const seen = new Map();
+  data.forEach(app => {
+    if (app.status && !seen.has(app.status)) {
+      seen.set(app.status, {
+        value: app.status,
+        label: app.status_label || app.status,
+        color: app.status_color || "#94a3b8"
+      });
+    }
+  });
+  return Array.from(seen.values());
+}
+
 
 export default function BasvurularPage({ companyId, adminName, companyCity }) {
   const [activeTab, setActiveTab] = useState("courier");
   const [applications, setApplications] = useState([]);
+  const [allRawData, setAllRawData] = useState([]); // Filtresiz veri - durum listesi için
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [connectionOk, setConnectionOk] = useState(null);
-
-  // Dinamik durum listesi - API'den veya veriden türetilir
-  const [statusMap, setStatusMap] = useState({});   // { value: { label, color } }
-  const [allStatuses, setAllStatuses] = useState([]); // [{ value, label, color }]
+  const [uniqueStatuses, setUniqueStatuses] = useState([]);
 
   // Tab scroll
   const tabsContainerRef = useRef(null);
@@ -402,77 +397,35 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
     }
   };
 
-  // Durumları API'den çek
-  const fetchStatuses = useCallback(async (type) => {
-    try {
-      const res = await axios.get(`${API}/applications/statuses/${type}`);
-      const list = res.data.statuses || [];
-      if (list.length > 0) {
-        const map = {};
-        list.forEach(s => { map[s.value] = { label: s.label, color: s.color }; });
-        setStatusMap(map);
-        setAllStatuses(list);
-      }
-    } catch {
-      // Hata durumunda veri bazlı durum çıkarımı kullanılır
-    }
-  }, []);
-
-  // Veriden benzersiz durumları çıkar (API boş dönerse)
-  const deriveStatusesFromData = useCallback((data) => {
-    const palette = ["#3b82f6", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316", "#ec4899", "#14b8a6", "#6366f1"];
-    const seen = new Map();
-    let colorIdx = 0;
-
-    data.forEach(app => {
-      if (app.status && !seen.has(app.status)) {
-        const known = KNOWN_STATUS_MAP[app.status];
-        seen.set(app.status, {
-          value: app.status,
-          label: known ? known.label : app.status,
-          color: known ? known.color : palette[colorIdx % palette.length]
-        });
-        if (!known) colorIdx++;
-      }
-    });
-
-    return Array.from(seen.values());
-  }, []);
-
   const fetchApplications = useCallback(async (showLoader = true) => {
     if (showLoader) setLoading(true);
     else setRefreshing(true);
     try {
-      const params = new URLSearchParams({ limit: "500", offset: "0" });
-      if (statusFilter) params.append("status", statusFilter);
-      const res = await axios.get(`${API}/applications/${activeTab}?${params}`);
-      let data = res.data.data || [];
+      // Her zaman filtresiz çek - durum listesini güncel tutmak için
+      const res = await axios.get(`${API}/applications/${activeTab}?limit=500&offset=0`);
+      let rawData = res.data.data || [];
 
-      // Şirketin iline göre filtrele
+      // İl filtresi
       if (companyCity) {
-        data = data.filter(app => {
-          const appProvince = (app.province || "").toLowerCase().trim();
-          const cityLower = companyCity.toLowerCase().trim();
-          return appProvince === cityLower;
-        });
+        rawData = rawData.filter(app =>
+          (app.province || "").toLowerCase().trim() === companyCity.toLowerCase().trim()
+        );
       }
 
-      setApplications(data);
-      setTotal(data.length);
+      // Tüm veriyi sakla (durum listesi + filtre sayıları için)
+      setAllRawData(rawData);
+      setTotal(rawData.length);
+
+      // Benzersiz durumları çıkar
+      const statuses = extractUniqueStatuses(rawData);
+      setUniqueStatuses(statuses);
+
+      // Durum filtresi uygula
+      const filtered = statusFilter
+        ? rawData.filter(app => app.status === statusFilter)
+        : rawData;
+      setApplications(filtered);
       setConnectionOk(true);
-
-      // Eğer API'den durum gelmemişse, veriden çıkar
-      if (allStatuses.length === 0 && !statusFilter) {
-        // Filtreli sorguda tüm veriye ulaşamayız, sadece filtresizde çıkar
-        const allData = res.data.data || [];
-        const derived = deriveStatusesFromData(allData);
-        if (derived.length > 0) {
-          const map = {};
-          derived.forEach(s => { map[s.value] = { label: s.label, color: s.color }; });
-          setStatusMap(map);
-          setAllStatuses(derived);
-        }
-      }
     } catch (err) {
       const detail = err.response?.data?.detail || "";
       if (detail.includes("yapılandırma") || detail.includes("yapilandirma")) {
@@ -480,17 +433,12 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
       }
       toast.error(detail || "Başvurular yüklenemedi");
       setApplications([]);
+      setAllRawData([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [activeTab, statusFilter, companyCity, allStatuses.length, deriveStatusesFromData]);
-
-  useEffect(() => {
-    setStatusMap({});
-    setAllStatuses([]);
-    fetchStatuses(activeTab);
-  }, [activeTab, fetchStatuses]);
+  }, [activeTab, statusFilter, companyCity]);
 
   useEffect(() => {
     fetchApplications();
@@ -556,7 +504,6 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
             <ChevronLeft className="w-5 h-5 text-slate-500" />
           </button>
         )}
-
         <div
           ref={tabsContainerRef}
           onScroll={checkScrollArrows}
@@ -580,7 +527,6 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
             ))}
           </div>
         </div>
-
         {showRightArrow && (
           <button
             onClick={() => scrollTabs("right")}
@@ -613,23 +559,26 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
           >
             Tümü ({total})
           </button>
-          {allStatuses.map(s => (
-            <button
-              key={s.value}
-              onClick={() => setStatusFilter(s.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border-2 transition-all ${
-                statusFilter === s.value ? "" : "opacity-60 hover:opacity-100"
-              }`}
-              style={{
-                borderColor: s.color,
-                backgroundColor: statusFilter === s.value ? s.color + "20" : "transparent",
-                color: s.color
-              }}
-              data-testid={`filter-${s.value}`}
-            >
-              {s.label}
-            </button>
-          ))}
+          {uniqueStatuses.map(s => {
+            const count = allRawData.filter(a => a.status === s.value).length;
+            return (
+              <button
+                key={s.value}
+                onClick={() => setStatusFilter(s.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border-2 transition-all ${
+                  statusFilter === s.value ? "" : "opacity-60 hover:opacity-100"
+                }`}
+                style={{
+                  borderColor: s.color,
+                  backgroundColor: statusFilter === s.value ? s.color + "20" : "transparent",
+                  color: s.color
+                }}
+                data-testid={`filter-${s.value}`}
+              >
+                {s.label} ({count})
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -639,19 +588,18 @@ export default function BasvurularPage({ companyId, adminName, companyCity }) {
       ) : (
         <>
           {activeTab === "courier" && (
-            <CourierTable applications={filtered} statusMap={statusMap} allStatuses={allStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+            <CourierTable applications={filtered} uniqueStatuses={uniqueStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
           )}
           {activeTab === "restaurant" && (
-            <RestaurantTable applications={filtered} statusMap={statusMap} allStatuses={allStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+            <RestaurantTable applications={filtered} uniqueStatuses={uniqueStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
           )}
           {activeTab === "company" && (
-            <CompanyTable applications={filtered} statusMap={statusMap} allStatuses={allStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
+            <CompanyTable applications={filtered} uniqueStatuses={uniqueStatuses} adminName={adminName || "Admin"} onSuccess={() => fetchApplications(false)} emptyMsg={emptyMsg} />
           )}
           <ApplicationMobileCards
             applications={filtered}
             activeTab={activeTab}
-            statusMap={statusMap}
-            allStatuses={allStatuses}
+            uniqueStatuses={uniqueStatuses}
             adminName={adminName || "Admin"}
             onSuccess={() => fetchApplications(false)}
             emptyMsg={emptyMsg}
