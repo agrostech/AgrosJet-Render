@@ -496,7 +496,7 @@ export default function AdminDashboard() {
               <Route path="iptal-siparisler" element={<IptalSiparislerPage companyId={activeCompanyId} isSuperAdmin={isSuperAdmin} />} />
               <Route path="restoranlar" element={<RestoranlarPage companyId={activeCompanyId} />} />
               {(isSuperAdmin || permissions.basvurular) && (
-                <Route path="basvurular" element={<BasvurularPage companyId={activeCompanyId} adminName={user.name || user.username} />} />
+                <Route path="basvurular" element={<BasvurularPage companyId={activeCompanyId} adminName={user.name || user.username} companyCity={company?.city} />} />
               )}
               {(isSuperAdmin || permissions.vardiya) && (
                 <Route path="vardiyalar" element={<VardiyaPage companyId={activeCompanyId} />} />

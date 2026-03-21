@@ -1,15 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  Users, Store, Building2, Phone, MapPin, Clock,
-  RefreshCw, Bike, FileText,
-  Calendar, Package, Loader2, Search, AlertCircle
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Users, Store, Building2, Phone, MapPin, Clock, ChevronLeft, ChevronRight,
+  RefreshCw, Bike, FileText, Calendar, Package, Loader2, Search, AlertCircle, ChevronDown
 } from "lucide-react";
 import { PageLoading } from "@/components/ui/loading-spinner";
 
@@ -58,174 +63,31 @@ function formatPhone(phone) {
   return phone;
 }
 
-function CourierCard({ app, statuses, onStatusClick }) {
-  return (
-    <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg p-3.5 hover:shadow-sm transition-shadow" data-testid={`courier-card-${app.id}`}>
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-sm truncate">{app.full_name}</h3>
-          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-            <Phone className="w-3 h-3 flex-shrink-0" />{formatPhone(app.phone)}
-          </p>
-        </div>
-        <StatusBadge status={app.status} statuses={statuses} />
-      </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-2">
-        {app.province && (
-          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{app.province}{app.district ? ` / ${app.district}` : ""}</span>
-        )}
-        {app.has_motorcycle !== undefined && (
-          <span className="flex items-center gap-1"><Bike className="w-3 h-3" />{app.has_motorcycle ? `${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var" : "Yok"}</span>
-        )}
-        {app.experience && (
-          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{app.experience}</span>
-        )}
-        {app.daily_hours && (
-          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{app.daily_hours} saat</span>
-        )}
-      </div>
-      {app.description && (
-        <p className="text-xs text-muted-foreground mt-2 bg-slate-50 dark:bg-slate-700/50 rounded p-2 line-clamp-2">{app.description}</p>
-      )}
-      <div className="flex items-center justify-between mt-3 pt-2 border-t dark:border-slate-700">
-        <span className="text-[10px] text-muted-foreground">{formatDate(app.created_at)}</span>
-        <Button size="sm" variant="outline" className="h-7 text-xs font-semibold border-2" onClick={() => onStatusClick(app)} data-testid={`status-update-btn-${app.id}`}>
-          Durum Güncelle
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function RestaurantCard({ app, statuses, onStatusClick }) {
-  return (
-    <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg p-3.5 hover:shadow-sm transition-shadow" data-testid={`restaurant-card-${app.id}`}>
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-sm truncate">{app.restaurant_name || app.full_name}</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">{app.contact_name}</p>
-        </div>
-        <StatusBadge status={app.status} statuses={statuses} />
-      </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-2">
-        <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{formatPhone(app.phone)}</span>
-        {app.province && (
-          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{app.province}{app.district ? ` / ${app.district}` : ""}</span>
-        )}
-        {app.package_count && (
-          <span className="flex items-center gap-1"><Package className="w-3 h-3" />{app.package_count} paket/gün</span>
-        )}
-      </div>
-      {app.address && (
-        <p className="text-xs text-muted-foreground mt-2 bg-slate-50 dark:bg-slate-700/50 rounded p-2 line-clamp-2">{app.address}</p>
-      )}
-      <div className="flex flex-wrap gap-2 mt-2">
-        {app.has_courier !== undefined && (
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${app.has_courier ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400"}`}>
-            {app.has_courier ? "Kurye Var" : "Kurye Yok"}
-          </span>
-        )}
-        {app.visit_date && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-semibold">
-            Ziyaret: {app.visit_date} {app.visit_time_slot || ""}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center justify-between mt-3 pt-2 border-t dark:border-slate-700">
-        <span className="text-[10px] text-muted-foreground">{formatDate(app.created_at)}</span>
-        <Button size="sm" variant="outline" className="h-7 text-xs font-semibold border-2" onClick={() => onStatusClick(app)} data-testid={`status-update-btn-${app.id}`}>
-          Durum Güncelle
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function CompanyCard({ app, statuses, onStatusClick }) {
-  return (
-    <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg p-3.5 hover:shadow-sm transition-shadow" data-testid={`company-card-${app.id}`}>
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-sm truncate">{app.full_name}</h3>
-          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-            <Phone className="w-3 h-3 flex-shrink-0" />{formatPhone(app.phone)}
-          </p>
-        </div>
-        <StatusBadge status={app.status} statuses={statuses} />
-      </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-2">
-        {app.province && (
-          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{app.province}{app.district ? ` / ${app.district}` : ""}</span>
-        )}
-        {app.application_type && (
-          <span className="flex items-center gap-1"><FileText className="w-3 h-3" />{app.application_type}</span>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-2 mt-2">
-        {app.has_active_company !== undefined && (
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${app.has_active_company ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400"}`}>
-            {app.has_active_company ? "Aktif Şirketi Var" : "Aktif Şirketi Yok"}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center justify-between mt-3 pt-2 border-t dark:border-slate-700">
-        <span className="text-[10px] text-muted-foreground">{formatDate(app.created_at)}</span>
-        <Button size="sm" variant="outline" className="h-7 text-xs font-semibold border-2" onClick={() => onStatusClick(app)} data-testid={`status-update-btn-${app.id}`}>
-          Durum Güncelle
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function StatusHistory({ history }) {
-  if (!history || history.length === 0) return null;
-  return (
-    <div className="mt-3 space-y-2">
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Durum Geçmişi</p>
-      <div className="space-y-1.5 max-h-48 overflow-y-auto">
-        {[...history].reverse().map((h, i) => (
-          <div key={i} className="flex items-start gap-2 text-xs bg-slate-50 dark:bg-slate-700/50 rounded p-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 flex-shrink-0" />
-            <div className="min-w-0">
-              <span className="font-semibold">{h.status}</span>
-              {h.note && <span className="text-muted-foreground ml-1">- {h.note}</span>}
-              <div className="text-[10px] text-muted-foreground mt-0.5">
-                {h.admin}{h.source === "agrosjet_app" ? " (AgrosJet.app)" : ""} · {formatDate(h.timestamp)}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function StatusUpdateModal({ open, onOpenChange, application, statuses, appType, adminName, onSuccess }) {
-  const [selectedStatus, setSelectedStatus] = useState("");
+// --- Status Dropdown ---
+function StatusDropdown({ application, statuses, appType, adminName, onSuccess }) {
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState(null);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (open && application) {
-      setSelectedStatus(application.status || "");
-      setNote("");
-    }
-  }, [open, application]);
+  const handleStatusSelect = (statusValue) => {
+    setPendingStatus(statusValue);
+    setNote("");
+    setShowNoteDialog(true);
+  };
 
   const handleSave = async () => {
-    if (!selectedStatus) { toast.error("Durum seçin"); return; }
     if (!note.trim()) { toast.error("Not yazın"); return; }
     setSaving(true);
     try {
       await axios.patch(`${API}/applications/${appType}/${application.id}/status`, {
-        status: selectedStatus,
+        status: pendingStatus,
         note: note.trim(),
         admin_name: adminName
       });
       toast.success("Durum güncellendi");
+      setShowNoteDialog(false);
       onSuccess();
-      onOpenChange(false);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Güncelleme başarısız");
     } finally {
@@ -233,74 +95,222 @@ function StatusUpdateModal({ open, onOpenChange, application, statuses, appType,
     }
   };
 
-  if (!application) return null;
+  const currentStatus = statuses.find(s => s.value === application.status) || { label: application.status, color: "#94a3b8" };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-base font-bold">Durum Güncelle</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
-            <p className="font-semibold text-sm">{application.restaurant_name || application.full_name}</p>
-            <p className="text-xs text-muted-foreground">{formatPhone(application.phone)}</p>
-          </div>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: currentStatus.color + "1a", color: currentStatus.color, border: `1.5px solid ${currentStatus.color}40` }}
+            data-testid={`status-dropdown-${application.id}`}
+          >
+            {currentStatus.label}
+            <ChevronDown className="w-3 h-3" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[140px]">
+          {statuses.map(s => (
+            <DropdownMenuItem
+              key={s.value}
+              onClick={() => handleStatusSelect(s.value)}
+              className="flex items-center gap-2 cursor-pointer"
+              data-testid={`status-option-${s.value}`}
+            >
+              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+              <span className="text-sm font-medium">{s.label}</span>
+              {s.value === application.status && (
+                <span className="ml-auto text-[10px] text-muted-foreground">Mevcut</span>
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-          <div>
-            <Label className="text-sm font-semibold">Yeni Durum</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {statuses.map(s => (
-                <button
-                  key={s.value}
-                  onClick={() => setSelectedStatus(s.value)}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
-                    selectedStatus === s.value
-                      ? "ring-2 ring-offset-1"
-                      : "opacity-70 hover:opacity-100"
-                  }`}
-                  style={{
-                    backgroundColor: selectedStatus === s.value ? s.color + "20" : "transparent",
-                    borderColor: s.color,
-                    color: s.color
-                  }}
-                  data-testid={`status-option-${s.value}`}
-                >
-                  {s.label}
-                </button>
-              ))}
+      <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold">Durum Notu</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
+              <span className="text-sm font-medium">{application.restaurant_name || application.full_name}</span>
+              <span className="text-muted-foreground">→</span>
+              <StatusBadge status={pendingStatus} statuses={statuses} />
+            </div>
+            <div>
+              <Label className="text-sm font-semibold">Not</Label>
+              <Textarea
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                placeholder="Durum değişiklik notunu yazın..."
+                className="mt-1 border-2 text-sm"
+                rows={3}
+                autoFocus
+                data-testid="status-note-input"
+              />
             </div>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNoteDialog(false)} className="border-2 font-semibold">İptal</Button>
+            <Button onClick={handleSave} disabled={saving || !note.trim()} className="font-semibold" data-testid="status-save-btn">
+              {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Kaydediliyor...</> : "Kaydet"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
 
-          <div>
-            <Label className="text-sm font-semibold">Not</Label>
-            <Textarea
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              placeholder="Durum değişiklik notunu yazın..."
-              className="mt-1 border-2 text-sm"
-              rows={3}
-              data-testid="status-note-input"
-            />
+// --- Desktop Table ---
+function ApplicationTable({ applications, activeTab, statuses, adminName, onSuccess, searchTerm }) {
+  const emptyMessage = searchTerm
+    ? "Arama sonucu bulunamadı"
+    : "Başvuru bulunamadı";
+
+  return (
+    <div className="hidden md:block border-2 border-border bg-white overflow-x-auto" data-testid="applications-table">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-b-2 border-primary">
+            {activeTab === "courier" && (
+              <>
+                <TableHead className="font-bold text-xs">Ad Soyad</TableHead>
+                <TableHead className="font-bold text-xs">Telefon</TableHead>
+                <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
+                <TableHead className="font-bold text-xs">Motosiklet</TableHead>
+                <TableHead className="font-bold text-xs">Deneyim</TableHead>
+                <TableHead className="font-bold text-xs">Tarih</TableHead>
+                <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+              </>
+            )}
+            {activeTab === "restaurant" && (
+              <>
+                <TableHead className="font-bold text-xs">Restoran Adı</TableHead>
+                <TableHead className="font-bold text-xs">Yetkili</TableHead>
+                <TableHead className="font-bold text-xs">Telefon</TableHead>
+                <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
+                <TableHead className="font-bold text-xs">Paket/Gün</TableHead>
+                <TableHead className="font-bold text-xs">Tarih</TableHead>
+                <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+              </>
+            )}
+            {activeTab === "company" && (
+              <>
+                <TableHead className="font-bold text-xs">Yetkili Adı</TableHead>
+                <TableHead className="font-bold text-xs">Telefon</TableHead>
+                <TableHead className="font-bold text-xs">İl / İlçe</TableHead>
+                <TableHead className="font-bold text-xs">Başvuru Tipi</TableHead>
+                <TableHead className="font-bold text-xs">Tarih</TableHead>
+                <TableHead className="font-bold text-xs text-right">Durum</TableHead>
+              </>
+            )}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {applications.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                {emptyMessage}
+              </TableCell>
+            </TableRow>
+          ) : (
+            applications.map((app) => (
+              <TableRow key={app.id} className="border-b border-border hover:bg-slate-50" data-testid={`app-row-${app.id}`}>
+                {activeTab === "courier" && (
+                  <>
+                    <TableCell className="font-medium">{app.full_name}</TableCell>
+                    <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
+                    <TableCell className="text-sm">{app.province}{app.district ? ` / ${app.district}` : ""}</TableCell>
+                    <TableCell className="text-sm">
+                      {app.has_motorcycle
+                        ? <span className="text-green-600">{`${app.motorcycle_brand || ""} ${app.motorcycle_model || ""}`.trim() || "Var"}</span>
+                        : <span className="text-muted-foreground">Yok</span>
+                      }
+                    </TableCell>
+                    <TableCell className="text-sm">{app.experience || "-"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(app.created_at)}</TableCell>
+                    <TableCell className="text-right">
+                      <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+                    </TableCell>
+                  </>
+                )}
+                {activeTab === "restaurant" && (
+                  <>
+                    <TableCell className="font-medium">{app.restaurant_name || app.full_name}</TableCell>
+                    <TableCell className="text-sm">{app.contact_name || "-"}</TableCell>
+                    <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
+                    <TableCell className="text-sm">{app.province}{app.district ? ` / ${app.district}` : ""}</TableCell>
+                    <TableCell className="text-sm">{app.package_count || "-"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(app.created_at)}</TableCell>
+                    <TableCell className="text-right">
+                      <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+                    </TableCell>
+                  </>
+                )}
+                {activeTab === "company" && (
+                  <>
+                    <TableCell className="font-medium">{app.full_name}</TableCell>
+                    <TableCell className="font-mono text-sm">{formatPhone(app.phone)}</TableCell>
+                    <TableCell className="text-sm">{app.province}{app.district ? ` / ${app.district}` : ""}</TableCell>
+                    <TableCell className="text-sm">{app.application_type || "-"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{formatDate(app.created_at)}</TableCell>
+                    <TableCell className="text-right">
+                      <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
+                    </TableCell>
+                  </>
+                )}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// --- Mobile Cards ---
+function ApplicationMobileCards({ applications, activeTab, statuses, adminName, onSuccess, searchTerm }) {
+  const emptyMessage = searchTerm
+    ? "Arama sonucu bulunamadı"
+    : "Başvuru bulunamadı";
+
+  if (applications.length === 0) {
+    return (
+      <div className="md:hidden border rounded-lg p-6 bg-white dark:bg-card text-center text-muted-foreground">
+        {emptyMessage}
+      </div>
+    );
+  }
+
+  return (
+    <div className="md:hidden space-y-1.5">
+      {applications.map((app) => (
+        <div key={app.id} className="border rounded-lg px-2.5 py-2 bg-white dark:bg-card" data-testid={`app-card-${app.id}`}>
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-sm truncate leading-tight">
+                {activeTab === "restaurant" ? (app.restaurant_name || app.full_name) : app.full_name}
+              </p>
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                {formatPhone(app.phone)}
+                {app.province ? ` · ${app.province}` : ""}
+                {activeTab === "courier" && app.experience ? ` · ${app.experience}` : ""}
+                {activeTab === "restaurant" && app.package_count ? ` · ${app.package_count} paket` : ""}
+              </p>
+            </div>
+            <StatusDropdown application={app} statuses={statuses} appType={activeTab} adminName={adminName} onSuccess={onSuccess} />
           </div>
-
-          <StatusHistory history={application.status_history} />
         </div>
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="border-2 font-semibold">
-            İptal
-          </Button>
-          <Button onClick={handleSave} disabled={saving || !selectedStatus || !note.trim()} className="font-semibold" data-testid="status-save-btn">
-            {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Kaydediliyor...</> : "Kaydet"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      ))}
+    </div>
   );
 }
 
 
-export default function BasvurularPage({ companyId, adminName }) {
+export default function BasvurularPage({ companyId, adminName, companyCity }) {
   const [activeTab, setActiveTab] = useState("courier");
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -313,9 +323,36 @@ export default function BasvurularPage({ companyId, adminName }) {
     restaurant: DEFAULT_STATUSES,
     company: DEFAULT_STATUSES
   });
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [selectedApp, setSelectedApp] = useState(null);
   const [connectionOk, setConnectionOk] = useState(null);
+
+  // Tab scroll
+  const tabsContainerRef = useRef(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
+  const checkScrollArrows = () => {
+    if (tabsContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 5);
+    }
+  };
+
+  useEffect(() => {
+    checkScrollArrows();
+    window.addEventListener("resize", checkScrollArrows);
+    return () => window.removeEventListener("resize", checkScrollArrows);
+  }, []);
+
+  const scrollTabs = (direction) => {
+    if (tabsContainerRef.current) {
+      tabsContainerRef.current.scrollBy({
+        left: direction === "left" ? -120 : 120,
+        behavior: "smooth"
+      });
+      setTimeout(checkScrollArrows, 300);
+    }
+  };
 
   const fetchStatuses = useCallback(async (type) => {
     try {
@@ -332,11 +369,22 @@ export default function BasvurularPage({ companyId, adminName }) {
     if (showLoader) setLoading(true);
     else setRefreshing(true);
     try {
-      const params = new URLSearchParams({ limit: "200", offset: "0" });
+      const params = new URLSearchParams({ limit: "500", offset: "0" });
       if (statusFilter) params.append("status", statusFilter);
       const res = await axios.get(`${API}/applications/${activeTab}?${params}`);
-      setApplications(res.data.data || []);
-      setTotal(res.data.total || 0);
+      let data = res.data.data || [];
+
+      // Şirketin iline göre filtrele
+      if (companyCity) {
+        data = data.filter(app => {
+          const appProvince = (app.province || "").toLowerCase().trim();
+          const cityLower = companyCity.toLowerCase().trim();
+          return appProvince === cityLower;
+        });
+      }
+
+      setApplications(data);
+      setTotal(data.length);
       setConnectionOk(true);
     } catch (err) {
       const detail = err.response?.data?.detail || "";
@@ -349,26 +397,21 @@ export default function BasvurularPage({ companyId, adminName }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [activeTab, statusFilter]);
+  }, [activeTab, statusFilter, companyCity]);
 
   useEffect(() => {
     fetchApplications();
     fetchStatuses(activeTab);
   }, [activeTab, statusFilter, fetchApplications, fetchStatuses]);
 
+  // Client-side search
   const filtered = applications.filter(app => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     const name = (app.full_name || app.restaurant_name || "").toLowerCase();
     const phone = (app.phone || "").toLowerCase();
-    const province = (app.province || "").toLowerCase();
-    return name.includes(term) || phone.includes(term) || province.includes(term);
+    return name.includes(term) || phone.includes(term);
   });
-
-  const handleStatusClick = (app) => {
-    setSelectedApp(app);
-    setShowStatusModal(true);
-  };
 
   const currentStatuses = statuses[activeTab] || DEFAULT_STATUSES;
 
@@ -387,11 +430,16 @@ export default function BasvurularPage({ companyId, adminName }) {
   }
 
   return (
-    <div className="space-y-4" data-testid="basvurular-page">
-      <div className="flex items-center justify-between gap-3">
+    <div data-testid="basvurular-page">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 mb-4">
         <div>
-          <h1 className="font-heading text-xl sm:text-2xl font-bold">Başvurular</h1>
-          <p className="text-muted-foreground text-xs sm:text-sm">AgrosJet.com başvuru yönetimi</p>
+          <h2 className="font-heading text-xl font-bold tracking-tight">Başvurular</h2>
+          {companyCity && (
+            <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
+              <MapPin className="w-3 h-3" />{companyCity}
+            </p>
+          )}
         </div>
         <Button
           variant="outline"
@@ -406,31 +454,59 @@ export default function BasvurularPage({ companyId, adminName }) {
         </Button>
       </div>
 
-      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg" data-testid="app-type-tabs">
-        {TAB_CONFIG.map(tab => (
+      {/* Muhasebe-style tabs */}
+      <div className="relative mb-4">
+        {showLeftArrow && (
           <button
-            key={tab.key}
-            onClick={() => { setActiveTab(tab.key); setStatusFilter(""); setSearchTerm(""); }}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs sm:text-sm font-semibold transition-all ${
-              activeTab === tab.key
-                ? "bg-white dark:bg-slate-700 text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            data-testid={`tab-${tab.key}`}
+            onClick={() => scrollTabs("left")}
+            className="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white via-white to-transparent pr-4 pl-1 flex items-center md:hidden"
           >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <ChevronLeft className="w-5 h-5 text-slate-500" />
           </button>
-        ))}
+        )}
+
+        <div
+          ref={tabsContainerRef}
+          onScroll={checkScrollArrows}
+          className="overflow-x-auto scrollbar-hide scroll-smooth"
+        >
+          <div className="flex gap-1 border-b-2 border-slate-200 min-w-max">
+            {TAB_CONFIG.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key); setStatusFilter(""); setSearchTerm(""); }}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-[2px] whitespace-nowrap ${
+                  activeTab === tab.key
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-slate-50"
+                }`}
+                data-testid={`tab-${tab.key}`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {showRightArrow && (
+          <button
+            onClick={() => scrollTabs("right")}
+            className="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white via-white to-transparent pl-4 pr-1 flex items-center md:hidden"
+          >
+            <ChevronRight className="w-5 h-5 text-slate-500" />
+          </button>
+        )}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2">
+      {/* Search + Status filters */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            placeholder="Ad, telefon veya il ara..."
+            placeholder="Ad, telefon ara..."
             className="pl-9 border-2 text-sm"
             data-testid="search-applications-input"
           />
@@ -450,9 +526,7 @@ export default function BasvurularPage({ companyId, adminName }) {
               key={s.value}
               onClick={() => setStatusFilter(s.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap border-2 transition-all ${
-                statusFilter === s.value
-                  ? ""
-                  : "opacity-60 hover:opacity-100"
+                statusFilter === s.value ? "" : "opacity-60 hover:opacity-100"
               }`}
               style={{
                 borderColor: s.color,
@@ -467,36 +541,29 @@ export default function BasvurularPage({ companyId, adminName }) {
         </div>
       </div>
 
+      {/* Content */}
       {loading ? (
         <PageLoading />
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-            <FileText className="w-6 h-6 text-slate-400" />
-          </div>
-          <p className="text-sm font-semibold text-muted-foreground">
-            {searchTerm ? "Aramayla eşleşen başvuru bulunamadı" : "Henüz başvuru yok"}
-          </p>
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" data-testid="applications-grid">
-          {filtered.map(app => {
-            if (activeTab === "courier") return <CourierCard key={app.id} app={app} statuses={currentStatuses} onStatusClick={handleStatusClick} />;
-            if (activeTab === "restaurant") return <RestaurantCard key={app.id} app={app} statuses={currentStatuses} onStatusClick={handleStatusClick} />;
-            return <CompanyCard key={app.id} app={app} statuses={currentStatuses} onStatusClick={handleStatusClick} />;
-          })}
-        </div>
+        <>
+          <ApplicationTable
+            applications={filtered}
+            activeTab={activeTab}
+            statuses={currentStatuses}
+            adminName={adminName || "Admin"}
+            onSuccess={() => fetchApplications(false)}
+            searchTerm={searchTerm}
+          />
+          <ApplicationMobileCards
+            applications={filtered}
+            activeTab={activeTab}
+            statuses={currentStatuses}
+            adminName={adminName || "Admin"}
+            onSuccess={() => fetchApplications(false)}
+            searchTerm={searchTerm}
+          />
+        </>
       )}
-
-      <StatusUpdateModal
-        open={showStatusModal}
-        onOpenChange={setShowStatusModal}
-        application={selectedApp}
-        statuses={currentStatuses}
-        appType={activeTab}
-        adminName={adminName || "Admin"}
-        onSuccess={() => fetchApplications(false)}
-      />
     </div>
   );
 }
