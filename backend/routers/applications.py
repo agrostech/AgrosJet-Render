@@ -118,16 +118,14 @@ webhook_router = APIRouter(prefix="/api/webhook", tags=["Webhooks - Applications
 
 
 async def _create_basvuru_notification(app_type: str, application: dict, message: str):
-    """Başvuru bildirimi oluştur - ilgili şehirdeki tüm company'lere"""
+    """Başvuru bildirimi oluştur - sadece aynı şehirdeki company'lere"""
     province = application.get("province", "")
-    # İlgili şehirdeki company'leri bul
-    query = {}
-    if province:
-        query["city"] = {"$regex": f"^{province}$", "$options": "i"}
-    companies = await db.companies.find(query, {"_id": 0, "id": 1}).to_list(100)
-    if not companies:
-        # Hiç company bulunamazsa tüm company'lere gönder
-        companies = await db.companies.find({}, {"_id": 0, "id": 1}).to_list(100)
+    if not province:
+        return
+    companies = await db.companies.find(
+        {"city": {"$regex": f"^{province}$", "$options": "i"}},
+        {"_id": 0, "id": 1}
+    ).to_list(100)
     for comp in companies:
         await db.notifications.insert_one({
             "id": str(uuid.uuid4()),
